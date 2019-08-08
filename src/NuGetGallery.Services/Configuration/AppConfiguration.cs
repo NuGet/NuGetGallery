@@ -353,6 +353,8 @@ namespace NuGetGallery.Configuration
 
         public bool AsynchronousEmailServiceEnabled { get; set; }
 
+        public bool AsynchronousDeleteAccountServiceEnabled { get; set; }
+
         [DefaultValue(false)]
         public bool BlockLegacyLicenseUrl { get; set; }
 

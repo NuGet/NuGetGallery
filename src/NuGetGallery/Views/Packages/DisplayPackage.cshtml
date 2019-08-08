@@ -757,9 +757,7 @@
                         <img class="icon" aria-hidden="true" alt="GitHub logo"
                              src="@Url.Absolute("~/Content/gallery/img/github.svg")"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                        <a href="#show-github-usage" title="View the top dependent repositories" id="dependent-repos-link">
-                            Dependent repositories
-                        </a>
+                        <a href="#show-github-usage" title="View the top dependent repositories" id="dependent-repos-link">Dependent repositories</a>
                         (@(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())+)
                     </li>
                 }

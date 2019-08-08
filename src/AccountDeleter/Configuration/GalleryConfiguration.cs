@@ -103,7 +103,7 @@ namespace NuGetGallery.AccountDeleter
         public MailAddress GalleryOwner { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public MailAddress GalleryNoReplyAddress { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string SqlReadOnlyReplicaConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool IgnoreIconUrl { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool AsynchronousDeleteAccountServiceEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string EmbeddedIconUrlTemplate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

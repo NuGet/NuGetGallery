@@ -55,32 +55,22 @@ namespace NuGetGallery.AccountDeleter
             services.AddTransient<IAccountDeleteTelemetryService, AccountDeleteTelemetryService>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, AccountDeleteTelemetryService>();
 
-            services.AddScoped<AggregateEvaluator>();
             services.AddScoped<AlwaysRejectEvaluator>();
             services.AddScoped<AlwaysAllowEvaluator>();
-            services.AddScoped<UserPackageEvaluator>();
             services.AddScoped<AccountConfirmedEvaluator>();
+            services.AddScoped<NuGetDeleteEvaluator>();
 
             services.AddScoped<IUserEvaluator>(sp =>
             {
-                var evaluator = sp.GetRequiredService<AggregateEvaluator>();
-
                 if (IsDebugMode)
                 {
-                    var alwaysReject = sp.GetRequiredService<AlwaysRejectEvaluator>();
-                    var alwaysAllow = sp.GetRequiredService<AlwaysAllowEvaluator>();
-
-                    evaluator.AddEvaluator(alwaysReject);
-                    evaluator.AddEvaluator(alwaysAllow);
+                    return sp.GetRequiredService<AlwaysRejectEvaluator>();
                 }
                 else
                 {
                     // Configure evaluators here.
-                    var accountConfirmedEvaluator = sp.GetRequiredService<AccountConfirmedEvaluator>();
-                    evaluator.AddEvaluator(accountConfirmedEvaluator);
+                    return sp.GetRequiredService<NuGetDeleteEvaluator>();
                 }
-
-                return evaluator;
             });
 
             if (IsDebugMode)

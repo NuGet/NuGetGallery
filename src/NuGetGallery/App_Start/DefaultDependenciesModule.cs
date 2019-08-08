@@ -61,6 +61,10 @@ namespace NuGetGallery
     {
         public static class BindingKeys
         {
+            public const string AsyncDeleteAccountName = "AsyncDeleteAccountService";
+            public const string SyncDeleteAccountName = "SyncDeleteAccountService";
+
+            public const string AccountDeleterTopic = "AccountDeleterBindingKey";
             public const string PackageValidationTopic = "PackageValidationBindingKey";
             public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
             public const string PackageValidationEnqueuer = "PackageValidationEnqueuerBindingKey";
@@ -282,10 +286,7 @@ namespace NuGetGallery
                 .As<IPackageDeleteService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<DeleteAccountService>()
-                .AsSelf()
-                .As<IDeleteAccountService>()
-                .InstancePerLifetimeScope();
+            RegisterDeleteAccountService(builder, configuration);
 
             builder.RegisterType<PackageOwnerRequestService>()
                 .AsSelf()
@@ -470,6 +471,57 @@ namespace NuGetGallery
                 .As<IABTestService>();
         }
 
+        private static void RegisterDeleteAccountService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            if (configuration.Current.AsynchronousDeleteAccountServiceEnabled)
+            {
+                RegisterSwitchingDeleteAccountService(builder, configuration);
+            }
+            else
+            {
+                builder.RegisterType<DeleteAccountService>()
+                    .AsSelf()
+                    .As<IDeleteAccountService>()
+                    .InstancePerLifetimeScope();
+            }
+        }
+
+        private static void RegisterSwitchingDeleteAccountService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            var asyncAccountDeleteConnectionString = configuration.ServiceBus.AccountDeleter_ConnectionString;
+            var asyncAccountDeleteTopicName = configuration.ServiceBus.AccountDeleter_TopicName;
+
+            builder
+                .Register(c => new TopicClientWrapper(asyncAccountDeleteConnectionString, asyncAccountDeleteTopicName))
+                .SingleInstance()
+                .Keyed<ITopicClient>(BindingKeys.AccountDeleterTopic)
+                .OnRelease(x => x.Close());
+
+            builder
+                .RegisterType<AsynchronousDeleteAccountService>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
+                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>(BindingKeys.AccountDeleterTopic)));
+
+            builder.RegisterType<DeleteAccountService>();
+
+            builder.RegisterType<AccountDeleteMessageSerializer>()
+                .As<IBrokeredMessageSerializer<AccountDeleteMessage>>();
+
+            builder
+                .Register<IDeleteAccountService>(c =>
+                {
+                    var featureFlagService = c.Resolve<IFeatureFlagService>();
+                    if (featureFlagService.IsAsyncAccountDeleteEnabled())
+                    {
+                        return c.Resolve<AsynchronousDeleteAccountService>();
+                    }
+
+                    return c.Resolve<DeleteAccountService>();
+                })
+                .InstancePerLifetimeScope();
+        }
+
         private static void RegisterFeatureFlagsService(ContainerBuilder builder, ConfigurationService configuration)
         {
             builder
@@ -607,7 +659,7 @@ namespace NuGetGallery
         }
 
         private static void ConfigureGalleryReadOnlyReplicaEntitiesContext(ContainerBuilder builder,
-            IDiagnosticsService diagnostics, 
+            IDiagnosticsService diagnostics,
             ConfigurationService configuration,
             ISecretInjector secretInjector)
         {
@@ -623,7 +675,7 @@ namespace NuGetGallery
 
             builder.RegisterType<ReadOnlyEntityRepository<Package>>()
                 .As<IReadOnlyEntityRepository<Package>>()
-                .InstancePerLifetimeScope();   
+                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureValidationEntitiesContext(ContainerBuilder builder, IDiagnosticsService diagnostics,

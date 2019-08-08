@@ -63,6 +63,33 @@ namespace NuGetGallery
         }
 
         [BlobStorageFact]
+        public async Task AllowsDefaultRequestOptionsToBeSet()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var fileName = _prefixA;
+            await _targetA.SaveFileAsync(
+                folderName,
+                fileName,
+                new MemoryStream(new byte[1024 * 1024]),
+                overwrite: false);
+            var client = new CloudBlobClientWrapper(
+                _fixture.ConnectionStringA,
+                new BlobRequestOptions
+                {
+                    MaximumExecutionTime = TimeSpan.FromMilliseconds(1),
+                });
+            var container = client.GetContainerReference(folderName);
+            var file = container.GetBlobReference(fileName);
+            var destination = new MemoryStream();
+
+            // Act & Assert
+            // This should throw due to timeout.
+            var ex = await Assert.ThrowsAsync<StorageException>(() => file.DownloadToStreamAsync(destination));
+            Assert.Contains("timeout", ex.Message);
+        }
+
+        [BlobStorageFact]
         public async Task OpenWriteAsyncReturnsWritableStream()
         {
             // Arrange
