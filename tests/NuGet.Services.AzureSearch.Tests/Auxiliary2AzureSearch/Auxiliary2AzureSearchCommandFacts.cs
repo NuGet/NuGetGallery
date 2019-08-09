@@ -141,20 +141,23 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 Assert.Same(expected, actual);
             }
 
-            [Fact]
-            public async Task RejectsInvalidDataAndNormalizesVersions()
+            [Theory]
+            [InlineData(nameof(NewData))]
+            [InlineData(nameof(OldData))]
+            public async Task RejectsInvalidDataAndNormalizesVersions(string propertyName)
             {
-                NewData.SetDownloadCount("ValidId", "1.0.0-ValidVersion", 3);
-                NewData.SetDownloadCount("ValidId", "1.0.0.a-invalidversion", 5);
-                NewData.SetDownloadCount("ValidId", "1.0.0.0-NonNormalized", 7);
-                NewData.SetDownloadCount("Invalid--Id", "1.0.0-validversion", 11);
-                NewData.SetDownloadCount("Invalid--Id", "1.0.0.a-invalidversion", 13);
+                var downloadData = (DownloadData)GetType().GetProperty(propertyName).GetValue(this);
+                downloadData.SetDownloadCount("ValidId", "1.0.0-ValidVersion", 3);
+                downloadData.SetDownloadCount("ValidId", "1.0.0.a-invalidversion", 5);
+                downloadData.SetDownloadCount("ValidId", "1.0.0.0-NonNormalized", 7);
+                downloadData.SetDownloadCount("Invalid--Id", "1.0.0-validversion", 11);
+                downloadData.SetDownloadCount("Invalid--Id", "1.0.0.a-invalidversion", 13);
 
                 await Target.ExecuteAsync();
 
-                Assert.Equal(new[] { "ValidId" }, NewData.Keys.ToArray());
-                Assert.Equal(new[] { "1.0.0-NonNormalized", "1.0.0-ValidVersion" }, NewData["ValidId"].Keys.ToArray());
-                Assert.Equal(10, NewData.GetDownloadCount("ValidId"));
+                Assert.Equal(new[] { "ValidId" }, downloadData.Keys.ToArray());
+                Assert.Equal(new[] { "1.0.0-NonNormalized", "1.0.0-ValidVersion" }, downloadData["ValidId"].Keys.ToArray());
+                Assert.Equal(10, downloadData.GetDownloadCount("ValidId"));
                 Assert.Contains("There were 1 invalid IDs, 2 invalid versions, and 1 non-normalized IDs.", Logger.Messages);
             }
         }

@@ -90,6 +90,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 _logger.LogInformation("Fetching new download count data from blob storage.");
                 var newData = await _auxiliaryFileClient.LoadDownloadDataAsync();
 
+                _logger.LogInformation("Removing invalid IDs and versions from the old data.");
+                CleanDownloadData(oldResult.Result);
+
                 _logger.LogInformation("Removing invalid IDs and versions from the new data.");
                 CleanDownloadData(newData);
 
@@ -156,6 +159,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 // make the batch larger than the maximum batch size, push the index actions we have so far.
                 if (GetBatchSize(indexActionsToPush) + MaxDocumentsPerId > _options.Value.AzureSearchBatchSize)
                 {
+                    _logger.LogInformation(
+                        "Starting to push a batch. There are {IdCount} unprocessed IDs left to index and push.",
+                        idBag.Count);
                     await PushIndexActionsAsync(indexActionsToPush, timeSinceLastPush);
                 }
 
