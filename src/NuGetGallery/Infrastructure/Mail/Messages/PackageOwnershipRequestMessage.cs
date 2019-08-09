@@ -32,7 +32,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             PackageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
             RawConfirmationUrl = confirmationUrl ?? throw new ArgumentNullException(nameof(confirmationUrl));
             RawRejectionUrl = rejectionUrl ?? throw new ArgumentNullException(nameof(rejectionUrl));
-            HtmlEncodedMessage = htmlEncodedMessage ?? throw new ArgumentNullException(nameof(htmlEncodedMessage));
+            HtmlEncodedMessage = htmlEncodedMessage;
             PolicyMessage = policyMessage ?? throw new ArgumentNullException(nameof(policyMessage));
 
             _isToUserOrganization = ToUser is Organization;

@@ -22,12 +22,10 @@ $(function () {
     });
 
     function showModal() {
-        $(document).on('ready', function (e) {
-            $("#popUpModal").modal({
-                show: true,
-                focus: true
-            });
-        })
+        $("#popUpModal").modal({
+            show: true,
+            focus: true
+        });
     };
 
     function updateStats() {
