@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -51,6 +52,8 @@ namespace NuGetGallery
 
         public IDeleteAccountService DeleteAccountService { get; }
 
+        private readonly DeleteAccountListPackageItemViewModelFactory _deleteAccountListPackageItemViewModelFactory;
+
         public AccountsController(
             AuthenticationService authenticationService,
             IPackageService packageService,
@@ -73,6 +76,8 @@ namespace NuGetGallery
             ContentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             MessageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
             DeleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
+
+            _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService);
         }
 
         public abstract string AccountAction { get; }
@@ -364,9 +369,26 @@ namespace NuGetGallery
 
         protected abstract string GetDeleteAccountViewName();
 
-        protected abstract DeleteAccountViewModel<TUser> GetDeleteAccountViewModel(TUser account);
+        protected abstract DeleteAccountViewModel GetDeleteAccountViewModel(TUser account);
 
         public abstract Task<ActionResult> RequestAccountDeletion(string accountName = null);
+
+        protected List<DeleteAccountListPackageItemViewModel> GetOwnedPackagesViewModels(User account)
+        {
+            return PackageService
+                 .FindPackagesByAnyMatchingOwner(account, includeUnlisted: true)
+                 .Select(p => CreateDeleteAccountListPackageItemViewModel(p, account, GetCurrentUser()))
+                 .ToList();
+        }
+
+        private DeleteAccountListPackageItemViewModel CreateDeleteAccountListPackageItemViewModel(
+            Package package,
+            User userToDelete,
+            User currentUser)
+        {
+            return _deleteAccountListPackageItemViewModelFactory.Create(package, userToDelete, currentUser);
+        }
+
 
         protected virtual TUser GetAccount(string accountName)
         {

@@ -3,11 +3,11 @@
 
 using NuGet.Services.ServiceBus;
 
-namespace NuGetGallery.AccountDeleter
+namespace NuGetGallery
 {
     public class AccountDeleteMessageSerializer : IBrokeredMessageSerializer<AccountDeleteMessage>
     {
-        private const string AccountDeleteMessageSchemaName = "AccountDeleteMessageData";
+        public const string AccountDeleteMessageDataSchema = nameof(AccountDeleteMessageData);
 
         private IBrokeredMessageSerializer<AccountDeleteMessageData> _serializer = new BrokeredMessageSerializer<AccountDeleteMessageData>();
 
@@ -29,11 +29,13 @@ namespace NuGetGallery.AccountDeleter
             });
         }
 
-        [Schema(Name = AccountDeleteMessageSchemaName, Version = 1)]
+        [Schema(Name = AccountDeleteMessageDataSchema, Version = 1)]
         private struct AccountDeleteMessageData
         {
             public string Username { get; set; }
 
+            // This defines the origin of the outgoing message.
+            // This source must be defined in the AccountDeleter configuration, or it will refuse to process the message.
             public string Source { get; set; }
         }
     }

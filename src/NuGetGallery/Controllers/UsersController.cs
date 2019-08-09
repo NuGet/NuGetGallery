@@ -30,6 +30,8 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly ListPackageItemRequiredSignerViewModelFactory _listPackageItemRequiredSignerViewModelFactory;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
         public UsersController(
             IUserService userService,
@@ -62,6 +64,9 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+
+            _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
         }
 
         public override string AccountAction => nameof(Account);
@@ -106,9 +111,9 @@ namespace NuGetGallery
 
         protected override string GetDeleteAccountViewName() => "DeleteUserAccount";
 
-        protected override DeleteAccountViewModel<User> GetDeleteAccountViewModel(User account)
+        protected override DeleteAccountViewModel GetDeleteAccountViewModel(User account)
         {
-            return new DeleteUserViewModel(account, GetCurrentUser(), PackageService, _supportRequestService);
+            return new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), _supportRequestService);
         }
 
         [HttpGet]
@@ -435,12 +440,12 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed && p.PackageStatusKey == PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
+                .Select(p => _listPackageItemRequiredSignerViewModelFactory.Create(p, currentUser, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed || p.PackageStatusKey != PackageStatus.Available)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
+                .Select(p => _listPackageItemRequiredSignerViewModelFactory.Create(p, currentUser, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
 
@@ -613,9 +618,11 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new ListPackageItemViewModel(p, currentUser)
+                .Select(p => 
                 {
-                    DownloadCount = p.PackageRegistration.DownloadCount
+                    var viewModel = _listPackageItemViewModelFactory.Create(p, currentUser);
+                    viewModel.DownloadCount = p.PackageRegistration.DownloadCount;
+                    return viewModel;
                 }).ToList();
 
             var model = new UserProfileModel(user, currentUser, packages, page - 1, GalleryConstants.DefaultPackageListPageSize, Url);

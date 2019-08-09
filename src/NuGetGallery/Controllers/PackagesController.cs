@@ -114,6 +114,11 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IABTestService _abTestService;
+        private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
+        private readonly DisplayLicenseViewModelFactory _displayLicenseViewModelFactory;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+        private readonly ManagePackageViewModelFactory _managePackageViewModelFactory;
+        private readonly DeletePackageViewModelFactory _deletePackageViewModelFactory;
 
         public PackagesController(
             IPackageService packageService,
@@ -177,6 +182,12 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
+
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory();
+            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
+            _managePackageViewModelFactory = new ManagePackageViewModelFactory();
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory();
         }
 
         [HttpGet]
@@ -750,7 +761,7 @@ namespace NuGetGallery
             }
 
             var deprecation = _deprecationService.GetDeprecationByPackage(package);
-            var model = new DisplayPackageViewModel(package, currentUser, deprecation);
+            var model = _displayPackageViewModelFactory.Create(package, currentUser, deprecation, await _readMeService.GetReadMeHtmlAsync(package));
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -763,8 +774,6 @@ namespace NuGetGallery
             {
                 model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
             }
-
-            model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
             if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
             {
@@ -956,7 +965,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = new DisplayLicenseViewModel(package, licenseExpressionSegments, licenseFileContents);
+            var model = _displayLicenseViewModelFactory.Create(package, licenseExpressionSegments, licenseFileContents);
 
             return View(model);
         }
@@ -1040,9 +1049,13 @@ namespace NuGetGallery
                 totalHits = 0;
             }
 
+            var currentUser = GetCurrentUser();
+            var items = results.Data
+                .Select(pv => _listPackageItemViewModelFactory.Create(pv, currentUser))
+                .ToList();
+
             var viewModel = new PackageListViewModel(
-                results.Data,
-                GetCurrentUser(),
+                items,
                 results.IndexTimestampUtc,
                 q,
                 totalHits,
@@ -1497,7 +1510,7 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
-            var model = new ManagePackageViewModel(
+            var model = _managePackageViewModelFactory.Create(
                 package,
                 GetCurrentUser(),
                 ReportMyPackageReasons,
@@ -1546,7 +1559,7 @@ namespace NuGetGallery
                 return HttpForbidden();
             }
 
-            var model = new DeletePackageViewModel(package, currentUser, DeleteReasons);
+            var model = _deletePackageViewModelFactory.Create(package, currentUser, DeleteReasons);
 
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages
@@ -1560,7 +1573,7 @@ namespace NuGetGallery
                     Text = PackageHelper.GetSelectListText(versionWithSymbols),
                     Value = Url.DeleteSymbolsPackage(new TrivialPackageVersionModel(versionWithSymbols)),
                     Selected = package == versionWithSymbols
-                });
+                }).ToList();
 
             return View(model);
         }

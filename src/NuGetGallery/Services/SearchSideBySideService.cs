@@ -18,6 +18,7 @@ namespace NuGetGallery
         private readonly ITelemetryService _telemetryService;
         private readonly IMessageService _messageService;
         private readonly IMessageServiceConfiguration _messageServiceConfiguration;
+        private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
         public SearchSideBySideService(
             ISearchService oldSearchService,
@@ -31,6 +32,8 @@ namespace NuGetGallery
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
+
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
         }
 
         public async Task<SearchSideBySideViewModel> SearchAsync(string searchTerm, User currentUser)
@@ -53,10 +56,10 @@ namespace NuGetGallery
                     SearchTerm = searchTerm,
                     OldSuccess = SearchResults.IsSuccessful(oldResults),
                     OldHits = oldResults.Hits,
-                    OldItems = oldResults.Data.Select(x => new ListPackageItemViewModel(x, currentUser)).ToList(),
+                    OldItems = oldResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser)).ToList(),
                     NewSuccess = SearchResults.IsSuccessful(newResults),
                     NewHits = newResults.Hits,
-                    NewItems = newResults.Data.Select(x => new ListPackageItemViewModel(x, currentUser)).ToList(),
+                    NewItems = newResults.Data.Select(x => _listPackageItemViewModelFactory.Create(x, currentUser)).ToList(),
                 };
 
                 _telemetryService.TrackSearchSideBySide(

@@ -37,13 +37,7 @@
             </h1>
         </div>
         <div class="cell-controls">
-            <form action="@Url.PackageList()" method="get">
-                @Html.Hidden("q", Model.SearchTerm, new { id = "search-term" })
-                <label>
-                    <input type="checkbox" id="include-prerelease" @(Model.IncludePrerelease ? "checked" : string.Empty) />
-                    Include prerelease
-                </label>
-            </form>
+            <a href="?q=@Model.SearchTerm@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
         </div>
     </div>
 
@@ -109,27 +103,6 @@
         }
 
         $(function () {
-            $("#include-prerelease").on('change', function () {
-                var parameters = {};
-                var q = $('#search-term').val();
-                if (q) {
-                    parameters.q = q;
-                }
-                if (!$("#include-prerelease").is(':checked')) {
-                    parameters.prerel = 'false'
-                }
-                var queryString = $.param(parameters);
-                var url = [
-                    location.protocol,
-                    '//',
-                    location.host,
-                    location.pathname,
-                    queryString ? '?' : '',
-                    queryString
-                ].join('');
-                window.location.href = url;
-            });
-
             var emitAiClickEvent = function () {
                 if (!window.nuget.isAiAvailable()) {
                     return;

@@ -10,7 +10,7 @@
     <copyright>Copyright Microsoft corp.</copyright>
   </metadata>
   <files>
-    <file src="bin\$configuration$\*.*" target="bin"/>
+    <file src="bin\$configuration$\**\*.*" target="bin"/>
 
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\PreDeploy.ps1" />

@@ -54,7 +54,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
         {
             lock (UniqueLock)
             {
-                return $"NuGetFunctionalTest_{DateTimeOffset.UtcNow.Ticks}";
+                return $"NuGetFunctionalTest_{Guid.NewGuid():N}";
             }
         }
 

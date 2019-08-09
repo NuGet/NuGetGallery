@@ -691,6 +691,10 @@ img.reserved-indicator-icon {
   color: #a94442;
   font-weight: bold;
 }
+.page-add-organization .owner-image {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
 .page-api-keys .example-commands {
   background-color: #002440;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;

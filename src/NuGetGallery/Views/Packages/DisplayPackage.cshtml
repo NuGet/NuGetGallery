@@ -249,7 +249,7 @@
                         </ul>
                         @if (!Model.PackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
                         {
-                            var issuePluralString = Model.PackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
+                            var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
                             <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
                         }
                         else
@@ -572,7 +572,7 @@
                 </a>
             </h2>
             <div class="version-history panel-collapse collapse in" aria-expanded="true" id="version-history">
-                <table class="table borderless">
+                <table aria-label="Version History of @Model.Id" class="table borderless">
                     <thead>
                         <tr>
                             <th>Version</th>
@@ -582,7 +582,8 @@
                             {
                                 <th>Status</th>
                             }
-                            <th colspan="2"></th>
+                            <th aria-label="Signature Information"></th>
+                            <th aria-label="Deprecation Information"></th>
                         </tr>
                     </thead>
                     <tbody class="no-border">
@@ -756,9 +757,7 @@
                         <img class="icon" aria-hidden="true" alt="GitHub logo"
                              src="@Url.Absolute("~/Content/gallery/img/github.svg")"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                        <a href="#show-github-usage" title="View the top dependent repositories" id="dependent-repos-link">
-                            Dependent repositories
-                        </a>
+                        <a href="#show-github-usage" title="View the top dependent repositories" id="dependent-repos-link">Dependent repositories</a>
                         (@(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())+)
                     </li>
                 }
@@ -931,9 +930,9 @@ foreach (var owner in Model.Owners)
             <li>
                 @if (!String.IsNullOrEmpty(owner.EmailAddress))
     {
-            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
+            <a href="@Url.User(owner.Username)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
 }
-                <a href="@Url.User(owner)" title="@owner.Username">
+                <a href="@Url.User(owner.Username)" title="@owner.Username">
                     @owner.Username
                 </a>
             </li>

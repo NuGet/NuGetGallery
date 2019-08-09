@@ -15,9 +15,10 @@ namespace NuGetGallery.ViewModels
             var package = new Package()
             {
                 Version = "01.02.00.00",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 NormalizedVersion = "1.3.0" // Different just to prove the View Model is using the DB column.
             };
-            var packageViewModel = new PackageViewModel(package);
+            var packageViewModel = new PackageViewModelFactory().Create(package);
             Assert.Equal("1.3.0", packageViewModel.Version);
         }
 
@@ -26,9 +27,10 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package()
             {
-                Version = "01.02.00.00"
+                Version = "01.02.00.00",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
             };
-            var packageViewModel = new PackageViewModel(package);
+            var packageViewModel = new PackageViewModelFactory().Create(package);
             Assert.Equal("1.2.0", packageViewModel.Version);
         }
 
@@ -47,12 +49,13 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 PackageStatusKey = packageStatus,
                 Listed = isListed
             };
 
             // Act 
-            var packageViewModel = new PackageViewModel(package);
+            var packageViewModel = new PackageViewModelFactory().Create(package);
 
             // Assert
             Assert.Equal(expected, packageViewModel.PackageStatusSummary);
@@ -65,14 +68,12 @@ namespace NuGetGallery.ViewModels
             var package = new Package
             {
                 Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 PackageStatusKey = (PackageStatus)4,
             };
 
-            // Act 
-            var packageViewModel = new PackageViewModel(package);
-
-            // Assert
-            Assert.Throws<ArgumentOutOfRangeException>(() => packageViewModel.PackageStatusSummary);
+            // Act & Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => new PackageViewModelFactory().Create(package));
         }
     }
 }

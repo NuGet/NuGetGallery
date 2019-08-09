@@ -128,7 +128,6 @@
     <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />
-    <Compile Include="App_Start\RuntimeServiceProvider.cs" />
     <Compile Include="App_Start\StorageDependent.cs" />
     <Compile Include="App_Start\SessionPersistence.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
@@ -140,6 +139,7 @@
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
+    <Compile Include="Areas\Admin\Controllers\SiteAdminsController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
@@ -185,6 +185,7 @@
     <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\SiteAdminsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidatedPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
@@ -207,6 +208,14 @@
     <Compile Include="Controllers\ExperimentsController.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DisplayLicenseViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\DisplayPackageViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ListPackageItemRequiredSignerViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ListPackageItemViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\ManagePackageViewModelFactory.cs" />
+    <Compile Include="Helpers\ViewModelExtensions\PackageViewModelFactory.cs" />
     <Compile Include="Infrastructure\ABTestEnrollment.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentState.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />
@@ -423,9 +432,7 @@
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
-    <Compile Include="Services\FeatureFlagService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
-    <Compile Include="Services\IFeatureFlagService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\ISearchSideBySideService.cs" />
@@ -647,6 +654,7 @@
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
+    <Compile Include="ViewModels\BasicUserViewModel.cs" />
     <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
     <Compile Include="WebRole.cs" />
@@ -1765,6 +1773,7 @@
     <Content Include="Areas\Admin\Views\Features\_AddFlight.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_EditFlight.cshtml" />
     <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
+    <Content Include="Areas\Admin\Views\SiteAdmins\Index.cshtml" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\gallery\autocomplete.js" />
@@ -2040,7 +2049,7 @@
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.52.0</Version>
+      <Version>2.53.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2237,13 +2246,13 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.52.0</Version>
+      <Version>2.53.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.52.0</Version>
+      <Version>2.53.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.52.0</Version>
+      <Version>2.53.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
