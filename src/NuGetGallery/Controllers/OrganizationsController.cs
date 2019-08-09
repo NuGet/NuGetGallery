@@ -30,6 +30,7 @@ namespace NuGetGallery
             IPackageService packageService,
             IDeleteAccountService deleteAccountService,
             IContentObjectService contentObjectService,
+            IFeatureFlagService featureFlagService,
             IMessageServiceConfiguration messageServiceConfiguration)
             : base(
                   authService,
@@ -40,6 +41,7 @@ namespace NuGetGallery
                   securityPolicyService,
                   certificateService,
                   contentObjectService,
+                  featureFlagService,
                   messageServiceConfiguration,
                   deleteAccountService)
         {

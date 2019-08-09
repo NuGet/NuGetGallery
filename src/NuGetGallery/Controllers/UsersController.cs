@@ -47,6 +47,7 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
+            IFeatureFlagService featureFlagService,
             IMessageServiceConfiguration messageServiceConfiguration)
             : base(
                   authService,
@@ -57,6 +58,7 @@ namespace NuGetGallery
                   securityPolicyService,
                   certificateService,
                   contentObjectService,
+                  featureFlagService,
                   messageServiceConfiguration,
                   deleteAccountService)
         {
@@ -334,33 +336,55 @@ namespace NuGetGallery
             }
             TelemetryService.TrackRequestForAccountDeletion(user);
 
-            if (!user.Confirmed)
+            if (FeatureFlagService.IsSelfServiceAccountDeleteEnabled())
             {
-                // Unconfirmed users can be deleted immediately without creating a support request.
-                DeleteAccountStatus accountDeleteStatus = await DeleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
-                    userToExecuteTheDelete: user,
-                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
-                if (!accountDeleteStatus.Success)
-                {
-                    TempData["RequestFailedMessage"] = Strings.AccountSelfDelete_Fail;
-                    return RedirectToAction("DeleteRequest");
-                }
-                OwinContext.Authentication.SignOut();
-                return SafeRedirect(Url.Home(false));
+                return await CreateSupportRequestAndTakeAction(user, () => DeleteAndCheckSuccess(user));
             }
+            else
+            {
+                if (!user.Confirmed)
+                {
+                    // Unconfirmed users can be deleted immediately without creating a support request.
+                    return await DeleteAndCheckSuccess(user);
+                }
 
+                return await CreateSupportRequestAndTakeAction(user, async () =>
+                {
+                    var emailMessage = new AccountDeleteNoticeMessage(MessageServiceConfiguration, user);
+                    await MessageService.SendMessageAsync(emailMessage);
+
+                    return RedirectToAction(nameof(DeleteRequest));
+                });
+            }
+        }
+
+        private async Task<ActionResult> DeleteAndCheckSuccess(User user)
+        {
+            DeleteAccountStatus accountDeleteStatus = await DeleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
+                        userToExecuteTheDelete: user,
+                        orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
+            if (!accountDeleteStatus.Success)
+            {
+                TempData["RequestFailedMessage"] = Strings.AccountSelfDelete_Fail;
+                return RedirectToAction("DeleteRequest");
+            }
+            OwinContext.Authentication.SignOut();
+            return SafeRedirect(Url.Home(false));
+        }
+
+        private async Task<ActionResult> CreateSupportRequestAndTakeAction(User user, Func<Task<ActionResult>> func)
+        {
             var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
             if (isSupportRequestCreated)
             {
-                var emailMessage = new AccountDeleteNoticeMessage(MessageServiceConfiguration, user);
-                await MessageService.SendMessageAsync(emailMessage);
+                return await func();
             }
             else
             {
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
-            }
 
-            return RedirectToAction(nameof(DeleteRequest));
+                return RedirectToAction(nameof(DeleteRequest));
+            }
         }
 
         [HttpGet]
@@ -618,7 +642,7 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => 
+                .Select(p =>
                 {
                     var viewModel = _listPackageItemViewModelFactory.Create(p, currentUser);
                     viewModel.DownloadCount = p.PackageRegistration.DownloadCount;

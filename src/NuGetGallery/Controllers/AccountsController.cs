@@ -48,6 +48,8 @@ namespace NuGetGallery
 
         public IContentObjectService ContentObjectService { get; }
 
+        public IFeatureFlagService FeatureFlagService { get; }
+
         public IMessageServiceConfiguration MessageServiceConfiguration { get; }
 
         public IDeleteAccountService DeleteAccountService { get; }
@@ -63,6 +65,7 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
+            IFeatureFlagService featureFlagService,
             IMessageServiceConfiguration messageServiceConfiguration,
             IDeleteAccountService deleteAccountService)
         {
@@ -74,6 +77,7 @@ namespace NuGetGallery
             SecurityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             CertificateService = certificateService ?? throw new ArgumentNullException(nameof(certificateService));
             ContentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            FeatureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             MessageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
             DeleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
 
