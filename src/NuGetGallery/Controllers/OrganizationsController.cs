@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
@@ -31,6 +33,7 @@ namespace NuGetGallery
             IDeleteAccountService deleteAccountService,
             IContentObjectService contentObjectService,
             IFeatureFlagService featureFlagService,
+            ISupportRequestService supportRequestService,
             IMessageServiceConfiguration messageServiceConfiguration)
             : base(
                   authService,
@@ -42,6 +45,7 @@ namespace NuGetGallery
                   certificateService,
                   contentObjectService,
                   featureFlagService,
+                  supportRequestService,
                   messageServiceConfiguration,
                   deleteAccountService)
         {
@@ -369,11 +373,30 @@ namespace NuGetGallery
                 return RedirectToAction(nameof(DeleteRequest));
             }
 
-            var result = await DeleteAccountService.DeleteAccountAsync(account, currentUser);
+            DeleteAccountStatus result;
+            string successMessage;
+            if (FeatureFlagService.IsAsyncAccountDeleteEnabled())
+            {
+                var isSupportRequestCreated = await SupportRequestService.TryAddDeleteSupportRequestAsync(account);
+                if (!isSupportRequestCreated)
+                {
+                    TempData["ErrorMessage"] = $"There was an issue deleting your organization '{accountName}'. Please contact support for assistance.";
+
+                    return RedirectToAction(nameof(DeleteRequest));
+                }
+
+                successMessage = $"Your organization, '{accountName}', was queued to be deleted!";
+            }
+            else
+            {
+                successMessage = $"Your organization, '{accountName}', was successfully deleted!";
+            }
+
+            result = await DeleteAccountService.DeleteAccountAsync(account, currentUser);
 
             if (result.Success)
             {
-                TempData["Message"] = $"Your organization, '{accountName}', was successfully deleted!";
+                TempData["Message"] = successMessage;
 
                 return RedirectToAction("Organizations", "Users");
             }

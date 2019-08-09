@@ -29,7 +29,6 @@ namespace NuGetGallery
         private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IAppConfiguration _config;
         private readonly ICredentialBuilder _credentialBuilder;
-        private readonly ISupportRequestService _supportRequestService;
         private readonly ListPackageItemRequiredSignerViewModelFactory _listPackageItemRequiredSignerViewModelFactory;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
@@ -59,13 +58,13 @@ namespace NuGetGallery
                   certificateService,
                   contentObjectService,
                   featureFlagService,
+                  supportRequestService,
                   messageServiceConfiguration,
                   deleteAccountService)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
-            _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
@@ -115,7 +114,7 @@ namespace NuGetGallery
 
         protected override DeleteAccountViewModel GetDeleteAccountViewModel(User account)
         {
-            return new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), _supportRequestService);
+            return new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), SupportRequestService);
         }
 
         [HttpGet]
@@ -374,7 +373,7 @@ namespace NuGetGallery
 
         private async Task<ActionResult> CreateSupportRequestAndTakeAction(User user, Func<Task<ActionResult>> func)
         {
-            var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
+            var isSupportRequestCreated = await SupportRequestService.TryAddDeleteSupportRequestAsync(user);
             if (isSupportRequestCreated)
             {
                 return await func();
