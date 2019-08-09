@@ -43,8 +43,10 @@ namespace NuGetGallery
             ServicePointManager.UseNagleAlgorithm = false;
             ServicePointManager.Expect100Continue = false;
 
-            // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
+            // Ensure that SSLv3 is disabled and that TLS v1.2 is the minimum TLS version.
             ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
+            ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Tls;
+            ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Tls11;
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
             // Setting time out for all RegEx objects. Noted in remarks at https://msdn.microsoft.com/en-us/library/system.text.regularexpressions.regex.matchtimeout%28v=vs.110%29.aspx
