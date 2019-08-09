@@ -77,7 +77,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
 
             await Task.WhenAll(uploadedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version, listed: true)));
-            await CheckPackageTimestampsInOrder(uploadedPackageIds, "Created", uploadStartTimestamp);
+            await CheckPackageTimestampsInOrder(uploadedPackageIds, "Created", uploadStartTimestamp, version);
 
             // Unlist the packages in order.
             var unlistedPackageIds = new List<string>();
@@ -89,7 +89,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
 
             await Task.WhenAll(unlistedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version, listed: false)));
-            await CheckPackageTimestampsInOrder(unlistedPackageIds, "LastEdited", unlistStartTimestamp);
+            await CheckPackageTimestampsInOrder(unlistedPackageIds, "LastEdited", unlistStartTimestamp, version);
         }
 
         private static string GetPackagesAppearInFeedInOrderUrl(DateTime time, string timestamp)
