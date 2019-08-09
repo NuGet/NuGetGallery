@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -44,7 +45,42 @@ namespace NuGetGallery.Services
                 Assert.NotNull(message);
                 var messageData = messageSerializer.Deserialize(message);
                 Assert.Equal(username, messageData.Username);
-                Assert.Equal("Gallery", messageData.Source);
+                Assert.Equal("GalleryUser", messageData.Source);
+            }
+
+            [Fact]
+            public async Task DeleteUserAdminEnqueuesAdminSource()
+            {
+                var username = "test";
+                // Arrange
+                var testUser = new User()
+                {
+                    Username = username
+                };
+
+                var testAdmin = new User()
+                {
+                    Roles = new List<Role>() { new Role() { Name = "Admins" } }
+                };
+
+                var testService = new TestAsynchronousDeleteAccountService(shouldFail: false);
+                testService.SetupSimple();
+                var deleteAccountService = testService.GetTestService();
+                var messageSerializer = new AccountDeleteMessageSerializer();
+
+                // Act
+                var result = await deleteAccountService.DeleteAccountAsync(testUser, testAdmin, AccountDeletionOrphanPackagePolicy.UnlistOrphans);
+
+                // Assert
+                Assert.Equal(1, testService.TopicClient.SendAsyncCallCount);
+                Assert.True(result.Success);
+                Assert.Equal(string.Format(ServicesStrings.AsyncAccountDelete_Success, username), result.Description);
+
+                var message = testService.TopicClient.LastSentMessage;
+                Assert.NotNull(message);
+                var messageData = messageSerializer.Deserialize(message);
+                Assert.Equal(username, messageData.Username);
+                Assert.Equal("GalleryAdmin", messageData.Source);
             }
 
             [Fact]

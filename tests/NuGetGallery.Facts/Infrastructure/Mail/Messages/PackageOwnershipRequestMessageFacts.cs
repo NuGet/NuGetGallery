@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
@@ -24,7 +25,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                     yield return new object[] { Configuration, Fakes.RequestingUser, Fakes.OrganizationAdmin, Fakes.Package.PackageRegistration, null, Fakes.ConfirmationUrl, Fakes.CancellationUrl, "message", "policy message" };
                     yield return new object[] { Configuration, Fakes.RequestingUser, Fakes.OrganizationAdmin, Fakes.Package.PackageRegistration, Fakes.PackageUrl, null, Fakes.CancellationUrl, "message", "policy message" };
                     yield return new object[] { Configuration, Fakes.RequestingUser, Fakes.OrganizationAdmin, Fakes.Package.PackageRegistration, Fakes.PackageUrl, Fakes.ConfirmationUrl, null, "message", "policy message" };
-                    yield return new object[] { Configuration, Fakes.RequestingUser, Fakes.OrganizationAdmin, Fakes.Package.PackageRegistration, Fakes.PackageUrl, Fakes.ConfirmationUrl, Fakes.CancellationUrl, null, "policy message" };
                     yield return new object[] { Configuration, Fakes.RequestingUser, Fakes.OrganizationAdmin, Fakes.Package.PackageRegistration, Fakes.PackageUrl, Fakes.ConfirmationUrl, Fakes.CancellationUrl, "message", null };
                 }
             }
@@ -57,8 +57,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public class TheGetRecipientsMethod
         {
-            [Fact]
-            public void AddsOwnersWithPermissionToToList()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void AddsOwnersWithPermissionToToList(bool hasMessage)
             {
                 var organizationAdmin = new User("organizationAdmin")
                 {
@@ -78,35 +80,41 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 };
                 organization.Members.Add(membership);
 
-                var message = CreateMessage(organization, isToUserOrganization: true);
+                var message = CreateMessage(hasMessage, organization, isToUserOrganization: true);
                 var recipients = message.GetRecipients();
 
                 Assert.Equal(1, recipients.To.Count);
                 Assert.Contains(organizationAdmin.ToMailAddress(), recipients.To);
             }
 
-            [Fact]
-            public void HasEmptyCCList()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void HasEmptyCCList(bool hasMessage)
             {
-                var message = CreateMessage();
+                var message = CreateMessage(hasMessage);
                 var recipients = message.GetRecipients();
 
                 Assert.Empty(recipients.CC);
             }
 
-            [Fact]
-            public void HasEmptyBccList()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void HasEmptyBccList(bool hasMessage)
             {
-                var message = CreateMessage();
+                var message = CreateMessage(hasMessage);
                 var recipients = message.GetRecipients();
 
                 Assert.Empty(recipients.Bcc);
             }
 
-            [Fact]
-            public void AddsFromUserMailAddressToReplyToList()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void AddsFromUserMailAddressToReplyToList(bool hasMessage)
             {
-                var message = CreateMessage();
+                var message = CreateMessage(hasMessage);
                 var recipients = message.GetRecipients();
 
                 Assert.Equal(1, recipients.ReplyTo.Count);
@@ -116,31 +124,45 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public class TheGetBodyMethod
         {
-            [Theory]
-            [InlineData(EmailFormat.Markdown, _expectedMarkdownMessageForUser, false)]
-            [InlineData(EmailFormat.PlainText, _expectedPlainTextMessageForUser, false)]
-            [InlineData(EmailFormat.Html, _expectedHtmlBodyForUser, false)]
-            [InlineData(EmailFormat.Markdown, _expectedMarkdownMessageForOrganization, true)]
-            [InlineData(EmailFormat.PlainText, _expectedPlainTextMessageForOrganization, true)]
-            [InlineData(EmailFormat.Html, _expectedHtmlBodyForOrganization, true)]
-            public void ReturnsExpectedBody(EmailFormat format, string expectedString, bool isToUserOrganization)
+            public static IEnumerable<object[]> ReturnsExpectedBody_Data
             {
-                var message = CreateMessage(isToUserOrganization: isToUserOrganization);
+                get
+                {
+                    foreach (var hasMessage in new[] { false, true })
+                    {
+                        yield return MemberDataHelper.AsData(EmailFormat.Markdown, GetExpectedMarkdownMessageForUser(hasMessage), hasMessage, false);
+                        yield return MemberDataHelper.AsData(EmailFormat.PlainText, GetExpectedPlainTextMessageForUser(hasMessage), hasMessage, false);
+                        yield return MemberDataHelper.AsData(EmailFormat.Html, GetExpectedHtmlBodyForUser(hasMessage), hasMessage, false);
+                        yield return MemberDataHelper.AsData(EmailFormat.Markdown, GetExpectedMarkdownMessageForOrganization(hasMessage), hasMessage, true);
+                        yield return MemberDataHelper.AsData(EmailFormat.PlainText, GetExpectedPlainTextMessageForOrganization(hasMessage), hasMessage, true);
+                        yield return MemberDataHelper.AsData(EmailFormat.Html, GetExpectedHtmlBodyForOrganization(hasMessage), hasMessage, true);
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(ReturnsExpectedBody_Data))]
+            public void ReturnsExpectedBody(EmailFormat format, string expectedString, bool hasMessage, bool isToUserOrganization)
+            {
+                var message = CreateMessage(hasMessage, isToUserOrganization: isToUserOrganization);
 
                 var body = message.GetBody(format);
                 Assert.Equal(expectedString, body);
             }
         }
 
-        [Fact]
-        public void SetsGalleryNoReplyAddressAsSender()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void SetsGalleryNoReplyAddressAsSender(bool hasMessage)
         {
-            var message = CreateMessage();
+            var message = CreateMessage(hasMessage);
 
             Assert.Equal(Configuration.GalleryNoReplyAddress, message.Sender);
         }
 
         private static PackageOwnershipRequestMessage CreateMessage(
+            bool hasMessage,
             Organization organization = null,
             bool isToUserOrganization = false)
         {
@@ -161,18 +183,19 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 Fakes.PackageUrl,
                 Fakes.ConfirmationUrl,
                 Fakes.CancellationUrl,
-                "html encoded message",
+                hasMessage ? "html encoded message" : null,
                 "policy message");
         }
 
-        private const string _expectedMarkdownMessageForUser =
-            @"The user 'requestingUser' would like to add you as an owner of the package ['PackageId'](packageUrl).
+        private static string GetExpectedMarkdownMessageForUser(bool hasMessage)
+        {
+            return $@"The user 'requestingUser' would like to add you as an owner of the package ['PackageId'](packageUrl).
 
 policy message
-
+{ (hasMessage ? @"
 The user 'requestingUser' added the following message for you:
 
-'html encoded message'
+'html encoded message'" : "") }
 
 To accept this request and become a listed owner of the package:
 
@@ -184,14 +207,17 @@ To decline:
 
 Thanks,
 The NuGetGallery Team";
-        private const string _expectedPlainTextMessageForUser =
-            @"The user 'requestingUser' would like to add you as an owner of the package 'PackageId' (packageUrl).
+        }
 
-policy message
+        private static string GetExpectedPlainTextMessageForUser(bool hasMessage)
+        {
+            return $@"The user 'requestingUser' would like to add you as an owner of the package 'PackageId' (packageUrl).
+
+policy message{ (hasMessage ? @"
 
 The user 'requestingUser' added the following message for you:
 
-'html encoded message'
+'html encoded message'" : "") }
 
 To accept this request and become a listed owner of the package:
 
@@ -203,15 +229,17 @@ cancellationUrl
 
 Thanks,
 The NuGetGallery Team";
+        }
 
-        private const string _expectedMarkdownMessageForOrganization =
-            @"The user 'requestingUser' would like to add your organization as an owner of the package ['PackageId'](packageUrl).
+        private static string GetExpectedMarkdownMessageForOrganization(bool hasMessage)
+        {
+            return $@"The user 'requestingUser' would like to add your organization as an owner of the package ['PackageId'](packageUrl).
 
 policy message
-
+{ (hasMessage ? @"
 The user 'requestingUser' added the following message for you:
 
-'html encoded message'
+'html encoded message'" : "") }
 
 To accept this request and make your organization a listed owner of the package:
 
@@ -223,14 +251,17 @@ To decline:
 
 Thanks,
 The NuGetGallery Team";
-        private const string _expectedPlainTextMessageForOrganization =
-            @"The user 'requestingUser' would like to add your organization as an owner of the package 'PackageId' (packageUrl).
+        }
 
-policy message
+        private static string GetExpectedPlainTextMessageForOrganization(bool hasMessage)
+        {
+            return $@"The user 'requestingUser' would like to add your organization as an owner of the package 'PackageId' (packageUrl).
+
+policy message{ (hasMessage ? @"
 
 The user 'requestingUser' added the following message for you:
 
-'html encoded message'
+'html encoded message'" : "") }
 
 To accept this request and make your organization a listed owner of the package:
 
@@ -242,29 +273,34 @@ cancellationUrl
 
 Thanks,
 The NuGetGallery Team";
+        }
 
-        private const string _expectedHtmlBodyForUser =
-            "<p>The user 'requestingUser' would like to add you as an owner of the package <a href=\"packageUrl\">'PackageId'</a>.</p>\n" +
+        private static string GetExpectedHtmlBodyForUser(bool hasMessage)
+        {
+            return "<p>The user 'requestingUser' would like to add you as an owner of the package <a href=\"packageUrl\">'PackageId'</a>.</p>\n" +
 "<p>policy message</p>\n" +
-"<p>The user 'requestingUser' added the following message for you:</p>\n" +
-"<p>'html encoded message'</p>\n" +
+(hasMessage ? ("<p>The user 'requestingUser' added the following message for you:</p>\n" +
+"<p>'html encoded message'</p>\n") : "") +
 "<p>To accept this request and become a listed owner of the package:</p>\n" +
 "<p><a href=\"confirmationUrl\">confirmationUrl</a></p>\n" +
 "<p>To decline:</p>\n" +
 "<p><a href=\"cancellationUrl\">cancellationUrl</a></p>\n" +
 "<p>Thanks,\n" +
 "The NuGetGallery Team</p>\n";
+        }
 
-        private const string _expectedHtmlBodyForOrganization =
-            "<p>The user 'requestingUser' would like to add your organization as an owner of the package <a href=\"packageUrl\">'PackageId'</a>.</p>\n" +
+        private static string GetExpectedHtmlBodyForOrganization(bool hasMessage)
+        {
+            return "<p>The user 'requestingUser' would like to add your organization as an owner of the package <a href=\"packageUrl\">'PackageId'</a>.</p>\n" +
 "<p>policy message</p>\n" +
-"<p>The user 'requestingUser' added the following message for you:</p>\n" +
-"<p>'html encoded message'</p>\n" +
+(hasMessage ? ("<p>The user 'requestingUser' added the following message for you:</p>\n" +
+"<p>'html encoded message'</p>\n") : "") +
 "<p>To accept this request and make your organization a listed owner of the package:</p>\n" +
 "<p><a href=\"confirmationUrl\">confirmationUrl</a></p>\n" +
 "<p>To decline:</p>\n" +
 "<p><a href=\"cancellationUrl\">cancellationUrl</a></p>\n" +
 "<p>Thanks,\n" +
 "The NuGetGallery Team</p>\n";
+        }
     }
 }

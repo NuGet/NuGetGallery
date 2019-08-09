@@ -54,7 +54,7 @@ namespace NuGetGallery.AccountDeleter
             try
             {
                 _logger.LogInformation("Processing Request from Source {Source}", source);
-                _accountDeleteConfigurationAccessor.Value.VerifySource(source);
+                _accountDeleteConfigurationAccessor.Value.GetSourceConfiguration(source);
 
                 var username = command.Username;
                 var user = _userService.FindByUsername(username);
@@ -69,7 +69,7 @@ namespace NuGetGallery.AccountDeleter
                 }
 
                 var recipientEmail = user.EmailAddress;
-                var deleteSuccess = await _accountManager.DeleteAccount(user);
+                var deleteSuccess = await _accountManager.DeleteAccount(user, source);
                 _telemetryService.TrackDeleteResult(source, deleteSuccess);
 
                 var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(source, deleteSuccess);

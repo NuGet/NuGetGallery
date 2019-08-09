@@ -76,9 +76,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 uploadedPackageIds.Add(packageId);
             }
 
-            await Task.WhenAll(uploadedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version)));
-
-            await CheckPackageTimestampsInOrder(uploadedPackageIds, "Created", uploadStartTimestamp, version);
+            await Task.WhenAll(uploadedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version, listed: true)));
+            await CheckPackageTimestampsInOrder(uploadedPackageIds, "Created", uploadStartTimestamp);
 
             // Unlist the packages in order.
             var unlistedPackageIds = new List<string>();
@@ -89,7 +88,13 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 unlistedPackageIds.Add(uploadedPackageId);
             }
 
-            await CheckPackageTimestampsInOrder(unlistedPackageIds, "LastEdited", unlistStartTimestamp, version);
+            await Task.WhenAll(unlistedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version, listed: false)));
+            await CheckPackageTimestampsInOrder(unlistedPackageIds, "LastEdited", unlistStartTimestamp);
+        }
+
+        private static string GetPackagesAppearInFeedInOrderUrl(DateTime time, string timestamp)
+        {
+            return $"{UrlHelper.V2FeedRootUrl}/Packages?$filter={timestamp} gt DateTime'{time:o}'&$orderby={timestamp} desc&$select={timestamp}";
         }
 
         /// <summary>

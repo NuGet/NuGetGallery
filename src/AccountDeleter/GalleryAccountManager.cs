@@ -13,25 +13,25 @@ namespace NuGetGallery.AccountDeleter
     {
         private readonly IOptionsSnapshot<AccountDeleteConfiguration> _accountDeleteConfigurationAccessor;
         private readonly IDeleteAccountService _deleteAccountService;
-        private readonly IUserEvaluator _userEvaluator;
+        private readonly IUserEvaluatorFactory _userEvaluatorFactory;
         private readonly IAccountDeleteTelemetryService _telemetryService;
         private readonly ILogger<GalleryAccountManager> _logger;
 
         public GalleryAccountManager(
             IOptionsSnapshot<AccountDeleteConfiguration> accountDeleteConfigurationAccessor,
             IDeleteAccountService deleteAccountService,
-            IUserEvaluator userEvaluator,
+            IUserEvaluatorFactory userEvaluatorFactory,
             IAccountDeleteTelemetryService telemetryService,
             ILogger<GalleryAccountManager> logger)
         {
             _accountDeleteConfigurationAccessor = accountDeleteConfigurationAccessor ?? throw new ArgumentNullException(nameof(accountDeleteConfigurationAccessor));
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
-            _userEvaluator = userEvaluator ?? throw new ArgumentNullException(nameof(userEvaluator));
+            _userEvaluatorFactory = userEvaluatorFactory ?? throw new ArgumentNullException(nameof(userEvaluatorFactory));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<bool> DeleteAccount(User user)
+        public async Task<bool> DeleteAccount(User user, string source)
         {
             _logger.LogInformation("Attempting delete...");
             if (user == null)
@@ -40,7 +40,9 @@ namespace NuGetGallery.AccountDeleter
                 throw new UserNotFoundException();
             }
 
-            if (!_userEvaluator.CanUserBeDeleted(user))
+            var evaluator = _userEvaluatorFactory.GetEvaluatorForSource(source);
+
+            if (!evaluator.CanUserBeDeleted(user))
             {
                 _logger.LogInformation("User was not able to be automatically deleted. Criteria check failed.");
                 return false;
