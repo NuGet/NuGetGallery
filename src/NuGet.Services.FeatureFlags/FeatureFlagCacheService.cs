@@ -88,7 +88,15 @@ namespace NuGet.Services.FeatureFlags
                     staleness,
                     _options.RefreshInterval);
 
-                await Task.Delay(_options.RefreshInterval);
+                try
+                {
+                    await Task.Delay(_options.RefreshInterval, cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Swallow the cancelled delay operation to allow quiet shutdown of the refresh loop. A cancelled
+                    // delay operation is harmless to the system.
+                }
             }
         }
 
