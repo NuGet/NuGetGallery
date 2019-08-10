@@ -525,7 +525,7 @@ namespace NuGetGallery
                 .SingleInstance();
 
             builder
-                .Register(context => context.Resolve<FeatureFlagFileStorageService>())
+                .Register(context => context.Resolve<EditableFeatureFlagFileStorageService>())
                 .As<IEditableFeatureFlagStorageService>()
                 .SingleInstance();
 

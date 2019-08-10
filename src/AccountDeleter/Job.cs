@@ -136,7 +136,7 @@ namespace NuGetGallery.AccountDeleter
                 services.AddScoped<IAuthenticationService, AuthenticationService>();
                 services.AddScoped<ISupportRequestService, ISupportRequestService>();
 
-                services.AddScoped<IEditableFeatureFlagStorageService, FeatureFlagFileStorageService>();
+                services.AddScoped<IEditableFeatureFlagStorageService, EditableFeatureFlagFileStorageService>();
                 services.AddScoped<ICoreFileStorageService, CloudBlobFileStorageService>();
                 services.AddScoped<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
 

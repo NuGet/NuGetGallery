@@ -19,7 +19,7 @@ using Xunit;
 
 namespace NuGetGallery.Features
 {
-    public class FeatureFlagFileStorageServiceFacts
+    public class EditableFeatureFlagFileStorageServiceFacts
     {
         public static FeatureFlags Example = new FeatureFlags(
             new Dictionary<string, FeatureStatus>
@@ -619,16 +619,16 @@ namespace NuGetGallery.Features
         {
             protected readonly Mock<ICoreFileStorageService> _storage;
             protected readonly Mock<IAuditingService> _auditing;
-            protected readonly FeatureFlagFileStorageService _target;
+            protected readonly EditableFeatureFlagFileStorageService _target;
             protected readonly StorageException _preconditionException;
 
             public FactsBase()
             {
-                var logger = Mock.Of<ILogger<FeatureFlagFileStorageService>>();
+                var logger = Mock.Of<ILogger<EditableFeatureFlagFileStorageService>>();
 
                 _storage = new Mock<ICoreFileStorageService>();
                 _auditing = new Mock<IAuditingService>();
-                _target = new FeatureFlagFileStorageService(
+                _target = new EditableFeatureFlagFileStorageService(
                     _storage.Object, _auditing.Object, logger);
 
                 _preconditionException = new StorageException(
