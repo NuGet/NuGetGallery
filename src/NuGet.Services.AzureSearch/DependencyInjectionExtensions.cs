@@ -211,8 +211,8 @@ namespace NuGet.Services.AzureSearch
         {
             return new BlobRequestOptions
             {
-                ServerTimeout = AzureStorage.DefaultServerTimeout,
-                MaximumExecutionTime = AzureStorage.DefaultMaxExecutionTime,
+                ServerTimeout = TimeSpan.FromMinutes(2),
+                MaximumExecutionTime = TimeSpan.FromMinutes(10),
                 LocationMode = LocationMode.PrimaryThenSecondary,
                 RetryPolicy = new ExponentialRetry(),
             };
