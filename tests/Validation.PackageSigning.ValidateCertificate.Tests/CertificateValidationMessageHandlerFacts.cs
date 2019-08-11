@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Validation;
@@ -55,6 +56,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 Assert.True(await _target.HandleAsync(_message));
 
                 _certificateValidationService.Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Never);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Never);
             }
 
             [Fact]
@@ -78,6 +82,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 Assert.True(await _target.HandleAsync(_message));
 
                 _certificateValidationService.Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Never);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Never);
             }
 
             [Fact]
@@ -322,6 +329,107 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateValidationService
                     .Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Once);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.Is<PackageValidationMessageData>(d => d.Type == PackageValidationMessageType.CheckValidator)),
+                    Times.Once);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotSendCheckValidatorIfToldNotTo()
+            {
+                // Arrange
+                var result = new CertificateVerificationResult(
+                    status: EndCertificateStatus.Good,
+                    statusFlags: X509ChainStatusFlags.NoError);
+                _message = new CertificateValidationMessage(
+                    CertificateKey,
+                    ValidationId,
+                    revalidateRevokedCertificate: false,
+                    sendCheckValidator: false);
+                _certificateValidationService
+                    .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
+                    .ReturnsAsync(new EndCertificateValidation
+                    {
+                        Status = null,
+                        EndCertificate = new EndCertificate
+                        {
+                            Status = EndCertificateStatus.Unknown,
+                            Use = EndCertificateUse.CodeSigning,
+                            CertificateChainLinks = new CertificateChainLink[0],
+                        }
+                    });
+
+                _certificateStore
+                    .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new X509Certificate2());
+
+                _certificateVerifier
+                    .Setup(v => v.VerifyCodeSigningCertificate(It.IsAny<X509Certificate2>(), It.IsAny<X509Certificate2[]>()))
+                    .Returns(result);
+
+                _certificateValidationService
+                    .Setup(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()))
+                    .ReturnsAsync(true);
+
+                // Act & Assert
+                Assert.True(await _target.HandleAsync(_message));
+
+                _certificateValidationService
+                    .Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Once);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task DoesNotSendCheckValidatorIfFeatureFlagIsDisabled()
+            {
+                // Arrange
+                var result = new CertificateVerificationResult(
+                    status: EndCertificateStatus.Good,
+                    statusFlags: X509ChainStatusFlags.NoError);
+                _message = new CertificateValidationMessage(
+                    CertificateKey,
+                    ValidationId,
+                    revalidateRevokedCertificate: false,
+                    sendCheckValidator: true);
+                _certificateValidationService
+                    .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
+                    .ReturnsAsync(new EndCertificateValidation
+                    {
+                        Status = null,
+                        EndCertificate = new EndCertificate
+                        {
+                            Status = EndCertificateStatus.Unknown,
+                            Use = EndCertificateUse.CodeSigning,
+                            CertificateChainLinks = new CertificateChainLink[0],
+                        }
+                    });
+                _featureFlagService.Setup(x => x.IsQueueBackEnabled()).Returns(false);
+
+                _certificateStore
+                    .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new X509Certificate2());
+
+                _certificateVerifier
+                    .Setup(v => v.VerifyCodeSigningCertificate(It.IsAny<X509Certificate2>(), It.IsAny<X509Certificate2[]>()))
+                    .Returns(result);
+
+                _certificateValidationService
+                    .Setup(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()))
+                    .ReturnsAsync(true);
+
+                // Act & Assert
+                Assert.True(await _target.HandleAsync(_message));
+
+                _certificateValidationService
+                    .Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Once);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Never);
             }
 
             [Fact]
@@ -404,8 +512,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             protected readonly Mock<ICertificateStore> _certificateStore;
             protected readonly Mock<ICertificateValidationService> _certificateValidationService;
             protected readonly Mock<ICertificateVerifier> _certificateVerifier;
-
-            protected readonly CertificateValidationMessage _message;
+            protected readonly Mock<IPackageValidationEnqueuer> _validationEnqueuer;
+            protected readonly Mock<IFeatureFlagService> _featureFlagService;
+            protected CertificateValidationMessage _message;
 
             protected readonly CertificateValidationMessageHandler _target;
 
@@ -414,8 +523,16 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 _certificateStore = new Mock<ICertificateStore>();
                 _certificateValidationService = new Mock<ICertificateValidationService>();
                 _certificateVerifier = new Mock<ICertificateVerifier>();
+                _validationEnqueuer = new Mock<IPackageValidationEnqueuer>();
+                _featureFlagService = new Mock<IFeatureFlagService>();
 
-                _message = new CertificateValidationMessage(CertificateKey, ValidationId, revalidateRevokedCertificate: false);
+                _featureFlagService.SetReturnsDefault(true);
+
+                _message = new CertificateValidationMessage(
+                    CertificateKey,
+                    ValidationId,
+                    revalidateRevokedCertificate: false,
+                    sendCheckValidator: true);
 
                 var logger = new Mock<ILogger<CertificateValidationMessageHandler>>();
 
@@ -423,6 +540,8 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                     _certificateStore.Object,
                     _certificateValidationService.Object,
                     _certificateVerifier.Object,
+                    _validationEnqueuer.Object,
+                    _featureFlagService.Object,
                     logger.Object,
                     maximumValidationFailures);
             }

@@ -24,7 +24,12 @@ namespace Validation.PackageSigning.RevalidateCertificate
 
         public async Task EnqueueValidationAsync(Guid validationId, EndCertificate certificate)
         {
-            var message = new CertificateValidationMessage(certificate.Key, validationId);
+            var message = new CertificateValidationMessage(
+                certificate.Key,
+                validationId,
+                revalidateRevokedCertificate: false,
+                sendCheckValidator: false);
+
             var brokeredMessage = _serializer.Serialize(message);
 
             await _topicClient.SendAsync(brokeredMessage);

@@ -8,6 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.ServiceBus;
@@ -24,6 +25,8 @@ namespace Validation.PackageSigning.ValidateCertificate
         private readonly ICertificateStore _certificateStore;
         private readonly ICertificateValidationService _certificateValidationService;
         private readonly ICertificateVerifier _certificateVerifier;
+        private readonly IPackageValidationEnqueuer _validationEnqueuer;
+        private readonly IFeatureFlagService _featureFlagService;
         private readonly ILogger<CertificateValidationMessageHandler> _logger;
 
         private readonly int _maximumValidationFailures;
@@ -32,12 +35,16 @@ namespace Validation.PackageSigning.ValidateCertificate
             ICertificateStore certificateStore,
             ICertificateValidationService certificateValidationService,
             ICertificateVerifier certificateVerifier,
+            IPackageValidationEnqueuer validationEnqueuer,
+            IFeatureFlagService featureFlagService,
             ILogger<CertificateValidationMessageHandler> logger,
             int maximumValidationFailures = CertificateValidationService.DefaultMaximumValidationFailures)
         {
             _certificateStore = certificateStore ?? throw new ArgumentNullException(nameof(certificateStore));
             _certificateValidationService = certificateValidationService ?? throw new ArgumentNullException(nameof(certificateValidationService));
             _certificateVerifier = certificateVerifier ?? throw new ArgumentNullException(nameof(certificateVerifier));
+            _validationEnqueuer = validationEnqueuer ?? throw new ArgumentNullException(nameof(validationEnqueuer));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _maximumValidationFailures = maximumValidationFailures;
@@ -141,7 +148,18 @@ namespace Validation.PackageSigning.ValidateCertificate
                     return false;
                 }
 
-                return HasValidationCompleted(validation, result);
+                var completed = HasValidationCompleted(validation, result);
+                if (completed && message.SendCheckValidator && _featureFlagService.IsQueueBackEnabled())
+                {
+                    // The validation has completed (either a terminal success or a terminal failure). This message
+                    // we are enqueueing notifies the orchestrator that this validator's work is done and means the
+                    // orchestrator can continue with the rest of the validation process.
+                    _logger.LogInformation("Sending queue-back message for validation {ValidationId}.", message.ValidationId);
+                    var messageData = PackageValidationMessageData.NewCheckValidator(message.ValidationId);
+                    await _validationEnqueuer.StartValidationAsync(messageData);
+                }
+
+                return completed;
             }
         }
 

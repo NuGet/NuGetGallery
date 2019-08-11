@@ -27,7 +27,12 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
 
         public async Task EnqueueVerificationAsync(IValidationRequest request, EndCertificate certificate)
         {
-            var message = new CertificateValidationMessage(certificate.Key, request.ValidationId);
+            var message = new CertificateValidationMessage(
+                certificate.Key,
+                request.ValidationId,
+                revalidateRevokedCertificate: false,
+                sendCheckValidator: true);
+
             var brokeredMessage = _serializer.Serialize(message);
 
             var visibleAt = DateTimeOffset.UtcNow + (_configuration.Value.MessageDelay ?? TimeSpan.Zero);

@@ -19,7 +19,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
             {
                 CertificateKey = message.CertificateKey,
                 ValidationId = message.ValidationId,
-                RevalidateRevokedCertificate = message.RevalidateRevokedCertificate
+                RevalidateRevokedCertificate = message.RevalidateRevokedCertificate,
+                SendCheckValidator = message.SendCheckValidator,
             });
         }
 
@@ -30,7 +31,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
             return new CertificateValidationMessage(
                 message.CertificateKey,
                 message.ValidationId,
-                message.RevalidateRevokedCertificate);
+                message.RevalidateRevokedCertificate,
+                message.SendCheckValidator);
         }
 
         [Schema(Name = CertificateValidationSchemaName, Version = 1)]
@@ -39,6 +41,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
             public long CertificateKey { get; set; }
             public Guid ValidationId { get; set; }
             public bool RevalidateRevokedCertificate { get; set; }
+            public bool SendCheckValidator { get; set; }
         }
     }
 }

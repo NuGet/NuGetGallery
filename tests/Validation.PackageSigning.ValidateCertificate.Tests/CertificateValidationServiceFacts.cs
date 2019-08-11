@@ -38,7 +38,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 var message = new CertificateValidationMessage(
                     certificateKey: EndCertificateKey1,
-                    validationId: ValidationId2);
+                    validationId: ValidationId2,
+                    revalidateRevokedCertificate: false,
+                    sendCheckValidator: true);
 
                 // Act & Assert
                 var result = await _target.FindCertificateValidationAsync(message);
@@ -60,7 +62,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 var message = new CertificateValidationMessage(
                     certificateKey: EndCertificateKey2,
-                    validationId: ValidationId2);
+                    validationId: ValidationId2,
+                    revalidateRevokedCertificate: false,
+                    sendCheckValidator: true);
 
                 // Act & Assert
                 var result = await _target.FindCertificateValidationAsync(message);
