@@ -105,6 +105,7 @@ namespace NuGet.Jobs
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);
 
+            ConfigureDefaultAutofacServices(containerBuilder);
             ConfigureAutofacServices(containerBuilder);
 
             return new AutofacServiceProvider(containerBuilder.Build());
@@ -126,6 +127,10 @@ namespace NuGet.Jobs
             AddScopedSqlConnectionFactory<StatisticsDbConfiguration>(services);
             AddScopedSqlConnectionFactory<SupportRequestDbConfiguration>(services);
             AddScopedSqlConnectionFactory<ValidationDbConfiguration>(services);
+        }
+
+        protected virtual void ConfigureDefaultAutofacServices(ContainerBuilder containerBuilder)
+        {
         }
 
         private void AddScopedSqlConnectionFactory<TDbConfiguration>(IServiceCollection services)
