@@ -69,7 +69,8 @@ namespace NuGetGallery.Controllers
 
                 var errorStatus = HttpStatusCode.InternalServerError;
                 var errorMessage = "woops";
-                GetMock<IPackageDeprecationManagementService>()
+                var deprecationService = GetMock<IPackageDeprecationManagementService>();
+                deprecationService
                     .Setup(x => x.UpdateDeprecation(
                         currentUser,
                         id,
@@ -80,7 +81,8 @@ namespace NuGetGallery.Controllers
                         alternateId,
                         alternateVersion,
                         customMessage))
-                    .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage));
+                    .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage))
+                    .Verifiable();
 
                 var controller = GetController<ManageDeprecationJsonApiController>();
                 controller.SetCurrentUser(currentUser);
@@ -109,6 +111,8 @@ namespace NuGetGallery.Controllers
                 {
                     AssertErrorResponse(controller, result, errorStatus, errorMessage);
                 }
+
+                deprecationService.Verify();
             }
 
             private static void AssertErrorResponse(
