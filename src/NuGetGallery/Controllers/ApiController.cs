@@ -920,7 +920,6 @@ namespace NuGetGallery
             return new EmptyResult();
         }
 
-
         public virtual async Task<ActionResult> Team()
         {
             var team = await ContentService.GetContentItemAsync(GalleryConstants.ContentNames.Team, TimeSpan.FromHours(1));
