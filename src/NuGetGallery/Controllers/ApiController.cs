@@ -43,7 +43,7 @@ namespace NuGetGallery
         public IEntitiesContext EntitiesContext { get; set; }
         public IPackageFileService PackageFileService { get; set; }
         public IPackageService PackageService { get; set; }
-        public IPackageDeprecationService PackageDeprecationService { get; set; }
+        public IPackageDeprecationManagementService PackageDeprecationManagementService { get; set; }
         public IPackageUpdateService PackageUpdateService { get; set; }
         public IUserService UserService { get; set; }
         public IStatisticsService StatisticsService { get; set; }
@@ -73,7 +73,7 @@ namespace NuGetGallery
             IApiScopeEvaluator apiScopeEvaluator,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
-            IPackageDeprecationService packageDeprecationService,
+            IPackageDeprecationManagementService packageDeprecationManagementService,
             IPackageUpdateService packageUpdateService,
             IPackageFileService packageFileService,
             IUserService userService,
@@ -99,7 +99,7 @@ namespace NuGetGallery
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
             PackageService = packageService;
-            PackageDeprecationService = packageDeprecationService;
+            PackageDeprecationManagementService = packageDeprecationManagementService;
             PackageUpdateService = packageUpdateService;
             PackageFileService = packageFileService;
             UserService = userService;
@@ -127,7 +127,7 @@ namespace NuGetGallery
             IApiScopeEvaluator apiScopeEvaluator,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
-            IPackageDeprecationService packageDeprecationService,
+            IPackageDeprecationManagementService packageDeprecationManagementService,
             IPackageUpdateService packageUpdateService,
             IPackageFileService packageFileService,
             IUserService userService,
@@ -154,7 +154,7 @@ namespace NuGetGallery
                   apiScopeEvaluator, 
                   entitiesContext, 
                   packageService, 
-                  packageDeprecationService, 
+                  packageDeprecationManagementService, 
                   packageUpdateService, 
                   packageFileService, 
                   userService, 
@@ -888,10 +888,10 @@ namespace NuGetGallery
         [HttpPost]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageDeprecate)]
-        [ActionName("DeprecatePackageApi")]
+        [ActionName(RouteName.DeprecatePackageApi)]
         public virtual async Task<ActionResult> DeprecatePackage(
             string id, 
-            string version, 
+            IEnumerable<string> versions, 
             bool isLegacy = false, 
             bool hasCriticalBugs = false, 
             bool isOther = false, 
@@ -899,106 +899,23 @@ namespace NuGetGallery
             string alternatePackageVersion = null, 
             string message = null)
         {
-            var status = PackageDeprecationStatus.NotDeprecated;
+            var error = await PackageDeprecationManagementService.UpdateDeprecation(
+                GetCurrentUser(),
+                id,
+                versions,
+                isLegacy,
+                hasCriticalBugs,
+                isOther,
+                alternatePackageId,
+                alternatePackageVersion,
+                message);
 
-            if (isLegacy)
-            {
-                status |= PackageDeprecationStatus.Legacy;
-            }
-
-            if (hasCriticalBugs)
-            {
-                status |= PackageDeprecationStatus.CriticalBugs;
-            }
-
-            if (isOther)
-            {
-                if (string.IsNullOrWhiteSpace(message))
-                {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.BadRequest,
-                        Strings.DeprecatePackage_CustomMessageRequired);
-                }
-
-                status |= PackageDeprecationStatus.Other;
-            }
-
-            if (message != null)
-            {
-                if (message.Length > PackageDeprecation.MaxCustomMessageLength)
-                {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.BadRequest,
-                        string.Format(Strings.DeprecatePackage_CustomMessageTooLong, PackageDeprecation.MaxCustomMessageLength));
-                }
-            }
-
-            var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (error != null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, 
-                    string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    error.Status,
+                    error.Message);
             }
-
-            // Check if the current user's scopes allow deprecating the package
-            var apiScopeEvaluationResult = EvaluateApiScope(
-                ActionsRequiringPermissions.DeprecatePackage, 
-                package.PackageRegistration, 
-                NuGetScopes.PackageDeprecate);
-
-            if (!apiScopeEvaluationResult.IsSuccessful())
-            {
-                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
-            }
-
-            if (package.PackageRegistration.IsLocked)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden,
-                    string.Format(Strings.DeprecatePackage_Locked, id));
-            }
-
-            PackageRegistration alternatePackageRegistration = null;
-            Package alternatePackage = null;
-            if (!string.IsNullOrWhiteSpace(alternatePackageId))
-            {
-                if (!string.IsNullOrWhiteSpace(alternatePackageVersion))
-                {
-                    alternatePackage = PackageService.FindPackageByIdAndVersionStrict(alternatePackageId, alternatePackageVersion);
-                    if (alternatePackage == null)
-                    {
-                        return new HttpStatusCodeWithBodyResult(
-                            HttpStatusCode.NotFound,
-                            string.Format(Strings.DeprecatePackage_NoAlternatePackage, alternatePackageId, alternatePackageVersion));
-                    }
-                }
-                else
-                {
-                    alternatePackageRegistration = PackageService.FindPackageRegistrationById(alternatePackageId);
-                    if (alternatePackageRegistration == null)
-                    {
-                        return new HttpStatusCodeWithBodyResult(
-                            HttpStatusCode.NotFound,
-                            string.Format(Strings.DeprecatePackage_NoAlternatePackageRegistration, alternatePackageId));
-                    }
-                }
-            }
-
-            if (alternatePackageRegistration == package.PackageRegistration || alternatePackage == package)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest,
-                    Strings.DeprecatePackage_AlternateOfSelf);
-            }
-
-            await PackageDeprecationService.UpdateDeprecation(
-                new[] { package },
-                status,
-                alternatePackageRegistration,
-                alternatePackage,
-                message,
-                GetCurrentUser());
 
             return new EmptyResult();
         }

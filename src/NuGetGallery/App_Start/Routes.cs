@@ -729,8 +729,8 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 "v2" + RouteName.DeprecatePackageApi,
-                "api/v2/package/{id}/{version}/deprecate",
-                new { controller = "Api", action = "DeprecatePackageApi" },
+                "api/v2/package/{id}/deprecate",
+                new { controller = "Api", action = RouteName.DeprecatePackageApi },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(

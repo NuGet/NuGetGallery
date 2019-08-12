@@ -262,6 +262,7 @@
       <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeprecatePackageRequest.cs" />
+    <Compile Include="Services\IPackageDeprecationManagementService.cs" />
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
@@ -454,6 +455,7 @@
     <Compile Include="Services\JsonValidationMessage.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\PackageDeleteService.cs" />
+    <Compile Include="Services\PackageDeprecationManagementService.cs" />
     <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
@@ -541,6 +543,7 @@
     <Compile Include="Services\TyposquattingService.cs" />
     <Compile Include="Services\TyposquattingDistanceCalculation.cs" />
     <Compile Include="Services\TyposquattingStringNormalization.cs" />
+    <Compile Include="Services\UpdateDeprecationError.cs" />
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
