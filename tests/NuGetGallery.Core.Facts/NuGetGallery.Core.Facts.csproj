@@ -105,6 +105,7 @@
     <Compile Include="Services\FolderNamesDataAttributeFacts.cs" />
     <Compile Include="Services\GalleryCloudBlobContainerInformationProviderFacts.cs" />
     <Compile Include="Services\RevalidationStateServiceFacts.cs" />
+    <Compile Include="Services\StringReplaceTemplateProcessorFacts.cs" />
     <Compile Include="TestUtils\BlobStorageCollection.cs" />
     <Compile Include="TestUtils\BlobStorageFact.cs" />
     <Compile Include="TestUtils\BlobStorageFixture.cs" />

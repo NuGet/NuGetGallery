@@ -133,6 +133,7 @@ namespace NuGetGallery
                 TelemetryService = new Mock<ITelemetryService>();
                 MessageService = new Mock<IMessageService>();
                 MessageServiceConfiguration = new Mock<IMessageServiceConfiguration>();
+                IconUrlProvider = new Mock<IIconUrlProvider>();
 
                 CurrentUser = new User
                 {
@@ -182,7 +183,8 @@ namespace NuGetGallery
                     NewSearchService.Object,
                     TelemetryService.Object,
                     MessageService.Object,
-                    MessageServiceConfiguration.Object);
+                    MessageServiceConfiguration.Object,
+                    IconUrlProvider.Object);
             }
 
             public Mock<ISearchService> OldSearchService { get; }
@@ -190,6 +192,7 @@ namespace NuGetGallery
             public Mock<ITelemetryService> TelemetryService { get; }
             public Mock<IMessageService> MessageService { get; }
             public Mock<IMessageServiceConfiguration> MessageServiceConfiguration { get; }
+            public Mock<IIconUrlProvider> IconUrlProvider { get; }
             public User CurrentUser { get; }
             public List<SearchFilter> OldSearchFilters { get; }
             public SearchResults OldSearchResults { get; }

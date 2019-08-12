@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
 using Xunit;
@@ -117,7 +118,7 @@ namespace NuGetGallery
 
                 // Act
                 var result = urlHelper.PackageRegistrationTemplate()
-                    .Resolve(new ListPackageItemViewModelFactory().Create(package, currentUser: null));
+                    .Resolve(new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(package, currentUser: null));
 
                 // Assert
                 Assert.Equal(urlHelper.Package(package.PackageRegistration), result);
@@ -207,7 +208,7 @@ namespace NuGetGallery
                 var urlHelper = TestUtility.MockUrlHelper();
                 
                 var idModel = new TrivialPackageVersionModel(packageId, version: null);
-                var versionModel = new ListPackageItemViewModelFactory().Create(package, currentUser: null);
+                var versionModel = new ListPackageItemViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(package, currentUser: null);
 
                 // Act
                 var idResult = urlHelper.PackageVersionAction(action, idModel);

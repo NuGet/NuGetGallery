@@ -92,8 +92,10 @@
     <Compile Include="Infrastructure\Lucene\GallerySearchServiceFacts.cs" />
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessageFacts.cs" />
+    <Compile Include="Services\ConfigurationIconFileProviderFacts.cs" />
     <Compile Include="Services\AsynchronousDeleteAccountServiceFacts.cs" />
     <Compile Include="Services\FeatureFlagServiceFacts.cs" />
+    <Compile Include="Services\IconUrlTemplateProcessorFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
     <Compile Include="Services\SearchSideBySideServiceFacts.cs" />
     <Compile Include="Services\PackageUpdateServiceFacts.cs" />
@@ -355,7 +357,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>

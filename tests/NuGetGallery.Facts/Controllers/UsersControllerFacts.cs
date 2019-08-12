@@ -1182,6 +1182,46 @@ namespace NuGetGallery
                 AssertUserProfileModel(model, currentUser, owner, package2, package1);
             }
 
+            [Theory]
+            [MemberData(nameof(PossibleOwnershipScenarios_Data))]
+            public void UsesProperIconUrl(User currentUser, User owner)
+            {
+                string username = "test";
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(owner);
+
+                var userPackage = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1,
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration,
+                };
+                packageRegistration.Packages.Add(userPackage);
+
+                var userPackages = new List<Package>() { userPackage };
+
+                const string iconUrl = "https://some.test/icon";
+                GetMock<IIconUrlProvider>()
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username, false))
+                    .Returns(owner);
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Returns(new[] { userPackage });
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+                var model = ResultAssert.IsView<UserProfileModel>(controller.Profiles(username));
+
+                GetMock<IIconUrlProvider>()
+                    .Verify(iup => iup.GetIconUrlString(userPackage), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, model.AllPackages.Single().IconUrl);
+            }
+
             private void AssertUserProfileModel(UserProfileModel model, User currentUser, User owner, params Package[] orderedPackages)
             {
                 Assert.Equal(owner, model.User);
@@ -2256,6 +2296,10 @@ namespace NuGetGallery
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
                    .Returns(issues);
+                const string iconUrl = "https://icon.test/url";
+                GetMock<IIconUrlProvider>()
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
 
                 // act
                 var result = controller.DeleteRequest() as ViewResult;
@@ -2263,7 +2307,9 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(testUser.Username, model.AccountName);
-                Assert.Single(model.Packages);
+                var package = Assert.Single(model.Packages);
+                GetMock<IIconUrlProvider>()
+                    .Verify(iup => iup.GetIconUrlString(It.IsAny<Package>()), Times.AtLeastOnce);
                 Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
@@ -3399,6 +3445,52 @@ namespace NuGetGallery
                 Assert.Equal(userName, model.AccountName);
                 Assert.Single(model.Packages);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
+            }
+        }
+
+        public class ThePackagesAction : TestContainer
+        {
+            [Fact]
+            public void UsesProperIconUrl()
+            {
+                string userName = "RegularUser";
+                var controller = GetController<UsersController>();
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.IsDeleted = false;
+                testUser.Key = 1;
+                controller.SetCurrentUser(testUser);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(testUser);
+
+                var userPackage = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1,
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration,
+                };
+                packageRegistration.Packages.Add(userPackage);
+
+                var userPackages = new List<Package>() { userPackage };
+
+                const string iconUrl = "https://some.test/icon";
+                GetMock<IIconUrlProvider>()
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName, false))
+                    .Returns(testUser);
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Returns(userPackages);
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(controller.Packages());
+
+                GetMock<IIconUrlProvider>()
+                    .Verify(iup => iup.GetIconUrlString(userPackage), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, model.ListedPackages.Single().IconUrl);
             }
         }
     }

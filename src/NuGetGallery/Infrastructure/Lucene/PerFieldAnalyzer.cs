@@ -37,7 +37,7 @@ namespace NuGetGallery
             {
                 // Split the title based on IdSeparators, then run it through the innerAnalyzer
                 string title = reader.ReadToEnd();
-                string partiallyTokenized = String.Join(" ", title.Split(PackageIndexEntity.IdSeparators, StringSplitOptions.RemoveEmptyEntries));
+                string partiallyTokenized = String.Join(" ", title.Split(LuceneDocumentFactory.IdSeparators, StringSplitOptions.RemoveEmptyEntries));
                 TokenStream result = whitespaceAnalyzer.TokenStream(fieldName, new StringReader(partiallyTokenized));
                 result = new LowerCaseFilter(result);
                 return result;

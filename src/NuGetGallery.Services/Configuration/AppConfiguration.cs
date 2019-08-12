@@ -390,5 +390,8 @@ namespace NuGetGallery.Configuration
         /// </summary>
         [DefaultValue(100000)]
         public int SearchHttpRequestTimeoutInMilliseconds { get; set; }
+
+        [DefaultValue("")]
+        public string EmbeddedIconUrlTemplate { get; set; }
     }
 }

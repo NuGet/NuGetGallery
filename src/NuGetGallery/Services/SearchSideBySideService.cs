@@ -18,6 +18,7 @@ namespace NuGetGallery
         private readonly ITelemetryService _telemetryService;
         private readonly IMessageService _messageService;
         private readonly IMessageServiceConfiguration _messageServiceConfiguration;
+        private readonly IIconUrlProvider _iconUrlProvider;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
         public SearchSideBySideService(
@@ -25,15 +26,17 @@ namespace NuGetGallery
             ISearchService newSearchService,
             ITelemetryService telemetryService,
             IMessageService messageService,
-            IMessageServiceConfiguration messageServiceConfiguration)
+            IMessageServiceConfiguration messageServiceConfiguration,
+            IIconUrlProvider iconUrlProvider)
         {
             _oldSearchService = oldSearchService ?? throw new ArgumentNullException(nameof(oldSearchService));
             _newSearchService = newSearchService ?? throw new ArgumentNullException(nameof(newSearchService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
+            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
         }
 
         public async Task<SearchSideBySideViewModel> SearchAsync(string searchTerm, User currentUser)

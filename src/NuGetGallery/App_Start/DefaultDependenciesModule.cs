@@ -400,6 +400,14 @@ namespace NuGetGallery
                 .As<ICloudBlobContainerInformationProvider>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<ConfigurationIconFileProvider>()
+                .As<IIconUrlProvider>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<IconUrlTemplateProcessor>()
+                .As<IIconUrlTemplateProcessor>()
+                .InstancePerLifetimeScope();
+
             RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 
@@ -859,6 +867,9 @@ namespace NuGetGallery
                     .As<IIndexingService>()
                     .As<IIndexingJobFactory>()
                     .InstancePerLifetimeScope();
+                builder.RegisterType<LuceneDocumentFactory>()
+                    .As<ILuceneDocumentFactory>()
+                    .InstancePerLifetimeScope();
             }
 
             builder
@@ -867,7 +878,8 @@ namespace NuGetGallery
                     c.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient),
                     c.Resolve<ITelemetryService>(),
                     c.Resolve<IMessageService>(),
-                    c.Resolve<IMessageServiceConfiguration>()))
+                    c.Resolve<IMessageServiceConfiguration>(),
+                    c.Resolve<IIconUrlProvider>()))
                 .As<ISearchSideBySideService>()
                 .InstancePerLifetimeScope();
 

@@ -274,5 +274,10 @@ namespace NuGet.Services.Entities
         /// See <see cref="PackageDeprecation.AlternatePackage"/>.
         /// </summary>
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
+
+        /// <summary>
+        /// A flag that indicates that the package metadata had an embedded icon specified.
+        /// </summary>
+        public bool HasEmbeddedIcon { get; set; }
     }
 }

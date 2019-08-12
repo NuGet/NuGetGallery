@@ -430,5 +430,15 @@ namespace NuGetGallery.Configuration
         /// The Search HttpClient timeout in seconds.
         /// </summary>
         int SearchHttpClientTimeoutInMilliseconds { get; set; }
+
+        /// <summary>
+        /// Indicates whether the contents of the IconUrl package metadata should be ignored.
+        /// </summary>
+        bool IgnoreIconUrl { get; set; }
+
+        /// <summary>
+        /// Base URL for the internal storage if package icons.
+        /// </summary>
+        string InternalIconUrlBaseAddress { get; set; }
     }
 }

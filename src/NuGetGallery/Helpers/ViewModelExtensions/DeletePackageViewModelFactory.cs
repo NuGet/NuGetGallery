@@ -11,9 +11,9 @@ namespace NuGetGallery
     {
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
 
-        public DeletePackageViewModelFactory()
+        public DeletePackageViewModelFactory(IIconUrlProvider iconUrlProvider)
         {
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory();
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(iconUrlProvider);
         }
 
         public DeletePackageViewModel Create(

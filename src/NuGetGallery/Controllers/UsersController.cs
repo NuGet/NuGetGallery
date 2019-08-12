@@ -47,7 +47,8 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
-            IMessageServiceConfiguration messageServiceConfiguration)
+            IMessageServiceConfiguration messageServiceConfiguration,
+            IIconUrlProvider iconUrlProvider)
             : base(
                   authService,
                   packageService,
@@ -58,15 +59,16 @@ namespace NuGetGallery
                   certificateService,
                   contentObjectService,
                   messageServiceConfiguration,
-                  deleteAccountService)
+                  deleteAccountService,
+                  iconUrlProvider)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
 
-            _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService);
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
+            _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService, iconUrlProvider);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
         }
 
         public override string AccountAction => nameof(Account);
@@ -463,7 +465,7 @@ namespace NuGetGallery
                 .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: m.Organization));
             var sent = userSent.Union(orgSent);
 
-            var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, PackageService);
+            var ownerRequests = CreateOwnerRequestsViewModel(received, sent, currentUser);
 
             var userReservedNamespaces = currentUser.ReservedNamespaces;
             var organizationsReservedNamespaces = currentUser.Organizations.SelectMany(m => m.Organization.ReservedNamespaces);
@@ -1093,6 +1095,37 @@ namespace NuGetGallery
             await MessageService.SendMessageAsync(message);
 
             return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
+        }
+
+        private OwnerRequestsViewModel CreateOwnerRequestsViewModel(IEnumerable<PackageOwnerRequest> received, IEnumerable<PackageOwnerRequest> sent, User currentUser)
+        {
+            var viewModel = new OwnerRequestsViewModel
+            {
+                Received = new OwnerRequestsListViewModel
+                {
+                    Requests = received.Select(r => CreateOwnerRequestsListItemViewModel(r, currentUser)).ToList()
+                },
+                Sent = new OwnerRequestsListViewModel
+                {
+                    Requests = sent.Select(r => CreateOwnerRequestsListItemViewModel(r, currentUser)).ToList()
+                },
+            };
+
+            return viewModel;
+        }
+
+        private OwnerRequestsListItemViewModel CreateOwnerRequestsListItemViewModel(PackageOwnerRequest request, User currentUser)
+        {
+            var package = PackageService.FindPackageByIdAndVersion(request.PackageRegistration.Id, version: null, semVerLevelKey: SemVerLevelKey.SemVer2, allowPrerelease: true);
+            var packageViewModel = _listPackageItemViewModelFactory.Create(package, currentUser);
+
+            return new OwnerRequestsListItemViewModel
+            {
+                Request = request,
+                Package = packageViewModel,
+                CanAccept = ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, request.NewOwner) == PermissionsCheckResult.Allowed,
+                CanCancel = packageViewModel.CanManageOwners,
+            };
         }
     }
 }
