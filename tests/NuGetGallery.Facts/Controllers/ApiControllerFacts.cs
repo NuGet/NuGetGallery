@@ -2141,9 +2141,8 @@ namespace NuGetGallery
                 // Assert
                 if (success)
                 {
-                    ResultAssert.IsStatusCode(
-                        result,
-                        HttpStatusCode.OK);
+                    ResultAssert.IsEmpty(
+                        result);
                 }
                 else
                 {
