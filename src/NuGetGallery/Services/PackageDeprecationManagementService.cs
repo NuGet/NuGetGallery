@@ -13,6 +13,8 @@ namespace NuGetGallery
 {
     public class PackageDeprecationManagementService : IPackageDeprecationManagementService
     {
+        private const int MaxCustomMessageLength = 1000;
+
         private readonly IPackageService _packageService;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
@@ -74,11 +76,11 @@ namespace NuGetGallery
 
             if (customMessage != null)
             {
-                if (customMessage.Length > PackageDeprecation.MaxCustomMessageLength)
+                if (customMessage.Length > MaxCustomMessageLength)
                 {
                     return new UpdateDeprecationError(
                         HttpStatusCode.BadRequest,
-                        string.Format(Strings.DeprecatePackage_CustomMessageTooLong, PackageDeprecation.MaxCustomMessageLength));
+                        string.Format(Strings.DeprecatePackage_CustomMessageTooLong, MaxCustomMessageLength));
                 }
             }
 
