@@ -41,6 +41,7 @@ namespace NuGetGallery
         public Mock<IApiScopeEvaluator> MockApiScopeEvaluator { get; private set; }
         public Mock<IEntitiesContext> MockEntitiesContext { get; private set; }
         public Mock<IPackageService> MockPackageService { get; private set; }
+        public Mock<IPackageDeprecationManagementService> MockPackageDeprecationManagementService { get; private set; }
         public Mock<IPackageUpdateService> MockPackageUpdateService { get; private set; }
         public Mock<IPackageFileService> MockPackageFileService { get; private set; }
         public Mock<IUserService> MockUserService { get; private set; }
@@ -69,6 +70,7 @@ namespace NuGetGallery
             ApiScopeEvaluator = (MockApiScopeEvaluator = new Mock<IApiScopeEvaluator>()).Object;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
+            PackageDeprecationManagementService = (MockPackageDeprecationManagementService = new Mock<IPackageDeprecationManagementService>()).Object;
             PackageUpdateService = (MockPackageUpdateService = new Mock<IPackageUpdateService>()).Object;
             UserService = userService ?? (MockUserService = new Mock<IUserService>(behavior)).Object;
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
@@ -2076,6 +2078,77 @@ namespace NuGetGallery
                 Assert.Contains(PackageId, statusCodeResult.StatusDescription);
 
                 controller.MockPackageService.VerifyAll();
+            }
+        }
+
+        public class TheDeprecatePackageAction : TestContainer
+        {
+            public static IEnumerable<object[]> ReturnsProperResult_Data =
+                MemberDataHelper.Combine(
+                    Enumerable
+                        .Repeat(
+                            MemberDataHelper.BooleanDataSet(), 4)
+                        .ToArray());
+
+            [Theory]
+            [MemberData(nameof(ReturnsProperResult_Data))]
+            public async Task ReturnsProperResult(
+                bool isLegacy,
+                bool hasCriticalBugs,
+                bool isOther,
+                bool success)
+            {
+                // Arrange
+                var id = "Crested.Gecko";
+                var versions = new[] { "1.0.0", "2.0.0" };
+                var alternateId = "alt.Id";
+                var alternateVersion = "3.0.0";
+                var customMessage = "custom";
+
+                var currentUser = Get<Fakes>().User;
+
+                var errorStatus = HttpStatusCode.InternalServerError;
+                var errorMessage = "woops";
+                GetMock<IPackageDeprecationManagementService>()
+                    .Setup(x => x.UpdateDeprecation(
+                        currentUser,
+                        id,
+                        versions,
+                        isLegacy,
+                        hasCriticalBugs,
+                        isOther,
+                        alternateId,
+                        alternateVersion,
+                        customMessage))
+                    .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage));
+
+                var controller = GetController<ApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.DeprecatePackage(
+                    id,
+                    versions,
+                    isLegacy,
+                    hasCriticalBugs,
+                    isOther,
+                    alternateId,
+                    alternateVersion,
+                    customMessage);
+
+                // Assert
+                if (success)
+                {
+                    ResultAssert.IsStatusCode(
+                        result,
+                        HttpStatusCode.OK);
+                }
+                else
+                {
+                    var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+                    Assert.Equal((int)errorStatus, statusCodeResult.StatusCode);
+                    Assert.Equal(errorMessage, statusCodeResult.Body);
+                }
             }
         }
 
