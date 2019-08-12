@@ -15,7 +15,7 @@ namespace NuGetGallery
         /// to avoid performance issues from creating <see cref="SHA256"/> objects.
         /// </summary>
         [ThreadStatic]
-        private static readonly SHA256 Hasher = SHA256.Create();
+        private static SHA256 Hasher;
 
         private readonly HttpContextBase _httpContext;
         private readonly IFeatureFlagService _featureFlags;
@@ -42,6 +42,13 @@ namespace NuGetGallery
             if (!_featureFlags.IsPreviewHijackEnabled())
             {
                 return _search;
+            }
+
+            // Initialize this thread's hasher if necessary.
+            // See: https://docs.microsoft.com/en-us/dotnet/api/system.threadstaticattribute?view=netframework-4.8#remarks
+            if (Hasher == null)
+            {
+                Hasher = SHA256.Create();
             }
 
             var testBucket = GetClientBucket();
