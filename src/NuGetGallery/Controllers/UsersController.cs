@@ -337,7 +337,7 @@ namespace NuGetGallery
 
             if (FeatureFlagService.IsSelfServiceAccountDeleteEnabled())
             {
-                return await CreateSupportRequestAndTakeAction(user, () => DeleteAndCheckSuccess(user));
+                return await DeleteAndCheckSuccess(user);
             }
             else
             {
@@ -347,13 +347,20 @@ namespace NuGetGallery
                     return await DeleteAndCheckSuccess(user);
                 }
 
-                return await CreateSupportRequestAndTakeAction(user, async () =>
+                var isSupportRequestCreated = await SupportRequestService.TryAddDeleteSupportRequestAsync(user);
+                if (isSupportRequestCreated)
                 {
                     var emailMessage = new AccountDeleteNoticeMessage(MessageServiceConfiguration, user);
                     await MessageService.SendMessageAsync(emailMessage);
 
                     return RedirectToAction(nameof(DeleteRequest));
-                });
+                }
+                else
+                {
+                    TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
+
+                    return RedirectToAction(nameof(DeleteRequest));
+                }
             }
         }
 
@@ -369,21 +376,6 @@ namespace NuGetGallery
             }
             OwinContext.Authentication.SignOut();
             return SafeRedirect(Url.Home(false));
-        }
-
-        private async Task<ActionResult> CreateSupportRequestAndTakeAction(User user, Func<Task<ActionResult>> func)
-        {
-            var isSupportRequestCreated = await SupportRequestService.TryAddDeleteSupportRequestAsync(user);
-            if (isSupportRequestCreated)
-            {
-                return await func();
-            }
-            else
-            {
-                TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
-
-                return RedirectToAction(nameof(DeleteRequest));
-            }
         }
 
         [HttpGet]

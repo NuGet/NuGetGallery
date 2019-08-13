@@ -373,18 +373,9 @@ namespace NuGetGallery
                 return RedirectToAction(nameof(DeleteRequest));
             }
 
-            DeleteAccountStatus result;
             string successMessage;
             if (FeatureFlagService.IsAsyncAccountDeleteEnabled())
             {
-                var isSupportRequestCreated = await SupportRequestService.TryAddDeleteSupportRequestAsync(account);
-                if (!isSupportRequestCreated)
-                {
-                    TempData["ErrorMessage"] = $"There was an issue deleting your organization '{accountName}'. Please contact support for assistance.";
-
-                    return RedirectToAction(nameof(DeleteRequest));
-                }
-
                 successMessage = $"Your organization, '{accountName}', was queued to be deleted!";
             }
             else
@@ -392,7 +383,7 @@ namespace NuGetGallery
                 successMessage = $"Your organization, '{accountName}', was successfully deleted!";
             }
 
-            result = await DeleteAccountService.DeleteAccountAsync(account, currentUser);
+            var result = await DeleteAccountService.DeleteAccountAsync(account, currentUser);
 
             if (result.Success)
             {
