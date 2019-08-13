@@ -78,6 +78,8 @@ namespace NuGetGallery.Configuration
 
         public bool BlockingAsynchronousPackageValidationEnabled { get; set; }
 
+        public bool SelfServiceAccountDeleteEnabled { get; set; }
+
         public TimeSpan AsynchronousPackageValidationDelay { get; set; }
 
         public TimeSpan ValidationExpectedTime { get; set; }

@@ -335,7 +335,7 @@ namespace NuGetGallery
             }
             TelemetryService.TrackRequestForAccountDeletion(user);
 
-            if (FeatureFlagService.IsSelfServiceAccountDeleteEnabled())
+            if (_config.SelfServiceAccountDeleteEnabled && FeatureFlagService.IsSelfServiceAccountDeleteEnabled())
             {
                 return await DeleteAndCheckSuccess(user);
             }

@@ -12,7 +12,6 @@ namespace NuGetGallery
         /// If true, account deletes will be attempted to be performed asychronously
         /// and fall back to old method if the async delete fails
         /// </summary>
-        /// <returns></returns>
         bool IsAsyncAccountDeleteEnabled();
 
         /// <summary>
@@ -20,14 +19,12 @@ namespace NuGetGallery
         /// If true, user account deletes will be deleted automatically if possible
         /// and send alert mail to user if not.
         /// </summary>
-        /// <returns></returns>
         bool IsSelfServiceAccountDeleteEnabled();
 
         /// <summary>
         /// Whether typosquatting detection is enabled on package uploads. If true, new packages
         /// cannot have an id that is similar to existing packages' ids.
         /// </summary>
-        /// <returns></returns>
         bool IsTyposquattingEnabled();
 
         /// <summary>
@@ -35,14 +32,12 @@ namespace NuGetGallery
         /// new packages from this user cannot have an id that is similar to existing packages' ids.
         /// </summary>
         /// <param name="user"></param>
-        /// <returns></returns>
         bool IsTyposquattingEnabled(User user);
 
         /// <summary>
         /// Whether the packages Atom feed is enabled. If true, users can subscribe to new package versions using a
         /// feed reader on a per package ID basis.
         /// </summary>
-        /// <returns></returns>
         bool IsPackagesAtomFeedEnabled();
 
         /// <summary>

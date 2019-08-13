@@ -36,12 +36,12 @@ namespace NuGetGallery
 
         public bool IsAsyncAccountDeleteEnabled()
         {
-            return _client.IsEnabled(AsyncAccountDeleteFeatureName, false);
+            return _client.IsEnabled(AsyncAccountDeleteFeatureName, defaultValue: false);
         }
 
         public bool IsSelfServiceAccountDeleteEnabled()
         {
-            return _client.IsEnabled(SelfServiceAccountDeleteFeatureName, false);
+            return _client.IsEnabled(SelfServiceAccountDeleteFeatureName, defaultValue: false);
         }
 
         public bool IsTyposquattingEnabled()
