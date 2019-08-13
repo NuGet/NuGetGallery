@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
+using NuGetGallery.Areas.Admin;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -116,6 +117,27 @@ namespace NuGetGallery.Services
                 Assert.False(result.Success);
                 Assert.Equal(ServicesStrings.AsyncAccountDelete_Fail, result.Description);
             }
+
+            [Fact]
+            public async Task FailedSupportRequestStops()
+            {
+                // Arrange
+                var testUser = new User()
+                {
+                    Username = "test"
+                };
+
+                var testService = new TestAsynchronousDeleteAccountService(shouldFail: true);
+                testService.SupportRequestMock
+                    .Setup(sr => sr.TryAddDeleteSupportRequestAsync(It.IsAny<User>()))
+                    .Returns(Task.FromResult(false));
+                var deleteAccountService = testService.GetTestService();
+
+                var result = await deleteAccountService.DeleteAccountAsync(testUser, testUser, AccountDeletionOrphanPackagePolicy.UnlistOrphans);
+
+                Assert.False(result.Success);
+                Assert.Equal(ServicesStrings.AccountDelete_CreateSupportRequestFails, result.Description);
+            }
         }
  
 
@@ -125,20 +147,25 @@ namespace NuGetGallery.Services
 
             public Mock<ILogger<AsynchronousDeleteAccountService>> LoggerMock { get; set; }
 
+            public Mock<ISupportRequestService> SupportRequestMock { get; set; }
+
             public TestAsynchronousDeleteAccountService(bool shouldFail)
             {
                 TopicClient = new TestTopicClient(shouldFail);
                 LoggerMock = new Mock<ILogger<AsynchronousDeleteAccountService>>();
+                SupportRequestMock = new Mock<ISupportRequestService>();
             }
 
             public void SetupSimple()
             {
+                SupportRequestMock.Setup(sr => sr.TryAddDeleteSupportRequestAsync(It.IsAny<User>()))
+                    .Returns(Task.FromResult(true));
                 //LoggerMock.Setup(l => l.LogError(It.IsAny<EventId>(), It.IsAny<Exception>(), It.IsAny<string>()));
             }
 
             public AsynchronousDeleteAccountService GetTestService()
             {
-                return new AsynchronousDeleteAccountService(TopicClient, new AccountDeleteMessageSerializer(), LoggerMock.Object);
+                return new AsynchronousDeleteAccountService(TopicClient, SupportRequestMock.Object, new AccountDeleteMessageSerializer(), LoggerMock.Object);
             }
         }
 
