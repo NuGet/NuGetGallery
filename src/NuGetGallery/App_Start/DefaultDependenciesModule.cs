@@ -17,11 +17,12 @@ using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using Autofac.Core;
+using Autofac.Extensions.DependencyInjection;
 using Elmah;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Entities;
@@ -45,15 +46,13 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
-using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
-using Microsoft.Extensions.Http;
-using NuGetGallery.Infrastructure.Lucene;
-using System.Threading;
 using Role = NuGet.Services.Entities.Role;
+using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
 {
@@ -881,6 +880,16 @@ namespace NuGetGallery
                     c.Resolve<IMessageServiceConfiguration>(),
                     c.Resolve<IIconUrlProvider>()))
                 .As<ISearchSideBySideService>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(c => new HijackSearchServiceFactory(
+                    c.Resolve<HttpContextBase>(),
+                    c.Resolve<IFeatureFlagService>(),
+                    c.Resolve<IContentObjectService>(),
+                    c.Resolve<ISearchService>(),
+                    c.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
+                .As<IHijackSearchServiceFactory>()
                 .InstancePerLifetimeScope();
 
             builder

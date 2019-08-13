@@ -21,10 +21,10 @@ namespace NuGetGallery
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
-        private const string SearchCircuitBreakerFeatureName = GalleryPrefix + "SearchCircuitBreaker";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
         private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
+        private const string PreviewHijackFeatureName = GalleryPrefix + "PreviewHijack";
 
         private readonly IFeatureFlagClient _client;
 
@@ -97,6 +97,11 @@ namespace NuGetGallery
         public bool IsABTestingEnabled(User user)
         {
             return _client.IsEnabled(ABTestingFlightName, user, defaultValue: false);
+        }
+
+        public bool IsPreviewHijackEnabled()
+        {
+            return _client.IsEnabled(PreviewHijackFeatureName, defaultValue: false);
         }
     }
 }

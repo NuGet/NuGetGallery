@@ -10,5 +10,11 @@ namespace NuGetGallery.Services
         /// experience.
         /// </summary>
         int PreviewSearchPercentage { get; }
+
+        /// <summary>
+        /// A value between 0 and 100 (inclusive) representing the desired percentage of users the should get the preview
+        /// hijack experience.
+        /// </summary>
+        int PreviewHijackPercentage { get; }
     }
 }

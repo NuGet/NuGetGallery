@@ -87,6 +87,7 @@
     <Compile Include="Controllers\SupportControllerFacts.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentFactoryFacts.cs" />
     <Compile Include="Infrastructure\CookieBasedABTestServiceFacts.cs" />
+    <Compile Include="Infrastructure\HijackSearchServiceFactoryFacts.cs" />
     <Compile Include="Infrastructure\Lucene\SearchPolicyFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ResilientSearchServiceFacts.cs" />
     <Compile Include="Infrastructure\Lucene\GallerySearchServiceFacts.cs" />
