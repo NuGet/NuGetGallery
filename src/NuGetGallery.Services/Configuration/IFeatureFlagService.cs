@@ -38,10 +38,15 @@ namespace NuGetGallery
         bool IsPackagesAtomFeedEnabled();
 
         /// <summary>
-        /// Whether or not users can manage their package's deprecation state.
+        /// Whether or not the user can manage their package's deprecation state.
         /// If disabled, 
         /// </summary>
         bool IsManageDeprecationEnabled(User user, PackageRegistration registration = null);
+
+        /// <summary>
+        /// Whether or not the user can manage their package's deprecation state through the API.
+        /// </summary>
+        bool IsManageDeprecationApiEnabled(User user);
 
         /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.

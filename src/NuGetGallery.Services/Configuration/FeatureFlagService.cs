@@ -19,6 +19,7 @@ namespace NuGetGallery
         private const string GitHubUsageFlightName = GalleryPrefix + "GitHubUsage";
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
+        private const string ManageDeprecationApiFeatureName = GalleryPrefix + "ManageDeprecationApi";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
         private const string SearchCircuitBreakerFeatureName = GalleryPrefix + "SearchCircuitBreaker";
@@ -67,6 +68,11 @@ namespace NuGetGallery
 
             return (registration?.Packages.Count() ?? 0) < _manageDeprecationForManyVersionsThreshold 
                 || _client.IsEnabled(ManageDeprecationForManyVersionsFeatureName, user, defaultValue: true);
+        }
+
+        public bool IsManageDeprecationApiEnabled(User user)
+        {
+            return _client.IsEnabled(ManageDeprecationApiFeatureName, user, defaultValue: false);
         }
 
         public bool AreEmbeddedIconsEnabled(User user)

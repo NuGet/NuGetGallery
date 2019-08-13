@@ -63,6 +63,7 @@ namespace NuGetGallery
         public IPackageDeleteService PackageDeleteService { get; set; }
         public ISymbolPackageFileService SymbolPackageFileService { get; set; }
         public ISymbolPackageUploadService SymbolPackageUploadService { get; set; }
+        public IFeatureFlagService FeatureFlagService { get; set; }
 
         protected ApiController()
         {
@@ -94,7 +95,8 @@ namespace NuGetGallery
             ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IAutocompletePackageIdsQuery autocompletePackageIdsQuery,
-            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery)
+            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery,
+            IFeatureFlagService featureFlagService)
         {
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
@@ -121,6 +123,7 @@ namespace NuGetGallery
             SymbolPackageUploadService = symbolPackageUploadService;
             _autocompletePackageIdsQuery = autocompletePackageIdsQuery;
             _autocompletePackageVersionsQuery = autocompletePackageVersionsQuery;
+            FeatureFlagService = featureFlagService;
         }
 
         public ApiController(
@@ -149,7 +152,8 @@ namespace NuGetGallery
             ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageUploadService symbolPackageUploadServivce,
             IAutocompletePackageIdsQuery autocompletePackageIdsQuery,
-            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery)
+            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery,
+            IFeatureFlagService featureFlagService)
             : this(
                   apiScopeEvaluator, 
                   entitiesContext, 
@@ -175,7 +179,8 @@ namespace NuGetGallery
                   symbolPackageFileService,
                   symbolPackageUploadServivce, 
                   autocompletePackageIdsQuery, 
-                  autocompletePackageVersionsQuery)
+                  autocompletePackageVersionsQuery,
+                  featureFlagService)
         {
             StatisticsService = statisticsService;
         }
@@ -913,8 +918,13 @@ namespace NuGetGallery
                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, versionString: null);
             }
 
+            if (!FeatureFlagService.IsManageDeprecationApiEnabled(apiScopeEvaluationResult.Owner))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
+
             var error = await PackageDeprecationManagementService.UpdateDeprecation(
-                GetCurrentUser(),
+                apiScopeEvaluationResult.Owner,
                 id,
                 versions,
                 isLegacy,

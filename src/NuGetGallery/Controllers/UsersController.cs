@@ -411,7 +411,7 @@ namespace NuGetGallery
                 ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.DeprecatePackage.IsAllowedOnBehalfOfAccount(currentUser, account),
-                _featureFlagService.IsManageDeprecationEnabled(account),
+                _featureFlagService.IsManageDeprecationApiEnabled(account) && _featureFlagService.IsManageDeprecationEnabled(account),
                 packageIds: PackageService.FindPackageRegistrationsByOwner(account)
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)

@@ -2169,6 +2169,75 @@ namespace NuGetGallery
                         Times.Never());
             }
 
+            [Fact]
+            public async Task ReturnsForbiddenIfFeatureFlagDisabled()
+            {
+                // Arrange
+                var id = "Crested.Gecko";
+                var versions = new[] { "1.0.0", "2.0.0" };
+
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                var owner = fakes.Owner;
+
+                var deprecationService = GetMock<IPackageDeprecationManagementService>();
+                deprecationService
+                    .Verify(
+                        x => x.UpdateDeprecation(
+                            It.IsAny<User>(),
+                            It.IsAny<string>(),
+                            It.IsAny<IEnumerable<string>>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+
+                var registration = new PackageRegistration { Id = id };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns(registration);
+
+                var scopeEvaluator = GetMock<IApiScopeEvaluator>();
+                scopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.DeprecatePackage,
+                        registration,
+                        NuGetScopes.PackageDeprecate))
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, true))
+                    .Verifiable();
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationApiEnabled(owner))
+                    .Returns(false)
+                    .Verifiable();
+
+                var controller = GetController<ApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.DeprecatePackage(
+                    id,
+                    versions);
+
+                // Assert
+                var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+                Assert.Equal((int)HttpStatusCode.Forbidden, statusCodeResult.StatusCode);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, statusCodeResult.Body);
+
+                packageService.Verify();
+                scopeEvaluator.Verify();
+                featureFlagService.Verify();
+                deprecationService.Verify();
+            }
+
             public static IEnumerable<object[]> ReturnsProperResult_Data =
                 MemberDataHelper.Combine(
                     Enumerable
@@ -2191,14 +2260,16 @@ namespace NuGetGallery
                 var alternateVersion = "3.0.0";
                 var customMessage = "custom";
 
-                var currentUser = Get<Fakes>().User;
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                var owner = fakes.Owner;
 
                 var errorStatus = HttpStatusCode.InternalServerError;
                 var errorMessage = "woops";
                 var deprecationService = GetMock<IPackageDeprecationManagementService>();
                 deprecationService
                     .Setup(x => x.UpdateDeprecation(
-                        currentUser,
+                        owner,
                         id,
                         versions,
                         isLegacy,
@@ -2225,7 +2296,13 @@ namespace NuGetGallery
                         ActionsRequiringPermissions.DeprecatePackage,
                         registration,
                         NuGetScopes.PackageDeprecate))
-                    .Returns(new ApiScopeEvaluationResult(currentUser, PermissionsCheckResult.Allowed, true))
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, true))
+                    .Verifiable();
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationApiEnabled(owner))
+                    .Returns(true)
                     .Verifiable();
 
                 var controller = GetController<ApiController>();
@@ -2257,6 +2334,7 @@ namespace NuGetGallery
 
                 packageService.Verify();
                 scopeEvaluator.Verify();
+                featureFlagService.Verify();
                 deprecationService.Verify();
             }
         }
