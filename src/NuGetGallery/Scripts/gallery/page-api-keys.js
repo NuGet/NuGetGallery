@@ -159,7 +159,7 @@
                 }
 
                 // If deprecate is selected and that action is not allowed on behalf of the new owner, deselect it.
-                if (!newOwner.CanDeprecate && isDeprecateSelected()) {
+                if ((!newOwner.CanDeprecate || !newOwner.IsDeprecationFeatureEnabled) && isDeprecateSelected()) {
                     self.DeprecateScopeChecked(false);
                 }
 
