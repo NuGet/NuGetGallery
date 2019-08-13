@@ -7,7 +7,7 @@ namespace NuGetGallery
 {
     public class ApiKeyOwnerViewModel
     {
-        public ApiKeyOwnerViewModel(string owner, bool canPushNew, bool canPushExisting, bool canUnlist, bool canDeprecate, IList<string> packageIds)
+        public ApiKeyOwnerViewModel(string owner, bool canPushNew, bool canPushExisting, bool canUnlist, bool canDeprecate, bool isDeprecationFeatureEnabled, IList<string> packageIds)
         {
             Owner = owner;
             CanPushNew = canPushNew;
@@ -15,6 +15,7 @@ namespace NuGetGallery
             CanUnlist = canUnlist;
             CanDeprecate = canDeprecate;
             PackageIds = packageIds;
+            IsDeprecationFeatureEnabled = isDeprecationFeatureEnabled;
         }
         
         public string Owner { get; }
@@ -22,6 +23,7 @@ namespace NuGetGallery
         public bool CanPushExisting { get; }
         public bool CanUnlist { get; }
         public bool CanDeprecate { get; }
+        public bool IsDeprecationFeatureEnabled { get; }
         public IList<string> PackageIds { get; }
     }
 }

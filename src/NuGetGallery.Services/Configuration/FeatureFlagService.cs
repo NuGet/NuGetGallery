@@ -58,14 +58,14 @@ namespace NuGetGallery
         /// </summary>
         private const int _manageDeprecationForManyVersionsThreshold = 500;
 
-        public bool IsManageDeprecationEnabled(User user, PackageRegistration registration)
+        public bool IsManageDeprecationEnabled(User user, PackageRegistration registration = null)
         {
             if (!_client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false))
             {
                 return false;
             }
 
-            return registration.Packages.Count() < _manageDeprecationForManyVersionsThreshold 
+            return (registration?.Packages.Count() ?? 0) < _manageDeprecationForManyVersionsThreshold 
                 || _client.IsEnabled(ManageDeprecationForManyVersionsFeatureName, user, defaultValue: true);
         }
 

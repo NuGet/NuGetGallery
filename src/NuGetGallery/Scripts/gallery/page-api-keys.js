@@ -198,6 +198,9 @@
                 return self.PackageOwner() && self.PackageOwner().CanUnlist;
             }, this);
 
+            this.IsDeprecationFeatureEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().IsDeprecationFeatureEnabled;
+            }, this);
             this.DeprecateEnabled = ko.pureComputed(function () {
                 return self.PackageOwner() && self.PackageOwner().CanDeprecate;
             }, this);

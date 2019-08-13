@@ -43,6 +43,26 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void WhenManageDeprecationFeatureIsEnabledAndNullRegistration_ReturnsTrue()
+            {
+                // Arrange
+                var user = new User();
+
+                var clientMock = new Mock<IFeatureFlagClient>();
+                clientMock
+                    .Setup(c => c.IsEnabled("NuGetGallery.ManageDeprecation", It.IsAny<IFlightUser>(), false))
+                    .Returns(true);
+
+                var service = new FeatureFlagService(clientMock.Object);
+
+                // Act
+                var result = service.IsManageDeprecationEnabled(user, null);
+
+                // Assert
+                Assert.True(result);
+            }
+
+            [Fact]
             public void WhenManageDeprecationFeatureIsEnabledAndFewVersions_ReturnsTrue()
             {
                 // Arrange

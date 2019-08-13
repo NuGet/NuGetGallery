@@ -899,6 +899,20 @@ namespace NuGetGallery
             string alternatePackageVersion = null, 
             string message = null)
         {
+            var registration = PackageService.FindPackageRegistrationById(id);
+            if (registration == null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackagesWithIdNotFound, id));
+            }
+
+            // Check if the current user's scopes allow deprecating/undeprecating the current package ID
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.DeprecatePackage, registration, NuGetScopes.PackageDeprecate);
+            if (!apiScopeEvaluationResult.IsSuccessful())
+            {
+                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, versionString: null);
+            }
+
             var error = await PackageDeprecationManagementService.UpdateDeprecation(
                 GetCurrentUser(),
                 id,

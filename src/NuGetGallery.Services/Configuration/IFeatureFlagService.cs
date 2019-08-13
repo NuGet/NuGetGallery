@@ -41,7 +41,7 @@ namespace NuGetGallery
         /// Whether or not users can manage their package's deprecation state.
         /// If disabled, 
         /// </summary>
-        bool IsManageDeprecationEnabled(User user, PackageRegistration registration);
+        bool IsManageDeprecationEnabled(User user, PackageRegistration registration = null);
 
         /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.

@@ -2083,6 +2083,92 @@ namespace NuGetGallery
 
         public class TheDeprecatePackageAction : TestContainer
         {
+            [Fact]
+            public async Task WillThrowIfAPackageWithTheIdDoesNotExist()
+            {
+                // Arrange
+
+                var id = "theId";
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns((PackageRegistration)null);
+
+                // Act
+                var result = await controller.DeprecatePackage(id, versions: null);
+
+                // Assert
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.NotFound,
+                    string.Format(Strings.PackagesWithIdNotFound, id));
+
+                controller.MockPackageDeprecationManagementService
+                    .Verify(
+                        x => x.UpdateDeprecation(
+                            It.IsAny<User>(),
+                            It.IsAny<string>(),
+                            It.IsAny<IEnumerable<string>>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+            }
+
+            public static IEnumerable<object[]> WillNotDeprecateThePackageIfScopesInvalid_Data = InvalidScopes_Data;
+
+            [Theory]
+            [MemberData(nameof(WillNotDeprecateThePackageIfScopesInvalid_Data))]
+            public async Task WillNotDeprecateThePackageIfScopesInvalid(ApiScopeEvaluationResult evaluationResult, HttpStatusCode expectedStatusCode, string description)
+            {
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+
+                var id = "theId";
+                var registration = new PackageRegistration { Id = id };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns(registration);
+
+                controller.SetCurrentUser(currentUser);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.DeprecatePackage,
+                        registration,
+                        NuGetScopes.PackageDeprecate))
+                    .Returns(evaluationResult);
+
+                var result = await controller.DeprecatePackage(id, versions: null);
+
+                ResultAssert.IsStatusCode(
+                    result,
+                    expectedStatusCode,
+                    description);
+
+                controller.MockPackageDeprecationManagementService
+                    .Verify(
+                        x => x.UpdateDeprecation(
+                            It.IsAny<User>(), 
+                            It.IsAny<string>(), 
+                            It.IsAny<IEnumerable<string>>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+            }
+
             public static IEnumerable<object[]> ReturnsProperResult_Data =
                 MemberDataHelper.Combine(
                     Enumerable
@@ -2124,6 +2210,24 @@ namespace NuGetGallery
                     .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage))
                     .Verifiable();
 
+                var registration = new PackageRegistration { Id = id };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns(registration);
+
+                var scopeEvaluator = GetMock<IApiScopeEvaluator>();
+                scopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.DeprecatePackage,
+                        registration,
+                        NuGetScopes.PackageDeprecate))
+                    .Returns(new ApiScopeEvaluationResult(currentUser, PermissionsCheckResult.Allowed, true))
+                    .Verifiable();
+
                 var controller = GetController<ApiController>();
                 controller.SetCurrentUser(currentUser);
 
@@ -2151,6 +2255,8 @@ namespace NuGetGallery
                     Assert.Equal(errorMessage, statusCodeResult.Body);
                 }
 
+                packageService.Verify();
+                scopeEvaluator.Verify();
                 deprecationService.Verify();
             }
         }
