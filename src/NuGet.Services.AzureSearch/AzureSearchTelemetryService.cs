@@ -377,5 +377,26 @@ namespace NuGet.Services.AzureSearch
                 Prefix + "V2GetDocumentWithHijackIndexMs",
                 elapsed.TotalMilliseconds);
         }
+
+        public void TrackReadLatestVerifiedPackages(int packageIdCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "ReadLatestVerifiedPackagesSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
+
+        public IDisposable TrackReplaceLatestVerifiedPackages(int packageIdCount)
+        {
+            return _telemetryClient.TrackDuration(
+                Prefix + "ReplaceLatestVerifiedPackagesSeconds",
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
     }
 }

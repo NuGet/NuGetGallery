@@ -24,13 +24,13 @@ namespace NuGet.Services.AzureSearch
         });
 
         private readonly ICloudBlobClient _cloudBlobClient;
-        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
+        private readonly IOptionsSnapshot<AzureSearchConfiguration> _options;
         private readonly ILogger<VersionListDataClient> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
 
         public VersionListDataClient(
             ICloudBlobClient cloudBlobClient,
-            IOptionsSnapshot<AzureSearchJobConfiguration> options,
+            IOptionsSnapshot<AzureSearchConfiguration> options,
             ILogger<VersionListDataClient> logger)
         {
             _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));

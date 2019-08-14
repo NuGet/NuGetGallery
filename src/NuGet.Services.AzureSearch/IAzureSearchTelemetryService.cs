@@ -50,5 +50,7 @@ namespace NuGet.Services.AzureSearch
         void TrackV3GetDocument(TimeSpan elapsed);
         void TrackV2GetDocumentWithSearchIndex(TimeSpan elapsed);
         void TrackV2GetDocumentWithHijackIndex(TimeSpan elapsed);
+        void TrackReadLatestVerifiedPackages(int packageIdCount, TimeSpan elapsed);
+        IDisposable TrackReplaceLatestVerifiedPackages(int packageIdCount);
     }
 }

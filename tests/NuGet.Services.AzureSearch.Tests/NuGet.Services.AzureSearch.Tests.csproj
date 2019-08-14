@@ -42,6 +42,7 @@
     <Compile Include="AuxiliaryFiles\DownloadByVersionDataFacts.cs" />
     <Compile Include="AuxiliaryFiles\DownloadDataClientFacts.cs" />
     <Compile Include="AuxiliaryFiles\DownloadDataFacts.cs" />
+    <Compile Include="AuxiliaryFiles\VerifiedPackagesDataClientFacts.cs" />
     <Compile Include="BaseDocumentBuilderFacts.cs" />
     <Compile Include="BatchPusherFacts.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogicFacts.cs" />

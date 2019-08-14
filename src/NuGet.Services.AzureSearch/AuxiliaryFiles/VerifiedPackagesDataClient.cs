@@ -15,21 +15,21 @@ using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
-    public class OwnerDataClient : IOwnerDataClient
+    public class VerifiedPackagesDataClient : IVerifiedPackagesDataClient
     {
         private static readonly JsonSerializer Serializer = new JsonSerializer();
 
         private readonly ICloudBlobClient _cloudBlobClient;
         private readonly IOptionsSnapshot<AzureSearchConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
-        private readonly ILogger<OwnerDataClient> _logger;
+        private readonly ILogger<VerifiedPackagesDataClient> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
 
-        public OwnerDataClient(
+        public VerifiedPackagesDataClient(
             ICloudBlobClient cloudBlobClient,
             IOptionsSnapshot<AzureSearchConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
-            ILogger<OwnerDataClient> logger)
+            ILogger<VerifiedPackagesDataClient> logger)
         {
             _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -42,22 +42,22 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         private ICloudBlobContainer Container => _lazyContainer.Value;
 
-        public async Task<ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>>> ReadLatestIndexedAsync()
+        public async Task<ResultAndAccessCondition<HashSet<string>>> ReadLatestAsync()
         {
             var stopwatch = Stopwatch.StartNew();
             var blobName = GetLatestIndexedBlobName();
             var blobReference = Container.GetBlobReference(blobName);
 
-            _logger.LogInformation("Reading the latest indexed owners from {BlobName}.", blobName);
+            _logger.LogInformation("Reading the latest verified packages from {BlobName}.", blobName);
 
-            var builder = new PackageIdToOwnersBuilder(_logger);
             IAccessCondition accessCondition;
+            var data = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             try
             {
                 using (var stream = await blobReference.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
                 {
                     accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blobReference.ETag);
-                    ReadStream(stream, builder.Add);
+                    ReadStream(stream, id => data.Add(id));
                 }
             }
             catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
@@ -66,49 +66,24 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 _logger.LogInformation("The blob {BlobName} does not exist.", blobName);
             }
 
-            var output = new ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>>(
-                builder.GetResult(),
+            var output = new ResultAndAccessCondition<HashSet<string>>(
+                data,
                 accessCondition);
 
             stopwatch.Stop();
-            _telemetryService.TrackReadLatestIndexedOwners(output.Result.Count, stopwatch.Elapsed);
+            _telemetryService.TrackReadLatestVerifiedPackages(output.Result.Count, stopwatch.Elapsed);
 
             return output;
         }
 
-        public async Task UploadChangeHistoryAsync(IReadOnlyList<string> packageIds)
-        {
-            if (packageIds.Count == 0)
-            {
-                throw new ArgumentException("The list of package IDs must have at least one element.", nameof(packageIds));
-            }
-
-            using (_telemetryService.TrackUploadOwnerChangeHistory(packageIds.Count))
-            {
-                var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss-FFFFFFF");
-                var blobName = $"{_options.Value.NormalizeStoragePath()}owners/changes/{timestamp}.json";
-                _logger.LogInformation("Uploading owner changes to {BlobName}.", blobName);
-
-                var blobReference = Container.GetBlobReference(blobName);
-
-                using (var stream = await blobReference.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
-                using (var streamWriter = new StreamWriter(stream))
-                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
-                {
-                    blobReference.Properties.ContentType = "application/json";
-                    Serializer.Serialize(jsonTextWriter, packageIds);
-                }
-            }
-        }
-
-        public async Task ReplaceLatestIndexedAsync(
-            SortedDictionary<string, SortedSet<string>> newData,
+        public async Task ReplaceLatestAsync(
+            HashSet<string> newData,
             IAccessCondition accessCondition)
         {
-            using (_telemetryService.TrackReplaceLatestIndexedOwners(newData.Count))
+            using (_telemetryService.TrackReplaceLatestVerifiedPackages(newData.Count))
             {
                 var blobName = GetLatestIndexedBlobName();
-                _logger.LogInformation("Replacing the latest indexed owners from {BlobName}.", blobName);
+                _logger.LogInformation("Replacing the latest verified packages from {BlobName}.", blobName);
 
                 var mappedAccessCondition = new AccessCondition
                 {
@@ -128,37 +103,30 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             }
         }
 
-        private static void ReadStream(Stream stream, Action<string, IReadOnlyList<string>> add)
+        private static void ReadStream(Stream stream, Action<string> add)
         {
             using (var textReader = new StreamReader(stream))
             using (var jsonReader = new JsonTextReader(textReader))
             {
                 Guard.Assert(jsonReader.Read(), "The blob should be readable.");
-                Guard.Assert(jsonReader.TokenType == JsonToken.StartObject, "The first token should be the start of an object.");
+                Guard.Assert(jsonReader.TokenType == JsonToken.StartArray, "The first token should be the start of an array.");
                 Guard.Assert(jsonReader.Read(), "There should be a second token.");
-                while (jsonReader.TokenType == JsonToken.PropertyName)
+                while (jsonReader.TokenType == JsonToken.String)
                 {
                     var id = (string)jsonReader.Value;
+                    add(id);
 
-                    Guard.Assert(jsonReader.Read(), "There should be a token after the property name.");
-                    Guard.Assert(jsonReader.TokenType == JsonToken.StartArray, "The token after the property name should be the start of an object.");
-
-                    var owners = Serializer.Deserialize<List<string>>(jsonReader);
-                    add(id, owners);
-
-                    Guard.Assert(jsonReader.TokenType == JsonToken.EndArray, "The token after reading the array should be the end of an array.");
-                    Guard.Assert(jsonReader.Read(), "There should be a token after the end of the array.");
+                    Guard.Assert(jsonReader.Read(), "There should be a token after the string.");
                 }
 
-                Guard.Assert(jsonReader.TokenType == JsonToken.EndObject, "The last token should be the end of an object.");
-                Guard.Assert(!jsonReader.Read(), "There should be no token after the end of the object.");
+                Guard.Assert(jsonReader.TokenType == JsonToken.EndArray, "The last token should be the end of an array.");
+                Guard.Assert(!jsonReader.Read(), "There should be no token after the end of the array.");
             }
         }
 
         private string GetLatestIndexedBlobName()
         {
-            return $"{_options.Value.NormalizeStoragePath()}owners/owners.v2.json";
+            return $"{_options.Value.NormalizeStoragePath()}verified-packages/verified-packages.v1.json";
         }
     }
 }
-

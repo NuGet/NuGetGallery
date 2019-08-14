@@ -40,7 +40,7 @@ namespace NuGet.Services.AzureSearch
             RegisterIndexServices(containerBuilder, "SearchIndex", "HijackIndex");
 
             /// There are multiple implementations of storage, in particular <see cref="ICloudBlobClient"/>.
-            RegisterAzureSearchJobStorageServices(containerBuilder, "AzureSearchJobStorage");
+            RegisterAzureSearchStorageServices(containerBuilder, "AzureSearchStorage");
             RegisterAuxiliaryDataStorageServices(containerBuilder, "AuxiliaryDataStorage");
 
             return containerBuilder;
@@ -97,12 +97,12 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<ILogger<SearchStatusService>>()));
         }
 
-        private static void RegisterAzureSearchJobStorageServices(ContainerBuilder containerBuilder, string key)
+        private static void RegisterAzureSearchStorageServices(ContainerBuilder containerBuilder, string key)
         {
             containerBuilder
                 .Register<ICloudBlobClient>(c =>
                 {
-                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.StorageConnectionString,
                         GetBlobRequestOptions());
@@ -112,13 +112,13 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<IVersionListDataClient>(c => new VersionListDataClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
-                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>(),
                     c.Resolve<ILogger<VersionListDataClient>>()));
 
             containerBuilder
                 .Register(c =>
                 {
-                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
                     return CloudStorageAccount.Parse(options.Value.StorageConnectionString);
                 })
                 .Keyed<CloudStorageAccount>(key);
@@ -126,7 +126,7 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
-                    var options = c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                    var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
                     return new AzureStorageFactory(
                         c.ResolveKeyed<CloudStorageAccount>(key),
                         options.Value.StorageContainer,
@@ -145,20 +145,27 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<IBlobContainerBuilder>(c => new BlobContainerBuilder(
                     c.ResolveKeyed<ICloudBlobClient>(key),
-                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>(),
                     c.Resolve<ILogger<BlobContainerBuilder>>()));
 
             containerBuilder
                 .Register<IDownloadDataClient>(c => new DownloadDataClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
-                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<DownloadDataClient>>()));
 
             containerBuilder
+                .Register<IVerifiedPackagesDataClient>(c => new VerifiedPackagesDataClient(
+                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>(),
+                    c.Resolve<IAzureSearchTelemetryService>(),
+                    c.Resolve<ILogger<VerifiedPackagesDataClient>>()));
+
+            containerBuilder
                 .Register<IOwnerDataClient>(c => new OwnerDataClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
-                    c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<OwnerDataClient>>()));
 
