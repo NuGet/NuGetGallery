@@ -55,6 +55,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             // numbers we don't use the gallery DB values.
             var downloads = await _auxiliaryFileClient.LoadDownloadDataAsync();
 
+            // Fetch the verified packages file. This is not used inside the index but is used at query-time in the
+            // Azure Search service. We want to copy this file to the local region's storage container to improve
+            // availability and start-up of the service.
+            var verifiedPackagesResult = await _auxiliaryFileClient.LoadVerifiedPackagesAsync(etag: null);
+            var verifiedPackages = verifiedPackagesResult.Data;
+
             // Build a list of the owners data as we collect package registrations from the database.
             var ownersBuilder = new PackageIdToOwnersBuilder(_logger);
 
@@ -104,7 +110,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             return new InitialAuxiliaryData(
                 ownersBuilder.GetResult(),
                 downloads,
-                excludedPackages);
+                excludedPackages,
+                verifiedPackages);
         }
 
         private bool ShouldWait(ConcurrentBag<NewPackageRegistration> allWork, bool log)

@@ -8,7 +8,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         string AuxiliaryDataStorageConnectionString { get; }
         string AuxiliaryDataStorageContainer { get; }
         string AuxiliaryDataStorageDownloadsPath { get; }
-        string AuxiliaryDataStorageVerifiedPackagesPath { get; }
         string AuxiliaryDataStorageExcludedPackagesPath { get; }
+        string AuxiliaryDataStorageVerifiedPackagesPath { get; }
     }
 }
