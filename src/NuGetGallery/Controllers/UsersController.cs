@@ -31,6 +31,7 @@ namespace NuGetGallery
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ListPackageItemRequiredSignerViewModelFactory _listPackageItemRequiredSignerViewModelFactory;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+        private readonly ISupportRequestService _supportRequestService;
 
         public UsersController(
             IUserService userService,
@@ -58,13 +59,13 @@ namespace NuGetGallery
                   certificateService,
                   contentObjectService,
                   featureFlagService,
-                  supportRequestService,
                   messageServiceConfiguration,
                   deleteAccountService)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
+            _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
@@ -114,7 +115,7 @@ namespace NuGetGallery
 
         protected override DeleteAccountViewModel GetDeleteAccountViewModel(User account)
         {
-            return new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), SupportRequestService);
+            return new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), _supportRequestService);
         }
 
         [HttpGet]
@@ -347,7 +348,7 @@ namespace NuGetGallery
                     return await DeleteAndCheckSuccess(user);
                 }
 
-                var isSupportRequestCreated = await SupportRequestService.TryAddDeleteSupportRequestAsync(user);
+                var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
                 if (isSupportRequestCreated)
                 {
                     var emailMessage = new AccountDeleteNoticeMessage(MessageServiceConfiguration, user);
