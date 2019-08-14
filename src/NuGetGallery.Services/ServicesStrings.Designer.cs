@@ -496,7 +496,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account &apos;{0}&apos; was enqueued to be deleted succesfully..
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; was enqueued to be deleted successfully..
         /// </summary>
         public static string AsyncAccountDelete_Success {
             get {
@@ -1774,15 +1774,6 @@ namespace NuGetGallery {
         public static string ScopeDescription_All {
             get {
                 return ResourceManager.GetString("ScopeDescription_All", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Deprecate package.
-        /// </summary>
-        public static string ScopeDescription_DeprecatePackage {
-            get {
-                return ResourceManager.GetString("ScopeDescription_DeprecatePackage", resourceCulture);
             }
         }
         

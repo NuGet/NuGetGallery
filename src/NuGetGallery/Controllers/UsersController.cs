@@ -30,7 +30,6 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ISupportRequestService _supportRequestService;
-        private readonly IFeatureFlagService _featureFlagService;
         private readonly ListPackageItemRequiredSignerViewModelFactory _listPackageItemRequiredSignerViewModelFactory;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
@@ -49,8 +48,7 @@ namespace NuGetGallery
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
             IMessageServiceConfiguration messageServiceConfiguration,
-            IIconUrlProvider iconUrlProvider,
-            IFeatureFlagService featureFlagService)
+            IIconUrlProvider iconUrlProvider)
             : base(
                   authService,
                   packageService,
@@ -68,7 +66,6 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService, iconUrlProvider);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
@@ -410,8 +407,6 @@ namespace NuGetGallery
                 ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
-                ActionsRequiringPermissions.DeprecatePackage.IsAllowedOnBehalfOfAccount(currentUser, account),
-                _featureFlagService.IsManageDeprecationApiEnabled(account) && _featureFlagService.IsManageDeprecationEnabled(account),
                 packageIds: PackageService.FindPackageRegistrationsByOwner(account)
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)
@@ -912,7 +907,6 @@ namespace NuGetGallery
             { NuGetScopes.PackagePushVersion, new [] { ActionsRequiringPermissions.UploadNewPackageVersion } },
             { NuGetScopes.PackageUnlist, new [] { ActionsRequiringPermissions.UnlistOrRelistPackage } },
             { NuGetScopes.PackageVerify, new [] { ActionsRequiringPermissions.VerifyPackage } },
-            { NuGetScopes.PackageDeprecate, new[] { ActionsRequiringPermissions.DeprecatePackage } },
         };
 
         private bool VerifyScopes(IEnumerable<Scope> scopes)

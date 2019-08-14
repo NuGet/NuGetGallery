@@ -517,91 +517,62 @@ namespace NuGetGallery
             : TestContainer
         {
             public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data =
-                MemberDataHelper.Combine(
-                    MemberDataHelper.AsDataSet(
-                        TestUtility.FakeUser,
-                        TestUtility.FakeAdminUser,
-                        TestUtility.FakeOrganizationAdmin,
-                        TestUtility.FakeOrganizationCollaborator),
-                    MemberDataHelper.BooleanDataSet(),
-                    MemberDataHelper.BooleanDataSet());
+                MemberDataHelper.AsDataSet(
+                    TestUtility.FakeUser,
+                    TestUtility.FakeAdminUser,
+                    TestUtility.FakeOrganizationAdmin,
+                    TestUtility.FakeOrganizationCollaborator);
 
             [Theory]
             [MemberData(nameof(CurrentUserIsInPackageOwnersWithPushNew_Data))]
-            public void CurrentUserIsFirstInPackageOwnersWithPushNew(
-                User currentUser, bool isManageDeprecationApiEnabled, bool isManageDeprecationEnabled)
+            public void CurrentUserIsFirstInPackageOwnersWithPushNew(User currentUser)
             {
-                var model = GetModelForApiKeys(currentUser, isManageDeprecationApiEnabled, isManageDeprecationEnabled);
+                var model = GetModelForApiKeys(currentUser);
 
                 var firstPackageOwner = model.PackageOwners.First();
                 Assert.True(firstPackageOwner.Owner == currentUser.Username);
                 Assert.True(firstPackageOwner.CanPushNew);
                 Assert.True(firstPackageOwner.CanPushExisting);
                 Assert.True(firstPackageOwner.CanUnlist);
-                Assert.True(firstPackageOwner.CanDeprecate);
-                Assert.Equal(
-                    isManageDeprecationApiEnabled && isManageDeprecationEnabled,
-                    firstPackageOwner.IsDeprecationFeatureEnabled);
             }
 
             public static IEnumerable<object[]> OrganizationIsInPackageOwnersIfMember_Data =
-                MemberDataHelper.Combine(
-                    MemberDataHelper.BooleanDataSet(),
-                    MemberDataHelper.BooleanDataSet(),
-                    MemberDataHelper.BooleanDataSet());
+                MemberDataHelper.BooleanDataSet();
 
             [Theory]
             [MemberData(nameof(OrganizationIsInPackageOwnersIfMember_Data))]
-            public void OrganizationIsInPackageOwnersIfMember(
-                bool isAdmin, bool isManageDeprecationApiEnabled, bool isManageDeprecationEnabled)
+            public void OrganizationIsInPackageOwnersIfMember(bool isAdmin)
             {
                 var currentUser = isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator;
                 var organization = TestUtility.FakeOrganization;
 
-                var model = GetModelForApiKeys(currentUser, isManageDeprecationApiEnabled, isManageDeprecationEnabled);
+                var model = GetModelForApiKeys(currentUser);
 
                 var owner = model.PackageOwners.Single(o => o.Owner == organization.Username);
                 Assert.True(owner.CanPushNew);
                 Assert.True(owner.CanPushExisting);
                 Assert.True(owner.CanUnlist);
-                Assert.True(owner.CanDeprecate);
-                Assert.Equal(
-                    isManageDeprecationApiEnabled && isManageDeprecationEnabled,
-                    owner.IsDeprecationFeatureEnabled);
             }
 
             public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data =
-                MemberDataHelper.Combine(
-                    MemberDataHelper.AsDataSet(
-                        TestUtility.FakeUser,
-                        TestUtility.FakeAdminUser),
-                    MemberDataHelper.BooleanDataSet(),
-                    MemberDataHelper.BooleanDataSet());
+                MemberDataHelper.AsDataSet(
+                    TestUtility.FakeUser,
+                    TestUtility.FakeAdminUser);
 
             [Theory]
             [MemberData(nameof(OrganizationIsNotInPackageOwnersIfNotMember_Data))]
             public void OrganizationIsNotInPackageOwnersIfNotMember(
-                User currentUser, bool isManageDeprecationApiEnabled, bool isManageDeprecationEnabled)
+                User currentUser)
             {
                 var organization = TestUtility.FakeOrganization;
 
-                var model = GetModelForApiKeys(currentUser, isManageDeprecationApiEnabled, isManageDeprecationEnabled);
+                var model = GetModelForApiKeys(currentUser);
 
                 Assert.Equal(0, model.PackageOwners.Count(o => o.Owner == organization.Username));
             }
 
-            private ApiKeyListViewModel GetModelForApiKeys(
-                User currentUser, bool isManageDeprecationApiEnabled, bool isManageDeprecationEnabled)
+            private ApiKeyListViewModel GetModelForApiKeys(User currentUser)
             {
-                var featureFlagService = GetMock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationApiEnabled(It.IsAny<User>()))
-                    .Returns(isManageDeprecationApiEnabled);
-
-                featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(It.IsAny<User>(), null))
-                    .Returns(isManageDeprecationEnabled);
-
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
 

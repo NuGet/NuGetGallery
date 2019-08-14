@@ -1127,7 +1127,4 @@ The {1} Team</value>
   <data name="AsyncAccountDelete_Success" xml:space="preserve">
     <value>The account '{0}' was enqueued to be deleted successfully.</value>
   </data>
-  <data name="ScopeDescription_DeprecatePackage" xml:space="preserve">
-    <value>Deprecate package</value>
-  </data>
 </root>

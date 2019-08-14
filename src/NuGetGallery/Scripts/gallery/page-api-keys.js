@@ -141,9 +141,6 @@
                 var isUnlistSelected = function () {
                     return self.UnlistScopeChecked();
                 };
-                var isDeprecateSelected = function () {
-                    return self.DeprecateScopeChecked();
-                };
 
                 // If either push new or push existing is selected and that action is not allowed on behalf of the new owner,
                 // swap the scope to the other push action if it is allowed or deselect it.
@@ -158,21 +155,14 @@
                     self.UnlistScopeChecked(false);
                 }
 
-                // If deprecate is selected and that action is not allowed on behalf of the new owner, deselect it.
-                if ((!newOwner.CanDeprecate || !newOwner.IsDeprecationFeatureEnabled) && isDeprecateSelected()) {
-                    self.DeprecateScopeChecked(false);
-                }
-
                 // If after this process, no actions are selected, select one that is allowed.
-                if (!isPushNewSelected() && !isPushExistingSelected() && !isUnlistSelected() && !isDeprecateSelected()) {
+                if (!isPushNewSelected() && !isPushExistingSelected() && !isUnlistSelected()) {
                     if (newOwner.CanPushNew) {
                         self.PushScope(initialData.PackagePushScope);
                     } else if (newOwner.CanPushExisting) {
                         self.PushScope(initialData.PackagePushVersionScope);
                     } else if (newOwner.CanUnlist) {
                         self.UnlistScopeChecked(true);
-                    } else if (newOwner.CanDeprecate) {
-                        self.DeprecateScopeChecked(true);
                     }
                 }
 
@@ -198,22 +188,11 @@
                 return self.PackageOwner() && self.PackageOwner().CanUnlist;
             }, this);
 
-            this.IsDeprecationFeatureEnabled = ko.pureComputed(function () {
-                return self.PackageOwner() && self.PackageOwner().IsDeprecationFeatureEnabled;
-            }, this);
-            this.DeprecateEnabled = ko.pureComputed(function () {
-                return self.PackageOwner() && self.PackageOwner().CanDeprecate;
-            }, this);
-
             this.ExpiresIn = ko.observable();
             this.PushScope = ko.observable();
             this.UnlistScopeChecked = ko.observable(false);
             this.UnlistScope = ko.pureComputed(function () {
                 return self.UnlistScopeChecked() ? initialData.PackageUnlistScope : null;
-            }, this);
-            this.DeprecateScopeChecked = ko.observable(false);
-            this.DeprecateScope = ko.pureComputed(function () {
-                return self.DeprecateScopeChecked() ? initialData.PackageDeprecateScope : null;
             }, this);
             this.PendingGlobPattern = ko.observable();
             this.PendingPackages = ko.observableArray();
@@ -296,9 +275,6 @@
                 }
                 if (this.UnlistEnabled() && this.UnlistScope()) {
                     scopes.push(this.UnlistScope());
-                }
-                if (this.DeprecateEnabled() && this.DeprecateScope()) {
-                    scopes.push(this.DeprecateScope());
                 }
                 return scopes;
             }, this);
@@ -433,7 +409,6 @@
                 self.PushEnabled(false);
                 self.PushScope(null);
                 self.UnlistScopeChecked(false);
-                self.DeprecateScopeChecked(false);
                 self.PendingGlobPattern(self.GlobPattern());
                 this._SetPackageSelection(self._packages);
 

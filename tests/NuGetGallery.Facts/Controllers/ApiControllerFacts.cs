@@ -2144,7 +2144,7 @@ namespace NuGetGallery
                         It.IsAny<IEnumerable<Scope>>(),
                         ActionsRequiringPermissions.DeprecatePackage,
                         registration,
-                        NuGetScopes.PackageDeprecate))
+                        NuGetScopes.PackageUnlist))
                     .Returns(evaluationResult);
 
                 var result = await controller.DeprecatePackage(id, versions: null);
@@ -2209,7 +2209,7 @@ namespace NuGetGallery
                         It.IsAny<IEnumerable<Scope>>(),
                         ActionsRequiringPermissions.DeprecatePackage,
                         registration,
-                        NuGetScopes.PackageDeprecate))
+                        NuGetScopes.PackageUnlist))
                     .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, true))
                     .Verifiable();
 
@@ -2295,7 +2295,7 @@ namespace NuGetGallery
                         It.IsAny<IEnumerable<Scope>>(),
                         ActionsRequiringPermissions.DeprecatePackage,
                         registration,
-                        NuGetScopes.PackageDeprecate))
+                        NuGetScopes.PackageUnlist))
                     .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, true))
                     .Verifiable();
 

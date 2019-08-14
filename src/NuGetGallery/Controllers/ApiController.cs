@@ -892,7 +892,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackageDeprecate)]
+        [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName(RouteName.DeprecatePackageApi)]
         public virtual async Task<ActionResult> DeprecatePackage(
             string id, 
@@ -912,7 +912,7 @@ namespace NuGetGallery
             }
 
             // Check if the current user's scopes allow deprecating/undeprecating the current package ID
-            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.DeprecatePackage, registration, NuGetScopes.PackageDeprecate);
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.DeprecatePackage, registration, NuGetScopes.PackageUnlist);
             if (!apiScopeEvaluationResult.IsSuccessful())
             {
                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, versionString: null);

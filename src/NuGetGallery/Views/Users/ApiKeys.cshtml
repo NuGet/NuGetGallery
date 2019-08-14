@@ -345,15 +345,6 @@
                             </label>
                         </div>
                     </li>
-                    <li data-bind="visible: IsDeprecationFeatureEnabled">
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" value="@NuGetScopes.PackageDeprecate"
-                                       data-bind="checked: DeprecateScopeChecked, enable: DeprecateEnabled" />
-                                @NuGetScopes.Describe(NuGetScopes.PackageDeprecate)
-                            </label>
-                        </div>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -480,7 +471,6 @@
                          PackagePushScope = NuGetScopes.PackagePush,
                          PackagePushVersionScope = NuGetScopes.PackagePushVersion,
                          PackageUnlistScope = NuGetScopes.PackageUnlist,
-                         PackageDeprecateScope = NuGetScopes.PackageDeprecate,
                          RemoveUrl = Url.RemoveCredential(),
                          RegenerateUrl = Url.RegenerateCredential(),
                          EditUrl = Url.EditCredential(),

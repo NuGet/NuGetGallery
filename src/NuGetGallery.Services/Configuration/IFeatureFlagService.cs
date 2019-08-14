@@ -41,7 +41,7 @@ namespace NuGetGallery
         /// Whether or not the user can manage their package's deprecation state.
         /// If disabled, 
         /// </summary>
-        bool IsManageDeprecationEnabled(User user, PackageRegistration registration = null);
+        bool IsManageDeprecationEnabled(User user, PackageRegistration registration);
 
         /// <summary>
         /// Whether or not the user can manage their package's deprecation state through the API.
