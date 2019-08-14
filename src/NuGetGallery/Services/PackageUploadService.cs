@@ -429,27 +429,14 @@ namespace NuGetGallery
             return await FileMatchesPredicate(nuGetPackage, iconPath, IsJpegAsync);
         }
 
-        private static async Task<bool> StreamStartsWithAsync(Stream stream, byte[] expectedBytes)
-        {
-            var actualBytes = new byte[expectedBytes.Length];
-            var bytesRead = await stream.ReadAsync(actualBytes, 0, actualBytes.Length);
-
-            if (bytesRead != expectedBytes.Length)
-            {
-                return false;
-            }
-
-            return expectedBytes.SequenceEqual(actualBytes);
-        }
-
         private async Task<bool> IsPngAsync(Stream stream)
         {
-            return await StreamStartsWithAsync(stream, PngHeader);
+            return await stream.StartsWithAsync(PngHeader);
         }
 
         private async Task<bool> IsJpegAsync(Stream stream)
         {
-            return await StreamStartsWithAsync(stream, JpegHeader);
+            return await stream.StartsWithAsync(JpegHeader);
         }
 
         private static bool FileExists(PackageArchiveReader nuGetPackage, string filename)
@@ -535,7 +522,7 @@ namespace NuGetGallery
             }
         }
 
-        private static async Task<bool> IsStreamLengthMatchesReportedAsync(Stream licenseFileStream, long reportedLength)
+        private static async Task<bool> IsStreamLengthMatchesReportedAsync(Stream stream, long reportedLength)
         {
             // one may modify the zip file to report smaller file sizes for the compressed files than actual.
             // Unfortunately, .Net's ZipArchive is not handling this case properly and allows to read full
@@ -547,7 +534,7 @@ namespace NuGetGallery
             int read = 0;
             do
             {
-                read = await licenseFileStream.ReadAsync(buffer, 0, buffer.Length);
+                read = await stream.ReadAsync(buffer, 0, buffer.Length);
                 totalBytesRead += read;
             } while (read > 0 && totalBytesRead < reportedLength + 1); // we want to try to read past the reported length
 

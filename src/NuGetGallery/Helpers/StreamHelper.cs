@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NuGetGallery.Helpers
@@ -53,6 +54,40 @@ namespace NuGetGallery.Helpers
                 memoryStream.Dispose();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Checks whether stream's next bytes are the same as <paramref name="expectedBytes"/>.
+        /// </summary>
+        /// <param name="stream">Stream to read from.</param>
+        /// <param name="expectedBytes">Expected bytes.</param>
+        /// <returns>True if the bytes read from stream are the same as in <paramref name="expectedBytes"/> array, false otherwise.</returns>
+        public static async Task<bool> StartsWithAsync(this Stream stream, byte[] expectedBytes)
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            if (expectedBytes == null)
+            {
+                throw new ArgumentNullException(nameof(expectedBytes));
+            }
+
+            if (expectedBytes.Length == 0)
+            {
+                return true;
+            }
+
+            var actualBytes = new byte[expectedBytes.Length];
+            var bytesRead = await stream.ReadAsync(actualBytes, 0, actualBytes.Length);
+
+            if (bytesRead != expectedBytes.Length)
+            {
+                return false;
+            }
+
+            return expectedBytes.SequenceEqual(actualBytes);
         }
 
         private static int GetNeededBytesToRead(int totalBytesRead, int maxSize)
