@@ -18,8 +18,8 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         /// </summary>
         private readonly Dictionary<string, string> _uniqueVersions = new Dictionary<string, string>();
 
-        private readonly SortedDictionary<string, DownloadByVersionData> _ids
-            = new SortedDictionary<string, DownloadByVersionData>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, DownloadByVersionData> _ids
+            = new Dictionary<string, DownloadByVersionData>(StringComparer.OrdinalIgnoreCase);
 
         public long GetDownloadCount(string id)
         {

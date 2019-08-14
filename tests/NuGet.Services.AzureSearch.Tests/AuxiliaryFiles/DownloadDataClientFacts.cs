@@ -145,7 +145,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object);
 
                 Assert.True(output.Modified);
-                Assert.Equal(new[] { "EntityFramework", "nuget.versioning" }, output.Data.Select(x => x.Key).ToArray());
+                Assert.Equal(new[] { "EntityFramework", "nuget.versioning" }, output.Data.Select(x => x.Key).OrderBy(x => x).ToArray());
                 Assert.Equal(6, output.Data.GetDownloadCount("NuGet.Versioning"));
                 Assert.Equal(1, output.Data.GetDownloadCount("NuGet.Versioning", "1.0.0"));
                 Assert.Equal(5, output.Data.GetDownloadCount("NuGet.Versioning", "2.0.0-ALPHA"));
@@ -198,7 +198,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             }
 
             [Fact]
-            public async Task SerializesInSortedOrder()
+            public async Task Serializes()
             {
                 var newData = new DownloadData();
                 newData.SetDownloadCount("ZZZ", "9.0.0", 23);
@@ -210,9 +210,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
 
-                // Pretty-ify the JSON to make the assertion clearer.
+                // Pretty-ify and sort the JSON to make the assertion clearer.
                 var json = Assert.Single(SavedStrings);
-                json = JsonConvert.DeserializeObject<JObject>(json).ToString();
+                var dictionary = JsonConvert.DeserializeObject<SortedDictionary<string, SortedDictionary<string, int>>>(json);
+                json = JsonConvert.SerializeObject(dictionary, Formatting.Indented);
 
                 Assert.Equal(@"{
   ""EntityFramework"": {

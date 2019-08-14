@@ -193,7 +193,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 await Target.ExecuteAsync();
 
                 Assert.Equal(new[] { "ValidId" }, downloadData.Keys.ToArray());
-                Assert.Equal(new[] { "1.0.0-NonNormalized", "1.0.0-ValidVersion" }, downloadData["ValidId"].Keys.ToArray());
+                Assert.Equal(new[] { "1.0.0-NonNormalized", "1.0.0-ValidVersion" }, downloadData["ValidId"].Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(10, downloadData.GetDownloadCount("ValidId"));
                 Assert.Contains("There were 1 invalid IDs, 2 invalid versions, and 1 non-normalized IDs.", Logger.Messages);
             }
