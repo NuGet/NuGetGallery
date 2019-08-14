@@ -33,6 +33,12 @@
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
+    },
+    "NuGetGallery.ManageDeprecationApi": {
+      "All": false,
+      "SiteAdmins": true,
+      "Accounts": [],
+      "Domains": []
     }
   }
 }
