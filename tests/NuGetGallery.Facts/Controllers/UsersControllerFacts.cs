@@ -561,8 +561,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(OrganizationIsNotInPackageOwnersIfNotMember_Data))]
-            public void OrganizationIsNotInPackageOwnersIfNotMember(
-                User currentUser)
+            public void OrganizationIsNotInPackageOwnersIfNotMember(User currentUser)
             {
                 var organization = TestUtility.FakeOrganization;
 

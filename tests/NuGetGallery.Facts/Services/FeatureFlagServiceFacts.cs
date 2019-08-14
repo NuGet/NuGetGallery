@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -43,23 +44,17 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WhenManageDeprecationFeatureIsEnabledAndNullRegistration_ReturnsTrue()
+            public void WhenRegistrationNull_ThrowsArgumentNullException()
             {
                 // Arrange
                 var user = new User();
 
-                var clientMock = new Mock<IFeatureFlagClient>();
-                clientMock
-                    .Setup(c => c.IsEnabled("NuGetGallery.ManageDeprecation", It.IsAny<IFlightUser>(), false))
-                    .Returns(true);
-
+                var clientMock = new Mock<IFeatureFlagClient>(MockBehavior.Strict);
                 var service = new FeatureFlagService(clientMock.Object);
 
-                // Act
-                var result = service.IsManageDeprecationEnabled(user, null);
-
-                // Assert
-                Assert.True(result);
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(
+                    () => service.IsManageDeprecationEnabled(user, null));
             }
 
             [Fact]
