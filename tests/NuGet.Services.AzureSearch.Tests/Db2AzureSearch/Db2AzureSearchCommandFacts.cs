@@ -91,13 +91,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 .Setup(x => x.DeleteIfExistsAsync())
                 .ReturnsAsync(true);
 
-            var excludedPackagesMetadata = new AuxiliaryFileMetadata(
-                DateTimeOffset.MinValue,
-                DateTimeOffset.MinValue,
-                TimeSpan.Zero,
-                fileSize: 0,
-                etag: string.Empty);
-
             _target = new Db2AzureSearchCommand(
                 _producer.Object,
                 _builder.Object,

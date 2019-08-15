@@ -7,9 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
-using NuGet.Indexing;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
+using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -42,10 +42,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 await _target.EnsureInitializedAsync();
 
                 Assert.True(_target.Initialized);
-                _client.Verify(x => x.LoadDownloadsAsync(null), Times.Once);
-                _client.Verify(x => x.LoadDownloadsAsync(It.IsAny<string>()), Times.Once);
-                _client.Verify(x => x.LoadVerifiedPackagesAsync(null), Times.Once);
-                _client.Verify(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()), Times.Once);
+                VerifyReadWithNoETag();
                 var message = Assert.Single(_logger.Messages.Where(x => x.Contains("Done reloading auxiliary data.")));
                 Assert.EndsWith("Not modified: ", message);
                 Assert.Contains("Reloaded: Downloads, VerifiedPackages", message);
@@ -56,25 +53,25 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 // Arrange
                 await _target.EnsureInitializedAsync();
-                _client.Invocations.Clear();
+                _downloadDataClient.Invocations.Clear();
+                _verifiedPackagesDataClient.Invocations.Clear();
 
                 // Act
                 await _target.EnsureInitializedAsync();
 
                 // Assert
                 Assert.True(_target.Initialized);
-                _client.Verify(x => x.LoadDownloadsAsync(It.IsAny<string>()), Times.Never);
-                _client.Verify(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()), Times.Never);
+                VerifyNoRead();
             }
 
             [Fact]
             public async Task DoesNotInitializeAgainWhenCalledDuringInitialize()
             {
                 // Arrange
-                var downloadsTcs = new TaskCompletionSource<AuxiliaryFileResult<Downloads>>();
+                var downloadsTcs = new TaskCompletionSource<AuxiliaryFileResult<DownloadData>>();
                 var startedDownloadTcs = new TaskCompletionSource<bool>();
-                _client
-                    .Setup(x => x.LoadDownloadsAsync(It.IsAny<string>()))
+                _downloadDataClient
+                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()))
                     .Returns(async () =>
                     {
                         startedDownloadTcs.TrySetResult(true);
@@ -85,13 +82,12 @@ namespace NuGet.Services.AzureSearch.SearchService
                 // Act
                 var thisTask = _target.EnsureInitializedAsync();
                 await startedDownloadTcs.Task;
-                downloadsTcs.TrySetResult(_downloads);
+                downloadsTcs.TrySetResult(_downloadData);
                 await thisTask;
 
                 // Assert
                 Assert.True(_target.Initialized);
-                _client.Verify(x => x.LoadDownloadsAsync(It.IsAny<string>()), Times.Once);
-                _client.Verify(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()), Times.Once);
+                VerifyReadWithNoETag();
             }
         }
 
@@ -107,10 +103,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 await _target.TryLoadAsync(_token);
 
                 Assert.True(_target.Initialized);
-                _client.Verify(x => x.LoadDownloadsAsync(null), Times.Once);
-                _client.Verify(x => x.LoadDownloadsAsync(It.IsAny<string>()), Times.Once);
-                _client.Verify(x => x.LoadVerifiedPackagesAsync(null), Times.Once);
-                _client.Verify(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()), Times.Once);
+                VerifyReadWithNoETag();
             }
 
             [Fact]
@@ -118,17 +111,15 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 // Arrange
                 await _target.TryLoadAsync(_token);
-                _client.Invocations.Clear();
+                _downloadDataClient.Invocations.Clear();
+                _verifiedPackagesDataClient.Invocations.Clear();
 
                 // Act
                 await _target.TryLoadAsync(_token);
 
                 // Assert
                 Assert.True(_target.Initialized);
-                _client.Verify(x => x.LoadDownloadsAsync("downloads-etag"), Times.Once);
-                _client.Verify(x => x.LoadDownloadsAsync(It.IsAny<string>()), Times.Once);
-                _client.Verify(x => x.LoadVerifiedPackagesAsync("verified-packages-etag"), Times.Once);
-                _client.Verify(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()), Times.Once);
+                VerifyReadWithETag();
             }
         }
 
@@ -155,58 +146,73 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.True(_target.Initialized);
                 Assert.NotNull(value);
-                Assert.Same(_downloads.Metadata, value.Metadata.Downloads);
+                Assert.Same(_downloadData.Metadata, value.Metadata.Downloads);
                 Assert.Same(_verifiedPackages.Metadata, value.Metadata.VerifiedPackages);
             }
         }
 
         public abstract class BaseFacts
         {
-            protected readonly Mock<IAuxiliaryFileClient> _client;
+            protected readonly Mock<IDownloadDataClient> _downloadDataClient;
+            protected readonly Mock<IVerifiedPackagesDataClient> _verifiedPackagesDataClient;
             protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly RecordingLogger<AuxiliaryDataCache> _logger;
             protected readonly CancellationToken _token;
-            protected readonly AuxiliaryFileResult<Downloads> _downloads;
+            protected readonly AuxiliaryFileResult<DownloadData> _downloadData;
             protected readonly AuxiliaryFileResult<HashSet<string>> _verifiedPackages;
             protected readonly AuxiliaryDataCache _target;
 
             public BaseFacts(ITestOutputHelper output)
             {
-                _client = new Mock<IAuxiliaryFileClient>();
+                _downloadDataClient = new Mock<IDownloadDataClient>();
+                _verifiedPackagesDataClient = new Mock<IVerifiedPackagesDataClient>();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
                 _logger = output.GetLogger<AuxiliaryDataCache>();
 
                 _token = CancellationToken.None;
-                _downloads = new AuxiliaryFileResult<Downloads>(
-                    notModified: false,
-                    data: new Downloads(),
-                    metadata: new AuxiliaryFileMetadata(
-                        lastModified: DateTimeOffset.MinValue,
-                        loaded: DateTimeOffset.MinValue,
-                        loadDuration: TimeSpan.Zero,
-                        fileSize: 0,
-                        etag: "downloads-etag"));
-                _verifiedPackages = new AuxiliaryFileResult<HashSet<string>>(
-                    notModified: false,
-                    data: new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-                    metadata: new AuxiliaryFileMetadata(
-                        lastModified: DateTimeOffset.MinValue,
-                        loaded: DateTimeOffset.MinValue,
-                        loadDuration: TimeSpan.Zero,
-                        fileSize: 0,
-                        etag: "verified-packages-etag"));
+                _downloadData = Data.GetAuxiliaryFileResult(new DownloadData(), "downloads-etag");
+                _verifiedPackages = Data.GetAuxiliaryFileResult(new HashSet<string>(StringComparer.OrdinalIgnoreCase), "verified-packages-etag");
 
-                _client
-                    .Setup(x => x.LoadDownloadsAsync(It.IsAny<string>()))
-                    .ReturnsAsync(() => _downloads);
-                _client
-                    .Setup(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()))
+                _downloadDataClient
+                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()))
+                    .ReturnsAsync(() => _downloadData);
+                _verifiedPackagesDataClient
+                    .Setup(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(() => _verifiedPackages);
 
                 _target = new AuxiliaryDataCache(
-                    _client.Object,
+                    _downloadDataClient.Object,
+                    _verifiedPackagesDataClient.Object,
                     _telemetryService.Object,
                     _logger);
+            }
+
+            public void VerifyReadWithNoETag()
+            {
+                VerifyReadWithETags(null, null);
+            }
+
+            public void VerifyReadWithETag()
+            {
+                VerifyReadWithETags(_downloadData.Metadata.ETag, _verifiedPackages.Metadata.ETag);
+            }
+
+            private void VerifyReadWithETags(string downloadETag, string verifiedPackagesETag)
+            {
+                _downloadDataClient.Verify(
+                    x => x.ReadLatestIndexedAsync(It.Is<IAccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == downloadETag)),
+                    Times.Once);
+                _downloadDataClient.Verify(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()), Times.Once);
+                _verifiedPackagesDataClient.Verify(x => x.ReadLatestAsync(
+                    It.Is<IAccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == verifiedPackagesETag)),
+                    Times.Once);
+                _verifiedPackagesDataClient.Verify(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>()), Times.Once);
+            }
+
+            public void VerifyNoRead()
+            {
+                _downloadDataClient.Verify(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()), Times.Never);
+                _verifiedPackagesDataClient.Verify(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>()), Times.Never);
             }
         }
     }

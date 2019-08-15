@@ -36,29 +36,49 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestAsync();
+                var output = await Target.ReadLatestAsync(AccessCondition.Object);
 
-                Assert.Empty(output.Result);
-                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+                Assert.True(output.Modified);
+                Assert.Empty(output.Data);
+                Assert.Equal(ETag, output.Metadata.ETag);
             }
 
             [Fact]
-            public async Task AllowsMissingBlob()
+            public async Task AllowsNotModifiedBlob()
             {
                 CloudBlob
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ThrowsAsync(new StorageException(
                         new RequestResult
                         {
-                            HttpStatusCode = (int)HttpStatusCode.NotFound,
+                            HttpStatusCode = (int)HttpStatusCode.NotModified,
                         },
-                        message: "Not found.",
+                        message: "Not modified.",
                         inner: null));
 
-                var output = await Target.ReadLatestAsync();
+                var output = await Target.ReadLatestAsync(AccessCondition.Object);
 
-                Assert.Empty(output.Result);
-                Assert.Equal("*", output.AccessCondition.IfNoneMatchETag);
+                Assert.False(output.Modified);
+                Assert.Null(output.Data);
+                Assert.Null(output.Metadata);
+            }
+
+            [Fact]
+            public async Task RejectsMissingBlob()
+            {
+                var expected = new StorageException(
+                    new RequestResult
+                    {
+                        HttpStatusCode = (int)HttpStatusCode.NotFound,
+                    },
+                    message: "Not found.",
+                    inner: null);
+                CloudBlob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ThrowsAsync(expected);
+
+                var actual = await Assert.ThrowsAsync<StorageException>(() => Target.ReadLatestAsync(AccessCondition.Object));
+                Assert.Same(actual, expected);
             }
 
             [Fact]
@@ -75,7 +95,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => Target.ReadLatestAsync());
+                    () => Target.ReadLatestAsync(AccessCondition.Object));
                 Assert.Equal("The first token should be the start of an array.", ex.Message);
             }
 
@@ -92,11 +112,11 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestAsync();
+                var output = await Target.ReadLatestAsync(AccessCondition.Object);
 
-                Assert.Equal(new[] { "EntityFramework", "NuGet.Core", "nuget.versioning" }, output.Result.OrderBy(x => x).ToArray());
-                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
-
+                Assert.True(output.Modified);
+                Assert.Equal(new[] { "EntityFramework", "NuGet.Core", "nuget.versioning" }, output.Data.OrderBy(x => x).ToArray());
+                Assert.Equal(ETag, output.Metadata.ETag);
                 CloudBlobContainer.Verify(x => x.GetBlobReference("verified-packages/verified-packages.v1.json"), Times.Once);
             }
 
@@ -112,11 +132,12 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestAsync();
+                var output = await Target.ReadLatestAsync(AccessCondition.Object);
 
-                Assert.Single(output.Result);
-                Assert.Equal(new[] { "NuGet.Core" }, output.Result.ToArray());
-                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+                Assert.True(output.Modified);
+                Assert.Single(output.Data);
+                Assert.Equal(new[] { "NuGet.Core" }, output.Data.ToArray());
+                Assert.Equal(ETag, output.Metadata.ETag);
             }
         }
 

@@ -37,9 +37,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly NewPackageRegistrationProducer _target;
             private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
             private readonly DownloadData _downloads;
-            private readonly AuxiliaryFileMetadata _metadata;
             private readonly HashSet<string> _verifiedPackages;
-            private readonly HashSet<string> _excludedPackages;
+            private HashSet<string> _excludedPackages;
 
             public ProduceWorkAsync(ITestOutputHelper output)
             {
@@ -57,24 +56,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _token = CancellationToken.None;
 
                 _auxiliaryFileClient = new Mock<IAuxiliaryFileClient>();
-                _metadata = new AuxiliaryFileMetadata(
-                    DateTimeOffset.MinValue,
-                    DateTimeOffset.MinValue,
-                    TimeSpan.Zero,
-                    fileSize: 0,
-                    etag: string.Empty);
                 _excludedPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 _auxiliaryFileClient
-                    .Setup(x => x.LoadExcludedPackagesAsync(It.IsAny<string>()))
-                    .ReturnsAsync(new AuxiliaryFileResult<HashSet<string>>(false, _excludedPackages, _metadata));
+                    .Setup(x => x.LoadExcludedPackagesAsync())
+                    .ReturnsAsync(() => _excludedPackages);
                 _downloads = new DownloadData();
                 _auxiliaryFileClient
                     .Setup(x => x.LoadDownloadDataAsync())
                     .ReturnsAsync(() => _downloads);
                 _verifiedPackages = new HashSet<string>();
                 _auxiliaryFileClient
-                    .Setup(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()))
-                    .ReturnsAsync(new AuxiliaryFileResult<HashSet<string>>(false, _verifiedPackages, _metadata));
+                    .Setup(x => x.LoadVerifiedPackagesAsync())
+                    .ReturnsAsync(() => _verifiedPackages);
 
                 _entitiesContextFactory
                    .Setup(x => x.CreateAsync(It.IsAny<bool>()))
@@ -314,10 +307,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 InitializePackagesFromPackageRegistrations();
 
-                var excludedPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "A", "C" };
-                _auxiliaryFileClient
-                    .Setup(x => x.LoadExcludedPackagesAsync(It.IsAny<string>()))
-                    .ReturnsAsync(new AuxiliaryFileResult<HashSet<string>>(false, excludedPackages, _metadata));
+                _excludedPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "A", "C" };
 
                 await _target.ProduceWorkAsync(_work, _token);
 
@@ -325,7 +315,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 Assert.Equal(4, work.Count);
                 for (int i = 0; i < work.Count; i++)
                 {
-                    var shouldBeExcluded = excludedPackages.Contains(work[i].PackageId, StringComparer.OrdinalIgnoreCase);
+                    var shouldBeExcluded = _excludedPackages.Contains(work[i].PackageId, StringComparer.OrdinalIgnoreCase);
                     Assert.Equal(shouldBeExcluded, work[i].IsExcludedByDefault);
                 }
             }
@@ -354,19 +344,15 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 Assert.Contains("A", output.Owners.Keys);
                 Assert.Equal(new[] { "OwnerA" }, output.Owners["A"].ToArray());
 
-                _auxiliaryFileClient.Verify(
-                    x => x.LoadExcludedPackagesAsync(null),
-                    Times.Once);
-                _auxiliaryFileClient.Verify(
-                    x => x.LoadVerifiedPackagesAsync(null),
-                    Times.Once);
+                _auxiliaryFileClient.Verify(x => x.LoadExcludedPackagesAsync(), Times.Once);
+                _auxiliaryFileClient.Verify(x => x.LoadVerifiedPackagesAsync(), Times.Once);
             }
 
             [Fact]
             public async Task ThrowsWhenExcludedPackagesIsMissing()
             {
                 _auxiliaryFileClient
-                    .Setup(x => x.LoadExcludedPackagesAsync(null))
+                    .Setup(x => x.LoadExcludedPackagesAsync())
                     .ThrowsAsync(new StorageException(
                         new RequestResult
                         {

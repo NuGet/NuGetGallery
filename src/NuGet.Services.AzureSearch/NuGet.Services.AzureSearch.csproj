@@ -52,6 +52,7 @@
     <Compile Include="Auxiliary2AzureSearch\Auxiliary2AzureSearchConfiguration.cs" />
     <Compile Include="Auxiliary2AzureSearch\DownloadSetComparer.cs" />
     <Compile Include="Auxiliary2AzureSearch\IDownloadSetComparer.cs" />
+    <Compile Include="AuxiliaryFiles\SimpleCloudBlobExtensions.cs" />
     <Compile Include="AuxiliaryFiles\DownloadByVersionData.cs" />
     <Compile Include="AuxiliaryFiles\DownloadData.cs" />
     <Compile Include="AuxiliaryFiles\DownloadDataClient.cs" />

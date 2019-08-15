@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using NuGet.Indexing;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
+using NuGet.Services.AzureSearch.Support;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch.SearchService
@@ -45,10 +45,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             [Fact]
             public void ReturnsTotal()
             {
-                var downloads = new DownloadsByVersion();
-                downloads["1.0.0"] = 2;
-                downloads["3.0.0-alpha"] = 23;
-                _target.Downloads.Data["NuGet.Versioning"] = downloads;
+                _target.Downloads.Data.SetDownloadCount("NuGet.Versioning", "1.0.0", 2);
+                _target.Downloads.Data.SetDownloadCount("NuGet.Versioning", "3.0.0-alpha", 23);
 
                 var actual = _target.GetTotalDownloadCount("nuget.versioning");
 
@@ -69,9 +67,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             [Fact]
             public void ZeroWhenUnknownVersion()
             {
-                var downloads = new DownloadsByVersion();
-                downloads["1.0.0"] = 2;
-                _target.Downloads.Data["NuGet.Versioning"] = downloads;
+                _target.Downloads.Data.SetDownloadCount("NuGet.Versioning", "1.0.0", 2);
 
                 var actual = _target.GetDownloadCount("nuget.versioning", "2.0.0");
 
@@ -81,10 +77,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             [Fact]
             public void ReturnsCount()
             {
-                var downloads = new DownloadsByVersion();
-                downloads["1.0.0"] = 2;
-                downloads["3.0.0-alpha"] = 23;
-                _target.Downloads.Data["NuGet.Versioning"] = downloads;
+                _target.Downloads.Data.SetDownloadCount("NuGet.Versioning", "1.0.0", 2);
+                _target.Downloads.Data.SetDownloadCount("NuGet.Versioning", "3.0.0-alpha", 23);
 
                 var actual = _target.GetDownloadCount("nuget.versioning", "3.0.0-ALPHA");
 
@@ -97,31 +91,17 @@ namespace NuGet.Services.AzureSearch.SearchService
             [Fact]
             public void UsesSameMetadataInstances()
             {
-                var downloadsMetadata = new AuxiliaryFileMetadata(
-                    DateTimeOffset.MinValue,
-                    DateTimeOffset.MinValue,
-                    TimeSpan.Zero,
-                    fileSize: 0,
-                    etag: string.Empty);
-                var verifiedPackagesMetadata = new AuxiliaryFileMetadata(
-                    DateTimeOffset.MinValue,
-                    DateTimeOffset.MinValue,
-                    TimeSpan.Zero,
-                    fileSize: 0,
-                    etag: string.Empty);
+                var downloadData = Data.GetAuxiliaryFileResult(new DownloadData(), string.Empty);
+                var verifedPackages = Data.GetAuxiliaryFileResult(new HashSet<string>(StringComparer.OrdinalIgnoreCase), string.Empty);
 
                 var target = new AuxiliaryData(
-                    new AuxiliaryFileResult<Downloads>(
-                        notModified: false,
-                        data: new Downloads(),
-                        metadata: downloadsMetadata),
-                    new AuxiliaryFileResult<HashSet<string>>(
-                        notModified: false,
-                        data: new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-                        metadata: verifiedPackagesMetadata));
+                    DateTimeOffset.MaxValue,
+                    downloadData,
+                    verifedPackages);
 
-                Assert.Same(downloadsMetadata, target.Metadata.Downloads);
-                Assert.Same(verifiedPackagesMetadata, target.Metadata.VerifiedPackages);
+                Assert.Equal(DateTimeOffset.MaxValue, target.Metadata.Loaded);
+                Assert.Same(downloadData.Metadata, target.Metadata.Downloads);
+                Assert.Same(verifedPackages.Metadata, target.Metadata.VerifiedPackages);
             }
         }
 
@@ -132,24 +112,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             public BaseFacts()
             {
                 _target = new AuxiliaryData(
-                    new AuxiliaryFileResult<Downloads>(
-                        notModified: false,
-                        data: new Downloads(),
-                        metadata: new AuxiliaryFileMetadata(
-                            DateTimeOffset.MinValue,
-                            DateTimeOffset.MinValue,
-                            TimeSpan.Zero,
-                            fileSize: 0,
-                            etag: string.Empty)),
-                    new AuxiliaryFileResult<HashSet<string>>(
-                        notModified: false,
-                        data: new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-                        metadata: new AuxiliaryFileMetadata(
-                            DateTimeOffset.MinValue,
-                            DateTimeOffset.MinValue,
-                            TimeSpan.Zero,
-                            fileSize: 0,
-                            etag: string.Empty)));
+                    DateTimeOffset.MinValue,
+                    Data.GetAuxiliaryFileResult(new DownloadData(), string.Empty),
+                    Data.GetAuxiliaryFileResult(new HashSet<string>(StringComparer.OrdinalIgnoreCase), string.Empty));
             }
         }
     }

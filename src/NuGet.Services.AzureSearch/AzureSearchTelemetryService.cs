@@ -134,17 +134,6 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public void TrackAuxiliaryFileNotModified(string blobName, TimeSpan elapsed)
-        {
-            _telemetryClient.TrackMetric(
-                Prefix + "AuxiliaryFileNotModifiedSeconds",
-                elapsed.TotalSeconds,
-                new Dictionary<string, string>
-                {
-                    { "BlobName", blobName },
-                });
-        }
-
         public IDisposable TrackUploadOwnerChangeHistory(int packageIdCount)
         {
             return _telemetryClient.TrackDuration(
@@ -286,14 +275,15 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public void TrackReadLatestIndexedDownloads(int packageIdCount, TimeSpan elapsed)
+        public void TrackReadLatestIndexedDownloads(int? packageIdCount, bool notModified, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
                 Prefix + "ReadLatestIndexedDownloadsSeconds",
                 elapsed.TotalSeconds,
                 new Dictionary<string, string>
                 {
-                    { "PackageIdCount", packageIdCount.ToString() },
+                    { "PackageIdCount", packageIdCount?.ToString() },
+                    { "NotModified", notModified.ToString() },
                 });
         }
 
@@ -378,14 +368,15 @@ namespace NuGet.Services.AzureSearch
                 elapsed.TotalMilliseconds);
         }
 
-        public void TrackReadLatestVerifiedPackages(int packageIdCount, TimeSpan elapsed)
+        public void TrackReadLatestVerifiedPackages(int? packageIdCount, bool notModified, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
                 Prefix + "ReadLatestVerifiedPackagesSeconds",
                 elapsed.TotalSeconds,
                 new Dictionary<string, string>
                 {
-                    { "PackageIdCount", packageIdCount.ToString() },
+                    { "PackageIdCount", packageIdCount?.ToString() },
+                    { "NotModified", notModified.ToString() },
                 });
         }
 

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Protocol.Catalog;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery;
@@ -186,5 +187,19 @@ namespace NuGet.Services.AzureSearch.Support
             Title = "Windows Azure Storage",
             VerbatimVersion = "7.1.2.0-alpha+git",
         };
+
+        public static AuxiliaryFileMetadata GetAuxiliaryFileMetadata(string etag) => new AuxiliaryFileMetadata(
+            DateTimeOffset.MinValue,
+            TimeSpan.Zero,
+            fileSize: 0,
+            etag: etag);
+
+        public static AuxiliaryFileResult<T> GetAuxiliaryFileResult<T>(T data, string etag) where T : class
+        {
+            return new AuxiliaryFileResult<T>(
+                modified: true,
+                data: data,
+                metadata: GetAuxiliaryFileMetadata(etag));
+        }
     }
 }

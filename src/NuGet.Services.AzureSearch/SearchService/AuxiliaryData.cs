@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using NuGet.Indexing;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch.SearchService
@@ -11,17 +10,19 @@ namespace NuGet.Services.AzureSearch.SearchService
     public class AuxiliaryData : IAuxiliaryData
     {
         public AuxiliaryData(
-            AuxiliaryFileResult<Downloads> downloads,
+            DateTimeOffset loaded,
+            AuxiliaryFileResult<DownloadData> downloads,
             AuxiliaryFileResult<HashSet<string>> verifiedPackages)
         {
             Downloads = downloads ?? throw new ArgumentNullException(nameof(downloads));
             VerifiedPackages = verifiedPackages ?? throw new ArgumentNullException(nameof(verifiedPackages));
             Metadata = new AuxiliaryFilesMetadata(
+                loaded,
                 Downloads.Metadata,
                 VerifiedPackages.Metadata);
         }
 
-        internal AuxiliaryFileResult<Downloads> Downloads { get; }
+        internal AuxiliaryFileResult<DownloadData> Downloads { get; }
         internal AuxiliaryFileResult<HashSet<string>> VerifiedPackages { get; }
         public AuxiliaryFilesMetadata Metadata { get; }
 
@@ -30,14 +31,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             return VerifiedPackages.Data.Contains(id);
         }
 
-        public int GetTotalDownloadCount(string id)
+        public long GetTotalDownloadCount(string id)
         {
-            return Downloads.Data[id]?.Total ?? 0;
+            return Downloads.Data.GetDownloadCount(id);
         }
 
-        public int GetDownloadCount(string id, string normalizedVersion)
+        public long GetDownloadCount(string id, string normalizedVersion)
         {
-            return Downloads.Data[id]?[normalizedVersion] ?? 0;
+            return Downloads.Data.GetDownloadCount(id, normalizedVersion);
         }
     }
 }
