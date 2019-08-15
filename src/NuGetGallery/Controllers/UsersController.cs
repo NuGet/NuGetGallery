@@ -29,9 +29,10 @@ namespace NuGetGallery
         private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IAppConfiguration _config;
         private readonly ICredentialBuilder _credentialBuilder;
-        private readonly ISupportRequestService _supportRequestService;
         private readonly ListPackageItemRequiredSignerViewModelFactory _listPackageItemRequiredSignerViewModelFactory;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+        private readonly ISupportRequestService _supportRequestService;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public UsersController(
             IUserService userService,
@@ -47,6 +48,7 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
+            IFeatureFlagService featureFlagService,
             IMessageServiceConfiguration messageServiceConfiguration,
             IIconUrlProvider iconUrlProvider)
             : base(
@@ -66,6 +68,7 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService, iconUrlProvider);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
@@ -336,33 +339,47 @@ namespace NuGetGallery
             }
             TelemetryService.TrackRequestForAccountDeletion(user);
 
-            if (!user.Confirmed)
+            if (_config.SelfServiceAccountDeleteEnabled && _featureFlagService.IsSelfServiceAccountDeleteEnabled())
             {
-                // Unconfirmed users can be deleted immediately without creating a support request.
-                DeleteAccountStatus accountDeleteStatus = await DeleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
-                    userToExecuteTheDelete: user,
-                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
-                if (!accountDeleteStatus.Success)
-                {
-                    TempData["RequestFailedMessage"] = Strings.AccountSelfDelete_Fail;
-                    return RedirectToAction("DeleteRequest");
-                }
-                OwinContext.Authentication.SignOut();
-                return SafeRedirect(Url.Home(false));
-            }
-
-            var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
-            if (isSupportRequestCreated)
-            {
-                var emailMessage = new AccountDeleteNoticeMessage(MessageServiceConfiguration, user);
-                await MessageService.SendMessageAsync(emailMessage);
+                return await DeleteAndCheckSuccess(user);
             }
             else
             {
-                TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
-            }
+                if (!user.Confirmed)
+                {
+                    // Unconfirmed users can be deleted immediately without creating a support request.
+                    return await DeleteAndCheckSuccess(user);
+                }
 
-            return RedirectToAction(nameof(DeleteRequest));
+                var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
+                if (isSupportRequestCreated)
+                {
+                    var emailMessage = new AccountDeleteNoticeMessage(MessageServiceConfiguration, user);
+                    await MessageService.SendMessageAsync(emailMessage);
+
+                    return RedirectToAction(nameof(DeleteRequest));
+                }
+                else
+                {
+                    TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
+
+                    return RedirectToAction(nameof(DeleteRequest));
+                }
+            }
+        }
+
+        private async Task<ActionResult> DeleteAndCheckSuccess(User user)
+        {
+            DeleteAccountStatus accountDeleteStatus = await DeleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
+                        userToExecuteTheDelete: user,
+                        orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
+            if (!accountDeleteStatus.Success)
+            {
+                TempData["RequestFailedMessage"] = Strings.AccountSelfDelete_Fail;
+                return RedirectToAction("DeleteRequest");
+            }
+            OwinContext.Authentication.SignOut();
+            return SafeRedirect(Url.Home(false));
         }
 
         [HttpGet]
@@ -620,7 +637,7 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => 
+                .Select(p =>
                 {
                     var viewModel = _listPackageItemViewModelFactory.Create(p, currentUser);
                     viewModel.DownloadCount = p.PackageRegistration.DownloadCount;
