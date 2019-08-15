@@ -371,21 +371,11 @@ namespace NuGetGallery
                 return RedirectToAction(nameof(DeleteRequest));
             }
 
-            string successMessage;
-            if (FeatureFlagService.IsAsyncAccountDeleteEnabled())
-            {
-                successMessage = $"Your organization, '{accountName}', was queued to be deleted!";
-            }
-            else
-            {
-                successMessage = $"Your organization, '{accountName}', was successfully deleted!";
-            }
-
             var result = await DeleteAccountService.DeleteAccountAsync(account, currentUser);
 
             if (result.Success)
             {
-                TempData["Message"] = successMessage;
+                TempData["Message"] = $"Your organization, '{accountName}', was successfully deleted!";
 
                 return RedirectToAction("Organizations", "Users");
             }
