@@ -19,6 +19,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private readonly IVerifiedPackagesDataClient _verifiedPackagesDataClient;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AuxiliaryDataCache> _logger;
+        private readonly StringCache _stringCache;
         private AuxiliaryData _data;
 
         public AuxiliaryDataCache(
@@ -31,6 +32,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             _verifiedPackagesDataClient = verifiedPackagesDataClient ?? throw new ArgumentNullException(nameof(verifiedPackagesDataClient));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _stringCache = new StringCache();
         }
 
         public bool Initialized => _data != null;
@@ -90,6 +92,14 @@ namespace NuGet.Services.AzureSearch.SearchService
                         downloads,
                         verifiedPackages);
 
+                    // Track the counts regarding the string cache status.
+                    _telemetryService.TrackAuxiliaryFilesStringCache(
+                        _stringCache.StringCount,
+                        _stringCache.CharCount,
+                        _stringCache.RequestCount,
+                        _stringCache.HitCount);
+                    _stringCache.ResetCounts();
+
                     stopwatch.Stop();
                     _telemetryService.TrackAuxiliaryFilesReload(reloadedNames, notModifiedNames, stopwatch.Elapsed);
                     _logger.LogInformation(
@@ -110,7 +120,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private async Task<AuxiliaryFileResult<T>> LoadAsync<T>(
             AuxiliaryFileResult<T> previousResult,
-            Func<IAccessCondition, Task<AuxiliaryFileResult<T>>> getResult) where T : class
+            Func<IAccessCondition, StringCache, Task<AuxiliaryFileResult<T>>> getResult) where T : class
         {
             await Task.Yield();
 
@@ -124,7 +134,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 accessCondition = AccessConditionWrapper.GenerateIfNoneMatchCondition(previousResult.Metadata.ETag);
             }
 
-            var newResult = await getResult(accessCondition);
+            var newResult = await getResult(accessCondition, _stringCache);
             if (newResult.Modified)
             {
                 return newResult;

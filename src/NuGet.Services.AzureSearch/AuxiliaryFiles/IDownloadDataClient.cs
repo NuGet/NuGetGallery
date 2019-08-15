@@ -8,7 +8,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public interface IDownloadDataClient
     {
-        Task<AuxiliaryFileResult<DownloadData>> ReadLatestIndexedAsync(IAccessCondition accessCondition);
+        Task<AuxiliaryFileResult<DownloadData>> ReadLatestIndexedAsync(IAccessCondition accessCondition, StringCache stringCache);
         Task ReplaceLatestIndexedAsync(DownloadData newData, IAccessCondition accessCondition);
     }
 }

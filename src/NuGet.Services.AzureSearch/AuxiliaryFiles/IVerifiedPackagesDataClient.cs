@@ -9,7 +9,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public interface IVerifiedPackagesDataClient
     {
-        Task<AuxiliaryFileResult<HashSet<string>>> ReadLatestAsync(IAccessCondition accessCondition);
+        Task<AuxiliaryFileResult<HashSet<string>>> ReadLatestAsync(IAccessCondition accessCondition, StringCache stringCache);
         Task ReplaceLatestAsync(HashSet<string> newData, IAccessCondition accessCondition);
     }
 }

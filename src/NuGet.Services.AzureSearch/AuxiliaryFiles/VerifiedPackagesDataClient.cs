@@ -42,7 +42,9 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         private ICloudBlobContainer Container => _lazyContainer.Value;
 
-        public async Task<AuxiliaryFileResult<HashSet<string>>> ReadLatestAsync(IAccessCondition accessCondition)
+        public async Task<AuxiliaryFileResult<HashSet<string>>> ReadLatestAsync(
+            IAccessCondition accessCondition,
+            StringCache stringCache)
         {
             var stopwatch = Stopwatch.StartNew();
             var blobName = GetLatestIndexedBlobName();
@@ -57,7 +59,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             {
                 using (var stream = await blobReference.OpenReadAsync(accessCondition))
                 {
-                    ReadStream(stream, id => data.Add(id));
+                    ReadStream(stream, id => data.Add(stringCache.Dedupe(id)));
                     modified = true;
                     metadata = new AuxiliaryFileMetadata(
                         lastModified: new DateTimeOffset(blobReference.LastModifiedUtc, TimeSpan.Zero),

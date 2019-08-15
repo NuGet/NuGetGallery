@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.Search.Models;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
@@ -71,7 +72,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var downloadsTcs = new TaskCompletionSource<AuxiliaryFileResult<DownloadData>>();
                 var startedDownloadTcs = new TaskCompletionSource<bool>();
                 _downloadDataClient
-                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()))
+                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .Returns(async () =>
                     {
                         startedDownloadTcs.TrySetResult(true);
@@ -120,6 +121,48 @@ namespace NuGet.Services.AzureSearch.SearchService
                 // Assert
                 Assert.True(_target.Initialized);
                 VerifyReadWithETag();
+            }
+
+            [Fact]
+            public async Task ResetsStringCacheCounts()
+            {
+                // Perform two auxiliary file loads and verify the cache numbers emitted to telemetry.
+                var invocations = 0;
+                _downloadDataClient
+                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
+                    .ReturnsAsync(() => _downloadData)
+                    .Callback<IAccessCondition, StringCache>((_, sc) =>
+                    {
+                        invocations++;
+                        sc.Dedupe(new string('a', 1));     // 1: miss   2: hit
+                        sc.Dedupe(new string('a', 1));     // 1: hit    2: hit
+                        sc.Dedupe(new string('b', 1));     // 1: miss   2: hit
+                        if (invocations > 1)
+                        {
+                            sc.Dedupe(new string('a', 1)); // 1: n/a    2: hit
+                            sc.Dedupe(new string('d', 1)); // 1: n/a    2: miss
+                        }
+                    });
+                _verifiedPackagesDataClient
+                    .Setup(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
+                    .ReturnsAsync(() => _verifiedPackages)
+                    .Callback<IAccessCondition, StringCache>((_, sc) =>
+                    {
+                        sc.Dedupe(new string('a', 1));     // 1: hit    2: hit
+                        sc.Dedupe(new string('b', 1));     // 1: hit    2: hit
+                        sc.Dedupe(new string('c', 1));     // 1: miss   2: hit
+                        sc.Dedupe(new string('c', 1));     // 1: miss   2: hit
+                    });
+
+                await _target.TryLoadAsync(_token);
+                await _target.TryLoadAsync(_token);
+
+                _telemetryService.Verify(
+                    x => x.TrackAuxiliaryFilesStringCache(3, 3, 7, 4),
+                    Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackAuxiliaryFilesStringCache(4, 4, 9, 8),
+                    Times.Once);
             }
         }
 
@@ -174,10 +217,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _verifiedPackages = Data.GetAuxiliaryFileResult(new HashSet<string>(StringComparer.OrdinalIgnoreCase), "verified-packages-etag");
 
                 _downloadDataClient
-                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()))
+                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ReturnsAsync(() => _downloadData);
                 _verifiedPackagesDataClient
-                    .Setup(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>()))
+                    .Setup(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ReturnsAsync(() => _verifiedPackages);
 
                 _target = new AuxiliaryDataCache(
@@ -200,19 +243,36 @@ namespace NuGet.Services.AzureSearch.SearchService
             private void VerifyReadWithETags(string downloadETag, string verifiedPackagesETag)
             {
                 _downloadDataClient.Verify(
-                    x => x.ReadLatestIndexedAsync(It.Is<IAccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == downloadETag)),
+                    x => x.ReadLatestIndexedAsync(
+                        It.Is<IAccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == downloadETag),
+                        It.IsAny<StringCache>()),
                     Times.Once);
-                _downloadDataClient.Verify(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()), Times.Once);
-                _verifiedPackagesDataClient.Verify(x => x.ReadLatestAsync(
-                    It.Is<IAccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == verifiedPackagesETag)),
+                _downloadDataClient.Verify(
+                    x => x.ReadLatestIndexedAsync(
+                        It.IsAny<IAccessCondition>(),
+                        It.IsAny<StringCache>()), Times.Once);
+                _verifiedPackagesDataClient.Verify(
+                    x => x.ReadLatestAsync(
+                        It.Is<IAccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == verifiedPackagesETag),
+                        It.IsAny<StringCache>()),
                     Times.Once);
-                _verifiedPackagesDataClient.Verify(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>()), Times.Once);
+                _verifiedPackagesDataClient.Verify(
+                    x => x.ReadLatestAsync(
+                        It.IsAny<IAccessCondition>(),
+                        It.IsAny<StringCache>()),
+                    Times.Once);
             }
 
             public void VerifyNoRead()
             {
-                _downloadDataClient.Verify(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()), Times.Never);
-                _verifiedPackagesDataClient.Verify(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>()), Times.Never);
+                _downloadDataClient.Verify(
+                    x => x.ReadLatestIndexedAsync(
+                        It.IsAny<IAccessCondition>(),
+                        It.IsAny<StringCache>()), Times.Never);
+                _verifiedPackagesDataClient.Verify(
+                    x => x.ReadLatestAsync(
+                        It.IsAny<IAccessCondition>(),
+                        It.IsAny<StringCache>()), Times.Never);
             }
         }
     }

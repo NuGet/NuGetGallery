@@ -37,7 +37,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object);
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
                 Assert.True(output.Modified);
                 Assert.Empty(output.Data);
@@ -57,7 +57,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                         message: "Not modified.",
                         inner: null));
 
-                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object);
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
                 Assert.False(output.Modified);
                 Assert.Null(output.Data);
@@ -78,7 +78,8 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ThrowsAsync(expected);
 
-                var actual = await Assert.ThrowsAsync<StorageException>(() => Target.ReadLatestIndexedAsync(AccessCondition.Object));
+                var actual = await Assert.ThrowsAsync<StorageException>(
+                    () => Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache));
                 Assert.Same(actual, expected);
             }
 
@@ -109,8 +110,39 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => Target.ReadLatestIndexedAsync(AccessCondition.Object));
+                    () => Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache));
                 Assert.Equal("The first token should be the start of an object.", ex.Message);
+            }
+
+            [Fact]
+            public async Task DedupesStrings()
+            {
+                var json = JsonConvert.SerializeObject(new Dictionary<string, Dictionary<string, long>>
+                {
+                    {
+                        "nuget.versioning",
+                        new Dictionary<string, long>
+                        {
+                            { "1.0.0", 1 },
+                        }
+                    },
+                    {
+                        "EntityFramework",
+                        new Dictionary<string, long>
+                        {
+                            { "1.0.0", 10 },
+                        }
+                    },
+                });
+                CloudBlob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
+
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
+
+                var versionA = output.Data["nuget.versioning"].Single().Key;
+                var versionB = output.Data["EntityFramework"].Single().Key;
+                Assert.Same(versionA, versionB);
             }
 
             [Fact]
@@ -142,7 +174,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object);
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
                 Assert.True(output.Modified);
                 Assert.Equal(new[] { "EntityFramework", "nuget.versioning" }, output.Data.Select(x => x.Key).OrderBy(x => x).ToArray());
@@ -247,6 +279,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 ETag = "\"some-etag\"";
                 AccessCondition = new Mock<IAccessCondition>();
+                StringCache = new StringCache();
 
                 Options
                     .Setup(x => x.Value)
@@ -288,6 +321,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public AzureSearchJobConfiguration Config { get; }
             public string ETag { get; }
             public Mock<IAccessCondition> AccessCondition { get; }
+            public StringCache StringCache { get; }
             public DownloadDataClient Target { get; }
 
             public List<string> BlobNames { get; } = new List<string>();

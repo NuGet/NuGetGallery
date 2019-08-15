@@ -389,5 +389,19 @@ namespace NuGet.Services.AzureSearch
                     { "PackageIdCount", packageIdCount.ToString() },
                 });
         }
+
+        public void TrackAuxiliaryFilesStringCache(int stringCount, long charCount, int requestCount, int hitCount)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "AuxiliaryFilesStringCache",
+                1,
+                new Dictionary<string, string>
+                {
+                    { "StringCount", stringCount.ToString() },
+                    { "CharCount", charCount.ToString() },
+                    { "RequestCount", requestCount.ToString() },
+                    { "HitCount", hitCount.ToString() },
+                });
+        }
     }
 }

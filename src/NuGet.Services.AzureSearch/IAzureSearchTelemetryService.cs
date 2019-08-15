@@ -51,5 +51,6 @@ namespace NuGet.Services.AzureSearch
         void TrackV2GetDocumentWithHijackIndex(TimeSpan elapsed);
         void TrackReadLatestVerifiedPackages(int? packageIdCount, bool notModified, TimeSpan elapsed);
         IDisposable TrackReplaceLatestVerifiedPackages(int packageIdCount);
+        void TrackAuxiliaryFilesStringCache(int stringCount, long charCount, int requestCount, int hitCount);
     }
 }

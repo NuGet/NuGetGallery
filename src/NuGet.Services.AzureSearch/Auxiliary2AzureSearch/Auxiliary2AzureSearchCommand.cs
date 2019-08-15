@@ -38,6 +38,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         private readonly IOptionsSnapshot<Auxiliary2AzureSearchConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<Auxiliary2AzureSearchCommand> _logger;
+        private readonly StringCache _stringCache;
 
         public Auxiliary2AzureSearchCommand(
             IAuxiliaryFileClient auxiliaryFileClient,
@@ -63,6 +64,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _stringCache = new StringCache();
 
             if (_options.Value.MaxConcurrentBatches <= 0)
             {
@@ -100,7 +102,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         {
             // The "old" data in this case is the latest file that was copied to the region's storage container by this
             // job (or initialized by Db2AzureSearch).
-            var oldResult = await _verifiedPackagesDataClient.ReadLatestAsync(AccessConditionWrapper.GenerateEmptyCondition());
+            var oldResult = await _verifiedPackagesDataClient.ReadLatestAsync(
+                AccessConditionWrapper.GenerateEmptyCondition(),
+                _stringCache);
 
             // The "new" data in this case is from the auxiliary data container that is updated by the
             // Search.GenerateAuxiliaryData job.
@@ -126,7 +130,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             // The "old" data in this case is the download count data that was last indexed by this job (or
             // initialized by Db2AzureSearch).
             _logger.LogInformation("Fetching old download count data from blob storage.");
-            var oldResult = await _downloadDataClient.ReadLatestIndexedAsync(AccessConditionWrapper.GenerateEmptyCondition());
+            var oldResult = await _downloadDataClient.ReadLatestIndexedAsync(
+                AccessConditionWrapper.GenerateEmptyCondition(),
+                _stringCache);
 
             // The "new" data in this case is from the statistics pipeline.
             _logger.LogInformation("Fetching new download count data from blob storage.");

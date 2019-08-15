@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using System.Text;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch.AuxiliaryFiles
@@ -103,23 +101,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var ex = Assert.Throws<ArgumentOutOfRangeException>(() => Target.SetDownloadCount(IdA, V1, -1));
                 Assert.Contains("The download count must not be negative.", ex.Message);
                 Assert.Equal("downloads", ex.ParamName);
-            }
-
-            [Fact]
-            public void DedupesVersionStrings()
-            {
-                var v1A = new StringBuilder(V1).Append(string.Empty).ToString();
-                var v1B = new StringBuilder(V1).Append(string.Empty).ToString();
-                Assert.NotSame(v1A, v1B);
-
-                Target.SetDownloadCount(IdA, v1A, 1);
-                Target.SetDownloadCount(IdB, v1B, 10);
-
-                var records = Target
-                    .SelectMany(i => i.Value.Select(v => new { Id = i.Key, Version = v.Key, Downloads = v.Key }))
-                    .ToList();
-                Assert.Equal(2, records.Count);
-                Assert.Same(records[0].Version, records[1].Version);
             }
         }
 

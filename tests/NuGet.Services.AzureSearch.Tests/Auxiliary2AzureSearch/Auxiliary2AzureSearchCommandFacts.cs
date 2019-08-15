@@ -169,7 +169,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             {
                 var expected = new InvalidOperationException("Something bad!");
                 DownloadDataClient
-                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()))
+                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ThrowsAsync(expected);
 
                 var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => Target.ExecuteAsync());
@@ -227,7 +227,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 OldDownloadData = new DownloadData();
                 OldDownloadResult = Data.GetAuxiliaryFileResult(OldDownloadData, "download-data-etag");
                 DownloadDataClient
-                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>()))
+                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ReturnsAsync(() => OldDownloadResult);
                 NewDownloadData = new DownloadData();
                 AuxiliaryFileClient.Setup(x => x.LoadDownloadDataAsync()).ReturnsAsync(() => NewDownloadData);
@@ -235,7 +235,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 OldVerifiedPackagesData = new HashSet<string>();
                 OldVerifiedPackagesResult = Data.GetAuxiliaryFileResult(OldVerifiedPackagesData, "verified-packages-etag");
                 VerifiedPackagesDataClient
-                    .Setup(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>()))
+                    .Setup(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ReturnsAsync(() => OldVerifiedPackagesResult);
                 NewVerifiedPackagesData = new HashSet<string>();
                 AuxiliaryFileClient.Setup(x => x.LoadVerifiedPackagesAsync()).ReturnsAsync(() => NewVerifiedPackagesData);
