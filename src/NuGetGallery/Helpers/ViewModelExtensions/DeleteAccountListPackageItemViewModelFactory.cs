@@ -11,9 +11,9 @@ namespace NuGetGallery
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly IPackageService _packageService;
 
-        public DeleteAccountListPackageItemViewModelFactory(IPackageService packageService)
+        public DeleteAccountListPackageItemViewModelFactory(IPackageService packageService, IIconUrlProvider iconUrlProvider)
         {
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
 

@@ -14,7 +14,7 @@ namespace NuGetGallery.Packaging
     public class PackageMetadata
     {
         /// <summary>
-        /// These are properties generated in the V3 pipeline (feed2catalog job) and could collide if the .nuspec
+        /// These are properties generated in the V3 pipeline (db2catalog job) and could collide if the .nuspec
         /// itself also contains these properties.
         /// </summary>
         private static readonly HashSet<string> RestrictedMetadataElements = new HashSet<string>
@@ -100,6 +100,7 @@ namespace NuGetGallery.Packaging
             Title = GetValue(PackageMetadataStrings.Title, (string)null);
             Tags = GetValue(PackageMetadataStrings.Tags, (string)null);
             Language = GetValue(PackageMetadataStrings.Language, (string)null);
+            IconFile = GetValue(PackageMetadataStrings.Icon, (string)null);
 
             Owners = GetValue(PackageMetadataStrings.Owners, (string)null);
 
@@ -134,6 +135,12 @@ namespace NuGetGallery.Packaging
         /// </summary>
         public LicenseMetadata LicenseMetadata { get; }
 
+        /// <summary>
+        /// Contains the embedded icon filename taken from the 'icon' node of the nuspec file.
+        /// Null if not specified.
+        /// </summary>
+        public string IconFile { get; private set; }
+
         public string GetValueFromMetadata(string key)
         {
             return GetValue(key, (string)null);
@@ -156,8 +163,7 @@ namespace NuGetGallery.Packaging
 
         private string GetValue(string key, string alternateValue)
         {
-            string value;
-            if (_metadata.TryGetValue(key, out value))
+            if (_metadata.TryGetValue(key, out var value))
             {
                 return value;
             }

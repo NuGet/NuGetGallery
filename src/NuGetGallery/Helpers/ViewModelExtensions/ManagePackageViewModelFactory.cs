@@ -14,9 +14,9 @@ namespace NuGetGallery
     {
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
 
-        public ManagePackageViewModelFactory()
+        public ManagePackageViewModelFactory(IIconUrlProvider iconUrlProvider)
         {
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
         }
 
         public ManagePackageViewModel Create(

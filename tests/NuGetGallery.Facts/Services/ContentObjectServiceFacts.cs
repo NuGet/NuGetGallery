@@ -46,6 +46,7 @@ namespace NuGetGallery.Services
                 var abTestConfiguration = service.ABTestConfiguration as ABTestConfiguration;
 
                 Assert.Equal(0, abTestConfiguration.PreviewSearchPercentage);
+                Assert.Equal(0, abTestConfiguration.PreviewHijackPercentage);
             }
 
             [Fact]
@@ -88,9 +89,11 @@ namespace NuGetGallery.Services
                 var typosquattingJson = JsonConvert.SerializeObject(typosquattingConfiguration);
 
                 var previewSearchPercentage = 2;
+                var previewHijackPercentage = 4;
 
                 var abTestConfiguration = new ABTestConfiguration(
-                    previewSearchPercentage);
+                    previewSearchPercentage,
+                    previewHijackPercentage);
                 var abTestJson = JsonConvert.SerializeObject(abTestConfiguration);
 
                 var contentService = GetMock<IContentService>();
@@ -146,6 +149,7 @@ namespace NuGetGallery.Services
                 Assert.Equal(packageIdChecklistCacheExpireTimeInHours, typosquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours);
 
                 Assert.Equal(previewSearchPercentage, abTestConfiguration.PreviewSearchPercentage);
+                Assert.Equal(previewHijackPercentage, abTestConfiguration.PreviewHijackPercentage);
             }
         }
     }

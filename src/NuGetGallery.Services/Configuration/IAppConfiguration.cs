@@ -435,5 +435,12 @@ namespace NuGetGallery.Configuration
         /// The Search timeout per request in milliseconds.
         /// </summary>
         int SearchHttpRequestTimeoutInMilliseconds { get; set; }
+
+        /// <summary>
+        /// Template for the storage URL for packages with embedded icons.
+        /// When expanded the '{id-lower}' will be replaced with the package id in lowercase,
+        /// '{version-lower}' will be replaced with the normalized package version in lowercase.
+        /// </summary>
+        string EmbeddedIconUrlTemplate { get; set; }
     }
 }

@@ -547,6 +547,7 @@ namespace NuGetGallery
 
             package.EmbeddedLicenseType = GetEmbeddedLicenseType(packageMetadata);
             package.LicenseExpression = GetLicenseExpression(packageMetadata);
+            package.HasEmbeddedIcon = !string.IsNullOrWhiteSpace(packageMetadata.IconFile);
 
             return package;
         }

@@ -12,9 +12,9 @@ namespace NuGetGallery
     {
         private PackageViewModelFactory _packageViewModelFactory;
 
-        public DisplayLicenseViewModelFactory()
+        public DisplayLicenseViewModelFactory(IIconUrlProvider iconUrlProvider)
         {
-            _packageViewModelFactory = new PackageViewModelFactory();
+            _packageViewModelFactory = new PackageViewModelFactory(iconUrlProvider);
         }
 
         public DisplayLicenseViewModel Create(

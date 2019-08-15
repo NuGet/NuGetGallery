@@ -679,7 +679,8 @@ namespace NuGetGallery.Infrastructure
                 mockPackageSource.Object,
                 d,
                 null,
-                null);
+                null,
+                new LuceneDocumentFactory(Mock.Of<IIconUrlProvider>()));
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = new LuceneSearchService(d);

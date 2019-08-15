@@ -33,27 +33,27 @@ namespace NuGetGallery
             public string EmailUpdateCancelled { get; set; }
         }
 
-        public AuthenticationService AuthenticationService { get; }
+        protected AuthenticationService AuthenticationService { get; }
 
-        public IPackageService PackageService { get; }
+        protected IPackageService PackageService { get; }
 
-        public IMessageService MessageService { get; }
+        protected IMessageService MessageService { get; }
 
-        public IUserService UserService { get; }
+        protected IUserService UserService { get; }
 
-        public ITelemetryService TelemetryService { get; }
+        protected ITelemetryService TelemetryService { get; }
 
-        public ISecurityPolicyService SecurityPolicyService { get; }
+        protected ISecurityPolicyService SecurityPolicyService { get; }
 
-        public ICertificateService CertificateService { get; }
+        protected ICertificateService CertificateService { get; }
 
-        public IContentObjectService ContentObjectService { get; }
+        protected IContentObjectService ContentObjectService { get; }
 
-        public IFeatureFlagService FeatureFlagService { get; }
+        protected IMessageServiceConfiguration MessageServiceConfiguration { get; }
 
-        public IMessageServiceConfiguration MessageServiceConfiguration { get; }
+        protected IDeleteAccountService DeleteAccountService { get; }
 
-        public IDeleteAccountService DeleteAccountService { get; }
+        protected IIconUrlProvider IconUrlProvider { get; }
 
         private readonly DeleteAccountListPackageItemViewModelFactory _deleteAccountListPackageItemViewModelFactory;
 
@@ -67,7 +67,8 @@ namespace NuGetGallery
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
             IMessageServiceConfiguration messageServiceConfiguration,
-            IDeleteAccountService deleteAccountService)
+            IDeleteAccountService deleteAccountService,
+            IIconUrlProvider iconUrlProvider)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             PackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -79,8 +80,9 @@ namespace NuGetGallery
             ContentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             MessageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
             DeleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
+            IconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService);
+            _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService, IconUrlProvider);
         }
 
         public abstract string AccountAction { get; }

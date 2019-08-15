@@ -4,27 +4,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
-using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Features
 {
-    public class FeatureFlagFileStorageService : IEditableFeatureFlagStorageService
+    public class FeatureFlagFileStorageService : IFeatureFlagStorageService
     {
-        private const int MaxRemoveUserAttempts = 3;
+        protected static readonly JsonSerializer Serializer;
 
-        private static readonly JsonSerializer Serializer;
-
-        private readonly ICoreFileStorageService _storage;
-        private readonly IAuditingService _auditing;
-        private readonly ILogger<FeatureFlagFileStorageService> _logger;
+        protected readonly ICoreFileStorageService _storage;
 
         static FeatureFlagFileStorageService()
         {
@@ -40,13 +31,9 @@ namespace NuGetGallery.Features
         }
 
         public FeatureFlagFileStorageService(
-            ICoreFileStorageService storage,
-            IAuditingService auditing,
-            ILogger<FeatureFlagFileStorageService> logger)
+            ICoreFileStorageService storage)
         {
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-            _auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<FeatureFlags> GetAsync()
@@ -57,114 +44,13 @@ namespace NuGetGallery.Features
             }
         }
 
-        public async Task<FeatureFlagReference> GetReferenceAsync()
-        {
-            var reference = await _storage.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName);
-
-            return new FeatureFlagReference(
-                ReadFeatureFlagsFromStream(reference.OpenRead()),
-                reference.ContentId);
-        }
-
-        private FeatureFlags ReadFeatureFlagsFromStream(Stream stream)
+        protected FeatureFlags ReadFeatureFlagsFromStream(Stream stream)
         {
             using (var streamReader = new StreamReader(stream))
             using (var reader = new JsonTextReader(streamReader))
             {
                 return Serializer.Deserialize<FeatureFlags>(reader);
             }
-        }
-
-        public async Task RemoveUserAsync(User user)
-        {
-            for (var attempt = 0; attempt < MaxRemoveUserAttempts; attempt++)
-            {
-                var reference = await _storage.GetFileReferenceAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName);
-
-                FeatureFlags flags;
-                using (var stream = reference.OpenRead())
-                using (var streamReader = new StreamReader(stream))
-                using (var reader = new JsonTextReader(streamReader))
-                {
-                    flags = Serializer.Deserialize<FeatureFlags>(reader);
-                }
-
-                // Don't update the flags if the user isn't listed in any of the flights.
-                if (!flags.Flights.Any(f => f.Value.Accounts.Contains(user.Username, StringComparer.OrdinalIgnoreCase)))
-                {
-                    return;
-                }
-
-                // The user is listed in the flights. Build a new feature flag object that
-                // no longer contains the user.
-                var result = new FeatureFlags(
-                   flags.Features,
-                   flags.Flights
-                       .ToDictionary(
-                           f => f.Key,
-                           f => RemoveUser(f.Value, user)));
-
-                var saveResult = await TrySaveAsync(result, reference.ContentId);
-                if (saveResult == FeatureFlagSaveResult.Ok)
-                {
-                    return;
-                }
-
-                _logger.LogWarning(
-                    0,
-                    "Failed to remove user from feature flags, attempt {Attempt} of {MaxAttempts}...",
-                    attempt + 1,
-                    MaxRemoveUserAttempts);
-            }
-
-            throw new InvalidOperationException($"Unable to remove user from feature flags after {MaxRemoveUserAttempts} attempts");
-        }
-
-        public async Task<FeatureFlagSaveResult> TrySaveAsync(FeatureFlags flags, string contentId)
-        {
-            var result = await TrySaveInternalAsync(flags, contentId);
-            await _auditing.SaveAuditRecordAsync(
-                new FeatureFlagsAuditRecord(
-                    AuditedFeatureFlagsAction.Update, 
-                    flags, 
-                    contentId, 
-                    result));
-
-            return result;
-        }
-
-        private async Task<FeatureFlagSaveResult> TrySaveInternalAsync(FeatureFlags flags, string contentId)
-        {
-            var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(contentId);
-
-            try
-            {
-                using (var stream = new MemoryStream())
-                using (var writer = new StreamWriter(stream))
-                using (var jsonWriter = new JsonTextWriter(writer))
-                {
-                    Serializer.Serialize(jsonWriter, flags);
-                    jsonWriter.Flush();
-                    stream.Position = 0;
-
-                    await _storage.SaveFileAsync(CoreConstants.Folders.ContentFolderName, CoreConstants.FeatureFlagsFileName, stream, accessCondition);
-
-                    return FeatureFlagSaveResult.Ok;
-                }
-            }
-            catch (StorageException e) when (e.IsPreconditionFailedException())
-            {
-                return FeatureFlagSaveResult.Conflict;
-            }
-        }
-
-        private Flight RemoveUser(Flight flight, User user)
-        {
-            return new Flight(
-                flight.All,
-                flight.SiteAdmins,
-                flight.Accounts.Where(a => !a.Equals(user.Username, StringComparison.OrdinalIgnoreCase)).ToList(),
-                flight.Domains);
         }
     }
 }

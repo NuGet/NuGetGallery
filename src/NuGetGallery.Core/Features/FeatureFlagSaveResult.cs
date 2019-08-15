@@ -4,7 +4,7 @@
 namespace NuGetGallery.Features
 {
     /// <summary>
-    /// The result of calling <see cref="FeatureFlagFileStorageService.TrySaveAsync(string, string)"/>.
+    /// The result of calling <see cref="EditableFeatureFlagFileStorageService.TrySaveAsync(string, string)"/>.
     /// </summary>
     public enum FeatureFlagSaveResult
     {
