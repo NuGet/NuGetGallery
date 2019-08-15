@@ -20,6 +20,7 @@ namespace NuGetGallery
         private const string GitHubUsageFlightName = GalleryPrefix + "GitHubUsage";
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
+        private const string ManageDeprecationApiFeatureName = GalleryPrefix + "ManageDeprecationApi";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
@@ -66,6 +67,11 @@ namespace NuGetGallery
 
         public bool IsManageDeprecationEnabled(User user, PackageRegistration registration)
         {
+            if (registration == null)
+            {
+                throw new ArgumentNullException(nameof(registration));
+            }
+
             if (!_client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false))
             {
                 return false;
@@ -73,6 +79,11 @@ namespace NuGetGallery
 
             return registration.Packages.Count() < _manageDeprecationForManyVersionsThreshold 
                 || _client.IsEnabled(ManageDeprecationForManyVersionsFeatureName, user, defaultValue: true);
+        }
+
+        public bool IsManageDeprecationApiEnabled(User user)
+        {
+            return _client.IsEnabled(ManageDeprecationApiFeatureName, user, defaultValue: false);
         }
 
         public bool AreEmbeddedIconsEnabled(User user)

@@ -517,23 +517,12 @@ namespace NuGetGallery
         public class TheApiKeysAction
             : TestContainer
         {
-            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data
-            {
-                get
-                {
-                    foreach (var currentUser in
-                        new[]
-                        {
-                            TestUtility.FakeUser,
-                            TestUtility.FakeAdminUser,
-                            TestUtility.FakeOrganizationAdmin,
-                            TestUtility.FakeOrganizationCollaborator
-                        })
-                    {
-                        yield return MemberDataHelper.AsData(currentUser);
-                    }
-                }
-            }
+            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data =
+                MemberDataHelper.AsDataSet(
+                    TestUtility.FakeUser,
+                    TestUtility.FakeAdminUser,
+                    TestUtility.FakeOrganizationAdmin,
+                    TestUtility.FakeOrganizationCollaborator);
 
             [Theory]
             [MemberData(nameof(CurrentUserIsInPackageOwnersWithPushNew_Data))]
@@ -548,9 +537,11 @@ namespace NuGetGallery
                 Assert.True(firstPackageOwner.CanUnlist);
             }
 
+            public static IEnumerable<object[]> OrganizationIsInPackageOwnersIfMember_Data =
+                MemberDataHelper.BooleanDataSet();
+
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
+            [MemberData(nameof(OrganizationIsInPackageOwnersIfMember_Data))]
             public void OrganizationIsInPackageOwnersIfMember(bool isAdmin)
             {
                 var currentUser = isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator;
@@ -564,21 +555,10 @@ namespace NuGetGallery
                 Assert.True(owner.CanUnlist);
             }
 
-            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data
-            {
-                get
-                {
-                    foreach (var currentUser in
-                        new[]
-                        {
-                            TestUtility.FakeUser,
-                            TestUtility.FakeAdminUser
-                        })
-                    {
-                        yield return MemberDataHelper.AsData(currentUser);
-                    }
-                }
-            }
+            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data =
+                MemberDataHelper.AsDataSet(
+                    TestUtility.FakeUser,
+                    TestUtility.FakeAdminUser);
 
             [Theory]
             [MemberData(nameof(OrganizationIsNotInPackageOwnersIfNotMember_Data))]

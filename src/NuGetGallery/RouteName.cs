@@ -47,6 +47,7 @@ namespace NuGetGallery
         public const string PackageDeleteAction = "PackageDeleteAction";
         public const string PushPackageApi = "PushPackageApi";
         public const string PublishPackageApi = "PublishPackageApi";
+        public const string DeprecatePackageApi = "DeprecatePackageApi";
         public const string DeletePackageApi = "DeletePackageApi";
         public const string PushSymbolPackageApi = "PushSymbolPackageApi";
         public const string PasswordReset = "PasswordReset";

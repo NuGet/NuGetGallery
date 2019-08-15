@@ -686,6 +686,12 @@ namespace NuGetGallery
                 });
 
             routes.MapRoute(
+                "v2" + RouteName.DeprecatePackageApi,
+                "api/v2/package/{id}/deprecations",
+                new { controller = "Api", action = RouteName.DeprecatePackageApi },
+                constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
+
+            routes.MapRoute(
                 "v2CuratedFeeds" + RouteName.DownloadPackage,
                 "api/v2/curated-feeds/package/{id}/{version}",
                 defaults: new { controller = "Api", action = "GetPackageApi", version = UrlParameter.Optional },

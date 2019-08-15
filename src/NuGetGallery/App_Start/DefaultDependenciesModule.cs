@@ -387,6 +387,10 @@ namespace NuGetGallery
                 .As<ILicenseExpressionSegmentator>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageDeprecationManagementService>()
+                .As<IPackageDeprecationManagementService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageDeprecationService>()
                 .As<IPackageDeprecationService>()
                 .InstancePerLifetimeScope();
