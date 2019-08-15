@@ -890,7 +890,7 @@ namespace NuGetGallery
             return new EmptyResult();
         }
 
-        [HttpPost]
+        [HttpPut]
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName(RouteName.DeprecatePackageApi)]
