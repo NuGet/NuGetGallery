@@ -223,6 +223,7 @@
     <Compile Include="Infrastructure\IABTestEnrollmentFactory.cs" />
     <Compile Include="Infrastructure\IABTestService.cs" />
     <Compile Include="Infrastructure\ILuceneDocumentFactory.cs" />
+    <Compile Include="Infrastructure\ArrayModelBinder.cs" />
     <Compile Include="Infrastructure\LuceneDocumentFactory.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />

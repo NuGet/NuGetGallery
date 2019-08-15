@@ -27,7 +27,6 @@ using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
-using NuGetGallery.RequestModels;
 using NuGetGallery.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
 
@@ -896,20 +895,27 @@ namespace NuGetGallery
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName(RouteName.DeprecatePackageApi)]
         public virtual async Task<ActionResult> DeprecatePackage(
-            DeprecatePackageRequest request)
+            string id, 
+            [ModelBinder(typeof(ArrayModelBinder<string>))] IEnumerable<string> versions, 
+            bool isLegacy = false, 
+            bool hasCriticalBugs = false, 
+            bool isOther = false, 
+            string alternatePackageId = null, 
+            string alternatePackageVersion = null, 
+            string message = null)
         {
-            var registration = PackageService.FindPackageRegistrationById(request.Id);
+            var registration = PackageService.FindPackageRegistrationById(id);
             if (registration == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackagesWithIdNotFound, request.Id));
+                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackagesWithIdNotFound, id));
             }
 
             // Check if the current user's scopes allow deprecating/undeprecating the current package ID
             var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.DeprecatePackage, registration, NuGetScopes.PackageUnlist);
             if (!apiScopeEvaluationResult.IsSuccessful())
             {
-                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, request.Id, versionString: null);
+                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, versionString: null);
             }
 
             if (!FeatureFlagService.IsManageDeprecationApiEnabled(apiScopeEvaluationResult.Owner))
@@ -919,14 +925,14 @@ namespace NuGetGallery
 
             var error = await PackageDeprecationManagementService.UpdateDeprecation(
                 apiScopeEvaluationResult.Owner,
-                request.Id,
-                request.Versions,
-                request.IsLegacy,
-                request.HasCriticalBugs,
-                request.IsOther,
-                request.AlternatePackageId,
-                request.AlternatePackageVersion,
-                request.CustomMessage);
+                id,
+                versions,
+                isLegacy,
+                hasCriticalBugs,
+                isOther,
+                alternatePackageId,
+                alternatePackageVersion,
+                message);
 
             if (error != null)
             {
