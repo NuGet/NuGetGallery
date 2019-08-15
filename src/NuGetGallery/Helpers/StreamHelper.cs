@@ -61,11 +61,13 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="stream">Stream to read from.</param>
         /// <param name="expectedBytes">Expected bytes.</param>
-        /// <returns>True if the bytes read from stream are the same as in <paramref name="expectedBytes"/> array, false otherwise.</returns>
+        /// <returns>True if it manages to read the same amount of bytes as in <paramref name="expectedBytes"/> and 
+        /// the bytes read are the same as in <paramref name="expectedBytes"/> array, false otherwise.</returns>
         /// <remarks>
-        /// The method assumes that stream is properly positioned before calling by the caller. It will not seek to the beginning of the stream.
+        /// The method assumes that stream is properly positioned before calling by the caller. It will not seek anywhere.
+        /// If the length of <paramref name="expectedBytes"/> is 0, method returns true.
         /// </remarks>
-        public static async Task<bool> StartsWithAsync(this Stream stream, byte[] expectedBytes)
+        public static async Task<bool> NextBytesMatchAsync(this Stream stream, byte[] expectedBytes)
         {
             if (stream == null)
             {

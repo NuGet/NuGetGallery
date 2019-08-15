@@ -446,12 +446,12 @@ namespace NuGetGallery
 
         private async Task<bool> IsPngAsync(Stream stream)
         {
-            return await stream.StartsWithAsync(PngHeader);
+            return await stream.NextBytesMatchAsync(PngHeader);
         }
 
         private async Task<bool> IsJpegAsync(Stream stream)
         {
-            return await stream.StartsWithAsync(JpegHeader);
+            return await stream.NextBytesMatchAsync(JpegHeader);
         }
 
         private static bool FileExists(PackageArchiveReader nuGetPackage, string filename)
