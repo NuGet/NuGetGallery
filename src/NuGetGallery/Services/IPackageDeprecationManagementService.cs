@@ -35,7 +35,7 @@ namespace NuGetGallery
         Task<UpdateDeprecationError> UpdateDeprecation(
             User currentUser,
             string id,
-            IEnumerable<string> versions,
+            IReadOnlyCollection<string> versions,
             bool isLegacy = false,
             bool hasCriticalBugs = false,
             bool isOther = false,

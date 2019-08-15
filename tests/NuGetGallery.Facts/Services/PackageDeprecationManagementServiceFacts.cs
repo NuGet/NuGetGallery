@@ -138,7 +138,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(ReturnsBadRequestIfNoVersions_Data))]
-            public async Task ReturnsBadRequestIfNoVersions(IEnumerable<string> versions)
+            public async Task ReturnsBadRequestIfNoVersions(IReadOnlyCollection<string> versions)
             {
                 // Arrange
                 var currentUser = TestUtility.FakeUser;
@@ -956,7 +956,7 @@ namespace NuGetGallery
                 IPackageDeprecationManagementService deprecationManagementService,
                 User currentUser,
                 string id = null,
-                IEnumerable<string> versions = null,
+                IReadOnlyCollection<string> versions = null,
                 bool isLegacy = false,
                 bool hasCriticalBugs = false,
                 bool isOther = false,

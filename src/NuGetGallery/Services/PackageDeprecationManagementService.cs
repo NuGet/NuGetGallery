@@ -41,8 +41,8 @@ namespace NuGetGallery
 
         public async Task<UpdateDeprecationError> UpdateDeprecation(
             User currentUser,
-            string id, 
-            IEnumerable<string> versions, 
+            string id,
+            IReadOnlyCollection<string> versions, 
             bool isLegacy = false, 
             bool hasCriticalBugs = false, 
             bool isOther = false, 

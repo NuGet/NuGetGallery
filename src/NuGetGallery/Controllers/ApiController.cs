@@ -926,7 +926,7 @@ namespace NuGetGallery
             var error = await PackageDeprecationManagementService.UpdateDeprecation(
                 apiScopeEvaluationResult.Owner,
                 id,
-                versions,
+                versions.ToList(),
                 isLegacy,
                 hasCriticalBugs,
                 isOther,

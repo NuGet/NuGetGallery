@@ -2109,7 +2109,7 @@ namespace NuGetGallery
                         x => x.UpdateDeprecation(
                             It.IsAny<User>(),
                             It.IsAny<string>(),
-                            It.IsAny<IEnumerable<string>>(),
+                            It.IsAny<IReadOnlyCollection<string>>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
@@ -2159,7 +2159,7 @@ namespace NuGetGallery
                         x => x.UpdateDeprecation(
                             It.IsAny<User>(), 
                             It.IsAny<string>(), 
-                            It.IsAny<IEnumerable<string>>(),
+                            It.IsAny<IReadOnlyCollection<string>>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
@@ -2186,7 +2186,7 @@ namespace NuGetGallery
                         x => x.UpdateDeprecation(
                             It.IsAny<User>(),
                             It.IsAny<string>(),
-                            It.IsAny<IEnumerable<string>>(),
+                            It.IsAny<IReadOnlyCollection<string>>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
                             It.IsAny<bool>(),
