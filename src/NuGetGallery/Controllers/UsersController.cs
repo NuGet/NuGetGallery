@@ -32,6 +32,7 @@ namespace NuGetGallery
         private readonly ListPackageItemRequiredSignerViewModelFactory _listPackageItemRequiredSignerViewModelFactory;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public UsersController(
             IUserService userService,
@@ -58,7 +59,6 @@ namespace NuGetGallery
                   securityPolicyService,
                   certificateService,
                   contentObjectService,
-                  featureFlagService,
                   messageServiceConfiguration,
                   deleteAccountService)
         {
@@ -66,6 +66,7 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
@@ -336,7 +337,7 @@ namespace NuGetGallery
             }
             TelemetryService.TrackRequestForAccountDeletion(user);
 
-            if (_config.SelfServiceAccountDeleteEnabled && FeatureFlagService.IsSelfServiceAccountDeleteEnabled())
+            if (_config.SelfServiceAccountDeleteEnabled && _featureFlagService.IsSelfServiceAccountDeleteEnabled())
             {
                 return await DeleteAndCheckSuccess(user);
             }
