@@ -172,20 +172,23 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 Assert.Same(expected, actual);
             }
 
-            [Fact]
-            public async Task RejectsInvalidDataAndNormalizesVersions()
+            [Theory]
+            [InlineData(nameof(NewDownloadData))]
+            [InlineData(nameof(OldDownloadData))]
+            public async Task RejectsInvalidDataAndNormalizesVersions(string propertyName)
             {
-                NewDownloadData.SetDownloadCount("ValidId", "1.0.0-ValidVersion", 3);
-                NewDownloadData.SetDownloadCount("ValidId", "1.0.0.a-invalidversion", 5);
-                NewDownloadData.SetDownloadCount("ValidId", "1.0.0.0-NonNormalized", 7);
-                NewDownloadData.SetDownloadCount("Invalid--Id", "1.0.0-validversion", 11);
-                NewDownloadData.SetDownloadCount("Invalid--Id", "1.0.0.a-invalidversion", 13);
+                var downloadData = (DownloadData)GetType().GetProperty(propertyName).GetValue(this);
+                downloadData.SetDownloadCount("ValidId", "1.0.0-ValidVersion", 3);
+                downloadData.SetDownloadCount("ValidId", "1.0.0.a-invalidversion", 5);
+                downloadData.SetDownloadCount("ValidId", "1.0.0.0-NonNormalized", 7);
+                downloadData.SetDownloadCount("Invalid--Id", "1.0.0-validversion", 11);
+                downloadData.SetDownloadCount("Invalid--Id", "1.0.0.a-invalidversion", 13);
 
                 await Target.ExecuteAsync();
 
-                Assert.Equal(new[] { "ValidId" }, NewDownloadData.Keys.ToArray());
-                Assert.Equal(new[] { "1.0.0-NonNormalized", "1.0.0-ValidVersion" }, NewDownloadData["ValidId"].Keys.ToArray());
-                Assert.Equal(10, NewDownloadData.GetDownloadCount("ValidId"));
+                Assert.Equal(new[] { "ValidId" }, downloadData.Keys.ToArray());
+                Assert.Equal(new[] { "1.0.0-NonNormalized", "1.0.0-ValidVersion" }, downloadData["ValidId"].Keys.ToArray());
+                Assert.Equal(10, downloadData.GetDownloadCount("ValidId"));
                 Assert.Contains("There were 1 invalid IDs, 2 invalid versions, and 1 non-normalized IDs.", Logger.Messages);
             }
         }
