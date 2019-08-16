@@ -576,10 +576,10 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
+            public async Task GivenMatchingCredential_ItWritesCredentialLastUsedForMSA()
             {
                 // Arrange
-                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.External.Prefix));
+                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.External.MicrosoftAccount));
 
                 var referenceTime = DateTime.UtcNow;
                 _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
@@ -588,12 +588,50 @@ namespace NuGetGallery.Authentication
 
                 // Act
                 // Create a new credential to verify that it's a value-based lookup!
-                var result = await _authenticationService.Authenticate(TestCredentialHelper.CreateExternalCredential(cred.Value));
+                var result = await _authenticationService.Authenticate(TestCredentialHelper.CreateExternalMSACredential(cred.Value));
 
                 // Assert
                 Assert.NotNull(result);
                 Assert.True(cred.LastUsed == referenceTime);
                 Assert.True(cred.LastUsed.HasValue);
+            }
+
+            [Fact]
+            public async Task GivenMatchingCredential_ItWritesCredentialLastUsedForAAD()
+            {
+                // Arrange
+                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.External.AzureActiveDirectoryAccount));
+
+                var referenceTime = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
+
+                Assert.False(cred.LastUsed.HasValue);
+
+                // Act
+                // Create a new credential to verify that it's a value-based lookup!
+                var result = await _authenticationService.Authenticate(TestCredentialHelper.CreateExternalAADCredential(cred.Value, cred.TenantId));
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.True(cred.LastUsed == referenceTime);
+                Assert.True(cred.LastUsed.HasValue);
+            }
+
+            [Fact]
+            public async Task GivenExistingCredentialValue_ItDoesNotAuthenticateIncorrectTenant()
+            {
+                // Arrange
+                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.External.AzureActiveDirectoryAccount));
+
+                var referenceTime = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
+
+                // Act
+                // Create a new credential to verify that it's a value-based lookup!
+                var result = await _authenticationService.Authenticate(TestCredentialHelper.CreateExternalAADCredential(cred.Value, "RandomTenant"));
+
+                // Assert
+                Assert.Null(result);
             }
         }
 

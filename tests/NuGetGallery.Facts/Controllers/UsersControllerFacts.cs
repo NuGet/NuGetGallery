@@ -1883,7 +1883,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            TestCredentialHelper.CreateExternalCredential("abc")
+                            TestCredentialHelper.CreateExternalMSACredential("abc")
                         },
                         new object[]
                         {
@@ -2033,7 +2033,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            TestCredentialHelper.CreateExternalCredential("abc")
+                            TestCredentialHelper.CreateExternalMSACredential("abc")
                         },
                         new object[]
                         {
