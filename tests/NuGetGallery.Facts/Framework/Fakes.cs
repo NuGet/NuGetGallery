@@ -46,7 +46,8 @@ namespace NuGetGallery.Framework
                         ExpirationForApiKeyV1).WithDefaultScopes(),
                     TestCredentialHelper.CreateV4ApiKey(null, out string apiKeyV4PlaintextValue).WithDefaultScopes(),
                     TestCredentialHelper.CreateV2VerificationApiKey(Guid.Parse("b0c51551-823f-4701-8496-43980b4b3913")),
-                    TestCredentialHelper.CreateExternalCredential("abc")
+                    TestCredentialHelper.CreateExternalMSACredential("abc"),
+                    TestCredentialHelper.CreateExternalAADCredential("def", "tenant1")
                 },
                 CreatedUtc = new DateTime(2018, 4, 1)
             };
