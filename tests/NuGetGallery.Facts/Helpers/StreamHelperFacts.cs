@@ -91,6 +91,44 @@ namespace NuGetGallery.Helpers
             }
         }
 
+        [Fact]
+        public async Task NextBytesMatchThrowsWhenStreamIsNull()
+        {
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamHelper.NextBytesMatchAsync(stream: null, expectedBytes: new byte[0]));
+            Assert.Equal("stream", ex.ParamName);
+        }
+
+        [Fact]
+        public async Task NextBytesMatchThrowsWhenExpectedBytesIsNull()
+        {
+            using (var ms = new MemoryStream())
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => StreamHelper.NextBytesMatchAsync(stream: ms, expectedBytes: null));
+                Assert.Equal("expectedBytes", ex.ParamName);
+            }
+        }
+
+        [Theory]
+        [InlineData(new byte[] { 1, 2, 3, 4, 5 }, 0, new byte[] { 1, 2, 3 }, true)]
+        [InlineData(new byte[] { 1, 2, 3, 4, 5 }, 1, new byte[] { 1, 2, 3 }, false)]
+        [InlineData(new byte[] { 1, 2, 3, 4, 5 }, 0, new byte[0], true)]
+        [InlineData(new byte[] { 1, 2, 3, 4, 5 }, 0, new byte[] { 2, 3 }, false)]
+        [InlineData(new byte[] { 1, 2, 3, 4, 5 }, 1, new byte[] { 2, 3 }, true)]
+        [InlineData(new byte[] { 1, 2, 3 }, 0, new byte[] { 1, 2, 3, 4, 5 }, false)]
+        [InlineData(new byte[0], 0, new byte[] { 1 }, false)]
+        [InlineData(new byte[0], 0, new byte[0], true)]
+        public async Task NextBytesMatchSmokeTest(byte[] input, int startPosition, byte[] expected, bool expectedResult)
+        {
+            bool result;
+            using (var ms = new MemoryStream(input))
+            {
+                ms.Seek(startPosition, SeekOrigin.Begin);
+                result = await ms.NextBytesMatchAsync(expected);
+            }
+
+            Assert.Equal(expectedResult, result);
+        }
+
         private string GenerateRandomString(int length)
         {
             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
