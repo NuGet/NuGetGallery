@@ -1391,6 +1391,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There are no packages with ID &apos;{0}&apos;..
+        /// </summary>
+        public static string PackagesWithIdNotFound {
+            get {
+                return ResourceManager.GetString("PackagesWithIdNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package versions that differ only by metadata cannot be uploaded. A package with ID &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
         /// </summary>
         public static string PackageVersionDiffersOnlyByMetadataAndCannotBeModified {

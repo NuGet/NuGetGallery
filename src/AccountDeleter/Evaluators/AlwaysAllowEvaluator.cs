@@ -21,7 +21,7 @@ namespace NuGetGallery.AccountDeleter
 
         public override bool CanUserBeDeleted(User user)
         {
-            _logger.LogInformation("{Evaluator} User can be deleted", nameof(AlwaysAllowEvaluator));
+            _logger.LogInformation("{Evaluator} User can be deleted. This evaluator always allows deletion.", nameof(AlwaysAllowEvaluator));
             return true;
         }
 

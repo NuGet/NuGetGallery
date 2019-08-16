@@ -95,7 +95,12 @@
         $(function ()
         {
             var confirmation = "@Html.Raw(transformConfirmation)";
-            $("#transform").submit(function (event) {
+            var $transformForm = $("#transform");
+            $transformForm.submit(function (event) {
+                if (!$transformForm.valid()) {
+                    return false;
+                }
+
                 return window.nuget.confirmEvent(
                     window.nuget.formatString(confirmation, $("#AdminUsername").val()),
                     event);

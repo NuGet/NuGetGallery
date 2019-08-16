@@ -7,23 +7,12 @@ namespace NuGetGallery
 {
     public class OwnerRequestsListItemViewModel
     {
-        public OwnerRequestsListItemViewModel(PackageOwnerRequest request, IPackageService packageService, User currentUser)
-        {
-            Request = request;
+        public PackageOwnerRequest Request { get; set; }
 
-            var package = packageService.FindPackageByIdAndVersion(request.PackageRegistration.Id, version: null, semVerLevelKey: SemVerLevelKey.SemVer2, allowPrerelease: true);
-            Package = new ListPackageItemViewModelFactory().Create(package, currentUser);
+        public ListPackageItemViewModel Package { get; set; }
 
-            CanAccept = ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, Request.NewOwner) == PermissionsCheckResult.Allowed;
-            CanCancel = Package.CanManageOwners;
-        }
+        public bool CanAccept { get; set; }
 
-        public PackageOwnerRequest Request { get; }
-
-        public ListPackageItemViewModel Package { get; }
-
-        public bool CanAccept { get; }
-
-        public bool CanCancel { get; }
+        public bool CanCancel { get; set; }
     }
 }

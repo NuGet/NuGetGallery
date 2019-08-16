@@ -19,6 +19,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
@@ -516,23 +517,12 @@ namespace NuGetGallery
         public class TheApiKeysAction
             : TestContainer
         {
-            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data
-            {
-                get
-                {
-                    foreach (var currentUser in
-                        new[]
-                        {
-                            TestUtility.FakeUser,
-                            TestUtility.FakeAdminUser,
-                            TestUtility.FakeOrganizationAdmin,
-                            TestUtility.FakeOrganizationCollaborator
-                        })
-                    {
-                        yield return MemberDataHelper.AsData(currentUser);
-                    }
-                }
-            }
+            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data =
+                MemberDataHelper.AsDataSet(
+                    TestUtility.FakeUser,
+                    TestUtility.FakeAdminUser,
+                    TestUtility.FakeOrganizationAdmin,
+                    TestUtility.FakeOrganizationCollaborator);
 
             [Theory]
             [MemberData(nameof(CurrentUserIsInPackageOwnersWithPushNew_Data))]
@@ -547,9 +537,11 @@ namespace NuGetGallery
                 Assert.True(firstPackageOwner.CanUnlist);
             }
 
+            public static IEnumerable<object[]> OrganizationIsInPackageOwnersIfMember_Data =
+                MemberDataHelper.BooleanDataSet();
+
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
+            [MemberData(nameof(OrganizationIsInPackageOwnersIfMember_Data))]
             public void OrganizationIsInPackageOwnersIfMember(bool isAdmin)
             {
                 var currentUser = isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator;
@@ -563,21 +555,10 @@ namespace NuGetGallery
                 Assert.True(owner.CanUnlist);
             }
 
-            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data
-            {
-                get
-                {
-                    foreach (var currentUser in
-                        new[]
-                        {
-                            TestUtility.FakeUser,
-                            TestUtility.FakeAdminUser
-                        })
-                    {
-                        yield return MemberDataHelper.AsData(currentUser);
-                    }
-                }
-            }
+            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data =
+                MemberDataHelper.AsDataSet(
+                    TestUtility.FakeUser,
+                    TestUtility.FakeAdminUser);
 
             [Theory]
             [MemberData(nameof(OrganizationIsNotInPackageOwnersIfNotMember_Data))]
@@ -1180,6 +1161,46 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<UserProfileModel>(result);
                 AssertUserProfileModel(model, currentUser, owner, package2, package1);
+            }
+
+            [Theory]
+            [MemberData(nameof(PossibleOwnershipScenarios_Data))]
+            public void UsesProperIconUrl(User currentUser, User owner)
+            {
+                string username = "test";
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(owner);
+
+                var userPackage = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1,
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration,
+                };
+                packageRegistration.Packages.Add(userPackage);
+
+                var userPackages = new List<Package>() { userPackage };
+
+                const string iconUrl = "https://some.test/icon";
+                GetMock<IIconUrlProvider>()
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username, false))
+                    .Returns(owner);
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Returns(new[] { userPackage });
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+                var model = ResultAssert.IsView<UserProfileModel>(controller.Profiles(username));
+
+                GetMock<IIconUrlProvider>()
+                    .Verify(iup => iup.GetIconUrlString(userPackage), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, model.AllPackages.Single().IconUrl);
             }
 
             private void AssertUserProfileModel(UserProfileModel model, User currentUser, User owner, params Package[] orderedPackages)
@@ -1862,7 +1883,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            TestCredentialHelper.CreateExternalCredential("abc")
+                            TestCredentialHelper.CreateExternalMSACredential("abc")
                         },
                         new object[]
                         {
@@ -2012,7 +2033,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            TestCredentialHelper.CreateExternalCredential("abc")
+                            TestCredentialHelper.CreateExternalMSACredential("abc")
                         },
                         new object[]
                         {
@@ -2256,6 +2277,10 @@ namespace NuGetGallery
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
                    .Returns(issues);
+                const string iconUrl = "https://icon.test/url";
+                GetMock<IIconUrlProvider>()
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
 
                 // act
                 var result = controller.DeleteRequest() as ViewResult;
@@ -2263,7 +2288,9 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(testUser.Username, model.AccountName);
-                Assert.Single(model.Packages);
+                var package = Assert.Single(model.Packages);
+                GetMock<IIconUrlProvider>()
+                    .Verify(iup => iup.GetIconUrlString(It.IsAny<Package>()), Times.AtLeastOnce);
                 Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
@@ -2380,6 +2407,46 @@ namespace NuGetGallery
                         Description = "Delete user",
                         Success = true
                     }));
+
+                // act
+                var result = await controller.RequestAccountDeletion() as NuGetGallery.SafeRedirectResult;
+
+                // Assert
+                Assert.NotNull(result);
+            }
+
+            [Fact]
+            public async Task WhenSelfServiceAllowedDeletesAccount()
+            {
+                // Arrange
+                string userName = "DeletedUser";
+
+                var controller = GetController<UsersController>();
+
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                controller.SetCurrentUser(testUser);
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName, false))
+                    .Returns(testUser);
+
+                GetMock<IDeleteAccountService>()
+                    .Setup(stub => stub.DeleteAccountAsync(testUser, It.IsAny<User>(), It.IsAny<AccountDeletionOrphanPackagePolicy>()))
+                    .Returns(value: Task.FromResult(new DeleteAccountStatus()
+                    {
+                        AccountName = userName,
+                        Description = "Delete user",
+                        Success = true
+                    }));
+
+                GetMock<IAppConfiguration>()
+                    .Setup(stub => stub.SelfServiceAccountDeleteEnabled)
+                    .Returns(true);
+
+                GetMock<IFeatureFlagService>()
+                    .Setup(stub => stub.IsSelfServiceAccountDeleteEnabled())
+                    .Returns(true);
 
                 // act
                 var result = await controller.RequestAccountDeletion() as NuGetGallery.SafeRedirectResult;
@@ -3399,6 +3466,52 @@ namespace NuGetGallery
                 Assert.Equal(userName, model.AccountName);
                 Assert.Single(model.Packages);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
+            }
+        }
+
+        public class ThePackagesAction : TestContainer
+        {
+            [Fact]
+            public void UsesProperIconUrl()
+            {
+                string userName = "RegularUser";
+                var controller = GetController<UsersController>();
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.IsDeleted = false;
+                testUser.Key = 1;
+                controller.SetCurrentUser(testUser);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(testUser);
+
+                var userPackage = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1,
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration,
+                };
+                packageRegistration.Packages.Add(userPackage);
+
+                var userPackages = new List<Package>() { userPackage };
+
+                const string iconUrl = "https://some.test/icon";
+                GetMock<IIconUrlProvider>()
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName, false))
+                    .Returns(testUser);
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Returns(userPackages);
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(controller.Packages());
+
+                GetMock<IIconUrlProvider>()
+                    .Verify(iup => iup.GetIconUrlString(userPackage), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, model.ListedPackages.Single().IconUrl);
             }
         }
     }

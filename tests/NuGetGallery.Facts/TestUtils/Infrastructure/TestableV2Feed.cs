@@ -15,7 +15,12 @@ namespace NuGetGallery.TestUtils.Infrastructure
             IReadOnlyEntityRepository<Package> repo,
             IGalleryConfigurationService configuration,
             ISearchService searchService)
-            : base(repo, Mock.Of<IEntityRepository<Package>>(), configuration, GetNotNullISearchService(searchService), Mock.Of<ITelemetryService>(), GetFeatureFlagService())
+            : base(
+                  repo,
+                  Mock.Of<IEntityRepository<Package>>(),
+                  configuration, GetSearchServiceFactory(searchService),
+                  Mock.Of<ITelemetryService>(),
+                  GetFeatureFlagService())
         {
         }
 
@@ -24,7 +29,13 @@ namespace NuGetGallery.TestUtils.Infrastructure
             IGalleryConfigurationService configuration,
             ISearchService searchService,
             ITelemetryService telemetryService)
-            : base(repo, Mock.Of<IEntityRepository<Package>>(), configuration, GetNotNullISearchService(searchService), telemetryService, GetFeatureFlagService())
+            : base(
+                  repo,
+                  Mock.Of<IEntityRepository<Package>>(),
+                  configuration,
+                  GetSearchServiceFactory(searchService),
+                  telemetryService,
+                  GetFeatureFlagService())
         {
         }
 
@@ -52,9 +63,14 @@ namespace NuGetGallery.TestUtils.Infrastructure
             return featureFlag.Object;
         }
 
-        private static ISearchService GetNotNullISearchService(ISearchService searchService)
+        private static IHijackSearchServiceFactory GetSearchServiceFactory(ISearchService searchService)
         {
-            return searchService ?? Mock.Of<ISearchService>();
+            var searchServiceFactory = new Mock<IHijackSearchServiceFactory>();
+            searchServiceFactory
+                .Setup(f => f.GetService())
+                .Returns(searchService ?? Mock.Of<ISearchService>());
+
+            return searchServiceFactory.Object;
         }
     }
 }

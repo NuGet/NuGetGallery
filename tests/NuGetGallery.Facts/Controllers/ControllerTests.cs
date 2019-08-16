@@ -65,6 +65,7 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.CreatePackageVerificationKeyAsync)),
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.DeletePackage)),
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.PublishPackage)),
+                new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.DeprecatePackage)),
                 new ControllerActionRuleException(typeof(AuthenticationController), nameof(AuthenticationController.AuthenticateAndLinkExternal)),
                 new ControllerActionRuleException(typeof(AuthenticationController), nameof(AuthenticationController.ChallengeAuthentication))
             };

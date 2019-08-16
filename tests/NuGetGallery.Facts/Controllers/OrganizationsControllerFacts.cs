@@ -2226,13 +2226,20 @@ namespace NuGetGallery
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
+                const string iconUrl = "https://icon.test/url";
+                GetMock<IIconUrlProvider>()
+                    .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
+                    .Returns(iconUrl);
 
                 // act
                 var model = ResultAssert.IsView<DeleteOrganizationViewModel>(controller.Delete(accountName: username), viewName: "DeleteOrganizationAccount");
 
                 // Assert
                 Assert.Equal(username, model.AccountName);
-                Assert.Single(model.Packages);
+                var package = Assert.Single(model.Packages);
+                GetMock<IIconUrlProvider>()
+                    .Verify(iup => iup.GetIconUrlString(It.IsAny<Package>()), Times.AtLeastOnce);
+                Assert.Equal(iconUrl, package.IconUrl);
                 Assert.Single(model.AdditionalMembers);
                 Assert.True(model.HasAdditionalMembers);
             }

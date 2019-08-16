@@ -8,6 +8,13 @@ namespace NuGetGallery
 {
     public class PackageViewModelFactory
     {
+        private readonly IIconUrlProvider _iconUrlProvider;
+
+        public PackageViewModelFactory(IIconUrlProvider iconUrlProvider)
+        {
+            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
+        }
+
         public PackageViewModel Create(Package package)
         {
             var viewModel = new PackageViewModel();
@@ -36,7 +43,7 @@ namespace NuGetGallery
 
             viewModel.Description = package.Description;
             viewModel.ReleaseNotes = package.ReleaseNotes;
-            viewModel.IconUrl = package.IconUrl;
+            viewModel.IconUrl = _iconUrlProvider.GetIconUrlString(package);
             viewModel.LatestVersion = package.IsLatest;
             viewModel.LatestVersionSemVer2 = package.IsLatestSemVer2;
             viewModel.LatestStableVersion = package.IsLatestStable;

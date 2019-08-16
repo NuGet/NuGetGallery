@@ -14,9 +14,9 @@ namespace NuGetGallery
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly ISecurityPolicyService _securityPolicyService;
 
-        public ListPackageItemRequiredSignerViewModelFactory(ISecurityPolicyService securityPolicyService)
+        public ListPackageItemRequiredSignerViewModelFactory(ISecurityPolicyService securityPolicyService, IIconUrlProvider iconUrlProvider)
         {
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
         }
 

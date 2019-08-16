@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Moq;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace NuGetGallery.ViewModels
                 PackageRegistration = new PackageRegistration { Id = "SomeId" },
                 NormalizedVersion = "1.3.0" // Different just to prove the View Model is using the DB column.
             };
-            var packageViewModel = new PackageViewModelFactory().Create(package);
+            var packageViewModel = CreatePackageViewModel(package);
             Assert.Equal("1.3.0", packageViewModel.Version);
         }
 
@@ -30,7 +31,7 @@ namespace NuGetGallery.ViewModels
                 Version = "01.02.00.00",
                 PackageRegistration = new PackageRegistration { Id = "SomeId" },
             };
-            var packageViewModel = new PackageViewModelFactory().Create(package);
+            var packageViewModel = CreatePackageViewModel(package);
             Assert.Equal("1.2.0", packageViewModel.Version);
         }
 
@@ -55,7 +56,7 @@ namespace NuGetGallery.ViewModels
             };
 
             // Act 
-            var packageViewModel = new PackageViewModelFactory().Create(package);
+            var packageViewModel = CreatePackageViewModel(package);
 
             // Assert
             Assert.Equal(expected, packageViewModel.PackageStatusSummary);
@@ -73,7 +74,39 @@ namespace NuGetGallery.ViewModels
             };
 
             // Act & Assert
-            Assert.Throws<ArgumentOutOfRangeException>(() => new PackageViewModelFactory().Create(package));
+            Assert.Throws<ArgumentOutOfRangeException>(() => CreatePackageViewModel(package));
+        }
+
+        [Fact]
+        public void SetupExtensionUsesIconFromProvider()
+        {
+            // Arrange
+            var package = new Package
+            {
+                Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
+            };
+
+            var expectedUri = new Uri("https://nuget.test/icon");
+
+            var iconUrlProviderMock = new Mock<IIconUrlProvider>();
+            iconUrlProviderMock
+                .Setup(iup => iup.GetIconUrlString(package))
+                .Returns(expectedUri.AbsoluteUri);
+            iconUrlProviderMock
+                .Setup(iup => iup.GetIconUrl(package))
+                .Returns(expectedUri);
+
+            // Act
+            var viewModel = CreatePackageViewModel(package, iconUrlProviderMock.Object);
+
+            // Assert
+            Assert.Equal(expectedUri.AbsoluteUri, viewModel.IconUrl);
+        }
+
+        private static PackageViewModel CreatePackageViewModel(Package package, IIconUrlProvider iconUrlProvider = null)
+        {
+            return new PackageViewModelFactory(iconUrlProvider ?? Mock.Of<IIconUrlProvider>()).Create(package);
         }
     }
 }

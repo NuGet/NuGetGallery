@@ -103,11 +103,16 @@ namespace NuGetGallery.Controllers
             var featureFlagServiceMock = new Mock<IFeatureFlagService>();
             featureFlagServiceMock.Setup(ffs => ffs.IsODataDatabaseReadOnlyEnabled()).Returns(readOnly);
 
+            var searchServiceFactory = new Mock<IHijackSearchServiceFactory>();
+            searchServiceFactory
+                .Setup(f => f.GetService())
+                .Returns(searchService);
+
             var testController = new ODataV1FeedController(
                 packagesRepositoryMock.Object,
                 readWritePackagesRepositoryMock.Object,
                 configurationService,
-                searchService,
+                searchServiceFactory.Object,
                 telemetryService,
                 featureFlagServiceMock.Object);
 
@@ -133,11 +138,16 @@ namespace NuGetGallery.Controllers
             ITelemetryService telemetryService,
             IFeatureFlagService featureFlagService)
         {
+            var searchServiceFactory = new Mock<IHijackSearchServiceFactory>();
+            searchServiceFactory
+                .Setup(f => f.GetService())
+                .Returns(searchService);
+
             return new ODataV1FeedController(
                 packagesRepository,
                 readWritePackagesRepository,
                 configurationService,
-                searchService,
+                searchServiceFactory.Object,
                 telemetryService,
                 featureFlagService);
         }

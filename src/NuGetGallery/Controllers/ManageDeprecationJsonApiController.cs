@@ -2,13 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGet.Services.Entities;
-using NuGet.Versioning;
 using NuGetGallery.Filters;
 using NuGetGallery.RequestModels;
 
@@ -17,33 +14,19 @@ namespace NuGetGallery
     public partial class ManageDeprecationJsonApiController
         : AppController
     {
-        private const int MaxCustomMessageLength = 1000;
-
-        private readonly IPackageService _packageService;
-        private readonly IPackageDeprecationService _deprecationService;
-        private readonly IFeatureFlagService _featureFlagService;
+        private readonly IPackageDeprecationManagementService _deprecationManagementService;
 
         public ManageDeprecationJsonApiController(
-            IPackageService packageService,
-            IPackageDeprecationService deprecationService,
-            IFeatureFlagService featureFlagService)
+            IPackageDeprecationManagementService deprecationManagementService)
         {
-            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _deprecationManagementService = deprecationManagementService ?? throw new ArgumentNullException(nameof(deprecationManagementService));
         }
 
         [HttpGet]
         [UIAuthorize]
         public virtual JsonResult GetAlternatePackageVersions(string id)
         {
-            var versions = _packageService.FindPackagesById(id)
-                .Where(p => p.PackageStatusKey == PackageStatus.Available && p.Listed)
-                .Select(p => NuGetVersion.Parse(p.Version))
-                .OrderByDescending(v => v)
-                .Select(v => v.ToNormalizedString())
-                .ToList();
-
+            var versions = _deprecationManagementService.GetPossibleAlternatePackageVersions(id);
             return Json(HttpStatusCode.OK, versions, JsonRequestBehavior.AllowGet);
         }
 
@@ -54,137 +37,23 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> Deprecate(
             DeprecatePackageRequest request)
         {
-            var status = PackageDeprecationStatus.NotDeprecated;
+            var error = await _deprecationManagementService.UpdateDeprecation(
+                GetCurrentUser(),
+                request.Id,
+                request.Versions.ToList(),
+                request.IsLegacy,
+                request.HasCriticalBugs,
+                request.IsOther,
+                request.AlternatePackageId,
+                request.AlternatePackageVersion,
+                request.CustomMessage);
 
-            if (request.IsLegacy)
+            if (error != null)
             {
-                status |= PackageDeprecationStatus.Legacy;
+                return Json(error.Status, new { error = error.Message });
             }
-
-            if (request.HasCriticalBugs)
-            {
-                status |= PackageDeprecationStatus.CriticalBugs;
-            }
-
-            var customMessage = request.CustomMessage;
-            if (request.IsOther)
-            {
-                if (string.IsNullOrWhiteSpace(customMessage))
-                {
-                    return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_CustomMessageRequired);
-                }
-
-                status |= PackageDeprecationStatus.Other;
-            }
-
-            if (customMessage != null)
-            {
-                if (customMessage.Length > MaxCustomMessageLength)
-                {
-                    return DeprecateErrorResponse(
-                        HttpStatusCode.BadRequest,
-                        string.Format(Strings.DeprecatePackage_CustomMessageTooLong, MaxCustomMessageLength));
-                }
-            }
-
-            if (request.Versions == null || !request.Versions.Any())
-            {
-                return DeprecateErrorResponse(HttpStatusCode.BadRequest, Strings.DeprecatePackage_NoVersions);
-            }
-
-            var packages = _packageService.FindPackagesById(request.Id, PackageDeprecationFieldsToInclude.DeprecationAndRelationships);
-            var registration = packages.FirstOrDefault()?.PackageRegistration;
-            if (registration == null)
-            {
-                // This should only happen if someone hacks the form or if the package is deleted while the user is filling out the form.
-                return DeprecateErrorResponse(
-                    HttpStatusCode.NotFound,
-                    string.Format(Strings.DeprecatePackage_MissingRegistration, request.Id));
-            }
-
-            var currentUser = GetCurrentUser();
-            if (!_featureFlagService.IsManageDeprecationEnabled(GetCurrentUser(), registration))
-            {
-                return DeprecateErrorResponse(HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
-            }
-
-            if (ActionsRequiringPermissions.DeprecatePackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, registration) != PermissionsCheckResult.Allowed)
-            {
-                return DeprecateErrorResponse(HttpStatusCode.Forbidden, Strings.DeprecatePackage_Forbidden);
-            }
-
-            if (registration.IsLocked)
-            {
-                return DeprecateErrorResponse(
-                    HttpStatusCode.Forbidden,
-                    string.Format(Strings.DeprecatePackage_Locked, request.Id));
-            }
-
-            PackageRegistration alternatePackageRegistration = null;
-            Package alternatePackage = null;
-            if (!string.IsNullOrWhiteSpace(request.AlternatePackageId))
-            {
-                if (!string.IsNullOrWhiteSpace(request.AlternatePackageVersion))
-                {
-                    alternatePackage = _packageService.FindPackageByIdAndVersionStrict(request.AlternatePackageId, request.AlternatePackageVersion);
-                    if (alternatePackage == null)
-                    {
-                        return DeprecateErrorResponse(
-                            HttpStatusCode.NotFound,
-                            string.Format(Strings.DeprecatePackage_NoAlternatePackage, request.AlternatePackageId, request.AlternatePackageVersion));
-                    }
-                }
-                else
-                {
-                    alternatePackageRegistration = _packageService.FindPackageRegistrationById(request.AlternatePackageId);
-                    if (alternatePackageRegistration == null)
-                    {
-                        return DeprecateErrorResponse(
-                            HttpStatusCode.NotFound,
-                            string.Format(Strings.DeprecatePackage_NoAlternatePackageRegistration, request.AlternatePackageId));
-                    }
-                }
-            }
-
-            var packagesToUpdate = new List<Package>();
-            foreach (var version in request.Versions)
-            {
-                var normalizedVersion = NuGetVersionFormatter.Normalize(version);
-                var package = packages.SingleOrDefault(v => v.NormalizedVersion == normalizedVersion);
-                if (package == null)
-                {
-                    // This should only happen if someone hacks the form or if a version of the package is deleted while the user is filling out the form.
-                    return DeprecateErrorResponse(
-                        HttpStatusCode.NotFound,
-                        string.Format(Strings.DeprecatePackage_MissingVersion, request.Id));
-                }
-                else
-                {
-                    packagesToUpdate.Add(package);
-                }
-            }
-
-            if (alternatePackage != null && packagesToUpdate.Any(p => p == alternatePackage))
-            {
-                return DeprecateErrorResponse(
-                    HttpStatusCode.BadRequest,
-                    Strings.DeprecatePackage_AlternateOfSelf);
-            }
-
-            await _deprecationService.UpdateDeprecation(
-                packagesToUpdate,
-                status,
-                alternatePackageRegistration,
-                alternatePackage,
-                customMessage,
-                currentUser);
 
             return Json(HttpStatusCode.OK);
-        }
-
-        private JsonResult DeprecateErrorResponse(HttpStatusCode code, string error)
-        {
-            return Json(code, new { error });
         }
     }
 }

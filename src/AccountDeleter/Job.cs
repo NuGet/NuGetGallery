@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
+using System.ServiceModel.Configuration;
 using Autofac;
+using Autofac.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -60,17 +62,25 @@ namespace NuGetGallery.AccountDeleter
             services.AddScoped<AccountConfirmedEvaluator>();
             services.AddScoped<NuGetDeleteEvaluator>();
 
-            services.AddScoped<IUserEvaluator>(sp =>
+            services.AddScoped<IUserEvaluatorFactory, UserEvaluatorFactory>();
+            services.AddScoped<Func<EvaluatorKey, IUserEvaluator>>(sp =>
             {
-                if (IsDebugMode)
+                return evaluatorKey =>
                 {
-                    return sp.GetRequiredService<AlwaysRejectEvaluator>();
-                }
-                else
-                {
-                    // Configure evaluators here.
-                    return sp.GetRequiredService<NuGetDeleteEvaluator>();
-                }
+                    switch (evaluatorKey)
+                    {
+                        case EvaluatorKey.AccountConfirmed:
+                            return sp.GetRequiredService<AccountConfirmedEvaluator>();
+                        case EvaluatorKey.AlwaysAllow:
+                            return sp.GetRequiredService<AlwaysAllowEvaluator>();
+                        case EvaluatorKey.AlwaysReject:
+                            return sp.GetRequiredService<AlwaysRejectEvaluator>();
+                        case EvaluatorKey.NuGetDelete:
+                            return sp.GetRequiredService<NuGetDeleteEvaluator>();
+                        default:
+                            throw new UnknownEvaluatorException();
+                    }
+                };
             });
 
             if (IsDebugMode)
@@ -126,7 +136,7 @@ namespace NuGetGallery.AccountDeleter
                 services.AddScoped<IAuthenticationService, AuthenticationService>();
                 services.AddScoped<ISupportRequestService, ISupportRequestService>();
 
-                services.AddScoped<IEditableFeatureFlagStorageService, FeatureFlagFileStorageService>();
+                services.AddScoped<IEditableFeatureFlagStorageService, EditableFeatureFlagFileStorageService>();
                 services.AddScoped<ICoreFileStorageService, CloudBlobFileStorageService>();
                 services.AddScoped<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
 
@@ -251,7 +261,9 @@ namespace NuGetGallery.AccountDeleter
                 {
                     auditingServices.Add(sp.GetRequiredService<AuditingService>());
                 }
-                catch (InvalidOperationException)
+                catch (Exception ex)
+                when (ex is InvalidOperationException
+                   || ex is DependencyResolutionException)
                 {
                     // no default auditing service was registered, no-op
                 }

@@ -222,6 +222,10 @@
     <Compile Include="Infrastructure\CookieBasedABTestService.cs" />
     <Compile Include="Infrastructure\IABTestEnrollmentFactory.cs" />
     <Compile Include="Infrastructure\IABTestService.cs" />
+    <Compile Include="Infrastructure\ILuceneDocumentFactory.cs" />
+    <Compile Include="Infrastructure\ArrayModelBinder.cs" />
+    <Compile Include="Infrastructure\LuceneDocumentFactory.cs" />
+    <Compile Include="Infrastructure\IHijackSearchServiceFactory.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\CorrelatingHttpClientHandler.cs" />
     <Compile Include="Infrastructure\Lucene\Correlation\WebApiCorrelationHandler.cs" />
     <Compile Include="Infrastructure\Lucene\HttpClientBuilderExtensions.cs" />
@@ -231,6 +235,7 @@
     <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
     <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
+    <Compile Include="Infrastructure\HijackSearchServiceFactory.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.Designer.cs">
       <DependentUpon>201903020136235_CvesCanBeEmpty.cs</DependentUpon>
@@ -247,11 +252,20 @@
     <Compile Include="Migrations\201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.Designer.cs">
       <DependentUpon>201904292139301_RemoveVulnerabilityDataFromPackageDeprecationModel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201906262145129_EmbeddedIconFlag.cs" />
+    <Compile Include="Migrations\201906262145129_EmbeddedIconFlag.Designer.cs">
+      <DependentUpon>201906262145129_EmbeddedIconFlag.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Services\ConfigurationIconFileProvider.cs" />
+    <Compile Include="Services\IconUrlTemplateProcessor.cs" />
+    <Compile Include="Services\IIconUrlTemplateProcessor.cs" />
+    <Compile Include="Services\IIconUrlProvider.cs" />
     <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.cs" />
     <Compile Include="Migrations\201905071526573_DevelopmentDependencyMetadata.Designer.cs">
       <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeprecatePackageRequest.cs" />
+    <Compile Include="Services\IPackageDeprecationManagementService.cs" />
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
@@ -444,6 +458,7 @@
     <Compile Include="Services\JsonValidationMessage.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\PackageDeleteService.cs" />
+    <Compile Include="Services\PackageDeprecationManagementService.cs" />
     <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
@@ -531,6 +546,7 @@
     <Compile Include="Services\TyposquattingService.cs" />
     <Compile Include="Services\TyposquattingDistanceCalculation.cs" />
     <Compile Include="Services\TyposquattingStringNormalization.cs" />
+    <Compile Include="Services\UpdateDeprecationError.cs" />
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
@@ -918,7 +934,6 @@
     <Compile Include="Infrastructure\Lucene\ExternalSearchService.cs" />
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
-    <Compile Include="Infrastructure\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\SafeRedirectResult.cs" />
     <Compile Include="Infrastructure\StatisticsReport.cs" />
@@ -1592,6 +1607,9 @@
     <EmbeddedResource Include="Migrations\201905071526573_DevelopmentDependencyMetadata.resx">
       <DependentUpon>201905071526573_DevelopmentDependencyMetadata.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201906262145129_EmbeddedIconFlag.resx">
+      <DependentUpon>201906262145129_EmbeddedIconFlag.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -2049,7 +2067,7 @@
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.53.0</Version>
+      <Version>2.54.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2246,13 +2264,13 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.53.0</Version>
+      <Version>2.54.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.53.0</Version>
+      <Version>2.54.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.53.0</Version>
+      <Version>2.54.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
