@@ -434,24 +434,14 @@ namespace NuGetGallery
             }
         }
 
-        private async Task<bool> IsPngAsync(PackageArchiveReader nuGetPackage, string iconPath)
+        private static async Task<bool> IsPngAsync(PackageArchiveReader nuGetPackage, string iconPath)
         {
-            return await FileMatchesPredicate(nuGetPackage, iconPath, IsPngAsync);
+            return await FileMatchesPredicate(nuGetPackage, iconPath, stream => stream.NextBytesMatchAsync(PngHeader));
         }
 
-        private async Task<bool> IsJpegAsync(PackageArchiveReader nuGetPackage, string iconPath)
+        private static async Task<bool> IsJpegAsync(PackageArchiveReader nuGetPackage, string iconPath)
         {
-            return await FileMatchesPredicate(nuGetPackage, iconPath, IsJpegAsync);
-        }
-
-        private async Task<bool> IsPngAsync(Stream stream)
-        {
-            return await stream.NextBytesMatchAsync(PngHeader);
-        }
-
-        private async Task<bool> IsJpegAsync(Stream stream)
-        {
-            return await stream.NextBytesMatchAsync(JpegHeader);
+            return await FileMatchesPredicate(nuGetPackage, iconPath, stream => stream.NextBytesMatchAsync(JpegHeader));
         }
 
         private static bool FileExists(PackageArchiveReader nuGetPackage, string filename)
