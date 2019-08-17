@@ -1178,10 +1178,18 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
+            public static IEnumerable<string[]> LocalIconFilePaths =>
+                new[]
+                {
+                    new [] { Environment.GetEnvironmentVariable("TEMP") + "\\testimage.png" },
+                    new [] { (Environment.GetEnvironmentVariable("TEMP") + "\\sneakyicon.png").Replace("\\", "/") },
+                };
+
             [Theory]
             [InlineData("somefile.png")]
             [InlineData("..\\otherfile.png")]
             [InlineData("../otherfile.png")]
+            [MemberData(nameof(LocalIconFilePaths))]
             public async Task DoesNotAccessLocalFileSystemForIconFile(string iconFilename)
             {
                 using (var file = new FileStream(iconFilename, FileMode.OpenOrCreate, FileAccess.Write))
