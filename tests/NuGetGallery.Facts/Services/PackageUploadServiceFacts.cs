@@ -1179,6 +1179,38 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData("somefile.png")]
+            [InlineData("..\\otherfile.png")]
+            [InlineData("../otherfile.png")]
+            public async Task DoesNotAccessLocalFileSystemForIconFile(string iconFilename)
+            {
+                using (var file = new FileStream(iconFilename, FileMode.OpenOrCreate, FileAccess.Write))
+                using (var bw = new BinaryWriter(file))
+                {
+                    var data = new byte[] { 0xFF, 0xD8, 0xFF, 0x32 };
+                    await file.WriteAsync(data, 0, data.Length);
+                }
+
+                try
+                {
+                    var result = await ValidatePackageWithIcon(iconFilename, null);
+
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("icon file", result.Message.PlainTextMessage);
+                    Assert.Contains("does not exist", result.Message.PlainTextMessage);
+                    Assert.Contains(iconFilename.Replace("\\", "/"), result.Message.PlainTextMessage);
+                    Assert.Empty(result.Warnings);
+                }
+                finally
+                {
+                    if (File.Exists(iconFilename))
+                    {
+                        File.Delete(iconFilename);
+                    }
+                }
+            }
+
+            [Theory]
             [InlineData("icons/main.png")]
             [InlineData("./other/something.jpg")]
             [InlineData("media\\icon.jpeg")]
