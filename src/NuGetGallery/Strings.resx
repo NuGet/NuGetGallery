@@ -1125,6 +1125,9 @@ The {1} Team</value>
   <data name="DeprecatePackage_AlternateOfSelf" xml:space="preserve">
     <value>A package cannot be the alternate package of itself.</value>
   </data>
+  <data name="PackagesWithIdNotFound" xml:space="preserve">
+    <value>There are no packages with ID '{0}'.</value>
+  </data>
   <data name="UploadPackage_InvalidIconFileExtension" xml:space="preserve">
     <value>The icon file has an invalid extension '{0}'. Extension must be one of the following: {1}.</value>
     <comment>{0} is the icon file extension specified in the .nuspec, {1} is the list of allowed extensions</comment>

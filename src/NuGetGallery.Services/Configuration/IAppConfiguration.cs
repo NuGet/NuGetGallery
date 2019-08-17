@@ -376,6 +376,11 @@ namespace NuGetGallery.Configuration
         bool AsynchronousDeleteAccountServiceEnabled { get; set; }
 
         /// <summary>
+        /// Gets or sets a flag indicating if this gallery allows users to delete their own account.
+        /// </summary>
+        bool SelfServiceAccountDeleteEnabled { get; set; }
+
+        /// <summary>
         /// Indicates whether packages that specify the license the "old" way (with a "licenseUrl" node only) should be rejected.
         /// </summary>
         bool BlockLegacyLicenseUrl { get; set; }

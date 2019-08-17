@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -40,6 +41,20 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.False(result);
+            }
+
+            [Fact]
+            public void WhenRegistrationNull_ThrowsArgumentNullException()
+            {
+                // Arrange
+                var user = new User();
+
+                var clientMock = new Mock<IFeatureFlagClient>(MockBehavior.Strict);
+                var service = new FeatureFlagService(clientMock.Object);
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(
+                    () => service.IsManageDeprecationEnabled(user, null));
             }
 
             [Fact]

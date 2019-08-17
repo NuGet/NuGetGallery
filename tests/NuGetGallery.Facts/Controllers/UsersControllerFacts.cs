@@ -19,6 +19,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
@@ -516,23 +517,12 @@ namespace NuGetGallery
         public class TheApiKeysAction
             : TestContainer
         {
-            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data
-            {
-                get
-                {
-                    foreach (var currentUser in
-                        new[]
-                        {
-                            TestUtility.FakeUser,
-                            TestUtility.FakeAdminUser,
-                            TestUtility.FakeOrganizationAdmin,
-                            TestUtility.FakeOrganizationCollaborator
-                        })
-                    {
-                        yield return MemberDataHelper.AsData(currentUser);
-                    }
-                }
-            }
+            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data =
+                MemberDataHelper.AsDataSet(
+                    TestUtility.FakeUser,
+                    TestUtility.FakeAdminUser,
+                    TestUtility.FakeOrganizationAdmin,
+                    TestUtility.FakeOrganizationCollaborator);
 
             [Theory]
             [MemberData(nameof(CurrentUserIsInPackageOwnersWithPushNew_Data))]
@@ -547,9 +537,11 @@ namespace NuGetGallery
                 Assert.True(firstPackageOwner.CanUnlist);
             }
 
+            public static IEnumerable<object[]> OrganizationIsInPackageOwnersIfMember_Data =
+                MemberDataHelper.BooleanDataSet();
+
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
+            [MemberData(nameof(OrganizationIsInPackageOwnersIfMember_Data))]
             public void OrganizationIsInPackageOwnersIfMember(bool isAdmin)
             {
                 var currentUser = isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator;
@@ -563,21 +555,10 @@ namespace NuGetGallery
                 Assert.True(owner.CanUnlist);
             }
 
-            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data
-            {
-                get
-                {
-                    foreach (var currentUser in
-                        new[]
-                        {
-                            TestUtility.FakeUser,
-                            TestUtility.FakeAdminUser
-                        })
-                    {
-                        yield return MemberDataHelper.AsData(currentUser);
-                    }
-                }
-            }
+            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data =
+                MemberDataHelper.AsDataSet(
+                    TestUtility.FakeUser,
+                    TestUtility.FakeAdminUser);
 
             [Theory]
             [MemberData(nameof(OrganizationIsNotInPackageOwnersIfNotMember_Data))]
@@ -1902,7 +1883,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            TestCredentialHelper.CreateExternalCredential("abc")
+                            TestCredentialHelper.CreateExternalMSACredential("abc")
                         },
                         new object[]
                         {
@@ -2052,7 +2033,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            TestCredentialHelper.CreateExternalCredential("abc")
+                            TestCredentialHelper.CreateExternalMSACredential("abc")
                         },
                         new object[]
                         {
@@ -2426,6 +2407,46 @@ namespace NuGetGallery
                         Description = "Delete user",
                         Success = true
                     }));
+
+                // act
+                var result = await controller.RequestAccountDeletion() as NuGetGallery.SafeRedirectResult;
+
+                // Assert
+                Assert.NotNull(result);
+            }
+
+            [Fact]
+            public async Task WhenSelfServiceAllowedDeletesAccount()
+            {
+                // Arrange
+                string userName = "DeletedUser";
+
+                var controller = GetController<UsersController>();
+
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                controller.SetCurrentUser(testUser);
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName, false))
+                    .Returns(testUser);
+
+                GetMock<IDeleteAccountService>()
+                    .Setup(stub => stub.DeleteAccountAsync(testUser, It.IsAny<User>(), It.IsAny<AccountDeletionOrphanPackagePolicy>()))
+                    .Returns(value: Task.FromResult(new DeleteAccountStatus()
+                    {
+                        AccountName = userName,
+                        Description = "Delete user",
+                        Success = true
+                    }));
+
+                GetMock<IAppConfiguration>()
+                    .Setup(stub => stub.SelfServiceAccountDeleteEnabled)
+                    .Returns(true);
+
+                GetMock<IFeatureFlagService>()
+                    .Setup(stub => stub.IsSelfServiceAccountDeleteEnabled())
+                    .Returns(true);
 
                 // act
                 var result = await controller.RequestAccountDeletion() as NuGetGallery.SafeRedirectResult;

@@ -994,13 +994,14 @@ namespace NuGetGallery
 
             SearchResults results;
 
-            var isPreviewSearchEnabled = !string.IsNullOrEmpty(q) && _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
+            var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _previewSearchService : _searchService;
 
             // fetch most common query from cache to relieve load on the search service
-            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease && !isPreviewSearchEnabled)
+            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease)
             {
-                var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
+                var cacheKey = isPreviewSearchEnabled ? "DefaultPreviewSearchResults" : "DefaultSearchResults";
+                var cachedResults = HttpContext.Cache.Get(cacheKey);
                 if (cachedResults == null)
                 {
                     var searchFilter = SearchAdaptor.GetSearchFilter(
@@ -1015,7 +1016,7 @@ namespace NuGetGallery
 
                     // note: this is a per instance cache
                     HttpContext.Cache.Add(
-                        "DefaultSearchResults",
+                        cacheKey,
                         results,
                         null,
                         DateTime.UtcNow.AddMinutes(10),

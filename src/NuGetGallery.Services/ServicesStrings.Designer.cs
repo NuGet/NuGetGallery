@@ -496,7 +496,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The account &apos;{0}&apos; was enqueued to be deleted succesfully..
+        ///   Looks up a localized string similar to The account &apos;{0}&apos; was enqueued to be deleted successfully..
         /// </summary>
         public static string AsyncAccountDelete_Success {
             get {

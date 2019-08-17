@@ -3974,7 +3974,7 @@ namespace NuGetGallery
             [InlineData(null)]
             [InlineData("")]
             [InlineData(" ")]
-            public async Task DoesNotUsePreviewSearchServiceForEmptyQuery(string q)
+            public async Task UsesPreviewSearchServiceForEmptyQuery(string q)
             {
                 var abTestService = new Mock<IABTestService>();
                 abTestService
@@ -3985,10 +3985,10 @@ namespace NuGetGallery
                 httpContext.Setup(c => c.Cache).Returns(_cache);
 
                 var searchService = new Mock<ISearchService>();
-                searchService
+                var previewSearchService = new Mock<ISearchService>();
+                previewSearchService
                     .Setup(s => s.Search(It.IsAny<SearchFilter>()))
                     .ReturnsAsync(() => new SearchResults(0, DateTime.UtcNow));
-                var previewSearchService = new Mock<ISearchService>();
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -4000,11 +4000,50 @@ namespace NuGetGallery
 
                 var result = await controller.ListPackages(new PackageListSearchViewModel { Q = q, Prerel = true });
 
-                searchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Once);
-                previewSearchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Never);
+                searchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Never);
+                previewSearchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Once);
                 abTestService.Verify(
                     x => x.IsPreviewSearchEnabled(TestUtility.FakeUser),
-                    Times.Never);
+                    Times.Once);
+            }
+
+            [Theory]
+            [InlineData(false, "DefaultSearchResults")]
+            [InlineData(true, "DefaultPreviewSearchResults")]
+            public async Task CachesDefaultSearch(bool preview, string key)
+            {
+                var abTestService = new Mock<IABTestService>();
+                abTestService
+                    .Setup(x => x.IsPreviewSearchEnabled(It.IsAny<User>()))
+                    .Returns(preview);
+
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.Cache).Returns(_cache);
+
+                var results = new SearchResults(0, DateTime.UtcNow);
+                var searchService = new Mock<ISearchService>();
+                searchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(results);
+                var previewResults = new SearchResults(0, DateTime.UtcNow);
+                var previewSearchService = new Mock<ISearchService>();
+                previewSearchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(previewResults);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    httpContext: httpContext,
+                    searchService: searchService,
+                    previewSearchService: previewSearchService,
+                    abTestService: abTestService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = string.Empty, Prerel = true });
+
+                var cachedValue = _cache.Get(key);
+                Assert.NotNull(cachedValue);
+                Assert.Same(preview ? previewResults : results, cachedValue);
             }
 
             protected override void Dispose(bool disposing)

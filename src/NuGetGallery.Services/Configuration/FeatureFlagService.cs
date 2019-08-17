@@ -15,10 +15,12 @@ namespace NuGetGallery
 
         private const string ABTestingFlightName = GalleryPrefix + "ABTesting";
         private const string AsyncAccountDeleteFeatureName = GalleryPrefix + "AsyncAccountDelete";
+        private const string SelfServiceAccountDeleteFeatureName = GalleryPrefix + "SelfServiceAccountDelete";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
         private const string GitHubUsageFlightName = GalleryPrefix + "GitHubUsage";
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
+        private const string ManageDeprecationApiFeatureName = GalleryPrefix + "ManageDeprecationApi";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
@@ -35,7 +37,12 @@ namespace NuGetGallery
 
         public bool IsAsyncAccountDeleteEnabled()
         {
-            return _client.IsEnabled(AsyncAccountDeleteFeatureName, false);
+            return _client.IsEnabled(AsyncAccountDeleteFeatureName, defaultValue: false);
+        }
+
+        public bool IsSelfServiceAccountDeleteEnabled()
+        {
+            return _client.IsEnabled(SelfServiceAccountDeleteFeatureName, defaultValue: false);
         }
 
         public bool IsTyposquattingEnabled()
@@ -60,6 +67,11 @@ namespace NuGetGallery
 
         public bool IsManageDeprecationEnabled(User user, PackageRegistration registration)
         {
+            if (registration == null)
+            {
+                throw new ArgumentNullException(nameof(registration));
+            }
+
             if (!_client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false))
             {
                 return false;
@@ -67,6 +79,11 @@ namespace NuGetGallery
 
             return registration.Packages.Count() < _manageDeprecationForManyVersionsThreshold 
                 || _client.IsEnabled(ManageDeprecationForManyVersionsFeatureName, user, defaultValue: true);
+        }
+
+        public bool IsManageDeprecationApiEnabled(User user)
+        {
+            return _client.IsEnabled(ManageDeprecationApiFeatureName, user, defaultValue: false);
         }
 
         public bool AreEmbeddedIconsEnabled(User user)

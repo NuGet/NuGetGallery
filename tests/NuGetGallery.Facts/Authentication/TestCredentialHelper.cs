@@ -77,9 +77,14 @@ namespace NuGetGallery.Authentication
             return CreateApiKey(CredentialTypes.ApiKey.VerifyV1, GuidToApiKey(apiKey), TimeSpan.FromDays(1));
         }
 
-        public static Credential CreateExternalCredential(string value, string tenantId = null)
+        public static Credential CreateExternalMSACredential(string value)
         {
-            return new Credential { Type = CredentialTypes.External.MicrosoftAccount, Value = value, TenantId = tenantId };
+            return new Credential { Type = CredentialTypes.External.MicrosoftAccount, Value = value, TenantId = "MSA" };
+        }
+
+        public static Credential CreateExternalAADCredential(string value, string tenantId)
+        {
+            return new Credential { Type = CredentialTypes.External.AzureActiveDirectoryAccount, Value = value, TenantId = tenantId };
         }
 
         internal static Credential CreateApiKey(string type, string apiKey, TimeSpan? expiration)

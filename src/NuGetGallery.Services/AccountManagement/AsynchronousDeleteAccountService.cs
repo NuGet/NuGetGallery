@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
+using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery
@@ -22,12 +23,19 @@ namespace NuGetGallery
         private const string GalleryAdminAccountDeleteMessageSourceName = "GalleryAdmin";
 
         private ITopicClient _topicClient;
+        private ISupportRequestService _supportRequestService;
         private IBrokeredMessageSerializer<AccountDeleteMessage> _serializer;
         private ILogger<AsynchronousDeleteAccountService> _logger;
 
-        public AsynchronousDeleteAccountService(ITopicClient topicClient, IBrokeredMessageSerializer<AccountDeleteMessage> accountDeleteMessageSerializer, ILogger<AsynchronousDeleteAccountService> logger)
+        public AsynchronousDeleteAccountService(
+            ITopicClient topicClient,
+            ISupportRequestService supportRequestService,
+            IBrokeredMessageSerializer<AccountDeleteMessage> accountDeleteMessageSerializer,
+            ILogger<AsynchronousDeleteAccountService> logger)
+
         {
             _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
+            _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = accountDeleteMessageSerializer ?? throw new ArgumentNullException(nameof(accountDeleteMessageSerializer));
         }
@@ -43,6 +51,14 @@ namespace NuGetGallery
             {
                 AccountName = userToBeDeleted.Username
             };
+
+            var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(userToBeDeleted);
+            if (!isSupportRequestCreated)
+            {
+                result.Success = false;
+                result.Description = ServicesStrings.AccountDelete_CreateSupportRequestFails;
+                return result;
+            }
 
             var sourceName = GalleryUserAccountDeleteMessageSourceName;
             if (userToExecuteTheDelete.IsAdministrator)

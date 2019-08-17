@@ -12,14 +12,19 @@ namespace NuGetGallery
         /// If true, account deletes will be attempted to be performed asychronously
         /// and fall back to old method if the async delete fails
         /// </summary>
-        /// <returns></returns>
         bool IsAsyncAccountDeleteEnabled();
+
+        /// <summary>
+        /// Whether account deletes requested by user are handled automatically or not.
+        /// If true, user account deletes will be deleted automatically if possible
+        /// and send alert mail to user if not.
+        /// </summary>
+        bool IsSelfServiceAccountDeleteEnabled();
 
         /// <summary>
         /// Whether typosquatting detection is enabled on package uploads. If true, new packages
         /// cannot have an id that is similar to existing packages' ids.
         /// </summary>
-        /// <returns></returns>
         bool IsTyposquattingEnabled();
 
         /// <summary>
@@ -27,21 +32,24 @@ namespace NuGetGallery
         /// new packages from this user cannot have an id that is similar to existing packages' ids.
         /// </summary>
         /// <param name="user"></param>
-        /// <returns></returns>
         bool IsTyposquattingEnabled(User user);
 
         /// <summary>
         /// Whether the packages Atom feed is enabled. If true, users can subscribe to new package versions using a
         /// feed reader on a per package ID basis.
         /// </summary>
-        /// <returns></returns>
         bool IsPackagesAtomFeedEnabled();
 
         /// <summary>
-        /// Whether or not users can manage their package's deprecation state.
+        /// Whether or not the user can manage their package's deprecation state.
         /// If disabled, 
         /// </summary>
         bool IsManageDeprecationEnabled(User user, PackageRegistration registration);
+
+        /// <summary>
+        /// Whether or not the user can manage their package's deprecation state through the API.
+        /// </summary>
+        bool IsManageDeprecationApiEnabled(User user);
 
         /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.
