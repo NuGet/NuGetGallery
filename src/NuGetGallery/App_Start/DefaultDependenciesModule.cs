@@ -897,11 +897,10 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder
-                .RegisterType<PackagesController>()
-                .WithParameter(new ResolvedParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(ISearchService) && pi.Name == ParameterNames.PackagesController_PreviewSearchService,
-                    (pi, ctx) => ctx.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
-                .As<PackagesController>()
+                .Register(c => new SearchServiceFactory(
+                    c.Resolve<ISearchService>(),
+                    c.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
+                .As<ISearchServiceFactory>()
                 .InstancePerLifetimeScope();
         }
 

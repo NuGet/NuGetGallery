@@ -89,8 +89,7 @@ namespace NuGetGallery
         private readonly IPackageService _packageService;
         private readonly IPackageUpdateService _packageUpdateService;
         private readonly IPackageFileService _packageFileService;
-        private readonly ISearchService _searchService;
-        private readonly ISearchService _previewSearchService;
+        private readonly ISearchServiceFactory _searchServiceFactory;
         private readonly IUploadFileService _uploadFileService;
         private readonly IUserService _userService;
         private readonly IEntitiesContext _entitiesContext;
@@ -127,8 +126,7 @@ namespace NuGetGallery
             IUploadFileService uploadFileService,
             IUserService userService,
             IMessageService messageService,
-            ISearchService searchService,
-            ISearchService previewSearchService,
+            ISearchServiceFactory searchServiceFactory,
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
             IAppConfiguration config,
@@ -159,8 +157,7 @@ namespace NuGetGallery
             _uploadFileService = uploadFileService;
             _userService = userService;
             _messageService = messageService;
-            _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
-            _previewSearchService = previewSearchService ?? throw new ArgumentNullException(nameof(previewSearchService));
+            _searchServiceFactory = searchServiceFactory ?? throw new ArgumentNullException(nameof(searchServiceFactory));
             _packageFileService = packageFileService;
             _entitiesContext = entitiesContext;
             _config = config;
@@ -793,8 +790,9 @@ namespace NuGetGallery
                 }
             }
 
-            var externalSearchService = _searchService as ExternalSearchService;
-            if (_searchService.ContainsAllVersions && externalSearchService != null)
+            var searchService = _searchServiceFactory.GetService();
+            var externalSearchService = searchService as ExternalSearchService;
+            if (searchService.ContainsAllVersions && externalSearchService != null)
             {
                 var isIndexedCacheKey = $"IsIndexed_{package.PackageRegistration.Id}_{package.Version}";
                 var isIndexed = HttpContext.Cache.Get(isIndexedCacheKey) as bool?;
@@ -995,7 +993,7 @@ namespace NuGetGallery
             SearchResults results;
 
             var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
-            var searchService = isPreviewSearchEnabled ? _previewSearchService : _searchService;
+            var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
 
             // fetch most common query from cache to relieve load on the search service
             if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease)
