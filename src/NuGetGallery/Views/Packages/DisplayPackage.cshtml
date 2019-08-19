@@ -312,6 +312,15 @@
                 )
             }
 
+            @if (Model.HasEmbeddedIcon && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        The package icon will become available after this package is indexed.
+                    </text>
+                )
+            }
+
             @if (Model.IsSemVer2)
             {
                 @ViewHelpers.AlertIsSemVer2Package(Model.HasSemVer2Version, Model.HasSemVer2Dependency)
