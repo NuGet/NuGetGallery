@@ -1124,4 +1124,7 @@ The {1} Team</value>
   <data name="DeprecatePackage_AlternateOfSelf" xml:space="preserve">
     <value>A package cannot be the alternate package of itself.</value>
   </data>
+  <data name="PackagesWithIdNotFound" xml:space="preserve">
+    <value>There are no packages with ID '{0}'.</value>
+  </data>
 </root>

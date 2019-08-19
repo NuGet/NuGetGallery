@@ -695,6 +695,10 @@ img.reserved-indicator-icon {
   margin-top: 6px;
   margin-bottom: 6px;
 }
+.page-admin-index h2 {
+  margin-bottom: 8px;
+  margin-top: 32px;
+}
 .page-api-keys .example-commands {
   background-color: #002440;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;

@@ -114,6 +114,7 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IABTestService _abTestService;
+        private readonly IIconUrlProvider _iconUrlProvider;
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
         private readonly DisplayLicenseViewModelFactory _displayLicenseViewModelFactory;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
@@ -150,7 +151,8 @@ namespace NuGetGallery
             ILicenseExpressionSplitter licenseExpressionSplitter,
             IFeatureFlagService featureFlagService,
             IPackageDeprecationService deprecationService,
-            IABTestService abTestService)
+            IABTestService abTestService,
+            IIconUrlProvider iconUrlProvider)
         {
             _packageService = packageService;
             _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
@@ -182,12 +184,13 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
+            _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory();
-            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory();
-            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory();
-            _managePackageViewModelFactory = new ManagePackageViewModelFactory();
-            _deletePackageViewModelFactory = new DeletePackageViewModelFactory();
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider);
+            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider);
+            _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
+            _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider);
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider);
         }
 
         [HttpGet]
@@ -873,18 +876,14 @@ namespace NuGetGallery
             // the last edited or created package is used as the feed timestamp
             var lastUpdatedPackage = packageVersions.Max(x => x.LastEdited ?? x.Created);
 
-            SyndicationFeed feed = new SyndicationFeed()
+            var feed = new SyndicationFeed()
             {
                 Id = Url.Package(packageRegistration.Id, version: null, relativeUrl: false),
                 Title = SyndicationContent.CreatePlaintextContent($"{_config.Brand} Feed for {packageRegistration.Id}"),
                 Description = SyndicationContent.CreatePlaintextContent(newestVersionPackage.Description),
-                LastUpdatedTime = lastUpdatedPackage
+                LastUpdatedTime = lastUpdatedPackage,
+                ImageUrl = _iconUrlProvider.GetIconUrl(newestVersionPackage),
             };
-
-            if (!string.IsNullOrWhiteSpace(newestVersionPackage.IconUrl))
-            {
-                feed.ImageUrl = new Uri(newestVersionPackage.IconUrl);
-            }
 
             List<SyndicationItem> feedItems = new List<SyndicationItem>();
 
@@ -995,13 +994,14 @@ namespace NuGetGallery
 
             SearchResults results;
 
-            var isPreviewSearchEnabled = !string.IsNullOrEmpty(q) && _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
+            var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _previewSearchService : _searchService;
 
             // fetch most common query from cache to relieve load on the search service
-            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease && !isPreviewSearchEnabled)
+            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease)
             {
-                var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
+                var cacheKey = isPreviewSearchEnabled ? "DefaultPreviewSearchResults" : "DefaultSearchResults";
+                var cachedResults = HttpContext.Cache.Get(cacheKey);
                 if (cachedResults == null)
                 {
                     var searchFilter = SearchAdaptor.GetSearchFilter(
@@ -1016,7 +1016,7 @@ namespace NuGetGallery
 
                     // note: this is a per instance cache
                     HttpContext.Cache.Add(
-                        "DefaultSearchResults",
+                        cacheKey,
                         results,
                         null,
                         DateTime.UtcNow.AddMinutes(10),

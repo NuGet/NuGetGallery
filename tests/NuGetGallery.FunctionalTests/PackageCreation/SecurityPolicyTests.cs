@@ -36,7 +36,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task PackagePush_Returns400IfMinClientVersionPolicyNotMet(string clientVersion)
         {
             // Arrange
-            var id = $"{nameof(PackagePush_Returns400IfMinClientVersionPolicyNotMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"ValidClientVersion{Guid.NewGuid():N}";
 
             // Act
             var response = await PushPackageAsync(GalleryConfiguration.Instance.Account.ApiKey, id, clientVersion);
@@ -54,7 +54,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task PackagePush_Returns200IfMinClientVersionPolicyMet(string clientVersion)
         {
             // Arrange
-            var id = $"{nameof(PackagePush_Returns200IfMinClientVersionPolicyMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"ClientVersionTooLow{Guid.NewGuid():N}";
 
             // Act
             var response = await PushPackageAsync(GalleryConfiguration.Instance.Account.ApiKey, id, clientVersion);
@@ -70,7 +70,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task PackagePush_Returns200IfMinProtocolVersionPolicyMet()
         {
             // Arrange
-            var id = $"{nameof(PackagePush_Returns200IfMinProtocolVersionPolicyMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"ValidProtocolVersion{Guid.NewGuid():N}";
 
             // Act
             var response = await PushPackageAsync(GalleryConfiguration.Instance.Account.ApiKey, id, clientVersion: null, protocolVersion: "4.1.0");
@@ -86,7 +86,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns400IfPackageVerifyScopePolicyNotMet()
         {
             // Arrange
-            var id = $"VerifyKeyReturns400IfScopeNotMet.{DateTime.UtcNow.Ticks}";
+            var id = $"InvalidScopeForVerify{Guid.NewGuid():N}";
 
             var pushResponse = await PushPackageAsync(GalleryConfiguration.Instance.Account.ApiKey, id, "4.1.0");
             Assert.Equal(HttpStatusCode.Created, pushResponse.StatusCode);
@@ -105,7 +105,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns200IfPackageVerifyScopePolicyMet()
         {
             // Arrange
-            var id = $"{nameof(VerifyPackageKey_Returns200IfPackageVerifyScopePolicyMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"ValidScopeForVerify{Guid.NewGuid():N}";
 
             var pushResponse = await PushPackageAsync(GalleryConfiguration.Instance.Account.ApiKey, id, "4.1.0");
             Assert.Equal(HttpStatusCode.Created, pushResponse.StatusCode);

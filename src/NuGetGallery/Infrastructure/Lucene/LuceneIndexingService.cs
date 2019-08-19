@@ -32,6 +32,7 @@ namespace NuGetGallery
         private IndexWriter _indexWriter;
         private IEntityRepository<Package> _packageRepository;
         private readonly Func<bool> _getShouldAutoUpdate;
+        private readonly ILuceneDocumentFactory _luceneDocumentFactory;
 
         private IDiagnosticsSource Trace { get; set; }
 
@@ -49,11 +50,13 @@ namespace NuGetGallery
             IEntityRepository<Package> packageSource,
             Lucene.Net.Store.Directory directory,
             IDiagnosticsService diagnostics,
-            IAppConfiguration config)
+            IAppConfiguration config,
+            ILuceneDocumentFactory luceneDocumentFactory)
         {
             _packageRepository = packageSource;
             _directory = directory;
             _getShouldAutoUpdate = config == null ? new Func<bool>(() => true) : new Func<bool>(() => config.AutoUpdateSearchIndex);
+            _luceneDocumentFactory = luceneDocumentFactory ?? throw new ArgumentNullException(nameof(luceneDocumentFactory));
             Trace = diagnostics.SafeGetSource("LuceneIndexingService");
         }
 
@@ -123,9 +126,8 @@ namespace NuGetGallery
                     EnsureIndexWriter(creatingIndex: false);
                     if (package != null)
                     {
-                        var indexEntity = new PackageIndexEntity(package);
                         Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key));
-                        _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
+                        _indexWriter.UpdateDocument(updateTerm, _luceneDocumentFactory.Create(package));
                     }
                     else
                     {
@@ -137,7 +139,7 @@ namespace NuGetGallery
             }
         }
 
-        private List<PackageIndexEntity> GetPackages(DateTime? lastIndexTime)
+        private List<Package> GetPackages(DateTime? lastIndexTime)
         {
             IQueryable<Package> set = _packageRepository
                 .GetAll()
@@ -163,16 +165,10 @@ namespace NuGetGallery
                 .Include(p => p.SupportedFrameworks)
                 .ToList();
 
-            var packagesForIndexing = list.Select(
-                p => new PackageIndexEntity
-                {
-                    Package = p
-                });
-
-            return packagesForIndexing.ToList();
+            return list;
         }
 
-        public void AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
+        public void AddPackages(IList<Package> packages, bool creatingIndex)
         {
             if (_getShouldAutoUpdate())
             {
@@ -180,12 +176,12 @@ namespace NuGetGallery
             }
         }
 
-        private void AddPackagesCore(IList<PackageIndexEntity> packages, bool creatingIndex)
+        private void AddPackagesCore(IList<Package> packages, bool creatingIndex)
         {
             if (!creatingIndex)
             {
                 // If this is not the first time we're creating the index, clear any package registrations for packages we are going to updating.
-                var packagesToDelete = from packageRegistrationKey in packages.Select(p => p.Package.PackageRegistrationKey).Distinct()
+                var packagesToDelete = from packageRegistrationKey in packages.Select(p => p.PackageRegistrationKey).Distinct()
                                        select new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
                 _indexWriter.DeleteDocuments(packagesToDelete.ToArray());
             }
@@ -207,9 +203,9 @@ namespace NuGetGallery
             return Task.FromResult<DateTime?>(File.GetLastWriteTimeUtc(metadataPath));
         }
 
-        private void AddPackage(PackageIndexEntity packageInfo)
+        private void AddPackage(Package package)
         {
-            _indexWriter.AddDocument(packageInfo.ToDocument());
+            _indexWriter.AddDocument(_luceneDocumentFactory.Create(package));
         }
 
         protected void EnsureIndexWriter(bool creatingIndex)

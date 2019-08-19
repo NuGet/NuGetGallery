@@ -12,6 +12,7 @@ namespace NuGetGallery
     public class CloudBlobClientWrapper : ICloudBlobClient
     {
         private readonly string _storageConnectionString;
+        private readonly BlobRequestOptions _defaultRequestOptions;
         private readonly bool _readAccessGeoRedundant;
         private CloudBlobClient _blobClient;
 
@@ -19,6 +20,12 @@ namespace NuGetGallery
         {
             _storageConnectionString = storageConnectionString;
             _readAccessGeoRedundant = readAccessGeoRedundant;
+        }
+
+        public CloudBlobClientWrapper(string storageConnectionString, BlobRequestOptions defaultRequestOptions)
+        {
+            _storageConnectionString = storageConnectionString;
+            _defaultRequestOptions = defaultRequestOptions;
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
@@ -52,7 +59,12 @@ namespace NuGetGallery
                 {
                     _blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
                 }
+                else if (_defaultRequestOptions != null)
+                {
+                    _blobClient.DefaultRequestOptions = _defaultRequestOptions;
+                }
             }
+
             return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
         }
     }

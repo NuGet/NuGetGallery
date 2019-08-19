@@ -41,6 +41,7 @@ namespace NuGetGallery
         public Mock<IApiScopeEvaluator> MockApiScopeEvaluator { get; private set; }
         public Mock<IEntitiesContext> MockEntitiesContext { get; private set; }
         public Mock<IPackageService> MockPackageService { get; private set; }
+        public Mock<IPackageDeprecationManagementService> MockPackageDeprecationManagementService { get; private set; }
         public Mock<IPackageUpdateService> MockPackageUpdateService { get; private set; }
         public Mock<IPackageFileService> MockPackageFileService { get; private set; }
         public Mock<IUserService> MockUserService { get; private set; }
@@ -69,6 +70,7 @@ namespace NuGetGallery
             ApiScopeEvaluator = (MockApiScopeEvaluator = new Mock<IApiScopeEvaluator>()).Object;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
+            PackageDeprecationManagementService = (MockPackageDeprecationManagementService = new Mock<IPackageDeprecationManagementService>()).Object;
             PackageUpdateService = (MockPackageUpdateService = new Mock<IPackageUpdateService>()).Object;
             UserService = userService ?? (MockUserService = new Mock<IUserService>(behavior)).Object;
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
@@ -2076,6 +2078,264 @@ namespace NuGetGallery
                 Assert.Contains(PackageId, statusCodeResult.StatusDescription);
 
                 controller.MockPackageService.VerifyAll();
+            }
+        }
+
+        public class TheDeprecatePackageAction : TestContainer
+        {
+            [Fact]
+            public async Task WillThrowIfAPackageWithTheIdDoesNotExist()
+            {
+                // Arrange
+
+                var id = "theId";
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns((PackageRegistration)null);
+
+                // Act
+                var result = await controller.DeprecatePackage(id, versions: null);
+
+                // Assert
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.NotFound,
+                    string.Format(Strings.PackagesWithIdNotFound, id));
+
+                controller.MockPackageDeprecationManagementService
+                    .Verify(
+                        x => x.UpdateDeprecation(
+                            It.IsAny<User>(),
+                            It.IsAny<string>(),
+                            It.IsAny<IReadOnlyCollection<string>>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+            }
+
+            public static IEnumerable<object[]> WillNotDeprecateThePackageIfScopesInvalid_Data = InvalidScopes_Data;
+
+            [Theory]
+            [MemberData(nameof(WillNotDeprecateThePackageIfScopesInvalid_Data))]
+            public async Task WillNotDeprecateThePackageIfScopesInvalid(ApiScopeEvaluationResult evaluationResult, HttpStatusCode expectedStatusCode, string description)
+            {
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+
+                var id = "theId";
+                var registration = new PackageRegistration { Id = id };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns(registration);
+
+                controller.SetCurrentUser(currentUser);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.DeprecatePackage,
+                        registration,
+                        NuGetScopes.PackageUnlist))
+                    .Returns(evaluationResult);
+
+                var result = await controller.DeprecatePackage(id, versions: null);
+
+                ResultAssert.IsStatusCode(
+                    result,
+                    expectedStatusCode,
+                    description);
+
+                controller.MockPackageDeprecationManagementService
+                    .Verify(
+                        x => x.UpdateDeprecation(
+                            It.IsAny<User>(), 
+                            It.IsAny<string>(), 
+                            It.IsAny<IReadOnlyCollection<string>>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+            }
+
+            [Fact]
+            public async Task ReturnsForbiddenIfFeatureFlagDisabled()
+            {
+                // Arrange
+                var id = "Crested.Gecko";
+                var versions = new[] { "1.0.0", "2.0.0" };
+
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                var owner = fakes.Owner;
+
+                var deprecationService = GetMock<IPackageDeprecationManagementService>();
+                deprecationService
+                    .Verify(
+                        x => x.UpdateDeprecation(
+                            It.IsAny<User>(),
+                            It.IsAny<string>(),
+                            It.IsAny<IReadOnlyCollection<string>>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+
+                var registration = new PackageRegistration { Id = id };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns(registration);
+
+                var scopeEvaluator = GetMock<IApiScopeEvaluator>();
+                scopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.DeprecatePackage,
+                        registration,
+                        NuGetScopes.PackageUnlist))
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, true))
+                    .Verifiable();
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationApiEnabled(owner))
+                    .Returns(false)
+                    .Verifiable();
+
+                var controller = GetController<ApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.DeprecatePackage(
+                    id,
+                    versions);
+
+                // Assert
+                var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+                Assert.Equal((int)HttpStatusCode.Forbidden, statusCodeResult.StatusCode);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, statusCodeResult.Body);
+
+                packageService.Verify();
+                scopeEvaluator.Verify();
+                featureFlagService.Verify();
+                deprecationService.Verify();
+            }
+
+            public static IEnumerable<object[]> ReturnsProperResult_Data =
+                MemberDataHelper.Combine(
+                    Enumerable
+                        .Repeat(
+                            MemberDataHelper.BooleanDataSet(), 4)
+                        .ToArray());
+
+            [Theory]
+            [MemberData(nameof(ReturnsProperResult_Data))]
+            public async Task ReturnsProperResult(
+                bool isLegacy,
+                bool hasCriticalBugs,
+                bool isOther,
+                bool success)
+            {
+                // Arrange
+                var id = "Crested.Gecko";
+                var versions = new[] { "1.0.0", "2.0.0" };
+                var alternateId = "alt.Id";
+                var alternateVersion = "3.0.0";
+                var customMessage = "custom";
+
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                var owner = fakes.Owner;
+
+                var errorStatus = HttpStatusCode.InternalServerError;
+                var errorMessage = "woops";
+                var deprecationService = GetMock<IPackageDeprecationManagementService>();
+                deprecationService
+                    .Setup(x => x.UpdateDeprecation(
+                        owner,
+                        id,
+                        versions,
+                        isLegacy,
+                        hasCriticalBugs,
+                        isOther,
+                        alternateId,
+                        alternateVersion,
+                        customMessage))
+                    .ReturnsAsync(success ? null : new UpdateDeprecationError(errorStatus, errorMessage))
+                    .Verifiable();
+
+                var registration = new PackageRegistration { Id = id };
+
+                var packageService = GetMock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageRegistrationById(id))
+                    .Returns(registration);
+
+                var scopeEvaluator = GetMock<IApiScopeEvaluator>();
+                scopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.DeprecatePackage,
+                        registration,
+                        NuGetScopes.PackageUnlist))
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, true))
+                    .Verifiable();
+
+                var featureFlagService = GetMock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationApiEnabled(owner))
+                    .Returns(true)
+                    .Verifiable();
+
+                var controller = GetController<ApiController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.DeprecatePackage(
+                    id,
+                    versions,
+                    isLegacy,
+                    hasCriticalBugs,
+                    isOther,
+                    alternateId,
+                    alternateVersion,
+                    customMessage);
+
+                // Assert
+                if (success)
+                {
+                    ResultAssert.IsEmpty(
+                        result);
+                }
+                else
+                {
+                    var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+                    Assert.Equal((int)errorStatus, statusCodeResult.StatusCode);
+                    Assert.Equal(errorMessage, statusCodeResult.Body);
+                }
+
+                packageService.Verify();
+                scopeEvaluator.Verify();
+                featureFlagService.Verify();
+                deprecationService.Verify();
             }
         }
 

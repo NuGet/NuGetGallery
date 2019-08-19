@@ -802,7 +802,7 @@ namespace NuGetGallery.Authentication
                 .Include(u => u.User)
                 .Include(u => u.User.Roles)
                 .Include(u => u.Scopes)
-                .Where(c => c.Type == credential.Type && c.Value == credential.Value)
+                .Where(c => c.Type == credential.Type && c.Value == credential.Value && c.TenantId == credential.TenantId)
                 .ToList();
 
             return ValidateFoundCredentials(results, credential.Type);

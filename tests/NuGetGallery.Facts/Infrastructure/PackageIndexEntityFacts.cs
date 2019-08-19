@@ -25,7 +25,7 @@ namespace NuGetGallery.Infrastructure
         public void CamelCaseTokenizer(string term, string[] tokens)
         {
             // Act
-            var result = PackageIndexEntity.TokenizeId(term);
+            var result = LuceneDocumentFactory.TokenizeId(term);
 
             // Assert
             Assert.Equal(tokens.OrderBy(p => p), result.OrderBy(p => p));
@@ -39,7 +39,7 @@ namespace NuGetGallery.Infrastructure
         [InlineData("JQuery.UI.Combined", "JQuery UI Combined")]
         public void IdSplitter(string term, string tokens)
         {
-            var result = PackageIndexEntity.SplitId(term);
+            var result = LuceneDocumentFactory.SplitId(term);
             Assert.Equal(result, tokens);
         }
 
@@ -56,7 +56,7 @@ namespace NuGetGallery.Infrastructure
         [InlineData("SignalR.Hosting.AspNet", "SignalR Hosting Net Asp AspNet")]
         public void CamelIdSplitter(string term, string tokens)
         {
-            var result = PackageIndexEntity.CamelSplitId(term);
+            var result = LuceneDocumentFactory.CamelSplitId(term);
             Assert.Equal(tokens, result);
         }
     }

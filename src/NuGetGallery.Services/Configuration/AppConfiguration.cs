@@ -78,6 +78,8 @@ namespace NuGetGallery.Configuration
 
         public bool BlockingAsynchronousPackageValidationEnabled { get; set; }
 
+        public bool SelfServiceAccountDeleteEnabled { get; set; }
+
         public TimeSpan AsynchronousPackageValidationDelay { get; set; }
 
         public TimeSpan ValidationExpectedTime { get; set; }
@@ -390,5 +392,8 @@ namespace NuGetGallery.Configuration
         /// </summary>
         [DefaultValue(100000)]
         public int SearchHttpRequestTimeoutInMilliseconds { get; set; }
+
+        [DefaultValue("")]
+        public string EmbeddedIconUrlTemplate { get; set; }
     }
 }

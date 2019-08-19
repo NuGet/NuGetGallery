@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Services.Messaging.Email;
 using System.Collections.Generic;
 
 namespace NuGetGallery.AccountDeleter
@@ -33,13 +32,18 @@ namespace NuGetGallery.AccountDeleter
         /// </summary>
         public string GalleryStorageConnectionString { get; set; }
 
-        public void VerifySource(string source)
+        /// <summary>
+        /// This method get the configuration for a source.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <exception cref="UnknownSourceException">Throws <see cref="UnknownSourceException"/> when source requested is not present in configuration.</exception>
+        public SourceConfiguration GetSourceConfiguration(string source)
         {
             foreach (var sourceConfig in SourceConfigurations)
             {
                 if (sourceConfig.SourceName == source)
                 {
-                    return;
+                    return sourceConfig;
                 }
             }
 

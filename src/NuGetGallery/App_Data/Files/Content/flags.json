@@ -1,7 +1,8 @@
 {
   "Features": {
     "NuGetGallery.Typosquatting": "Enabled",
-    "NuGetGallery.PackagesAtomFeed": "Enabled"
+    "NuGetGallery.PackagesAtomFeed": "Enabled",
+    "NuGetGallery.PreviewHijack": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
@@ -31,6 +32,12 @@
     "NuGetGallery.ABTesting": {
       "All": true,
       "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.ManageDeprecationApi": {
+      "All": false,
+      "SiteAdmins": true,
       "Accounts": [],
       "Domains": []
     }

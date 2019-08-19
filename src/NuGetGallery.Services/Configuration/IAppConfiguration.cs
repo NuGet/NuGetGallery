@@ -376,6 +376,11 @@ namespace NuGetGallery.Configuration
         bool AsynchronousDeleteAccountServiceEnabled { get; set; }
 
         /// <summary>
+        /// Gets or sets a flag indicating if this gallery allows users to delete their own account.
+        /// </summary>
+        bool SelfServiceAccountDeleteEnabled { get; set; }
+
+        /// <summary>
         /// Indicates whether packages that specify the license the "old" way (with a "licenseUrl" node only) should be rejected.
         /// </summary>
         bool BlockLegacyLicenseUrl { get; set; }
@@ -430,5 +435,12 @@ namespace NuGetGallery.Configuration
         /// The Search timeout per request in milliseconds.
         /// </summary>
         int SearchHttpRequestTimeoutInMilliseconds { get; set; }
+
+        /// <summary>
+        /// Template for the storage URL for packages with embedded icons.
+        /// When expanded the '{id-lower}' will be replaced with the package id in lowercase,
+        /// '{version-lower}' will be replaced with the normalized package version in lowercase.
+        /// </summary>
+        string EmbeddedIconUrlTemplate { get; set; }
     }
 }

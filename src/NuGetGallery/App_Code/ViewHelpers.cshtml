@@ -585,10 +585,10 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
 @helper Breadcrumb(bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
 {
-    <h1 class="ms-font-xl breadcrumb-title">
+    <h1 role="list" class="ms-font-xl breadcrumb-title">
         @for (int i = 0; i < segments.Length; i++)
         {
-            <span class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
+            <span role="listitem" class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
 
             if (i < segments.Length - 1)
             {
@@ -632,22 +632,28 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
 }
 
-@helper RecatpchaScripts(string reCaptchaPublicKey, string submitId)
+@helper RecaptchaScripts(string reCaptchaPublicKey, string submitId)
 {
     if (!string.IsNullOrEmpty(reCaptchaPublicKey))
     {
         <script src='https://www.google.com/recaptcha/api.js' async defer></script>
         <script type="text/javascript">
             var $submit = $('@("#" + submitId)');
-            $submit.addClass("g-recaptcha");
-            $submit.attr({
-                'data-sitekey': "@reCaptchaPublicKey",
-                'data-size': "invisible",
-                'data-callback': "onSubmit",
-                'data-tabindex': "-1"
+            $submit.before(
+                '<div id="recaptcha" class="g-recaptcha" '
+                + 'data-sitekey="@reCaptchaPublicKey" data-size="invisible" '
+                + 'data-callback="onSubmit" data-tabindex="-1"></div>');
+
+            var $form = $submit.parents('form')
+            $submit.click(function (e) {
+                if ($form.valid()) {
+                    e.preventDefault();
+                    grecaptcha.execute();
+                }
             });
+
             function onSubmit(token) {
-                $submit.parents('form').submit();
+                $form.submit();
             }
         </script>
     }

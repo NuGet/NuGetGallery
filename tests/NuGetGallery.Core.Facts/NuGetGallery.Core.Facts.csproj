@@ -80,7 +80,7 @@
     <Compile Include="Certificates\CertificateFileFacts.cs" />
     <Compile Include="Cookies\CookieComplianceServiceBaseFacts.cs" />
     <Compile Include="Features\FeatureFlagClientExtensionsFacts.cs" />
-    <Compile Include="Features\FeatureFlagFileStorageServiceFacts.cs" />
+    <Compile Include="Features\EditableFeatureFlagFileStorageServiceFacts.cs" />
     <Compile Include="GitHub\GitHubUsageConfigurationFacts.cs" />
     <Compile Include="Infrastructure\ElmahExceptionFacts.cs" />
     <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
@@ -105,6 +105,7 @@
     <Compile Include="Services\FolderNamesDataAttributeFacts.cs" />
     <Compile Include="Services\GalleryCloudBlobContainerInformationProviderFacts.cs" />
     <Compile Include="Services\RevalidationStateServiceFacts.cs" />
+    <Compile Include="Services\StringReplaceTemplateProcessorFacts.cs" />
     <Compile Include="TestUtils\BlobStorageCollection.cs" />
     <Compile Include="TestUtils\BlobStorageFact.cs" />
     <Compile Include="TestUtils\BlobStorageFixture.cs" />

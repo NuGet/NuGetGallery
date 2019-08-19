@@ -35,6 +35,7 @@
 
         // Source: https://stackoverflow.com/questions/18754020/bootstrap-3-with-jquery-validation-plugin
         // Set the JQuery validation plugin's defaults to use classes recognized by Bootstrap.
+        var validatorErrorClass = 'help-block';
         $.validator.setDefaults({
             highlight: function (element) {
                 $(element).closest('.form-group').addClass('has-error');
@@ -43,7 +44,7 @@
                 $(element).closest('.form-group').removeClass('has-error');
             },
             errorElement: 'span',
-            errorClass: 'help-block',
+            errorClass: validatorErrorClass,
             errorPlacement: function (error, element) {
                 if (element.parent('.input-group').length) {
                     error.insertAfter(element.parent());
@@ -54,35 +55,60 @@
             showErrors: function (errorMap, errorList) {
                 this.defaultShowErrors();
 
-                // By default, showErrors adds an aria-describedby attribute to every field that it validates, even if it finds no issues.
-                // This is a problem, because the aria-describedby attribute will then link to an empty element.
-                // This code removes the aria-describedby if the describing element is missing or empty.
                 var i;
                 for (i = 0; this.errorList[i]; i++) {
-                    removeInvalidAriaDescribedBy(this.errorList[i].element);
+                    fixAccessibilityIssuesWithAriaDescribedBy(this.errorList[i].element, validatorErrorClass);
                 }
 
                 for (i = 0; this.successList[i]; i++) {
-                    removeInvalidAriaDescribedBy(this.successList[i]);
+                    fixAccessibilityIssuesWithAriaDescribedBy(this.successList[i], validatorErrorClass);
                 }
             }
         });
     }
 
-    function removeInvalidAriaDescribedBy(element) {
+    function fixAccessibilityIssuesWithAriaDescribedBy(element, validatorErrorClass) {
         var describedBy = element.getAttribute("aria-describedby");
         if (!describedBy) {
             return;
         }
 
-        var ids = describedBy.split(" ")
+        var uniqueIds = [];
+        var ids = describedBy
+            .split(" ")
             .filter(function (describedById) {
                 if (!describedById) {
                     return false;
                 }
 
+                // The default showErrors adds an aria-describedby attribute to every field that it validates, even if it finds no issues.
+                // This is a problem, because the aria-describedby attribute will then link to an empty element.
+                // If the element linked to by the aria-describedby attribute is empty, remove the aria-describedby.
                 var describedByElement = $("#" + describedById);
                 return describedByElement && describedByElement.text();
+            })
+            .map(function (describedById) {
+                // The default showErrors puts the error inside a container.
+                // This causes Narrator to read the error as being part of a group, even though it is the only error.
+                // JQuery Validator only ever shows a single error for each form input so it is always possible for us to simply unwrap the error.
+                var describedByElement = $("#" + describedById);
+                var parent = describedByElement.parent();
+                if (parent.hasClass(validatorErrorClass)) {
+                    parent.text(describedByElement.text());
+                    describedByElement.remove();
+                    return parent.attr('id');
+                } else {
+                    return describedById;
+                }
+            })
+            .filter(function (describedById) {
+                // Remove any duplicate IDs.
+                var isUnique = $.inArray(describedById, uniqueIds) === -1;
+                if (isUnique) {
+                    uniqueIds.push(describedById);
+                }
+
+                return isUnique;
             });
 
         if (ids.length) {

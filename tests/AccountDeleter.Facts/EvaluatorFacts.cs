@@ -27,10 +27,35 @@ namespace NuGetGallery.AccountDeleter.Facts
                 .AddXunit(_output);
         }
 
+        [Fact]
+        public void NuGetDeleteevaluatorReturnsCorrectValueForUnconfirmed()
+        {
+            // Setup
+            _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                .Returns(() =>
+                {
+                    return new List<Package>();
+                });
+
+            var packageService = _packageService.Object;
+            var accountDeleteTelemetryService = _accountDeleteTelemetryService.Object;
+            var logger = _loggerFactory.CreateLogger<NuGetDeleteEvaluator>();
+            var testUser = new User();
+            testUser.Organizations = new List<Membership>();
+
+            var evaluator = new NuGetDeleteEvaluator(packageService, logger);
+
+            // Act
+            var result = evaluator.CanUserBeDeleted(testUser);
+
+            // Assert
+            Assert.True(result);
+        }
+
         [Theory]
         [InlineData(true, false)]
         [InlineData(false, true)]
-        public void UserPackageEvaulatorReturnsCorrectValue(bool userHasPackages, bool expectedResult)
+        public void NuGetDeleteevaluatorReturnsCorrectValueForPackages(bool userHasPackages, bool expectedResult)
         {
             // Setup
             _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
@@ -46,10 +71,59 @@ namespace NuGetGallery.AccountDeleter.Facts
 
             var packageService = _packageService.Object;
             var accountDeleteTelemetryService = _accountDeleteTelemetryService.Object;
-            var logger = _loggerFactory.CreateLogger<UserPackageEvaluator>();
-            var testUser = new User();
+            var logger = _loggerFactory.CreateLogger<NuGetDeleteEvaluator>();
+            var testUser = new User()
+            {
+                EmailAddress = "test@test.domain"
+            };
+            testUser.Organizations = new List<Membership>();
 
-            var evaluator = new UserPackageEvaluator(packageService, logger);
+            var evaluator = new NuGetDeleteEvaluator(packageService, logger);
+
+            // Act
+            var result = evaluator.CanUserBeDeleted(testUser);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Theory]
+        [InlineData(true, true, false)]
+        [InlineData(false, false, true)]
+        [InlineData(true, false, true)]
+        public void NuGetDeleteevaluatorReturnsCorrectValueForOrganizations(bool userHasOrgs, bool userIsAdmin, bool expectedResult)
+        {
+            // Setup
+            _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                .Returns(() =>
+                {
+                    return new List<Package>();
+                });
+
+            var packageService = _packageService.Object;
+            var accountDeleteTelemetryService = _accountDeleteTelemetryService.Object;
+            var logger = _loggerFactory.CreateLogger<NuGetDeleteEvaluator>();
+            var testUser = new User()
+            {
+                EmailAddress = "test@test.domain"
+            };
+
+            if (userHasOrgs)
+            {
+                testUser.Organizations = new List<Membership>()
+                {
+                    new Membership()
+                    {
+                        IsAdmin = userIsAdmin
+                    }
+                };
+            }
+            else
+            {
+                testUser.Organizations = new List<Membership>();
+            }
+
+            var evaluator = new NuGetDeleteEvaluator(packageService, logger);
 
             // Act
             var result = evaluator.CanUserBeDeleted(testUser);
@@ -59,7 +133,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         }
 
         [Fact]
-        public void AlwayRejectEvaulatorReturnsFalse()
+        public void AlwayRejectevaluatorReturnsFalse()
         {
             // Setup
             var logger = _loggerFactory.CreateLogger<AlwaysRejectEvaluator>();
@@ -75,7 +149,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         }
 
         [Fact]
-        public void AlwayAllowEvaulatorReturnsTrue()
+        public void AlwayAllowevaluatorReturnsTrue()
         {
             // Setup
             var logger = _loggerFactory.CreateLogger<AlwaysAllowEvaluator>();
@@ -85,76 +159,6 @@ namespace NuGetGallery.AccountDeleter.Facts
 
             // Act
             var result = evaluator.CanUserBeDeleted(testUser);
-
-            // Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void AggregateEvaluatorRejectsDuplicateEvalutors()
-        {
-            // Setup
-            var aaeLogger = _loggerFactory.CreateLogger<AlwaysAllowEvaluator>();
-            var areLogger = _loggerFactory.CreateLogger<AlwaysRejectEvaluator>();
-            var aeLogger = _loggerFactory.CreateLogger<AggregateEvaluator>();
-
-            var evaluator1 = new AlwaysAllowEvaluator(aaeLogger);
-            var evaluator2 = new AlwaysRejectEvaluator(areLogger);
-
-            var aggregateEvalutor = new AggregateEvaluator(aeLogger);
-
-            // Act
-            var result1 = aggregateEvalutor.AddEvaluator(evaluator1);
-            var result2 = aggregateEvalutor.AddEvaluator(evaluator1);
-            var result3 = aggregateEvalutor.AddEvaluator(evaluator2);
-
-            // Assert
-            Assert.True(result1);
-            Assert.False(result2);
-            Assert.True(result3);
-        }
-
-        [Fact]
-        public void AggregateEvaluatorRejectsIfAnyRejects()
-        {
-            // Setup
-            var aaeLogger = _loggerFactory.CreateLogger<AlwaysAllowEvaluator>();
-            var areLogger = _loggerFactory.CreateLogger<AlwaysRejectEvaluator>();
-            var aeLogger = _loggerFactory.CreateLogger<AggregateEvaluator>();
-            var testUser = new User();
-
-            var evaluator1 = new AlwaysAllowEvaluator(aaeLogger);
-            var evaluator2 = new AlwaysRejectEvaluator(areLogger);
-
-            var aggregateEvalutor = new AggregateEvaluator(aeLogger);
-            aggregateEvalutor.AddEvaluator(evaluator1);
-            aggregateEvalutor.AddEvaluator(evaluator2);
-
-            // Act
-            var result = aggregateEvalutor.CanUserBeDeleted(testUser);
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void AggregateEvaluatorAcceptsIfAllAccept()
-        {
-            // Setup
-            var aaeLogger = _loggerFactory.CreateLogger<AlwaysAllowEvaluator>();
-            var aae2Logger = _loggerFactory.CreateLogger<AlwaysAllowEvaluator>();
-            var aeLogger = _loggerFactory.CreateLogger<AggregateEvaluator>();
-            var testUser = new User();
-
-            var evaluator1 = new AlwaysAllowEvaluator(aaeLogger);
-            var evaluator2 = new AlwaysAllowEvaluator(aae2Logger);
-
-            var aggregateEvalutor = new AggregateEvaluator(aeLogger);
-            aggregateEvalutor.AddEvaluator(evaluator1);
-            aggregateEvalutor.AddEvaluator(evaluator2);
-
-            // Act
-            var result = aggregateEvalutor.CanUserBeDeleted(testUser);
 
             // Assert
             Assert.True(result);

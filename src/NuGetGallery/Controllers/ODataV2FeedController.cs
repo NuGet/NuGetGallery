@@ -32,14 +32,14 @@ namespace NuGetGallery.Controllers
         private readonly IReadOnlyEntityRepository<Package> _packagesRepository;
         private readonly IEntityRepository<Package> _readWritePackagesRepository;
         private readonly IGalleryConfigurationService _configurationService;
-        private readonly ISearchService _searchService;
+        private readonly IHijackSearchServiceFactory _searchServiceFactory;
         private readonly IFeatureFlagService _featureFlagService;
 
         public ODataV2FeedController(
             IReadOnlyEntityRepository<Package> packagesRepository,
             IEntityRepository<Package> readWritePackagesRepository,
             IGalleryConfigurationService configurationService,
-            ISearchService searchService,
+            IHijackSearchServiceFactory searchServiceFactory,
             ITelemetryService telemetryService,
             IFeatureFlagService featureFlagService)
             : base(configurationService, telemetryService)
@@ -47,7 +47,7 @@ namespace NuGetGallery.Controllers
             _packagesRepository = packagesRepository ?? throw new ArgumentNullException(nameof(packagesRepository));
             _readWritePackagesRepository = readWritePackagesRepository ?? throw new ArgumentNullException(nameof(readWritePackagesRepository));
             _configurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
-            _searchService = searchService ?? throw new ArgumentNullException(nameof(searchService));
+            _searchServiceFactory = searchServiceFactory ?? throw new ArgumentNullException(nameof(searchServiceFactory));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
@@ -73,11 +73,12 @@ namespace NuGetGallery.Controllers
             // Try the search service
             try
             {
+                var searchService = _searchServiceFactory.GetService();
                 HijackableQueryParameters hijackableQueryParameters = null;
-                if (_searchService is ExternalSearchService && SearchHijacker.IsHijackable(options, out hijackableQueryParameters))
+                if (searchService is ExternalSearchService && SearchHijacker.IsHijackable(options, out hijackableQueryParameters))
                 {
                     var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                        _searchService, 
+                        searchService,
                         GetTraditionalHttpContext().Request, 
                         packages,
                         hijackableQueryParameters.Id, 
@@ -244,8 +245,9 @@ namespace NuGetGallery.Controllers
             // try the search service
             try
             {
+                var searchService = _searchServiceFactory.GetService();
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                    _searchService, 
+                    searchService,
                     GetTraditionalHttpContext().Request, 
                     packages, 
                     id, 
@@ -361,8 +363,9 @@ namespace NuGetGallery.Controllers
                 .AsNoTracking();
 
             // todo: search hijack should take options instead of manually parsing query options
+            var searchService = _searchServiceFactory.GetService();
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
-                _searchService, 
+                searchService,
                 GetTraditionalHttpContext().Request, 
                 packages, 
                 searchTerm, 

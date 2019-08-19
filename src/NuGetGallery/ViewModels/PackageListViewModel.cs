@@ -12,7 +12,7 @@ namespace NuGetGallery
     public class PackageListViewModel
     {
         public PackageListViewModel(
-            IReadOnlyCollection<ListPackageItemViewModel> items,
+            IReadOnlyCollection<ListPackageItemViewModel> packageViewModels,
             DateTime? indexTimestampUtc,
             string searchTerm,
             int totalCount,
@@ -30,7 +30,7 @@ namespace NuGetGallery
             int pageCount = (TotalCount + PageSize - 1) / PageSize;
 
             var pager = new PreviousNextPagerViewModel<ListPackageItemViewModel>(
-                items,
+                packageViewModels,
                 PageIndex,
                 pageCount,
                 page => url.PackageList(page, searchTerm, includePrerelease));

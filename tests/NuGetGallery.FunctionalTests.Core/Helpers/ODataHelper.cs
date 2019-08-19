@@ -59,36 +59,46 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        public async Task<DateTime?> GetTimestampOfPackageFromResponse(string url, string propertyName, string packageId, string version = "1.0.0")
+        public async Task<DateTime?> GetTimestampOfPackageFromResponse(
+            string packageId,
+            string version,
+            string timestampPropertyName)
         {
-            WriteLine($"Getting '{propertyName}' timestamp of package '{packageId}' with version '{version}'.");
-
+            var url = GetPackagesAppearInFeedInOrderUrl(packageId, version, timestampPropertyName);
+            WriteLine($"Fetching URL: {url}");
             var packageResponse = await GetPackageDataInResponse(url, packageId, version);
+
             if (string.IsNullOrEmpty(packageResponse))
             {
                 return null;
             }
 
-            var timestampStartTag = "<d:" + propertyName + " m:type=\"Edm.DateTime\">";
-            var timestampEndTag = "</d:" + propertyName + ">";
+            var timestampStartTag = "<d:" + timestampPropertyName + " m:type=\"Edm.DateTime\">";
+            var timestampEndTag = "</d:" + timestampPropertyName + ">";
 
             var timestampTagIndex = packageResponse.IndexOf(timestampStartTag);
             if (timestampTagIndex < 0)
             {
-                WriteLine($"Package data does not contain '{propertyName}' timestamp!");
+                WriteLine($"Package data does not contain '{timestampPropertyName}' timestamp!");
                 return null;
             }
 
             var timestampStartIndex = timestampTagIndex + timestampStartTag.Length;
             var timestampLength = packageResponse.Substring(timestampStartIndex).IndexOf(timestampEndTag);
 
-            var timestamp =
-                DateTime.Parse(packageResponse.Substring(timestampStartIndex, timestampLength));
-            WriteLine($"'{propertyName}' timestamp of package '{packageId}' with version '{version}' is '{timestamp}'");
+            var timestamp = DateTime.Parse(packageResponse.Substring(timestampStartIndex, timestampLength));
+            WriteLine($"'{timestampPropertyName}' timestamp of package '{packageId}' with version '{version}' is '{timestamp}'");
             return timestamp;
         }
 
-        public async Task<string> GetPackageDataInResponse(string url, string packageId, string version = "1.0.0")
+        private static string GetPackagesAppearInFeedInOrderUrl(string packageId, string version, string timestampPropertyName)
+        {
+            return $"{UrlHelper.V2FeedRootUrl}/Packages?" +
+                $"$filter=Id eq '{packageId}' and NormalizedVersion eq '{version}' and 1 eq 1&" +
+                $"$select={timestampPropertyName}";
+        }
+
+        public async Task<string> GetPackageDataInResponse(string url, string packageId, string version)
         {
             WriteLine($"Getting data for package '{packageId}' with version '{version}'.");
 

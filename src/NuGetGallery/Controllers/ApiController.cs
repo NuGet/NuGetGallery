@@ -43,6 +43,7 @@ namespace NuGetGallery
         public IEntitiesContext EntitiesContext { get; set; }
         public IPackageFileService PackageFileService { get; set; }
         public IPackageService PackageService { get; set; }
+        public IPackageDeprecationManagementService PackageDeprecationManagementService { get; set; }
         public IPackageUpdateService PackageUpdateService { get; set; }
         public IUserService UserService { get; set; }
         public IStatisticsService StatisticsService { get; set; }
@@ -62,6 +63,7 @@ namespace NuGetGallery
         public IPackageDeleteService PackageDeleteService { get; set; }
         public ISymbolPackageFileService SymbolPackageFileService { get; set; }
         public ISymbolPackageUploadService SymbolPackageUploadService { get; set; }
+        public IFeatureFlagService FeatureFlagService { get; set; }
 
         protected ApiController()
         {
@@ -72,6 +74,7 @@ namespace NuGetGallery
             IApiScopeEvaluator apiScopeEvaluator,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
+            IPackageDeprecationManagementService packageDeprecationManagementService,
             IPackageUpdateService packageUpdateService,
             IPackageFileService packageFileService,
             IUserService userService,
@@ -92,11 +95,13 @@ namespace NuGetGallery
             ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IAutocompletePackageIdsQuery autocompletePackageIdsQuery,
-            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery)
+            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery,
+            IFeatureFlagService featureFlagService)
         {
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
             PackageService = packageService;
+            PackageDeprecationManagementService = packageDeprecationManagementService;
             PackageUpdateService = packageUpdateService;
             PackageFileService = packageFileService;
             UserService = userService;
@@ -118,12 +123,14 @@ namespace NuGetGallery
             SymbolPackageUploadService = symbolPackageUploadService;
             _autocompletePackageIdsQuery = autocompletePackageIdsQuery;
             _autocompletePackageVersionsQuery = autocompletePackageVersionsQuery;
+            FeatureFlagService = featureFlagService;
         }
 
         public ApiController(
             IApiScopeEvaluator apiScopeEvaluator,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
+            IPackageDeprecationManagementService packageDeprecationManagementService,
             IPackageUpdateService packageUpdateService,
             IPackageFileService packageFileService,
             IUserService userService,
@@ -145,12 +152,35 @@ namespace NuGetGallery
             ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageUploadService symbolPackageUploadServivce,
             IAutocompletePackageIdsQuery autocompletePackageIdsQuery,
-            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery)
-            : this(apiScopeEvaluator, entitiesContext, packageService, packageUpdateService, packageFileService, userService, 
-                  contentService, indexingService, searchService, statusService, messageService, auditingService,
-                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageFileService,
-                  symbolPackageUploadServivce, autocompletePackageIdsQuery, autocompletePackageVersionsQuery)
+            IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery,
+            IFeatureFlagService featureFlagService)
+            : this(
+                  apiScopeEvaluator, 
+                  entitiesContext, 
+                  packageService, 
+                  packageDeprecationManagementService, 
+                  packageUpdateService, 
+                  packageFileService, 
+                  userService, 
+                  contentService, 
+                  indexingService, 
+                  searchService, 
+                  statusService, 
+                  messageService, 
+                  auditingService,
+                  configurationService, 
+                  telemetryService, 
+                  authenticationService, 
+                  credentialBuilder, 
+                  securityPolicies,
+                  reservedNamespaceService, 
+                  packageUploadService, 
+                  packageDeleteService, 
+                  symbolPackageFileService,
+                  symbolPackageUploadServivce, 
+                  autocompletePackageIdsQuery, 
+                  autocompletePackageVersionsQuery,
+                  featureFlagService)
         {
             StatisticsService = statisticsService;
         }
@@ -857,6 +887,60 @@ namespace NuGetGallery
             }
 
             await PackageUpdateService.MarkPackageListedAsync(package);
+            return new EmptyResult();
+        }
+
+        [HttpPut]
+        [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackageUnlist)]
+        [ActionName(RouteName.DeprecatePackageApi)]
+        public virtual async Task<ActionResult> DeprecatePackage(
+            string id, 
+            [ModelBinder(typeof(ArrayModelBinder<string>))] IEnumerable<string> versions, 
+            bool isLegacy = false, 
+            bool hasCriticalBugs = false, 
+            bool isOther = false, 
+            string alternatePackageId = null, 
+            string alternatePackageVersion = null, 
+            string message = null)
+        {
+            var registration = PackageService.FindPackageRegistrationById(id);
+            if (registration == null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackagesWithIdNotFound, id));
+            }
+
+            // Check if the current user's scopes allow deprecating/undeprecating the current package ID
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.DeprecatePackage, registration, NuGetScopes.PackageUnlist);
+            if (!apiScopeEvaluationResult.IsSuccessful())
+            {
+                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, versionString: null);
+            }
+
+            if (!FeatureFlagService.IsManageDeprecationApiEnabled(apiScopeEvaluationResult.Owner))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
+
+            var error = await PackageDeprecationManagementService.UpdateDeprecation(
+                apiScopeEvaluationResult.Owner,
+                id,
+                versions.ToList(),
+                isLegacy,
+                hasCriticalBugs,
+                isOther,
+                alternatePackageId,
+                alternatePackageVersion,
+                message);
+
+            if (error != null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    error.Status,
+                    error.Message);
+            }
+
             return new EmptyResult();
         }
 
