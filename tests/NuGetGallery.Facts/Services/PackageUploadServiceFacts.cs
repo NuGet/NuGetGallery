@@ -778,7 +778,7 @@ namespace NuGetGallery
                     _currentUser);
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("file", result.Message.PlainTextMessage);
+                Assert.Contains("license file", result.Message.PlainTextMessage);
                 Assert.Contains("does not exist", result.Message.PlainTextMessage);
                 Assert.Contains(licenseFileName, result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
@@ -816,7 +816,7 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("The license file has invalid extension", result.Message.PlainTextMessage);
+                    Assert.Contains("The license file has an invalid extension", result.Message.PlainTextMessage);
                     Assert.Contains("Extension must be either empty or one of the following", result.Message.PlainTextMessage);
                     Assert.Contains(extension, result.Message.PlainTextMessage);
                     Assert.Empty(result.Warnings);
@@ -912,6 +912,7 @@ namespace NuGetGallery
                     _currentUser);
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("license", result.Message.PlainTextMessage);
                 Assert.Contains("child", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
@@ -983,7 +984,7 @@ namespace NuGetGallery
                     licenseFilename: licenseFilename,
                     licenseFileContents: licenseFileContents);
 
-                PatchFileSizeInPackageStream(licenseFilename, licenseFileContents, packageStream);
+                PatchFileSizeInPackageStream(licenseFilename, licenseFileContents.Length, packageStream);
 
                 _nuGetPackage = PackageServiceUtility.CreateNuGetPackage(packageStream);
 
@@ -1015,7 +1016,7 @@ namespace NuGetGallery
                     nuspecFileContents = await reader.ReadToEndAsync();
                 }
 
-                PatchFileSizeInPackageStream(nuspecFilename, nuspecFileContents, packageStream);
+                PatchFileSizeInPackageStream(nuspecFilename, nuspecFileContents.Length, packageStream);
 
                 _nuGetPackage = PackageServiceUtility.CreateNuGetPackage(packageStream);
 
@@ -1031,7 +1032,7 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
-            private static void PatchFileSizeInPackageStream(string fileName, string fileContents, MemoryStream packageStream)
+            private static void PatchFileSizeInPackageStream(string fileName, long fileLenth, MemoryStream packageStream)
             {
                 var buffer = packageStream.GetBuffer();
 
@@ -1047,14 +1048,14 @@ namespace NuGetGallery
                 var firstSizeOffset = firstInstanceOffset - 8;
                 Assert.True(firstSizeOffset > 0);
                 var firstLength = BitConverter.ToInt32(buffer, firstSizeOffset);
-                Assert.Equal(fileContents.Length, firstLength);
+                Assert.Equal(fileLenth, firstLength);
 
                 var secondInstanceOffset = FindSequenceIndex(fileNameInBytes, buffer, firstInstanceOffset + fileName.Length);
                 Assert.True(secondInstanceOffset > 0);
                 var secondSizeOffset = secondInstanceOffset - 22;
                 Assert.True(secondSizeOffset > 0);
                 var secondLength = BitConverter.ToInt32(buffer, secondSizeOffset);
-                Assert.Equal(fileContents.Length, secondLength);
+                Assert.Equal(fileLenth, secondLength);
 
                 // now that we have offsets, we'll just patch them
                 buffer[firstSizeOffset] = 1;
@@ -1122,8 +1123,8 @@ namespace NuGetGallery
             public async Task AcceptsPackagesWithEmbeddedIconForFlightedUsers()
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
-                    iconFilename: "icon.png",
-                    iconFileBinaryContents: new byte[] { 1, 2, 3 },
+                    iconFilename: "icon.jpg",
+                    iconFileBinaryContents: new byte[] { 0xFF, 0xD8, 0xFF, 0x32 },
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
@@ -1138,6 +1139,214 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
                 Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("<icon><something/></icon>")]
+            [InlineData("<icon><something>icon.png</something></icon>")]
+            public async Task RejectsIconElementWithChildren(string iconElementText)
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    getCustomNuspecNodes: () => iconElementText,
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
+                    .Returns(true);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("icon", result.Message.PlainTextMessage);
+                Assert.Contains("child", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsPackagesWithMissingIconFile()
+            {
+                const string iconFilename = "somefile.png";
+                var result = await ValidatePackageWithIcon(iconFilename, null);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("icon file", result.Message.PlainTextMessage);
+                Assert.Contains("does not exist", result.Message.PlainTextMessage);
+                Assert.Contains(iconFilename, result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            public static IEnumerable<string[]> LocalIconFilePaths =>
+                new[]
+                {
+                    new [] { Environment.GetEnvironmentVariable("TEMP") + "\\testimage.png" },
+                    new [] { (Environment.GetEnvironmentVariable("TEMP") + "\\sneakyicon.png").Replace("\\", "/") },
+                };
+
+            [Theory]
+            [InlineData("somefile.png")]
+            [InlineData("..\\otherfile.png")]
+            [InlineData("../otherfile.png")]
+            [MemberData(nameof(LocalIconFilePaths))]
+            public async Task DoesNotAccessLocalFileSystemForIconFile(string iconFilename)
+            {
+                using (var file = new FileStream(iconFilename, FileMode.OpenOrCreate, FileAccess.Write))
+                using (var bw = new BinaryWriter(file))
+                {
+                    var data = new byte[] { 0xFF, 0xD8, 0xFF, 0x32 };
+                    await file.WriteAsync(data, 0, data.Length);
+                }
+
+                try
+                {
+                    var result = await ValidatePackageWithIcon(iconFilename, null);
+
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("icon file", result.Message.PlainTextMessage);
+                    Assert.Contains("does not exist", result.Message.PlainTextMessage);
+                    Assert.Contains(iconFilename.Replace("\\", "/"), result.Message.PlainTextMessage);
+                    Assert.Empty(result.Warnings);
+                }
+                finally
+                {
+                    if (File.Exists(iconFilename))
+                    {
+                        File.Delete(iconFilename);
+                    }
+                }
+            }
+
+            [Theory]
+            [InlineData("icons/main.png")]
+            [InlineData("./other/something.jpg")]
+            [InlineData("media\\icon.jpeg")]
+            [InlineData(".\\data\\awesome.png")]
+            public async Task AcceptsPackagesWithIconsInSubdirectories(string iconFilename)
+            {
+                var result = await ValidatePackageWithIcon(iconFilename, new byte[] { 0xFF, 0xD8, 0xFF, 0x32 });
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("", false)]
+            [InlineData(".", false)]
+            [InlineData(".zip", false)]
+            [InlineData(".gif", false)]
+            [InlineData(".exe", false)]
+            [InlineData(".svg", false)]
+            [InlineData(".tif", false)]
+            [InlineData(".jfif", false)]
+            [InlineData(".png", true)]
+            [InlineData(".jpg", true)]
+            [InlineData(".jpeg", true)]
+            [InlineData(".PNG", true)]
+            [InlineData(".JPG", true)]
+            [InlineData(".JPEG", true)]
+            public async Task ChecksIconFileExtension(string extension, bool expectedSuccess)
+            {
+                string iconFilename = $"someotherfile{extension}";
+                var result = await ValidatePackageWithIcon(iconFilename, new byte[] { 0xFF, 0xD8, 0xFF, 0x32 });
+
+                if (expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains(extension, result.Message.PlainTextMessage);
+                    Assert.Contains("invalid extension", result.Message.PlainTextMessage);
+                    Assert.Contains("jpeg", result.Message.PlainTextMessage);
+                    Assert.Contains("jpg", result.Message.PlainTextMessage);
+                    Assert.Contains("png", result.Message.PlainTextMessage);
+                }
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData(42, true)]
+            [InlineData(1024, true)]
+            [InlineData(1024 * 1024, true)]
+            [InlineData(1024 * 1024 + 1, false)]
+            public async Task CheckIconFileLength(int fileLength, bool expectedSuccess)
+            {
+                var iconBinaryContent = new byte[fileLength];
+                new byte[] { 0xFF, 0xD8, 0xFF, 0x42 }.CopyTo(iconBinaryContent, 0);
+                var result = await ValidatePackageWithIcon("icon.png", iconBinaryContent);
+
+                if (expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.StartsWith("The icon file cannot be longer than", result.Message.PlainTextMessage);
+                }
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsNupkgsReportingIncorrectFileLengthForIconFile()
+            {
+                const string iconFilename = "icon.png";
+                var iconBinaryContent = new byte[547];
+                new byte[] { 0xFF, 0xD8, 0xFF, 0x42 }.CopyTo(iconBinaryContent, 0);
+
+                // Arrange
+                var packageStream = GeneratePackageStream(
+                    iconFilename: iconFilename,
+                    iconFileBinaryContents: iconBinaryContent,
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+
+                PatchFileSizeInPackageStream(iconFilename, iconBinaryContent.Length, packageStream);
+
+                _nuGetPackage = PackageServiceUtility.CreateNuGetPackage(packageStream);
+                _featureFlagService
+                    .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
+                    .Returns(true);
+
+                // Act
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("corrupt", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("icon.png")]
+            [InlineData("icon.jpg")]
+            public async Task AcceptsRealImages(string resourceFileName)
+            {
+                var result = await ValidatePackageWithIcon(resourceFileName, TestDataResourceUtility.GetResourceBytes(resourceFileName));
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Empty(result.Warnings);
+            }
+
+            private async Task<PackageValidationResult> ValidatePackageWithIcon(string iconPath, byte[] iconFileData)
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    iconFilename: iconPath,
+                    iconFileBinaryContents: iconFileData,
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
+                    .Returns(true);
+
+                return await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
             }
 
             /// <summary>

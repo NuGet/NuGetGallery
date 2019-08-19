@@ -2373,6 +2373,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The {0} file &apos;{1}&apos; does not exist in the package..
+        /// </summary>
+        public static string UploadPackage_FileDoesNotExist {
+            get {
+                return ResourceManager.GetString("UploadPackage_FileDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {0} file cannot be longer than {1}..
+        /// </summary>
+        public static string UploadPackage_FileTooLong {
+            get {
+                return ResourceManager.GetString("UploadPackage_FileTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to icon.
+        /// </summary>
+        public static string UploadPackage_IconFileType {
+            get {
+                return ResourceManager.GetString("UploadPackage_IconFileType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflict {
@@ -2391,7 +2418,16 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The license file has invalid extension &apos;{0}&apos;. Extension must be either empty or one of the following: {1}..
+        ///   Looks up a localized string similar to The icon file has an invalid extension &apos;{0}&apos;. Extension must be one of the following: {1}..
+        /// </summary>
+        public static string UploadPackage_InvalidIconFileExtension {
+            get {
+                return ResourceManager.GetString("UploadPackage_InvalidIconFileExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The license file has an invalid extension &apos;{0}&apos;. Extension must be either empty or one of the following: {1}..
         /// </summary>
         public static string UploadPackage_InvalidLicenseFileExtension {
             get {
@@ -2454,20 +2490,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The license file &apos;{0}&apos; does not exist in the package..
+        ///   Looks up a localized string similar to license.
         /// </summary>
-        public static string UploadPackage_LicenseFileDoesNotExist {
+        public static string UploadPackage_LicenseFileType {
             get {
-                return ResourceManager.GetString("UploadPackage_LicenseFileDoesNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The license file cannot be longer than {0}..
-        /// </summary>
-        public static string UploadPackage_LicenseFileTooLong {
-            get {
-                return ResourceManager.GetString("UploadPackage_LicenseFileTooLong", resourceCulture);
+                return ResourceManager.GetString("UploadPackage_LicenseFileType", resourceCulture);
             }
         }
         
@@ -2477,15 +2504,6 @@ namespace NuGetGallery {
         public static string UploadPackage_LicenseMustBePlainText {
             get {
                 return ResourceManager.GetString("UploadPackage_LicenseMustBePlainText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The license node cannot contain child nodes..
-        /// </summary>
-        public static string UploadPackage_LicenseNodeContainsChildren {
-            get {
-                return ResourceManager.GetString("UploadPackage_LicenseNodeContainsChildren", resourceCulture);
             }
         }
         
@@ -2549,6 +2567,15 @@ namespace NuGetGallery {
         public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
             get {
                 return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {0} node cannot contain child nodes..
+        /// </summary>
+        public static string UploadPackage_NodeContainsChildren {
+            get {
+                return ResourceManager.GetString("UploadPackage_NodeContainsChildren", resourceCulture);
             }
         }
         
@@ -2631,6 +2658,15 @@ namespace NuGetGallery {
         public static string UploadPackage_SymbolsPackageNotAllowed {
             get {
                 return ResourceManager.GetString("UploadPackage_SymbolsPackageNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported icon image format. Only PNG and JPG images are supported..
+        /// </summary>
+        public static string UploadPackage_UnsupportedIconImageFormat {
+            get {
+                return ResourceManager.GetString("UploadPackage_UnsupportedIconImageFormat", resourceCulture);
             }
         }
         
