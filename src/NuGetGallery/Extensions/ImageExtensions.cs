@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using Lucene.Net.Documents;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -20,46 +18,33 @@ namespace NuGetGallery
         private static readonly byte[] PngHeader = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
 
         /// <summary>
-        /// The JPG file heder bytes.
+        /// The JPG file header bytes.
         /// </summary>
         /// <remarks>
-        /// Technically, JPEG start with SOI (start of image) segment: FFD8, followed by several other segments, but all of them
-        /// start with FF, so we check first 3 bytes instead of the first two.
-        /// http://www.digicamsoft.com/itu/itu-t81-36.html
+        /// Technically, JPEG start with two byte SOI (start of image) segment: FFD8, followed by several other segments or fill bytes.
+        /// All of the segments start with FF, and fill bytes are FF, so we check the first 3 bytes instead of the first two.
+        /// https://www.w3.org/Graphics/JPEG/itu-t81.pdf "B.1.1.2 Markers"
         /// </remarks>
         private static readonly byte[] JpegHeader = new byte[] { 0xFF, 0xD8, 0xFF };
 
-        public static async Task<bool> HasPngHeaderAsync(this Stream stream)
+        public static async Task<bool> NextBytesMatchPngHeaderAsync(this Stream stream)
         {
-            return await StreamStartsWithAsync(stream, PngHeader);
+            return await stream.NextBytesMatchAsync(PngHeader);
         }
 
-        public static async Task<bool> HasJpegHeaderAsync(this Stream stream)
+        public static async Task<bool> NextBytesMatchJpegHeaderAsync(this Stream stream)
         {
-            return await StreamStartsWithAsync(stream, JpegHeader);
+            return await stream.NextBytesMatchAsync(JpegHeader);
         }
 
-        public static bool HasPngHeader(this byte[] imageData)
+        public static bool StartsWithPngHeader(this byte[] imageData)
         {
             return ArrayStartsWith(imageData, PngHeader);
         }
 
-        public static bool HasJpegHeader(this byte[] imageData)
+        public static bool StartsWithJpegHeader(this byte[] imageData)
         {
             return ArrayStartsWith(imageData, JpegHeader);
-        }
-
-        private static async Task<bool> StreamStartsWithAsync(Stream stream, byte[] expectedBytes)
-        {
-            var actualBytes = new byte[expectedBytes.Length];
-            var bytesRead = await stream.ReadAsync(actualBytes, 0, actualBytes.Length);
-
-            if (bytesRead != expectedBytes.Length)
-            {
-                return false;
-            }
-
-            return expectedBytes.SequenceEqual(actualBytes);
         }
 
         private static bool ArrayStartsWith(byte[] array, byte[] expectedBytes)

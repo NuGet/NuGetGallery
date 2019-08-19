@@ -755,29 +755,33 @@ namespace NuGetGallery
             }
 
             var iconFilename = FileNameHelper.GetZipEntryPath(packageMetadata.IconFile);
-            byte[] imageData;
+            var imageData = await ReadPackageFile(packageArchiveReader, iconFilename);
             string imageContentType;
-            using (var iconFileStream = packageArchiveReader.GetStream(iconFilename))
-            using (var destination = new MemoryStream())
+            if (imageData.StartsWithJpegHeader())
             {
-                await iconFileStream.CopyToAsync(destination);
-                imageData = destination.ToArray();
-                if (imageData.HasJpegHeader())
-                {
-                    imageContentType = "image/jpeg";
-                }
-                else if (imageData.HasPngHeader())
-                {
-                    imageContentType = "image/png";
-                }
-                else
-                {
-                    // we should never get here: wrong file contents should have been caught during validation 
-                    throw new InvalidOperationException("The package icon is neither JPEG nor PNG file");
-                }
+                imageContentType = CoreConstants.JpegContentType;
+            }
+            else if (imageData.StartsWithPngHeader())
+            {
+                imageContentType = CoreConstants.PngContentType;
+            }
+            else
+            {
+                // we should never get here: wrong file contents should have been caught during validation 
+                throw new InvalidOperationException("The package icon is neither JPEG nor PNG file");
             }
 
             return new EmbeddedIconInformation(imageContentType, imageData);
+        }
+
+        private static async Task<byte[]> ReadPackageFile(PackageArchiveReader packageArchiveReader, string filename)
+        {
+            using (var packageFileStream = packageArchiveReader.GetStream(filename))
+            using (var destination = new MemoryStream())
+            {
+                await packageFileStream.CopyToAsync(destination);
+                return destination.ToArray();
+            }
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
