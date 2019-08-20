@@ -87,7 +87,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                     resultBuilder.WithStatusFlags(FlattenChainStatusFlags(chain));
                 }
 
-                InspectChain(chain, certificate, resultBuilder);
+                AddRevocationInfo(chain, certificate, resultBuilder);
 
                 return resultBuilder.Build();
             }
@@ -170,7 +170,7 @@ namespace Validation.PackageSigning.ValidateCertificate
             return result;
         }
 
-        private unsafe void InspectChain(X509Chain chain, X509Certificate2 certificate, CertificateVerificationResult.Builder resultBuilder)
+        private unsafe void AddRevocationInfo(X509Chain chain, X509Certificate2 certificate, CertificateVerificationResult.Builder resultBuilder)
         {
             var addedRef = false;
             var chainHandle = chain.SafeHandle;
@@ -233,7 +233,9 @@ namespace Validation.PackageSigning.ValidateCertificate
 
         private unsafe DateTime? GetRevocationTime(CERT_REVOCATION_INFO* pRevocationInfo)
         {
-            if (pRevocationInfo->dwRevocationResult == CertTrustErrorStatus.CERT_TRUST_NO_ERROR)
+            if (pRevocationInfo->dwRevocationResult == CertTrustErrorStatus.CERT_TRUST_NO_ERROR
+                || pRevocationInfo->pCrlInfo == null
+                || pRevocationInfo->pCrlInfo->pCrlEntry == null)
             {
                 return null;
             }
@@ -246,14 +248,19 @@ namespace Validation.PackageSigning.ValidateCertificate
         private unsafe DateTime? GetStatusUpdateTime(CERT_REVOCATION_INFO* pRevocationInfo)
         {
             CERT_REVOCATION_CRL_INFO* pCrlInfo = pRevocationInfo->pCrlInfo;
+            if (pCrlInfo == null)
+            {
+                return null;
+            }
 
-            if (pCrlInfo->pDeltaCRLContext != null)
+            if (pCrlInfo->pDeltaCRLContext != null && pCrlInfo->pDeltaCRLContext->pCrlInfo != null)
             {
                 FILETIME statusUpdate = pCrlInfo->pDeltaCRLContext->pCrlInfo->ThisUpdate;
 
                 return statusUpdate.ToDateTime().ToUniversalTime();
             }
-            else if (pCrlInfo->pBaseCRLContext != null)
+
+            if (pCrlInfo->pBaseCRLContext != null && pCrlInfo->pBaseCRLContext->pCrlInfo != null)
             {
                FILETIME statusUpdate = pCrlInfo->pBaseCRLContext->pCrlInfo->ThisUpdate;
 
