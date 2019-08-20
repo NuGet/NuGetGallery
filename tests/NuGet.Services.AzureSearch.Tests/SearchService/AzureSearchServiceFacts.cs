@@ -17,6 +17,26 @@ namespace NuGet.Services.AzureSearch.SearchService
         public class V2SearchAsync : BaseFacts
         {
             [Fact]
+            public async Task SearchIndexAndEmptyOperation()
+            {
+                _v2Request.IgnoreFilter = false;
+                _operation = IndexOperation.Empty();
+
+                var response = await _target.V2SearchAsync(_v2Request);
+
+                Assert.Same(_v2Response, response);
+                _operationBuilder.Verify(
+                    x => x.V2SearchWithSearchIndex(_v2Request),
+                    Times.Once);
+                _searchOperations.Verify(
+                    x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()),
+                    Times.Never);
+                _responseBuilder.Verify(
+                    x => x.EmptyV2(_v2Request),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task SearchIndexAndSearchOperation()
             {
                 _v2Request.IgnoreFilter = false;
@@ -58,6 +78,26 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Times.Once);
                 _telemetryService.Verify(
                     x => x.TrackV2GetDocumentWithSearchIndex(It.Is<TimeSpan>(t => t > TimeSpan.Zero)),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task HijackIndexAndEmptyOperation()
+            {
+                _v2Request.IgnoreFilter = true;
+                _operation = IndexOperation.Empty();
+
+                var response = await _target.V2SearchAsync(_v2Request);
+
+                Assert.Same(_v2Response, response);
+                _operationBuilder.Verify(
+                    x => x.V2SearchWithHijackIndex(_v2Request),
+                    Times.Once);
+                _searchOperations.Verify(
+                    x => x.SearchAsync<HijackDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()),
+                    Times.Never);
+                _responseBuilder.Verify(
+                    x => x.EmptyV2(_v2Request),
                     Times.Once);
             }
 
@@ -119,6 +159,25 @@ namespace NuGet.Services.AzureSearch.SearchService
         public class V3SearchAsync : BaseFacts
         {
             [Fact]
+            public async Task SearchIndexAndEmptyOperation()
+            {
+                _operation = IndexOperation.Empty();
+
+                var response = await _target.V3SearchAsync(_v3Request);
+
+                Assert.Same(_v3Response, response);
+                _operationBuilder.Verify(
+                    x => x.V3Search(_v3Request),
+                    Times.Once);
+                _searchOperations.Verify(
+                    x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()),
+                    Times.Never);
+                _responseBuilder.Verify(
+                    x => x.EmptyV3(_v3Request),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task SearchIndexAndSearchOperation()
             {
                 var response = await _target.V3SearchAsync(_v3Request);
@@ -163,6 +222,25 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public class AutocompleteAsync : BaseFacts
         {
+            [Fact]
+            public async Task SearchIndexAndEmptyOperation()
+            {
+                _operation = IndexOperation.Empty();
+
+                var response = await _target.AutocompleteAsync(_autocompleteRequest);
+
+                Assert.Same(_autocompleteResponse, response);
+                _operationBuilder.Verify(
+                    x => x.Autocomplete(_autocompleteRequest),
+                    Times.Once);
+                _searchOperations.Verify(
+                    x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()),
+                    Times.Never);
+                _responseBuilder.Verify(
+                    x => x.EmptyAutocomplete(_autocompleteRequest),
+                    Times.Once);
+            }
+
             [Fact]
             public async Task SearchIndexAndSearchOperation()
             {
@@ -335,6 +413,15 @@ namespace NuGet.Services.AzureSearch.SearchService
                         It.IsAny<SearchParameters>(),
                         It.IsAny<DocumentSearchResult<SearchDocument.Full>>(),
                         It.IsAny<TimeSpan>()))
+                    .Returns(() => _autocompleteResponse);
+                _responseBuilder
+                    .Setup(x => x.EmptyV2(It.IsAny<V2SearchRequest>()))
+                    .Returns(() => _v2Response);
+                _responseBuilder
+                    .Setup(x => x.EmptyV3(It.IsAny<V3SearchRequest>()))
+                    .Returns(() => _v3Response);
+                _responseBuilder
+                    .Setup(x => x.EmptyAutocomplete(It.IsAny<AutocompleteRequest>()))
                     .Returns(() => _autocompleteResponse);
 
                 _searchIndex.Setup(x => x.Documents).Returns(() => _searchOperations.Object);

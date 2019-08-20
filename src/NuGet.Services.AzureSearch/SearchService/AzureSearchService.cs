@@ -77,6 +77,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _telemetryService.TrackV3SearchQuery(result.Duration);
                     break;
 
+                case IndexOperationType.Empty:
+                    output = _responseBuilder.EmptyV3(request);
+                    break;
+
                 default:
                     throw UnsupportedOperation(operation);
             }
@@ -104,6 +108,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                         result.Duration);
 
                     _telemetryService.TrackAutocompleteQuery(result.Duration);
+                    break;
+
+                case IndexOperationType.Empty:
+                    output = _responseBuilder.EmptyAutocomplete(request);
                     break;
 
                 default:
@@ -171,6 +179,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _telemetryService.TrackV2SearchQueryWithHijackIndex(result.Duration);
                     break;
 
+                case IndexOperationType.Empty:
+                    output = _responseBuilder.EmptyV2(request);
+                    break;
+
                 default:
                     throw UnsupportedOperation(operation);
             }
@@ -211,6 +223,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                         result.Duration);
 
                     _telemetryService.TrackV2SearchQueryWithSearchIndex(result.Duration);
+                    break;
+
+                case IndexOperationType.Empty:
+                    output = _responseBuilder.EmptyV2(request);
                     break;
 
                 default:

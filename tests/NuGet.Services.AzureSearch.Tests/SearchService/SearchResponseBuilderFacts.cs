@@ -869,6 +869,126 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
         }
 
+        public class EmptyV3 : BaseFacts
+        {
+            [Fact]
+            public void ProducesExpectedResponse()
+            {
+                var response = _target.EmptyV3(_v3Request);
+
+                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                Assert.Equal(@"{
+  ""@context"": {
+    ""@vocab"": ""http://schema.nuget.org/schema#"",
+    ""@base"": ""https://example/reg-gz-semver2/""
+  },
+  ""totalHits"": 0,
+  ""data"": []
+}", actualJson);
+            }
+
+            [Fact]
+            public void CanIncludeDebugInformation()
+            {
+                _v3Request.ShowDebug = true;
+
+                var response = _target.EmptyV3(_v3Request);
+
+                Assert.NotNull(response.Debug);
+                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                Assert.Equal(@"{
+  ""SearchRequest"": {
+    ""Skip"": 0,
+    ""Take"": 0,
+    ""IncludePrerelease"": true,
+    ""IncludeSemVer2"": true,
+    ""ShowDebug"": true
+  },
+  ""IndexOperationType"": ""Empty""
+}", actualJson);
+            }
+        }
+
+        public class EmptyV2 : BaseFacts
+        {
+            [Fact]
+            public void ProducesExpectedResponse()
+            {
+                var response = _target.EmptyV2(_v2Request);
+
+                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                Assert.Equal(@"{
+  ""totalHits"": 0,
+  ""data"": []
+}", actualJson);
+            }
+
+            [Fact]
+            public void CanIncludeDebugInformation()
+            {
+                _v2Request.ShowDebug = true;
+
+                var response = _target.EmptyV2(_v2Request);
+
+                Assert.NotNull(response.Debug);
+                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                Assert.Equal(@"{
+  ""SearchRequest"": {
+    ""IgnoreFilter"": false,
+    ""CountOnly"": false,
+    ""SortBy"": ""Popularity"",
+    ""LuceneQuery"": false,
+    ""Skip"": 0,
+    ""Take"": 0,
+    ""IncludePrerelease"": true,
+    ""IncludeSemVer2"": true,
+    ""ShowDebug"": true
+  },
+  ""IndexOperationType"": ""Empty""
+}", actualJson);
+            }
+        }
+
+        public class EmptyAutocomplete : BaseFacts
+        {
+            [Fact]
+            public void ProducesExpectedResponse()
+            {
+                var response = _target.EmptyAutocomplete(_autocompleteRequest);
+
+                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                Assert.Equal(@"{
+  ""@context"": {
+    ""@vocab"": ""http://schema.nuget.org/schema#""
+  },
+  ""totalHits"": 0,
+  ""data"": []
+}", actualJson);
+            }
+
+            [Fact]
+            public void CanIncludeDebugInformation()
+            {
+                _autocompleteRequest.ShowDebug = true;
+
+                var response = _target.EmptyAutocomplete(_autocompleteRequest);
+
+                Assert.NotNull(response.Debug);
+                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                Assert.Equal(@"{
+  ""SearchRequest"": {
+    ""Type"": ""PackageIds"",
+    ""Skip"": 0,
+    ""Take"": 0,
+    ""IncludePrerelease"": true,
+    ""IncludeSemVer2"": true,
+    ""ShowDebug"": true
+  },
+  ""IndexOperationType"": ""Empty""
+}", actualJson);
+            }
+        }
+
         public abstract class BaseFacts
         {
             protected readonly Mock<IAuxiliaryData> _auxiliaryData;
@@ -1010,6 +1130,5 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _options.Object);
             }
         }
-
     }
 }

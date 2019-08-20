@@ -150,11 +150,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             return new V3SearchResponse
             {
-                Context = new V3SearchContext
-                {
-                    Vocab = "http://schema.nuget.org/schema#",
-                    Base = registrationsBaseUrl,
-                },
+                Context = GetV3SearchContext(registrationsBaseUrl),
                 TotalHits = result.Count.Value,
                 Data = results
                     .Select(x =>
@@ -209,10 +205,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             return new AutocompleteResponse
             {
-                Context = new AutocompleteContext
-                {
-                    Vocab = "http://schema.nuget.org/schema#",
-                },
+                Context = GetAutocompleteContext(),
                 TotalHits = result.Count.Value,
                 Data = data,
                 Debug = DebugInformation.CreateFromSearchOrNull(
@@ -442,6 +435,57 @@ namespace NuGet.Services.AzureSearch.SearchService
             var url = includeSemVer2 ? _options.Value.SemVer2RegistrationsBaseUrl : _options.Value.SemVer1RegistrationsBaseUrl;
 
             return url.TrimEnd('/') + '/';
+        }
+
+        public V2SearchResponse EmptyV2(V2SearchRequest request)
+        {
+            return new V2SearchResponse
+            {
+                TotalHits = 0,
+                Data = new List<V2SearchPackage>(),
+                Debug = DebugInformation.CreateFromEmptyOrNull(request),
+            };
+        }
+
+        public V3SearchResponse EmptyV3(V3SearchRequest request)
+        {
+            var registrationsBaseUrl = GetRegistrationsBaseUrl(request.IncludeSemVer2);
+
+            return new V3SearchResponse
+            {
+                Context = GetV3SearchContext(registrationsBaseUrl),
+                TotalHits = 0,
+                Data = new List<V3SearchPackage>(),
+                Debug = DebugInformation.CreateFromEmptyOrNull(request),
+            };
+        }
+
+        public AutocompleteResponse EmptyAutocomplete(AutocompleteRequest request)
+        {
+            return new AutocompleteResponse
+            {
+                Context = GetAutocompleteContext(),
+                TotalHits = 0,
+                Data = new List<string>(),
+                Debug = DebugInformation.CreateFromEmptyOrNull(request),
+            };
+        }
+
+        private static V3SearchContext GetV3SearchContext(string registrationsBaseUrl)
+        {
+            return new V3SearchContext
+            {
+                Vocab = "http://schema.nuget.org/schema#",
+                Base = registrationsBaseUrl,
+            };
+        }
+
+        private static AutocompleteContext GetAutocompleteContext()
+        {
+            return new AutocompleteContext
+            {
+                Vocab = "http://schema.nuget.org/schema#",
+            };
         }
     }
 }

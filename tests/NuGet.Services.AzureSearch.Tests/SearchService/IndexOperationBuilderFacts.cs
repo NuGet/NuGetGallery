@@ -11,6 +11,11 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         public class Autocomplete : Facts
         {
+            public override IndexOperation Build()
+            {
+                return Target.Autocomplete(AutocompleteRequest);
+            }
+
             [Fact]
             public void BuildsSearchOperation()
             {
@@ -86,7 +91,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public class V2SearchWithHijackIndex : Facts
         {
-            public IndexOperation Build()
+            public override IndexOperation Build()
             {
                 return Target.V2SearchWithHijackIndex(V2SearchRequest);
             }
@@ -294,8 +299,6 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public abstract class SearchIndexFacts : Facts
         {
-            public abstract IndexOperation Build();
-
             [Theory]
             [MemberData(nameof(ValidIdData))]
             public void BuildsGetOperationForSingleValidPackageId(string id)
@@ -439,6 +442,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             public static IEnumerable<object[]> ValidIdData => ValidIds.Select(x => new object[] { x });
             public static IEnumerable<object[]> InvalidIdData => InvalidIds.Select(x => new object[] { x });
 
+            public static IEnumerable<object[]> TooLargeSkip => new[]
+            {
+                new object[] { 99999, IndexOperationType.Search },
+                new object[] { 100000, IndexOperationType.Search },
+                new object[] { 100001, IndexOperationType.Empty },
+                new object[] { 100002, IndexOperationType.Empty },
+            };
+
             public Facts()
             {
                 TextBuilder = new Mock<ISearchTextBuilder>();
@@ -487,6 +498,21 @@ namespace NuGet.Services.AzureSearch.SearchService
             public SearchParameters Parameters { get; }
             public ParsedQuery ParsedQuery { get; }
             public IndexOperationBuilder Target { get; }
+
+            public abstract IndexOperation Build();
+
+            [Theory]
+            [MemberData(nameof(TooLargeSkip))]
+            public void ReturnsEmptyOperationForTooLargeSkip(int skip, IndexOperationType expected)
+            {
+                AutocompleteRequest.Skip = skip;
+                V2SearchRequest.Skip = skip;
+                V3SearchRequest.Skip = skip;
+
+                var actual = Build();
+
+                Assert.Equal(expected, actual.Type);
+            }
         }
     }
 }

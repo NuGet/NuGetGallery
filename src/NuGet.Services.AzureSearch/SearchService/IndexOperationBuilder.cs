@@ -11,6 +11,12 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public class IndexOperationBuilder : IIndexOperationBuilder
     {
+        /// <summary>
+        /// Azure Search can only skip up to 100,000 documents.
+        /// https://docs.microsoft.com/en-us/rest/api/searchservice/search-documents#skip-optional
+        /// </summary>
+        private const int MaximumSkip = 100000;
+
         private readonly ISearchTextBuilder _textBuilder;
         private readonly ISearchParametersBuilder _parametersBuilder;
 
@@ -24,6 +30,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation V3Search(V3SearchRequest request)
         {
+            if (request.Skip > MaximumSkip)
+            {
+                return IndexOperation.Empty();
+            }
+
             var parsed = _textBuilder.ParseV3Search(request);
 
             IndexOperation indexOperation;
@@ -39,6 +50,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation V2SearchWithSearchIndex(V2SearchRequest request)
         {
+            if (request.Skip > MaximumSkip)
+            {
+                return IndexOperation.Empty();
+            }
+
             var parsed = _textBuilder.ParseV2Search(request);
 
             IndexOperation indexOperation;
@@ -54,6 +70,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation V2SearchWithHijackIndex(V2SearchRequest request)
         {
+            if (request.Skip > MaximumSkip)
+            {
+                return IndexOperation.Empty();
+            }
+
             var parsed = _textBuilder.ParseV2Search(request);
 
             IndexOperation indexOperation;
@@ -69,6 +90,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation Autocomplete(AutocompleteRequest request)
         {
+            if (request.Skip > MaximumSkip)
+            {
+                return IndexOperation.Empty();
+            }
+
             var text = _textBuilder.Autocomplete(request);
             var parameters = _parametersBuilder.Autocomplete(request, IsEmptySearchQuery(text));
             return IndexOperation.Search(text, parameters);

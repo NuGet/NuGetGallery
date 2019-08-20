@@ -47,5 +47,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             SearchParameters parameters,
             DocumentSearchResult<SearchDocument.Full> result,
             TimeSpan duration);
+        V2SearchResponse EmptyV2(V2SearchRequest request);
+        V3SearchResponse EmptyV3(V3SearchRequest request);
+        AutocompleteResponse EmptyAutocomplete(AutocompleteRequest request);
     }
 }
