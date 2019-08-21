@@ -137,21 +137,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 // Generate a clause to favor results that match all unscoped terms.
                 // We don't need to include scoped terms as these are already required.
-                if (unscopedTerms.Count == 1)
-                {
-                    // If there is a single unscoped term, split it on "." characters and favor results
-                    // that match all resulting fragments.
-                    var unscopedTerm = unscopedTerms[0];
-                    if (unscopedTerm.IndexOf('.') > 0)
-                    {
-                        var fragments = unscopedTerm.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (fragments.Length > 1)
-                        {
-                            builder.AppendBoostIfMatchAllTerms(fragments, _options.Value.MatchAllTermsBoost);
-                        }
-                    }
-                }
-                else if (unscopedTerms.Count > 1)
+                if (unscopedTerms.Count > 1)
                 {
                     builder.AppendBoostIfMatchAllTerms(unscopedTerms, _options.Value.MatchAllTermsBoost);
                 }

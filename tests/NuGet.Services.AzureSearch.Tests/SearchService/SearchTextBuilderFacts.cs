@@ -232,15 +232,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { "title:foo bar", "+title:foo bar" },
                     { "title:foo unknown:bar", "title:foo" },
 
-                    // If there is a single unscoped term, favor results that match all token fragments after splitting on periods.
-                    { "Foo.Bar", "Foo.Bar (+Foo +Bar)^2" },
-                    { "Foo..Bar", "Foo..Bar (+Foo +Bar)^2" },
-                    { "..", ".." },
-                    { ".Foo", ".Foo" },
-                    { "Foo.", "Foo." },
-                    { "Foo.Bar Buzz", "Foo.Bar Buzz (+Foo.Bar +Buzz)^2" },
-
-                    // If there are unscoped terms and no field-scoped terms, at least of one the unscoped terms is required.
+                    // If there are non-field-scoped terms and no field-scoped terms, at least of one the non-field-scoped terms is required.
                     // Results that match all terms are boosted.
                     { "foo", "foo" },
                     { "foo bar", "foo bar (+foo +bar)^2" },
