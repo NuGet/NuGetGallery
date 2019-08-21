@@ -257,6 +257,10 @@
     <Compile Include="Migrations\201906262145129_EmbeddedIconFlag.Designer.cs">
       <DependentUpon>201906262145129_EmbeddedIconFlag.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201908212139179_WasUsernameReleased.cs" />
+    <Compile Include="Migrations\201908212139179_WasUsernameReleased.Designer.cs">
+      <DependentUpon>201908212139179_WasUsernameReleased.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlTemplateProcessor.cs" />
     <Compile Include="Services\IIconUrlTemplateProcessor.cs" />
@@ -1610,6 +1614,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201906262145129_EmbeddedIconFlag.resx">
       <DependentUpon>201906262145129_EmbeddedIconFlag.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201908212139179_WasUsernameReleased.resx">
+      <DependentUpon>201908212139179_WasUsernameReleased.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
