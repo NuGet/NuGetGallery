@@ -8,11 +8,10 @@ namespace NuGetGallery.Infrastructure
     {
         public void OnException(ExceptionContext context)
         {
-            if (context.Exception is UserDeletedException)
+            if (context.Exception is CurrentUserDeletedException)
             {
                 context.HttpContext.Response.Clear();
                 context.HttpContext.Response.TrySkipIisCustomErrors = true;
-                context.HttpContext.Response.StatusCode = 401;
 
                 context.Controller.TempData = new TempDataDictionary
                 {

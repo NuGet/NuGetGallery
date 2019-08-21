@@ -48,7 +48,7 @@ namespace NuGetGallery
                 // Unauthorized! If we get here it's because a valid session token was presented, but the
                 // user doesn't exist any more. So we just have a generic error.
                 self.Authentication.SignOut();
-                throw new UserDeletedException();
+                throw new CurrentUserDeletedException();
             }
 
             return user;

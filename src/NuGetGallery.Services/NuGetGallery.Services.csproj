@@ -50,7 +50,7 @@
     <Compile Include="AccountManagement\DeleteAccountService.cs" />
     <Compile Include="AccountManagement\DeleteAccountStatus.cs" />
     <Compile Include="AccountManagement\IDeleteAccountService.cs" />
-    <Compile Include="AccountManagement\UserDeletedException.cs" />
+    <Compile Include="AccountManagement\CurrentUserDeletedException.cs" />
     <Compile Include="Authentication\ApiKeyV3.cs" />
     <Compile Include="Authentication\ApiKeyV4.cs" />
     <Compile Include="Authentication\ApiScopeEvaluationResult.cs" />
