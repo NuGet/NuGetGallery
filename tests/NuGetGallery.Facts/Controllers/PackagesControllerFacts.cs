@@ -6152,6 +6152,57 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.True(result.Data is VerifyPackageRequest);
             }
+
+            [Theory]
+            [InlineData("icon.png", "image/png")]
+            [InlineData("icon.jpg", "image/jpeg")]
+            public async Task WillUseDataUrlForEmbeddedIcons(string resourceFilename, string contentType)
+            {
+                var packageId = "SomePackageId";
+                var version = "1.0.0";
+
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var iconFileContents = TestDataResourceUtility.GetResourceBytes(resourceFilename);
+                var expectedDataUrl = $"data:{contentType};base64,{Convert.ToBase64String(iconFileContents)}";
+                var fakeUploadedFileStream = TestPackage.CreateTestPackageStream(
+                    packageId,
+                    version,
+                    iconFilename: resourceFilename,
+                    iconFileContents: iconFileContents);
+                var fakeSavedFileStream = new MemoryStream();
+                await fakeUploadedFileStream.CopyToAsync(fakeSavedFileStream);
+                fakeUploadedFileStream.Seek(0, SeekOrigin.Begin);
+                fakeSavedFileStream.Seek(0, SeekOrigin.Begin);
+                fakeUploadedFile
+                    .Setup(x => x.InputStream)
+                    .Returns(fakeUploadedFileStream);
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService
+                    .SetupSequence(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                    .ReturnsAsync(null)
+                    .ReturnsAsync(fakeSavedFileStream);
+                fakeUploadFileService
+                    .Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>()))
+                    .Returns(Task.FromResult(0));
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService
+                    .Setup(x => x.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns<PackageRegistration>(null);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    uploadFileService: fakeUploadFileService,
+                    packageService: fakePackageService,
+                    fakeNuGetPackage: fakeSavedFileStream);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object);
+
+                var model = Assert.IsType<VerifyPackageRequest>(result.Data);
+                Assert.Equal(expectedDataUrl, model.IconUrl);
+            }
         }
 
         public class TheVerifyPackageActionForPostRequests

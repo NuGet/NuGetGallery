@@ -112,6 +112,7 @@ namespace NuGetGallery
             }
 
             viewModel.ReadMeHtml = readMeHtml;
+            viewModel.HasEmbeddedIcon = package.HasEmbeddedIcon;
 
             return viewModel;
         }

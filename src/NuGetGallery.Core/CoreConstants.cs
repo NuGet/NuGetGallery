@@ -22,6 +22,8 @@ namespace NuGetGallery
         public const string MarkdownContentType = "text/markdown"; // rfc7763
         public const string CertificateContentType = "application/pkix-cert";
         public const string JsonContentType = "application/json";
+        public const string JpegContentType = "image/jpeg";
+        public const string PngContentType = "image/png";
 
         public const string DefaultCacheControl = "max-age=120";
 

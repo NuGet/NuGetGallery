@@ -35,6 +35,7 @@ namespace NuGetGallery
         public bool IsPackageDeprecationEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
         public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
+        public bool HasEmbeddedIcon { get; set; }
 
         public bool HasNewerPrerelease
         {
