@@ -9,5 +9,19 @@ namespace NuGet.Services.AzureSearch
         public string SearchServiceApiKey { get; set; }
         public string SearchIndexName { get; set; }
         public string HijackIndexName { get; set; }
+        public string StorageConnectionString { get; set; }
+        public string StorageContainer { get; set; }
+        public string StoragePath { get; set; }
+
+        public string NormalizeStoragePath()
+        {
+            var storagePath = StoragePath?.Trim('/') ?? string.Empty;
+            if (storagePath.Length > 0)
+            {
+                storagePath = storagePath + "/";
+            }
+
+            return storagePath;
+        }
     }
 }

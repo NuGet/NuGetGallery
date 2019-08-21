@@ -12,15 +12,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public InitialAuxiliaryData(
             SortedDictionary<string, SortedSet<string>> owners,
             DownloadData downloads,
-            HashSet<string> excludedPackages)
+            HashSet<string> excludedPackages,
+            HashSet<string> verifiedPackages)
         {
             Owners = owners ?? throw new ArgumentNullException(nameof(owners));
             Downloads = downloads ?? throw new ArgumentNullException(nameof(downloads));
             ExcludedPackages = excludedPackages ?? throw new ArgumentNullException(nameof(excludedPackages));
+            VerifiedPackages = verifiedPackages ?? throw new ArgumentNullException(nameof(verifiedPackages));
         }
 
         public SortedDictionary<string, SortedSet<string>> Owners { get; }
         public DownloadData Downloads { get; }
         public HashSet<string> ExcludedPackages { get; }
+        public HashSet<string> VerifiedPackages { get; }
     }
 }

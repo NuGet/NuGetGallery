@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.Support;
+using NuGet.Services.Entities;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch
@@ -30,14 +31,14 @@ namespace NuGet.Services.AzureSearch
                         new PackageDependencyGroup
                         {
                             TargetFramework = framework,
-                            Dependencies = new List<PackageDependency>
+                            Dependencies = new List<Protocol.Catalog.PackageDependency>
                             {
-                                new PackageDependency
+                                new Protocol.Catalog.PackageDependency
                                 {
                                     Id = "NuGet.Versioning",
                                     Range = "2.0.0",
                                 },
-                                new PackageDependency
+                                new Protocol.Catalog.PackageDependency
                                 {
                                     Id = "NuGet.Frameworks",
                                     Range = "3.0.0",
@@ -91,9 +92,9 @@ namespace NuGet.Services.AzureSearch
                         new PackageDependencyGroup
                         {
                             TargetFramework = "net40",
-                            Dependencies = new List<PackageDependency>
+                            Dependencies = new List<Protocol.Catalog.PackageDependency>
                             {
-                                new PackageDependency
+                                new Protocol.Catalog.PackageDependency
                                 {
                                     Id = "NuGet.Versioning",
                                     Range = "(, )"
@@ -127,9 +128,9 @@ namespace NuGet.Services.AzureSearch
                         new PackageDependencyGroup
                         {
                             TargetFramework = "net40",
-                            Dependencies = new List<PackageDependency>
+                            Dependencies = new List<Protocol.Catalog.PackageDependency>
                             {
-                                new PackageDependency
+                                new Protocol.Catalog.PackageDependency
                                 {
                                     Id = "NuGet.Versioning",
                                     Range = input
@@ -160,6 +161,79 @@ namespace NuGet.Services.AzureSearch
 
                 Assert.Null(full.FlattenedDependencies);
             }
+
+            [Fact]
+            public void IfLeafHasIconFile_LinksToFlatContainer()
+            {
+                var leaf = new PackageDetailsCatalogLeaf
+                {
+                    PackageId = Data.PackageId,
+                    PackageVersion = Data.NormalizedVersion,
+                    IconFile = "iconFile",
+                    IconUrl = "iconUrl"
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.NormalizedVersion, leaf);
+
+                Assert.Equal(FlatContainerIconPath, full.IconUrl);
+            }
+
+            [Fact]
+            public void IfLeafDoesNotHaveIconFile_UsesIconUrl()
+            {
+                var iconUrl = "iconUrl";
+                var leaf = new PackageDetailsCatalogLeaf
+                {
+                    PackageId = Data.PackageId,
+                    PackageVersion = Data.NormalizedVersion,
+                    IconUrl = iconUrl
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.NormalizedVersion, leaf);
+
+                Assert.Equal(iconUrl, full.IconUrl);
+            }
+        }
+
+        public class PopulateMetadataWithPackage : Facts
+        {
+            [Fact]
+            public void IfPackageHasEmbeddedIcon_LinksToFlatContainer()
+            {
+                var package = new Package
+                {
+                    NormalizedVersion = Data.NormalizedVersion,
+                    IconUrl = "iconUrl",
+                    HasEmbeddedIcon = true
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.PackageId, package);
+
+                Assert.Equal(FlatContainerIconPath, full.IconUrl);
+            }
+
+            [Fact]
+            public void IfPackageDoesNotHaveEmbeddedIcon_UsesIconUrl()
+            {
+                var iconUrl = "iconUrl";
+                var package = new Package
+                {
+                    NormalizedVersion = Data.NormalizedVersion,
+                    IconUrl = iconUrl
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.PackageId, package);
+
+                Assert.Equal(iconUrl, full.IconUrl);
+            }
         }
 
         public abstract class Facts
@@ -182,6 +256,9 @@ namespace NuGet.Services.AzureSearch
             public Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> Options { get; }
             public AzureSearchJobConfiguration Config { get; }
             public BaseDocumentBuilder Target { get; }
+
+            public static string FlatContainerIconPath =
+                $"{Data.FlatContainerBaseUrl}{Data.FlatContainerContainerName}/{Data.PackageId.ToLowerInvariant()}/{Data.NormalizedVersion.ToLowerInvariant()}/icon";
         }
     }
 }

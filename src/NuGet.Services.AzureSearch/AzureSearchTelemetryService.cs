@@ -357,16 +357,6 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public IDisposable TrackUploadDownloadsSnapshot(int packageIdCount)
-        {
-            return _telemetryClient.TrackDuration(
-                Prefix + "UploadDownloadsSnapshotSeconds",
-                new Dictionary<string, string>
-                {
-                    { "PackageIdCount", packageIdCount.ToString() },
-                });
-        }
-
         public void TrackV3GetDocument(TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
@@ -386,6 +376,27 @@ namespace NuGet.Services.AzureSearch
             _telemetryClient.TrackMetric(
                 Prefix + "V2GetDocumentWithHijackIndexMs",
                 elapsed.TotalMilliseconds);
+        }
+
+        public void TrackReadLatestVerifiedPackages(int packageIdCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "ReadLatestVerifiedPackagesSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
+
+        public IDisposable TrackReplaceLatestVerifiedPackages(int packageIdCount)
+        {
+            return _telemetryClient.TrackDuration(
+                Prefix + "ReplaceLatestVerifiedPackagesSeconds",
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
         }
     }
 }

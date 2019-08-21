@@ -113,6 +113,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.InRange(status.Server.ProcessDuration, TimeSpan.FromMilliseconds(1), TimeSpan.MaxValue);
                 Assert.NotEqual(0, status.Server.ProcessId);
                 Assert.InRange(status.Server.ProcessStartTime, DateTimeOffset.MinValue, before);
+                Assert.Equal(_lastSecretRefresh, status.Server.LastServiceRefreshTime);
 
                 Assert.Equal(23, status.SearchIndex.DocumentCount);
                 Assert.Equal("search-index", status.SearchIndex.Name);
@@ -208,6 +209,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             protected readonly Mock<ISearchParametersBuilder> _parametersBuilder;
             protected readonly Mock<IAuxiliaryDataCache> _auxiliaryDataCache;
             protected readonly Mock<IAuxiliaryData> _auxiliaryData;
+            protected readonly Mock<ISecretRefresher> _secretRefresher;
             protected readonly SearchServiceConfiguration _config;
             protected readonly Mock<IOptionsSnapshot<SearchServiceConfiguration>> _options;
             protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
@@ -218,6 +220,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             protected readonly SearchParameters _lastCommitTimestampParameters;
             protected readonly DateTimeOffset _searchLastCommitTimestamp;
             protected readonly DateTimeOffset _hijackLastCommitTimestamp;
+            protected readonly DateTimeOffset _lastSecretRefresh;
 
             public BaseFacts(ITestOutputHelper output)
             {
@@ -228,6 +231,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _parametersBuilder = new Mock<ISearchParametersBuilder>();
                 _auxiliaryDataCache = new Mock<IAuxiliaryDataCache>();
                 _auxiliaryData = new Mock<IAuxiliaryData>();
+                _secretRefresher = new Mock<ISecretRefresher>();
                 _options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
                 _logger = output.GetLogger<SearchStatusService>();
@@ -251,8 +255,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _lastCommitTimestampParameters = new SearchParameters();
                 _searchLastCommitTimestamp = new DateTimeOffset(2019, 7, 1, 0, 0, 0, TimeSpan.Zero);
                 _hijackLastCommitTimestamp = new DateTimeOffset(2019, 7, 2, 0, 0, 0, TimeSpan.Zero);
+                _lastSecretRefresh = new DateTimeOffset(2019, 7, 3, 0, 0, 0, TimeSpan.Zero);
                 Environment.SetEnvironmentVariable("WEBSITE_INSTANCE_ID", "Fake website instance ID.");
 
+                _secretRefresher.Setup(x => x.LastRefresh).Returns(() => _lastSecretRefresh);
                 _searchIndex.Setup(x => x.IndexName).Returns("search-index");
                 _hijackIndex.Setup(x => x.IndexName).Returns("hijack-index");
                 _searchIndex.Setup(x => x.Documents).Returns(() => _searchDocuments.Object);
@@ -284,6 +290,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _hijackIndex.Object,
                     _parametersBuilder.Object,
                     _auxiliaryDataCache.Object,
+                    _secretRefresher.Object,
                     _options.Object,
                     _telemetryService.Object,
                     _logger);

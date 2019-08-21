@@ -13,7 +13,6 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.Services.AzureSearch.Support;
 using NuGetGallery;
 using Xunit;
@@ -21,23 +20,23 @@ using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
-    public class DownloadDataClientFacts
+    public class VerifiedPackagesDataClientFacts
     {
-        public class ReadLatestIndexedAsync : Facts
+        public class ReadLatestAsync : Facts
         {
-            public ReadLatestIndexedAsync(ITestOutputHelper output) : base(output)
+            public ReadLatestAsync(ITestOutputHelper output) : base(output)
             {
             }
 
             [Fact]
             public async Task AllowsEmptyObject()
             {
-                var json = JsonConvert.SerializeObject(new Dictionary<string, string[]>());
+                var json = JsonConvert.SerializeObject(new HashSet<string>());
                 CloudBlob
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestAsync();
 
                 Assert.Empty(output.Result);
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
@@ -56,7 +55,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                         message: "Not found.",
                         inner: null));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestAsync();
 
                 Assert.Empty(output.Result);
                 Assert.Equal("*", output.AccessCondition.IfNoneMatchETag);
@@ -65,99 +64,85 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             [Fact]
             public async Task RejectsInvalidJson()
             {
-                var json = JsonConvert.SerializeObject(new object[]
+                var json = JsonConvert.SerializeObject(new
                 {
-                    new object[]
-                    {
-                        "nuget.versioning",
-                        new object[]
-                        {
-                            new object[] { "1.0.0", 5 },
-                        },
-                    },
-                    new object[]
-                    {
-                        "EntityFramework",
-                        new object[]
-                        {
-                            new object[] { "2.0.0", 10 },
-                        },
-                    }
+                    Version = 7,
+                    Ids = new[] { "nuget.versioning", "EntityFramework" },
                 });
                 CloudBlob
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
+
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => Target.ReadLatestIndexedAsync());
-                Assert.Equal("The first token should be the start of an object.", ex.Message);
+                    () => Target.ReadLatestAsync());
+                Assert.Equal("The first token should be the start of an array.", ex.Message);
             }
 
             [Fact]
-            public async Task ReadsDownloads()
+            public async Task ReadsVerifiedPackages()
             {
-                var json = JsonConvert.SerializeObject(new Dictionary<string, Dictionary<string, long>>
+                var json = JsonConvert.SerializeObject(new[]
                 {
-                    {
-                        "nuget.versioning",
-                        new Dictionary<string, long>
-                        {
-                            { "1.0.0", 1 },
-                            { "2.0.0-alpha", 5 },
-                        }
-                    },
-                    {
-                        "NuGet.Core",
-                        new Dictionary<string, long>()
-                    },
-                    {
-                        "EntityFramework",
-                        new Dictionary<string, long>
-                        {
-                            { "2.0.0", 10 },
-                        }
-                    },
+                    "nuget.versioning",
+                    "EntityFramework",
+                    "NuGet.Core",
                 });
                 CloudBlob
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestAsync();
 
-                Assert.Equal(new[] { "EntityFramework", "nuget.versioning" }, output.Result.Select(x => x.Key).ToArray());
-                Assert.Equal(6, output.Result.GetDownloadCount("NuGet.Versioning"));
-                Assert.Equal(1, output.Result.GetDownloadCount("NuGet.Versioning", "1.0.0"));
-                Assert.Equal(5, output.Result.GetDownloadCount("NuGet.Versioning", "2.0.0-ALPHA"));
-                Assert.Equal(10, output.Result.GetDownloadCount("EntityFramework"));
+                Assert.Equal(new[] { "EntityFramework", "NuGet.Core", "nuget.versioning" }, output.Result.OrderBy(x => x).ToArray());
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
 
-                CloudBlobContainer.Verify(x => x.GetBlobReference("downloads/downloads.v2.json"), Times.Once);
+                CloudBlobContainer.Verify(x => x.GetBlobReference("verified-packages/verified-packages.v1.json"), Times.Once);
+            }
+
+            [Fact]
+            public async Task AllowsDuplicateIdsWithDifferentCase()
+            {
+                var json = JsonConvert.SerializeObject(new[]
+                {
+                    "NuGet.Core",
+                    "nuget.core",
+                });
+                CloudBlob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
+
+                var output = await Target.ReadLatestAsync();
+
+                Assert.Single(output.Result);
+                Assert.Equal(new[] { "NuGet.Core" }, output.Result.ToArray());
+                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
             }
         }
 
-        public class ReplaceLatestIndexedAsync : Facts
+        public class ReplaceLatestAsync : Facts
         {
-            public ReplaceLatestIndexedAsync(ITestOutputHelper output) : base(output)
+            public ReplaceLatestAsync(ITestOutputHelper output) : base(output)
             {
             }
 
             [Fact]
             public async Task SerializesWithoutBOM()
             {
-                var newData = new DownloadData();
+                var newData = new HashSet<string>();
 
-                await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
+                await Target.ReplaceLatestAsync(newData, AccessCondition.Object);
 
                 var bytes = Assert.Single(SavedBytes);
-                Assert.Equal((byte)'{', bytes[0]);
+                Assert.Equal((byte)'[', bytes[0]);
             }
 
             [Fact]
             public async Task SetsContentType()
             {
-                var newData = new DownloadData();
+                var newData = new HashSet<string>();
 
-                await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
+                await Target.ReplaceLatestAsync(newData, AccessCondition.Object);
 
                 Assert.Equal("application/json", CloudBlob.Object.Properties.ContentType);
             }
@@ -165,46 +150,43 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             [Fact]
             public async Task SerializedWithoutIndentation()
             {
-                var newData = new DownloadData();
-                newData.SetDownloadCount("nuget.versioning", "1.0.0", 1);
-                newData.SetDownloadCount("NuGet.Versioning", "2.0.0", 5);
-                newData.SetDownloadCount("EntityFramework", "3.0.0", 10);
+                var newData = new HashSet<string>
+                {
+                    "nuget.versioning",
+                    "NuGet.Core",
+                };
 
-                await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
+                await Target.ReplaceLatestAsync(newData, AccessCondition.Object);
 
                 var json = Assert.Single(SavedStrings);
                 Assert.DoesNotContain("\n", json);
             }
 
             [Fact]
-            public async Task SerializesInSortedOrder()
+            public async Task SerializesPackageIds()
             {
-                var newData = new DownloadData();
-                newData.SetDownloadCount("ZZZ", "9.0.0", 23);
-                newData.SetDownloadCount("YYY", "9.0.0", 0);
-                newData.SetDownloadCount("nuget.versioning", "1.0.0", 1);
-                newData.SetDownloadCount("NuGet.Versioning", "2.0.0", 5);
-                newData.SetDownloadCount("EntityFramework", "3.0.0", 10);
-                newData.SetDownloadCount("EntityFramework", "1.0.0", 0);
+                var newData = new HashSet<string>
+                {
+                    "nuget.versioning",
+                    "EntityFramework",
+                    "NuGet.Core",
+                };
 
-                await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
+                await Target.ReplaceLatestAsync(newData, AccessCondition.Object);
 
-                // Pretty-ify the JSON to make the assertion clearer.
+                // Pretty-ify and sort the JSON to make the assertion clearer.
                 var json = Assert.Single(SavedStrings);
-                json = JsonConvert.DeserializeObject<JObject>(json).ToString();
+                var array = JsonConvert
+                    .DeserializeObject<string[]>(json)
+                    .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+                json = JsonConvert.SerializeObject(array, Formatting.Indented);
 
-                Assert.Equal(@"{
-  ""EntityFramework"": {
-    ""3.0.0"": 10
-  },
-  ""NuGet.Versioning"": {
-    ""1.0.0"": 1,
-    ""2.0.0"": 5
-  },
-  ""ZZZ"": {
-    ""9.0.0"": 23
-  }
-}", json);
+                Assert.Equal(@"[
+  ""EntityFramework"",
+  ""NuGet.Core"",
+  ""nuget.versioning""
+]", json);
             }
         }
 
@@ -215,10 +197,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 CloudBlobClient = new Mock<ICloudBlobClient>();
                 CloudBlobContainer = new Mock<ICloudBlobContainer>();
                 CloudBlob = new Mock<ISimpleCloudBlob>();
-                Options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                Options = new Mock<IOptionsSnapshot<AzureSearchConfiguration>>();
                 TelemetryService = new Mock<IAzureSearchTelemetryService>();
-                Logger = output.GetLogger<DownloadDataClient>();
-                Config = new AzureSearchJobConfiguration
+                Logger = output.GetLogger<VerifiedPackagesDataClient>();
+                Config = new AzureSearchConfiguration
                 {
                     StorageContainer = "unit-test-container",
                 };
@@ -250,7 +232,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.Properties)
                     .Returns(new CloudBlockBlob(new Uri("https://example/blob")).Properties);
 
-                Target = new DownloadDataClient(
+                Target = new VerifiedPackagesDataClient(
                     CloudBlobClient.Object,
                     Options.Object,
                     TelemetryService.Object,
@@ -260,13 +242,13 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public Mock<ICloudBlobClient> CloudBlobClient { get; }
             public Mock<ICloudBlobContainer> CloudBlobContainer { get; }
             public Mock<ISimpleCloudBlob> CloudBlob { get; }
-            public Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> Options { get; }
+            public Mock<IOptionsSnapshot<AzureSearchConfiguration>> Options { get; }
             public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
-            public RecordingLogger<DownloadDataClient> Logger { get; }
-            public AzureSearchJobConfiguration Config { get; }
+            public RecordingLogger<VerifiedPackagesDataClient> Logger { get; }
+            public AzureSearchConfiguration Config { get; }
             public string ETag { get; }
             public Mock<IAccessCondition> AccessCondition { get; }
-            public DownloadDataClient Target { get; }
+            public VerifiedPackagesDataClient Target { get; }
 
             public List<string> BlobNames { get; } = new List<string>();
             public List<byte[]> SavedBytes { get; } = new List<byte[]>();

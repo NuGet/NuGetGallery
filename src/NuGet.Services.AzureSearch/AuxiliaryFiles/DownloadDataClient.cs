@@ -19,19 +19,19 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         private static readonly JsonSerializer Serializer = new JsonSerializer();
 
         private readonly ICloudBlobClient _cloudBlobClient;
-        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
+        private readonly IOptionsSnapshot<AzureSearchConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<DownloadDataClient> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
 
         public DownloadDataClient(
             ICloudBlobClient cloudBlobClient,
-            IOptionsSnapshot<AzureSearchJobConfiguration> options,
+            IOptionsSnapshot<AzureSearchConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
             ILogger<DownloadDataClient> logger)
         {
             _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
-            _options = options ?? throw new ArgumentNullException(nameof(cloudBlobClient));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -91,26 +91,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var blobReference = Container.GetBlobReference(blobName);
 
                 using (var stream = await blobReference.OpenWriteAsync(mappedAccessCondition))
-                using (var streamWriter = new StreamWriter(stream))
-                using (var jsonTextWriter = new JsonTextWriter(streamWriter))
-                {
-                    blobReference.Properties.ContentType = "application/json";
-                    Serializer.Serialize(jsonTextWriter, newData);
-                }
-            }
-        }
-
-        public async Task UploadSnapshotAsync(DownloadData newData)
-        {
-            using (_telemetryService.TrackUploadDownloadsSnapshot(newData.Count))
-            {
-                var timestamp = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss-FFFFFFF");
-                var blobName = $"{_options.Value.NormalizeStoragePath()}downloads/snapshots/{timestamp}.json";
-                _logger.LogInformation("Uploading download data snapshot to {BlobName}.", blobName);
-
-                var blobReference = Container.GetBlobReference(blobName);
-
-                using (var stream = await blobReference.OpenWriteAsync(AccessCondition.GenerateIfNotExistsCondition()))
                 using (var streamWriter = new StreamWriter(stream))
                 using (var jsonTextWriter = new JsonTextWriter(streamWriter))
                 {

@@ -16,14 +16,14 @@ namespace NuGet.Services.AzureSearch
     public class BlobContainerBuilder : IBlobContainerBuilder
     {
         private readonly ICloudBlobClient _cloudBlobClient;
-        private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
+        private readonly IOptionsSnapshot<AzureSearchConfiguration> _options;
         private readonly ILogger<BlobContainerBuilder> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
         private readonly TimeSpan _retryDelay;
 
         public BlobContainerBuilder(
             ICloudBlobClient cloudBlobClient,
-            IOptionsSnapshot<AzureSearchJobConfiguration> options,
+            IOptionsSnapshot<AzureSearchConfiguration> options,
             ILogger<BlobContainerBuilder> logger) : this(
                 cloudBlobClient,
                 options,
@@ -37,7 +37,7 @@ namespace NuGet.Services.AzureSearch
         /// </summary>
         internal BlobContainerBuilder(
             ICloudBlobClient cloudBlobClient,
-            IOptionsSnapshot<AzureSearchJobConfiguration> options,
+            IOptionsSnapshot<AzureSearchConfiguration> options,
             ILogger<BlobContainerBuilder> logger,
             TimeSpan retryDelay)
         {

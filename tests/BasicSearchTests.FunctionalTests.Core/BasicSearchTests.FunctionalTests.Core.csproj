@@ -58,6 +58,7 @@
     <Compile Include="Models\PackageVersion.cs" />
     <Compile Include="Models\SearchDiagResult.cs" />
     <Compile Include="Models\RegistrationCursor.cs" />
+    <Compile Include="Models\SearchResult.cs" />
     <Compile Include="Models\V2PackageRegistration.cs" />
     <Compile Include="Models\V2SearchResultEntry.cs" />
     <Compile Include="Models\V3SearchResultEntry.cs" />

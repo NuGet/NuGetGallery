@@ -47,40 +47,29 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             bool includePrerelease = true,
             bool includeSemVer2 = true)
         {
-            var requestUri = $"/query?q={HttpUtility.UrlEncode(query)}";
+            var results = await V3SearchAsync(new V3SearchBuilder()
+                {
+                    Query = HttpUtility.UrlEncode(query),
+                    Skip = skip,
+                    Take = take,
+                    Prerelease = includePrerelease,
+                    IncludeSemVer2 = includeSemVer2
+                });
 
-            if (skip.HasValue)
-            {
-                requestUri += $"&skip={skip}";
-            }
-
-            if (take.HasValue)
-            {
-                requestUri += $"&take={take}";
-            }
-
-            if (includePrerelease)
-            {
-                requestUri += "&prerelease=true";
-            }
-
-            if (includeSemVer2)
-            {
-                requestUri += "&semVerLevel=2.0.0";
-            }
-
-            using (var response = await Client.GetAsync(requestUri))
-            {
-                response.EnsureSuccessStatusCode();
-
-                var json = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<SearchResponse>(json);
-
-                return result.Data.Select(t => t.Id.ToLowerInvariant()).ToList();
-            }
+            return results.Data.Select(t => t.Id.ToLowerInvariant()).ToList();
         }
 
         protected async Task<V2SearchResult> V2SearchAsync(V2SearchBuilder searchBuilder)
+        {
+            return await SearchAsync<V2SearchResult>(searchBuilder);
+        }
+
+        protected async Task<V3SearchResult> V3SearchAsync(V3SearchBuilder searchBuilder)
+        {
+            return await SearchAsync<V3SearchResult>(searchBuilder);
+        }
+
+        private async Task<T> SearchAsync<T>(QueryBuilder searchBuilder) where T: SearchResult
         {
             var queryUrl = searchBuilder.RequestUri;
             _testOutputHelper.WriteLine($"Fetching: {queryUrl}");
@@ -89,28 +78,10 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<V2SearchResult>(json);
+                var result = JsonConvert.DeserializeObject<T>(json);
 
                 return result;
             }
-        }
-
-        /// <summary>
-        /// NuGet Search API response
-        /// See: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#response
-        /// </summary>
-        private class SearchResponse
-        {
-            public IReadOnlyList<SearchResult> Data { get; set; }
-        }
-
-        /// <summary>
-        /// An entry in the search response.
-        /// See: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-result
-        /// </summary>
-        private class SearchResult
-        {
-            public string Id { get; set; }
         }
     }
 }

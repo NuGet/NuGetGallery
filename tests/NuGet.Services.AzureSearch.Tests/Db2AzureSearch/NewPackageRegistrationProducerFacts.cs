@@ -37,7 +37,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly NewPackageRegistrationProducer _target;
             private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
             private readonly DownloadData _downloads;
-            private AuxiliaryFileMetadata _metadata;
+            private readonly AuxiliaryFileMetadata _metadata;
+            private readonly HashSet<string> _verifiedPackages;
             private readonly HashSet<string> _excludedPackages;
 
             public ProduceWorkAsync(ITestOutputHelper output)
@@ -70,6 +71,10 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _auxiliaryFileClient
                     .Setup(x => x.LoadDownloadDataAsync())
                     .ReturnsAsync(() => _downloads);
+                _verifiedPackages = new HashSet<string>();
+                _auxiliaryFileClient
+                    .Setup(x => x.LoadVerifiedPackagesAsync(It.IsAny<string>()))
+                    .ReturnsAsync(new AuxiliaryFileResult<HashSet<string>>(false, _verifiedPackages, _metadata));
 
                 _entitiesContextFactory
                    .Setup(x => x.CreateAsync(It.IsAny<bool>()))
@@ -344,9 +349,17 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 Assert.Same(_downloads, output.Downloads);
                 Assert.Same(_excludedPackages, output.ExcludedPackages);
+                Assert.Same(_verifiedPackages, output.VerifiedPackages);
                 Assert.NotNull(output.Owners);
                 Assert.Contains("A", output.Owners.Keys);
                 Assert.Equal(new[] { "OwnerA" }, output.Owners["A"].ToArray());
+
+                _auxiliaryFileClient.Verify(
+                    x => x.LoadExcludedPackagesAsync(null),
+                    Times.Once);
+                _auxiliaryFileClient.Verify(
+                    x => x.LoadVerifiedPackagesAsync(null),
+                    Times.Once);
             }
 
             [Fact]

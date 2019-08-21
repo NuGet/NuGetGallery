@@ -16,5 +16,6 @@ namespace NuGet.Services.AzureSearch.SearchService
         public string AssemblyInformationalVersion { get; set; }
         public string AssemblyBuildDateUtc { get; set; }
         public string InstanceId { get; set; }
+        public DateTimeOffset? LastServiceRefreshTime { get; set; }
     }
 }

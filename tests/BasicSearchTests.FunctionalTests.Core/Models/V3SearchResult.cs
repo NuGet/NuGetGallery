@@ -7,16 +7,12 @@ using Newtonsoft.Json;
 
 namespace BasicSearchTests.FunctionalTests.Core.Models
 {
-    public class V3SearchResult
+    public class V3SearchResult: SearchResult
     {
         [JsonProperty("@context")]
         public AtContext AtContext { get; set; }
 
-        public int? TotalHits { get; set; }
-
         public DateTime? LastReopen { get; set; }
-
-        public string Index { get; set; }
 
         public IList<V3SearchResultEntry> Data { get; set; }
     }

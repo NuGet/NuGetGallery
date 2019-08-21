@@ -18,6 +18,8 @@ namespace NuGet.Services.AzureSearch.SearchService
         public string AuxiliaryDataStorageExcludedPackagesPath { get; set; }
         public TimeSpan AuxiliaryDataReloadFrequency { get; set; } = TimeSpan.FromHours(1);
         public TimeSpan AuxiliaryDataReloadFailureRetryFrequency { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan SecretRefreshFrequency { get; set; } = TimeSpan.FromHours(12);
+        public TimeSpan SecretRefreshFailureRetryFrequency { get; set; } = TimeSpan.FromMinutes(5);
         public string DeploymentLabel { get; set; }
     }
 }

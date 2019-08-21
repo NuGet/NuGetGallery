@@ -94,7 +94,6 @@ namespace NuGet.Services.AzureSearch
             document.FlattenedDependencies = package.FlattenedDependencies;
             document.Hash = package.Hash;
             document.HashAlgorithm = package.HashAlgorithm;
-            document.IconUrl = package.IconUrl;
             document.Language = package.Language;
             document.LastEdited = AssumeUtc(package.LastEdited);
             document.MinClientVersion = package.MinClientVersion;
@@ -125,9 +124,14 @@ namespace NuGet.Services.AzureSearch
                 document.LicenseUrl = package.LicenseUrl;
             }
 
-            // TODO: detect whether the package entity has an icon file once there is schema for it.
-            // https://github.com/NuGet/NuGetGallery/issues/7261
-            // https://github.com/nuget/nugetgallery/issues/7064
+            if (package.HasEmbeddedIcon)
+            {
+                SetIconUrlFromFlatContainer(document);
+            }
+            else
+            {
+                document.IconUrl = package.IconUrl;
+            }
         }
 
         public void PopulateMetadata(
@@ -175,14 +179,19 @@ namespace NuGet.Services.AzureSearch
 
             if (leaf.IconFile != null)
             {
-                var provider = new FlatContainerPackagePathProvider(_options.Value.FlatContainerContainerName);
-                var iconPath = provider.GetIconPath(document.PackageId, normalizedVersion);
-                document.IconUrl = new Uri(_options.Value.ParseFlatContainerBaseUrl(), iconPath).AbsoluteUri;
+                SetIconUrlFromFlatContainer(document);
             }
             else
             {
                 document.IconUrl = leaf.IconUrl;
             }
+        }
+
+        private void SetIconUrlFromFlatContainer(IBaseMetadataDocument document)
+        {
+            var provider = new FlatContainerPackagePathProvider(_options.Value.FlatContainerContainerName);
+            var iconPath = provider.GetIconPath(document.PackageId, document.NormalizedVersion);
+            document.IconUrl = new Uri(_options.Value.ParseFlatContainerBaseUrl(), iconPath).AbsoluteUri;
         }
 
         private static string GetTitle(string title, string packageId)

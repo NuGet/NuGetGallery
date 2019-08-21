@@ -190,7 +190,7 @@
       <Version>2.2.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Entities">
-      <Version>4.4.5-master-2699519</Version>
+      <Version>4.4.5-dev-2939401</Version>
     </PackageReference>
     <PackageReference Include="System.Net.Http">
       <Version>4.3.3</Version>

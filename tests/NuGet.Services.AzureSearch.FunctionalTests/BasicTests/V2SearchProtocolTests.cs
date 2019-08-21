@@ -2,14 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BasicSearchTests.FunctionalTests.Core;
 using BasicSearchTests.FunctionalTests.Core.Models;
 using BasicSearchTests.FunctionalTests.Core.TestSupport;
-using NuGet.Versioning;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -159,12 +157,12 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
 
             var hasPrereleaseVersions = resultsWithPrerelease
                 .Data
-                .Any(x => IsPrerelease(x.Version));
+                .Any(x => TestUtilities.IsPrerelease(x.Version));
             Assert.True(hasPrereleaseVersions, $"The search query did not return any results with the expected prerelease versions.");
 
             hasPrereleaseVersions = resultsWithoutPrerelease
                 .Data
-                .Any(x => IsPrerelease(x.Version));
+                .Any(x => TestUtilities.IsPrerelease(x.Version));
             Assert.False(hasPrereleaseVersions, $"The search query returned results with prerelease versions when queried for Prerelease = false");
         }
 
@@ -399,7 +397,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             Assert.True(results.Data.Count >= 1);
             var atleastOneResultWithSemVer2 = results
                 .Data
-                .Any(x => IsSemVer2(x.Version));
+                .Any(x => TestUtilities.IsSemVer2(x.Version));
 
             Assert.True(atleastOneResultWithSemVer2, $"The search query did not return with any semver2 results");
         }
@@ -501,32 +499,6 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             Assert.False(resultsWithoutTestTags, $"The query returned search results without tags {Constants.TestPackageTag}");
         }
 
-        public static bool IsPrerelease(string original)
-        {
-            if (!NuGetVersion.TryParse(original, out var nugetVersion))
-            {
-                return false;
-            }
-
-            return nugetVersion.IsPrerelease;
-        }
-
-        /// <summary>
-        /// Check for package version to be a SemVer2. This method only tests the version supplied.
-        /// The package can still be SemVer2 if its dependency is SemVer2, however this test only tests for the 
-        /// provided version.
-        /// </summary>
-        /// <param name="original">Version string</param>
-        /// <returns>True if the provided string is SemVer2, false otherwise</returns>
-        public static bool IsSemVer2(string original)
-        {
-            if (!NuGetVersion.TryParse(original, out var nugetVersion))
-            {
-                return false;
-            }
-
-            return nugetVersion.IsSemVer2;
-        }
 
         public static IEnumerable<object[]> TakeResults
         {

@@ -32,6 +32,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly Mock<IStorageFactory> _storageFactory;
         private readonly Mock<IOwnerDataClient> _ownerDataClient;
         private readonly Mock<IDownloadDataClient> _downloadDataClient;
+        private readonly Mock<IVerifiedPackagesDataClient> _verifiedPackagesDataClient;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
         private readonly Db2AzureSearchConfiguration _config;
         private readonly TestCursorStorage _storage;
@@ -50,6 +51,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _storageFactory = new Mock<IStorageFactory>();
             _ownerDataClient = new Mock<IOwnerDataClient>();
             _downloadDataClient = new Mock<IDownloadDataClient>();
+            _verifiedPackagesDataClient = new Mock<IVerifiedPackagesDataClient>();
             _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
             _logger = output.GetLogger<Db2AzureSearchCommand>();
 
@@ -62,7 +64,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _initialAuxiliaryData = new InitialAuxiliaryData(
                 owners: new SortedDictionary<string, SortedSet<string>>(),
                 downloads: new DownloadData(),
-                excludedPackages: new HashSet<string>());
+                excludedPackages: new HashSet<string>(),
+                verifiedPackages: new HashSet<string>());
 
             _options
                 .Setup(x => x.Value)
@@ -105,6 +108,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _storageFactory.Object,
                 _ownerDataClient.Object,
                 _downloadDataClient.Object,
+                _verifiedPackagesDataClient.Object,
                 _options.Object,
                 _logger);
         }
@@ -290,6 +294,32 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             _downloadDataClient.Verify(
                 x => x.ReplaceLatestIndexedAsync(It.IsAny<DownloadData>(), It.IsAny<IAccessCondition>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task PushesVerifiedPackagesData()
+        {
+            HashSet<string> data = null;
+            IAccessCondition accessCondition = null;
+            _verifiedPackagesDataClient
+                .Setup(x => x.ReplaceLatestAsync(It.IsAny<HashSet<string>>(), It.IsAny<IAccessCondition>()))
+                .Returns(Task.CompletedTask)
+                .Callback<HashSet<string>, IAccessCondition>((d, a) =>
+                {
+                    data = d;
+                    accessCondition = a;
+                });
+
+            await _target.ExecuteAsync();
+
+            Assert.Same(_initialAuxiliaryData.VerifiedPackages, data);
+
+            Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            Assert.Null(accessCondition.IfMatchETag);
+
+            _verifiedPackagesDataClient.Verify(
+                x => x.ReplaceLatestAsync(It.IsAny<HashSet<string>>(), It.IsAny<IAccessCondition>()),
                 Times.Once);
         }
     }
