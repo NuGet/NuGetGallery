@@ -37,6 +37,7 @@ namespace NuGet.Monitoring.RebootSearchInstance
             services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(MonitorConfigurationSectionName));
             services.Configure<AzureManagementAPIWrapperConfiguration>(configurationRoot.GetSection(AzureManagementSectionName));
 
+            services.AddSingleton<IHttpClientWrapper>(p => new HttpClientWrapper(p.GetService<HttpClient>()));
             services.AddTransient<ITelemetryService, TelemetryService>();
             services.AddTransient<ISearchInstanceRebooter, SearchInstanceRebooter>();
             services.AddTransient<IFeedClient, FeedClient>();
