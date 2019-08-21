@@ -1076,7 +1076,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your account is no longer active and we have logged you out. Please contact support if this is unexpected..
+        ///   Looks up a localized string similar to You have been logged out as your NuGet account was deleted. Please contact support if this is unexpected..
         /// </summary>
         public static string LoggedInUserDeleted {
             get {

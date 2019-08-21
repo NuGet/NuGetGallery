@@ -1142,6 +1142,6 @@ The {1} Team</value>
     <value>Unsupported icon image format. Only PNG and JPG images are supported.</value>
   </data>
   <data name="LoggedInUserDeleted" xml:space="preserve">
-    <value>Your account is no longer active and we have logged you out. Please contact support if this is unexpected.</value>
+    <value>You have been logged out as your NuGet account was deleted. Please contact support if this is unexpected.</value>
   </data>
 </root>
