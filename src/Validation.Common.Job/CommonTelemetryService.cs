@@ -3,11 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Services.FeatureFlags;
 using NuGet.Services.Logging;
 
 namespace NuGet.Jobs.Validation
 {
-    public class CommonTelemetryService : ICommonTelemetryService
+    public class CommonTelemetryService : ICommonTelemetryService, IFeatureFlagTelemetryService
     {
         private const string PackageDownloadedSeconds = "PackageDownloadedSeconds";
         private const string PackageDownloadSpeed = "PackageDownloadSpeedBytesPerSec";
@@ -15,11 +16,20 @@ namespace NuGet.Jobs.Validation
         private const string PackageSize = "PackageSize";
         private const double DefaultDownloadSpeed = 1;
 
+        private const string FeatureFlagStalenessSeconds = "FeatureFlagStalenessSeconds";
+
         private readonly ITelemetryClient _telemetryClient;
 
         public CommonTelemetryService(ITelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+        }
+
+        public void TrackFeatureFlagStaleness(TimeSpan staleness)
+        {
+            _telemetryClient.TrackMetric(
+                FeatureFlagStalenessSeconds,
+                staleness.TotalSeconds);
         }
 
         public void TrackPackageDownloaded(Uri packageUri, TimeSpan duration, long size)

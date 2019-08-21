@@ -86,7 +86,17 @@ namespace NuGet.Jobs.Monitoring.PackageLag
 
                     var diagContent = diagResponse.Content;
                     var searchDiagResultRaw = await diagContent.ReadAsStringAsync();
-                    var response = JsonConvert.DeserializeObject<SearchDiagnosticResponse>(searchDiagResultRaw);
+                    SearchDiagnosticResponse response = null;
+                    switch (instance.ServiceType)
+                    {
+                        case ServiceType.LuceneSearch:
+                            response = JsonConvert.DeserializeObject<SearchDiagnosticResponse>(searchDiagResultRaw);
+                            break;
+                        case ServiceType.AzureSearch:
+                            var tempResponse = JsonConvert.DeserializeObject<AzureSearchDiagnosticResponse>(searchDiagResultRaw);
+                            response = ConvertAzureSearchResponse(tempResponse);
+                            break;
+                    }
 
                     return response;
                 }
@@ -107,18 +117,26 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             RegionInformation regionInformation,
             CancellationToken token)
         {
-            var result = await _azureManagementApiWrapper.GetCloudServicePropertiesAsync(
-                _configuration.Value.Subscription,
-                regionInformation.ResourceGroup,
-                regionInformation.ServiceName,
-                ProductionSlot,
-                token);
+            switch (regionInformation.ServiceType)
+            {
+                case ServiceType.LuceneSearch:
+                    var result = await _azureManagementApiWrapper.GetCloudServicePropertiesAsync(
+                        _configuration.Value.Subscription,
+                        regionInformation.ResourceGroup,
+                        regionInformation.ServiceName,
+                        ProductionSlot,
+                        token);
 
-            var cloudService = AzureHelper.ParseCloudServiceProperties(result);
+                    var cloudService = AzureHelper.ParseCloudServiceProperties(result);
 
-            var instances = GetInstances(cloudService.Uri, cloudService.InstanceCount, regionInformation);
+                    var instances = GetInstances(cloudService.Uri, cloudService.InstanceCount, regionInformation, ServiceType.LuceneSearch);
 
-            return instances;
+                    return instances;
+                case ServiceType.AzureSearch:
+                    return GetInstances(new Uri(regionInformation.BaseUrl), instanceCount: 1, regionInformation: regionInformation, serviceType: ServiceType.AzureSearch);
+                default:
+                    throw new NotImplementedException($"Unknown ServiceType: {regionInformation.ServiceType}");
+            }
         }
 
         public async Task<SearchResultResponse> GetSearchResultAsync(Instance instance, string query, CancellationToken token)
@@ -160,15 +178,26 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             throw new NotImplementedException();
         }
 
-        private List<Instance> GetInstances(Uri endpointUri, int instanceCount, RegionInformation regionInformation)
+        private List<Instance> GetInstances(Uri endpointUri, int instanceCount, RegionInformation regionInformation, ServiceType serviceType)
         {
             var instancePortMinimum = _configuration.Value.InstancePortMinimum;
-
-            _logger.LogInformation(
-                "Testing {InstanceCount} instances, starting at port {InstancePortMinimum} for region {Region}.",
-                instanceCount,
-                instancePortMinimum,
-                regionInformation.Region);
+            switch (serviceType)
+            {
+                case ServiceType.LuceneSearch:
+                    _logger.LogInformation(
+                        "{ServiceType}: Testing {InstanceCount} instances, starting at port {InstancePortMinimum} for region {Region}.",
+                        ServiceType.LuceneSearch,
+                        instanceCount,
+                        instancePortMinimum,
+                        regionInformation.Region);
+                    break;
+                case ServiceType.AzureSearch:
+                    _logger.LogInformation(
+                        "{ServiceType}: Testing for region {Region}.",
+                        ServiceType.AzureSearch,
+                        regionInformation.Region);
+                    break;
+            }
 
             return Enumerable
                 .Range(0, instanceCount)
@@ -177,13 +206,19 @@ namespace NuGet.Jobs.Monitoring.PackageLag
                     var diagUriBuilder = new UriBuilder(endpointUri);
 
                     diagUriBuilder.Scheme = "https";
-                    diagUriBuilder.Port = instancePortMinimum + i;
+                    if (serviceType == ServiceType.LuceneSearch)
+                    {
+                        diagUriBuilder.Port = instancePortMinimum + i;
+                    }
                     diagUriBuilder.Path = "search/diag";
 
                     var queryBaseUriBuilder = new UriBuilder(endpointUri);
 
                     queryBaseUriBuilder.Scheme = "https";
-                    queryBaseUriBuilder.Port = instancePortMinimum + i;
+                    if (serviceType == ServiceType.LuceneSearch)
+                    {
+                        queryBaseUriBuilder.Port = instancePortMinimum + i;
+                    }
                     queryBaseUriBuilder.Path = "search/query";
 
                     return new Instance(
@@ -191,9 +226,26 @@ namespace NuGet.Jobs.Monitoring.PackageLag
                         i,
                         diagUriBuilder.Uri.ToString(),
                         queryBaseUriBuilder.Uri.ToString(),
-                        regionInformation.Region);
+                        regionInformation.Region,
+                        serviceType);
                 })
                 .ToList();
+        }
+
+        private SearchDiagnosticResponse ConvertAzureSearchResponse(AzureSearchDiagnosticResponse azureSearchDiagnosticResponse)
+        {
+            var result = new SearchDiagnosticResponse
+            {
+                // We will use UtcNow here since AzureSearch diagnostic endpoint doesn't currently have last reloaded information.
+                // See https://github.com/NuGet/Engineering/issues/2651 for more information
+                LastIndexReloadTime = DateTimeOffset.UtcNow,
+                CommitUserData = new CommitUserData
+                {
+                    CommitTimeStamp = azureSearchDiagnosticResponse.SearchIndex.LastCommitTimestamp.ToString()
+                }
+            };
+
+            return result;
         }
     }
 }

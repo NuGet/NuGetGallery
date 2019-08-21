@@ -48,6 +48,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AzureManagementAPIWrapperConfiguration.cs" />
+    <Compile Include="AzureSearchDiagnosticResponse.cs" />
     <Compile Include="HttpWrappers\HttpClientWrapper.cs" />
     <Compile Include="HttpResponseException.cs" />
     <Compile Include="HttpWrappers\IHttpClientWrapper.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="SearchResultResponse.cs" />
     <Compile Include="SearchServiceClient.cs" />
     <Compile Include="SearchServiceConfiguration.cs" />
+    <Compile Include="ServiceType.cs" />
     <Compile Include="Telemetry\IPackageLagTelemetryService.cs" />
     <Compile Include="Telemetry\PackageLagTelemetryService.cs" />
   </ItemGroup>
@@ -108,7 +110,7 @@
       <Version>0.5.0-CI-20180510-012541</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.AzureManagement">
-      <Version>2.53.0</Version>
+      <Version>2.54.0</Version>
     </PackageReference>
     <PackageReference Include="MicroBuild.Core">
       <Version>0.3.0</Version>

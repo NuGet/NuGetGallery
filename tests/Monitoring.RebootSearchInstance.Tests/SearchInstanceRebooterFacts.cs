@@ -77,19 +77,22 @@ namespace NuGet.Monitoring.RebootSearchInstance
                     0,
                     "http://localhost:801/search/diag",
                     "http://localhost:801/query",
-                    _region),
+                    _region,
+                    ServiceType.LuceneSearch),
                 new Instance(
                     _slot,
                     1,
                     "http://localhost:802/search/diag",
                     "http://localhost:802/query",
-                    _region),
+                    _region,
+                    ServiceType.LuceneSearch),
                 new Instance(
                     _slot,
                     2,
                     "http://localhost:803/search/diag",
                     "http://localhost:803/query",
-                    _region),
+                    _region,
+                    ServiceType.LuceneSearch),
             };
             _feedTimestamp = new DateTimeOffset(2018, 1, 1, 8, 0, 0, TimeSpan.Zero);
 

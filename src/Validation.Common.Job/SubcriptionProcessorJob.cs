@@ -24,6 +24,9 @@ namespace NuGet.Jobs.Validation
 
         public override async Task Run()
         {
+            var featureFlagRefresher = _serviceProvider.GetRequiredService<IFeatureFlagRefresher>();
+            await featureFlagRefresher.StartIfConfiguredAsync();
+
             var processor = _serviceProvider.GetService<ISubscriptionProcessor<T>>();
 
             if (processor == null)
@@ -51,6 +54,25 @@ namespace NuGet.Jobs.Validation
                     "Failed to gracefully shutdown Service Bus subscription processor. {MessagesInProgress} messages left",
                     processor.NumberOfMessagesInProgress);
             }
+
+            await featureFlagRefresher.StopAndWaitAsync();
+        }
+
+        protected override void ConfigureDefaultJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            base.ConfigureDefaultJobServices(services, configurationRoot);
+
+            // This service is registered at this level instead of a lower level (e.g. ValidationJobBase) because in
+            // general it is not clear what the lifetime of the singleton FeatureFlagRefresher should be per job. Since
+            // non-subscription processor jobs typically have their processes live forever but reinitialized their
+            // dependency injection container every job loop, managing the lifetime of a class like this is tricky.
+            //
+            // In the subscription processor job case, the job runs for one day then ends the process. The job runner
+            // only initializes the dependency container once so there is no concern of multiple feature flag
+            // refreshers running in parallel due to multiple instances from multiple containers.
+            //
+            // Once we fix https://github.com/NuGet/NuGetGallery/issues/7441, we can move this down to a lower level.
+            services.AddSingleton<IFeatureFlagRefresher, FeatureFlagRefresher>();
         }
 
         protected static void ConfigureDefaultSubscriptionProcessor(ContainerBuilder containerBuilder)

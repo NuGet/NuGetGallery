@@ -16,6 +16,7 @@ namespace NuGet.Jobs.Monitoring.PackageLag.Telemetry
         private const string Region = "Region";
         private const string Subscription = "Subscription";
         private const string InstanceIndex = "InstanceIndex";
+        private const string ServiceType = "ServiceType";
 
         private const string CreatedLagName = "PackageCreationLagInSeconds";
         private const string V3LagName = "V3LagInSeconds";
@@ -36,7 +37,8 @@ namespace NuGet.Jobs.Monitoring.PackageLag.Telemetry
                 { PackageVersion, packageVersion },
                 { Region, instance.Region },
                 { Subscription, _subscription },
-                { InstanceIndex, instance.Index.ToString() }
+                { InstanceIndex, instance.Index.ToString() },
+                { ServiceType, instance.ServiceType.ToString() }
             });
         }
 
@@ -48,7 +50,8 @@ namespace NuGet.Jobs.Monitoring.PackageLag.Telemetry
                 { PackageVersion, packageVersion },
                 { Region,  instance.Region },
                 { Subscription, _subscription },
-                { InstanceIndex, instance.Index.ToString() }
+                { InstanceIndex, instance.Index.ToString() },
+                { ServiceType, instance.ServiceType.ToString() }
             });
         }
     }
