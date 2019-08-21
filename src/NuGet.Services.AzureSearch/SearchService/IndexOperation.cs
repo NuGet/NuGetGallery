@@ -59,5 +59,14 @@ namespace NuGet.Services.AzureSearch.SearchService
                 searchText: text,
                 searchParameters: parameters);
         }
+
+        public static IndexOperation Empty()
+        {
+            return new IndexOperation(
+                IndexOperationType.Empty,
+                documentKey: null,
+                searchText: null,
+                searchParameters: null);
+        }
     }
 }

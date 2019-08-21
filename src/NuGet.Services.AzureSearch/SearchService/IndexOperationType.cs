@@ -17,5 +17,10 @@ namespace NuGet.Services.AzureSearch.SearchService
         /// https://docs.microsoft.com/en-us/rest/api/searchservice/search-documents
         /// </summary>
         Search,
+
+        /// <summary>
+        /// The request should yield an empty response so no Azure Search query is necessary.
+        /// </summary>
+        Empty,
     }
 }

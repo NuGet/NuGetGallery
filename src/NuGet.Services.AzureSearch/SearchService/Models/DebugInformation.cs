@@ -15,8 +15,22 @@ namespace NuGet.Services.AzureSearch.SearchService
         public SearchParameters SearchParameters { get; set; }
         public string SearchText { get; set; }
         public object DocumentSearchResult { get; set; }
-        public TimeSpan QueryDuration { get; set; }
+        public TimeSpan? QueryDuration { get; set; }
         public AuxiliaryFilesMetadata AuxiliaryFilesMetadata { get; set; }
+
+        public static DebugInformation CreateFromEmptyOrNull(SearchRequest request)
+        {
+            if (!request.ShowDebug)
+            {
+                return null;
+            }
+
+            return new DebugInformation
+            {
+                SearchRequest = request,
+                IndexOperationType = IndexOperationType.Empty,
+            };
+        }
 
         public static DebugInformation CreateFromSearchOrNull<T>(
             SearchRequest request,
