@@ -955,7 +955,6 @@
     <Compile Include="Infrastructure\Lucene\PerFieldAnalyzer.cs" />
     <Compile Include="Infrastructure\Lucene\NuGetSearchTerm.cs" />
     <Compile Include="Infrastructure\TracingHttpHandler.cs" />
-    <Compile Include="Infrastructure\UserSafeException.cs" />
     <Compile Include="Migrations\201110060711357_Initial.cs">
       <SubType>Code</SubType>
     </Compile>

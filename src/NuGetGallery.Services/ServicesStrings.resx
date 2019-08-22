@@ -1127,4 +1127,10 @@ The {1} Team</value>
   <data name="AsyncAccountDelete_Success" xml:space="preserve">
     <value>The account '{0}' was enqueued to be deleted successfully.</value>
   </data>
+  <data name="RenameDeletedAccount_AlreadyRenamed" xml:space="preserve">
+    <value>Cannot rename a deleted account that was already renamed.</value>
+  </data>
+  <data name="RenameDeletedAccount_NotDeleted" xml:space="preserve">
+    <value>Cannot renamed a deleted account that is not deleted.</value>
+  </data>
 </root>

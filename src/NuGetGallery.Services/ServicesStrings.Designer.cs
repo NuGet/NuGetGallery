@@ -1571,6 +1571,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot rename a deleted account that was already renamed..
+        /// </summary>
+        public static string RenameDeletedAccount_AlreadyRenamed {
+            get {
+                return ResourceManager.GetString("RenameDeletedAccount_AlreadyRenamed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot renamed a deleted account that is not deleted..
+        /// </summary>
+        public static string RenameDeletedAccount_NotDeleted {
+            get {
+                return ResourceManager.GetString("RenameDeletedAccount_NotDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to At least one package owner has no certificate while at least one other package owner has at least one certificate, which means future package submissions may be unsigned or signed with any certificate registered to any owner..
         /// </summary>
         public static string RequiredSigner_AnyWithMixedResult {

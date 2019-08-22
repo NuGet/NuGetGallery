@@ -6,10 +6,23 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     public class DeleteAccountSearchResult
     {
         public string AccountName { get; }
+        public bool IsDeleted { get; }
+        public string ProfileLink { get; }
+        public string DeleteLink { get; }
+        public string RenameLink { get; }
 
-        public DeleteAccountSearchResult(string accountName)
+        public DeleteAccountSearchResult(
+            string accountName, 
+            bool isDeleted,
+            string profileLink,
+            string deleteLink,
+            string renameLink)
         {
             AccountName = accountName;
+            IsDeleted = isDeleted;
+            ProfileLink = profileLink;
+            DeleteLink = deleteLink;
+            RenameLink = renameLink;
         }
     }
 }

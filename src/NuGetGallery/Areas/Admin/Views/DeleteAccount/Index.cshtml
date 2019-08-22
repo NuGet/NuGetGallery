@@ -6,21 +6,45 @@
 
 <section role="main" class="container main-container">
     <h2>Delete Account</h2>
-    <form>
-        <textarea placeholder="Search for account to delete. Only one account at a time." autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
-        <input type="button" value="Search" data-bind="click: search" />
-    </form>
-    <div style="display: none" data-bind="visible: searchResults().length === 0 && doneSearching()">
-        <p>No account found.</p>
+    <div class="row">
+        <div class="col-xs-10 form-group">
+            <input class="form-control" type="text" placeholder="Search for an account to delete." data-bind="value: searchQuery" />
+        </div>
+        <div class="col-xs-2 form-group">
+            <input class="form-control" type="button" value="Search" data-bind="click: search" />
+        </div>
     </div>
-    <form id="searchResults" data-bind="visible: searchResults().length > 0">
+    <div style="display: none" data-bind="visible: searchResults().length === 0 && doneSearching()">
+        <p>No accounts found.</p>
+    </div>
+    <div id="searchResults" data-bind="visible: searchResults().length > 0">
         <p>The following accounts were found:</p>
-        <ul id="searchResultsTable" class="sexy-table" style="display: none" data-bind="visible: searchResults().length > 0">
-            <li data-bind="foreach: searchResults">
-                <a href="#" data-bind="text: AccountName, attr: { href: $parent.generateProfileUrl($data) }"></a>
-            </li>
-        </ul>
-    </form>
+        <table class="table">
+            <tr>
+                <th>Username</th>
+                <th>Status</th>
+                <th aria-label="Actions">&nbsp;</th>
+            </tr>
+            <tbody data-bind="foreach: searchResults">
+                <tr>
+                    <td>
+                        <a data-bind="text: AccountName, attr: { href: ProfileLink }"></a>
+                    </td>
+                    <td>
+                        <span data-bind="text: IsDeleted ? 'Deleted' : 'Active'"></span>
+                    </td>
+                    <td>
+                        <a data-bind="visible: !IsDeleted, attr: { href: DeleteLink }">
+                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                        </a>
+                        <a data-bind="visible: IsDeleted, attr: { href: RenameLink }">
+                            <i class="ms-Icon ms-Icon--Rename" aria-hidden="true"></i>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </section>
 
 @section BottomScripts {
@@ -36,25 +60,36 @@
                     $self.doneSearching = ko.observable(false);
                     $.ajax({
                         url: '@Url.Action("Search", "DeleteAccount", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
-                            cache: false,
-                            dataType: 'json',
-                            success: function(data) {
-                                for (var i = 0; i < data.length; i++) {
-                                    data[i].Selected = ko.observable(false);
-                                }
-                                $self.searchResults(data);
+                        cache: false,
+                        dataType: 'json',
+                        success: function (data) {
+                            for (var i = 0; i < data.length; i++) {
+                                data[i].Selected = ko.observable(false);
                             }
-                        })
-                        .error(function(jqXhr, textStatus, errorThrown) {
+
+                            // Combine the new data with the old data.
+                            var seenAccountNames = [];
+                            var newData = data
+                                .concat($self.searchResults())
+                                // Remove any duplicates and prefer the most recent results.
+                                .filter(function (value, index, self) {
+                                    var nextAccountName = value.AccountName;
+                                    var hasSeenAccountName = seenAccountNames.includes(nextAccountName);
+                                    seenAccountNames.push(nextAccountName);
+                                    return !hasSeenAccountName;
+                                });
+
+                            $self.searchResults(newData);
+                        },
+                        error: function (jqXhr, textStatus, errorThrown) {
                             alert("Error: " + errorThrown);
-                        })
-                        .always(function () {
+                        },
+                        always: function () {
                             $self.doneSearching(true);
-                        });
+                        }
+                    });
                 };
-                this.generateProfileUrl = function (u) {
-                    return '/profiles/' + u.AccountName;
-                };
+
                 this.searchResults = ko.observableArray([]);
             };
 

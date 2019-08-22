@@ -2222,6 +2222,68 @@ namespace NuGetGallery
                 Assert.DoesNotContain(adminRole, user.Roles);
             }
         }
+
+        public class TheRenameDeletedAccountMethod
+        {
+            [Fact]
+            public Task ThrowsIfUserNull()
+            {
+                var userService = new TestableUserService();
+                return Assert.ThrowsAsync<UserSafeException>(() => userService.RenameDeletedAccount(null));
+            }
+
+            [Fact]
+            public Task ThrowsIfUserNotDeleted()
+            {
+                var userService = new TestableUserService();
+                var user = new User();
+                return Assert.ThrowsAsync<UserSafeException>(() => userService.RenameDeletedAccount(user));
+            }
+
+            [Fact]
+            public Task ThrowsIfUsernameAlreadyReleased()
+            {
+                var userService = new TestableUserService();
+                var user = new User { Key = 1, IsDeleted = true };
+
+                var accountDelete = new AccountDelete
+                {
+                    DeletedAccountKey = user.Key,
+                    WasUsernameReleased = true
+                };
+
+                userService.MockAccountDeleteRepository
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { accountDelete }.AsQueryable());
+
+                return Assert.ThrowsAsync<UserSafeException>(() => userService.RenameDeletedAccount(user));
+            }
+
+            [Fact]
+            public async Task Succeeds()
+            {
+                var userService = new TestableUserService();
+                var user = new User { Key = 1, IsDeleted = true };
+
+                var accountDelete = new AccountDelete
+                {
+                    DeletedAccountKey = user.Key
+                };
+
+                userService.MockAccountDeleteRepository
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { accountDelete }.AsQueryable())
+                    .Verifiable();
+
+                userService.MockAccountDeleteRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .Verifiable();
+
+                await userService.RenameDeletedAccount(user);
+
+                userService.MockAccountDeleteRepository.Verify();
+            }
+        }
     }
 }
 

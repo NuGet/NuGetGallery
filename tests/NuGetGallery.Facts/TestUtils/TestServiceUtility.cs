@@ -19,6 +19,7 @@ namespace NuGetGallery.TestUtils
         public Mock<IAppConfiguration> MockConfig { get; protected set; }
         public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; protected set; }
         public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
+        public Mock<IEntityRepository<AccountDelete>> MockAccountDeleteRepository { get; protected set; }
         public Mock<IEntityRepository<Role>> MockRoleRepository { get; protected set; }
         public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
         public Mock<IEntityRepository<Organization>> MockOrganizationRepository { get; protected set; }
@@ -34,6 +35,7 @@ namespace NuGetGallery.TestUtils
             Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
+            AccountDeleteRepository = (MockAccountDeleteRepository = new Mock<IEntityRepository<AccountDelete>>()).Object;
             RoleRepository = (MockRoleRepository = new Mock<IEntityRepository<Role>>()).Object;
             CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
             OrganizationRepository = (MockOrganizationRepository = new Mock<IEntityRepository<Organization>>()).Object;

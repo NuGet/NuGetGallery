@@ -60,5 +60,7 @@ namespace NuGetGallery
         IReadOnlyList<User> GetSiteAdmins();
 
         Task SetIsAdministrator(User user, bool isAdmin);
+
+        Task RenameDeletedAccount(User user);
     }
 }

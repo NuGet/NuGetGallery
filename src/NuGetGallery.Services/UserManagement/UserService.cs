@@ -25,6 +25,8 @@ namespace NuGetGallery
 
         public IEntityRepository<User> UserRepository { get; protected set; }
 
+        public IEntityRepository<AccountDelete> AccountDeleteRepository { get; protected set; }
+
         public IEntityRepository<Role> RoleRepository { get; protected set; }
 
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
@@ -50,6 +52,7 @@ namespace NuGetGallery
         public UserService(
             IAppConfiguration config,
             IEntityRepository<User> userRepository,
+            IEntityRepository<AccountDelete> accountDeleteRepository,
             IEntityRepository<Role> roleRepository,
             IEntityRepository<Credential> credentialRepository,
             IEntityRepository<Organization> organizationRepository,
@@ -65,6 +68,7 @@ namespace NuGetGallery
         {
             Config = config;
             UserRepository = userRepository;
+            AccountDeleteRepository = accountDeleteRepository;
             RoleRepository = roleRepository;
             CredentialRepository = credentialRepository;
             OrganizationRepository = organizationRepository;
@@ -707,6 +711,34 @@ namespace NuGetGallery
             return RoleRepository.GetAll()
                 .ToList()
                 .Single(r => r.Is(Constants.AdminRoleName));
+        }
+
+        public Task RenameDeletedAccount(User user)
+        {
+            if (user == null)
+            {
+                throw new UserSafeException(ServicesStrings.UserNotFound);
+            }
+
+            if (!user.IsDeleted)
+            {
+                throw new UserSafeException(ServicesStrings.RenameDeletedAccount_NotDeleted);
+            }
+
+            var accountDelete = AccountDeleteRepository
+                .GetAll()
+                .Where(d => d.DeletedAccountKey == user.Key)
+                .Single();
+
+            if (accountDelete.WasUsernameReleased)
+            {
+                throw new UserSafeException(ServicesStrings.RenameDeletedAccount_AlreadyRenamed);
+            }
+
+            user.Username = Guid.NewGuid().ToString();
+            accountDelete.WasUsernameReleased = true;
+
+            return AccountDeleteRepository.CommitChangesAsync();
         }
     }
 }
