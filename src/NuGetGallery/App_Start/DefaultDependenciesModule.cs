@@ -897,16 +897,6 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder
-                .Register(c => new HijackSearchServiceFactory(
-                    c.Resolve<HttpContextBase>(),
-                    c.Resolve<IFeatureFlagService>(),
-                    c.Resolve<IContentObjectService>(),
-                    c.Resolve<ISearchService>(),
-                    c.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
-                .As<IHijackSearchServiceFactory>()
-                .InstancePerLifetimeScope();
-
-            builder
                 .Register(c => new SearchServiceFactory(
                     c.Resolve<ISearchService>(),
                     c.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
