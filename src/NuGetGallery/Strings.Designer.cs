@@ -1076,6 +1076,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You have been logged out as your NuGet account was deleted. Please contact support if this is unexpected..
+        /// </summary>
+        public static string LoggedInUserDeleted {
+            get {
+                return ResourceManager.GetString("LoggedInUserDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of this package..
         /// </summary>
         public static string ManagePackageOwners_AlreadyPending {
