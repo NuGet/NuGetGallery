@@ -897,11 +897,20 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder
-                .RegisterType<PackagesController>()
-                .WithParameter(new ResolvedParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(ISearchService) && pi.Name == ParameterNames.PackagesController_PreviewSearchService,
-                    (pi, ctx) => ctx.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
-                .As<PackagesController>()
+                .Register(c => new HijackSearchServiceFactory(
+                    c.Resolve<HttpContextBase>(),
+                    c.Resolve<IFeatureFlagService>(),
+                    c.Resolve<IContentObjectService>(),
+                    c.Resolve<ISearchService>(),
+                    c.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
+                .As<IHijackSearchServiceFactory>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(c => new SearchServiceFactory(
+                    c.Resolve<ISearchService>(),
+                    c.ResolveKeyed<ISearchService>(BindingKeys.PreviewSearchClient)))
+                .As<ISearchServiceFactory>()
                 .InstancePerLifetimeScope();
         }
 

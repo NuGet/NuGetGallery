@@ -92,8 +92,11 @@ namespace NuGetGallery
             messageService = messageService ?? new Mock<IMessageService>();
 
             searchService = searchService ?? new Mock<ISearchService>();
-
             previewSearchService = previewSearchService ?? new Mock<ISearchService>();
+
+            var searchServiceFactory = new Mock<ISearchServiceFactory>();
+            searchServiceFactory.Setup(x => x.GetService()).Returns(() => searchService.Object);
+            searchServiceFactory.Setup(x => x.GetPreviewService()).Returns(() => previewSearchService.Object);
 
             if (packageFileService == null)
             {
@@ -216,8 +219,7 @@ namespace NuGetGallery
                 uploadFileService.Object,
                 userService.Object,
                 messageService.Object,
-                searchService.Object,
-                previewSearchService.Object,
+                searchServiceFactory.Object,
                 packageFileService.Object,
                 entitiesContext.Object,
                 configurationService.Current,
@@ -330,30 +332,6 @@ namespace NuGetGallery
                     type, message: new PlainTextOnlyValidationMessage("Something"), warnings: null));
 
             return fakePackageUploadService;
-        }
-
-        public class TheConstructor
-            : TestContainer
-        {
-            /// <summary>
-            /// This test is to verify that the preview search service parameter name for the constructor has the
-            /// expected value. This is necessary because the dependency injection configuration uses the parameter
-            /// name to identify which search service should be preview implementation.
-            /// </summary>
-            [Fact]
-            public void HasPreviewSearchServiceParameter()
-            {
-                var type = typeof(PackagesController);
-
-                var constructors = type.GetConstructors();
-                var constructor = Assert.Single(constructors);
-
-                var parameters = constructor.GetParameters();
-                var parameter = Assert.Single(
-                    parameters,
-                    p => p.Name == DefaultDependenciesModule.ParameterNames.PackagesController_PreviewSearchService);
-                Assert.Equal(typeof(ISearchService), parameter.ParameterType);
-            }
         }
 
         public class TheCancelVerifyPackageAction
