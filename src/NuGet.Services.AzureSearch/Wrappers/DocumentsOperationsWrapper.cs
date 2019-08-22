@@ -26,10 +26,7 @@ namespace NuGet.Services.AzureSearch.Wrappers
 
         public async Task<DocumentIndexResult> IndexAsync<T>(IndexBatch<T> batch) where T : class
         {
-            return await RetryAsync(
-                nameof(IndexAsync),
-                () => _inner.IndexAsync(batch),
-                allow404: false);
+            return await _inner.IndexAsync(batch);
         }
 
         public async Task<T> GetOrNullAsync<T>(string key) where T : class
