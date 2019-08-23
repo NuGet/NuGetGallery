@@ -22,31 +22,64 @@ namespace NuGet.Services.AzureSearch.Wrappers
 {
     public class DocumentOperationsWrapperFacts
     {
-        public class IndexAsync : Facts<DocumentIndexResult>
+        public class IndexAsync : Facts
         {
             public IndexAsync(ITestOutputHelper output) : base(output)
             {
             }
 
-            public override bool TreatsNotFoundAsDefault => false;
-
-            public override async Task<DocumentIndexResult> ExecuteAsync()
+            [Fact]
+            public async Task DoesNotHandleNotFoundException()
             {
-                return await Target.IndexAsync(new IndexBatch<object>(Enumerable.Empty<IndexAction<object>>()));
-            }
-
-            public override IReturns<IDocumentsOperations, Task<AzureOperationResponse<DocumentIndexResult>>> Setup()
-            {
-                return DocumentOperations
+                DocumentOperations
                     .Setup(x => x.IndexWithHttpMessagesAsync(
                         It.IsAny<IndexBatch<object>>(),
                         It.IsAny<SearchRequestOptions>(),
                         It.IsAny<Dictionary<string, List<string>>>(),
-                        It.IsAny<CancellationToken>()));
+                        It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(new CloudException
+                    {
+                        Response = new HttpResponseMessageWrapper(new HttpResponseMessage(HttpStatusCode.NotFound), string.Empty),
+                    });
+
+                await Assert.ThrowsAsync<CloudException>(
+                    () => Target.IndexAsync(new IndexBatch<object>(Enumerable.Empty<IndexAction<object>>())));
+            }
+
+            [Fact]
+            public async Task DoesNotWrapIndexBatchException()
+            {
+                DocumentOperations
+                    .Setup(x => x.IndexWithHttpMessagesAsync(
+                        It.IsAny<IndexBatch<object>>(),
+                        It.IsAny<SearchRequestOptions>(),
+                        It.IsAny<Dictionary<string, List<string>>>(),
+                        It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(new IndexBatchException(new DocumentIndexResult(new List<IndexingResult>())));
+
+                await Assert.ThrowsAsync<IndexBatchException>(
+                    () => Target.IndexAsync(new IndexBatch<object>(Enumerable.Empty<IndexAction<object>>())));
+            }
+
+            [Fact]
+            public async Task DoesNotRetryOnNullReferenceException()
+            {
+                DocumentOperations
+                    .Setup(x => x.IndexWithHttpMessagesAsync(
+                        It.IsAny<IndexBatch<object>>(),
+                        It.IsAny<SearchRequestOptions>(),
+                        It.IsAny<Dictionary<string, List<string>>>(),
+                        It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(new NullReferenceException());
+
+                var ex = await Assert.ThrowsAsync<NullReferenceException>(
+                    () => Target.IndexAsync(new IndexBatch<object>(Enumerable.Empty<IndexAction<object>>())));
+
+                Assert.Equal(1, DocumentOperations.Invocations.Count);
             }
         }
 
-        public class GetOrNullAsyncOfT : Facts<object>
+        public class GetOrNullAsyncOfT : RetryFacts<object>
         {
             public GetOrNullAsyncOfT(ITestOutputHelper output) : base(output)
             {
@@ -71,7 +104,7 @@ namespace NuGet.Services.AzureSearch.Wrappers
             }
         }
 
-        public class SearchAsync : Facts<DocumentSearchResult>
+        public class SearchAsync : RetryFacts<DocumentSearchResult>
         {
             public SearchAsync(ITestOutputHelper output) : base(output)
             {
@@ -96,7 +129,7 @@ namespace NuGet.Services.AzureSearch.Wrappers
             }
         }
 
-        public class SearchAsyncOfT : Facts<DocumentSearchResult<object>>
+        public class SearchAsyncOfT : RetryFacts<DocumentSearchResult<object>>
         {
             public SearchAsyncOfT(ITestOutputHelper output) : base(output)
             {
@@ -121,7 +154,7 @@ namespace NuGet.Services.AzureSearch.Wrappers
             }
         }
 
-        public class CountAsync : Facts<long>
+        public class CountAsync : RetryFacts<long>
         {
             public CountAsync(ITestOutputHelper output) : base(output)
             {
@@ -144,21 +177,11 @@ namespace NuGet.Services.AzureSearch.Wrappers
             }
         }
 
-        public abstract class Facts<T>
+        public abstract class RetryFacts<T> : Facts
         {
-            public Facts(ITestOutputHelper output)
+            public RetryFacts(ITestOutputHelper output) : base(output)
             {
-                DocumentOperations = new Mock<IDocumentsOperations>();
-                Logger = output.GetLogger<DocumentsOperationsWrapper>();
-
-                Target = new DocumentsOperationsWrapper(
-                    DocumentOperations.Object,
-                    Logger);
             }
-
-            public Mock<IDocumentsOperations> DocumentOperations { get; }
-            public RecordingLogger<DocumentsOperationsWrapper> Logger { get; }
-            public DocumentsOperationsWrapper Target { get; }
 
             [Fact]
             public async Task HandlesNotFoundException()
@@ -196,6 +219,23 @@ namespace NuGet.Services.AzureSearch.Wrappers
             public abstract bool TreatsNotFoundAsDefault { get; }
             public abstract IReturns<IDocumentsOperations, Task<AzureOperationResponse<T>>> Setup();
             public abstract Task<T> ExecuteAsync();
+        }
+
+        public abstract class Facts
+        {
+            public Facts(ITestOutputHelper output)
+            {
+                DocumentOperations = new Mock<IDocumentsOperations>();
+                Logger = output.GetLogger<DocumentsOperationsWrapper>();
+
+                Target = new DocumentsOperationsWrapper(
+                    DocumentOperations.Object,
+                    Logger);
+            }
+
+            public Mock<IDocumentsOperations> DocumentOperations { get; }
+            public RecordingLogger<DocumentsOperationsWrapper> Logger { get; }
+            public DocumentsOperationsWrapper Target { get; }
         }
     }
 }
