@@ -9,7 +9,6 @@ namespace NuGetGallery
     public interface IContentService
     {
         Task<IHtmlString> GetContentItemAsync(string name, TimeSpan expiresIn);
-        Task<IHtmlString> GetContentItemAsync(string name, string extension, TimeSpan expiresIn);
         void ClearCache();
     }
 }
