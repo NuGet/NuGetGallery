@@ -2279,6 +2279,10 @@ namespace NuGetGallery
                     .Setup(x => x.CommitChangesAsync())
                     .Verifiable();
 
+                userService.MockAccountDeleteRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .Completes();
+
                 await userService.RenameDeletedAccount(user);
 
                 userService.MockAccountDeleteRepository.Verify();
