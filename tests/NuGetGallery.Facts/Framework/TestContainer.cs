@@ -42,6 +42,7 @@ namespace NuGetGallery.Framework
 
             var routeCollection = new RouteCollection();
             Routes.RegisterRoutes(routeCollection);
+            TestUtility.RegisterAdminRoutes(routeCollection);
             c.Url = new UrlHelper(c.ControllerContext.RequestContext, routeCollection);
 
             var appCtrl = c as AppController;
