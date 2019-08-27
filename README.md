@@ -14,7 +14,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
         * Azure development
     2. PowerShell 4.0
     3. SQL Server 2016
-        * For development purposes the ConnectionString points to `(localdb)\mssqllocaldb`, make sure that the version is 13.0 or greater (use `sqllocaldb info mssqllocaldb`)
+        * For development purposes connection strings point to `(localdb)\mssqllocaldb`, make sure that the DB engine version 13.0 or greater is being used (check by running `sqllocaldb info mssqllocaldb` in the command line).
 2. Clone it!
     
     ```PS C:\Code> git clone https://github.com/NuGet/NuGetGallery.git```
