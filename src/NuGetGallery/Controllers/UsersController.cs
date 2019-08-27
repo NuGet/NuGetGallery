@@ -379,10 +379,7 @@ namespace NuGetGallery
                 return RedirectToAction("DeleteRequest");
             }
             OwinContext.Authentication.SignOut();
-            TempData = new TempDataDictionary
-                {
-                    { "Message", Strings.AccountDelete_SelfServiceSuccess }
-                };
+            TempData["Message"] = Strings.AccountDelete_SelfServiceSuccess;
             return SafeRedirect(Url.Home(false));
         }
 
