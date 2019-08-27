@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
@@ -412,6 +413,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
+        public async Task IgnoresCheckValidatorWhenFeatureFlagIsOff()
+        {
+            FeatureFlagService.Setup(x => x.IsQueueBackEnabled()).Returns(false);
+
+            var handler = CreateHandler();
+            await handler.HandleAsync(CheckValidatorData);
+
+            ValidationSetProcessorMock
+                .Verify(vsp => vsp.ProcessValidationsAsync(ValidationSet), Times.Never());
+        }
+
+        [Fact]
         public async Task CallsProcessValidationOutcomeForCheckValidator()
         {
             var handler = CreateHandler();
@@ -438,8 +451,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IValidationSetProvider<Package>> ValidationSetProviderMock { get; }
         protected Mock<IValidationSetProcessor> ValidationSetProcessorMock { get; }
         protected Mock<IValidationOutcomeProcessor<Package>> ValidationOutcomeProcessorMock { get; }
+        protected Mock<IFeatureFlagService> FeatureFlagService { get; }
         protected Mock<ITelemetryService> TelemetryServiceMock { get; }
-        public ILogger<PackageValidationMessageHandler> Logger { get; }
+        protected ILogger<PackageValidationMessageHandler> Logger { get; }
 
         public ValidationMessageHandlerFactsBase(
             ITestOutputHelper output,
@@ -450,7 +464,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSetProviderMock = new Mock<IValidationSetProvider<Package>>(mockBehavior);
             ValidationSetProcessorMock = new Mock<IValidationSetProcessor>(mockBehavior);
             ValidationOutcomeProcessorMock = new Mock<IValidationOutcomeProcessor<Package>>(mockBehavior);
+            FeatureFlagService = new Mock<IFeatureFlagService>(mockBehavior);
             TelemetryServiceMock = new Mock<ITelemetryService>(mockBehavior);
+
+            FeatureFlagService.Setup(x => x.IsQueueBackEnabled()).Returns(true);
 
             // we generally don't care about how logger is called, so don't make a strict mock.
             Logger = new LoggerFactory().AddXunit(output).CreateLogger<PackageValidationMessageHandler>();
@@ -468,6 +485,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSetProviderMock.Object,
                 ValidationSetProcessorMock.Object,
                 ValidationOutcomeProcessorMock.Object,
+                FeatureFlagService.Object,
                 TelemetryServiceMock.Object,
                 Logger);
         }

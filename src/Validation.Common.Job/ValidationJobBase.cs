@@ -124,7 +124,7 @@ namespace NuGet.Jobs.Validation
                 .As<IPackageValidationEnqueuer>();
         }
 
-        private static void ConfigureFeatureFlagServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        public static void ConfigureFeatureFlagServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<FeatureFlagConfiguration>(configurationRoot.GetSection(FeatureFlagConfigurationSectionName));
 
@@ -145,7 +145,7 @@ namespace NuGet.Jobs.Validation
             services.AddSingleton<IFeatureFlagCacheService, FeatureFlagCacheService>();
         }
 
-        private void ConfigureFeatureFlagAutofacServices(ContainerBuilder containerBuilder)
+        public static void ConfigureFeatureFlagAutofacServices(ContainerBuilder containerBuilder)
         {
             containerBuilder
                 .Register(c =>
@@ -189,7 +189,7 @@ namespace NuGet.Jobs.Validation
             });
         }
 
-        private BlobRequestOptions GetFeatureFlagBlobRequestOptions()
+        private static BlobRequestOptions GetFeatureFlagBlobRequestOptions()
         {
             return new BlobRequestOptions
             {
