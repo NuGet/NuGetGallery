@@ -144,7 +144,6 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Stats.AggregateCdnDownloadsInGallery/Stats.AggregateCdnDownloadsInGallery.csproj", `
             "src/Stats.ImportAzureCdnStatistics/Stats.ImportAzureCdnStatistics.csproj", `
             "src/Stats.CreateAzureCdnWarehouseReports/Stats.CreateAzureCdnWarehouseReports.csproj", `
-            "src/UpdateLicenseReports/UpdateLicenseReports.csproj", `
             "src/Gallery.CredentialExpiration/Gallery.CredentialExpiration.csproj", `
             "src/Gallery.Maintenance/Gallery.Maintenance.nuspec", `
             "src/ArchivePackages/ArchivePackages.csproj", `
