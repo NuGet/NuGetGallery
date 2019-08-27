@@ -97,6 +97,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your account is being deleted. You have been logged out..
+        /// </summary>
+        public static string AccountDelete_SelfServiceSuccess {
+            get {
+                return ResourceManager.GetString("AccountDelete_SelfServiceSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The account &apos;{0}&apos; was deleted succesfully..
         /// </summary>
         public static string AccountDelete_Success {
