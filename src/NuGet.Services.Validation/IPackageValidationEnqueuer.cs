@@ -9,16 +9,16 @@ namespace NuGet.Services.Validation
     public interface IPackageValidationEnqueuer
     {
         /// <summary>
-        /// Enqueues validation of the specified package to start ASAP.
+        /// Enqueues a package validation message to be consumed as soon as possible.
         /// </summary>
-        /// <param name="message">Package information</param>
-        Task StartValidationAsync(PackageValidationMessageData message);
-        
+        /// <param name="message">Package validation information</param>
+        Task SendMessageAsync(PackageValidationMessageData message);
+
         /// <summary>
-        /// Enqueues validation of the specified package to start no sooner than specified time
+        /// Enqueues a package validation message to be consumed no sooner than the specified time.
         /// </summary>
-        /// <param name="message">Package information</param>
-        /// <param name="postponeProcessingTill">The time till which validation processing should be postponed.</param>
-        Task StartValidationAsync(PackageValidationMessageData message, DateTimeOffset postponeProcessingTill);
+        /// <param name="message">Package validation information</param>
+        /// <param name="postponeProcessingTill">The time that validation processing should be postponed.</param>
+        Task SendMessageAsync(PackageValidationMessageData message, DateTimeOffset postponeProcessingTill);
     }
 }

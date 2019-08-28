@@ -18,12 +18,12 @@ namespace NuGet.Services.Validation
             _serializer = serializer;
         }
 
-        public async Task StartValidationAsync(PackageValidationMessageData message)
+        public async Task SendMessageAsync(PackageValidationMessageData message)
         {
-            await StartValidationAsync(message, DateTimeOffset.MinValue);
+            await SendMessageAsync(message, DateTimeOffset.MinValue);
         }
 
-        public async Task StartValidationAsync(PackageValidationMessageData message, DateTimeOffset postponeProcessingTill)
+        public async Task SendMessageAsync(PackageValidationMessageData message, DateTimeOffset postponeProcessingTill)
         {
             var brokeredMessage = _serializer.SerializePackageValidationMessageData(message);
             brokeredMessage.ScheduledEnqueueTimeUtc = postponeProcessingTill;
