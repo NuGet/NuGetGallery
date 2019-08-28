@@ -42,7 +42,9 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         private ICloudBlobContainer Container => _lazyContainer.Value;
 
-        public async Task<ResultAndAccessCondition<HashSet<string>>> ReadLatestAsync()
+        public async Task<AuxiliaryFileResult<HashSet<string>>> ReadLatestAsync(
+            IAccessCondition accessCondition,
+            StringCache stringCache)
         {
             var stopwatch = Stopwatch.StartNew();
             var blobName = GetLatestIndexedBlobName();
@@ -50,30 +52,37 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
             _logger.LogInformation("Reading the latest verified packages from {BlobName}.", blobName);
 
-            IAccessCondition accessCondition;
+            bool modified;
             var data = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AuxiliaryFileMetadata metadata;
             try
             {
-                using (var stream = await blobReference.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
+                using (var stream = await blobReference.OpenReadAsync(accessCondition))
                 {
-                    accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blobReference.ETag);
-                    ReadStream(stream, id => data.Add(id));
+                    ReadStream(stream, id => data.Add(stringCache.Dedupe(id)));
+                    modified = true;
+                    metadata = new AuxiliaryFileMetadata(
+                        lastModified: new DateTimeOffset(blobReference.LastModifiedUtc, TimeSpan.Zero),
+                        loadDuration: stopwatch.Elapsed,
+                        fileSize: blobReference.Properties.Length,
+                        etag: blobReference.ETag);
                 }
             }
-            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotModified)
             {
-                accessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
-                _logger.LogInformation("The blob {BlobName} does not exist.", blobName);
+                _logger.LogInformation("The blob {BlobName} has not changed.", blobName);
+                modified = false;
+                data = null;
+                metadata = null;
             }
 
-            var output = new ResultAndAccessCondition<HashSet<string>>(
-                data,
-                accessCondition);
-
             stopwatch.Stop();
-            _telemetryService.TrackReadLatestVerifiedPackages(output.Result.Count, stopwatch.Elapsed);
+            _telemetryService.TrackReadLatestVerifiedPackages(data?.Count, modified, stopwatch.Elapsed);
 
-            return output;
+            return new AuxiliaryFileResult<HashSet<string>>(
+                modified,
+                data,
+                metadata);
         }
 
         public async Task ReplaceLatestAsync(
@@ -85,15 +94,9 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var blobName = GetLatestIndexedBlobName();
                 _logger.LogInformation("Replacing the latest verified packages from {BlobName}.", blobName);
 
-                var mappedAccessCondition = new AccessCondition
-                {
-                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                    IfMatchETag = accessCondition.IfMatchETag,
-                };
-
                 var blobReference = Container.GetBlobReference(blobName);
 
-                using (var stream = await blobReference.OpenWriteAsync(mappedAccessCondition))
+                using (var stream = await blobReference.OpenWriteAsync(accessCondition))
                 using (var streamWriter = new StreamWriter(stream))
                 using (var jsonTextWriter = new JsonTextWriter(streamWriter))
                 {

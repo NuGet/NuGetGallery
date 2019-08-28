@@ -6,8 +6,8 @@ namespace NuGet.Services.AzureSearch.SearchService
     public interface IAuxiliaryData
     {
         AuxiliaryFilesMetadata Metadata { get; }
-        int GetDownloadCount(string id, string normalizedVersion);
-        int GetTotalDownloadCount(string id);
+        long GetDownloadCount(string id, string normalizedVersion);
+        long GetTotalDownloadCount(string id);
         bool IsVerified(string id);
     }
 }

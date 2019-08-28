@@ -3,6 +3,7 @@
 
 using System;
 using Newtonsoft.Json;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
@@ -11,12 +12,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         [JsonConstructor]
         public AuxiliaryFileMetadata(
             DateTimeOffset lastModified,
-            DateTimeOffset loaded,
             TimeSpan loadDuration,
             long fileSize,
             string etag)
         {
-            Loaded = loaded;
             LastModified = lastModified;
             LoadDuration = loadDuration;
             FileSize = fileSize;
@@ -24,9 +23,13 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         }
 
         public DateTimeOffset LastModified { get; }
-        public DateTimeOffset Loaded { get; }
         public TimeSpan LoadDuration { get; }
         public long FileSize { get; }
         public string ETag { get; }
+
+        public IAccessCondition GetIfMatchCondition()
+        {
+            return AccessConditionWrapper.GenerateIfMatchCondition(ETag);
+        }
     }
 }

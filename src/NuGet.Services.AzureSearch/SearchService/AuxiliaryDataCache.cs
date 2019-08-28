@@ -8,25 +8,31 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
+using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
     public class AuxiliaryDataCache : IAuxiliaryDataCache
     {
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
-        private readonly IAuxiliaryFileClient _client;
+        private readonly IDownloadDataClient _downloadDataClient;
+        private readonly IVerifiedPackagesDataClient _verifiedPackagesDataClient;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AuxiliaryDataCache> _logger;
+        private readonly StringCache _stringCache;
         private AuxiliaryData _data;
 
         public AuxiliaryDataCache(
-            IAuxiliaryFileClient client,
+            IDownloadDataClient downloadDataClient,
+            IVerifiedPackagesDataClient verifiedPackagesDataClient,
             IAzureSearchTelemetryService telemetryService,
             ILogger<AuxiliaryDataCache> logger)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _downloadDataClient = downloadDataClient ?? throw new ArgumentNullException(nameof(downloadDataClient));
+            _verifiedPackagesDataClient = verifiedPackagesDataClient ?? throw new ArgumentNullException(nameof(verifiedPackagesDataClient));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _stringCache = new StringCache();
         }
 
         public bool Initialized => _data != null;
@@ -68,8 +74,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     // Load the auxiliary files in parallel.
                     const string downloadsName = nameof(_data.Downloads);
                     const string verifiedPackagesName = nameof(_data.VerifiedPackages);
-                    var downloadsTask = LoadAsync(_data?.Downloads, _client.LoadDownloadsAsync);
-                    var verifiedPackagesTask = LoadAsync(_data?.VerifiedPackages, _client.LoadVerifiedPackagesAsync);
+                    var downloadsTask = LoadAsync(_data?.Downloads, _downloadDataClient.ReadLatestIndexedAsync);
+                    var verifiedPackagesTask = LoadAsync(_data?.VerifiedPackages, _verifiedPackagesDataClient.ReadLatestAsync);
                     await Task.WhenAll(downloadsTask, verifiedPackagesTask);
                     var downloads = await downloadsTask;
                     var verifiedPackages = await verifiedPackagesTask;
@@ -81,7 +87,18 @@ namespace NuGet.Services.AzureSearch.SearchService
                     (ReferenceEquals(_data?.VerifiedPackages, verifiedPackages) ? notModifiedNames : reloadedNames).Add(verifiedPackagesName);
 
                     // Reference assignment is atomic, so this is what makes the data available for readers.
-                    _data = new AuxiliaryData(downloads, verifiedPackages);
+                    _data = new AuxiliaryData(
+                        DateTimeOffset.UtcNow,
+                        downloads,
+                        verifiedPackages);
+
+                    // Track the counts regarding the string cache status.
+                    _telemetryService.TrackAuxiliaryFilesStringCache(
+                        _stringCache.StringCount,
+                        _stringCache.CharCount,
+                        _stringCache.RequestCount,
+                        _stringCache.HitCount);
+                    _stringCache.ResetCounts();
 
                     stopwatch.Stop();
                     _telemetryService.TrackAuxiliaryFilesReload(reloadedNames, notModifiedNames, stopwatch.Elapsed);
@@ -103,18 +120,28 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private async Task<AuxiliaryFileResult<T>> LoadAsync<T>(
             AuxiliaryFileResult<T> previousResult,
-            Func<string, Task<AuxiliaryFileResult<T>>> getResult) where T : class
+            Func<IAccessCondition, StringCache, Task<AuxiliaryFileResult<T>>> getResult) where T : class
         {
             await Task.Yield();
-            var inputETag = previousResult?.Metadata.ETag;
-            var newResult = await getResult(inputETag);
-            if (newResult.NotModified)
+
+            IAccessCondition accessCondition;
+            if (previousResult == null)
             {
-                return previousResult;
+                accessCondition = AccessConditionWrapper.GenerateEmptyCondition();
             }
             else
             {
+                accessCondition = AccessConditionWrapper.GenerateIfNoneMatchCondition(previousResult.Metadata.ETag);
+            }
+
+            var newResult = await getResult(accessCondition, _stringCache);
+            if (newResult.Modified)
+            {
                 return newResult;
+            }
+            else
+            {
+                return previousResult;
             }
         }
 

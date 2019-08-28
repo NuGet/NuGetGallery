@@ -9,17 +9,8 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class DownloadData : IReadOnlyDictionary<string, DownloadByVersionData>
     {
-        /// <summary>
-        /// Maintain a lookup of version strings for de-duping. We maintain the original case for de-duping purposes
-        /// by using the default string comparer. As of July of 2019 in PROD, maintaining original case adds less than
-        /// 0.3% extra strings. De-duping version strings in general however removes 87.0% of the string allocations.
-        /// Intuitively this means most people use the same case of a given version string and a lot of people use
-        /// the same versions strings (common ones are 1.0.0, 1.0.1, 1.0.2, 1.1.0, etc).
-        /// </summary>
-        private readonly Dictionary<string, string> _uniqueVersions = new Dictionary<string, string>();
-
-        private readonly SortedDictionary<string, DownloadByVersionData> _ids
-            = new SortedDictionary<string, DownloadByVersionData>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, DownloadByVersionData> _ids
+            = new Dictionary<string, DownloadByVersionData>(StringComparer.OrdinalIgnoreCase);
 
         public long GetDownloadCount(string id)
         {
@@ -59,13 +50,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 versions = new DownloadByVersionData();
             }
 
-            if (!_uniqueVersions.TryGetValue(version, out var dedupedVersion))
-            {
-                _uniqueVersions.Add(version, version);
-                dedupedVersion = version;
-            }
-
-            versions.SetDownloadCount(dedupedVersion, downloads);
+            versions.SetDownloadCount(version, downloads);
 
             // Only store the download count if the value is not zero.
             if (versions.Total != 0)

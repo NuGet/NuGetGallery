@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -43,9 +42,8 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         public async Task<DownloadData> LoadDownloadDataAsync()
         {
-            var result = await LoadAuxiliaryFileAsync(
+            return await LoadAuxiliaryFileAsync(
                 _options.Value.AuxiliaryDataStorageDownloadsPath,
-                etag: null,
                 loadData: loader =>
                 {
                     var downloadData = new DownloadData();
@@ -57,108 +55,55 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                     return downloadData;
                 });
-
-            // Discard the etag and other metadata since this API is only ever used to read the latest data.
-            return result.Data;
         }
 
-        public async Task<AuxiliaryFileResult<Downloads>> LoadDownloadsAsync(string etag)
-        {
-            return await LoadAuxiliaryFileAsync(
-                _options.Value.AuxiliaryDataStorageDownloadsPath,
-                etag,
-                loader =>
-                {
-                    var downloads = new Downloads();
-                    downloads.Load(
-                        name: null,
-                        loader: loader,
-                        logger: _logger);
-                    return downloads;
-                });
-        }
-
-        public async Task<AuxiliaryFileResult<HashSet<string>>> LoadVerifiedPackagesAsync(string etag)
+        public async Task<HashSet<string>> LoadVerifiedPackagesAsync()
         {
             return await LoadAuxiliaryFileAsync(
                 _options.Value.AuxiliaryDataStorageVerifiedPackagesPath,
-                etag,
                 loader => JsonStringArrayFileParser.Load(
                     fileName: null,
                     loader: loader,
                     logger: _logger));
         }
 
-        public async Task<AuxiliaryFileResult<HashSet<string>>> LoadExcludedPackagesAsync(string etag)
+        public async Task<HashSet<string>> LoadExcludedPackagesAsync()
         {
             return await LoadAuxiliaryFileAsync(
                 _options.Value.AuxiliaryDataStorageExcludedPackagesPath,
-                etag,
                 loader => JsonStringArrayFileParser.Load(
                     fileName: null,
                     loader: loader,
                     logger: _logger));
         }
 
-        private async Task<AuxiliaryFileResult<T>> LoadAuxiliaryFileAsync<T>(
+        private async Task<T> LoadAuxiliaryFileAsync<T>(
             string blobName,
-            string etag,
             Func<ILoader, T> loadData) where T : class
         {
             _logger.LogInformation(
-                "Attempted to load blob {BlobName} as {TypeName} with etag {ETag}.",
+                "Attempted to load blob {BlobName} as {TypeName}.",
                 blobName,
-                typeof(T).FullName,
-                etag);
+                typeof(T).FullName);
 
             var stopwatch = Stopwatch.StartNew();
             var blob = Container.GetBlobReference(blobName);
-            var condition = etag != null ? AccessCondition.GenerateIfNoneMatchCondition(etag) : null;
-            try
+            using (var stream = await blob.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
+            using (var textReader = new StreamReader(stream))
+            using (var jsonReader = new JsonTextReader(textReader))
             {
-                using (var stream = await blob.OpenReadAsync(condition))
-                using (var textReader = new StreamReader(stream))
-                using (var jsonReader = new JsonTextReader(textReader))
-                {
-                    var loader = new LoaderAdapter(jsonReader);
-                    var data = loadData(loader);
-                    stopwatch.Stop();
-
-                    _telemetryService.TrackAuxiliaryFileDownloaded(blobName, stopwatch.Elapsed);
-                    _logger.LogInformation(
-                        "Loaded blob {BlobName} with etag {OldETag}. New etag is {NewETag}. Took {Duration}.",
-                        blobName,
-                        etag,
-                        blob.ETag,
-                        stopwatch.Elapsed);
-
-                    return new AuxiliaryFileResult<T>(
-                        notModified: false,
-                        data: data,
-                        metadata: new AuxiliaryFileMetadata(
-                            lastModified: new DateTimeOffset(blob.LastModifiedUtc, TimeSpan.Zero),
-                            loaded: DateTimeOffset.UtcNow,
-                            loadDuration: stopwatch.Elapsed,
-                            fileSize: blob.Properties.Length,
-                            etag: blob.ETag));
-                };
-            }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.NotModified)
-            {
+                var loader = new LoaderAdapter(jsonReader);
+                var data = loadData(loader);
                 stopwatch.Stop();
 
-                _telemetryService.TrackAuxiliaryFileNotModified(blobName, stopwatch.Elapsed);
+                _telemetryService.TrackAuxiliaryFileDownloaded(blobName, stopwatch.Elapsed);
                 _logger.LogInformation(
-                    "Blob {BlobName} has not changed from the previous etag {ETag}. Took {Duration}.",
+                    "Loaded blob {BlobName}. Took {Duration}.",
                     blobName,
-                    etag,
                     stopwatch.Elapsed);
 
-                return new AuxiliaryFileResult<T>(
-                    notModified: true,
-                    data: null,
-                    metadata: null);
-            }
+                return data;
+            };
         }
 
         /// <summary>

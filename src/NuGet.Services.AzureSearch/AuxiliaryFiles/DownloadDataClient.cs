@@ -41,7 +41,9 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         private ICloudBlobContainer Container => _lazyContainer.Value;
 
-        public async Task<ResultAndAccessCondition<DownloadData>> ReadLatestIndexedAsync()
+        public async Task<AuxiliaryFileResult<DownloadData>> ReadLatestIndexedAsync(
+            IAccessCondition accessCondition,
+            StringCache stringCache)
         {
             var stopwatch = Stopwatch.StartNew();
             var blobName = GetLatestIndexedBlobName();
@@ -49,28 +51,44 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
             _logger.LogInformation("Reading the latest indexed downloads from {BlobName}.", blobName);
 
+            bool modified;
             var downloads = new DownloadData();
-            IAccessCondition accessCondition;
+            AuxiliaryFileMetadata metadata;
             try
             {
-                using (var stream = await blobReference.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
+                using (var stream = await blobReference.OpenReadAsync(accessCondition))
                 {
-                    accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blobReference.ETag);
-                    ReadStream(stream, downloads.SetDownloadCount);
+                    ReadStream(
+                        stream,
+                        (id, version, downloadCount) =>
+                        {
+                            id = stringCache.Dedupe(id);
+                            version = stringCache.Dedupe(version);
+                            downloads.SetDownloadCount(id, version, downloadCount);
+                        });
+                    modified = true;
+                    metadata = new AuxiliaryFileMetadata(
+                        lastModified: new DateTimeOffset(blobReference.LastModifiedUtc, TimeSpan.Zero),
+                        loadDuration: stopwatch.Elapsed,
+                        fileSize: blobReference.Properties.Length,
+                        etag: blobReference.ETag);
                 }
             }
-            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotModified)
             {
-                accessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
-                _logger.LogInformation("The blob {BlobName} does not exist.", blobName);
+                _logger.LogInformation("The blob {BlobName} has not changed.", blobName);
+                modified = false;
+                downloads = null;
+                metadata = null;
             }
 
-            var output = new ResultAndAccessCondition<DownloadData>(downloads, accessCondition);
-
             stopwatch.Stop();
-            _telemetryService.TrackReadLatestIndexedDownloads(output.Result.Count, stopwatch.Elapsed);
+            _telemetryService.TrackReadLatestIndexedDownloads(downloads?.Count, modified, stopwatch.Elapsed);
 
-            return output;
+            return new AuxiliaryFileResult<DownloadData>(
+                modified,
+                downloads,
+                metadata);
         }
 
         public async Task ReplaceLatestIndexedAsync(
@@ -82,15 +100,9 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var blobName = GetLatestIndexedBlobName();
                 _logger.LogInformation("Replacing the latest indexed downloads from {BlobName}.", blobName);
 
-                var mappedAccessCondition = new AccessCondition
-                {
-                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
-                    IfMatchETag = accessCondition.IfMatchETag,
-                };
-
                 var blobReference = Container.GetBlobReference(blobName);
 
-                using (var stream = await blobReference.OpenWriteAsync(mappedAccessCondition))
+                using (var stream = await blobReference.OpenWriteAsync(accessCondition))
                 using (var streamWriter = new StreamWriter(stream))
                 using (var jsonTextWriter = new JsonTextWriter(streamWriter))
                 {

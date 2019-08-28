@@ -10,7 +10,6 @@ namespace NuGet.Services.AzureSearch
     public interface IAzureSearchTelemetryService
     {
         void TrackAuxiliaryFileDownloaded(string blobName, TimeSpan elapsed);
-        void TrackAuxiliaryFileNotModified(string blobName, TimeSpan elapsed);
         void TrackAuxiliaryFilesReload(IReadOnlyList<string> reloadedNames, IReadOnlyList<string> notModifiedNames, TimeSpan elapsed);
         IDisposable TrackGetLatestLeaves(string packageId, int requestedVersions);
         void TrackGetOwnersForPackageId(int ownerCount, TimeSpan elapsed);
@@ -44,13 +43,14 @@ namespace NuGet.Services.AzureSearch
         void TrackWarmQuery(string indexName, TimeSpan elapsed);
         void TrackLastCommitTimestampQuery(string indexName, DateTimeOffset? lastCommitTimestamp, TimeSpan elapsed);
         IDisposable TrackCatalogLeafDownloadBatch(int count);
-        void TrackReadLatestIndexedDownloads(int packageIdCount, TimeSpan elapsed);
+        void TrackReadLatestIndexedDownloads(int? packageIdCount, bool notModified, TimeSpan elapsed);
         IDisposable TrackReplaceLatestIndexedDownloads(int packageIdCount);
         void TrackAuxiliary2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed);
         void TrackV3GetDocument(TimeSpan elapsed);
         void TrackV2GetDocumentWithSearchIndex(TimeSpan elapsed);
         void TrackV2GetDocumentWithHijackIndex(TimeSpan elapsed);
-        void TrackReadLatestVerifiedPackages(int packageIdCount, TimeSpan elapsed);
+        void TrackReadLatestVerifiedPackages(int? packageIdCount, bool notModified, TimeSpan elapsed);
         IDisposable TrackReplaceLatestVerifiedPackages(int packageIdCount);
+        void TrackAuxiliaryFilesStringCache(int stringCount, long charCount, int requestCount, int hitCount);
     }
 }

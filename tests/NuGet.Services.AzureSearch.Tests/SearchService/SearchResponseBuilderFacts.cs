@@ -161,16 +161,15 @@ namespace NuGet.Services.AzureSearch.SearchService
   },
   ""QueryDuration"": ""00:00:00.2500000"",
   ""AuxiliaryFilesMetadata"": {
+    ""Loaded"": ""2019-01-03T11:00:00+00:00"",
     ""Downloads"": {
       ""LastModified"": ""2019-01-01T11:00:00+00:00"",
-      ""Loaded"": ""2019-01-01T12:00:00+00:00"",
       ""LoadDuration"": ""00:00:15"",
       ""FileSize"": 1234,
       ""ETag"": ""\""etag-a\""""
     },
     ""VerifiedPackages"": {
       ""LastModified"": ""2019-01-02T11:00:00+00:00"",
-      ""Loaded"": ""2019-01-02T12:00:00+00:00"",
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
       ""ETag"": ""\""etag-b\""""
@@ -337,16 +336,15 @@ namespace NuGet.Services.AzureSearch.SearchService
   },
   ""QueryDuration"": ""00:00:00.2500000"",
   ""AuxiliaryFilesMetadata"": {
+    ""Loaded"": ""2019-01-03T11:00:00+00:00"",
     ""Downloads"": {
       ""LastModified"": ""2019-01-01T11:00:00+00:00"",
-      ""Loaded"": ""2019-01-01T12:00:00+00:00"",
       ""LoadDuration"": ""00:00:15"",
       ""FileSize"": 1234,
       ""ETag"": ""\""etag-a\""""
     },
     ""VerifiedPackages"": {
       ""LastModified"": ""2019-01-02T11:00:00+00:00"",
-      ""Loaded"": ""2019-01-02T12:00:00+00:00"",
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
       ""ETag"": ""\""etag-b\""""
@@ -542,16 +540,15 @@ namespace NuGet.Services.AzureSearch.SearchService
   },
   ""QueryDuration"": ""00:00:00.2500000"",
   ""AuxiliaryFilesMetadata"": {
+    ""Loaded"": ""2019-01-03T11:00:00+00:00"",
     ""Downloads"": {
       ""LastModified"": ""2019-01-01T11:00:00+00:00"",
-      ""Loaded"": ""2019-01-01T12:00:00+00:00"",
       ""LoadDuration"": ""00:00:15"",
       ""FileSize"": 1234,
       ""ETag"": ""\""etag-a\""""
     },
     ""VerifiedPackages"": {
       ""LastModified"": ""2019-01-02T11:00:00+00:00"",
-      ""Loaded"": ""2019-01-02T12:00:00+00:00"",
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
       ""ETag"": ""\""etag-b\""""
@@ -666,16 +663,15 @@ namespace NuGet.Services.AzureSearch.SearchService
   ""DocumentKey"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2"",
   ""QueryDuration"": ""00:00:00.2500000"",
   ""AuxiliaryFilesMetadata"": {
+    ""Loaded"": ""2019-01-03T11:00:00+00:00"",
     ""Downloads"": {
       ""LastModified"": ""2019-01-01T11:00:00+00:00"",
-      ""Loaded"": ""2019-01-01T12:00:00+00:00"",
       ""LoadDuration"": ""00:00:15"",
       ""FileSize"": 1234,
       ""ETag"": ""\""etag-a\""""
     },
     ""VerifiedPackages"": {
       ""LastModified"": ""2019-01-02T11:00:00+00:00"",
-      ""Loaded"": ""2019-01-02T12:00:00+00:00"",
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
       ""ETag"": ""\""etag-b\""""
@@ -1023,15 +1019,14 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
                 _options.Setup(x => x.Value).Returns(() => _config);
                 _auxiliaryMetadata = new AuxiliaryFilesMetadata(
+                    new DateTimeOffset(2019, 1, 3, 11, 0, 0, TimeSpan.Zero),
                     new AuxiliaryFileMetadata(
                         new DateTimeOffset(2019, 1, 1, 11, 0, 0, TimeSpan.Zero),
-                        new DateTimeOffset(2019, 1, 1, 12, 0, 0, TimeSpan.Zero),
                         TimeSpan.FromSeconds(15),
                         1234,
                         "\"etag-a\""),
                     new AuxiliaryFileMetadata(
                         new DateTimeOffset(2019, 1, 2, 11, 0, 0, TimeSpan.Zero),
-                        new DateTimeOffset(2019, 1, 2, 12, 0, 0, TimeSpan.Zero),
                         TimeSpan.FromSeconds(30),
                         5678,
                         "\"etag-b\""));

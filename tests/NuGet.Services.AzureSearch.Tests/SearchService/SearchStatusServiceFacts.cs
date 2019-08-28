@@ -237,14 +237,13 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _logger = output.GetLogger<SearchStatusService>();
 
                 _auxiliaryFilesMetadata = new AuxiliaryFilesMetadata(
+                    DateTimeOffset.MinValue,
                     new AuxiliaryFileMetadata(
-                        DateTimeOffset.MinValue,
                         DateTimeOffset.MinValue,
                         TimeSpan.Zero,
                         0,
                         string.Empty),
                     new AuxiliaryFileMetadata(
-                        DateTimeOffset.MinValue,
                         DateTimeOffset.MinValue,
                         TimeSpan.Zero,
                         0,

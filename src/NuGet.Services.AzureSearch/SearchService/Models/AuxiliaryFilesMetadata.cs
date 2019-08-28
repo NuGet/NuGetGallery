@@ -10,12 +10,17 @@ namespace NuGet.Services.AzureSearch.SearchService
     public class AuxiliaryFilesMetadata
     {
         [JsonConstructor]
-        public AuxiliaryFilesMetadata(AuxiliaryFileMetadata downloads, AuxiliaryFileMetadata verifiedPackages)
+        public AuxiliaryFilesMetadata(
+            DateTimeOffset loaded,
+            AuxiliaryFileMetadata downloads,
+            AuxiliaryFileMetadata verifiedPackages)
         {
+            Loaded = loaded;
             Downloads = downloads ?? throw new ArgumentNullException(nameof(downloads));
             VerifiedPackages = verifiedPackages ?? throw new ArgumentNullException(nameof(verifiedPackages));
         }
 
+        public DateTimeOffset Loaded { get; }
         public AuxiliaryFileMetadata Downloads { get; }
         public AuxiliaryFileMetadata VerifiedPackages { get; }
     }

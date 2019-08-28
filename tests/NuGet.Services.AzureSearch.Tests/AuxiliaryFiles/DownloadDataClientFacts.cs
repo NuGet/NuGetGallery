@@ -37,29 +37,50 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
-                Assert.Empty(output.Result);
-                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+                Assert.True(output.Modified);
+                Assert.Empty(output.Data);
+                Assert.Equal(ETag, output.Metadata.ETag);
             }
 
             [Fact]
-            public async Task AllowsMissingBlob()
+            public async Task AllowsNotModifiedBlob()
             {
                 CloudBlob
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ThrowsAsync(new StorageException(
                         new RequestResult
                         {
-                            HttpStatusCode = (int)HttpStatusCode.NotFound,
+                            HttpStatusCode = (int)HttpStatusCode.NotModified,
                         },
-                        message: "Not found.",
+                        message: "Not modified.",
                         inner: null));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
-                Assert.Empty(output.Result);
-                Assert.Equal("*", output.AccessCondition.IfNoneMatchETag);
+                Assert.False(output.Modified);
+                Assert.Null(output.Data);
+                Assert.Null(output.Metadata);
+            }
+
+            [Fact]
+            public async Task RejectsMissingBlob()
+            {
+                var expected = new StorageException(
+                    new RequestResult
+                    {
+                        HttpStatusCode = (int)HttpStatusCode.NotFound,
+                    },
+                    message: "Not found.",
+                    inner: null);
+                CloudBlob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ThrowsAsync(expected);
+
+                var actual = await Assert.ThrowsAsync<StorageException>(
+                    () => Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache));
+                Assert.Same(actual, expected);
             }
 
             [Fact]
@@ -89,8 +110,39 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => Target.ReadLatestIndexedAsync());
+                    () => Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache));
                 Assert.Equal("The first token should be the start of an object.", ex.Message);
+            }
+
+            [Fact]
+            public async Task DedupesStrings()
+            {
+                var json = JsonConvert.SerializeObject(new Dictionary<string, Dictionary<string, long>>
+                {
+                    {
+                        "nuget.versioning",
+                        new Dictionary<string, long>
+                        {
+                            { "1.0.0", 1 },
+                        }
+                    },
+                    {
+                        "EntityFramework",
+                        new Dictionary<string, long>
+                        {
+                            { "1.0.0", 10 },
+                        }
+                    },
+                });
+                CloudBlob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
+
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
+
+                var versionA = output.Data["nuget.versioning"].Single().Key;
+                var versionB = output.Data["EntityFramework"].Single().Key;
+                Assert.Same(versionA, versionB);
             }
 
             [Fact]
@@ -122,14 +174,15 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
-                Assert.Equal(new[] { "EntityFramework", "nuget.versioning" }, output.Result.Select(x => x.Key).ToArray());
-                Assert.Equal(6, output.Result.GetDownloadCount("NuGet.Versioning"));
-                Assert.Equal(1, output.Result.GetDownloadCount("NuGet.Versioning", "1.0.0"));
-                Assert.Equal(5, output.Result.GetDownloadCount("NuGet.Versioning", "2.0.0-ALPHA"));
-                Assert.Equal(10, output.Result.GetDownloadCount("EntityFramework"));
-                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+                Assert.True(output.Modified);
+                Assert.Equal(new[] { "EntityFramework", "nuget.versioning" }, output.Data.Select(x => x.Key).OrderBy(x => x).ToArray());
+                Assert.Equal(6, output.Data.GetDownloadCount("NuGet.Versioning"));
+                Assert.Equal(1, output.Data.GetDownloadCount("NuGet.Versioning", "1.0.0"));
+                Assert.Equal(5, output.Data.GetDownloadCount("NuGet.Versioning", "2.0.0-ALPHA"));
+                Assert.Equal(10, output.Data.GetDownloadCount("EntityFramework"));
+                Assert.Equal(ETag, output.Metadata.ETag);
 
                 CloudBlobContainer.Verify(x => x.GetBlobReference("downloads/downloads.v2.json"), Times.Once);
             }
@@ -177,7 +230,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             }
 
             [Fact]
-            public async Task SerializesInSortedOrder()
+            public async Task Serializes()
             {
                 var newData = new DownloadData();
                 newData.SetDownloadCount("ZZZ", "9.0.0", 23);
@@ -189,9 +242,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
 
-                // Pretty-ify the JSON to make the assertion clearer.
+                // Pretty-ify and sort the JSON to make the assertion clearer.
                 var json = Assert.Single(SavedStrings);
-                json = JsonConvert.DeserializeObject<JObject>(json).ToString();
+                var dictionary = JsonConvert.DeserializeObject<SortedDictionary<string, SortedDictionary<string, int>>>(json);
+                json = JsonConvert.SerializeObject(dictionary, Formatting.Indented);
 
                 Assert.Equal(@"{
   ""EntityFramework"": {
@@ -225,6 +279,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 ETag = "\"some-etag\"";
                 AccessCondition = new Mock<IAccessCondition>();
+                StringCache = new StringCache();
 
                 Options
                     .Setup(x => x.Value)
@@ -266,6 +321,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public AzureSearchJobConfiguration Config { get; }
             public string ETag { get; }
             public Mock<IAccessCondition> AccessCondition { get; }
+            public StringCache StringCache { get; }
             public DownloadDataClient Target { get; }
 
             public List<string> BlobNames { get; } = new List<string>();

@@ -107,14 +107,14 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         public class EnumerableImplementation : Facts
         {
             [Fact]
-            public void ReturnsVersionsInOrder()
+            public void ReturnsAllVersions()
             {
                 Target.SetDownloadCount(V2, 2);
                 Target.SetDownloadCount(V3, 3);
                 Target.SetDownloadCount(V0, 0);
                 Target.SetDownloadCount(V1Upper, 1);
 
-                var items = Target.ToArray();
+                var items = Target.OrderBy(x => x.Key).ToArray();
 
                 Assert.Equal(
                     new[]

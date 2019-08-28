@@ -155,6 +155,40 @@ namespace NuGet.Services.SearchService.Controllers
             }
 
             [Fact]
+            public async Task SupportsNullParameters()
+            {
+                V2SearchRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()))
+                    .ReturnsAsync(() => _v2SearchResponse)
+                    .Callback<V2SearchRequest>(x => lastRequest = x);
+
+                await _target.V2SearchAsync(
+                    skip: null,
+                    take: null,
+                    ignoreFilter: null,
+                    countOnly: null,
+                    prerelease: null,
+                    semVerLevel: null,
+                    q: null,
+                    sortBy: null,
+                    luceneQuery: null,
+                    debug: null);
+
+                _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
+                Assert.NotNull(lastRequest);
+                Assert.Equal(0, lastRequest.Skip);
+                Assert.Equal(20, lastRequest.Take);
+                Assert.False(lastRequest.IgnoreFilter);
+                Assert.False(lastRequest.CountOnly);
+                Assert.False(lastRequest.IncludePrerelease);
+                Assert.False(lastRequest.IncludeSemVer2);
+                Assert.Null(lastRequest.Query);
+                Assert.True(lastRequest.LuceneQuery);
+                Assert.False(lastRequest.ShowDebug);
+            }
+
+            [Fact]
             public async Task UsesProvidedParameters()
             {
                 V2SearchRequest lastRequest = null;
@@ -257,6 +291,33 @@ namespace NuGet.Services.SearchService.Controllers
             }
 
             [Fact]
+            public async Task SupportsNullParameters()
+            {
+                V3SearchRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()))
+                    .ReturnsAsync(() => _v3SearchResponse)
+                    .Callback<V3SearchRequest>(x => lastRequest = x);
+
+                await _target.V3SearchAsync(
+                    skip: null,
+                    take: null,
+                    prerelease: null,
+                    semVerLevel: null,
+                    q: null,
+                    debug: null);
+
+                _searchService.Verify(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()), Times.Once);
+                Assert.NotNull(lastRequest);
+                Assert.Equal(0, lastRequest.Skip);
+                Assert.Equal(20, lastRequest.Take);
+                Assert.False(lastRequest.IncludePrerelease);
+                Assert.False(lastRequest.IncludeSemVer2);
+                Assert.Null(lastRequest.Query);
+                Assert.False(lastRequest.ShowDebug);
+            }
+
+            [Fact]
             public async Task UsesProvidedParameters()
             {
                 V3SearchRequest lastRequest = null;
@@ -315,6 +376,35 @@ namespace NuGet.Services.SearchService.Controllers
                     .Callback<AutocompleteRequest>(x => lastRequest = x);
 
                 await _target.AutocompleteAsync();
+
+                _searchService.Verify(x => x.AutocompleteAsync(It.IsAny<AutocompleteRequest>()), Times.Once);
+                Assert.NotNull(lastRequest);
+                Assert.Equal(0, lastRequest.Skip);
+                Assert.Equal(20, lastRequest.Take);
+                Assert.False(lastRequest.IncludePrerelease);
+                Assert.False(lastRequest.IncludeSemVer2);
+                Assert.Null(lastRequest.Query);
+                Assert.False(lastRequest.ShowDebug);
+                Assert.Equal(AutocompleteRequestType.PackageIds, lastRequest.Type);
+            }
+
+            [Fact]
+            public async Task SupportsNullParameters()
+            {
+                AutocompleteRequest lastRequest = null;
+                _searchService
+                    .Setup(x => x.AutocompleteAsync(It.IsAny<AutocompleteRequest>()))
+                    .ReturnsAsync(() => _autocompleteResponse)
+                    .Callback<AutocompleteRequest>(x => lastRequest = x);
+
+                await _target.AutocompleteAsync(
+                    skip: null,
+                    take: null,
+                    prerelease: null,
+                    semVerLevel: null,
+                    q: null,
+                    id: null,
+                    debug: null);
 
                 _searchService.Verify(x => x.AutocompleteAsync(It.IsAny<AutocompleteRequest>()), Times.Once);
                 Assert.NotNull(lastRequest);

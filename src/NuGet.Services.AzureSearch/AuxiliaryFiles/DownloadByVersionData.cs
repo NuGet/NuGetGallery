@@ -9,8 +9,8 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class DownloadByVersionData : IReadOnlyDictionary<string, long>
     {
-        private readonly SortedDictionary<string, long> _versions
-            = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, long> _versions
+            = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
         public long Total { get; private set; }
 
