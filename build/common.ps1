@@ -7,10 +7,11 @@ $PrivateRoot = Join-Path $PSScriptRoot "private"
 $DotNetExe = Join-Path $CLIRoot 'dotnet.exe'
 $NuGetExe = Join-Path $NuGetClientRoot '.nuget\nuget.exe'
 $7zipExe = Join-Path $NuGetClientRoot 'tools\7zip\7za.exe'
+$BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $Artifacts = Join-Path $NuGetClientRoot artifacts
 $MSBuildRoot = Join-Path ${env:ProgramFiles(x86)} 'MSBuild\'
 $MSBuildExeRelPath = 'bin\msbuild.exe'
-$VisualStudioVersion = 14.0
+$VisualStudioVersion = 15.0
 
 $NuGetBuildPackageId = 'NuGet.Services.Build'
 $NuGetBuildPackageVersion = '1.0.0'
@@ -77,49 +78,55 @@ Function Clear-Artifacts {
     }
 }
 
+Function Get-LatestVisualStudioRoot {
+
+    if (Test-Path $BuiltInVsWhereExe) {
+        $installationPath = & $BuiltInVsWhereExe -latest -prerelease -property installationPath
+        $installationVersion = & $BuiltInVsWhereExe -latest -prerelease -property installationVersion
+        Verbose-Log "Found Visual Studio at '$installationPath' version '$installationVersion' with '$BuiltInVsWhereExe'"
+        # Set the fallback version
+        $majorVersion = "$installationVersion".Split('.')[0]
+        $script:FallbackVSVersion = "$majorVersion.0"
+
+        return $installationPath
+    } 
+
+    Error-Log "Could not find a compatible Visual Studio Version because $BuiltInVsWhereExe does not exist" -Fatal
+}
+
 Function Get-MSBuildExe {
     param(
-        [int]$MSBuildVersion
+        [ValidateSet("15", "16", $null)]
+        [string]$MSBuildVersion
     )
-    
-    $MSBuildPath = $null
 
-    if ($MSBuildVersion -lt 15) {
-        $MSBuildExe = Join-Path $MSBuildRoot ([string]$MSBuildVersion + ".0")
-        $MSBuildPath = Join-Path $MSBuildExe $MSBuildExeRelPath
+    if(-not $MSBuildVersion){
+        $MSBuildVersion = Get-VSMajorVersion
+    }
+
+    $CommonToolsVar = "Env:VS${MSBuildVersion}0COMNTOOLS"
+    if (Test-Path $CommonToolsVar) {
+        $CommonToolsValue = gci $CommonToolsVar | select -expand value -ea Ignore
+        $MSBuildRoot = Join-Path $CommonToolsValue '..\..\MSBuild' -Resolve
     } else {
-        # Check if VS package to use to find $NuGetBuildPackageId is installed. If not, install it.
-        $buildPackageFound = [System.AppDomain]::CurrentDomain.GetAssemblies() | `
-            Where-Object { $_.FullName -like "$($NuGetBuildPackageId), *" }
-        if (-not $buildPackageFound)
-        {
-            Trace-Log "Installing and configuring $NuGetBuildPackageId"
-            $opts = "install", $NuGetBuildPackageId, `
-                "-Version", $NuGetBuildPackageVersion, `
-                "-Source", "https://api.nuget.org/v3/index.json;https://dotnet.myget.org/F/nuget-build/api/v3/index.json", `
-                "-OutputDirectory", "$PSScriptRoot\packages"
-            & $NuGetExe $opts | Out-Null
-            if (-not $?) {
-                Error-Log "Failed to install package $NuGetBuildPackageId $NuGetBuildPackageVersion!"
-            } else {
-                Add-Type -Path "$PSScriptRoot\packages\$NuGetBuildPackageId.$NuGetBuildPackageVersion\lib\net452\$NuGetBuildPackageId.dll" | Out-Null
-            }
-        }
-        
-        $installations = @([NuGet.Services.Build.VisualStudioSetupConfigurationHelper]::GetInstancePaths() | ForEach-Object {
-            $MSBuildRoot = Join-Path "$_\MSBuild" ([string]$MSBuildVersion + ".0")
-            Join-Path $MSBuildRoot $MSBuildExeRelPath
-        } | Where-Object { Test-Path $_ })
-        
-        if ($installations.Count -ge 1) {
-            $MSBuildPath = $installations[0]
-        } else {
-            Error-Log "Failed to find MSBuild $MSBuildVersion!"
+        $VisualStudioRoot = Get-LatestVisualStudioRoot
+        if ($VisualStudioRoot -and (Test-Path $VisualStudioRoot)) {
+            $MSBuildRoot = Join-Path $VisualStudioRoot 'MSBuild'
         }
     }
-    
-    Trace-Log "MSBuild found at $MSBuildPath"
-    $MSBuildPath
+
+    $MSBuildExe = Join-Path $MSBuildRoot 'Current\bin\msbuild.exe'
+
+    if (-not (Test-Path $MSBuildExe)) {
+        $MSBuildExe = Join-Path $MSBuildRoot "${MSBuildVersion}.0\bin\msbuild.exe"
+    }
+
+    if (Test-Path $MSBuildExe) {
+        Verbose-Log "Found MSBuild.exe at `"$MSBuildExe`""
+        $MSBuildExe
+    } else {
+        Error-Log 'Could not find MSBuild.exe' -Fatal
+    }
 }
 
 Function Invoke-BuildStep {
