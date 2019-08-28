@@ -454,6 +454,12 @@
     initializeJQueryValidator();
 
     $(function () {
+        // Enable the POST links. These are links that perform a POST via a form instead of traditional navigation.
+        $(".post-link").on('click', function () {
+            $("#" + $(this).data().formId).submit();
+            return false;
+        });
+
         // Use moment.js to format attributes with the "datetime" attribute to "X time ago".
         $.each($('*[data-datetime]'), function () {
             var $el = $(this);

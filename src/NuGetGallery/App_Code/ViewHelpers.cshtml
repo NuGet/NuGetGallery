@@ -1,4 +1,5 @@
 ﻿@using System.Web.Mvc
+@using System.Web.Mvc.Html
 @using System.Web.Routing
 @using NuGetGallery
 @using NuGetGallery.Helpers
@@ -657,6 +658,35 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             }
         </script>
     }
+}
+
+@helper PostLink(
+    System.Web.Mvc.WebViewPage page,
+    string formId,
+    string linkText,
+    string actionName,
+    string controllerName,
+    string role,
+    string area = "",
+    Dictionary<string, string> formValues = null)
+{
+    using (page.Html.BeginForm(
+        actionName,
+        controllerName,
+        new { area = area },
+        FormMethod.Post,
+        new { id = formId }))
+    {
+        @page.Html.AntiForgeryToken();
+        if (formValues != null)
+        {
+            foreach (var pair in formValues)
+            {
+                <input type="hidden" name="@pair.Key" value="@pair.Value" />
+            }
+        }
+    }
+    <a href="#" class="post-link" data-form-id="@formId" role="@role">@linkText</a>
 }
 
 @functions

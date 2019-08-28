@@ -1850,7 +1850,6 @@
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />
-    <Content Include="Views\Shared\UserDisplay.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
     <Content Include="Views\Users\PasswordChanged.cshtml" />

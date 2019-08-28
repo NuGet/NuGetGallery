@@ -324,13 +324,14 @@ namespace NuGetGallery
             return RedirectFromRegister(returnUrl);
         }
 
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult LogOff(string returnUrl)
         {
             OwinContext.Authentication.SignOut();
 
             if (!string.IsNullOrEmpty(returnUrl)
-                && returnUrl.Contains("account"))
+                && (returnUrl.Contains("account") || returnUrl.Contains("Admin")))
             {
                 returnUrl = null;
             }

@@ -408,30 +408,6 @@ namespace NuGetGallery
                 });
         }
 
-        public static string LogOff(this UrlHelper url, bool relativeUrl = true)
-        {
-            return LogOff(url, url.Current(), relativeUrl);
-        }
-
-        public static string LogOff(this UrlHelper url, string returnUrl, bool relativeUrl = true)
-        {
-            // If we're logging off from the Admin Area, don't set a return url
-            if (string.Equals(url.RequestContext.RouteData.DataTokens[Area].ToStringOrNull(), AdminAreaRegistration.Name, StringComparison.OrdinalIgnoreCase))
-            {
-                returnUrl = string.Empty;
-            }
-
-            return GetActionLink(
-                url,
-                "LogOff",
-                "Authentication",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "returnUrl", returnUrl }
-                });
-        }
-
         public static string Register(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "LogOn", "Authentication", relativeUrl);

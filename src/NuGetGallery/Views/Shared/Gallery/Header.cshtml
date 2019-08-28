@@ -144,7 +144,19 @@
                                         <li role="presentation"><a href="@Url.ManageMyPackages()" role="menuitem">Manage Packages</a></li>
                                         <li role="presentation"><a href="@Url.UploadPackage()" role="menuitem">Upload Package</a></li>
                                         <li class="divider"></li>
-                                        <li role="presentation"><a href="@Url.LogOff()" role="menuitem">Sign Out</a></li>
+                                        <li role="presentation">
+                                            @ViewHelpers.PostLink(
+                                                this,
+                                                formId: "log-off-form",
+                                                linkText: "Sign Out",
+                                                actionName: "LogOff",
+                                                controllerName: "Authentication",
+                                                role: "menuitem",
+                                                formValues: new Dictionary<string, string>
+                                                {
+                                                    { "returnUrl", Url.Current() },
+                                                })
+                                        </li>
                                     </ul>
                                 </li>
                             }
