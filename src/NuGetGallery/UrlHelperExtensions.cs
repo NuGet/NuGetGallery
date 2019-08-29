@@ -744,30 +744,6 @@ namespace NuGetGallery
                 relativeUrl);
         }
 
-        public static string ReflowPackage(
-            this UrlHelper url,
-            IPackageVersionModel package,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.Reflow), package, relativeUrl);
-        }
-
-        public static string RevalidatePackage(
-            this UrlHelper url,
-            IPackageVersionModel package,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.Revalidate), package, relativeUrl);
-        }
-
-        public static string RevalidateSymbolsPackage(
-            this UrlHelper url,
-            IPackageVersionModel package,
-            bool relativeUrl = true)
-        {
-            return url.PackageVersionAction(nameof(PackagesController.RevalidateSymbols), package, relativeUrl);
-        }
-
         public static string DeprecatePackage(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(

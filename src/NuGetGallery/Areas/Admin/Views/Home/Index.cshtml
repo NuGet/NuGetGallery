@@ -78,10 +78,17 @@
         </li>
         <li>
             <h2>
-                <a href="@Url.Action(actionName: "ClearContentCache", controllerName: "Home")">
-                    <i class="ms-Icon ms-Icon--Refresh"></i>
-                    <span>Clear Content Cache</span>
-                </a>
+                @ViewHelpers.PostLink(
+                    this,
+                    formId: "clear-content-cache-form",
+                    htmlContent: @<text>
+                        <i class="ms-Icon ms-Icon--Refresh"></i>
+                        <span>Clear Content Cache</span>
+                    </text>,
+                    actionName: "ClearContentCache",
+                    controllerName: "Home",
+                    role: string.Empty,
+                    area: "Admin")
             </h2>
             <p>
                 Clear Content Cache

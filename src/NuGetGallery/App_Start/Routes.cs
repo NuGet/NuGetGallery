@@ -226,6 +226,21 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "SetLicenseReportVisibility", visible = false },
                 new { version = new VersionRouteConstraint() });
 
+            routes.MapRoute(
+                RouteName.PackageReflowAction,
+                "packages/manage/reflow",
+                new { controller = "Packages", action = nameof(PackagesController.Reflow) });
+
+            routes.MapRoute(
+                RouteName.PackageRevalidateAction,
+                "packages/manage/revalidate",
+                new { controller = "Packages", action = nameof(PackagesController.Revalidate) });
+
+            routes.MapRoute(
+                RouteName.PackageRevalidateSymbolsAction,
+                "packages/manage/revalidate-symbols",
+                new { controller = "Packages", action = nameof(PackagesController.RevalidateSymbols) });
+
             var packageVersionActionRoute = routes.MapRoute(
                 RouteName.PackageVersionAction,
                 "packages/{id}/{version}/{action}",

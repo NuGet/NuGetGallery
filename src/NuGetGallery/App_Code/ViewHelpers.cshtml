@@ -663,7 +663,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 @helper PostLink(
     System.Web.Mvc.WebViewPage page,
     string formId,
-    string linkText,
+    Func<MvcHtmlString, HelperResult> htmlContent,
     string actionName,
     string controllerName,
     string role,
@@ -686,7 +686,28 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             }
         }
     }
-    <a href="#" class="post-link" data-form-id="@formId" role="@role">@linkText</a>
+    <a href="#" class="post-link" data-form-id="@formId" role="@role">@htmlContent(MvcHtmlString.Empty)</a>
+}
+
+@helper PostLink(
+    System.Web.Mvc.WebViewPage page,
+    string formId,
+    string linkText,
+    string actionName,
+    string controllerName,
+    string role,
+    string area = "",
+    Dictionary<string, string> formValues = null)
+{
+    @PostLink(
+        page,
+        formId,
+        @<text>@linkText</text>,
+        actionName,
+        controllerName,
+        role,
+        area,
+        formValues);
 }
 
 @functions

@@ -1638,6 +1638,8 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("reflow a package")]
         public virtual async Task<ActionResult> Reflow(string id, string version)
@@ -1673,6 +1675,8 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("revalidate a package")]
         public virtual async Task<ActionResult> Revalidate(string id, string version)
@@ -1700,7 +1704,8 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
-
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("revalidate a symbols package")]
         public virtual async Task<ActionResult> RevalidateSymbols(string id, string version)

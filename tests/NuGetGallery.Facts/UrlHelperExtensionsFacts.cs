@@ -141,27 +141,6 @@ namespace NuGetGallery
 
                     yield return new object[]
                     {
-                        nameof(PackagesController.Reflow),
-                        new Func<UrlHelper, IPackageVersionModel, string>(
-                            (url, package) => url.ReflowPackage(package))
-                    };
-
-                    yield return new object[]
-                    {
-                        nameof(PackagesController.Revalidate),
-                        new Func<UrlHelper, IPackageVersionModel, string>(
-                            (url, package) => url.RevalidatePackage(package))
-                    };
-
-                    yield return new object[]
-                    {
-                        nameof(PackagesController.RevalidateSymbols),
-                        new Func<UrlHelper, IPackageVersionModel, string>(
-                            (url, package) => url.RevalidateSymbolsPackage(package))
-                    };
-
-                    yield return new object[]
-                    {
                         nameof(PackagesController.DeleteSymbols),
                         new Func<UrlHelper, IPackageVersionModel, string>(
                             (url, package) => url.DeleteSymbolsPackage(package))

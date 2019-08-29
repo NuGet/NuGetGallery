@@ -871,7 +871,18 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                        <a href="@Url.ReflowPackage(Model)">Reflow package</a>
+                        @ViewHelpers.PostLink(
+                            this,
+                            formId: "reflow-package-form",
+                            linkText: "Reflow package",
+                            actionName: "Reflow",
+                            controllerName: "Packages",
+                            role: string.Empty,
+                            formValues: new Dictionary<string, string>
+                            {
+                                { "id", Model.Id },
+                                { "version", Model.Version },
+                            })
                     </li>
                 }
 
@@ -879,14 +890,36 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                        <a href="@Url.RevalidatePackage(Model)">Revalidate package</a>
+                        @ViewHelpers.PostLink(
+                            this,
+                            formId: "revalidate-package-form",
+                            linkText: "Revalidate package",
+                            actionName: "Revalidate",
+                            controllerName: "Packages",
+                            role: string.Empty,
+                            formValues: new Dictionary<string, string>
+                            {
+                                { "id", Model.Id },
+                                { "version", Model.Version },
+                            })
                     </li>
 
                     if (Model.LatestSymbolsPackage != null)
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                            <a href="@Url.RevalidateSymbolsPackage(Model)">Revalidate symbols</a>
+                            @ViewHelpers.PostLink(
+                                this,
+                                formId: "revalidate-symbols-form",
+                                linkText: "Revalidate symbols",
+                                actionName: "RevalidateSymbols",
+                                controllerName: "Packages",
+                                role: string.Empty,
+                                formValues: new Dictionary<string, string>
+                                {
+                                    { "id", Model.Id },
+                                    { "version", Model.Version },
+                                })
                         </li>
                     }
                 }

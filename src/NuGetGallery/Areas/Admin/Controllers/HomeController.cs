@@ -35,7 +35,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             throw new Exception("KA BOOM!");
         }
 
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult ClearContentCache()
         {
             _content.ClearCache();
