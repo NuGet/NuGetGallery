@@ -230,14 +230,19 @@ namespace NuGet.Services.SearchService.Controllers
             [InlineData("popularity", V2SortBy.Popularity)]
             [InlineData("POPULARITY", V2SortBy.Popularity)]
             [InlineData(" lastEdited ", V2SortBy.Popularity)]
-            [InlineData("lastEdited", V2SortBy.LastEditedDescending)]
-            [InlineData("LASTEDITED", V2SortBy.LastEditedDescending)]
-            [InlineData("published", V2SortBy.PublishedDescending)]
-            [InlineData("puBLISHed", V2SortBy.PublishedDescending)]
+            [InlineData("lastEdited", V2SortBy.LastEditedDesc)]
+            [InlineData("LASTEDITED", V2SortBy.LastEditedDesc)]
+            [InlineData("published", V2SortBy.PublishedDesc)]
+            [InlineData("puBLISHed", V2SortBy.PublishedDesc)]
             [InlineData("title-asc", V2SortBy.SortableTitleAsc)]
             [InlineData("TITLE-asc", V2SortBy.SortableTitleAsc)]
             [InlineData("title-desc", V2SortBy.SortableTitleDesc)]
             [InlineData("title-DESC", V2SortBy.SortableTitleDesc)]
+            [InlineData("CREATED", V2SortBy.Popularity)]
+            [InlineData("created-asc", V2SortBy.CreatedAsc)]
+            [InlineData("Created-asc", V2SortBy.CreatedAsc)]
+            [InlineData("CREATED-desc", V2SortBy.CreatedDesc)]
+            [InlineData("Created-desc", V2SortBy.CreatedDesc)]
             public async Task ParsesSortBy(string sortBy, V2SortBy expected)
             {
                 await _target.V2SearchAsync(sortBy: sortBy);

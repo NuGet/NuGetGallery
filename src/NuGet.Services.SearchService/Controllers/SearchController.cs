@@ -21,10 +21,12 @@ namespace NuGet.Services.SearchService.Controllers
 
         private static readonly IReadOnlyDictionary<string, V2SortBy> SortBy = new Dictionary<string, V2SortBy>(StringComparer.OrdinalIgnoreCase)
         {
-            { "lastEdited", V2SortBy.LastEditedDescending },
-            { "published", V2SortBy.PublishedDescending },
+            { "lastEdited", V2SortBy.LastEditedDesc },
+            { "published", V2SortBy.PublishedDesc },
             { "title-asc", V2SortBy.SortableTitleAsc },
             { "title-desc", V2SortBy.SortableTitleDesc },
+            { "created-asc", V2SortBy.CreatedAsc },
+            { "created-desc", V2SortBy.CreatedDesc },
         };
 
         private readonly IAuxiliaryDataCache _auxiliaryDataCache;

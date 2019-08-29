@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Moq;
 using Xunit;
@@ -57,7 +58,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.True(output.IncludeTotalResultCount);
-                Assert.Null(output.OrderBy);
+                Assert.Equal(DefaultOrderBy, output.OrderBy.ToArray());
                 Assert.Equal(0, output.Skip);
                 Assert.Equal(0, output.Top);
                 Assert.Equal("searchFilters eq 'Default' and isExcludedByDefault eq false", output.Filter);
@@ -168,13 +169,38 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.V2Search(request, It.IsAny<bool>());
 
-                if (expectedOrderBy == null)
+                Assert.NotNull(output.OrderBy);
+                Assert.Equal(expectedOrderBy, output.OrderBy.ToArray());
+            }
+
+            [Theory]
+            [MemberData(nameof(AllV2SortBy))]
+            public void AllSortByFieldsAreSortable(V2SortBy v2SortBy)
+            {
+                var metadataProperties = typeof(BaseMetadataDocument)
+                    .GetProperties()
+                    .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
+                var expectedOrderBy = V2SortByToOrderBy[v2SortBy];
+
+                foreach (var clause in expectedOrderBy)
                 {
-                    Assert.Null(output.OrderBy);
-                }
-                else
-                {
-                    Assert.Equal(expectedOrderBy, Assert.Single(output.OrderBy));
+                    var pieces = clause.Split(new[] { ' ' }, 2);
+                    Assert.Equal(2, pieces.Length);
+                    Assert.Contains(pieces[1], new[] { "asc", "desc" });
+
+                    // This is a magic property name that refers to the document's score, not a particular property.
+                    if (pieces[0] == "search.score()")
+                    {
+                        continue;
+                    }
+
+                    Assert.Contains(pieces[0], metadataProperties.Keys);
+                    var property = metadataProperties[pieces[0]];
+                    var customAttributeTypes = property
+                        .CustomAttributes
+                        .Select(x => x.AttributeType)
+                        .ToArray();
+                    Assert.Contains(typeof(IsSortableAttribute), customAttributeTypes);
                 }
             }
 
@@ -206,7 +232,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.True(output.IncludeTotalResultCount);
-                Assert.Null(output.OrderBy);
+                Assert.Equal(DefaultOrderBy, output.OrderBy.ToArray());
                 Assert.Equal(0, output.Skip);
                 Assert.Equal(0, output.Top);
                 Assert.Equal("searchFilters eq 'Default' and isExcludedByDefault eq false", output.Filter);
@@ -295,7 +321,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.True(output.IncludeTotalResultCount);
-                Assert.Null(output.OrderBy);
+                Assert.Equal(DefaultOrderBy, output.OrderBy.ToArray());
                 Assert.Equal(0, output.Skip);
                 Assert.Equal(0, output.Top);
                 Assert.Equal("searchFilters eq 'Default' and isExcludedByDefault eq false", output.Filter);
@@ -313,7 +339,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.Equal(QueryType.Full, output.QueryType);
                 Assert.True(output.IncludeTotalResultCount);
-                Assert.Null(output.OrderBy);
+                Assert.Equal(DefaultOrderBy, output.OrderBy.ToArray());
                 Assert.Equal(0, output.Skip);
                 Assert.Equal(1, output.Top);
                 Assert.Equal("searchFilters eq 'Default' and isExcludedByDefault eq false", output.Filter);
@@ -416,13 +442,17 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             protected readonly SearchParametersBuilder _target;
 
-            public static Dictionary<V2SortBy, string> V2SortByToOrderBy => new Dictionary<V2SortBy, string>
+            public static string[] DefaultOrderBy => new[] { "search.score() desc", "created desc" };
+
+            public static IReadOnlyDictionary<V2SortBy, string[]> V2SortByToOrderBy => new Dictionary<V2SortBy, string[]>
             {
-                { V2SortBy.LastEditedDescending, "lastEdited desc" },
-                { V2SortBy.Popularity, null },
-                { V2SortBy.PublishedDescending, "published desc" },
-                { V2SortBy.SortableTitleAsc, "sortableTitle asc" },
-                { V2SortBy.SortableTitleDesc, "sortableTitle desc" },
+                { V2SortBy.LastEditedDesc, new[] { "lastEdited desc", "created desc" } },
+                { V2SortBy.Popularity, DefaultOrderBy },
+                { V2SortBy.PublishedDesc, new[] { "published desc", "created desc" } },
+                { V2SortBy.SortableTitleAsc, new[] { "sortableTitle asc", "created asc" } },
+                { V2SortBy.SortableTitleDesc, new[] { "sortableTitle desc", "created desc" } },
+                { V2SortBy.CreatedAsc, new[] { "created asc" } },
+                { V2SortBy.CreatedDesc, new[] { "created desc" } },
             };
 
             public static IEnumerable<object[]> AllSearchFilters => new[]

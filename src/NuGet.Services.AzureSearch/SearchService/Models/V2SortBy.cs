@@ -6,9 +6,11 @@ namespace NuGet.Services.AzureSearch.SearchService
     public enum V2SortBy
     {
         Popularity,
-        LastEditedDescending,
-        PublishedDescending,
+        LastEditedDesc,
+        PublishedDesc,
         SortableTitleAsc,
         SortableTitleDesc,
+        CreatedAsc,
+        CreatedDesc,
     }
 }

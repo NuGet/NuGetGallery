@@ -12,18 +12,27 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         public const int DefaultTake = 20;
         private const int MaximumTake = 1000;
+        private const string Score = "search.score()";
+        private const string Asc = " asc";
+        private const string Desc = " desc";
 
         private static readonly List<string> LastCommitTimestampSelect = new List<string> { IndexFields.LastCommitTimestamp };
         private static readonly List<string> PackageIdsAutocompleteSelect = new List<string> { IndexFields.PackageId };
         private static readonly List<string> PackageVersionsAutocompleteSelect = new List<string> { IndexFields.Search.Versions };
 
-        private static readonly string Ascending = " asc";
-        private static readonly string Descending = " desc";
-        private static readonly List<string> LastCommitTimestampDescending = new List<string> { IndexFields.LastCommitTimestamp + Descending };
-        private static readonly List<string> LastEditedDescending = new List<string> { IndexFields.LastEdited + Descending };
-        private static readonly List<string> PublishedDescending = new List<string> { IndexFields.Published + Descending };
-        private static readonly List<string> SortableTitleAscending = new List<string> { IndexFields.SortableTitle + Ascending };
-        private static readonly List<string> SortableTitleDescending = new List<string> { IndexFields.SortableTitle + Descending };
+        private static readonly List<string> LastCommitTimestampDescending = new List<string> { IndexFields.LastCommitTimestamp + Desc }; // Most recently added to the catalog first
+
+        /// <summary>
+        /// We use the created timestamp as a tie-breaker since it does not change for a given package.
+        /// See: https://stackoverflow.com/a/34234258/52749
+        /// </summary>
+        private static readonly List<string> ScoreDesc = new List<string> { Score + Desc, IndexFields.Created + Desc }; // Highest score first ("most relevant"), then newest
+        private static readonly List<string> LastEditedDesc = new List<string> { IndexFields.LastEdited + Desc, IndexFields.Created + Desc }; // Most recently edited first, then newest
+        private static readonly List<string> PublishedDesc = new List<string> { IndexFields.Published + Desc, IndexFields.Created + Desc }; // Most recently published first, then newest
+        private static readonly List<string> SortableTitleAsc = new List<string> { IndexFields.SortableTitle + Asc, IndexFields.Created + Asc }; // First title by lex order first, then newest
+        private static readonly List<string> SortableTitleDesc = new List<string> { IndexFields.SortableTitle + Desc, IndexFields.Created + Desc }; // Last title by lex order first, then oldest
+        private static readonly List<string> CreatedAsc = new List<string> { IndexFields.Created + Asc }; // Newest first
+        private static readonly List<string> CreatedDesc = new List<string> { IndexFields.Created + Desc }; // Oldest first
 
         public SearchParameters LastCommitTimestamp()
         {
@@ -114,6 +123,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 IncludeTotalResultCount = true,
                 QueryType = QueryType.Full,
+                OrderBy = ScoreDesc,
             };
         }
 
@@ -162,19 +172,25 @@ namespace NuGet.Services.AzureSearch.SearchService
             switch (sortBy)
             {
                 case V2SortBy.Popularity:
-                    orderBy = null;
+                    orderBy = ScoreDesc;
                     break;
-                case V2SortBy.LastEditedDescending:
-                    orderBy = LastEditedDescending;
+                case V2SortBy.LastEditedDesc:
+                    orderBy = LastEditedDesc;
                     break;
-                case V2SortBy.PublishedDescending:
-                    orderBy = PublishedDescending;
+                case V2SortBy.PublishedDesc:
+                    orderBy = PublishedDesc;
                     break;
                 case V2SortBy.SortableTitleAsc:
-                    orderBy = SortableTitleAscending;
+                    orderBy = SortableTitleAsc;
                     break;
                 case V2SortBy.SortableTitleDesc:
-                    orderBy = SortableTitleDescending;
+                    orderBy = SortableTitleDesc;
+                    break;
+                case V2SortBy.CreatedAsc:
+                    orderBy = CreatedAsc;
+                    break;
+                case V2SortBy.CreatedDesc:
+                    orderBy = CreatedDesc;
                     break;
                 default:
                     throw new ArgumentException($"The provided {nameof(V2SortBy)} is not supported.", nameof(sortBy));
