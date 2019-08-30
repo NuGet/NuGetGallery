@@ -155,8 +155,7 @@ namespace NuGetGallery
                     account,
                     currentUser,
                     request.NewMember,
-                    request.IsAdmin,
-                    cancellationUrl: Url.CancelOrganizationMembershipRequest(memberName, relativeUrl: false));
+                    request.IsAdmin);
                 await MessageService.SendMessageAsync(organizationMembershipRequestInitiatedMessage);
 
                 return Json(new OrganizationMemberViewModel(request));

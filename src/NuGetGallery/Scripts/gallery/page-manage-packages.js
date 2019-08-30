@@ -281,7 +281,7 @@
             this.CanCancel = ownerRequestItem.CanCancel;
             this.ConfirmUrl = ownerRequestItem.ConfirmUrl;
             this.RejectUrl = ownerRequestItem.RejectUrl;
-            this.CancelUrl = ownerRequestItem.CancelUrl;
+            this.ManagePackageOwnershipUrl = ownerRequestItem.ManagePackageOwnershipUrl;
             this.ShowReceived = showReceived;
             this.ShowSent = showSent;
 

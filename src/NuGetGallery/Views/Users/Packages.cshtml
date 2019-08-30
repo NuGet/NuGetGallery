@@ -280,8 +280,8 @@
                             </a>
                             <!-- /ko -->
                             <!-- ko if: !CanAccept && CanCancel -->
-                            <a class="btn" title="Cancel Ownership" data-bind="attr: { href: CancelUrl, 'aria-label': 'Cancel Ownership of ' + Id }">
-                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                            <a class="btn" title="Manage Ownership" data-bind="attr: { href: ManagePackageOwnershipUrl, 'aria-label': 'Manage Ownership of ' + Id }">
+                                <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                             </a>
                             <!-- /ko -->
                         </td>
@@ -310,7 +310,7 @@
 
     private RouteUrlTemplate<OwnerRequestsListItemViewModel> confirmUrlTemplate;
     private RouteUrlTemplate<OwnerRequestsListItemViewModel> rejectUrlTemplate;
-    private RouteUrlTemplate<OwnerRequestsListItemViewModel> cancelUrlTemplate;
+    private RouteUrlTemplate<OwnerRequestsListItemViewModel> manageOwnershipUrlTemplate;
 
     dynamic GetSerializablePackage(ListPackageItemRequiredSignerViewModel p)
     {
@@ -384,9 +384,9 @@
             rejectUrlTemplate = Url.RejectPendingOwnershipRequestTemplate();
         }
 
-        if (cancelUrlTemplate == null)
+        if (manageOwnershipUrlTemplate == null)
         {
-            cancelUrlTemplate = Url.CancelPendingOwnershipRequestTemplate();
+            manageOwnershipUrlTemplate = Url.ManagePackageOwnershipTemplate();
         }
 
         return new
@@ -401,7 +401,7 @@
             CanCancel = r.CanCancel,
             ConfirmUrl = confirmUrlTemplate.Resolve(r),
             RejectUrl = rejectUrlTemplate.Resolve(r),
-            CancelUrl = cancelUrlTemplate.Resolve(r)
+            ManagePackageOwnershipUrl = manageOwnershipUrlTemplate.Resolve(r)
         };
     }
 

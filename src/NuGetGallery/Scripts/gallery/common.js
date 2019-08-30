@@ -203,7 +203,8 @@
 
     nuget.configureExpander = function (prefix, lessIcon, lessMessage, moreIcon, moreMessage) {
         var hidden = $('#' + prefix);
-        var show = $('#show-' + prefix);
+        var showId = '#show-' + prefix;
+        var show = $(showId);
         var showIcon = $('#show-' + prefix + ' i');
         var showText = $('#show-' + prefix + ' span');
         hidden.on('hide.bs.collapse', function (e) {
@@ -225,6 +226,11 @@
         show.on('click', function (e) {
             e.preventDefault();
         });
+
+        // If the URI fragment (hash) matches the expander ID, automatically expand the section.
+        if (document.location.hash === showId) {
+            hidden.collapse('show');
+        }
     };
 
     nuget.configureExpanderHeading = function (prefix) {

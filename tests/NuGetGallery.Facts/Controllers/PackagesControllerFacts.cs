@@ -2049,14 +2049,14 @@ namespace NuGetGallery
                 }
 
                 [Fact]
-                public async Task WithNonExistentPackageIdReturnsHttpNotFound()
+                public void WithNonExistentPackageIdReturnsHttpNotFound()
                 {
                     // Arrange
                     var controller = CreateController(GetConfigurationService());
                     controller.SetCurrentUser(new User { Username = "userA" });
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
+                    var result = controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
 
                     // Assert
                     Assert.IsType<HttpNotFoundResult>(result);
@@ -2064,7 +2064,7 @@ namespace NuGetGallery
 
                 [Theory]
                 [MemberData(nameof(NotOwner_Data))]
-                public async Task WithNonOwningCurrentUserReturnsNotYourRequest(User currentUser, User owner)
+                public void WithNonOwningCurrentUserReturnsNotYourRequest(User currentUser, User owner)
                 {
                     // Arrange
                     var package = new PackageRegistration { Id = "foo", Owners = new[] { owner } };
@@ -2076,7 +2076,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(currentUser);
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
+                    var result = controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
 
                     // Assert
                     var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
@@ -2086,7 +2086,7 @@ namespace NuGetGallery
 
                 [Theory]
                 [MemberData(nameof(Owner_Data))]
-                public async Task WithNonExistentPendingUserReturnsHttpNotFound(User currentUser, User owner)
+                public void WithNonExistentPendingUserReturnsHttpNotFound(User currentUser, User owner)
                 {
                     // Arrange
                     var package = new PackageRegistration { Id = "foo", Owners = new[] { owner } };
@@ -2098,7 +2098,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(currentUser);
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
+                    var result = controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
 
                     // Assert
                     Assert.IsType<HttpNotFoundResult>(result);
@@ -2106,7 +2106,7 @@ namespace NuGetGallery
 
                 [Theory]
                 [MemberData(nameof(Owner_Data))]
-                public async Task WithNonExistentPackageOwnershipRequestReturnsHttpNotFound(User currentUser, User owner)
+                public void WithNonExistentPackageOwnershipRequestReturnsHttpNotFound(User currentUser, User owner)
                 {
                     // Arrange
                     var packageId = "foo";
@@ -2132,7 +2132,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(owner);
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
+                    var result = controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
 
                     // Assert
                     Assert.IsType<HttpNotFoundResult>(result);
@@ -2140,7 +2140,7 @@ namespace NuGetGallery
 
                 [Theory]
                 [MemberData(nameof(Owner_Data))]
-                public async Task ReturnsCancelledIfPackageOwnershipRequestExists(User currentUser, User owner)
+                public void ReturnsRedirectIfPackageOwnershipRequestExists(User currentUser, User owner)
                 {
                     // Arrange
                     var userAName = "userA";
@@ -2175,25 +2175,24 @@ namespace NuGetGallery
                     controller.SetCurrentUser(currentUser);
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
+                    var result = controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
 
                     // Assert
-                    var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
-                    var expectedResult = ConfirmOwnershipResult.Cancelled;
-                    Assert.Equal(expectedResult, model.Result);
-                    Assert.Equal(packageId, model.PackageId);
-                    packageService.Verify();
-                    packageOwnershipManagementRequestService.Verify();
+                    var model = ResultAssert.IsRedirectTo(result, "/packages/foo/Manage#show-Owners-container");
 
-                    messageService
-                        .Verify(x => x.SendMessageAsync(
-                            It.Is<PackageOwnershipRequestCanceledMessage>(
-                                msg =>
-                                msg.RequestingOwner == userA
-                                && msg.NewOwner == userB
-                                && msg.PackageRegistration == package),
-                            false,
-                            false));
+                    packageOwnershipManagementRequestService.Verify(
+                        x => x.DeletePackageOwnershipRequestAsync(
+                            It.IsAny<PackageRegistration>(),
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()),
+                        Times.Never);
+
+                    messageService.Verify(
+                        x => x.SendMessageAsync(
+                            It.IsAny<PackageOwnershipRequestCanceledMessage>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>()),
+                        Times.Never);
                 }
             }
         }

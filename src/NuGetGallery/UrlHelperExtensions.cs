@@ -21,6 +21,11 @@ namespace NuGetGallery
         private static IGalleryConfigurationService _configuration;
         private const string PackageExplorerDeepLink = @"https://npe.codeplex.com/releases/clickonce/NuGetPackageExplorer.application?url={0}&id={1}&version={2}";
 
+        public static class Fragments
+        {
+            public const string ManagePackageOwnership = "#show-Owners-container";
+        }
+
         // Shorthand for current url
         public static string Current(this UrlHelper url)
         {
@@ -726,6 +731,40 @@ namespace NuGetGallery
             return url.PackageVersionActionTemplate(nameof(PackagesController.Manage), relativeUrl);
         }
 
+        public static string ManagePackageOwnership(
+            this UrlHelper url,
+            string id,
+            bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.PackageAction,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "action", nameof(PackagesController.Manage) },
+                    { "id", id }
+                }) + Fragments.ManagePackageOwnership;
+        }
+
+        public static RouteUrlTemplate<OwnerRequestsListItemViewModel> ManagePackageOwnershipTemplate(
+            this UrlHelper url, bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<OwnerRequestsListItemViewModel, object>>
+            {
+                { "id", r => r.Package.Id },
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                nameof(PackagesController.Manage),
+                "Packages",
+                relativeUrl,
+                routeValues: rv) + Fragments.ManagePackageOwnership;
+
+            return new RouteUrlTemplate<OwnerRequestsListItemViewModel>(linkGenerator, routesGenerator);
+        }
+
         public static string ManagePackage(
             this UrlHelper url,
             IPackageVersionModel package,
@@ -1134,43 +1173,6 @@ namespace NuGetGallery
             };
 
             return GetActionLink(url, routeName, "Packages", relativeUrl, routeValues);
-        }
-
-        public static RouteUrlTemplate<OwnerRequestsListItemViewModel> CancelPendingOwnershipRequestTemplate(
-            this UrlHelper url, bool relativeUrl = true)
-        {
-            var routesGenerator = new Dictionary<string, Func<OwnerRequestsListItemViewModel, object>>
-            {
-                { "id", r => r.Package.Id },
-                { "requestingUsername", r => r.Request.RequestingOwner.Username },
-                { "pendingUsername", r => r.Request.NewOwner.Username }
-            };
-
-            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
-                url,
-                "CancelPendingOwnershipRequest",
-                "Packages",
-                relativeUrl,
-                routeValues: rv);
-
-            return new RouteUrlTemplate<OwnerRequestsListItemViewModel>(linkGenerator, routesGenerator);
-        }
-
-        public static string CancelPendingOwnershipRequest(
-            this UrlHelper url,
-            string packageId,
-            string requestingUsername,
-            string pendingUsername,
-            bool relativeUrl = true)
-        {
-            var routeValues = new RouteValueDictionary
-            {
-                ["id"] = packageId,
-                ["requestingUsername"] = requestingUsername,
-                ["pendingUsername"] = pendingUsername
-            };
-
-            return GetActionLink(url, "CancelPendingOwnershipRequest", "Packages", relativeUrl, routeValues);
         }
 
         public static string ConfirmEmail(

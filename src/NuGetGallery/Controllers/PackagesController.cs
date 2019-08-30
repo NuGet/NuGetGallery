@@ -2047,7 +2047,7 @@ namespace NuGetGallery
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("cancel pending ownership request")]
-        public virtual async Task<ActionResult> CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
+        public virtual ActionResult CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
         {
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
@@ -2078,12 +2078,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, pendingUser);
-
-            var emailMessage = new PackageOwnershipRequestCanceledMessage(_config, requestingUser, pendingUser, package);
-            await _messageService.SendMessageAsync(emailMessage);
-
-            return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
+            return Redirect(Url.ManagePackageOwnership(id));
         }
 
         /// <summary>
