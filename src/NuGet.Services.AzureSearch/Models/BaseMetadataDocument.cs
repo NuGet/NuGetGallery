@@ -18,6 +18,8 @@ namespace NuGet.Services.AzureSearch
         public string Authors { get; set; }
 
         public string Copyright { get; set; }
+
+        [IsSortable]
         public DateTimeOffset? Created { get; set; }
 
         [IsSearchable]
