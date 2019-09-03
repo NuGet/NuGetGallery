@@ -140,6 +140,7 @@
     <Compile Include="Extensions\ObjectExtensions.cs" />
     <Compile Include="Extensions\PackageExtensions.cs" />
     <Compile Include="Extensions\PrincipalExtensions.cs" />
+    <Compile Include="Extensions\RequestEntityExtensions.cs" />
     <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
@@ -225,6 +226,7 @@
     <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="UserManagement\IUserService.cs" />
+    <Compile Include="UserManagement\TransformOrganizationResult.cs" />
     <Compile Include="UserManagement\UserService.cs" />
     <Compile Include="ServicesConstants.cs" />
     <Compile Include="ServicesStrings.Designer.cs">

@@ -72,6 +72,7 @@ namespace NuGetGallery
                     registration,
                     Url,
                     isPending: false,
+                    isExpired: false,
                     isNamespaceOwner: true));
 
             var packageOwnersOnlyResultViewModel =
@@ -82,6 +83,7 @@ namespace NuGetGallery
                     registration,
                     Url,
                     isPending: false,
+                    isExpired: false,
                     isNamespaceOwner: false));
 
             owners = owners.Union(packageOwnersOnlyResultViewModel);
@@ -94,6 +96,7 @@ namespace NuGetGallery
                     registration,
                     Url,
                     isPending: true,
+                    isExpired: r.IsExpired(),
                     isNamespaceOwner: false));
 
             var result = owners.Union(pending);
@@ -187,6 +190,7 @@ namespace NuGetGallery
                         model.Package,
                         Url,
                         isPending: !model.CurrentUserCanAcceptOnBehalfOfUser,
+                        isExpired: false,
                         isNamespaceOwner: false)
                 });
             }

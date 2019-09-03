@@ -29,6 +29,7 @@
             this.ProfileUrl = parent.ProfileUrlTemplate.replace('{username}', this.Username);
             this.GravatarUrl = member.GravatarUrl;
             this.Pending = member.Pending;
+            this.Expired = member.Expired;
 
             this.DeleteMember = function () {
                 if (self.IsCurrentUser) {

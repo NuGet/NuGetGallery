@@ -193,6 +193,7 @@
         this.profileUrl = ko.observable(data.ProfileUrl);
         this.imageUrl = ko.observable(data.ImageUrl);
         this.pending = ko.observable(data.Pending);
+        this.expired = ko.observable(data.Expired);
         this.grantsCurrentUserAccess = data.GrantsCurrentUserAccess;
         this.isCurrentUserAdminOfOrganization = data.IsCurrentUserAdminOfOrganization;
         this.isNamespaceOwner = ko.observable(data.IsNamespaceOwner);

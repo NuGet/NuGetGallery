@@ -3,12 +3,10 @@
 
 namespace NuGetGallery
 {
-    public enum ConfirmOwnershipResult
+    public enum TransformOrganizationResult
     {
         Success,
         Failure,
-        NotYourRequest,
-        AlreadyOwner,
         Rejected,
         Cancelled,
         Expired,

@@ -21,6 +21,7 @@ namespace NuGetGallery
         {
             IsAdmin = request.IsAdmin;
             Pending = true;
+            Expired = request.IsExpired();
         }
 
         private OrganizationMemberViewModel(User member)
@@ -40,6 +41,8 @@ namespace NuGetGallery
         public bool IsAdmin { get; }
 
         public bool Pending { get; }
+
+        public bool Expired { get; }
 
         public string EmailAddress { get; }
 

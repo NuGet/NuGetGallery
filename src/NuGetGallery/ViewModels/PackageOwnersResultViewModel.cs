@@ -23,9 +23,18 @@ namespace NuGetGallery
 
         public bool Pending;
 
+        public bool Expired;
+
         public bool IsNamespaceOwner;
 
-        public PackageOwnersResultViewModel(User user, User currentUser, PackageRegistration packageRegistration, UrlHelper url, bool isPending, bool isNamespaceOwner)
+        public PackageOwnersResultViewModel(
+            User user,
+            User currentUser,
+            PackageRegistration packageRegistration,
+            UrlHelper url,
+            bool isPending,
+            bool isExpired,
+            bool isNamespaceOwner)
         {
             Name = user.Username;
             EmailAddress = user.EmailAddress;
@@ -34,6 +43,7 @@ namespace NuGetGallery
             GrantsCurrentUserAccess = ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissions(currentUser, user, packageRegistration) == PermissionsCheckResult.Allowed;
             IsCurrentUserAdminOfOrganization = (user as Organization)?.GetMembershipOfUser(currentUser)?.IsAdmin ?? false;
             Pending = isPending;
+            Expired = isExpired;
             IsNamespaceOwner = isNamespaceOwner;
         }
     }

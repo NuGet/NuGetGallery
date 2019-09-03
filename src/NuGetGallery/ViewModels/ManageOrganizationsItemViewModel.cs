@@ -44,6 +44,11 @@ namespace NuGetGallery
         public bool IsPendingTransformRequest { get; }
 
         /// <summary>
+        /// Whether or not this pending request is expired.
+        /// </summary>
+        public bool IsExpiredRequest { get; }
+
+        /// <summary>
         /// If this is a pending request, the confirmation token to confirm or decline the request.
         /// </summary>
         public string ConfirmationToken { get; }
@@ -75,6 +80,7 @@ namespace NuGetGallery
             : this(request.Organization, request.IsAdmin, packageService)
         {
             IsPendingRequest = true;
+            IsExpiredRequest = request.IsExpired();
             ConfirmationToken = request.ConfirmationToken;
         }
 
@@ -83,6 +89,7 @@ namespace NuGetGallery
         {
             IsPendingRequest = true;
             IsPendingTransformRequest = true;
+            IsExpiredRequest = request.IsExpired();
             ConfirmationToken = request.ConfirmationToken;
         }
     }

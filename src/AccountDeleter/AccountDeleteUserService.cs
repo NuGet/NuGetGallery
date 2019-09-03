@@ -46,7 +46,7 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public Task<bool> CancelTransformUserToOrganizationRequest(User accountToTransform, string token)
+        public Task<TransformOrganizationResult> CancelTransformUserToOrganizationRequest(User accountToTransform, string token)
         {
             throw new NotImplementedException();
         }
@@ -128,7 +128,7 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public Task<bool> RejectTransformUserToOrganizationRequest(User accountToTransform, User adminUser, string token)
+        public Task<TransformOrganizationResult> RejectTransformUserToOrganizationRequest(User accountToTransform, User adminUser, string token)
         {
             throw new NotImplementedException();
         }
@@ -138,7 +138,7 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
+        public Task<TransformOrganizationResult> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
             throw new NotImplementedException();
         }

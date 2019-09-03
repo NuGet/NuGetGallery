@@ -181,6 +181,12 @@ namespace NuGetGallery
                 throw new InvalidOperationException("No such membership request exists!");
             }
 
+            if (request != null && confirmationToken != null && request.IsExpired())
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    ServicesStrings.RejectMembershipRequest_Expired, memberName));
+            }
+
             var pendingMember = request.NewMember;
 
             organization.MemberRequests.Remove(request);
@@ -198,6 +204,12 @@ namespace NuGetGallery
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
                     ServicesStrings.AddMember_MissingRequest, memberName));
+            }
+
+            if (request.IsExpired())
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    ServicesStrings.AddMember_Expired, memberName));
             }
 
             var member = request.NewMember;
@@ -538,8 +550,20 @@ namespace NuGetGallery
             return errorReason == null;
         }
 
-        public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
+        public async Task<TransformOrganizationResult> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
+            if (accountToTransform.OrganizationMigrationRequest == null
+                || !accountToTransform.OrganizationMigrationRequest.AdminUser.MatchesUser(adminUser)
+                || accountToTransform.OrganizationMigrationRequest.ConfirmationToken != token)
+            {
+                return TransformOrganizationResult.Failure;
+            }
+
+            if (accountToTransform.OrganizationMigrationRequest.IsExpired())
+            {
+                return TransformOrganizationResult.Expired;
+            }
+
             await SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(accountToTransform, adminUser);
             var result = await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
             if (result)
@@ -547,7 +571,7 @@ namespace NuGetGallery
                 await Auditing.SaveAuditRecordAsync(new UserAuditRecord(accountToTransform, AuditedUserAction.TransformOrganization, adminUser, affectedMemberIsAdmin: true));
             }
 
-            return result;
+            return result ? TransformOrganizationResult.Success : TransformOrganizationResult.Failure;
         }
 
         public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
@@ -620,51 +644,61 @@ namespace NuGetGallery
             await SecurityPolicyService.SubscribeAsync(organization, tenantPolicy, commitChanges);
         }
 
-        public async Task<bool> RejectTransformUserToOrganizationRequest(User accountToTransform, User adminUser, string token)
+        public async Task<TransformOrganizationResult> RejectTransformUserToOrganizationRequest(User accountToTransform, User adminUser, string token)
         {
             var transformRequest = accountToTransform.OrganizationMigrationRequest;
 
             if (transformRequest == null)
             {
-                return false;
+                return TransformOrganizationResult.Failure;
             }
 
             if (transformRequest.AdminUser == null || !transformRequest.AdminUser.MatchesUser(adminUser))
             {
-                return false;
+                return TransformOrganizationResult.Failure;
             }
 
             if (transformRequest.ConfirmationToken != token)
             {
-                return false;
+                return TransformOrganizationResult.Failure;
+            }
+
+            if (transformRequest.IsExpired())
+            {
+                return TransformOrganizationResult.Expired;
             }
 
             accountToTransform.OrganizationMigrationRequest = null;
 
             await UserRepository.CommitChangesAsync();
 
-            return true;
+            return TransformOrganizationResult.Rejected;
         }
 
-        public async Task<bool> CancelTransformUserToOrganizationRequest(User accountToTransform, string token)
+        public async Task<TransformOrganizationResult> CancelTransformUserToOrganizationRequest(User accountToTransform, string token)
         {
             var transformRequest = accountToTransform.OrganizationMigrationRequest;
 
             if (transformRequest == null)
             {
-                return false;
+                return TransformOrganizationResult.Failure;
             }
 
             if (transformRequest.ConfirmationToken != token)
             {
-                return false;
+                return TransformOrganizationResult.Failure;
+            }
+
+            if (transformRequest.IsExpired())
+            {
+                return TransformOrganizationResult.Expired;
             }
 
             accountToTransform.OrganizationMigrationRequest = null;
 
             await UserRepository.CommitChangesAsync();
 
-            return true;
+            return TransformOrganizationResult.Cancelled;
         }
 
         public IReadOnlyList<User> GetSiteAdmins()

@@ -143,6 +143,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request for user &apos;{0}&apos; to join the organization has expired. If you wish to continue, ask the administrators of the organization to reissue the membership request..
+        /// </summary>
+        public static string AddMember_Expired {
+            get {
+                return ResourceManager.GetString("AddMember_Expired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There is no request for user &apos;{0}&apos; for join this organization with that token..
         /// </summary>
         public static string AddMember_MissingRequest {
@@ -1540,6 +1549,15 @@ namespace NuGetGallery {
         public static string ReadMeUrlHostInvalid {
             get {
                 return ResourceManager.GetString("ReadMeUrlHostInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The request for user &apos;{0}&apos; to join the organization has expired. No additional action is required to reject the membership request..
+        /// </summary>
+        public static string RejectMembershipRequest_Expired {
+            get {
+                return ResourceManager.GetString("RejectMembershipRequest_Expired", resourceCulture);
             }
         }
         

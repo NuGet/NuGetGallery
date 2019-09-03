@@ -279,6 +279,7 @@
             this.PackageUrl = ownerRequestItem.PackageUrl;
             this.CanAccept = ownerRequestItem.CanAccept;
             this.CanCancel = ownerRequestItem.CanCancel;
+            this.IsExpired = ownerRequestItem.IsExpired;
             this.ConfirmUrl = ownerRequestItem.ConfirmUrl;
             this.RejectUrl = ownerRequestItem.RejectUrl;
             this.ManagePackageOwnershipUrl = ownerRequestItem.ManagePackageOwnershipUrl;

@@ -110,6 +110,7 @@
                 IsAdmin = m.IsAdmin,
                 IsCurrentUser = m.Username.Equals(CurrentUser.Username, StringComparison.OrdinalIgnoreCase),
                 Pending = m.Pending,
+                Expired = m.Expired,
                 GravatarUrl = m.GravatarUrl
             }),
             AddMemberUrl = Url.AddOrganizationMember(Model.AccountName),

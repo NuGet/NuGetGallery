@@ -241,10 +241,15 @@ namespace NuGetGallery
                 return TransformToOrganizationFailed(errorReason);
             }
 
-            if (!await UserService.TransformUserToOrganization(accountToTransform, adminUser, token))
+            var result = await UserService.TransformUserToOrganization(accountToTransform, adminUser, token);
+            switch (result)
             {
-                errorReason = Strings.TransformAccount_Failed;
-                return TransformToOrganizationFailed(errorReason);
+                case TransformOrganizationResult.Success:
+                    break;
+                case TransformOrganizationResult.Expired:
+                    return TransformToOrganizationFailed(Strings.TransformAccount_Expired);
+                default:
+                    return TransformToOrganizationFailed(Strings.TransformAccount_Failed);
             }
 
             var emailMessage = new OrganizationTransformAcceptedMessage(_config, accountToTransform, adminUser);
@@ -274,19 +279,23 @@ namespace NuGetGallery
             }
             else
             {
-                if (await UserService.RejectTransformUserToOrganizationRequest(accountToTransform, adminUser, token))
+                var result = await UserService.RejectTransformUserToOrganizationRequest(accountToTransform, adminUser, token);
+                switch (result)
                 {
-                    var emailMessage = new OrganizationTransformRejectedMessage(_config, accountToTransform, adminUser, isCanceledByAdmin: true);
-                    await MessageService.SendMessageAsync(emailMessage);
+                    case TransformOrganizationResult.Expired:
+                        message = Strings.TransformAccount_ExpiredReject;
+                        break;
+                    case TransformOrganizationResult.Rejected:
+                        var emailMessage = new OrganizationTransformRejectedMessage(_config, accountToTransform, adminUser, isCanceledByAdmin: true);
+                        await MessageService.SendMessageAsync(emailMessage);
 
-                    TelemetryService.TrackOrganizationTransformDeclined(accountToTransform);
+                        TelemetryService.TrackOrganizationTransformDeclined(accountToTransform);
 
-                    message = string.Format(CultureInfo.CurrentCulture,
-                        Strings.TransformAccount_Rejected, accountNameToTransform);
-                }
-                else
-                {
-                    message = Strings.TransformAccount_FailedMissingRequestToCancel;
+                        message = string.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_Rejected, accountNameToTransform);
+                        break;
+                    default:
+                        message = Strings.TransformAccount_FailedMissingRequestToCancel;
+                        break;
                 }
             }
 
@@ -303,19 +312,23 @@ namespace NuGetGallery
             var accountToTransform = GetCurrentUser();
             var adminUser = accountToTransform.OrganizationMigrationRequest?.AdminUser;
 
-            if (await UserService.CancelTransformUserToOrganizationRequest(accountToTransform, token))
+            var result = await UserService.CancelTransformUserToOrganizationRequest(accountToTransform, token);
+            switch (result)
             {
-                var emailMessage = new OrganizationTransformRejectedMessage(_config, accountToTransform, adminUser, isCanceledByAdmin: false);
-                await MessageService.SendMessageAsync(emailMessage);
+                case TransformOrganizationResult.Expired:
+                    TempData["Message"] = Strings.TransformAccount_ExpiredCancel;
+                    break;
+                case TransformOrganizationResult.Cancelled:
+                    var emailMessage = new OrganizationTransformRejectedMessage(_config, accountToTransform, adminUser, isCanceledByAdmin: false);
+                    await MessageService.SendMessageAsync(emailMessage);
 
-                TelemetryService.TrackOrganizationTransformCancelled(accountToTransform);
+                    TelemetryService.TrackOrganizationTransformCancelled(accountToTransform);
 
-                TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_Cancelled);
-            }
-            else
-            {
-                TempData["ErrorMessage"] = Strings.TransformAccount_FailedMissingRequestToCancel;
+                    TempData["Message"] = string.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_Cancelled);
+                    break;
+                default:
+                    TempData["ErrorMessage"] = Strings.TransformAccount_FailedMissingRequestToCancel;
+                    break;
             }
 
             return RedirectToAction(actionName: "Home", controllerName: "Pages");
@@ -1143,6 +1156,7 @@ namespace NuGetGallery
                 Package = packageViewModel,
                 CanAccept = ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, request.NewOwner) == PermissionsCheckResult.Allowed,
                 CanCancel = packageViewModel.CanManageOwners,
+                IsExpired = request.IsExpired(),
             };
         }
     }

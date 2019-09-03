@@ -1147,4 +1147,13 @@ The {1} Team</value>
   <data name="AccountDelete_SelfServiceSuccess" xml:space="preserve">
     <value>Your account is being deleted. You have been logged out.</value>
   </data>
+  <data name="TransformAccount_Expired" xml:space="preserve">
+    <value>The tranform request for your account has expired. Recreate the request if you wish to continue.</value>
+  </data>
+  <data name="TransformAccount_ExpiredCancel" xml:space="preserve">
+    <value>The tranform request for your account has expired. No further action is necessary to cancel the account transformation.</value>
+  </data>
+  <data name="TransformAccount_ExpiredReject" xml:space="preserve">
+    <value>The tranform request for your account has expired. No further action is necessary to reject the account transformation.</value>
+  </data>
 </root>

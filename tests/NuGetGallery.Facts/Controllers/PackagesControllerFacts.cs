@@ -1976,7 +1976,8 @@ namespace NuGetGallery
                     PackageRegistration = package,
                     RequestingOwner = requestingOwner,
                     NewOwner = newOwner,
-                    ConfirmationCode = token
+                    ConfirmationCode = token,
+                    RequestDate = DateTime.UtcNow,
                 };
                 packageOwnershipManagementService.Setup(p => p.GetPackageOwnershipRequest(package, newOwner, token))
                     .Returns(tokenValid ? request : null);
@@ -2023,6 +2024,86 @@ namespace NuGetGallery
                     .Verify(
                     svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
                     tokenValid ? Times.Once() : Times.Never());
+            }
+
+            [Theory]
+            [MemberData(nameof(ReturnsSuccessIfTokenIsValid_Data))]
+            public async Task ReturnsExpiredIfTokenRequestIsTooOld(
+                InvokeOwnershipRequest invokeOwnershipRequest,
+                PackageOwnershipManagementServiceRequestExpression packageOwnershipManagementServiceExpression,
+                EmailBuilderForOwnershipRequest emailBuilder,
+                EmailMessageVerificationForOwnershipRequest emailVerifier,
+                ConfirmOwnershipResult successState,
+                bool tokenValid,
+                bool isOrganizationAdministrator)
+            {
+                // Arrange
+                var token = "token";
+                var requestingOwner = new User { Key = _key++, Username = "owner", EmailAllowed = true };
+                var package = new PackageRegistration { Id = "foo", Owners = new[] { requestingOwner } };
+
+                var currentUser = new User { Key = _key++, Username = "username" };
+
+                User newOwner;
+                if (isOrganizationAdministrator)
+                {
+                    newOwner = new Organization { Key = _key++, Username = "organization", Members = new[] { new Membership { Member = currentUser, IsAdmin = true } } };
+                }
+                else
+                {
+                    newOwner = currentUser;
+                }
+
+                var mockHttpContext = new Mock<HttpContextBase>();
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
+
+                var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
+                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
+
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner,
+                    ConfirmationCode = token,
+                    RequestDate = DateTime.MinValue,
+                };
+                packageOwnershipManagementService.Setup(p => p.GetPackageOwnershipRequest(package, newOwner, token))
+                    .Returns(tokenValid ? request : null);
+
+                var configurationService = GetConfigurationService();
+                var messageService = new Mock<IMessageService>();
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(x => x.FindByUsername(newOwner.Username, false)).Returns(newOwner);
+
+                var controller = CreateController(
+                    configurationService,
+                    httpContext: mockHttpContext,
+                    packageService: packageService,
+                    messageService: messageService,
+                    packageOwnershipManagementService: packageOwnershipManagementService,
+                    userService: userService);
+
+                controller.SetCurrentUser(currentUser);
+                TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
+
+                // Act
+                var result = await invokeOwnershipRequest(controller, package.Id, newOwner.Username, token);
+
+                // Assert
+                var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
+                var expectedResult = tokenValid ? ConfirmOwnershipResult.Expired : ConfirmOwnershipResult.Failure;
+                Assert.Equal(expectedResult, model.Result);
+                Assert.Equal(package.Id, model.PackageId);
+                packageOwnershipManagementService.Verify(packageOwnershipManagementServiceExpression(package, newOwner), Times.Never());
+
+                messageService
+                    .Verify(
+                    svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
+                    Times.Never());
             }
 
             public class TheCancelPendingOwnershipRequestMethod : TestContainer

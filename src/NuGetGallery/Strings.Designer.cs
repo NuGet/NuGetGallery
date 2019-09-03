@@ -2202,6 +2202,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The tranform request for your account has expired. Recreate the request if you wish to continue..
+        /// </summary>
+        public static string TransformAccount_Expired {
+            get {
+                return ResourceManager.GetString("TransformAccount_Expired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tranform request for your account has expired. No further action is necessary to cancel the account transformation..
+        /// </summary>
+        public static string TransformAccount_ExpiredCancel {
+            get {
+                return ResourceManager.GetString("TransformAccount_ExpiredCancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tranform request for your account has expired. No further action is necessary to reject the account transformation..
+        /// </summary>
+        public static string TransformAccount_ExpiredReject {
+            get {
+                return ResourceManager.GetString("TransformAccount_ExpiredReject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support for assistance..
         /// </summary>
         public static string TransformAccount_Failed {

@@ -259,6 +259,9 @@
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
                                 <span data-bind="text: Id"></span>
                             </a>
+                            <!-- ko if: IsExpired -->
+                            (request expired)
+                            <!-- /ko -->
                         </td>
                         <td class="align-middle">
                             <span class="ms-noWrap" data-bind="foreach: Owners">
@@ -271,7 +274,7 @@
                             <a data-bind="attr: { href: New.ProfileUrl }"><span data-bind="text: New.Username"></span></a>
                         </td>
                         <td class="text-right align-middle package-controls">
-                            <!-- ko if: CanAccept -->
+                            <!-- ko if: !IsExpired && CanAccept -->
                             <a class="btn" title="Confirm Ownership" data-bind="attr: { href: ConfirmUrl, 'aria-label': 'Confirm Ownership of ' + Id }">
                                 <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
                             </a>
@@ -399,6 +402,7 @@
             New = GetSerializableOwner(r.Request.NewOwner),
             CanAccept = r.CanAccept,
             CanCancel = r.CanCancel,
+            IsExpired = r.IsExpired,
             ConfirmUrl = confirmUrlTemplate.Resolve(r),
             RejectUrl = rejectUrlTemplate.Resolve(r),
             ManagePackageOwnershipUrl = manageOwnershipUrlTemplate.Resolve(r)

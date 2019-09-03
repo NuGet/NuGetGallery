@@ -1127,4 +1127,10 @@ The {1} Team</value>
   <data name="AsyncAccountDelete_Success" xml:space="preserve">
     <value>The account '{0}' was enqueued to be deleted successfully.</value>
   </data>
+  <data name="AddMember_Expired" xml:space="preserve">
+    <value>The request for user '{0}' to join the organization has expired. If you wish to continue, ask the administrators of the organization to reissue the membership request.</value>
+  </data>
+  <data name="RejectMembershipRequest_Expired" xml:space="preserve">
+    <value>The request for user '{0}' to join the organization has expired. No additional action is required to reject the membership request.</value>
+  </data>
 </root>

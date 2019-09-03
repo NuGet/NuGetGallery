@@ -47,9 +47,13 @@
                                     <a title="View Organization Profile" href="@Url.User(organization.OrganizationName)">
                                         @organization.OrganizationName
                                     </a>
-                                    @if (organization.IsPendingRequest)
+                                    @if (!organization.IsExpiredRequest && organization.IsPendingRequest)
                                     {
                                         <span>(pending approval)</span>
+                                    }
+                                    else if (organization.IsExpiredRequest)
+                                    {
+                                        <span>(request expired)</span>
                                     }
                                 </td>
                                 <td class="align-middle">
@@ -62,13 +66,13 @@
                                     @organization.PackagesCount
                                 </td>
                                 <td class="text-right align-middle package-controls">
-                                    @if (!organization.IsPendingRequest && !organization.IsPendingTransformRequest)
+                                    @if (!organization.IsExpiredRequest && !organization.IsPendingRequest && !organization.IsPendingTransformRequest)
                                     {
                                         <a class="btn" href="@Url.ManageMyOrganization(organization.OrganizationName)" title="Edit Organization" aria-label="@("Edit Organization " + organization.OrganizationName)">
                                             <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                                         </a>
                                     }
-                                    else if (organization.IsPendingRequest)
+                                    else if (!organization.IsExpiredRequest && organization.IsPendingRequest)
                                     {
                                         var accept = organization.IsPendingTransformRequest ? Url.ConfirmTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.AcceptOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
                                         var reject = organization.IsPendingTransformRequest ? Url.RejectTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.RejectOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);

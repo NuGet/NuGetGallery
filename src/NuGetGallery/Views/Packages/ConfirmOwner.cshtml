@@ -23,6 +23,10 @@
                     @:Ownership Request Cancelled
                     break;
 
+                case ConfirmOwnershipResult.Expired:
+                    @:Ownership Request Expired
+                    break;
+
                 default:
                     @:Ownership Confirmation Failed
                     break;
@@ -50,6 +54,15 @@
                 <p class="text-center">
                     You have cancelled your request for <strong>@Model.Username</strong> to become an owner of the
                     '<strong><a href="@Url.Package(@Model.PackageId)" title="The @Model.PackageId package">@Model.PackageId</a></strong>' package!
+                </p>
+                break;
+
+            case ConfirmOwnershipResult.Expired:
+                <p class="text-center">
+                    The package ownership request for <strong>@Model.Username</strong> to become an owner of the
+                    '<strong><a href="@Url.Package(@Model.PackageId)" title="The @Model.PackageId package">@Model.PackageId</a></strong>'
+                    package has expired. If you wish to gain ownership of the package, ask the existing owner(s) to
+                    reissue the request.
                 </p>
                 break;
 

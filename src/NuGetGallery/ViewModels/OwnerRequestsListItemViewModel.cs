@@ -14,5 +14,7 @@ namespace NuGetGallery
         public bool CanAccept { get; set; }
 
         public bool CanCancel { get; set; }
+
+        public bool IsExpired { get; set; }
     }
 }

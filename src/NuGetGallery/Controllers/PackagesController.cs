@@ -2023,6 +2023,11 @@ namespace NuGetGallery
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Failure));
             }
 
+            if (request.IsExpired())
+            {
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Expired));
+            }
+
             if (accept)
             {
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);

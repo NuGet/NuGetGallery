@@ -85,6 +85,7 @@
     <Compile Include="Controllers\AccountsControllerFacts.cs" />
     <Compile Include="Controllers\OrganizationsControllerFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
+    <Compile Include="Extensions\RequestEntityExtensionsFacts.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentFactoryFacts.cs" />
     <Compile Include="Infrastructure\CookieBasedABTestServiceFacts.cs" />
     <Compile Include="Infrastructure\HijackSearchServiceFactoryFacts.cs" />

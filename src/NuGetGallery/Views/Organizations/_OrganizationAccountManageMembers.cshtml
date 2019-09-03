@@ -65,8 +65,11 @@
                             <!-- ko if: IsCurrentUser -->
                             <i>(that's you)</i>
                             <!-- /ko -->
-                            <!-- ko if: Pending -->
-                            <i>(pending)</i>
+                            <!-- ko if: !Expired && Pending -->
+                            <i>(pending approval)</i>
+                            <!-- /ko -->
+                            <!-- ko if: Expired -->
+                            <i>(request expired)</i>
                             <!-- /ko -->
                         </div>
                     </div>

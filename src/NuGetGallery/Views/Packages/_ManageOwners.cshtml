@@ -30,7 +30,8 @@
                         <span style="font-style:italic">
                             <span data-bind="visible: grantsCurrentUserAccess && !isCurrentUserAdminOfOrganization">(that's you)</span>
                             <span data-bind="visible: isCurrentUserAdminOfOrganization">(your organization)</span>
-                            <span data-bind="visible: pending">(pending approval)</span>
+                            <span data-bind="visible: !expired() && pending()">(pending approval)</span>
+                            <span data-bind="visible: expired">(request expired)</span>
                         </span>
                     </div>
                     <!-- ko if: $parent.IsAllowedToRemove($data) -->

@@ -413,7 +413,8 @@ namespace NuGetGallery
                 {
                     NewMember = Fakes.User,
                     ConfirmationToken = "token",
-                    IsAdmin = isAdmin
+                    IsAdmin = isAdmin,
+                    RequestDate = DateTime.UtcNow,
                 });
 
                 // Act & Assert
@@ -445,7 +446,8 @@ namespace NuGetGallery
                 {
                     NewMember = Fakes.User,
                     ConfirmationToken = token,
-                    IsAdmin = isAdmin
+                    IsAdmin = isAdmin,
+                    RequestDate = DateTime.UtcNow,
                 });
 
                 Fakes.User.EmailAddress = string.Empty;
@@ -480,7 +482,8 @@ namespace NuGetGallery
                 {
                     NewMember = Fakes.OrganizationOwner,
                     ConfirmationToken = token,
-                    IsAdmin = isAdmin
+                    IsAdmin = isAdmin,
+                    RequestDate = DateTime.UtcNow,
                 });
 
                 // Act & Assert
@@ -514,7 +517,8 @@ namespace NuGetGallery
                 {
                     NewMember = Fakes.OrganizationCollaborator,
                     ConfirmationToken = token,
-                    IsAdmin = isAdmin
+                    IsAdmin = isAdmin,
+                    RequestDate = DateTime.UtcNow,
                 });
 
                 // Act
@@ -533,6 +537,38 @@ namespace NuGetGallery
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
+            public async Task WhenExpired_ThrowsEntityException(bool isAdmin)
+            {
+                // Arrange
+                var token = "token";
+
+                Fakes.Organization.MemberRequests.Add(new MembershipRequest
+                {
+                    NewMember = Fakes.User,
+                    ConfirmationToken = token,
+                    IsAdmin = isAdmin,
+                    RequestDate = DateTime.MinValue,
+                });
+
+                Fakes.User.EmailAddress = string.Empty;
+                Fakes.User.UnconfirmedEmailAddress = "unconfirmed@email.com";
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await UserService.AddMemberAsync(Fakes.Organization, Fakes.User.Username, token);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    ServicesStrings.AddMember_Expired, Fakes.User.Username),
+                    e.Message);
+
+                UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
             public async Task WhenRequestFoundWithUnconfirmedUser_ThrowsEntityException(bool isAdmin)
             {
                 // Arrange
@@ -542,7 +578,8 @@ namespace NuGetGallery
                 {
                     NewMember = Fakes.User,
                     ConfirmationToken = token,
-                    IsAdmin = isAdmin
+                    IsAdmin = isAdmin,
+                    RequestDate = DateTime.UtcNow,
                 });
 
                 Fakes.User.EmailAddress = string.Empty;
@@ -579,7 +616,8 @@ namespace NuGetGallery
                 {
                     NewMember = Fakes.User,
                     ConfirmationToken = token,
-                    IsAdmin = isAdmin
+                    IsAdmin = isAdmin,
+                    RequestDate = DateTime.UtcNow,
                 });
 
                 // Act & Assert
@@ -611,7 +649,8 @@ namespace NuGetGallery
                 {
                     NewMember = Fakes.User,
                     ConfirmationToken = token,
-                    IsAdmin = isAdmin
+                    IsAdmin = isAdmin,
+                    RequestDate = DateTime.UtcNow,
                 });
 
                 // Act
@@ -788,7 +827,8 @@ namespace NuGetGallery
                         new MembershipRequest
                         {
                             NewMember = new User(memberName),
-                            ConfirmationToken = "differentToken"
+                            ConfirmationToken = "differentToken",
+                            RequestDate = DateTime.UtcNow,
                         }
                     }
                 };
@@ -801,6 +841,41 @@ namespace NuGetGallery
 
                 Assert.Equal(string.Format(CultureInfo.CurrentCulture,
                     Strings.RejectMembershipRequest_NotFound, memberName),
+                    e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenExistingRequestExpired_ThrowsEntityException()
+            {
+                // Arrange
+                var service = new TestableUserService();
+
+                var memberName = "member";
+                var token = "token";
+
+                var organization = new Organization
+                {
+                    MemberRequests = new List<MembershipRequest>
+                    {
+                        new MembershipRequest
+                        {
+                            NewMember = new User(memberName),
+                            ConfirmationToken = token,
+                            RequestDate = DateTime.MinValue,
+                        }
+                    }
+                };
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.RejectMembershipRequestAsync(organization, memberName, token);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    ServicesStrings.RejectMembershipRequest_Expired, memberName),
                     e.Message);
 
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
@@ -823,7 +898,8 @@ namespace NuGetGallery
                         new MembershipRequest
                         {
                             NewMember = new User(memberName),
-                            ConfirmationToken = token
+                            ConfirmationToken = token,
+                            RequestDate = DateTime.UtcNow,
                         }
                     }
                 };
@@ -893,7 +969,8 @@ namespace NuGetGallery
                         new MembershipRequest
                         {
                             NewMember = newMember,
-                            ConfirmationToken = "token"
+                            ConfirmationToken = "token",
+                            RequestDate = DateTime.UtcNow,
                         }
                     }
                 };
@@ -1708,12 +1785,66 @@ namespace NuGetGallery
 
             private const string TransformedUsername = "Account";
             private const string AdminUsername = "Admin";
+            private const string Token = "token";
+
+            [Fact]
+            public async Task WhenThereIsNoMigrationRequest_Fails()
+            {
+                Assert.Equal(TransformOrganizationResult.Failure, await InvokeTransformUserToOrganization(
+                    3,
+                    migrationRequest: null,
+                    admin: new User(AdminUsername) { Credentials = new Credential[0] }));
+            }
+
+            [Fact]
+            public async Task WhenAdminUserDoesNotMatch_Fails()
+            {
+                Assert.Equal(TransformOrganizationResult.Failure, await InvokeTransformUserToOrganization(
+                    3,
+                    new OrganizationMigrationRequest
+                    {
+                        AdminUser = new User(AdminUsername) { Key = 1, Credentials = new Credential[0] },
+                        ConfirmationToken = Token,
+                        RequestDate = DateTime.UtcNow
+                    },
+                    admin: new User("OtherAdmin") { Key = 2, Credentials = new Credential[0] }));
+            }
+
+            [Fact]
+            public async Task WhenTokenDoesNotMatch_Fails()
+            {
+                var admin = new User(AdminUsername) { Credentials = new Credential[0] };
+                Assert.Equal(TransformOrganizationResult.Failure, await InvokeTransformUserToOrganization(
+                    3,
+                    new OrganizationMigrationRequest
+                    {
+                        AdminUser = admin,
+                        ConfirmationToken = "othertoken",
+                        RequestDate = DateTime.UtcNow
+                    },
+                    admin));
+            }
+
+            [Fact]
+            public async Task WhenRequestDateIsTooOld_Expires()
+            {
+                var admin = new User(AdminUsername) { Credentials = new Credential[0] };
+                Assert.Equal(TransformOrganizationResult.Expired, await InvokeTransformUserToOrganization(
+                    3,
+                    new OrganizationMigrationRequest
+                    {
+                        AdminUser = admin,
+                        ConfirmationToken = Token,
+                        RequestDate = DateTime.MinValue
+                    },
+                    admin));
+            }
 
             [Fact]
             public async Task WhenAdminHasNoTenant_TransformsAccountWithoutPolicy()
             {
                 var tenantlessAdminUsername = "adminWithNoTenant";
-                Assert.True(await InvokeTransformUserToOrganization(3, new User(tenantlessAdminUsername) { Credentials = new Credential[0] }));
+                Assert.Equal(TransformOrganizationResult.Success, await InvokeTransformUserToOrganization(3, new User(tenantlessAdminUsername) { Credentials = new Credential[0] }));
 
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.TransformOrganization &&
@@ -1722,6 +1853,7 @@ namespace NuGetGallery
                     ar.AffectedMemberIsAdmin == true));
             }
 
+            [Fact]
             public async Task WhenAdminHasUnsupportedTenant_TransformsAccountWithoutPolicy()
             {
                 var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
@@ -1733,7 +1865,7 @@ namespace NuGetGallery
                     .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(mockLoginDiscontinuationConfiguration.Object);
 
-                Assert.True(await InvokeTransformUserToOrganization(3));
+                Assert.Equal(TransformOrganizationResult.Success, await InvokeTransformUserToOrganization(3));
 
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.TransformOrganization &&
@@ -1742,6 +1874,7 @@ namespace NuGetGallery
                     ar.AffectedMemberIsAdmin == true));
             }
 
+            [Fact]
             public async Task WhenAdminHasSupportedTenant_TransformsAccountWithPolicy()
             {
                 var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
@@ -1753,7 +1886,7 @@ namespace NuGetGallery
                     .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(mockLoginDiscontinuationConfiguration.Object);
 
-                Assert.True(await InvokeTransformUserToOrganization(3, subscribesToPolicy: true));
+                Assert.Equal(TransformOrganizationResult.Success, await InvokeTransformUserToOrganization(3, subscribesToPolicy: true));
 
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.TransformOrganization &&
@@ -1765,7 +1898,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(0)]
             [InlineData(-1)]
-            public async Task WhenSqlResultIsZeroOrLess_ReturnsFalse(int affectedRecords)
+            public async Task WhenSqlResultIsZeroOrLess_ReturnsFailure(int affectedRecords)
             {
                 var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
@@ -1776,7 +1909,7 @@ namespace NuGetGallery
                     .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(mockLoginDiscontinuationConfiguration.Object);
 
-                Assert.False(await InvokeTransformUserToOrganization(affectedRecords));
+                Assert.Equal(TransformOrganizationResult.Failure, await InvokeTransformUserToOrganization(affectedRecords));
 
                 Assert.False(_service.Auditing.WroteRecord<UserAuditRecord>());
             }
@@ -1784,7 +1917,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(1)]
             [InlineData(3)]
-            public async Task WhenSqlResultIsPositive_ReturnsTrue(int affectedRecords)
+            public async Task WhenSqlResultIsPositive_ReturnsSuccess(int affectedRecords)
             {
                 var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
@@ -1795,7 +1928,7 @@ namespace NuGetGallery
                     .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(mockLoginDiscontinuationConfiguration.Object);
 
-                Assert.True(await InvokeTransformUserToOrganization(affectedRecords));
+                Assert.Equal(TransformOrganizationResult.Success, await InvokeTransformUserToOrganization(affectedRecords));
 
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.TransformOrganization &&
@@ -1804,10 +1937,11 @@ namespace NuGetGallery
                     ar.AffectedMemberIsAdmin == true));
             }
 
-            private Task<bool> InvokeTransformUserToOrganization(int affectedRecords, User admin = null, bool subscribesToPolicy = false)
+            private Task<TransformOrganizationResult> InvokeTransformUserToOrganization(
+                int affectedRecords,
+                User admin = null,
+                bool subscribesToPolicy = false)
             {
-                // Arrange
-                var account = new User(TransformedUsername);
                 admin = admin ?? new User(AdminUsername)
                 {
                     Credentials = new Credential[] {
@@ -1819,6 +1953,26 @@ namespace NuGetGallery
                     }
                 };
 
+                var migrationRequest = new OrganizationMigrationRequest
+                {
+                    AdminUser = admin,
+                    ConfirmationToken = Token,
+                    RequestDate = DateTime.UtcNow,
+                };
+
+                return InvokeTransformUserToOrganization(affectedRecords, migrationRequest, admin, subscribesToPolicy);
+            }
+
+            private Task<TransformOrganizationResult> InvokeTransformUserToOrganization(
+                int affectedRecords,
+                OrganizationMigrationRequest migrationRequest,
+                User admin,
+                bool subscribesToPolicy = false)
+            {
+                // Arrange
+                var account = new User(TransformedUsername);
+                account.OrganizationMigrationRequest = migrationRequest;
+
                 _service.MockDatabase
                     .Setup(db => db.ExecuteSqlResourceAsync(It.IsAny<string>(), It.IsAny<object[]>()))
                     .Returns(Task.FromResult(affectedRecords));
@@ -1828,7 +1982,7 @@ namespace NuGetGallery
 
                 _service.MockSecurityPolicyService
                     .Verify(
-                        sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), true), 
+                        sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), true),
                         subscribesToPolicy ? Times.Once() : Times.Never());
 
                 return result;
@@ -2052,7 +2206,7 @@ namespace NuGetGallery
         }
         public class TheRejectTransformUserToOrganizationRequestMethod
         {
-            public async Task IfNoExistingRequest_ReturnsFalse()
+            public async Task IfNoExistingRequest_ReturnsFailure()
             {
                 var accountToTransform = new User("norequest");
 
@@ -2060,12 +2214,12 @@ namespace NuGetGallery
 
                 var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, null, null);
 
-                Assert.False(result);
+                Assert.Equal(TransformOrganizationResult.Failure, result);
 
                 service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
-            public async Task IfAdminUserNull_ReturnsFalse()
+            public async Task IfAdminUserNull_ReturnsFailure()
             {
                 var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest() };
 
@@ -2073,12 +2227,12 @@ namespace NuGetGallery
 
                 var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, null, null);
 
-                Assert.False(result);
+                Assert.Equal(TransformOrganizationResult.Failure, result);
 
                 service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
-            public async Task IfAdminUserDoesntMatchRequest_ReturnsFalse()
+            public async Task IfAdminUserDoesntMatchRequest_ReturnsFailure()
             {
                 var admin = new User("requestAdmin");
                 var wrongAdmin = new User("admin");
@@ -2088,12 +2242,12 @@ namespace NuGetGallery
 
                 var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, wrongAdmin, null);
 
-                Assert.False(result);
+                Assert.Equal(TransformOrganizationResult.Failure, result);
 
                 service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
-            public async Task IfTokenDoesntMatch_ReturnsFalse()
+            public async Task IfTokenDoesntMatch_ReturnsFailure()
             {
                 var admin = new User("admin");
                 var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest { AdminUser = admin, ConfirmationToken = "token" } };
@@ -2102,7 +2256,7 @@ namespace NuGetGallery
 
                 var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, admin, "wrongToken");
 
-                Assert.False(result);
+                Assert.Equal(TransformOrganizationResult.Failure, result);
 
                 service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
@@ -2117,7 +2271,7 @@ namespace NuGetGallery
 
                 var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, admin, token);
 
-                Assert.True(result);
+                Assert.Equal(TransformOrganizationResult.Success, result);
                 Assert.Null(accountToTransform.OrganizationMigrationRequest);
 
                 service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Once);

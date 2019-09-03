@@ -2717,7 +2717,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenCanTransformReturnsFalse_ShowsError()
+            public async Task WhenCanTransformReturnsFailure_ShowsError()
             {
                 // Arrange
                 var accountToTransform = "account";
@@ -2749,11 +2749,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenUserServiceReturnsFalse_ShowsError()
+            public async Task WhenUserServiceReturnsFailure_ShowsError()
             {
                 // Arrange
                 var accountToTransform = "account";
-                var controller = CreateController(accountToTransform, success: false);
+                var controller = CreateController(accountToTransform, result: TransformOrganizationResult.Failure);
 
                 // Act
                 var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
@@ -2762,10 +2762,37 @@ namespace NuGetGallery
                 Assert.NotNull(result);
 
                 var model = result.Model as TransformAccountFailedViewModel;
-                Assert.Equal(
-                    String.Format(CultureInfo.CurrentCulture,
-                        Strings.TransformAccount_Failed, "account"),
-                    model.ErrorMessage);
+                Assert.Equal(Strings.TransformAccount_Failed, model.ErrorMessage);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendMessageAsync(
+                            It.IsAny<OrganizationTransformAcceptedMessage>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCompleted(It.IsAny<Organization>()),
+                        Times.Never());
+            }
+
+            [Fact]
+            public async Task WhenUserServiceReturnsExpired_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, result: TransformOrganizationResult.Expired);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal(Strings.TransformAccount_Expired, model.ErrorMessage);
 
                 GetMock<IMessageService>()
                     .Verify(m =>
@@ -2786,7 +2813,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var accountToTransform = "account";
-                var controller = CreateController(accountToTransform, success: true);
+                var controller = CreateController(accountToTransform, result: TransformOrganizationResult.Success);
 
                 // Act
                 var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
@@ -2807,7 +2834,7 @@ namespace NuGetGallery
                         t => t.TrackOrganizationTransformCompleted(It.IsAny<User>()));
             }
 
-            private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "", bool success = true)
+            private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "", TransformOrganizationResult result = TransformOrganizationResult.Success)
             {
                 // Arrange
                 var configurationService = GetConfigurationService();
@@ -2833,7 +2860,7 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Setup(s => s.TransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(success));
+                    .Returns(Task.FromResult(result));
 
                 return controller;
             }
@@ -2873,11 +2900,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenUserServiceReturnsFalse_ShowsError()
+            public async Task WhenUserServiceReturnsFailure_ShowsError()
             {
                 // Arrange
                 var accountToTransform = "account";
-                var controller = CreateController(accountToTransform, success: false);
+                var controller = CreateController(accountToTransform, TransformOrganizationResult.Failure);
 
                 // Act
                 var result = await controller.RejectTransformToOrganization(accountToTransform, "token") as RedirectToRouteResult;
@@ -2901,11 +2928,39 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenUserServiceReturnsSuccess_Redirects()
+            public async Task WhenUserServiceReturnsExpired_ShowsError()
             {
                 // Arrange
                 var accountToTransform = "account";
-                var controller = CreateController(accountToTransform, success: true);
+                var controller = CreateController(accountToTransform, TransformOrganizationResult.Expired);
+
+                // Act
+                var result = await controller.RejectTransformToOrganization(accountToTransform, "token") as RedirectToRouteResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(Strings.TransformAccount_ExpiredReject, controller.TempData["Message"]);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendMessageAsync(
+                            It.IsAny<OrganizationTransformRejectedMessage>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformDeclined(It.IsAny<Organization>()),
+                        Times.Never());
+            }
+
+            [Fact]
+            public async Task WhenUserServiceReturnsRejected_Redirects()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, TransformOrganizationResult.Rejected);
 
                 // Act
                 var result = await controller.RejectTransformToOrganization(accountToTransform, "token");
@@ -2928,7 +2983,7 @@ namespace NuGetGallery
                         t => t.TrackOrganizationTransformDeclined(It.IsAny<User>()));
             }
 
-            private UsersController CreateController(string accountToTransform, bool success = true)
+            private UsersController CreateController(string accountToTransform, TransformOrganizationResult result = TransformOrganizationResult.Rejected)
             {
                 // Arrange
                 var configurationService = GetConfigurationService();
@@ -2946,7 +3001,7 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Setup(s => s.RejectTransformUserToOrganizationRequest(It.IsAny<User>(), It.IsAny<User>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(success));
+                    .Returns(Task.FromResult(result));
 
                 return controller;
             }
@@ -2955,10 +3010,10 @@ namespace NuGetGallery
         public class TheCancelTransformToOrganizationAction : TestContainer
         {
             [Fact]
-            public async Task WhenUserServiceReturnsFalse_ShowsError()
+            public async Task WhenUserServiceReturnsFailure_ShowsError()
             {
                 // Arrange
-                var controller = CreateController(success: false);
+                var controller = CreateController(TransformOrganizationResult.Failure);
 
                 // Act
                 var result = await controller.CancelTransformToOrganization("token") as RedirectToRouteResult;
@@ -2984,10 +3039,39 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenUserServiceReturnsSuccess_Redirects()
+            public async Task WhenUserServiceReturnsExpired_ShowsError()
             {
                 // Arrange
-                var controller = CreateController(success: true);
+                var controller = CreateController(TransformOrganizationResult.Expired);
+
+                // Act
+                var result = await controller.CancelTransformToOrganization("token") as RedirectToRouteResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(
+                    Strings.TransformAccount_ExpiredCancel,
+                    controller.TempData["Message"]);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendMessageAsync(
+                            It.IsAny<OrganizationTransformRejectedMessage>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCancelled(It.IsAny<Organization>()),
+                        Times.Never());
+            }
+
+            [Fact]
+            public async Task WhenUserServiceReturnsCancelled_Redirects()
+            {
+                // Arrange
+                var controller = CreateController(TransformOrganizationResult.Cancelled);
 
                 // Act
                 var result = await controller.CancelTransformToOrganization("token") as RedirectToRouteResult;
@@ -3010,7 +3094,7 @@ namespace NuGetGallery
                         t => t.TrackOrganizationTransformCancelled(It.IsAny<User>()));
             }
 
-            private UsersController CreateController(bool success = true)
+            private UsersController CreateController(TransformOrganizationResult result = TransformOrganizationResult.Cancelled)
             {
                 // Arrange
                 var configurationService = GetConfigurationService();
@@ -3030,7 +3114,7 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Setup(s => s.CancelTransformUserToOrganizationRequest(It.IsAny<User>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(success));
+                    .Returns(Task.FromResult(result));
 
                 return controller;
             }
