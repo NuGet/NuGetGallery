@@ -8,6 +8,8 @@ namespace NuGetGallery.Infrastructure.Search.Models
         LastEdited,
         Published,
         TitleAscending,
-        TitleDescending
+        TitleDescending,
+        CreatedAscending,
+        CreatedDescending,
     }
 }

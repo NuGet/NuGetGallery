@@ -100,7 +100,12 @@ namespace NuGetGallery.OData
             // We can only use Lucene if:
             //  a) The Index contains all versions of each package
             //  b) The sort order is something Lucene can handle
-            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, searchService.ContainsAllVersions, out searchFilter) && !string.IsNullOrWhiteSpace(id))
+            if (TryReadSearchFilter(
+                searchService.ContainsAllVersions,
+                request.RawUrl,
+                searchService.ContainsAllVersions,
+                SortOrder.CreatedAscending,
+                out searchFilter) && !string.IsNullOrWhiteSpace(id))
             {
                 var normalizedRegistrationId = id.Normalize(NormalizationForm.FormC);
 
@@ -142,7 +147,12 @@ namespace NuGetGallery.OData
             // We can only use Lucene if:
             //  a) We are looking for the latest version of a package OR the Index contains all versions of each package
             //  b) The sort order is something Lucene can handle
-            if (TryReadSearchFilter(searchService.ContainsAllVersions, request.RawUrl, false, out searchFilter))
+            if (TryReadSearchFilter(
+                searchService.ContainsAllVersions,
+                request.RawUrl,
+                ignoreLatestVersionFilter: false,
+                defaultSortOrder: SortOrder.Relevance,
+                searchFilter: out searchFilter))
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
@@ -167,7 +177,12 @@ namespace NuGetGallery.OData
             return new SearchAdaptorResult(false, packages.Search(searchTerm));
         }
 
-        private static bool TryReadSearchFilter(bool allVersionsInIndex, string url, bool ignoreLatestVersionFilter, out SearchFilter searchFilter)
+        private static bool TryReadSearchFilter(
+            bool allVersionsInIndex,
+            string url,
+            bool ignoreLatestVersionFilter,
+            SortOrder defaultSortOrder,
+            out SearchFilter searchFilter)
         {
             if (url == null)
             {
@@ -251,7 +266,7 @@ namespace NuGetGallery.OData
             {
                 if (string.IsNullOrEmpty(orderBy))
                 {
-                    searchFilter.SortOrder = SortOrder.Relevance;
+                    searchFilter.SortOrder = defaultSortOrder;
                 }
                 else if (orderBy.StartsWith("DownloadCount", StringComparison.Ordinal))
                 {
@@ -278,6 +293,15 @@ namespace NuGetGallery.OData
                         searchFilter.SortOrder = SortOrder.TitleDescending;
                     }
                 }
+                else if (orderBy.StartsWith("Created", StringComparison.Ordinal))
+                {
+                    searchFilter.SortOrder = SortOrder.CreatedAscending;
+
+                    if (orderBy.Contains("%20desc"))
+                    {
+                        searchFilter.SortOrder = SortOrder.CreatedDescending;
+                    }
+                }
                 else
                 {
                     searchFilter = null;
@@ -286,7 +310,7 @@ namespace NuGetGallery.OData
             }
             else
             {
-                searchFilter.SortOrder = SortOrder.Relevance;
+                searchFilter.SortOrder = defaultSortOrder;
             }
 
             return true;
