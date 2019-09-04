@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -33,13 +34,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         public async Task SearchMicrosoftDotNetCuratedFeed()
         {
             var packageId = "microsoft.aspnet.webpages";
-            var request = WebRequest.Create(UrlHelper.DotnetCuratedFeedUrl + @"Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30");
-            var response = await request.GetResponseAsync();
+            var requestUrl = UrlHelper.DotnetCuratedFeedUrl + @"Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30";
 
             string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var httpClient = new HttpClient())
             {
-                responseText = await sr.ReadToEndAsync();
+                responseText = await httpClient.GetStringAsync(requestUrl);
             }
 
             string packageUrl = @"<id>" + UrlHelper.DotnetCuratedFeedUrl + "Packages(Id='" + packageId;
@@ -52,35 +52,31 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P1Tests")]
         public async Task ValidateMicrosoftDotNetCuratedFeed()
         {
-            var request = WebRequest.Create(UrlHelper.DotnetCuratedFeedUrl + "Packages");
-            var response = await request.GetResponseAsync();
-
-            string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var httpClient = new HttpClient())
             {
-                responseText = await sr.ReadToEndAsync();
-            }
+                var requestUrl = UrlHelper.DotnetCuratedFeedUrl + "Packages";
 
-            // Make sure that 40 entries are returned.  This means that if we split on the <entry> tag, we'd have 41 strings.
-            int length = responseText.Split(new[] { "<entry>" }, StringSplitOptions.RemoveEmptyEntries).Length;
-            Assert.True(length == 41, "An unexpected number of entries was found.  Actual number was " + (length - 1));
-
-            // Get the link to the next page.
-            string link = responseText.Split(new[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
-            link = link.Substring(0, link.IndexOf(@"""", StringComparison.Ordinal));
-
-            request = WebRequest.Create(link);
-
-            // Get the response.
-            try
-            {
-                response = (HttpWebResponse)await request.GetResponseAsync();
-            }
-            catch (WebException e)
-            {
-                if (((HttpWebResponse)e.Response).StatusCode != HttpStatusCode.OK)
+                string responseText;
+                using (var response = await httpClient.GetAsync(requestUrl))
                 {
-                    throw new Exception("Next page link is broken.  Expected 200, got " + ((HttpWebResponse)e.Response).StatusCode, e);
+                    responseText = await response.Content.ReadAsStringAsync();
+                }
+
+                // Make sure that 40 entries are returned.  This means that if we split on the <entry> tag, we'd have 41 strings.
+                int length = responseText.Split(new[] { "<entry>" }, StringSplitOptions.RemoveEmptyEntries).Length;
+                Assert.True(length == 41, "An unexpected number of entries was found.  Actual number was " + (length - 1));
+
+                // Get the link to the next page.
+                string link = responseText.Split(new[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
+                link = link.Substring(0, link.IndexOf(@"""", StringComparison.Ordinal));
+
+                // Get the response.
+                using (var response = await httpClient.GetAsync(link))
+                {
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new Exception($"Next page link is broken. Expected 200, got '{response.StatusCode}'");
+                    }
                 }
             }
         }
