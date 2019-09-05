@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Validation;
@@ -30,7 +31,8 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
         private readonly Mock<IValidationEntitiesContext> _context;
         private readonly Mock<ITelemetryService> _telemetryService;
         private readonly Mock<ICertificateStore> _certificateStore;
-
+        private readonly Mock<IPackageValidationEnqueuer> _validationEnqueuer;
+        private readonly Mock<IFeatureFlagService> _featureFlagService;
         private readonly CertificateValidationMessageHandler _target;
 
         public CertificateValidationMessageHandlerIntegrationTests(CertificateIntegrationTestFixture fixture)
@@ -40,6 +42,10 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             _context = new Mock<IValidationEntitiesContext>();
             _telemetryService = new Mock<ITelemetryService>();
             _certificateStore = new Mock<ICertificateStore>();
+            _validationEnqueuer = new Mock<IPackageValidationEnqueuer>();
+            _featureFlagService = new Mock<IFeatureFlagService>();
+
+            _featureFlagService.SetReturnsDefault(true);
 
             var certificateValidationService = new CertificateValidationService(
                 _context.Object,
@@ -50,6 +56,8 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 _certificateStore.Object,
                 certificateValidationService,
                 new OnlineCertificateVerifier(),
+                _validationEnqueuer.Object,
+                _featureFlagService.Object,
                 Mock.Of<ILogger<CertificateValidationMessageHandler>>());
         }
 
@@ -128,7 +136,11 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                              .Returns(Task.FromResult(certificate));
 
             // Act
-            await _target.HandleAsync(new CertificateValidationMessage(certificateKey: endCertificateKey, validationId: validationId));
+            await _target.HandleAsync(new CertificateValidationMessage(
+                certificateKey: endCertificateKey,
+                validationId: validationId,
+                revalidateRevokedCertificate: false,
+                sendCheckValidator: false));
 
             // Assert
             Assert.Equal(expectedCertificateStatus, validation.Status);
@@ -279,7 +291,11 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                              .Returns(Task.FromResult(certificate));
 
             // Act
-            await _target.HandleAsync(new CertificateValidationMessage(certificateKey: endCertificateKey, validationId: validationId));
+            await _target.HandleAsync(new CertificateValidationMessage(
+                certificateKey: endCertificateKey,
+                validationId: validationId,
+                revalidateRevokedCertificate: false,
+                sendCheckValidator: false));
 
             // Assert
             Assert.Equal(EndCertificateStatus.Revoked, validation.Status);

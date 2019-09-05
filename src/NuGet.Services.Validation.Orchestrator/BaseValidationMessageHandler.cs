@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
@@ -19,6 +20,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly IValidationSetProvider<TEntity> _validationSetProvider;
         private readonly IValidationSetProcessor _validationSetProcessor;
         private readonly IValidationOutcomeProcessor<TEntity> _validationOutcomeProcessor;
+        private readonly IFeatureFlagService _featureFlagService;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger _logger;
 
@@ -28,6 +30,7 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidationSetProvider<TEntity> validationSetProvider,
             IValidationSetProcessor validationSetProcessor,
             IValidationOutcomeProcessor<TEntity> validationOutcomeProcessor,
+            IFeatureFlagService featureFlagService,
             ITelemetryService telemetryService,
             ILogger logger)
         {
@@ -55,6 +58,7 @@ namespace NuGet.Services.Validation.Orchestrator
             _validationSetProvider = validationSetProvider ?? throw new ArgumentNullException(nameof(validationSetProvider));
             _validationSetProcessor = validationSetProcessor ?? throw new ArgumentNullException(nameof(validationSetProcessor));
             _validationOutcomeProcessor = validationOutcomeProcessor ?? throw new ArgumentNullException(nameof(validationOutcomeProcessor));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -82,6 +86,12 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private async Task<bool> CheckValidatorAsync(CheckValidatorData message)
         {
+            if (!_featureFlagService.IsQueueBackEnabled())
+            {
+                _logger.LogInformation("Check validator message for validation {ValidationId} has been ignored.", message.ValidationId);
+                return true;
+            }
+
             PackageValidationSet validationSet;
             IValidatingEntity<TEntity> entity;
             using (_logger.BeginScope(

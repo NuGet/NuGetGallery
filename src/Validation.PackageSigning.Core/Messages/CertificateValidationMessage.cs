@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGet.Services.Validation;
 
 namespace NuGet.Jobs.Validation.PackageSigning.Messages
 {
@@ -10,11 +11,16 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
     /// </summary>
     public class CertificateValidationMessage
     {
-        public CertificateValidationMessage(long certificateKey, Guid validationId, bool revalidateRevokedCertificate = false)
+        public CertificateValidationMessage(
+            long certificateKey,
+            Guid validationId,
+            bool revalidateRevokedCertificate,
+            bool sendCheckValidator)
         {
             CertificateKey = certificateKey;
             ValidationId = validationId;
             RevalidateRevokedCertificate = revalidateRevokedCertificate;
+            SendCheckValidator = sendCheckValidator;
         }
 
         /// <summary>
@@ -35,5 +41,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
         /// by a NuGet Admin.
         /// </summary>
         public bool RevalidateRevokedCertificate { get; }
+
+        /// <summary>
+        /// Whether or not to send a <see cref="PackageValidationMessageData.CheckValidator"/> message at the end of
+        /// the validation.
+        /// </summary>
+        public bool SendCheckValidator { get; }
     }
 }

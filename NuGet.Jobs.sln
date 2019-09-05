@@ -18,8 +18,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchivePackages", "src\Arch
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Search", "Search", "{57F34E9A-3A98-4E48-BF76-D49CB9CB3323}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateLicenseReports", "src\UpdateLicenseReports\UpdateLicenseReports.csproj", "{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6078A997-EDEF-4F84-9E9C-163EB1E7454D}"
 	ProjectSection(SolutionItems) = preProject
 		Local.testsettings = Local.testsettings
@@ -44,8 +42,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.AggregateCdnDownloadsInGallery", "src\Stats.AggregateCdnDownloadsInGallery\Stats.AggregateCdnDownloadsInGallery.csproj", "{6E27275F-0A0B-BB64-4C28-8F3E894B8C9E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.RefreshClientDimension", "src\Stats.RefreshClientDimension\Stats.RefreshClientDimension.csproj", "{B5C01B7A-933D-483E-AF07-6AA266B0EB49}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LicenseReports", "LicenseReports", "{88651B16-6E56-426F-B8D8-849279A86D59}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search.GenerateAuxiliaryData", "src\Search.GenerateAuxiliaryData\Search.GenerateAuxiliaryData.csproj", "{CF7645A4-B4C0-4827-B6B0-AE42108071C6}"
 EndProject
@@ -167,10 +163,6 @@ Global
 		{A08F0185-4DA3-4D5B-BF0C-B178596D5789}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A08F0185-4DA3-4D5B-BF0C-B178596D5789}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A08F0185-4DA3-4D5B-BF0C-B178596D5789}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{664CA8BB-BCF5-432C-AF68-9F97D308E623}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{664CA8BB-BCF5-432C-AF68-9F97D308E623}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{664CA8BB-BCF5-432C-AF68-9F97D308E623}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -411,7 +403,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A08F0185-4DA3-4D5B-BF0C-B178596D5789} = {FA5644B5-4F08-43F6-86B3-039374312A47}
-		{4646F0C5-EC7A-45F5-8E45-D51C715C1DC9} = {88651B16-6E56-426F-B8D8-849279A86D59}
 		{6078A997-EDEF-4F84-9E9C-163EB1E7454D} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{664CA8BB-BCF5-432C-AF68-9F97D308E623} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{578BCF9F-673B-4F18-8095-3B69A3D946DD} = {6A776396-02B1-475D-A104-26940ADB04AB}

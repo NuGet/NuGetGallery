@@ -55,6 +55,10 @@
     <Compile Include="Support\X509V3CertificateGeneratorExtensions2.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
+      <Project>{FA87D075-A934-4443-8D0B-5DB32640B6D7}</Project>
+      <Name>Validation.Common.Job</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91c060da-736f-4da9-a57f-cb3ac0e6cb10}</Project>
       <Name>Validation.PackageSigning.Core</Name>

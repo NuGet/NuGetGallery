@@ -26,6 +26,7 @@ using NuGet.Jobs.Validation.Storage;
 using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.Configuration;
 using NuGet.Services.Entities;
+using NuGet.Services.FeatureFlags;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
@@ -64,6 +65,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string EmailConfigurationSectionName = "Email";
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
         private const string FlatContainerConfigurationSectionName = "FlatContainer";
+        private const string FeatureFlagConfigurationSectionName = "FeatureFlags";
 
         private const string EmailBindingKey = EmailConfigurationSectionName;
         private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
@@ -116,8 +118,14 @@ namespace NuGet.Services.Validation.Orchestrator
                 Logger.LogInformation("Configuration validation successful");
                 return;
             }
+
+            var featureFlagRefresher = _serviceProvider.GetRequiredService<IFeatureFlagRefresher>();
+            await featureFlagRefresher.StartIfConfiguredAsync();
+
             var runner = GetRequiredService<OrchestrationRunner>();
             await runner.RunOrchestrationAsync();
+
+            await featureFlagRefresher.StopAndWaitAsync();
         }
 
         private IConfigurationRoot GetConfigurationRoot(string configurationFilename, bool validateOnly, out ISecretInjector secretInjector)
@@ -241,12 +249,12 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ICriteriaEvaluator<Package>, PackageCriteriaEvaluator>();
             services.AddTransient<IProcessSignatureEnqueuer, ProcessSignatureEnqueuer>();
             services.AddTransient<ICloudBlobClient>(c =>
-                {
-                    var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationConfiguration>>();
-                    return new CloudBlobClientWrapper(
-                        configurationAccessor.Value.ValidationStorageConnectionString,
-                        readAccessGeoRedundant: false);
-                });
+            {
+                var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationConfiguration>>();
+                return new CloudBlobClientWrapper(
+                    configurationAccessor.Value.ValidationStorageConnectionString,
+                    readAccessGeoRedundant: false);
+            });
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<IFileDownloader, PackageDownloader>();
@@ -289,8 +297,13 @@ namespace NuGet.Services.Validation.Orchestrator
                 return client;
             });
 
+            /// See <see cref="SubcriptionProcessorJob{T}.ConfigureDefaultJobServices(IServiceCollection, IConfigurationRoot)"/>
+            /// for reasoning on why this is registered here.
+            services.AddSingleton<IFeatureFlagRefresher, FeatureFlagRefresher>();
+
             ConfigureFileServices(services, configurationRoot);
             ConfigureOrchestratorSymbolTypes(services);
+            ValidationJobBase.ConfigureFeatureFlagServices(services, configurationRoot);
         }
 
         private static IServiceProvider CreateProvider(IServiceCollection services, IConfigurationRoot configurationRoot)
@@ -364,6 +377,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 default:
                     throw new NotImplementedException($"Unknown type: {validatingType}");
             }
+
+            ValidationJobBase.ConfigureFeatureFlagAutofacServices(containerBuilder);
 
             return new AutofacServiceProvider(containerBuilder.Build());
         }

@@ -31,6 +31,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private readonly Mock<IFileDownloader> _packageDownloader;
             private readonly Mock<IValidatorStateService> _validatorStateService;
             private readonly Mock<ISignatureValidator> _signatureValidator;
+            private readonly Mock<IPackageValidationEnqueuer> _validationEnqueuer;
+            private readonly Mock<IFeatureFlagService> _featureFlagService;
             private readonly Mock<ILogger<SignatureValidationMessageHandler>> _logger;
             private readonly SignatureValidationMessageHandler _target;
 
@@ -54,6 +56,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _packageDownloader = new Mock<IFileDownloader>();
                 _validatorStateService = new Mock<IValidatorStateService>();
                 _signatureValidator = new Mock<ISignatureValidator>();
+                _validationEnqueuer = new Mock<IPackageValidationEnqueuer>();
+                _featureFlagService = new Mock<IFeatureFlagService>();
                 _logger = new Mock<ILogger<SignatureValidationMessageHandler>>();
 
                 _packageDownloader
@@ -71,10 +75,14 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => _validatorResult);
 
+                _featureFlagService.SetReturnsDefault(true);
+
                 _target = new SignatureValidationMessageHandler(
                     _packageDownloader.Object,
                     _validatorStateService.Object,
                     _signatureValidator.Object,
+                    _validationEnqueuer.Object,
+                    _featureFlagService.Object,
                     _logger.Object);
             }
 
@@ -168,6 +176,35 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _validatorStateService.Verify(
                     x => x.SaveStatusAsync(It.IsAny<ValidatorStatus>()),
                     Times.Once);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Once);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.Is<PackageValidationMessageData>(d => d.Type == PackageValidationMessageType.CheckValidator)),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotEnqueueIfFeatureFlagIsOff()
+            {
+                // Arrange
+                _featureFlagService.Setup(x => x.IsQueueBackEnabled()).Returns(false);
+                
+                // Act
+                bool success = await SetupState(ValidationStatus.Succeeded, new[] { _validationIssue.Object });
+
+                // Assert
+                Assert.True(success, "The handler should have succeeded processing the message.");
+                Assert.Equal(ValidationStatus.Succeeded, _validation.State);
+                var issue = Assert.Single(_validation.ValidatorIssues);
+                Assert.Equal(ValidationIssueCode.PackageIsSigned, issue.IssueCode);
+                Assert.Equal("serialized...", issue.Data);
+                _validatorStateService.Verify(
+                    x => x.SaveStatusAsync(It.IsAny<ValidatorStatus>()),
+                    Times.Once);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Never);
             }
 
             [Theory]
@@ -184,6 +221,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 Assert.Null(_validation.ValidatorIssues);
                 _validatorStateService.Verify(
                     x => x.SaveStatusAsync(It.IsAny<ValidatorStatus>()),
+                    Times.Never);
+                _validationEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 

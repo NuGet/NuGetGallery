@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
@@ -370,6 +371,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IValidationSetProvider<SymbolPackage>> ValidationSetProviderMock { get; }
         protected Mock<IValidationSetProcessor> ValidationSetProcessorMock { get; }
         protected Mock<IValidationOutcomeProcessor<SymbolPackage>> ValidationOutcomeProcessorMock { get; }
+        protected Mock<IFeatureFlagService> FeatureFlagService { get; }
         protected Mock<ITelemetryService> TelemetryServiceMock { get; }
         protected ILogger<SymbolValidationMessageHandler> Logger { get; }
 
@@ -380,7 +382,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSetProviderMock = new Mock<IValidationSetProvider<SymbolPackage>>(mockBehavior);
             ValidationSetProcessorMock = new Mock<IValidationSetProcessor>(mockBehavior);
             ValidationOutcomeProcessorMock = new Mock<IValidationOutcomeProcessor<SymbolPackage>>(mockBehavior);
+            FeatureFlagService = new Mock<IFeatureFlagService>(mockBehavior);
             TelemetryServiceMock = new Mock<ITelemetryService>(mockBehavior);
+
+            FeatureFlagService.Setup(x => x.IsQueueBackEnabled()).Returns(true);
 
             // we generally don't care about how logger is called, so don't make a strict mock.
             Logger = new LoggerFactory().AddXunit(output).CreateLogger<SymbolValidationMessageHandler>();
@@ -398,6 +403,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSetProviderMock.Object,
                 ValidationSetProcessorMock.Object,
                 ValidationOutcomeProcessorMock.Object,
+                FeatureFlagService.Object,
                 TelemetryServiceMock.Object,
                 Logger);
         }
