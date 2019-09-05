@@ -1685,6 +1685,56 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
+            [InlineData("AzureActiveDirectory", false)]
+            [InlineData("AzureActiveDirectory", true)]
+            public async Task GivenAssociatedLocalAdminUser_ItVerifiesTheEnforcedTenantId(string providerUsedForLogin, bool shouldError)
+            {
+                // Arrange
+                var enforcedTenantId = "Some-Tenant-Id";
+
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = false;
+                configurationService.Current.EnforcedTenantIdForAdmin = enforcedTenantId;
+
+                var fakes = Get<Fakes>();
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var cred = new CredentialBuilder().CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog", tenantId: shouldError ? "non-enforced-tenant-id" : enforcedTenantId);
+                var authUser = new AuthenticatedUser(
+                    fakes.CreateUser("test", cred),
+                    cred);
+
+                authUser.User.Roles.Add(new Role { Name = CoreConstants.AdminRoleName });
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authentication = authUser
+                    });
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
+                    .Returns(Task.FromResult(0))
+                    .Verifiable();
+
+                // Act
+                var result = await controller.LinkExternalAccount("theReturnUrl");
+
+                // Assert
+                if (shouldError)
+                {
+                    var expectedMessage = string.Format(Strings.SiteAdminNotLoggedInWithRequiredTenant, enforcedTenantId);
+                    VerifyExternalLinkExpiredResult(controller, result, expectedMessage);
+                } else
+                {
+                    ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                    GetMock<AuthenticationService>().VerifyAll();
+                }
+            }
+
+            [Theory]
             [InlineData("MicrosoftAccount", true)]
             [InlineData("AzureActiveDirectory", false)]
             public async Task GivenAssociatedLocalAdminUser_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
@@ -2251,7 +2301,7 @@ namespace NuGetGallery.Controllers
         {
             expectedMessage = expectedMessage ?? Strings.ExternalAccountLinkExpired;
             ResultAssert.IsRedirect(result, permanent: false, url: controller.Url.LogOn(relativeUrl: false));
-            Assert.Equal(expectedMessage, controller.TempData["Message"]);
+            Assert.Equal(expectedMessage, controller.TempData["ErrorMessage"]);
         }
 
         private static void EnableAllAuthenticators(AuthenticationService authService)

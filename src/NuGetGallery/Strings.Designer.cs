@@ -1968,6 +1968,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The site admins are required to sign in with the &apos;{0}&apos; tenant only..
+        /// </summary>
+        public static string SiteAdminNotLoggedInWithRequiredTenant {
+            get {
+                return ResourceManager.GetString("SiteAdminNotLoggedInWithRequiredTenant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via SSL..
         /// </summary>
         public static string SSLRequired {

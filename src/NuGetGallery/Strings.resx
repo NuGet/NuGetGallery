@@ -1147,4 +1147,7 @@ The {1} Team</value>
   <data name="AccountDelete_SelfServiceSuccess" xml:space="preserve">
     <value>Your account is being deleted. You have been logged out.</value>
   </data>
+  <data name="SiteAdminNotLoggedInWithRequiredTenant" xml:space="preserve">
+    <value>The site admins are required to sign in with the '{0}' tenant only.</value>
+  </data>
 </root>
