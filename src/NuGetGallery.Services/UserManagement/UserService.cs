@@ -569,9 +569,10 @@ namespace NuGetGallery
             if (result)
             {
                 await Auditing.SaveAuditRecordAsync(new UserAuditRecord(accountToTransform, AuditedUserAction.TransformOrganization, adminUser, affectedMemberIsAdmin: true));
+                return TransformOrganizationResult.Success;
             }
 
-            return result ? TransformOrganizationResult.Success : TransformOrganizationResult.Failure;
+            return TransformOrganizationResult.Failure;
         }
 
         public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
