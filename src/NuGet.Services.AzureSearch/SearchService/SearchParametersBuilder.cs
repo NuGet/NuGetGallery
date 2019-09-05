@@ -161,7 +161,10 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             var filterString = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
 
-            filterString += excludePackagesHiddenByDefault ? $" and {IndexFields.Search.IsExcludedByDefault} eq false" : "";
+            if (excludePackagesHiddenByDefault)
+            {
+                filterString += $" and ({IndexFields.Search.IsExcludedByDefault} eq false or {IndexFields.Search.IsExcludedByDefault} eq null)";
+            }
 
             return filterString;
         }
