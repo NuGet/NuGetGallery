@@ -1978,20 +1978,43 @@ namespace NuGetGallery
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("accept ownership of a package")]
+        public virtual Task<ActionResult> ConfirmPendingOwnershipRequestRedirect(string id, string username, string token)
+        {
+            return HandleOwnershipRequest(id, username, token, redirect: true);
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("accept ownership of a package")]
         public virtual Task<ActionResult> ConfirmPendingOwnershipRequest(string id, string username, string token)
         {
-            return HandleOwnershipRequest(id, username, token, accept: true);
+            return HandleOwnershipRequest(id, username, token, redirect: false, accept: true);
         }
 
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("reject ownership of a package")]
-        public virtual Task<ActionResult> RejectPendingOwnershipRequest(string id, string username, string token)
+        public virtual Task<ActionResult> RejectPendingOwnershipRequestRedirect(string id, string username, string token)
         {
-            return HandleOwnershipRequest(id, username, token, accept: false);
+            return HandleOwnershipRequest(id, username, token, redirect: true);
         }
 
-        private async Task<ActionResult> HandleOwnershipRequest(string id, string username, string token, bool accept)
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("reject ownership of a package")]
+        public virtual Task<ActionResult> RejectPendingOwnershipRequest(string id, string username, string token)
+        {
+            return HandleOwnershipRequest(id, username, token, redirect: false, accept: false);
+        }
+
+        private async Task<ActionResult> HandleOwnershipRequest(
+            string id,
+            string username,
+            string token,
+            bool redirect,
+            bool accept = false)
         {
             if (string.IsNullOrEmpty(token))
             {
@@ -2023,6 +2046,11 @@ namespace NuGetGallery
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Failure));
             }
 
+            if (redirect)
+            {
+                return Redirect(Url.ManageMyReceivedPackageOwnershipRequests());
+            }
+            
             if (accept)
             {
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);

@@ -63,7 +63,8 @@ namespace NuGetGallery.Telemetry
             List<string> piiOperationsFromRoutes = GetPIIOperationsFromRoute();
 
             // Act and Assert
-            Assert.True(existentPIIOperations.SetEquals(piiOperationsFromRoutes));
+            Assert.Empty(existentPIIOperations.Except(piiOperationsFromRoutes));
+            Assert.Empty(piiOperationsFromRoutes.Except(existentPIIOperations));
         }
 
         [Fact]

@@ -1367,6 +1367,9 @@ img.reserved-indicator-icon {
   position: relative;
   top: 2px;
 }
+.page-manage-packages .manage-package-listing .package-controls form {
+  display: inline-block;
+}
 .page-manage-packages .inner-table {
   margin-bottom: 0px;
 }

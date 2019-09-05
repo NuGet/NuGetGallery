@@ -1701,11 +1701,23 @@ namespace NuGetGallery
                 return packagesController.RejectPendingOwnershipRequest(id, username, token);
             }
 
+            private static Task<ActionResult> ConfirmOwnershipRequestRedirect(PackagesController packagesController, string id, string username, string token)
+            {
+                return packagesController.ConfirmPendingOwnershipRequestRedirect(id, username, token);
+            }
+
+            private static Task<ActionResult> RejectOwnershipRequestRedirect(PackagesController packagesController, string id, string username, string token)
+            {
+                return packagesController.RejectPendingOwnershipRequestRedirect(id, username, token);
+            }
+
             public static IEnumerable<object[]> TheOwnershipRequestMethods_Data
             {
                 get
                 {
+                    yield return new object[] { new InvokeOwnershipRequest(ConfirmOwnershipRequestRedirect) };
                     yield return new object[] { new InvokeOwnershipRequest(ConfirmOwnershipRequest) };
+                    yield return new object[] { new InvokeOwnershipRequest(RejectOwnershipRequestRedirect) };
                     yield return new object[] { new InvokeOwnershipRequest(RejectOwnershipRequest) };
                 }
             }
@@ -1899,6 +1911,116 @@ namespace NuGetGallery
                     && msg.NewOwner == request.NewOwner
                     && msg.PackageRegistration == request.PackageRegistration
                     && msg.PackageUrl == It.IsAny<string>());
+            }
+
+            public static IEnumerable<object[]> ReturnsRedirectIfTokenIsValid_Data
+            {
+                get
+                {
+                    foreach (var tokenValid in new bool[] { true, false })
+                    {
+                        foreach (var isOrganizationAdministrator in new bool[] { true, false })
+                        {
+                            yield return new object[]
+                            {
+                                new InvokeOwnershipRequest(ConfirmOwnershipRequestRedirect),
+                                new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
+                                tokenValid,
+                                isOrganizationAdministrator
+                            };
+                            yield return new object[]
+                            {
+                                new InvokeOwnershipRequest(RejectOwnershipRequestRedirect),
+                                new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
+                                tokenValid,
+                                isOrganizationAdministrator
+                            };
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(ReturnsRedirectIfTokenIsValid_Data))]
+            public async Task ReturnsRedirectIfTokenIsValid(
+                InvokeOwnershipRequest invokeOwnershipRequest,
+                PackageOwnershipManagementServiceRequestExpression packageOwnershipManagementServiceExpression,
+                bool tokenValid,
+                bool isOrganizationAdministrator)
+            {
+                // Arrange
+                var token = "token";
+                var requestingOwner = new User { Key = _key++, Username = "owner", EmailAllowed = true };
+                var package = new PackageRegistration { Id = "foo", Owners = new[] { requestingOwner } };
+
+                var currentUser = new User { Key = _key++, Username = "username" };
+
+                User newOwner;
+                if (isOrganizationAdministrator)
+                {
+                    newOwner = new Organization { Key = _key++, Username = "organization", Members = new[] { new Membership { Member = currentUser, IsAdmin = true } } };
+                }
+                else
+                {
+                    newOwner = currentUser;
+                }
+
+                var mockHttpContext = new Mock<HttpContextBase>();
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
+
+                var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
+                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
+                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
+
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner,
+                    ConfirmationCode = token
+                };
+                packageOwnershipManagementService.Setup(p => p.GetPackageOwnershipRequest(package, newOwner, token))
+                    .Returns(tokenValid ? request : null);
+
+                var configurationService = GetConfigurationService();
+                var messageService = new Mock<IMessageService>();
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(x => x.FindByUsername(newOwner.Username, false)).Returns(newOwner);
+
+                var controller = CreateController(
+                    configurationService,
+                    httpContext: mockHttpContext,
+                    packageService: packageService,
+                    messageService: messageService,
+                    packageOwnershipManagementService: packageOwnershipManagementService,
+                    userService: userService);
+
+                controller.SetCurrentUser(currentUser);
+                TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
+
+                // Act
+                var result = await invokeOwnershipRequest(controller, package.Id, newOwner.Username, token);
+
+                // Assert
+                if (tokenValid)
+                {
+                    ResultAssert.IsRedirectTo(result, "/account/Packages#show-requests-received-container");
+                }
+                else
+                {
+                    var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
+                    Assert.Equal(ConfirmOwnershipResult.Failure, model.Result);
+                    Assert.Equal(package.Id, model.PackageId);
+                }
+                packageOwnershipManagementService.Verify(
+                    packageOwnershipManagementServiceExpression(package, newOwner),
+                    Times.Never);
+                messageService.Verify(
+                    svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
+                    Times.Never);
             }
 
             public static IEnumerable<object[]> ReturnsSuccessIfTokenIsValid_Data

@@ -163,10 +163,33 @@ namespace NuGetGallery
                 obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
+                RouteName.PackageOwnerConfirmationRedirect,
+                "packages/{id}/owners/{username}/confirm/{token}",
+                new { controller = "Packages", action = nameof(PackagesController.ConfirmPendingOwnershipRequestRedirect) },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") },
+                obfuscationMetadatas: new[]
+                {
+                    new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
+                    new RouteExtensions.ObfuscatedPathMetadata(5, Obfuscator.DefaultTelemetryToken)
+                });
+
+            routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
                 "packages/{id}/owners/{username}/confirm/{token}",
-                new { controller = "Packages", action = "ConfirmPendingOwnershipRequest" },
-                new[]
+                new { controller = "Packages", action = nameof(PackagesController.ConfirmPendingOwnershipRequest) },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") },
+                obfuscationMetadatas: new[]
+                {
+                    new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
+                    new RouteExtensions.ObfuscatedPathMetadata(5, Obfuscator.DefaultTelemetryToken)
+                });
+
+            routes.MapRoute(
+                RouteName.PackageOwnerRejectionRedirect,
+                "packages/{id}/owners/{username}/reject/{token}",
+                new { controller = "Packages", action = nameof(PackagesController.RejectPendingOwnershipRequestRedirect) },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") },
+                obfuscationMetadatas: new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
                     new RouteExtensions.ObfuscatedPathMetadata(5, Obfuscator.DefaultTelemetryToken)
@@ -175,8 +198,9 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PackageOwnerRejection,
                 "packages/{id}/owners/{username}/reject/{token}",
-                new { controller = "Packages", action = "RejectPendingOwnershipRequest" },
-                new[]
+                new { controller = "Packages", action = nameof(PackagesController.RejectPendingOwnershipRequest) },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") },
+                obfuscationMetadatas: new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
                     new RouteExtensions.ObfuscatedPathMetadata(5, Obfuscator.DefaultTelemetryToken)
