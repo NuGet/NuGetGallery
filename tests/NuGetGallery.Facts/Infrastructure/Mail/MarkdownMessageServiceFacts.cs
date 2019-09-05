@@ -1846,7 +1846,6 @@ namespace NuGetGallery
                 var organization = GetOrganizationWithRecipients();
                 var requestingUser = new User("optimusprime") { EmailAddress = "optimusprime@transformers.com" };
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
-                var cancelUrl = "www.cancel.com";
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMarkdownMessageService.Create(configurationService);
@@ -1855,8 +1854,7 @@ namespace NuGetGallery
                     organization,
                     requestingUser,
                     pendingUser,
-                    isAdmin,
-                    cancelUrl);
+                    isAdmin);
 
                 // Act
                 await messageService.SendMessageAsync(emailMessage);
@@ -1881,7 +1879,6 @@ namespace NuGetGallery
                 var organization = GetOrganizationWithoutRecipients();
                 var requestingUser = new User("optimusprime") { EmailAddress = "optimusprime@transformers.com" };
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
-                var cancelUrl = "www.cancel.com";
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMarkdownMessageService.Create(configurationService);
@@ -1890,8 +1887,7 @@ namespace NuGetGallery
                     organization,
                     requestingUser,
                     pendingUser,
-                    isAdmin,
-                    cancelUrl);
+                    isAdmin);
 
                 // Act
                 await messageService.SendMessageAsync(emailMessage);

@@ -95,12 +95,14 @@ namespace NuGetGallery.Controllers
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
             }
 
-            [Fact]
-            public void WillNotRedirectToTheReturnUrlWhenReturnUrlContainsAccount()
+            [Theory]
+            [InlineData("account/profile")]
+            [InlineData("Admin/SupportRequest")]
+            public void WillNotRedirectToTheReturnUrlWhenReturnUrlContains(string returnUrl)
             {
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.LogOff("account/profile");
+                var result = controller.LogOff(returnUrl);
                 ResultAssert.IsSafeRedirectTo(result, null);
             }
         }

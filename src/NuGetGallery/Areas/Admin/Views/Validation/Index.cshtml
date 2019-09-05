@@ -64,11 +64,35 @@
                 {
                     if (package.ValidatingType == ValidatingType.Package)
                     {
-                        <a href="@Url.RevalidatePackage(package)">Revalidate Package</a><br />
+                        @ViewHelpers.PostLink(
+                            this,
+                            formId: "revalidate-package-form",
+                            linkText: "Revalidate package",
+                            actionName: "Revalidate",
+                            controllerName: "Packages",
+                            role: string.Empty,
+                            formValues: new Dictionary<string, string>
+                            {
+                                { "id", package.Id },
+                                { "version", package.NormalizedVersion },
+                            })
+                        <br />
                     }
                     else if (package.ValidatingType == ValidatingType.SymbolPackage)
                     {
-                        <a href="@Url.RevalidateSymbolsPackage(package)">Revalidate Symbols</a><br />
+                        @ViewHelpers.PostLink(
+                            this,
+                            formId: "revalidate-symbols-form",
+                            linkText: "Revalidate symbols",
+                            actionName: "RevalidateSymbols",
+                            controllerName: "Packages",
+                            role: string.Empty,
+                            formValues: new Dictionary<string, string>
+                            {
+                                { "id", package.Id },
+                                { "version", package.NormalizedVersion },
+                            })
+                        <br />
                     }
                 }
 

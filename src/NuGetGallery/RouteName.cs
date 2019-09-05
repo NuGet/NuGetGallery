@@ -107,5 +107,8 @@ namespace NuGetGallery
         public const string PagesSimulateError = "PagesSimulateError";
         public const string ApiSimulateError = "ApiSimulateError";
         public const string ExperimentsSearchSideBySide = "ExperimentsSearchSideBySide";
+        public const string PackageReflowAction = "PackageReflowAction";
+        public const string PackageRevalidateAction = "PackageRevalidateAction";
+        public const string PackageRevalidateSymbolsAction = "PackageRevalidateSymbolsAction";
     }
 }

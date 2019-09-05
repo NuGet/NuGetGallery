@@ -37,7 +37,9 @@ namespace NuGetGallery.Infrastructure.Search
             {SearchModels.SortOrder.Relevance, "relevance"},
             {SearchModels.SortOrder.Published, "published"},
             {SearchModels.SortOrder.TitleAscending, "title-asc"},
-            {SearchModels.SortOrder.TitleDescending, "title-desc"}
+            {SearchModels.SortOrder.TitleDescending, "title-desc"},
+            {SearchModels.SortOrder.CreatedAscending, "created-asc"},
+            {SearchModels.SortOrder.CreatedDescending, "created-desc"},
         };
 
         // This code is copied from the SearchClient 

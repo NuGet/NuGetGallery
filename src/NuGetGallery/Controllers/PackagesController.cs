@@ -596,6 +596,12 @@ namespace NuGetGallery
             model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = packageContentData.LicenseFileContents;
             model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
+
+            if (packageContentData.EmbeddedIconInformation != null)
+            {
+                model.IconUrl = $"data:{packageContentData.EmbeddedIconInformation.EmbeddedIconContentType};base64,{Convert.ToBase64String(packageContentData.EmbeddedIconInformation.EmbeddedIconData)}";
+            }
+
             return Json(model);
         }
 
@@ -611,12 +617,14 @@ namespace NuGetGallery
                 PackageMetadata packageMetadata,
                 IReadOnlyList<IValidationMessage> warnings,
                 string licenseFileContents,
-                IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments)
+                IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments,
+                EmbeddedIconInformation embeddedIconInformation)
             {
                 PackageMetadata = packageMetadata;
                 Warnings = warnings;
                 LicenseFileContents = licenseFileContents;
                 LicenseExpressionSegments = licenseExpressionSegments;
+                EmbeddedIconInformation = embeddedIconInformation;
             }
 
             public JsonResult ErrorResult { get; }
@@ -624,6 +632,21 @@ namespace NuGetGallery
             public IReadOnlyList<IValidationMessage> Warnings { get; }
             public string LicenseFileContents { get; }
             public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; }
+            public EmbeddedIconInformation EmbeddedIconInformation { get; }
+        }
+
+        private class EmbeddedIconInformation
+        {
+            public EmbeddedIconInformation(
+                string embeddedIconContentType,
+                byte[] embeddedIconData)
+            {
+                EmbeddedIconContentType = embeddedIconContentType;
+                EmbeddedIconData = embeddedIconData;
+            }
+
+            public string EmbeddedIconContentType { get; }
+            public byte[] EmbeddedIconData { get; }
         }
 
         private async Task<PackageContentData> ValidateAndProcessPackageContents(User currentUser, bool isSymbolsPackageUpload)
@@ -632,6 +655,7 @@ namespace NuGetGallery
             string licenseFileContents = null;
             IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
             PackageMetadata packageMetadata = null;
+            EmbeddedIconInformation embeddedIconInformation = null;
 
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -678,6 +702,7 @@ namespace NuGetGallery
                 {
                     licenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
                     licenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
+                    embeddedIconInformation = await GetEmbeddedIconOrNullAsync(packageMetadata, packageArchiveReader);
                 }
                 catch (Exception ex)
                 {
@@ -688,7 +713,7 @@ namespace NuGetGallery
                 }
             }
 
-            return new PackageContentData(packageMetadata, warnings, licenseFileContents, licenseExpressionSegments);
+            return new PackageContentData(packageMetadata, warnings, licenseFileContents, licenseExpressionSegments, embeddedIconInformation);
         }
 
         private IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> GetLicenseExpressionSegmentsOrNull(LicenseMetadata licenseMetadata)
@@ -716,6 +741,43 @@ namespace NuGetGallery
             using (var streamReader = new StreamReader(licenseFileStream, Encoding.UTF8))
             {
                 return await streamReader.ReadToEndAsync();
+            }
+        }
+
+        private static async Task<EmbeddedIconInformation> GetEmbeddedIconOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
+        {
+            if (string.IsNullOrWhiteSpace(packageMetadata.IconFile))
+            {
+                return null;
+            }
+
+            var iconFilename = FileNameHelper.GetZipEntryPath(packageMetadata.IconFile);
+            var imageData = await ReadPackageFile(packageArchiveReader, iconFilename);
+            string imageContentType;
+            if (imageData.StartsWithJpegHeader())
+            {
+                imageContentType = CoreConstants.JpegContentType;
+            }
+            else if (imageData.StartsWithPngHeader())
+            {
+                imageContentType = CoreConstants.PngContentType;
+            }
+            else
+            {
+                // we should never get here: wrong file contents should have been caught during validation 
+                throw new InvalidOperationException("The package icon is neither JPEG nor PNG file");
+            }
+
+            return new EmbeddedIconInformation(imageContentType, imageData);
+        }
+
+        private static async Task<byte[]> ReadPackageFile(PackageArchiveReader packageArchiveReader, string filename)
+        {
+            using (var packageFileStream = packageArchiveReader.GetStream(filename))
+            using (var destination = new MemoryStream())
+            {
+                await packageFileStream.CopyToAsync(destination);
+                return destination.ToArray();
             }
         }
 
@@ -1576,6 +1638,8 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("reflow a package")]
         public virtual async Task<ActionResult> Reflow(string id, string version)
@@ -1611,6 +1675,8 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("revalidate a package")]
         public virtual async Task<ActionResult> Revalidate(string id, string version)
@@ -1638,7 +1704,8 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
-
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("revalidate a symbols package")]
         public virtual async Task<ActionResult> RevalidateSymbols(string id, string version)
@@ -1980,7 +2047,7 @@ namespace NuGetGallery
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("cancel pending ownership request")]
-        public virtual async Task<ActionResult> CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
+        public virtual ActionResult CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
         {
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
@@ -2011,12 +2078,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, pendingUser);
-
-            var emailMessage = new PackageOwnershipRequestCanceledMessage(_config, requestingUser, pendingUser, package);
-            await _messageService.SendMessageAsync(emailMessage);
-
-            return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
+            return Redirect(Url.ManagePackageOwnership(id));
         }
 
         /// <summary>

@@ -12,8 +12,8 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     public class PackageOwnershipRequestInitiatedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
-        private readonly string _rawCancellationUrl;
-        private readonly string _cancellationUrl;
+        private readonly string _rawManageUrl;
+        private readonly string _manageUrl;
 
         public PackageOwnershipRequestInitiatedMessage(
             IMessageServiceConfiguration configuration,
@@ -21,12 +21,12 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             User receivingOwner,
             User newOwner,
             PackageRegistration packageRegistration,
-            string cancellationUrl)
+            string manageUrl)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
 
-            _rawCancellationUrl = cancellationUrl ?? throw new ArgumentNullException(nameof(cancellationUrl));
-            _cancellationUrl = EscapeLinkForMarkdown(cancellationUrl);
+            _rawManageUrl = manageUrl ?? throw new ArgumentNullException(nameof(manageUrl));
+            _manageUrl = EscapeLinkForMarkdown(manageUrl);
 
             RequestingOwner = requestingOwner ?? throw new ArgumentNullException(nameof(requestingOwner));
             ReceivingOwner = receivingOwner ?? throw new ArgumentNullException(nameof(receivingOwner));
@@ -64,7 +64,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
 To cancel this request:
 
-[{_cancellationUrl}]({_rawCancellationUrl})
+[{_manageUrl}]({_rawManageUrl})
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

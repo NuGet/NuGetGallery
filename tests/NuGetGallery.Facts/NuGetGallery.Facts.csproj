@@ -308,6 +308,8 @@
       <SubType>Designer</SubType>
     </None>
     <EmbeddedResource Include="TestData\certificate.cer" />
+    <EmbeddedResource Include="TestData\icon.png" />
+    <EmbeddedResource Include="TestData\icon.jpg" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">

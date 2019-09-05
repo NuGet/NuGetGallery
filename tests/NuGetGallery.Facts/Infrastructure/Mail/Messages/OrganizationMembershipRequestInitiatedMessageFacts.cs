@@ -18,11 +18,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             {
                 get
                 {
-                    yield return new object[] { null, Fakes.RequestingOrganization, Fakes.RequestingUser, Fakes.RequestingUser, It.IsAny<bool>(), Fakes.CancellationUrl };
-                    yield return new object[] { Configuration, null, Fakes.RequestingUser, Fakes.RequestingUser, It.IsAny<bool>(), Fakes.CancellationUrl };
-                    yield return new object[] { Configuration, Fakes.RequestingOrganization, null, Fakes.RequestingUser, It.IsAny<bool>(), Fakes.CancellationUrl };
-                    yield return new object[] { Configuration, Fakes.RequestingOrganization, Fakes.RequestingUser, null, It.IsAny<bool>(), Fakes.CancellationUrl };
-                    yield return new object[] { Configuration, Fakes.RequestingOrganization, Fakes.RequestingUser, null, It.IsAny<bool>(), null };
+                    yield return new object[] { null, Fakes.RequestingOrganization, Fakes.RequestingUser, Fakes.RequestingUser, It.IsAny<bool>() };
+                    yield return new object[] { Configuration, null, Fakes.RequestingUser, Fakes.RequestingUser, It.IsAny<bool>() };
+                    yield return new object[] { Configuration, Fakes.RequestingOrganization, null, Fakes.RequestingUser, It.IsAny<bool>() };
+                    yield return new object[] { Configuration, Fakes.RequestingOrganization, Fakes.RequestingUser, null, It.IsAny<bool>() };
                 }
             }
 
@@ -33,16 +32,14 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 Organization organization,
                 User requestingUser,
                 User pendingUser,
-                bool isAdmin,
-                string cancellationUrl)
+                bool isAdmin)
             {
                 Assert.Throws<ArgumentNullException>(() => new OrganizationMembershipRequestInitiatedMessage(
                     configuration,
                     organization,
                     requestingUser,
                     pendingUser,
-                    isAdmin,
-                    cancellationUrl));
+                    isAdmin));
             }
         }
 
@@ -162,8 +159,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 organization,
                 Fakes.RequestingUser,
                 pendingUser,
-                isAdmin,
-                Fakes.CancellationUrl);
+                isAdmin);
         }
 
         private const string _expectedMessageBodyForAdmin =

@@ -115,6 +115,8 @@ namespace NuGetGallery.ViewModels
         [InlineData("http://github.com/url", "https://github.com/url")]
         [InlineData("http://githubpages.github.io/my.page/license.html", "https://githubpages.github.io/my.page/license.html")]
         [InlineData("http://githubpages.github.com", "https://githubpages.github.com/")]
+        [InlineData("http://www.mono-project.com/Licensing", "https://www.mono-project.com/Licensing")]
+        [InlineData("http://aka.ms/windowsazureapache2", "https://aka.ms/windowsazureapache2")]
         public void ItInitializesLicenseUrl(string licenseUrl, string expected)
         {
             var package = new Package

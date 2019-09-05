@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using NuGetGallery.Infrastructure.Search.Models;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using System.Linq;
+using System.Web;
 
 namespace NuGetGallery.Infrastructure.Search
 {
@@ -41,6 +43,24 @@ namespace NuGetGallery.Infrastructure.Search
             Assert.True(response.IsSuccessStatusCode);
             Assert.Equal("search/diag", path);
             Assert.Null(queryString);
+        }
+
+        [Theory]
+        [MemberData(nameof(AllSortOrders))]
+        public async Task MapsAllSortOrders(SortOrder sortOrder)
+        {
+            // Arrange 
+            var gallerySearchClient = new GallerySearchClient(ResilientClientForTest.GetTestInstance(HttpStatusCode.OK));
+
+            // Act
+            var response = await gallerySearchClient.Search(query: string.Empty, sortBy: sortOrder);
+
+            // Assert
+            var httpResponseContentAsString = await response.HttpResponse.Content.ReadAsStringAsync();
+            var queryString = JObject.Parse(httpResponseContentAsString)["queryString"].Value<string>();
+            var parsedQueryString = HttpUtility.ParseQueryString(queryString);
+            Assert.Contains(sortOrder, SortNames.Keys);
+            Assert.Equal(SortNames[sortOrder], parsedQueryString["sortBy"]);
         }
 
         [Theory]
@@ -93,13 +113,20 @@ namespace NuGetGallery.Infrastructure.Search
             Assert.Equal(expectedResult, queryString);
         }
 
+        public static IEnumerable<object[]> AllSortOrders => Enum
+            .GetValues(typeof(SortOrder))
+            .Cast<SortOrder>()
+            .Select(so => new object[] { so });
+
         private static readonly Dictionary<SortOrder, string> SortNames = new Dictionary<SortOrder, string>
         {
             {SortOrder.LastEdited, "lastEdited"},
             {SortOrder.Relevance, "relevance"},
             {SortOrder.Published, "published"},
             {SortOrder.TitleAscending, "title-asc"},
-            {SortOrder.TitleDescending, "title-desc"}
+            {SortOrder.TitleDescending, "title-desc"},
+            {SortOrder.CreatedAscending, "created-asc"},
+            {SortOrder.CreatedDescending, "created-desc"},
         };
 
         public class ResilientClientForTest : IResilientSearchClient

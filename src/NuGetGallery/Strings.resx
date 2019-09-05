@@ -1022,22 +1022,23 @@ The {1} Team</value>
     <value>The package has no license information specified.</value>
   </data>
   <data name="UploadPackage_InvalidLicenseFileExtension" xml:space="preserve">
-    <value>The license file has invalid extension '{0}'. Extension must be either empty or one of the following: {1}.</value>
+    <value>The license file has an invalid extension '{0}'. Extension must be either empty or one of the following: {1}.</value>
     <comment>{0} is the specified extension. {1} is the string containing the allowed non-empty extensions list</comment>
   </data>
-  <data name="UploadPackage_LicenseFileDoesNotExist" xml:space="preserve">
-    <value>The license file '{0}' does not exist in the package.</value>
-    <comment>{0} is the license file name specified in the .nuspec</comment>
+  <data name="UploadPackage_FileDoesNotExist" xml:space="preserve">
+    <value>The {0} file '{1}' does not exist in the package.</value>
+    <comment>{0} is the type of file ('license', 'icon', etc.), {1} is the file name specified in the .nuspec</comment>
   </data>
   <data name="UploadPackage_LicenseMustBePlainText" xml:space="preserve">
     <value>The license file must be plain text using UTF-8 encoding.</value>
   </data>
-  <data name="UploadPackage_LicenseFileTooLong" xml:space="preserve">
-    <value>The license file cannot be longer than {0}.</value>
-    <comment>{0} is the string representation max allowed license file size (in whatever units the caller choses)</comment>
+  <data name="UploadPackage_FileTooLong" xml:space="preserve">
+    <value>The {0} file cannot be longer than {1}.</value>
+    <comment>{0} is the file type ('license', 'icon', etc.), {1} is the string representation max allowed license file size (in whatever units the caller chooses)</comment>
   </data>
-  <data name="UploadPackage_LicenseNodeContainsChildren" xml:space="preserve">
-    <value>The license node cannot contain child nodes.</value>
+  <data name="UploadPackage_NodeContainsChildren" xml:space="preserve">
+    <value>The {0} node cannot contain child nodes.</value>
+    <comment>{0} is the node name</comment>
   </data>
   <data name="UploadPackage_LicenseNodeValueTooLong" xml:space="preserve">
     <value>The license node value must be shorter than 500 characters.</value>
@@ -1126,5 +1127,24 @@ The {1} Team</value>
   </data>
   <data name="PackagesWithIdNotFound" xml:space="preserve">
     <value>There are no packages with ID '{0}'.</value>
+  </data>
+  <data name="UploadPackage_InvalidIconFileExtension" xml:space="preserve">
+    <value>The icon file has an invalid extension '{0}'. Extension must be one of the following: {1}.</value>
+    <comment>{0} is the icon file extension specified in the .nuspec, {1} is the list of allowed extensions</comment>
+  </data>
+  <data name="UploadPackage_IconFileType" xml:space="preserve">
+    <value>icon</value>
+  </data>
+  <data name="UploadPackage_LicenseFileType" xml:space="preserve">
+    <value>license</value>
+  </data>
+  <data name="UploadPackage_UnsupportedIconImageFormat" xml:space="preserve">
+    <value>Unsupported icon image format. Only PNG and JPG images are supported.</value>
+  </data>
+  <data name="LoggedInUserDeleted" xml:space="preserve">
+    <value>You have been logged out as your NuGet account was deleted. Please contact support if this is unexpected.</value>
+  </data>
+  <data name="AccountDelete_SelfServiceSuccess" xml:space="preserve">
+    <value>Your account is being deleted. You have been logged out.</value>
   </data>
 </root>
