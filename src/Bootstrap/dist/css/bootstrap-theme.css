@@ -468,7 +468,7 @@ img.reserved-indicator-icon {
   max-height: 300px;
 }
 #verify-package-container .verify-package-field p {
-  white-space: pre-wrap;
+  white-space: pre-line;
 }
 @media (-ms-high-contrast: active) {
   svg {
