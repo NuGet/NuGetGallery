@@ -43,7 +43,6 @@ $(function () {
 
         $("#show-readme-more").click(function () {
             showLess.collapse("toggle");
-            return false;
         });
         showLess.on('hide.bs.collapse', function (e) {
             e.stopPropagation();
