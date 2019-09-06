@@ -32,7 +32,7 @@ namespace NuGetGallery.Diagnostics
                     nameof(name));
             }
 
-            return new GalleryDiagnosticsSource(name, _telemetryClient);
+            return new TraceDiagnosticsSource(name, _telemetryClient);
         }
     }
 }

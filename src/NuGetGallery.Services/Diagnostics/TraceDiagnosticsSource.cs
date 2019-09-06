@@ -15,12 +15,12 @@ namespace NuGetGallery.Diagnostics
     /// 
     /// ILogger implementation based on https://github.com/aspnet/Logging/tree/master/src/Microsoft.Extensions.Logging.TraceSource 
     /// </summary>
-    public sealed class GalleryDiagnosticsSource : IDiagnosticsSource
+    public sealed class TraceDiagnosticsSource : IDiagnosticsSource
     {
         private readonly ITelemetryClient _telemetryClient;
         private readonly string _name;
 
-        public GalleryDiagnosticsSource(string name, ITelemetryClient telemetryClient)
+        public TraceDiagnosticsSource(string name, ITelemetryClient telemetryClient)
         {
             _name = name ?? throw new ArgumentNullException(nameof(name));
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
