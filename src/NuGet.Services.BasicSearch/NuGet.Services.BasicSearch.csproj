@@ -172,6 +172,9 @@
     <PackageReference Include="SerilogWeb.Classic">
       <Version>2.0.9</Version>
     </PackageReference>
+    <PackageReference Include="System.Net.Http">
+      <Version>4.3.3</Version>
+    </PackageReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
