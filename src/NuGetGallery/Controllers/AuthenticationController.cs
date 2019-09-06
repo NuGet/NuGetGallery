@@ -343,7 +343,6 @@ namespace NuGetGallery
             if (!SiteAdminHasValidTenant(user))
             {
                 ModelState.AddModelError("Register", string.Format(Strings.SiteAdminNotLoggedInWithRequiredTenant, NuGetContext.Config.Current.EnforcedTenantIdForAdmin));
-
                 return RegisterOrExternalLinkView(model, linkingAccount);
             }
 
