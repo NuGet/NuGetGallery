@@ -169,7 +169,7 @@ namespace NuGetGallery
             if (!await srcBlob.ExistsAsync())
             {
                 _trace.TraceEvent(
-                    Microsoft.Extensions.Logging.LogLevel.Warning,
+                    LogLevel.Warning,
                     eventId: 0,
                     message: $"Before calling FetchAttributesAsync(), the source blob '{srcBlob.Name}' does not exist.");
             }

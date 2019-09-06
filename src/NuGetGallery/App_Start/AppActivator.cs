@@ -39,6 +39,8 @@ namespace NuGetGallery
 
         public static void PreStart()
         {
+            Trace.AutoFlush = true;
+
             MessageQueue.Enable(maxPerQueue: 1000);
 
             AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
