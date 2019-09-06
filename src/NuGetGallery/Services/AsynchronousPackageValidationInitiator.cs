@@ -64,7 +64,7 @@ namespace NuGetGallery
             {
                 var postponeProcessingTill = DateTimeOffset.UtcNow + _appConfiguration.AsynchronousPackageValidationDelay;
 
-                await _validationEnqueuer.StartValidationAsync(data, postponeProcessingTill);
+                await _validationEnqueuer.SendMessageAsync(data, postponeProcessingTill);
             }
 
             return TargetPackageStatus;
