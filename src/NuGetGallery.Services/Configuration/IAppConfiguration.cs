@@ -243,6 +243,13 @@ namespace NuGetGallery.Configuration
         string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
+        /// Gets a string indicating which AAD Tenant Id should be used for administrators. 
+        /// When specified, the gallery will ensure admin users are logging in using only the specified tenant ID.
+        /// Blank means any AAD tenant ID can be used by administrators.
+        /// </summary>
+        string EnforcedTenantIdForAdmin { get; set; }
+
+        /// <summary>
         /// The required format for a user password.
         /// </summary>
         string UserPasswordRegex { get; set; }
