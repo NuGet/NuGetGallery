@@ -1442,7 +1442,8 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration()
                     {
                         Id = "Foo"
-                    }
+                    },
+                    Created = new DateTime(2019, 9, 7),
                 };
                 packageRegistration.Packages.Add(onlyVersion);
 
@@ -1492,7 +1493,8 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration()
                     {
                         Id = "Foo"
-                    }
+                    },
+                    Created = new DateTime(2019, 9, 7),
                 };
                 packageRegistration.Packages.Add(onlyVersion);
 
@@ -1669,7 +1671,8 @@ namespace NuGetGallery
                 {
                     PackageRegistration = packageRegistration,
                     Version = packageVersion,
-                    NormalizedVersion = packageVersion
+                    NormalizedVersion = packageVersion,
+                    Created = new DateTime(2019, 9, 7),
                 };
                 packageRegistration.Packages.Add(package);
 
