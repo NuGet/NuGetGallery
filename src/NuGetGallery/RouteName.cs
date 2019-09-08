@@ -10,7 +10,9 @@ namespace NuGetGallery
         public const string AddOrganization = "AddOrganization";
         public const string OrganizationMemberAddAjax = "AddMember";
         public const string OrganizationMemberAdd = "AddMemberJson";
+        public const string OrganizationMemberConfirmRedirect = "ConfirmMemberRequestRedirect";
         public const string OrganizationMemberConfirm = "ConfirmMemberRequest";
+        public const string OrganizationMemberRejectRedirect = "RejectMemberRequestRedirect";
         public const string OrganizationMemberReject = "RejectMemberRequest";
         public const string OrganizationMemberCancelAjax = "CancelMemberRequest";
         public const string OrganizationMemberCancel = "CancelMemberRequestJson";
@@ -20,8 +22,11 @@ namespace NuGetGallery
         public const string OrganizationMemberDelete = "DeleteMemberJson";
         public const string ChangeOrganizationEmailSubscription = "ChangeOrganizationEmailSubscription";
         public const string TransformToOrganization = "TransformToOrganization";
+        public const string TransformToOrganizationConfirmationRedirect = "ConfirmTransformRedirect";
         public const string TransformToOrganizationConfirmation = "ConfirmTransform";
+        public const string TransformToOrganizationRejectionRedirect = "RejectTransformRedirect";
         public const string TransformToOrganizationRejection = "RejectTransform";
+        public const string TransformToOrganizationCancellationRedirect = "CancelTransformRedirect";
         public const string TransformToOrganizationCancellation = "CancelTransform";
         public const string ApiKeys = "ApiKeys";
         public const string Profile = "Profile";

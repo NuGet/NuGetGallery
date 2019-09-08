@@ -168,13 +168,31 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
+        public async Task<ActionResult> ConfirmMemberRequestRedirect(string accountName, string confirmationToken)
+        {
+            return await ConfirmMemberRequestAsync(accountName, confirmationToken, redirect: true);
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> ConfirmMemberRequest(string accountName, string confirmationToken)
+        {
+            return await ConfirmMemberRequestAsync(accountName, confirmationToken, redirect: false);
+        }
+
+        private async Task<ActionResult> ConfirmMemberRequestAsync(string accountName, string confirmationToken, bool redirect)
         {
             var account = GetAccount(accountName);
 
             if (account == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            if (redirect)
+            {
+                return Redirect(Url.ManageMyOrganizations());
             }
 
             try
@@ -197,13 +215,31 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
+        public async Task<ActionResult> RejectMemberRequestRedirect(string accountName, string confirmationToken)
+        {
+            return await RejectMemberRequestAsync(accountName, confirmationToken, redirect: true);
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> RejectMemberRequest(string accountName, string confirmationToken)
+        {
+            return await RejectMemberRequestAsync(accountName, confirmationToken, redirect: false);
+        }
+
+        private async Task<ActionResult> RejectMemberRequestAsync(string accountName, string confirmationToken, bool redirect)
         {
             var account = GetAccount(accountName);
 
             if (account == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            if (redirect)
+            {
+                return Redirect(Url.ManageMyOrganizations());
             }
 
             try

@@ -540,6 +540,13 @@ namespace NuGetGallery
 
         public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
+            if (accountToTransform.OrganizationMigrationRequest == null
+                || !accountToTransform.OrganizationMigrationRequest.AdminUser.MatchesUser(adminUser)
+                || accountToTransform.OrganizationMigrationRequest.ConfirmationToken != token)
+            {
+                return false;
+            }
+
             await SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(accountToTransform, adminUser);
             var result = await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
             if (result)

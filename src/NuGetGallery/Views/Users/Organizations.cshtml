@@ -73,12 +73,18 @@
                                         var accept = organization.IsPendingTransformRequest ? Url.ConfirmTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.AcceptOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
                                         var reject = organization.IsPendingTransformRequest ? Url.RejectTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.RejectOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
 
-                                        <a class="btn" href="@accept" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
-                                            <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
-                                        </a>
-                                        <a class="btn" href="@reject" title="Reject Organization Membership Request" aria-label="@("Reject Organization Membership Request for " + organization.OrganizationName)">
-                                            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                        </a>
+                                        <form method="post" action="@accept">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-default" type="submit" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
+                                                <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
+                                            </button>
+                                        </form>
+                                        <form method="post" action="@reject">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-default" type="submit" title="Reject Organization Membership Request" aria-label="@("Reject Organization Membership Request for " + organization.OrganizationName)">
+                                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                            </button>
+                                        </form>
                                     }
                                 </td>
                             </tr>
@@ -97,8 +103,30 @@
                 <div class="subtitle text-center">
                     <p>You are not a member of any organizations. Get started by <a href="@Url.AddOrganization()">adding a new organization.</a></p>
                 </div>
+                if (Model.PendingMigration == null)
+                {
+                    <div class="subtitle text-center">
+                        You can also <a href="@Url.TransformAccount()">transform your account into an organization.</a>
+                    </div>
+                }
+            }
+
+            @if (Model.PendingMigration != null)
+            {
                 <div class="subtitle text-center">
-                    You can also <a href="@Url.TransformAccount()">transform your account into an organization.</a>
+                    <p>
+                        You have a pending request to transform your account <b>@CurrentUser.Username</b> into an
+                        organization.
+                        <br />
+                        To continue this process, sign in as <b>@Model.PendingMigration.AdminUsername</b> and navigate to
+                        the <b>Manage Organizations</b> page.
+                    </p>
+                </div>
+                <div class="subtitle text-center">
+                    <form method="post" action="@Url.CancelTransformAccount(Model.PendingMigration.ConfirmationToken)">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-danger">Cancel migration request</button>
+                    </form>
                 </div>
             }
         </div>

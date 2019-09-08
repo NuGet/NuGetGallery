@@ -617,6 +617,74 @@ namespace NuGetGallery
             }
         }
 
+        public class TheConfirmMemberRequestRedirectAction : AccountsControllerTestContainer
+        {
+            private const string defaultConfirmationToken = "token";
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task RedirectsAndDoesNotPerformWriteOperation(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                var messageService = GetMock<IMessageService>();
+
+                // Act
+                var result = await InvokeConfirmMember(controller, account, isAdmin: isAdmin);
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "/account/Organizations");
+
+                GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Never);
+                messageService.Verify(
+                    s => s.SendMessageAsync(
+                        It.IsAny<OrganizationMemberUpdatedMessage>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()),
+                    Times.Never);
+            }
+
+            private Task<ActionResult> InvokeConfirmMember(
+                OrganizationsController controller,
+                Organization account,
+                bool isAdmin,
+                string confirmationToken = defaultConfirmationToken,
+                EntityException exception = null)
+            {
+                // Arrange
+                controller.SetCurrentUser(Fakes.User);
+
+                var currentUser = controller.GetCurrentUser();
+
+                var userService = GetMock<IUserService>();
+                if (account != null)
+                {
+                    userService.Setup(u => u.FindByUsername(account.Username, false))
+                        .Returns(account as User);
+                }
+                var setup = userService.Setup(u => u.AddMemberAsync(It.IsAny<Organization>(), currentUser.Username, confirmationToken));
+                if (exception != null)
+                {
+                    setup.Throws(exception);
+                }
+                else
+                {
+                    var membership = new Membership
+                    {
+                        Organization = account,
+                        Member = currentUser,
+                        IsAdmin = isAdmin,
+                    };
+                    setup.Returns(Task.FromResult(membership)).Verifiable();
+                }
+
+                // Act
+                return controller.ConfirmMemberRequestRedirect(account?.Username, confirmationToken);
+            }
+        }
+
         public class TheConfirmMemberAction : AccountsControllerTestContainer
         {
             private const string defaultConfirmationToken = "token";
@@ -742,6 +810,73 @@ namespace NuGetGallery
 
                 // Act
                 return controller.ConfirmMemberRequest(account?.Username, confirmationToken);
+            }
+        }
+
+        public class TheRejectMemberRequestRedirectAction : AccountsControllerTestContainer
+        {
+            private const string defaultConfirmationToken = "token";
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task RedirectsAndDoesNotPerformWriteOperation(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                var messageService = GetMock<IMessageService>();
+
+                // Act
+                var result = await InvokeRejectMember(controller, account, isAdmin: isAdmin);
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "/account/Organizations");
+
+                GetMock<IUserService>().Verify(
+                    s => s.RejectMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Never);
+                messageService.Verify(
+                    s => s.SendMessageAsync(It.IsAny<OrganizationMembershipRequestDeclinedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Never);
+            }
+
+            private Task<ActionResult> InvokeRejectMember(
+                OrganizationsController controller,
+                Organization account,
+                bool isAdmin,
+                string confirmationToken = defaultConfirmationToken,
+                EntityException exception = null)
+            {
+                // Arrange
+                controller.SetCurrentUser(Fakes.User);
+
+                var currentUser = controller.GetCurrentUser();
+
+                var userService = GetMock<IUserService>();
+                if (account != null)
+                {
+                    userService.Setup(u => u.FindByUsername(account.Username, false))
+                        .Returns(account as User);
+                }
+                var setup = userService.Setup(u => u.RejectMembershipRequestAsync(It.IsAny<Organization>(), currentUser.Username, confirmationToken));
+                if (exception != null)
+                {
+                    setup.Throws(exception);
+                }
+                else
+                {
+                    var membership = new Membership
+                    {
+                        Organization = account,
+                        Member = currentUser,
+                        IsAdmin = isAdmin,
+                    };
+                    setup.Returns(Task.CompletedTask).Verifiable();
+                }
+
+                // Act
+                return controller.RejectMemberRequestRedirect(account?.Username, confirmationToken);
             }
         }
 
