@@ -959,10 +959,13 @@ namespace NuGetGallery
             private string _srcETag;
             private Uri _srcUri;
             private BlobProperties _srcProperties;
+            private IDictionary<string, string> _srcMetadata;
             private string _destFolderName;
             private string _destFileName;
             private string _destETag;
             private BlobProperties _destProperties;
+            private IDictionary<string, string> _destMetadata;
+            private string _metadataSha512HashAlgorithmId;
             private CopyState _destCopyState;
             private Mock<ICloudBlobClient> _blobClient;
             private Mock<ICloudBlobContainer> _srcContainer;
@@ -984,7 +987,10 @@ namespace NuGetGallery
                 _destProperties = new BlobProperties();
                 _destCopyState = new CopyState();
                 SetDestCopyStatus(CopyStatus.Success);
+                _metadataSha512HashAlgorithmId = CoreConstants.Sha512HashAlgorithmId;
 
+                _srcMetadata = new Dictionary<string, string>();
+                _destMetadata = new Dictionary<string, string>();
                 _blobClient = new Mock<ICloudBlobClient>();
                 _srcContainer = new Mock<ICloudBlobContainer>();
                 _destContainer = new Mock<ICloudBlobContainer>();
@@ -1011,6 +1017,9 @@ namespace NuGetGallery
                 _srcBlobMock
                     .Setup(x => x.Properties)
                     .Returns(() => _srcProperties);
+                _srcBlobMock
+                    .Setup(x => x.Metadata)
+                    .Returns(() => _srcMetadata);
                 _destBlobMock
                     .Setup(x => x.ETag)
                     .Returns(() => _destETag);
@@ -1020,6 +1029,9 @@ namespace NuGetGallery
                 _destBlobMock
                     .Setup(x => x.CopyState)
                     .Returns(() => _destCopyState);
+                _destBlobMock
+                    .Setup(x => x.Metadata)
+                    .Returns(() => _destMetadata);
 
                 _target = CreateService(fakeBlobClient: _blobClient);
             }
@@ -1232,9 +1244,9 @@ namespace NuGetGallery
             public async Task NoOpsIfPackageLengthAndHashMatch()
             {
                 // Arrange
-                SetBlobContentMD5(_srcProperties, "mwgwUC0MwohHxgMmvQzO7A==");
+                SetBlobContentSha512(_srcMetadata, "mwgwUC0MwohHxgMmvQzO7A==");
                 SetBlobLength(_srcProperties, 42);
-                SetBlobContentMD5(_destProperties, _srcProperties.ContentMD5);
+                SetBlobContentSha512(_destMetadata, _srcMetadata[_metadataSha512HashAlgorithmId]);
                 SetBlobLength(_destProperties, _srcProperties.Length);
 
                 _destBlobMock
@@ -1253,6 +1265,45 @@ namespace NuGetGallery
                 _destBlobMock.Verify(
                     x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
                     Times.Never);
+            }
+
+            [Theory]
+            [InlineData("mwgwUC0MwohHxgMmvQzO7A==", "mwgwUC0MwohHxgMmvQzO7A===", 42, 42)]
+            [InlineData("mwgwUC0MwohHxgMmvQzO7A==", "mwgwUC0MwohHxgMmvQzO7A==", 42, 43)]
+            [InlineData("mwgwUC0MwohHxgMmvQzO7A==", null, 42, 42)]
+            [InlineData(null, "mwgwUC0MwohHxgMmvQzO7A==", 42, 42)]
+            [InlineData(null, null, 42, 42)]
+            public async Task OpsIfPackageLengthAndHashNotMatch(string srcMetadataSha512, string destMetadataSha512, int srcPropertiesLength, int destPropertiesLength)
+            {
+                // Arrange
+                if (srcMetadataSha512 != null)
+                {
+                    SetBlobContentSha512(_srcMetadata, srcMetadataSha512);
+                }
+                SetBlobLength(_srcProperties, srcPropertiesLength);
+
+                if (destMetadataSha512 != null)
+                {
+                    SetBlobContentSha512(_destMetadata, destMetadataSha512);
+                }
+                SetBlobLength(_destProperties, destPropertiesLength);
+
+                _destBlobMock
+                    .Setup(x => x.ExistsAsync())
+                    .ReturnsAsync(true);
+
+                // Act
+                await _target.CopyFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    _destFolderName,
+                    _destFileName,
+                    AccessConditionWrapper.GenerateIfNotExistsCondition());
+
+                // Assert
+                _destBlobMock.Verify(
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
             }
 
             [Fact]
@@ -1293,11 +1344,9 @@ namespace NuGetGallery
                     .SetValue(properties, length, null);
             }
 
-            private void SetBlobContentMD5(BlobProperties properties, string contentMD5)
+            private void SetBlobContentSha512(IDictionary<string, string> metadata, string contentSha512)
             {
-                typeof(BlobProperties)
-                    .GetProperty(nameof(BlobProperties.ContentMD5))
-                    .SetValue(properties, contentMD5, null);
+                metadata.Add(_metadataSha512HashAlgorithmId, contentSha512);
             }
         }
 

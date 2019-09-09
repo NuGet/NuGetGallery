@@ -181,6 +181,8 @@ namespace NuGetGallery
             // Check if the destination blob already exists and fetch attributes.
             if (await destBlob.ExistsAsync())
             {
+                var sourceBlobMetadata = srcBlob.Metadata;
+                var destinationBlobMetadata = destBlob.Metadata;
                 if (destBlob.CopyState?.Status == CopyStatus.Failed)
                 {
                     // If the last copy failed, allow this copy to occur no matter what the caller's destination
@@ -195,16 +197,16 @@ namespace NuGetGallery
 
                     mappedDestAccessCondition = AccessCondition.GenerateIfMatchCondition(destBlob.ETag);
                 }
-                else if ((srcBlob.Properties.ContentMD5 != null
-                     && srcBlob.Properties.ContentMD5 == destBlob.Properties.ContentMD5
-                     && srcBlob.Properties.Length == destBlob.Properties.Length))
+                else if ((sourceBlobMetadata != null && sourceBlobMetadata.TryGetValue(CoreConstants.Sha512HashAlgorithmId, out var sourceHashValue)) &&
+                        (destinationBlobMetadata != null && destinationBlobMetadata.TryGetValue(CoreConstants.Sha512HashAlgorithmId, out var destinationHashValue)) &&
+                        sourceHashValue == destinationHashValue && srcBlob.Properties.Length == destBlob.Properties.Length)
                 {
                     // If the blob hash is the same and the length is the same, no-op the copy.
                     _trace.TraceEvent(
                         LogLevel.Information,
                         eventId: 0,
                         message: $"Destination blob '{destFolderName}/{destFileName}' already has hash " +
-                        $"'{destBlob.Properties.ContentMD5}' and length '{destBlob.Properties.Length}'. The copy " +
+                        $"'{destinationHashValue}' and length '{destBlob.Properties.Length}'. The copy " +
                         $"will be skipped.");
 
                     return srcBlob.ETag;
