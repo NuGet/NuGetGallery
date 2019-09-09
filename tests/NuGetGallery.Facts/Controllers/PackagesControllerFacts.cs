@@ -1442,7 +1442,8 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration()
                     {
                         Id = "Foo"
-                    }
+                    },
+                    Created = new DateTime(2019, 9, 7),
                 };
                 packageRegistration.Packages.Add(onlyVersion);
 
@@ -1492,7 +1493,8 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration()
                     {
                         Id = "Foo"
-                    }
+                    },
+                    Created = new DateTime(2019, 9, 7),
                 };
                 packageRegistration.Packages.Add(onlyVersion);
 
@@ -1669,7 +1671,8 @@ namespace NuGetGallery
                 {
                     PackageRegistration = packageRegistration,
                     Version = packageVersion,
-                    NormalizedVersion = packageVersion
+                    NormalizedVersion = packageVersion,
+                    Created = new DateTime(2019, 9, 7),
                 };
                 packageRegistration.Packages.Add(package);
 
@@ -1701,11 +1704,23 @@ namespace NuGetGallery
                 return packagesController.RejectPendingOwnershipRequest(id, username, token);
             }
 
+            private static Task<ActionResult> ConfirmOwnershipRequestRedirect(PackagesController packagesController, string id, string username, string token)
+            {
+                return packagesController.ConfirmPendingOwnershipRequestRedirect(id, username, token);
+            }
+
+            private static Task<ActionResult> RejectOwnershipRequestRedirect(PackagesController packagesController, string id, string username, string token)
+            {
+                return packagesController.RejectPendingOwnershipRequestRedirect(id, username, token);
+            }
+
             public static IEnumerable<object[]> TheOwnershipRequestMethods_Data
             {
                 get
                 {
+                    yield return new object[] { new InvokeOwnershipRequest(ConfirmOwnershipRequestRedirect) };
                     yield return new object[] { new InvokeOwnershipRequest(ConfirmOwnershipRequest) };
+                    yield return new object[] { new InvokeOwnershipRequest(RejectOwnershipRequestRedirect) };
                     yield return new object[] { new InvokeOwnershipRequest(RejectOwnershipRequest) };
                 }
             }
@@ -1901,6 +1916,116 @@ namespace NuGetGallery
                     && msg.PackageUrl == It.IsAny<string>());
             }
 
+            public static IEnumerable<object[]> ReturnsRedirectIfTokenIsValid_Data
+            {
+                get
+                {
+                    foreach (var tokenValid in new bool[] { true, false })
+                    {
+                        foreach (var isOrganizationAdministrator in new bool[] { true, false })
+                        {
+                            yield return new object[]
+                            {
+                                new InvokeOwnershipRequest(ConfirmOwnershipRequestRedirect),
+                                new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
+                                tokenValid,
+                                isOrganizationAdministrator
+                            };
+                            yield return new object[]
+                            {
+                                new InvokeOwnershipRequest(RejectOwnershipRequestRedirect),
+                                new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
+                                tokenValid,
+                                isOrganizationAdministrator
+                            };
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(ReturnsRedirectIfTokenIsValid_Data))]
+            public async Task ReturnsRedirectIfTokenIsValid(
+                InvokeOwnershipRequest invokeOwnershipRequest,
+                PackageOwnershipManagementServiceRequestExpression packageOwnershipManagementServiceExpression,
+                bool tokenValid,
+                bool isOrganizationAdministrator)
+            {
+                // Arrange
+                var token = "token";
+                var requestingOwner = new User { Key = _key++, Username = "owner", EmailAllowed = true };
+                var package = new PackageRegistration { Id = "foo", Owners = new[] { requestingOwner } };
+
+                var currentUser = new User { Key = _key++, Username = "username" };
+
+                User newOwner;
+                if (isOrganizationAdministrator)
+                {
+                    newOwner = new Organization { Key = _key++, Username = "organization", Members = new[] { new Membership { Member = currentUser, IsAdmin = true } } };
+                }
+                else
+                {
+                    newOwner = currentUser;
+                }
+
+                var mockHttpContext = new Mock<HttpContextBase>();
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
+
+                var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
+                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
+                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
+
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner,
+                    ConfirmationCode = token
+                };
+                packageOwnershipManagementService.Setup(p => p.GetPackageOwnershipRequest(package, newOwner, token))
+                    .Returns(tokenValid ? request : null);
+
+                var configurationService = GetConfigurationService();
+                var messageService = new Mock<IMessageService>();
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(x => x.FindByUsername(newOwner.Username, false)).Returns(newOwner);
+
+                var controller = CreateController(
+                    configurationService,
+                    httpContext: mockHttpContext,
+                    packageService: packageService,
+                    messageService: messageService,
+                    packageOwnershipManagementService: packageOwnershipManagementService,
+                    userService: userService);
+
+                controller.SetCurrentUser(currentUser);
+                TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
+
+                // Act
+                var result = await invokeOwnershipRequest(controller, package.Id, newOwner.Username, token);
+
+                // Assert
+                if (tokenValid)
+                {
+                    ResultAssert.IsRedirectTo(result, "/account/Packages#show-requests-received-container");
+                }
+                else
+                {
+                    var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
+                    Assert.Equal(ConfirmOwnershipResult.Failure, model.Result);
+                    Assert.Equal(package.Id, model.PackageId);
+                }
+                packageOwnershipManagementService.Verify(
+                    packageOwnershipManagementServiceExpression(package, newOwner),
+                    Times.Never);
+                messageService.Verify(
+                    svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
+                    Times.Never);
+            }
+
             public static IEnumerable<object[]> ReturnsSuccessIfTokenIsValid_Data
             {
                 get
@@ -2049,14 +2174,14 @@ namespace NuGetGallery
                 }
 
                 [Fact]
-                public async Task WithNonExistentPackageIdReturnsHttpNotFound()
+                public void WithNonExistentPackageIdReturnsHttpNotFound()
                 {
                     // Arrange
                     var controller = CreateController(GetConfigurationService());
                     controller.SetCurrentUser(new User { Username = "userA" });
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
+                    var result = controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
 
                     // Assert
                     Assert.IsType<HttpNotFoundResult>(result);
@@ -2064,7 +2189,7 @@ namespace NuGetGallery
 
                 [Theory]
                 [MemberData(nameof(NotOwner_Data))]
-                public async Task WithNonOwningCurrentUserReturnsNotYourRequest(User currentUser, User owner)
+                public void WithNonOwningCurrentUserReturnsNotYourRequest(User currentUser, User owner)
                 {
                     // Arrange
                     var package = new PackageRegistration { Id = "foo", Owners = new[] { owner } };
@@ -2076,7 +2201,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(currentUser);
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
+                    var result = controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
 
                     // Assert
                     var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
@@ -2086,7 +2211,7 @@ namespace NuGetGallery
 
                 [Theory]
                 [MemberData(nameof(Owner_Data))]
-                public async Task WithNonExistentPendingUserReturnsHttpNotFound(User currentUser, User owner)
+                public void WithNonExistentPendingUserReturnsHttpNotFound(User currentUser, User owner)
                 {
                     // Arrange
                     var package = new PackageRegistration { Id = "foo", Owners = new[] { owner } };
@@ -2098,7 +2223,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(currentUser);
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
+                    var result = controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
 
                     // Assert
                     Assert.IsType<HttpNotFoundResult>(result);
@@ -2106,7 +2231,7 @@ namespace NuGetGallery
 
                 [Theory]
                 [MemberData(nameof(Owner_Data))]
-                public async Task WithNonExistentPackageOwnershipRequestReturnsHttpNotFound(User currentUser, User owner)
+                public void WithNonExistentPackageOwnershipRequestReturnsHttpNotFound(User currentUser, User owner)
                 {
                     // Arrange
                     var packageId = "foo";
@@ -2132,7 +2257,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(owner);
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
+                    var result = controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
 
                     // Assert
                     Assert.IsType<HttpNotFoundResult>(result);
@@ -2140,7 +2265,7 @@ namespace NuGetGallery
 
                 [Theory]
                 [MemberData(nameof(Owner_Data))]
-                public async Task ReturnsCancelledIfPackageOwnershipRequestExists(User currentUser, User owner)
+                public void ReturnsRedirectIfPackageOwnershipRequestExists(User currentUser, User owner)
                 {
                     // Arrange
                     var userAName = "userA";
@@ -2175,25 +2300,24 @@ namespace NuGetGallery
                     controller.SetCurrentUser(currentUser);
 
                     // Act
-                    var result = await controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
+                    var result = controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
 
                     // Assert
-                    var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
-                    var expectedResult = ConfirmOwnershipResult.Cancelled;
-                    Assert.Equal(expectedResult, model.Result);
-                    Assert.Equal(packageId, model.PackageId);
-                    packageService.Verify();
-                    packageOwnershipManagementRequestService.Verify();
+                    var model = ResultAssert.IsRedirectTo(result, "/packages/foo/Manage#show-Owners-container");
 
-                    messageService
-                        .Verify(x => x.SendMessageAsync(
-                            It.Is<PackageOwnershipRequestCanceledMessage>(
-                                msg =>
-                                msg.RequestingOwner == userA
-                                && msg.NewOwner == userB
-                                && msg.PackageRegistration == package),
-                            false,
-                            false));
+                    packageOwnershipManagementRequestService.Verify(
+                        x => x.DeletePackageOwnershipRequestAsync(
+                            It.IsAny<PackageRegistration>(),
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()),
+                        Times.Never);
+
+                    messageService.Verify(
+                        x => x.SendMessageAsync(
+                            It.IsAny<PackageOwnershipRequestCanceledMessage>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>()),
+                        Times.Never);
                 }
             }
         }

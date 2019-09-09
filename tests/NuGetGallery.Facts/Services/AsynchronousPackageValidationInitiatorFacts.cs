@@ -43,7 +43,7 @@ namespace NuGetGallery
 
                 // Assert
                 _enqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
                 Assert.Equal(1, _data.Count);
                 Assert.NotNull(_data[0]);
@@ -65,7 +65,7 @@ namespace NuGetGallery
 
                 // Assert
                 _enqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
                 Assert.Equal(1, _data.Count);
                 Assert.NotNull(_data[0]);
@@ -88,7 +88,7 @@ namespace NuGetGallery
                     () => _target.StartValidationAsync(package));
                 Assert.Equal(Strings.CannotEnqueueDueToReadOnly, exception.Message);
                 _enqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 
@@ -168,7 +168,7 @@ namespace NuGetGallery
 
                 // Assert
                 _enqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
                 Assert.Equal(1, _data.Count);
                 Assert.NotNull(_data[0]);
@@ -190,7 +190,7 @@ namespace NuGetGallery
 
                 // Assert
                 _enqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
                 Assert.Equal(1, _data.Count);
                 Assert.NotNull(_data[0]);
@@ -213,7 +213,7 @@ namespace NuGetGallery
                     () => _target.StartValidationAsync(symbolPackage));
                 Assert.Equal(Strings.CannotEnqueueDueToReadOnly, exception.Message);
                 _enqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 
@@ -280,7 +280,7 @@ namespace NuGetGallery
             {
                 _enqueuer = new Mock<IPackageValidationEnqueuer>();
                 _enqueuer
-                    .Setup(x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
+                    .Setup(x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
                     .Returns(Task.CompletedTask)
                     .Callback<PackageValidationMessageData, DateTimeOffset>((d, o) => _data.Add(d));
 

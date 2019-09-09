@@ -193,6 +193,14 @@ namespace NuGetGallery
                 return challenge;
             }
 
+            // If we are an administrator and Gallery.EnforcedTenantIdForAdmin is set
+            // to require a specific tenant Id, check if the user logged in with the specified tenant.
+            if (!SiteAdminHasValidTenant(authenticatedUser))
+            {
+                var errorMessage = string.Format(CultureInfo.CurrentCulture, Strings.SiteAdminNotLoggedInWithRequiredTenant, NuGetContext.Config.Current.EnforcedTenantIdForAdmin);
+                return SignInFailure(model, linkingAccount, errorMessage);
+            }
+
             // Create session
             await _authService.CreateSessionAsync(OwinContext, authenticatedUser, usedMultiFactorAuthentication);
 
@@ -230,6 +238,17 @@ namespace NuGetGallery
 
             challenge = null;
             return false;
+        }
+
+        internal bool SiteAdminHasValidTenant(AuthenticatedUser authenticatedUser)
+        {
+            if (!string.IsNullOrEmpty(NuGetContext.Config.Current.EnforcedTenantIdForAdmin)
+                && authenticatedUser.User.IsAdministrator)
+            {
+                return string.Equals(NuGetContext.Config.Current.EnforcedTenantIdForAdmin, authenticatedUser.CredentialUsed.TenantId, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return true;
         }
 
         [HttpGet]
@@ -319,18 +338,27 @@ namespace NuGetGallery
                 return challenge;
             }
 
+            // If we are an administrator and Gallery.EnforcedTenantIdForAdmin is set
+            // to require a specific tenant Id, check if the user logged in with the specified tenant.
+            if (!SiteAdminHasValidTenant(user))
+            {
+                ModelState.AddModelError("Register", string.Format(Strings.SiteAdminNotLoggedInWithRequiredTenant, NuGetContext.Config.Current.EnforcedTenantIdForAdmin));
+                return RegisterOrExternalLinkView(model, linkingAccount);
+            }
+
             // Create session
             await _authService.CreateSessionAsync(OwinContext, user, usedMultiFactorAuthentication);
             return RedirectFromRegister(returnUrl);
         }
 
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public virtual ActionResult LogOff(string returnUrl)
         {
             OwinContext.Authentication.SignOut();
 
             if (!string.IsNullOrEmpty(returnUrl)
-                && returnUrl.Contains("account"))
+                && (returnUrl.Contains("account") || returnUrl.Contains("Admin")))
             {
                 returnUrl = null;
             }
@@ -527,6 +555,14 @@ namespace NuGetGallery
                     NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, result.Authentication, returnUrl, out challenge))
                 {
                     return challenge;
+                }
+
+                // If we are an administrator and Gallery.EnforcedTenantIdForAdmin is set
+                // to require a specific tenant Id, check if the user logged in with the specified tenant.
+                if (!SiteAdminHasValidTenant(result.Authentication))
+                {
+                    string errorMessage = string.Format(Strings.SiteAdminNotLoggedInWithRequiredTenant, NuGetContext.Config.Current.EnforcedTenantIdForAdmin);
+                    return AuthenticationFailureOrExternalLinkExpired(errorMessage);
                 }
 
                 if (ShouldEnforceMultiFactorAuthentication(result))
@@ -763,7 +799,7 @@ namespace NuGetGallery
         {
             // User got here without an external login cookie (or an expired one)
             // Send them to the logon action with a message
-            TempData["Message"] = string.IsNullOrEmpty(errorMessage) ? Strings.ExternalAccountLinkExpired : errorMessage;
+            TempData["ErrorMessage"] = string.IsNullOrEmpty(errorMessage) ? Strings.ExternalAccountLinkExpired : errorMessage;
             return Redirect(Url.LogOn(null, relativeUrl: false));
         }
 

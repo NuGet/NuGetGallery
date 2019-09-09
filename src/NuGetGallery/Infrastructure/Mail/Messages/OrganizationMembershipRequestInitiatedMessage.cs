@@ -12,18 +12,15 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     public class OrganizationMembershipRequestInitiatedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
-        private readonly string _cancellationUrl;
 
         public OrganizationMembershipRequestInitiatedMessage(
             IMessageServiceConfiguration configuration,
             Organization organization,
             User requestingUser,
             User pendingUser,
-            bool isAdmin,
-            string cancellationUrl)
+            bool isAdmin)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _cancellationUrl = cancellationUrl ?? throw new ArgumentNullException(nameof(cancellationUrl));
 
             Organization = organization ?? throw new ArgumentNullException(nameof(organization));
             RequestingUser = requestingUser ?? throw new ArgumentNullException(nameof(requestingUser));

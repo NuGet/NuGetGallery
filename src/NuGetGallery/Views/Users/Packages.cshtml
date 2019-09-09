@@ -272,16 +272,22 @@
                         </td>
                         <td class="text-right align-middle package-controls">
                             <!-- ko if: CanAccept -->
-                            <a class="btn" title="Confirm Ownership" data-bind="attr: { href: ConfirmUrl, 'aria-label': 'Confirm Ownership of ' + Id }">
-                                <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
-                            </a>
-                            <a class="btn" title="Reject Ownership" data-bind="attr: { href: RejectUrl, 'aria-label': 'Reject Ownership of ' + Id }">
-                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                            </a>
+                            <form method="post" data-bind="attr: { action: ConfirmUrl }">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-default" title="Confirm Ownership" data-bind="attr: { 'aria-label': 'Confirm Ownership of ' + Id }">
+                                    <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
+                                </button>
+                            </form>
+                            <form method="post" data-bind="attr: { action: RejectUrl }">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-default" title="Reject Ownership" data-bind="attr: { 'aria-label': 'Reject Ownership of ' + Id }">
+                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                </button>
+                            </form>
                             <!-- /ko -->
                             <!-- ko if: !CanAccept && CanCancel -->
-                            <a class="btn" title="Cancel Ownership" data-bind="attr: { href: CancelUrl, 'aria-label': 'Cancel Ownership of ' + Id }">
-                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                            <a class="btn" title="Manage Ownership" data-bind="attr: { href: ManagePackageOwnershipUrl, 'aria-label': 'Manage Ownership of ' + Id }">
+                                <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                             </a>
                             <!-- /ko -->
                         </td>
@@ -310,7 +316,7 @@
 
     private RouteUrlTemplate<OwnerRequestsListItemViewModel> confirmUrlTemplate;
     private RouteUrlTemplate<OwnerRequestsListItemViewModel> rejectUrlTemplate;
-    private RouteUrlTemplate<OwnerRequestsListItemViewModel> cancelUrlTemplate;
+    private RouteUrlTemplate<OwnerRequestsListItemViewModel> manageOwnershipUrlTemplate;
 
     dynamic GetSerializablePackage(ListPackageItemRequiredSignerViewModel p)
     {
@@ -384,9 +390,9 @@
             rejectUrlTemplate = Url.RejectPendingOwnershipRequestTemplate();
         }
 
-        if (cancelUrlTemplate == null)
+        if (manageOwnershipUrlTemplate == null)
         {
-            cancelUrlTemplate = Url.CancelPendingOwnershipRequestTemplate();
+            manageOwnershipUrlTemplate = Url.ManagePackageOwnershipTemplate();
         }
 
         return new
@@ -401,7 +407,7 @@
             CanCancel = r.CanCancel,
             ConfirmUrl = confirmUrlTemplate.Resolve(r),
             RejectUrl = rejectUrlTemplate.Resolve(r),
-            CancelUrl = cancelUrlTemplate.Resolve(r)
+            ManagePackageOwnershipUrl = manageOwnershipUrlTemplate.Resolve(r)
         };
     }
 

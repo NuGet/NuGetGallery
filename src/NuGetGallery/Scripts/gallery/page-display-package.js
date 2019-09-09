@@ -41,9 +41,9 @@ $(function () {
         var showLess = $("#readme-less");
         $clamp(showLess[0], { clamp: 10, useNativeClamp: false });
 
-        $("#show-readme-more").click(function () {
+        $("#show-readme-more").click(function (e) {
             showLess.collapse("toggle");
-            return false;
+            e.preventDefault();
         });
         showLess.on('hide.bs.collapse', function (e) {
             e.stopPropagation();

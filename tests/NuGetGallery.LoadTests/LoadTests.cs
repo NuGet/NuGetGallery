@@ -29,9 +29,11 @@ namespace NuGetGallery.LoadTests
         [TestCategory("P0Tests")]
         public async Task DownloadPackageSimulationTest()
         {
-            string packageId = "EntityFramework"; //try to down load a pre-defined package.
+            // Check that downloading a package returns a valid redirect URL.
+            // We don't actually download the package as this runs as part of a load test. 
+            string packageId = "EntityFramework"; 
             string version = "5.0.0";
-            //Just try download and not actual download. Since this will be used in load test, we don't to actually download the nupkg everytime.
+
             var odataHelper = new ODataHelper();
             string redirectUrl = await odataHelper.TryDownloadPackageFromFeed(packageId, version);
             Assert.IsNotNull(redirectUrl, " Package download from V2 feed didnt work");
@@ -44,18 +46,18 @@ namespace NuGetGallery.LoadTests
         [TestCategory("P0Tests")]
         public async Task ManagePackageUILaunchSimulationTest()
         {
-            // api/v2/search()/$count query is made everytime Manage package UI is launched in VS.
-            //This test simulates the same.
-            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/Search()/$count?$filter=IsLatestVersion&searchTerm=''&targetFramework='net45'&includePrerelease=false");
-            var response = await request.GetResponseAsync();
+            // A "api/v2/search()/$count" query is made each time the Manage Package UI is launched in Visual Studio.
+            var requestUrl = UrlHelper.V2FeedRootUrl + @"/Search()/$count?$filter=IsLatestVersion&searchTerm=''&targetFramework='net45'&includePrerelease=false";
+
             string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var httpClient = new HttpClient())
             {
-                responseText = await sr.ReadToEndAsync();
+                responseText = await httpClient.GetStringAsync(requestUrl);
             }
+
             int searchCount = Convert.ToInt32(responseText);
 
-            //Just check if the response is a valid int.
+            // Check that the response is a valid int.
             Assert.IsTrue(searchCount >= 0);
         }
 
@@ -172,13 +174,12 @@ namespace NuGetGallery.LoadTests
         public async Task SearchMicrosoftDotNetCuratedFeed()
         {
             var packageId = "microsoft.aspnet.webpages";
-            var request = WebRequest.Create(UrlHelper.DotnetCuratedFeedUrl + @"Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30");
-            var response = await request.GetResponseAsync();
+            var requestUrl = UrlHelper.DotnetCuratedFeedUrl + @"Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30";
 
             string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var httpClient = new HttpClient())
             {
-                responseText = await sr.ReadToEndAsync();
+                responseText = await httpClient.GetStringAsync(requestUrl);
             }
 
             string packageUrl = @"<id>" + UrlHelper.DotnetCuratedFeedUrl + "Packages(Id='" + packageId;

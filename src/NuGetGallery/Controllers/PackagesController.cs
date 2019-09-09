@@ -1638,6 +1638,8 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("reflow a package")]
         public virtual async Task<ActionResult> Reflow(string id, string version)
@@ -1673,6 +1675,8 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("revalidate a package")]
         public virtual async Task<ActionResult> Revalidate(string id, string version)
@@ -1700,7 +1704,8 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
-
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("revalidate a symbols package")]
         public virtual async Task<ActionResult> RevalidateSymbols(string id, string version)
@@ -1973,20 +1978,43 @@ namespace NuGetGallery
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("accept ownership of a package")]
+        public virtual Task<ActionResult> ConfirmPendingOwnershipRequestRedirect(string id, string username, string token)
+        {
+            return HandleOwnershipRequest(id, username, token, redirect: true);
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("accept ownership of a package")]
         public virtual Task<ActionResult> ConfirmPendingOwnershipRequest(string id, string username, string token)
         {
-            return HandleOwnershipRequest(id, username, token, accept: true);
+            return HandleOwnershipRequest(id, username, token, redirect: false, accept: true);
         }
 
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("reject ownership of a package")]
-        public virtual Task<ActionResult> RejectPendingOwnershipRequest(string id, string username, string token)
+        public virtual Task<ActionResult> RejectPendingOwnershipRequestRedirect(string id, string username, string token)
         {
-            return HandleOwnershipRequest(id, username, token, accept: false);
+            return HandleOwnershipRequest(id, username, token, redirect: true);
         }
 
-        private async Task<ActionResult> HandleOwnershipRequest(string id, string username, string token, bool accept)
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("reject ownership of a package")]
+        public virtual Task<ActionResult> RejectPendingOwnershipRequest(string id, string username, string token)
+        {
+            return HandleOwnershipRequest(id, username, token, redirect: false, accept: false);
+        }
+
+        private async Task<ActionResult> HandleOwnershipRequest(
+            string id,
+            string username,
+            string token,
+            bool redirect,
+            bool accept = false)
         {
             if (string.IsNullOrEmpty(token))
             {
@@ -2018,6 +2046,11 @@ namespace NuGetGallery
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Failure));
             }
 
+            if (redirect)
+            {
+                return Redirect(Url.ManageMyReceivedPackageOwnershipRequests());
+            }
+            
             if (accept)
             {
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
@@ -2042,7 +2075,7 @@ namespace NuGetGallery
         [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("cancel pending ownership request")]
-        public virtual async Task<ActionResult> CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
+        public virtual ActionResult CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
         {
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
@@ -2073,12 +2106,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, pendingUser);
-
-            var emailMessage = new PackageOwnershipRequestCanceledMessage(_config, requestingUser, pendingUser, package);
-            await _messageService.SendMessageAsync(emailMessage);
-
-            return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
+            return Redirect(Url.ManagePackageOwnership(id));
         }
 
         /// <summary>

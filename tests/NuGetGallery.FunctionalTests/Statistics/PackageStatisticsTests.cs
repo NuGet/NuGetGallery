@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -29,13 +30,12 @@ namespace NuGetGallery.FunctionalTests.Statistics
         [Category("P1Tests")]
         public async Task PackageFeedStatsSanityTest()
         {
-            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
-            var response = await request.GetResponseAsync();
+            var requestUrl = UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/";
 
             string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var httpClient = new HttpClient())
             {
-                responseText = await sr.ReadToEndAsync();
+                responseText = await httpClient.GetStringAsync(requestUrl);
             }
 
             string firstPackage = responseText.Substring(responseText.IndexOf("{"), responseText.IndexOf("}") - responseText.IndexOf("{"));
@@ -57,33 +57,27 @@ namespace NuGetGallery.FunctionalTests.Statistics
         [Category("P1Tests")]
         public async Task PackageFeedCountParameterTest()
         {
-            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
-            var response = await request.GetResponseAsync();
-
-            string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var httpClient = new HttpClient())
             {
-                responseText = await sr.ReadToEndAsync();
-            }
+                var requestUrl = UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/";
+                var responseText = await httpClient.GetStringAsync(requestUrl);
 
-            string[] separators = { "}," };
-            int packageCount = responseText.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
-            // Only verify the stats feed contains 500 packages for production
-            if (UrlHelper.BaseUrl.ToLowerInvariant() == Constants.NuGetOrgUrl)
-            {
-                Assert.True(packageCount == 500, "Expected feed to contain 500 packages. Actual count: " + packageCount);
-            }
+                string[] separators = { "}," };
+                int packageCount = responseText.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
+                // Only verify the stats feed contains 500 packages for production
+                if (UrlHelper.BaseUrl.ToLowerInvariant() == Constants.NuGetOrgUrl)
+                {
+                    Assert.True(packageCount == 500, "Expected feed to contain 500 packages. Actual count: " + packageCount);
+                }
 
-            request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks?count=5");
-            // Get the response.
-            response = await request.GetResponseAsync();
-            using (var sr = new StreamReader(response.GetResponseStream()))
-            {
-                responseText = await sr.ReadToEndAsync();
-            }
+                requestUrl = UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks?count=5";
 
-            packageCount = responseText.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
-            Assert.True(packageCount == 5, "Expected feed to contain 5 packages. Actual count: " + packageCount);
+                // Get the response.
+                responseText = await httpClient.GetStringAsync(requestUrl);
+
+                packageCount = responseText.Split(separators, StringSplitOptions.RemoveEmptyEntries).Length;
+                Assert.True(packageCount == 5, "Expected feed to contain 5 packages. Actual count: " + packageCount);
+            }
         }
     }
 }

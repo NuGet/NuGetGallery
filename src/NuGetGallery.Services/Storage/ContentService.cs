@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -67,26 +67,6 @@ namespace NuGetGallery
                 expiresIn);
         }
 
-        public Task<IHtmlString> GetContentItemAsync(string name, string extension, TimeSpan expiresIn)
-        {
-            if (String.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, ServicesStrings.ParameterCannotBeNullOrEmpty, nameof(name)), nameof(name));
-            }
-
-            if (String.IsNullOrEmpty(extension))
-            {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, ServicesStrings.ParameterCannotBeNullOrEmpty, nameof(extension)), nameof(extension));
-            }
-
-            if (!extension.StartsWith(".", StringComparison.OrdinalIgnoreCase))
-            {
-                extension = "." + extension;
-            }
-
-            return GetContentItemCore(name, new[] { extension }, expiresIn);
-        }
-
         // This NNNCore pattern allows arg checking to happen synchronously, before starting the async operation.
         private async Task<IHtmlString> GetContentItemCore(string name, string[] extensions, TimeSpan expiresIn)
         {
@@ -115,6 +95,7 @@ namespace NuGetGallery
                     }
                 }
 
+                Trace.Error($"Requested Content File Not Found: {name}. Extensions tried: {string.Join(", ", extensions)}");
                 return new HtmlString(String.Empty);
             }
         }
@@ -130,7 +111,7 @@ namespace NuGetGallery
 
                 if (reference == null)
                 {
-                    Trace.Error("Requested Content File Not Found: " + fileName);
+                    Trace.Verbose("Requested Content File Not Found: " + fileName);
                     return null;
                 }
 

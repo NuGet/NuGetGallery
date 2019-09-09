@@ -147,10 +147,8 @@ namespace NuGetGallery
                         ownerRequest.ConfirmationCode,
                         relativeUrl: false);
 
-                    var cancellationUrl = Url.CancelPendingOwnershipRequest(
+                    var manageUrl = Url.ManagePackageOwnership(
                         model.Package.Id,
-                        model.CurrentUser.Username,
-                        model.User.Username,
                         relativeUrl: false);
 
                     var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(
@@ -168,7 +166,13 @@ namespace NuGetGallery
 
                     foreach (var owner in model.Package.Owners)
                     {
-                        var emailMessage = new PackageOwnershipRequestInitiatedMessage(_appConfiguration, model.CurrentUser, owner, model.User, model.Package, cancellationUrl);
+                        var emailMessage = new PackageOwnershipRequestInitiatedMessage(
+                            _appConfiguration,
+                            model.CurrentUser,
+                            owner,
+                            model.User,
+                            model.Package,
+                            manageUrl);
 
                         await _messageService.SendMessageAsync(emailMessage);
                     }
