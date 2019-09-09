@@ -2409,7 +2409,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The {0} file cannot be longer than {1}..
+        ///   Looks up a localized string similar to The {0} file cannot be larger than {1}..
         /// </summary>
         public static string UploadPackage_FileTooLong {
             get {
