@@ -1,0 +1,6 @@
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# review when someone opens a pull request.
+# For more on how to customize the CODEOWNERS file - https://help.github.com/en/articles/about-code-owners
+*       @agr @cristinamanu @dannyjdev @joelverhagen @loic-sharma @ryuyu  @scottbommarito @skofman1 @shishirx34 @xavierdecoster @zhhyu 
+ 
