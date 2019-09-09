@@ -106,6 +106,25 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             /// <summary>
+            /// Append a clause to boost an exact matched package ID.
+            /// </summary>
+            /// <param name="packageId">The package ID that must can be matched.</param>
+            /// <param name="boost">The boost for the document with the matching package ID.</param>
+            public void AppendExactMatchPackageIdBoost(string packageId, float boost)
+            {
+                ValidateAdditionalClausesOrThrow(1);
+                ValidateTermsOrThrow(new[] { packageId });
+
+                AppendSpaceIfNotEmpty();
+
+                _result.Append(IndexFields.PackageId);
+                _result.Append(":");
+                AppendEscapedString(packageId, quoteWhiteSpace: true);
+                _result.Append("^");
+                _result.Append(boost);
+            }
+
+            /// <summary>
             /// Append a term to the query that is scoped to a specified field. This generates
             /// queries like "field:value". Unlike <see cref="AppendScopedTerms"/>, this supports
             /// prefix matching.
