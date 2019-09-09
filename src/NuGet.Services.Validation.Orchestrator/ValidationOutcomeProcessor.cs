@@ -309,7 +309,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         entityKey: validationSet.PackageKey);
                     var postponeUntil = DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod;
 
-                    await _validationEnqueuer.StartValidationAsync(messageData, postponeUntil);
+                    await _validationEnqueuer.SendMessageAsync(messageData, postponeUntil);
                 }
             }
             else
