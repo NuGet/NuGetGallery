@@ -958,6 +958,7 @@ namespace NuGetGallery
             private string _srcFileName;
             private string _srcETag;
             private Uri _srcUri;
+            private Uri _destUri;
             private BlobProperties _srcProperties;
             private IDictionary<string, string> _srcMetadata;
             private string _destFolderName;
@@ -979,11 +980,12 @@ namespace NuGetGallery
                 _srcFolderName = "validation";
                 _srcFileName = "4b6f16cc-7acd-45eb-ac21-33f0d927ec14/nuget.versioning.4.5.0.nupkg";
                 _srcETag = "\"src-etag\"";
-                _srcUri = new Uri("https://example/nuget.versioning.4.5.0.nupkg");
+                _srcUri = new Uri("https://srcexample/srcpackage.nupkg");
                 _srcProperties = new BlobProperties();
                 _destFolderName = "packages";
                 _destFileName = "nuget.versioning.4.5.0.nupkg";
                 _destETag = "\"dest-etag\"";
+                _destUri = new Uri("https://destexample/destpackage.nupkg");
                 _destProperties = new BlobProperties();
                 _destCopyState = new CopyState();
                 SetDestCopyStatus(CopyStatus.Success);
@@ -1020,6 +1022,9 @@ namespace NuGetGallery
                 _srcBlobMock
                     .Setup(x => x.Metadata)
                     .Returns(() => _srcMetadata);
+                _srcBlobMock
+                    .Setup(x => x.Uri)
+                    .Returns(() => _srcUri);
                 _destBlobMock
                     .Setup(x => x.ETag)
                     .Returns(() => _destETag);
@@ -1032,6 +1037,9 @@ namespace NuGetGallery
                 _destBlobMock
                     .Setup(x => x.Metadata)
                     .Returns(() => _destMetadata);
+                _destBlobMock
+                    .Setup(x => x.Uri)
+                    .Returns(() => _destUri);
 
                 _target = CreateService(fakeBlobClient: _blobClient);
             }
