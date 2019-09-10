@@ -889,7 +889,7 @@ namespace NuGetGallery
                     _currentUser);
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("The license file cannot be longer", result.Message.PlainTextMessage);
+                Assert.Contains("The license file cannot be larger", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1284,7 +1284,7 @@ namespace NuGetGallery
                 else
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.StartsWith("The icon file cannot be longer than", result.Message.PlainTextMessage);
+                    Assert.StartsWith("The icon file cannot be larger than", result.Message.PlainTextMessage);
                 }
                 Assert.Empty(result.Warnings);
             }
