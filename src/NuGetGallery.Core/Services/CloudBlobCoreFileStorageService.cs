@@ -181,6 +181,8 @@ namespace NuGetGallery
             // Check if the destination blob already exists and fetch attributes.
             if (await destBlob.ExistsAsync())
             {
+                var sourceBlobMetadata = srcBlob.Metadata;
+                var destinationBlobMetadata = destBlob.Metadata;
                 if (destBlob.CopyState?.Status == CopyStatus.Failed)
                 {
                     // If the last copy failed, allow this copy to occur no matter what the caller's destination
@@ -195,19 +197,36 @@ namespace NuGetGallery
 
                     mappedDestAccessCondition = AccessCondition.GenerateIfMatchCondition(destBlob.ETag);
                 }
-                else if ((srcBlob.Properties.ContentMD5 != null
-                     && srcBlob.Properties.ContentMD5 == destBlob.Properties.ContentMD5
-                     && srcBlob.Properties.Length == destBlob.Properties.Length))
+                else if (sourceBlobMetadata != null && destinationBlobMetadata != null)
                 {
-                    // If the blob hash is the same and the length is the same, no-op the copy.
-                    _trace.TraceEvent(
-                        LogLevel.Information,
-                        eventId: 0,
-                        message: $"Destination blob '{destFolderName}/{destFileName}' already has hash " +
-                        $"'{destBlob.Properties.ContentMD5}' and length '{destBlob.Properties.Length}'. The copy " +
-                        $"will be skipped.");
+                    var sourceBlobHasSha512Hash = sourceBlobMetadata.TryGetValue(CoreConstants.Sha512HashAlgorithmId, out var sourceBlobSha512Hash);
+                    var destinationBlobHasSha512Hash = destinationBlobMetadata.TryGetValue(CoreConstants.Sha512HashAlgorithmId, out var destinationBlobSha512Hash);
+                    if (!sourceBlobHasSha512Hash)
+                    {
+                        _trace.TraceEvent(
+                           LogLevel.Information,
+                           eventId: 0,
+                           message: $"Source blob ('{srcBlob.Uri.ToString()}') doesn't have the Sha512 hash.");
+                    }
+                    if (!destinationBlobHasSha512Hash)
+                    {
+                        _trace.TraceEvent(
+                           LogLevel.Information,
+                           eventId: 0,
+                           message: $"Destination blob ('{destBlob.Uri.ToString()}') doesn't have the Sha512 hash.");
+                    }
+                    if (sourceBlobHasSha512Hash && destinationBlobHasSha512Hash && sourceBlobSha512Hash == destinationBlobSha512Hash && srcBlob.Properties.Length == destBlob.Properties.Length)
+                    {
+                        // If the blob Sha512 hash is the same and the length is the same, no-op the copy.
+                        _trace.TraceEvent(
+                            LogLevel.Information,
+                            eventId: 0,
+                            message: $"Destination blob '{destFolderName}/{destFileName}' already has Sha512 hash " +
+                            $"'{destinationBlobSha512Hash}' and length '{destBlob.Properties.Length}'. The copy " +
+                            $"will be skipped.");
 
-                    return srcBlob.ETag;
+                        return srcBlob.ETag;
+                    }
                 }
             }
 
