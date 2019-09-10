@@ -217,11 +217,11 @@ namespace NuGetGallery
                     }
                     if (sourceBlobHasSha512Hash && destinationBlobHasSha512Hash && sourceBlobSha512Hash == destinationBlobSha512Hash && srcBlob.Properties.Length == destBlob.Properties.Length)
                     {
-                        // If the blob hash is the same and the length is the same, no-op the copy.
+                        // If the blob Sha512 hash is the same and the length is the same, no-op the copy.
                         _trace.TraceEvent(
                             LogLevel.Information,
                             eventId: 0,
-                            message: $"Destination blob '{destFolderName}/{destFileName}' already has hash " +
+                            message: $"Destination blob '{destFolderName}/{destFileName}' already has Sha512 hash " +
                             $"'{destinationBlobSha512Hash}' and length '{destBlob.Properties.Length}'. The copy " +
                             $"will be skipped.");
 
