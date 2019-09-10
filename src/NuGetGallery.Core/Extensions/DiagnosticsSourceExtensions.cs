@@ -2,10 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -21,17 +21,17 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Critical, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(LogLevel.Critical, eventId: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Critical(this IDiagnosticsSource self,
                                     string message,
-                                    int id,
+                                    EventId eventId,
                                     [CallerMemberName] string member = null,
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Critical, id, message, member, file, line);
+            self.TraceEvent(LogLevel.Critical, eventId, message, member, file, line);
         }
 
         public static void Critical(this IDiagnosticsSource self,
@@ -43,7 +43,7 @@ namespace NuGetGallery.Diagnostics
         {
             Critical(
                 self,
-                message: String.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
+                message: string.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
                 member: member,
                 file: file,
                 line: line);
@@ -56,17 +56,17 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Error, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(LogLevel.Error, eventId: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Error(this IDiagnosticsSource self,
                                     string message,
-                                    int id,
+                                    EventId eventId,
                                     [CallerMemberName] string member = null,
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Error, id, message, member, file, line);
+            self.TraceEvent(LogLevel.Error, eventId, message, member, file, line);
         }
 
         public static void Error(this IDiagnosticsSource self,
@@ -78,7 +78,7 @@ namespace NuGetGallery.Diagnostics
         {
             Error(
                 self,
-                message: String.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
+                message: string.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
                 member: member,
                 file: file,
                 line: line);
@@ -91,17 +91,17 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Warning, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(LogLevel.Warning, eventId: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Warning(this IDiagnosticsSource self,
                                     string message,
-                                    int id,
+                                    EventId eventId,
                                     [CallerMemberName] string member = null,
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Warning, id, message, member, file, line);
+            self.TraceEvent(LogLevel.Warning, eventId, message, member, file, line);
         }
 
         public static void Warning(this IDiagnosticsSource self,
@@ -113,7 +113,7 @@ namespace NuGetGallery.Diagnostics
         {
             Warning(
                 self,
-                message: String.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
+                message: string.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
                 member: member,
                 file: file,
                 line: line);
@@ -126,17 +126,17 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Information, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(LogLevel.Information, eventId: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Information(this IDiagnosticsSource self,
                                     string message,
-                                    int id,
+                                    EventId eventId,
                                     [CallerMemberName] string member = null,
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Information, id, message, member, file, line);
+            self.TraceEvent(LogLevel.Information, eventId, message, member, file, line);
         }
 
         public static void Information(this IDiagnosticsSource self,
@@ -148,7 +148,7 @@ namespace NuGetGallery.Diagnostics
         {
             Information(
                 self,
-                message: String.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
+                message: string.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
                 member: member,
                 file: file,
                 line: line);
@@ -161,17 +161,17 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Verbose, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(LogLevel.Trace, eventId: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Verbose(this IDiagnosticsSource self,
                                     string message,
-                                    int id,
+                                    EventId eventId,
                                     [CallerMemberName] string member = null,
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.TraceEvent(TraceEventType.Verbose, id, message, member, file, line);
+            self.TraceEvent(LogLevel.Trace, eventId, message, member, file, line);
         }
 
         public static void Verbose(this IDiagnosticsSource self,
@@ -183,7 +183,7 @@ namespace NuGetGallery.Diagnostics
         {
             Verbose(
                 self,
-                message: String.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
+                message: string.Format(CultureInfo.CurrentCulture, "{0}: {1}", context, ex),
                 member: member,
                 file: file,
                 line: line);
@@ -198,9 +198,9 @@ namespace NuGetGallery.Diagnostics
         {
             var thisActivityId = Interlocked.Increment(ref _activityId);
             var start = DateTime.UtcNow;
-            self.TraceEvent(TraceEventType.Start,
-                       id: thisActivityId,
-                       message: String.Format(CultureInfo.CurrentCulture, "Starting {0}", name),
+            self.TraceEvent(LogLevel.Trace,
+                       eventId: thisActivityId,
+                       message: string.Format(CultureInfo.CurrentCulture, "Starting {0}", name),
                        member: member,
                        file: file,
                        line: line);
@@ -208,9 +208,9 @@ namespace NuGetGallery.Diagnostics
             return new DisposableAction(() =>
             {
                 var diff = DateTime.UtcNow - start;
-                var stopMessage = String.Format(CultureInfo.CurrentCulture, "Finished {0}. Duration {1:0.00}ms", name, diff.TotalMilliseconds);
-                self.TraceEvent(TraceEventType.Stop,
-                            id: thisActivityId,
+                var stopMessage = string.Format(CultureInfo.CurrentCulture, "Finished {0}. Duration {1:0.00}ms", name, diff.TotalMilliseconds);
+                self.TraceEvent(LogLevel.Trace,
+                            eventId: thisActivityId,
                             message: stopMessage,
                             member: member,
                             file: file,

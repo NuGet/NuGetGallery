@@ -13,6 +13,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using NuGetGallery.Diagnostics;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace NuGetGallery
 {
@@ -168,8 +169,8 @@ namespace NuGetGallery
             if (!await srcBlob.ExistsAsync())
             {
                 _trace.TraceEvent(
-                    TraceEventType.Warning,
-                    id: 0,
+                    LogLevel.Warning,
+                    eventId: 0,
                     message: $"Before calling FetchAttributesAsync(), the source blob '{srcBlob.Name}' does not exist.");
             }
 
@@ -187,8 +188,8 @@ namespace NuGetGallery
                     // of the failed blob to avoid inadvertently replacing a blob that is now valid (i.e. has a
                     // successful copy status).
                     _trace.TraceEvent(
-                        TraceEventType.Information,
-                        id: 0,
+                        LogLevel.Information,
+                        eventId: 0,
                         message: $"Destination blob '{destFolderName}/{destFileName}' already exists but has a " +
                         $"failed copy status. This blob will be replaced if the etag matches '{destBlob.ETag}'.");
 
@@ -200,8 +201,8 @@ namespace NuGetGallery
                 {
                     // If the blob hash is the same and the length is the same, no-op the copy.
                     _trace.TraceEvent(
-                        TraceEventType.Information,
-                        id: 0,
+                        LogLevel.Information,
+                        eventId: 0,
                         message: $"Destination blob '{destFolderName}/{destFileName}' already has hash " +
                         $"'{destBlob.Properties.ContentMD5}' and length '{destBlob.Properties.Length}'. The copy " +
                         $"will be skipped.");
@@ -211,8 +212,8 @@ namespace NuGetGallery
             }
 
             _trace.TraceEvent(
-                TraceEventType.Information,
-                id: 0,
+                LogLevel.Information,
+                eventId: 0,
                 message: $"Copying of source blob '{srcBlob.Uri}' to '{destFolderName}/{destFileName}' with source " +
                 $"access condition {Log(srcAccessCondition)} and destination access condition " +
                 $"{Log(mappedDestAccessCondition)}.");
@@ -245,8 +246,8 @@ namespace NuGetGallery
                 if (!await destBlob.ExistsAsync())
                 {
                     _trace.TraceEvent(
-                        TraceEventType.Warning,
-                        id: 0,
+                        LogLevel.Warning,
+                        eventId: 0,
                         message: $"Before calling FetchAttributesAsync(), the destination blob '{destBlob.Name}' does not exist.");
                 }
 

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
 
 namespace NuGetGallery.Diagnostics
@@ -14,8 +13,6 @@ namespace NuGetGallery.Diagnostics
         public DiagnosticsService(ITelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
-
-            Trace.AutoFlush = true;
         }
 
         // Test constructor
@@ -25,9 +22,14 @@ namespace NuGetGallery.Diagnostics
 
         public IDiagnosticsSource GetSource(string name)
         {
-            if (String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, ServicesStrings.ParameterCannotBeNullOrEmpty, "name"), nameof(name));
+                throw new ArgumentException(
+                    string.Format(
+                        CultureInfo.CurrentCulture,
+                        ServicesStrings.ParameterCannotBeNullOrEmpty,
+                        "name"),
+                    nameof(name));
             }
 
             return new TraceDiagnosticsSource(name, _telemetryClient);

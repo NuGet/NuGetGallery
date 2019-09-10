@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,12 +10,12 @@ using WebBackgrounder;
 
 namespace NuGetGallery.Diagnostics
 {
-    public class ProcessPerfEvents: Job
+    public class ProcessPerfEvents : Job
     {
         public string LogDirectory { get; private set; }
         public IEnumerable<string> Queues { get; private set; }
 
-        public ProcessPerfEvents(TimeSpan interval, string logDirectory, IEnumerable<string> queues, TimeSpan timeout) 
+        public ProcessPerfEvents(TimeSpan interval, string logDirectory, IEnumerable<string> queues, TimeSpan timeout)
             : base("FlushLogs", interval, timeout)
         {
             LogDirectory = logDirectory;
@@ -66,8 +67,8 @@ namespace NuGetGallery.Diagnostics
                                 }
                                 await writer.WriteLineAsync(
                                     CsvEscape(evt.Source) + "," +
-                                    CsvEscape(evt.TimestampUtc.ToString("O")) + "," + 
-                                    CsvEscape(evt.Duration.TotalMilliseconds.ToString("0.00")) + "," + 
+                                    CsvEscape(evt.TimestampUtc.ToString("O")) + "," +
+                                    CsvEscape(evt.Duration.TotalMilliseconds.ToString("0.00")) + "," +
                                     String.Join(",", fields.Select(f => CsvEscape(f.Value?.ToString() ?? String.Empty))));
                             }
                         }

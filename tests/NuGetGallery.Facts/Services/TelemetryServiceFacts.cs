@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -903,8 +903,8 @@ namespace NuGetGallery
 
                 // Assert
                 service.TraceSource.Verify(t => t.TraceEvent(
-                        TraceEventType.Warning,
-                        It.IsAny<int>(),
+                        LogLevel.Warning,
+                        It.IsAny<EventId>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
@@ -930,7 +930,7 @@ namespace NuGetGallery
                 public string LastTraceMessage { get; set; }
             }
 
-            public TelemetryServiceWrapper CreateService()
+            public static TelemetryServiceWrapper CreateService()
             {
                 var traceSource = new Mock<IDiagnosticsSource>();
                 var traceService = new Mock<IDiagnosticsService>();
@@ -945,13 +945,13 @@ namespace NuGetGallery
                 telemetryService.TelemetryClient = telemetryClient;
 
                 traceSource.Setup(t => t.TraceEvent(
-                        It.IsAny<TraceEventType>(),
-                        It.IsAny<int>(),
+                        It.IsAny<LogLevel>(),
+                        It.IsAny<EventId>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<int>()))
-                    .Callback<TraceEventType, int, string, string, string, int>(
+                    .Callback<LogLevel, EventId, string, string, string, int>(
                         (type, id, message, member, file, line) => telemetryService.LastTraceMessage = message)
                     .Verifiable();
 

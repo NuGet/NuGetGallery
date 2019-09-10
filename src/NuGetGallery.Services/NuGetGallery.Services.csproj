@@ -129,7 +129,6 @@
     <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
-    <Compile Include="Diagnostics\TraceDiagnosticsSourceScope.cs" />
     <Compile Include="Extensions\Base32Encoder.cs" />
     <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Extensions\CredentialExtensions.cs" />
