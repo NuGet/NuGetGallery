@@ -56,7 +56,7 @@ namespace NuGetGallery
 
         public bool IsLast6WeeksAvailable { get; set; }
 
-        public int NuGetClientVersionTotalDownloads { get; private set; }
+        public long NuGetClientVersionTotalDownloads { get; private set; }
 
         public string PackageId { get; private set; }
 
@@ -81,7 +81,7 @@ namespace NuGetGallery
             PackageVersion = packageVersion;
         }
 
-        public string DisplayDownloads(int downloads)
+        public string DisplayDownloads(long downloads)
         {
             return downloads.ToNuGetNumberString();
         }
@@ -142,7 +142,7 @@ namespace NuGetGallery
             return (amount / total).ToString("P0", CultureInfo.CurrentCulture);
         }
 
-        public string DisplayShortNumber(int number)
+        public string DisplayShortNumber(long number)
         {
             var numDiv = 0;
 

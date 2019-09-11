@@ -187,7 +187,7 @@ namespace NuGetGallery
                     new StatisticsPackagesItemViewModel
                     {
                         PackageId = item["PackageId"].ToString(),
-                        Downloads = item["Downloads"].Value<int>()
+                        Downloads = item["Downloads"].Value<long>()
                     }
                 );
 
@@ -247,7 +247,7 @@ namespace NuGetGallery
                     {
                         PackageId = item["PackageId"].ToString(),
                         PackageVersion = item["PackageVersion"].ToString(),
-                        Downloads = item["Downloads"].Value<int>(),
+                        Downloads = item["Downloads"].Value<long>(),
                     }
                 );
 
@@ -287,7 +287,7 @@ namespace NuGetGallery
                         new StatisticsNuGetUsageItem
                         {
                             Version = string.Format(CultureInfo.InvariantCulture, "{0}.{1}", item["Major"], item["Minor"]),
-                            Downloads = (int)item["Downloads"]
+                            Downloads = (long)item["Downloads"]
                         });
                 }
 
@@ -322,7 +322,7 @@ namespace NuGetGallery
                         {
                             Year = (int)item["Year"],
                             WeekOfYear = (int)item["WeekOfYear"],
-                            Downloads = (int)item["Downloads"]
+                            Downloads = (long)item["Downloads"]
                         });
                 }
 
@@ -475,7 +475,7 @@ namespace NuGetGallery
                         operation = (string)opt;
                     }
 
-                    var downloads = (int)perClient["Downloads"];
+                    var downloads = (long)perClient["Downloads"];
 
                     facts.Add(new StatisticsFact(CreateDimensions(version, clientName, clientVersion, operation), downloads));
                 }

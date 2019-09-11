@@ -12,10 +12,10 @@ namespace NuGetGallery
             int packageKey,
             string packageId,
             string packageVersion,
-            int idDatabaseDownloads,
-            int idReportDownloads,
-            int versionDatabaseDownloads,
-            int versionReportDownloads,
+            long idDatabaseDownloads,
+            long idReportDownloads,
+            long versionDatabaseDownloads,
+            long versionReportDownloads,
             ReportPackageReason? reportPackageReason,
             PackageDeleteDecision? packageDeleteDecision)
         {
@@ -35,10 +35,10 @@ namespace NuGetGallery
         public int PackageKey { get; }
         public string PackageId { get; }
         public string PackageVersion { get; }
-        public int IdDatabaseDownloads { get; }
-        public int IdReportDownloads { get; }
-        public int VersionDatabaseDownloads { get; }
-        public int VersionReportDownloads { get; }
+        public long IdDatabaseDownloads { get; }
+        public long IdReportDownloads { get; }
+        public long VersionDatabaseDownloads { get; }
+        public long VersionReportDownloads { get; }
         public ReportPackageReason? ReportPackageReason { get; }
         public PackageDeleteDecision? PackageDeleteDecision { get; }
     }

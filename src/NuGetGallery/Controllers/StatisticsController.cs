@@ -321,7 +321,7 @@ namespace NuGetGallery
 
             if (groupby != null)
             {
-                Tuple<StatisticsPivot.TableEntry[][], int> result = StatisticsPivot.GroupBy(report.Facts, pivot);
+                var result = StatisticsPivot.GroupBy(report.Facts, pivot);
 
                 if (id != null)
                 {
