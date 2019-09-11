@@ -3,24 +3,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class AutocompleteDatabasePackageVersionsQuery
-        : AutocompleteDatabaseQuery, IAutocompletePackageVersionsQuery
+    public class AutocompleteDatabasePackageVersionsQuery : IAutocompletePackageVersionsQuery
     {
-        private static readonly string _sqlFormat = @"SELECT p.[Version]
-FROM Packages p (NOLOCK)
-	JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
-WHERE p.[PackageStatusKey] = " + (int)PackageStatus.Available + @" AND p.[Listed] = 1 AND {0} AND pr.ID = {{0}}
-	{1}";
+        private readonly IEntitiesContext _entitiesContext;
 
-        public AutocompleteDatabasePackageVersionsQuery(IEntitiesContext entities)
-            : base(entities)
+        public AutocompleteDatabasePackageVersionsQuery(IEntitiesContext entitiesContext)
         {
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
         public Task<IEnumerable<string>> Execute(
@@ -32,26 +28,30 @@ WHERE p.[PackageStatusKey] = " + (int)PackageStatus.Available + @" AND p.[Listed
             {
                 throw new ArgumentNullException(nameof(id));
             }
-            
-            // Create SQL filter on SemVerLevel
-            // By default, we filter out SemVer v2.0.0 package versions.
-            var semVerLevelSqlFilter = "p.[SemVerLevelKey] IS NULL";
-            if (!string.IsNullOrEmpty(semVerLevel))
+
+            // default filters
+            var query = _entitiesContext.Packages
+                .Include(p => p.PackageRegistration)
+                .Where(p => p.PackageStatusKey == PackageStatus.Available && p.Listed && p.PackageRegistration.Id == id);
+
+            // SemVerLevel filter
+            if (SemVerLevelKey.ForSemVerLevel(semVerLevel) == SemVerLevelKey.SemVer2)
             {
-                var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
-                if (semVerLevelKey == SemVerLevelKey.SemVer2)
-                {
-                    semVerLevelSqlFilter = $"(p.[SemVerLevelKey] IS NULL OR p.[SemVerLevelKey] <= {SemVerLevelKey.SemVer2})";
-                }
+                query = query.Where(p => !p.SemVerLevelKey.HasValue || p.SemVerLevelKey <= SemVerLevelKey.SemVer2);
+            }
+            else
+            {
+                query = query.Where(p => !p.SemVerLevelKey.HasValue);
             }
 
-            var prereleaseFilter = string.Empty;
+            // prerelease filter
             if (!includePrerelease.HasValue || !includePrerelease.Value)
             {
-                prereleaseFilter = "AND p.IsPrerelease = 0";
+                query = query.Where(p => !p.IsPrerelease);
             }
-            
-            return RunSqlQuery(string.Format(CultureInfo.InvariantCulture, _sqlFormat, semVerLevelSqlFilter, prereleaseFilter), id);
+
+            // return the result of the query
+            return Task.FromResult(query.Select(p => p.Version).AsEnumerable<string>());
         }
     }
 }
