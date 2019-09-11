@@ -2079,6 +2079,33 @@ namespace NuGetGallery
 
                 controller.MockPackageService.VerifyAll();
             }
+
+            public static IEnumerable<object[]> TrimsStatusDescriptionData()
+            {
+                yield return new object[] { "HelloWorld", 66 };
+                yield return new object[] { new string('a', 1000), 512 };
+            }
+
+            [Theory]
+            [MemberData(nameof(TrimsStatusDescriptionData))]
+            public async Task TrimsStatusDescription(string packageId, int expectedLength)
+            {
+                // Arrange - Act like the package doesn't exist so that a status description is generated
+                // detailing the package does not exist. If the package's name is too long, the status description
+                // should be trimmed.
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(packageId, "1.0.0")).Returns((Package)null);
+                controller.SetCurrentUser(new User());
+
+                // Act
+                var result = await controller.PublishPackage(packageId, "1.0.0");
+
+                // Assert
+                var statusCodeResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
+
+                Assert.Equal((int)HttpStatusCode.NotFound, statusCodeResult.StatusCode);
+                Assert.Equal(expectedLength, statusCodeResult.StatusDescription.Length);
+            }
         }
 
         public class TheDeprecatePackageAction : TestContainer
