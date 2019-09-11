@@ -7,6 +7,6 @@ namespace NuGetGallery
     {
         public int Year { get; set; }
         public int WeekOfYear { get; set; }
-        public int Downloads { get; set; }
+        public long Downloads { get; set; }
     }
 }

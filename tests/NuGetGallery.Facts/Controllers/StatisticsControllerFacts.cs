@@ -112,7 +112,7 @@ namespace NuGetGallery
 
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.Index()).Model;
 
-            int sum = 0;
+            long sum = 0;
 
             if (model.IsDownloadPackageAvailable)
             {
@@ -286,7 +286,7 @@ namespace NuGetGallery
 
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.Packages()).Model;
 
-            int sum = 0;
+            long sum = 0;
 
             foreach (var item in model.DownloadPackagesAll)
             {
@@ -334,7 +334,7 @@ namespace NuGetGallery
 
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageVersions()).Model;
 
-            int sum = 0;
+            long sum = 0;
 
             foreach (var item in model.DownloadPackageVersionsAll)
             {

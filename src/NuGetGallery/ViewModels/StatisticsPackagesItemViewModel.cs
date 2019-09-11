@@ -10,6 +10,6 @@ namespace NuGetGallery
         public string PackageTitle { get; set; }
         public string PackageDescription { get; set; }
         public string PackageIconUrl { get; set; }
-        public int Downloads { get; set; }
+        public long Downloads { get; set; }
     }
 }
