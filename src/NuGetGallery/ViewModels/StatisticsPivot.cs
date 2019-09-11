@@ -14,7 +14,7 @@ namespace NuGetGallery
 {
     public class StatisticsPivot
     {
-        public static Tuple<TableEntry[][], int> GroupBy(IList<StatisticsFact> facts, string[] pivot)
+        public static Tuple<TableEntry[][], long> GroupBy(IList<StatisticsFact> facts, string[] pivot)
         {
             // Firstly take the facts and the pivot vector and produce a tree structure
 
@@ -36,7 +36,7 @@ namespace NuGetGallery
 
             PopulateTable(level, table);
 
-            return new Tuple<TableEntry[][], int>(table, level.Total);
+            return new Tuple<TableEntry[][], long>(table, level.Total);
         }
 
         private static void AddOrderedNext(Level level)
@@ -126,7 +126,7 @@ namespace NuGetGallery
 
             if (depth == dimensions.Length - 1)
             {
-                int current = result.Next[fact.Dimensions[dimensions[depth]]].Amount;
+                var current = result.Next[fact.Dimensions[dimensions[depth]]].Amount;
 
                 result.Next[fact.Dimensions[dimensions[depth]]].Amount = current + fact.Amount;
             }
@@ -162,9 +162,9 @@ namespace NuGetGallery
         // The total in a pivot can be found by adding up all the leaf nodes
         // The subtotals are also stored in the tree.
 
-        private static int Total(Level level)
+        private static long Total(Level level)
         {
-            int total = 0;
+            long total = 0;
             foreach (KeyValuePair<string, Level> item in level.Next)
             {
                 if (item.Value.Next == null)
@@ -188,7 +188,7 @@ namespace NuGetGallery
         public class TableEntry
         {
             public string Data { get; set; }
-            public int Rowspan { get; set; }
+            public long Rowspan { get; set; }
             public string Uri { get; set; }
             public bool IsNumeric { get; set; }
 
@@ -217,15 +217,15 @@ namespace NuGetGallery
             // Either Next is not null or this is a leaf in the pivot tree, in which case Amount is valid
 
             public IDictionary<string, Level> Next { get; set; }
-            public int Amount { get; set; }
+            public long Amount { get; set; }
 
             // Count is the count of child nodes in the tree - recursively so grandchildren etc. also get counted
 
-            public int Count { get; set; }
+            public long Count { get; set; }
 
             // Total is the sum Total of all the Amounts in all the descendants. (See Total function above.)
 
-            public int Total { get; set; }
+            public long Total { get; set; }
 
             // An ordered list for each level
 

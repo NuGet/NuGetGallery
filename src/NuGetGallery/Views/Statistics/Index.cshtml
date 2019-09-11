@@ -142,7 +142,7 @@
 
                                 for (var i = 0; i < numYAxisLabels; i++)
                                 {
-                                    @:<text class="graph-y-axis-text" x="0" y="@Format(i / numYAxisLabels * chartFullHeightInPercent)%" dy="1em" text-overflow="clip">@Model.DisplayShortNumber((int)Math.Floor(max * (numYAxisLabels - i) / numYAxisLabels))</text>
+                                    @:<text class="graph-y-axis-text" x="0" y="@Format(i / numYAxisLabels * chartFullHeightInPercent)%" dy="1em" text-overflow="clip">@Model.DisplayShortNumber((long)Math.Floor(max * (numYAxisLabels - i) / numYAxisLabels))</text>
                                 }
                             }
                         </svg>
@@ -222,7 +222,7 @@
 
                                 for (var i = 0; i < numYAxisLabels; i++)
                                 {
-                                    @:<text class="graph-y-axis-text" x="0" y="@Format(topOffset + i / numYAxisLabels * chartFullHeightInPercent)%" dy="1em" text-overflow="clip">@Model.DisplayShortNumber((int)Math.Floor(max * (numYAxisLabels - i) / numYAxisLabels))</text>
+                                    @:<text class="graph-y-axis-text" x="0" y="@Format(topOffset + i / numYAxisLabels * chartFullHeightInPercent)%" dy="1em" text-overflow="clip">@Model.DisplayShortNumber((long)Math.Floor(max * (numYAxisLabels - i) / numYAxisLabels))</text>
                                 }
 
                             }
