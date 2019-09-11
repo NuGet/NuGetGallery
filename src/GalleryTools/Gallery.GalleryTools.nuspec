@@ -9,4 +9,7 @@
     <description>Tools for performing manual one-time/maintenance operations on the Gallery</description>
     <copyright>Copyright Microsoft corp.</copyright>
   </metadata>
+   <files>
+    <file src="bin\$configuration$\**\*.*" target="bin"/>
+  </files>
 </package>
