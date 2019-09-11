@@ -55,6 +55,17 @@ namespace NuGet.Jobs.Validation
                 formatter: (s, e) => s.Message);
         }
 
+        public void TraceEvent(
+            LogLevel logLevel,
+            EventId eventId,
+            string message,
+            string member = null,
+            string file = null,
+            int line = 0)
+        {
+            // No-op!
+        }
+
         private static LogLevel TraceEventTypeToLogLevel(TraceEventType type)
         {
             switch (type)

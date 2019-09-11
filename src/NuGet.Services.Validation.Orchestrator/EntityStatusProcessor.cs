@@ -91,22 +91,22 @@ namespace NuGet.Services.Validation.Orchestrator
 
         protected virtual async Task MakePackageAvailableAsync(IValidatingEntity<T> validatingEntity, PackageValidationSet validationSet)
         {
-            // 1) Operate on blob storage.
-            var copied = await UpdatePublicPackageAsync(validationSet);
+            // 1) Operate on blob storage, and update the metadata.
+            var packageStreamMetadataAndCopyStatusWrapper = await UpdatePublicPackageAsync(validationSet);
 
-            // 2) Update the package's blob metadata in the public blob storage container.
-            var metadata = await _packageFileService.UpdatePackageBlobMetadataAsync(validationSet);
-
-            // 3) Update the package's blob properties in the public blob storage container.
+            // 2) Update the package's blob properties in the public blob storage container.
             await _packageFileService.UpdatePackageBlobPropertiesAsync(validationSet);
 
-            // 3.5) Allow descendants to do their own things before we update the database
+            // 2.5) Allow descendants to do their own things before we update the database
             await OnBeforeUpdateDatabaseToMakePackageAvailable(validatingEntity, validationSet);
 
-            // 4) Operate on the database.
-            var fromStatus = await MarkPackageAsAvailableAsync(validationSet, validatingEntity, metadata, copied);
+            // 3) Operate on the database.
+            var fromStatus = await MarkPackageAsAvailableAsync(validationSet,
+                validatingEntity,
+                packageStreamMetadataAndCopyStatusWrapper.PackageStreamMetadata,
+                packageStreamMetadataAndCopyStatusWrapper.Copied);
 
-            // 5) Emit telemetry and clean up.
+            // 4) Emit telemetry and clean up.
             if (fromStatus != PackageStatus.Available)
             {
                 _telemetryService.TrackPackageStatusChange(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, fromStatus, PackageStatus.Available);
@@ -217,7 +217,7 @@ namespace NuGet.Services.Validation.Orchestrator
             return Task.CompletedTask;
         }
 
-        private async Task<bool> UpdatePublicPackageAsync(PackageValidationSet validationSet)
+        private async Task<UpdatePublicPackageResult> UpdatePublicPackageAsync(PackageValidationSet validationSet)
         {
             _logger.LogInformation("Copying .nupkg to public storage for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                 validationSet.PackageId,
@@ -231,6 +231,7 @@ namespace NuGet.Services.Validation.Orchestrator
             // operation below. This will cause the validation queue message to eventually dead-letter at which point
             // the on-call person should investigate.
             bool copied;
+            PackageStreamMetadata metaData;
             if (validationSet.PackageValidations.Any(x => _validatorProvider.IsProcessor(x.Type)) ||
                 await _packageFileService.DoesValidationSetPackageExistAsync(validationSet))
             {
@@ -268,6 +269,14 @@ namespace NuGet.Services.Validation.Orchestrator
                         validationSet.PackageETag);
                 }
 
+                metaData = await _packageFileService.UpdatePackageBlobMetadataInValidationSetAsync(validationSet);
+
+                _logger.LogInformation(
+                    "Updated the blob metadata of validation set {ValidationSetId} package {PackageId} {PackageVersion}",
+                    validationSet.ValidationTrackingId,
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion);
+
                 // Failures here should result in an unhandled exception. This means that this validation set has
                 // modified the package but is unable to copy the modified package into the packages container because
                 // another validation set completed first.
@@ -285,6 +294,14 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet.PackageId,
                     validationSet.PackageNormalizedVersion,
                     validationSet.ValidationTrackingId);
+
+                metaData = await _packageFileService.UpdatePackageBlobMetadataInValidationAsync(validationSet);
+
+                _logger.LogInformation(
+                    "Updated the blob metadata of validation {ValidationSetId} package {PackageId} {PackageVersion}",
+                    validationSet.ValidationTrackingId,
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion);
 
                 try
                 {
@@ -309,7 +326,20 @@ namespace NuGet.Services.Validation.Orchestrator
                 }
             }
 
-            return copied;
+            return new UpdatePublicPackageResult(metaData, copied);
+        }
+
+        private class UpdatePublicPackageResult
+        {
+            public PackageStreamMetadata PackageStreamMetadata { get; }
+
+            public bool Copied { get; }
+
+            public UpdatePublicPackageResult(PackageStreamMetadata packageStreamMetadata, bool copied)
+            {
+                PackageStreamMetadata = packageStreamMetadata;
+                Copied = copied;
+            }
         }
     }
 }

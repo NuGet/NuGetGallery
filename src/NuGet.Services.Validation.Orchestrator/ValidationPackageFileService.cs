@@ -250,19 +250,26 @@ namespace NuGet.Services.Validation.Orchestrator
                 });
         }
 
-        public async Task<PackageStreamMetadata> UpdatePackageBlobMetadataAsync(PackageValidationSet validationSet)
+        public async Task<PackageStreamMetadata> UpdatePackageBlobMetadataInValidationSetAsync(PackageValidationSet validationSet)
         {
-            var fileName = BuildFileName(
-                validationSet,
-                _fileMetadataService.FileSavePathTemplate,
-                _fileMetadataService.FileExtension);
+            var validationSetFileName = BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension);
+            return await UpdatePackageBlobMetadataAsync(validationSet, _fileMetadataService.ValidationFolderName, validationSetFileName);
+        }
 
+        public async Task<PackageStreamMetadata> UpdatePackageBlobMetadataInValidationAsync(PackageValidationSet validationSet)
+        {
+            var fileName = BuildFileName(validationSet, _fileMetadataService.FileSavePathTemplate, _fileMetadataService.FileExtension);
+            return await UpdatePackageBlobMetadataAsync(validationSet, _fileMetadataService.ValidationFolderName, fileName);
+        }
+
+        private async Task<PackageStreamMetadata> UpdatePackageBlobMetadataAsync(PackageValidationSet validationSet, string fileFolderName, string fileName)
+        {
             PackageStreamMetadata streamMetadata = null;
 
             // This will throw if the ETag changes between read and write operations,
             // so streamMetadata will never be null.
             await _fileStorageService.SetMetadataAsync(
-                _fileMetadataService.FileFolderName,
+                fileFolderName,
                 fileName,
                 async (lazyStream, metadata) =>
                 {
