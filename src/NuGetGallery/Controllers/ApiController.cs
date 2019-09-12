@@ -994,7 +994,7 @@ namespace NuGetGallery
         {
             return new JsonResult
             {
-                Data = (await _autocompletePackageIdsQuery.Execute(partialId, includePrerelease, semVerLevel)).ToArray(),
+                Data = (await _autocompletePackageIdsQuery.Execute(partialId, includePrerelease, semVerLevel)),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
@@ -1008,7 +1008,7 @@ namespace NuGetGallery
         {
             return new JsonResult
             {
-                Data = (await _autocompletePackageVersionsQuery.Execute(id, includePrerelease, semVerLevel)).ToArray(),
+                Data = (await _autocompletePackageVersionsQuery.Execute(id, includePrerelease, semVerLevel)),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }

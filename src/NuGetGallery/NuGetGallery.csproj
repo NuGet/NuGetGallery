@@ -273,7 +273,6 @@
     <Compile Include="Services\IPackageDeprecationService.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQuery.cs" />
-    <Compile Include="Queries\AutocompleteDatabaseQuery.cs" />
     <Compile Include="Queries\AutocompleteServicePackageIdsQuery.cs" />
     <Compile Include="Queries\AutocompleteServicePackageVersionsQuery.cs" />
     <Compile Include="Queries\AutocompleteServiceQuery.cs" />

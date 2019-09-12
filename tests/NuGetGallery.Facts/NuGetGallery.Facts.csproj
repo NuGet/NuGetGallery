@@ -77,6 +77,8 @@
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
+    <Compile Include="Queries\AutocompleteDatabasePackageIdsQueryFacts.cs" />
+    <Compile Include="Queries\AutocompleteDatabasePackageVersionsQueryFacts.cs" />
     <Compile Include="Queries\AutocompleteServiceQueryFacts.cs" />
     <Compile Include="Controllers\ExperimentsControllerFacts.cs" />
     <Compile Include="Controllers\FeaturesControllerFacts.cs" />
