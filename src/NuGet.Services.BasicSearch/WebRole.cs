@@ -5,8 +5,9 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGet.Services.BasicSearch
@@ -14,16 +15,20 @@ namespace NuGet.Services.BasicSearch
     public class WebRole
         : RoleEntryPoint
     {
+        private HttpClient _httpClient;
         private string _localUrl;
 
         public override bool OnStart()
         {
+            _httpClient = new HttpClient();
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "NuGet-Services-BasicSearch");
+
             // Set local URL and ping self (make sure the app pool is warm before joining the load balancer)
             _localUrl = string.Format("http://{0}:{1}/",
                 RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["HttpEndpoint"].IPEndpoint.Address,
                 RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["HttpEndpoint"].IPEndpoint.Port.ToString(CultureInfo.InvariantCulture));
 
-            MakeRequest(_localUrl);
+            MakeRequestAsync(_httpClient, _localUrl).GetAwaiter().GetResult();
 
             return base.OnStart();
         }
@@ -32,7 +37,7 @@ namespace NuGet.Services.BasicSearch
         {
             while (true)
             {
-                MakeRequest(_localUrl);
+                MakeRequestAsync(_httpClient, _localUrl).GetAwaiter().GetResult();
 
                 Thread.Sleep(TimeSpan.FromMinutes(1));
             }
@@ -68,20 +73,24 @@ namespace NuGet.Services.BasicSearch
                     Thread.Sleep(TimeSpan.FromSeconds(1));
                 }
             }
+
+            _httpClient = null;
         }
 
-        private void MakeRequest(string url)
+        private async Task MakeRequestAsync(HttpClient httpClient, string url)
         {
+            if (httpClient == null)
+            {
+                return;
+            }
+
             try
             {
-                var request = (HttpWebRequest)WebRequest.Create(url);
-                request.UserAgent = "NuGet-Services-BasicSearch";
-                using (var response = request.GetResponse())
+                using (var response = await httpClient.GetAsync(url))
+                using (var contentStream = await response.Content.ReadAsStreamAsync())
+                using (var contentReader = new StreamReader(contentStream))
                 {
-                    using (var reader = new StreamReader(response.GetResponseStream()))
-                    {
-                        reader.ReadToEnd();
-                    }
+                    contentReader.ReadToEnd();
                 }
             }
             catch

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using BasicSearchTests.FunctionalTests.Core;
 using BasicSearchTests.FunctionalTests.Core.Models;
 using BasicSearchTests.FunctionalTests.Core.TestSupport;
@@ -49,14 +48,22 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         {
             var results = await V3SearchAsync(new V3SearchBuilder()
                 {
-                    Query = HttpUtility.UrlEncode(query),
+                    Query = query,
                     Skip = skip,
                     Take = take,
                     Prerelease = includePrerelease,
                     IncludeSemVer2 = includeSemVer2
                 });
 
-            return results.Data.Select(t => t.Id.ToLowerInvariant()).ToList();
+            var ids = results.Data.Select(t => t.Id.ToLowerInvariant()).ToList();
+
+            _testOutputHelper.WriteLine("Got IDs:");
+            for (var i = 0; i < ids.Count; i++)
+            {
+                _testOutputHelper.WriteLine($"{i + 1}. {ids[i]}");
+            }
+
+            return ids;
         }
 
         protected async Task<V2SearchResult> V2SearchAsync(V2SearchBuilder searchBuilder)

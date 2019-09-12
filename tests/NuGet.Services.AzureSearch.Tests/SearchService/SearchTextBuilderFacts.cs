@@ -236,10 +236,21 @@ namespace NuGet.Services.AzureSearch.SearchService
                     // Results that match all terms are boosted.
                     { "foo", "foo" },
                     { "foo bar", "foo bar (+foo +bar)^2" },
+                    { "foo.bar baz.qux", "foo.bar baz.qux (+foo.bar +baz.qux)^2" },
                     { "id packageId VERSION Title description tag author summary owner owners",
                         "id packageId VERSION Title description tag author summary owner owners " +
                         "(+id +packageId +VERSION +Title +description +tag +author +summary +owner +owners)^2" },
                     
+                    // If there is a single non-field-scoped term that is a valid package ID and has separator
+                    // characters, mega boost the exact match.
+                    { "foo.bar", "foo.bar packageId:foo.bar^1000" },
+                    { "foo_bar", "foo_bar packageId:foo_bar^1000" },
+                    { "foo-bar", @"foo\-bar packageId:foo\-bar^1000" },
+                    { "  foo.bar.Baz   ", "foo.bar.Baz packageId:foo.bar.Baz^1000" },
+                    { @"""foo.bar""", @"foo.bar packageId:foo.bar^1000" },
+                    { @"""foo-bar""", @"foo\-bar packageId:foo\-bar^1000" },
+                    { @"""foo_bar""", "foo_bar packageId:foo_bar^1000" },
+
                     // Phrases are supported in queries
                     { @"""foo bar""", @"""foo bar""" },
                     { @"""foo bar"" baz", @"""foo bar"" baz (+""foo bar"" +baz)^2" },

@@ -37,7 +37,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             // on the Gallery's Application Insights telemetry.
             yield return new object[] { "newtonsoft.json", new[] { "newtonsoft.json" } };
             yield return new object[] { "newtonsoft", new[] { "newtonsoft.json" } };
-            yield return new object[] { "json.net", new[] { "newtonsoft.json" } };
+            yield return new object[] { "json.net", new[] { "json.net" } };
             yield return new object[] { "json", new[] { "newtonsoft.json" } };
 
             yield return new object[] { "tags:\"aws-sdk-v3\"", new[] { "awssdk.core", "awssdk.s3" } };
@@ -61,6 +61,15 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             yield return new object[] { "moq", new[] { "moq" } };
             yield return new object[] { "serilog", new[] { "serilog" } };
             yield return new object[] { "redis", new[] { "stackexchange.redis", "microsoft.extensions.caching.redis" } };
+
+            // These tests were based off of external and internal feedback about exact match being first.
+            // https://github.com/NuGet/NuGetGallery/issues/7463
+            yield return new object[] { "system.text.json", new[] { "system.text.json" } };
+            yield return new object[] { "Westwind.AspNetCore.Markdown", new[] { "westwind.aspnetcore.markdown" } };
+
+            // This is currently a counter-example of the exact match case. For now, we don't exact match this package
+            // to the top.
+            yield return new object[] { "entity", new[] { "entityframework" } };
         }
 
         [RelevancyTheory]
