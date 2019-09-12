@@ -6,24 +6,25 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
     public class AutocompleteDatabasePackageIdsQuery : IAutocompletePackageIdsQuery
     {
-        private readonly IEntitiesContext _entitiesContext;
+        private readonly IReadOnlyEntityRepository<Package> _packageRepository;
 
-        public AutocompleteDatabasePackageIdsQuery(IEntitiesContext entitiesContext)
+        public AutocompleteDatabasePackageIdsQuery(IReadOnlyEntityRepository<Package> packageRepository)
         {
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
         }
 
-        public Task<IEnumerable<string>> Execute(
+        public Task<IReadOnlyList<string>> Execute(
             string partialId,
             bool? includePrerelease = false,
             string semVerLevel = null)
         {
-            var query = _entitiesContext.Packages
+            var query = _packageRepository.GetAll()
                 .Include(p => p.PackageRegistration);
             
             // SemVerLevel filter
@@ -42,23 +43,33 @@ namespace NuGetGallery
                 query = query.Where(p => !p.IsPrerelease);
             }
 
+            var ids = new List<string>();
+
             // filters added for partialId
             if (!string.IsNullOrWhiteSpace(partialId))
             {
-                query = query.Where(p => p.PackageRegistration.Id.StartsWith(partialId))
-                    .OrderBy(p => p.PackageRegistration.Id);
+                ids = query.Where(p => p.PackageRegistration.Id.StartsWith(partialId))
+                    .GroupBy(p => p.PackageRegistration.Id)
+                    .Select(group => group.Key)
+                    .OrderBy(id => id)
+                    .Take(30)
+                    .ToList();
             }
             else
             {
-                query = query.OrderByDescending(p => p.PackageRegistration.DownloadCount);
+                ids = query.GroupBy(p => p.PackageRegistration.Id)
+                    .Select(group => new
+                    {
+                        Id = group.Key,
+                        MaxDownloadCount = group.Max(package => package.PackageRegistration.DownloadCount)
+                    })
+                    .OrderByDescending(group => group.MaxDownloadCount)
+                    .Select(group => group.Id)
+                    .Take(30)
+                    .ToList();
             }
 
-            // last default filter
-            // this query returns 30 package ids at most
-            var queryResult = query.Take(30).GroupBy(p => p.PackageRegistration.Id).Select(group => group.Key);
-
-            // return the result of the query
-            return Task.FromResult(queryResult.AsEnumerable<string>());
+            return Task.FromResult<IReadOnlyList<string>>(ids);
         }
     }
 }

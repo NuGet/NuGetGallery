@@ -12,14 +12,14 @@ namespace NuGetGallery
 {
     public class AutocompleteDatabasePackageVersionsQuery : IAutocompletePackageVersionsQuery
     {
-        private readonly IEntitiesContext _entitiesContext;
+        private readonly IReadOnlyEntityRepository<Package> _packageRepository;
 
-        public AutocompleteDatabasePackageVersionsQuery(IEntitiesContext entitiesContext)
+        public AutocompleteDatabasePackageVersionsQuery(IReadOnlyEntityRepository<Package> packageRepository)
         {
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
         }
 
-        public Task<IEnumerable<string>> Execute(
+        public Task<IReadOnlyList<string>> Execute(
             string id,
             bool? includePrerelease = false,
             string semVerLevel = null)
@@ -30,9 +30,10 @@ namespace NuGetGallery
             }
 
             // default filters
-            var query = _entitiesContext.Packages
+            var query = _packageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageStatusKey == PackageStatus.Available && p.Listed && p.PackageRegistration.Id == id);
+                .Where(p => p.PackageRegistration.Id == id)
+                .Where(p => p.PackageStatusKey == PackageStatus.Available && p.Listed);
 
             // SemVerLevel filter
             if (SemVerLevelKey.ForSemVerLevel(semVerLevel) == SemVerLevelKey.SemVer2)
@@ -50,8 +51,10 @@ namespace NuGetGallery
                 query = query.Where(p => !p.IsPrerelease);
             }
 
+            var versions = query.Select(p => p.Version).ToList();
+
             // return the result of the query
-            return Task.FromResult(query.Select(p => p.Version).AsEnumerable<string>());
+            return Task.FromResult<IReadOnlyList<string>>(versions);
         }
     }
 }
