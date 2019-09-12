@@ -6,16 +6,12 @@ using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
 [assembly: AssemblyTitle("GalleryTools")]
 [assembly: AssemblyCompany(".NET Foundation")]
 [assembly: AssemblyProduct("NuGet Services")]
 [assembly: AssemblyCopyright("\x00a9 .NET Foundation. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-
 
 #if !PORTABLE
 [assembly: ComVisible(false)]
@@ -30,4 +26,10 @@ using System.Runtime.InteropServices;
 [assembly: CLSCompliant(false)]
 [assembly: NeutralResourcesLanguage("en-us")]
 
+[assembly: AssemblyDescription("Tools for performing manual one-time/maintenance operations on the Gallery")]
+
+// The build will automatically inject the following attributes:
+// AssemblyVersion, AssemblyFileVersion, AssemblyInformationalVersion, AssemblyMetadata (for Branch, CommitId, and BuildDateUtc)
+
 [assembly: AssemblyMetadata("RepositoryUrl", "https://www.github.com/NuGet/NuGetGallery")]
+
