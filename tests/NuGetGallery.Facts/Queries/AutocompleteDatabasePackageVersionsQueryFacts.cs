@@ -32,20 +32,6 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void AlwaysReturnsVersionsWithPackageRegistration()
-            {
-                var queryResult = await _packageVersionsQuery.Execute("nuget", null, null);
-
-                var allPackageIdsAreFromPackagesWithRegistration = queryResult.All(version =>
-                {
-                    _packageDictionary.TryGetValue(version, out var package);
-                    return package.PackageRegistration != null;
-                });
-
-                Assert.True(allPackageIdsAreFromPackagesWithRegistration);
-            }
-
-            [Fact]
             public async void OnlyReturnsVersionsOfTheSamePackage()
             {
                 var queryResult = await _packageVersionsQuery.Execute("nuget", null, null);

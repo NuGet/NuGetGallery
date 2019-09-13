@@ -23,6 +23,34 @@ namespace NuGetGallery.Queries
 
         public class Execute : FactBase
         {
+            [Fact]
+            public async void ValidPackageIdShouldReturnIdsWhosePackagesAreListed()
+            {
+                var queryResult = await _packageIdsQuery.Execute("n", null, null);
+
+                var allIdsAreFromPackagesThatAreListed = queryResult.All(id =>
+                {
+                    _packageDictionary.TryGetValue(id, out var package);
+                    return package.Listed;
+                });
+
+                Assert.True(allIdsAreFromPackagesThatAreListed);
+            }
+
+            [Fact]
+            public async void ValidPackageIdShouldReturnIdsWhosePackageStatusIsAvailable()
+            {
+                var queryResult = await _packageIdsQuery.Execute("n", null, null);
+
+                var allIdsAreFromPackagesWithPackageStatusAvailable = queryResult.All(id =>
+                {
+                    _packageDictionary.TryGetValue(id, out var package);
+                    return package.PackageStatusKey == PackageStatus.Available;
+                });
+
+                Assert.True(allIdsAreFromPackagesWithPackageStatusAvailable);
+            }
+
             [Theory]
             [InlineData(null)]
             [InlineData("2.0.0")]
