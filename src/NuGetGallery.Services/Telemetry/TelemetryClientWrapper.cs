@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery
 {
@@ -13,7 +14,11 @@ namespace NuGetGallery
     /// </summary>
     public class TelemetryClientWrapper : ITelemetryClient
     {
-        private static Lazy<TelemetryClientWrapper> Singleton = new Lazy<TelemetryClientWrapper>(() => new TelemetryClientWrapper());
+        private const string TelemetryPropertyEventId = "EventId";
+        private const string TelemetryPropertyEventName = "EventName";
+
+        private static readonly Lazy<TelemetryClientWrapper> Singleton
+            = new Lazy<TelemetryClientWrapper>(() => new TelemetryClientWrapper());
 
         public static TelemetryClientWrapper Instance
         {
@@ -77,6 +82,42 @@ namespace NuGetGallery
             catch
             {
                 // logging failed, don't allow exception to escape
+            }
+        }
+
+        public void TrackTrace(string message, LogLevel logLevel, EventId eventId)
+        {
+            try
+            {
+                var telemetry = new TraceTelemetry(
+                    message,
+                    LogLevelToSeverityLevel(logLevel));
+
+                telemetry.Properties[TelemetryPropertyEventId] = eventId.Id.ToString();
+
+                if (!string.IsNullOrWhiteSpace(eventId.Name))
+                {
+                    telemetry.Properties[TelemetryPropertyEventName] = eventId.Name;
+                }
+
+                UnderlyingClient.TrackTrace(telemetry);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
+
+        private static SeverityLevel LogLevelToSeverityLevel(LogLevel logLevel)
+        {
+            switch (logLevel)
+            {
+                case LogLevel.Critical: return SeverityLevel.Critical;
+                case LogLevel.Error: return SeverityLevel.Error;
+                case LogLevel.Warning: return SeverityLevel.Warning;
+                case LogLevel.Information: return SeverityLevel.Information;
+                case LogLevel.Trace:
+                default: return SeverityLevel.Verbose;
             }
         }
     }

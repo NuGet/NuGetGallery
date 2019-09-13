@@ -18,7 +18,7 @@ namespace NuGetGallery.Diagnostics
             // No-op!
         }
 
-        public void TraceEvent(System.Diagnostics.TraceEventType type, int id, string message, string member = null, string file = null, int line = 0)
+        public void TraceEvent(LogLevel logLevel, EventId eventId, string message, string member = null, string file = null, int line = 0)
         {
             // No-op!
         }

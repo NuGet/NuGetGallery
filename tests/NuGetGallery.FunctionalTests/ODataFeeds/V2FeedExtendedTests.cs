@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using NuGetGallery.FunctionalTests.Helpers;
 using Xunit;
@@ -226,10 +227,9 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
         private async Task<string> GetResponseTextAsync(string url)
         {
-            using (var wr = await WebRequest.Create(url).GetResponseAsync())
-            using (var sr = new StreamReader(wr.GetResponseStream()))
+            using (var httpClient = new HttpClient())
             {
-                return await sr.ReadToEndAsync();
+                return await httpClient.GetStringAsync(url);
             }
         }
 

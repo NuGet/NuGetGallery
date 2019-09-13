@@ -135,8 +135,11 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(AccountsController<,>), nameof(UsersController.ConfirmationRequiredPost)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.Thanks)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.TransformToOrganization)),
+                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.ConfirmTransformToOrganizationRedirect)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.ConfirmTransformToOrganization)),
+                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.RejectTransformToOrganizationRedirect)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.RejectTransformToOrganization)),
+                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.CancelTransformToOrganizationRedirect)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.CancelTransformToOrganization)),
             };
 
@@ -159,10 +162,8 @@ namespace NuGetGallery.Controllers
                 .Select(m => new ControllerActionRuleException(m))
                 .Distinct();
 
-            Assert.Equal(expectedActionsSupportingDiscontinuedLogins.Count(), actionsSupportingDiscontinuedLogins.Count());
-
-            Assert.Empty(actionsSupportingDiscontinuedLogins
-                .Except(expectedActionsSupportingDiscontinuedLogins));
+            Assert.Empty(actionsSupportingDiscontinuedLogins.Except(expectedActionsSupportingDiscontinuedLogins));
+            Assert.Empty(expectedActionsSupportingDiscontinuedLogins.Except(actionsSupportingDiscontinuedLogins));
         }
 
         private IEnumerable<MethodInfo> GetAllActions(IEnumerable<ControllerActionRuleException> exceptions = null)

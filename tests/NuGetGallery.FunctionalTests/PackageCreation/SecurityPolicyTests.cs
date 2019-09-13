@@ -200,23 +200,21 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                 $"package/create-verification-key/{packageId}" :
                 $"package/create-verification-key/{packageId}/{packageVersion}";
 
-            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + route);
-            request.Method = "POST";
-            request.ContentLength = 0;
-            request.Headers.Add(Constants.NuGetHeaderApiKey, apiKey);
-            request.Headers.Add(Constants.NuGetHeaderClientVersion, "NuGetGallery.FunctionalTests");
-
             string responseText;
-            using (var response = await request.GetResponseAsync() as HttpWebResponse)
+            using (var request = new HttpRequestMessage(HttpMethod.Post, UrlHelper.V2FeedRootUrl + route))
             {
-                Assert.NotNull(response);
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                request.Headers.Add(Constants.NuGetHeaderApiKey, apiKey);
+                request.Headers.Add(Constants.NuGetHeaderClientVersion, "NuGetGallery.FunctionalTests");
 
-                using (var sr = new StreamReader(response.GetResponseStream()))
+                using (var httpClient = new HttpClient())
+                using (var response = await httpClient.SendAsync(request))
                 {
-                    responseText = await sr.ReadToEndAsync();
+                    Assert.NotNull(response);
+                    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+                    responseText = await response.Content.ReadAsStringAsync();
                 }
-            }                
+            }
 
             var json = JObject.Parse(responseText);
             var expiration = json.Value<DateTime>("Expires");
@@ -233,19 +231,16 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                 $"verifykey/{packageId}" :
                 $"verifykey/{packageId}/{packageVersion}";
 
-            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + route);
-            request.Headers.Add(Constants.NuGetHeaderApiKey, apiKey);
-
-            try
+            using (var request = new HttpRequestMessage())
             {
-                using (var response = await request.GetResponseAsync() as HttpWebResponse)
+                request.RequestUri = new Uri(UrlHelper.V2FeedRootUrl + route);
+                request.Headers.Add(Constants.NuGetHeaderApiKey, apiKey);
+
+                using (var httpClient = new HttpClient())
+                using (var response = await httpClient.SendAsync(request))
                 {
                     return response.StatusCode;
                 }
-            }
-            catch (WebException e)
-            {
-                return ((HttpWebResponse)e.Response).StatusCode;
             }
         }
     }

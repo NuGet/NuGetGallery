@@ -56,9 +56,25 @@ namespace NuGetGallery
             routes.MapRoute(name, url, defaults, new[] { obfuscationMetadata });
         }
 
-        public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, ObfuscatedPathMetadata[] obfuscationMetadatas)
+        public static void MapRoute(
+            this RouteCollection routes,
+            string name,
+            string url,
+            object defaults,
+            ObfuscatedPathMetadata[] obfuscationMetadatas)
         {
-            routes.MapRoute(name, url, defaults);
+            routes.MapRoute(name, url, defaults, constraints: null, obfuscationMetadatas: obfuscationMetadatas);
+        }
+
+        public static void MapRoute(
+            this RouteCollection routes,
+            string name,
+            string url,
+            object defaults,
+            object constraints,
+            ObfuscatedPathMetadata[] obfuscationMetadatas)
+        {
+            routes.MapRoute(name, url, defaults, constraints);
             if (!ObfuscatedRouteMap.ContainsKey(url)) { ObfuscatedRouteMap.Add(url, obfuscationMetadatas); }
         }
 

@@ -3,6 +3,7 @@
 
 using System.ComponentModel;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -86,16 +87,16 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Description("Performs a OData request that will be rejected if not found by the search engine. The feature needs to be enabled for this test to pass.")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task ODataQueryFilter(string requestParametrs)
+        public async Task ODataQueryFilter(string requestParameters)
         {
             //If the search engine will be changed to handle the types of requests passed as inputs; the test inputs need to be changed.
-            var request = UrlHelper.V2FeedRootUrl + requestParametrs;
-            await Assert.ThrowsAsync<WebException>(async () =>
+            var requestUrl = UrlHelper.V2FeedRootUrl + requestParameters;
+
+            using (var httpClient = new HttpClient())
+            using (var response = await httpClient.GetAsync(requestUrl))
             {
-                using (await _odataHelper.SendRequest(request))
-                {
-                }
-            });
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
         }
     }
 }

@@ -4,6 +4,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -41,15 +42,13 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             var requestUrl = feedRootUrl + @"Search()?$filter=IsLatestVersion&$skip=0&$top=25&searchTerm='newtonsoft%20json'&targetFramework='net40'&includePrerelease=false";
             TestOutputHelper.WriteLine("Request: GET " + requestUrl);
 
-            var request = WebRequest.Create(requestUrl);
-            var response = (HttpWebResponse) await request.GetResponseAsync();
-
-            TestOutputHelper.WriteLine("Response: HTTP " + response.StatusCode);
-
             string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var httpClient = new HttpClient())
+            using (var response = await httpClient.GetAsync(requestUrl))
             {
-                responseText = await sr.ReadToEndAsync();
+                TestOutputHelper.WriteLine("Response: HTTP " + response.StatusCode);
+
+                responseText = await response.Content.ReadAsStringAsync();
             }
 
             var expectedUrl = feedRootUrl + "package/Newtonsoft.Json/";

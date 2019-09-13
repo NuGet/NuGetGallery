@@ -163,10 +163,33 @@ namespace NuGetGallery
                 obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
+                RouteName.PackageOwnerConfirmationRedirect,
+                "packages/{id}/owners/{username}/confirm/{token}",
+                new { controller = "Packages", action = nameof(PackagesController.ConfirmPendingOwnershipRequestRedirect) },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") },
+                obfuscationMetadatas: new[]
+                {
+                    new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
+                    new RouteExtensions.ObfuscatedPathMetadata(5, Obfuscator.DefaultTelemetryToken)
+                });
+
+            routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
                 "packages/{id}/owners/{username}/confirm/{token}",
-                new { controller = "Packages", action = "ConfirmPendingOwnershipRequest" },
-                new[]
+                new { controller = "Packages", action = nameof(PackagesController.ConfirmPendingOwnershipRequest) },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") },
+                obfuscationMetadatas: new[]
+                {
+                    new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
+                    new RouteExtensions.ObfuscatedPathMetadata(5, Obfuscator.DefaultTelemetryToken)
+                });
+
+            routes.MapRoute(
+                RouteName.PackageOwnerRejectionRedirect,
+                "packages/{id}/owners/{username}/reject/{token}",
+                new { controller = "Packages", action = nameof(PackagesController.RejectPendingOwnershipRequestRedirect) },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") },
+                obfuscationMetadatas: new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
                     new RouteExtensions.ObfuscatedPathMetadata(5, Obfuscator.DefaultTelemetryToken)
@@ -175,8 +198,9 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PackageOwnerRejection,
                 "packages/{id}/owners/{username}/reject/{token}",
-                new { controller = "Packages", action = "RejectPendingOwnershipRequest" },
-                new[]
+                new { controller = "Packages", action = nameof(PackagesController.RejectPendingOwnershipRequest) },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") },
+                obfuscationMetadatas: new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
                     new RouteExtensions.ObfuscatedPathMetadata(5, Obfuscator.DefaultTelemetryToken)
@@ -406,12 +430,35 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.TransformToOrganization,
                 "account/transform",
-                new { controller = "Users", action = RouteName.TransformToOrganization });
+                new { controller = "Users", action = nameof(UsersController.TransformToOrganization) });
+
+            routes.MapRoute(
+                RouteName.TransformToOrganizationConfirmationRedirect,
+                "account/transform/confirm/{accountNameToTransform}/{token}",
+                new { controller = "Users", action = nameof(UsersController.ConfirmTransformToOrganizationRedirect) },
+                new { httpMethod = new HttpMethodConstraint("GET") },
+                new[]
+                {
+                    new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
+                    new RouteExtensions.ObfuscatedPathMetadata(4, Obfuscator.DefaultTelemetryToken)
+                });
 
             routes.MapRoute(
                 RouteName.TransformToOrganizationConfirmation,
                 "account/transform/confirm/{accountNameToTransform}/{token}",
-                new { controller = "Users", action = RouteName.TransformToOrganizationConfirmation },
+                new { controller = "Users", action = nameof(UsersController.ConfirmTransformToOrganization) },
+                new { httpMethod = new HttpMethodConstraint("POST") },
+                new[]
+                {
+                    new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
+                    new RouteExtensions.ObfuscatedPathMetadata(4, Obfuscator.DefaultTelemetryToken)
+                });
+
+            routes.MapRoute(
+                RouteName.TransformToOrganizationRejectionRedirect,
+                "account/transform/reject/{accountNameToTransform}/{token}",
+                new { controller = "Users", action = nameof(UsersController.RejectTransformToOrganizationRedirect) },
+                new { httpMethod = new HttpMethodConstraint("GET") },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
@@ -421,7 +468,8 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.TransformToOrganizationRejection,
                 "account/transform/reject/{accountNameToTransform}/{token}",
-                new { controller = "Users", action = RouteName.TransformToOrganizationRejection },
+                new { controller = "Users", action = nameof(UsersController.RejectTransformToOrganization) },
+                new { httpMethod = new HttpMethodConstraint("POST") },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryUserName),
@@ -429,9 +477,17 @@ namespace NuGetGallery
                 });
 
             routes.MapRoute(
+                RouteName.TransformToOrganizationCancellationRedirect,
+                "account/transform/cancel/{token}",
+                new { controller = "Users", action = nameof(UsersController.CancelTransformToOrganizationRedirect) },
+                new { httpMethod = new HttpMethodConstraint("GET") },
+                new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryToken));
+
+            routes.MapRoute(
                 RouteName.TransformToOrganizationCancellation,
                 "account/transform/cancel/{token}",
-                new { controller = "Users", action = RouteName.TransformToOrganizationCancellation },
+                new { controller = "Users", action = nameof(UsersController.CancelTransformToOrganization) },
+                new { httpMethod = new HttpMethodConstraint("POST") },
                 new RouteExtensions.ObfuscatedPathMetadata(3, Obfuscator.DefaultTelemetryToken));
 
             routes.MapRoute(
@@ -480,13 +536,13 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.OrganizationMemberAddAjax,
                 "organization/{accountName}/members/add",
-                new { controller = "Organizations", action = RouteName.OrganizationMemberAddAjax },
+                new { controller = "Organizations", action = nameof(OrganizationsController.AddMember) },
                 new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.OrganizationMemberAdd,
                 "organization/{accountName}/members/add/{memberName}/{isAdmin}",
-                new { controller = "Organizations", action = RouteName.OrganizationMemberAddAjax },
+                new { controller = "Organizations", action = nameof(OrganizationsController.AddMember) },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName),
@@ -494,9 +550,32 @@ namespace NuGetGallery
                 });
 
             routes.MapRoute(
+                RouteName.OrganizationMemberConfirmRedirect,
+                "organization/{accountName}/members/confirm/{confirmationToken}",
+                new { controller = "Organizations", action = nameof(OrganizationsController.ConfirmMemberRequestRedirect) },
+                new { httpMethod = new HttpMethodConstraint("GET") },
+                new[]
+                {
+                    new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName),
+                    new RouteExtensions.ObfuscatedPathMetadata(4, Obfuscator.DefaultTelemetryToken)
+                });
+
+            routes.MapRoute(
                 RouteName.OrganizationMemberConfirm,
                 "organization/{accountName}/members/confirm/{confirmationToken}",
-                new { controller = "Organizations", action = RouteName.OrganizationMemberConfirm },
+                new { controller = "Organizations", action = nameof(OrganizationsController.ConfirmMemberRequest) },
+                new { httpMethod = new HttpMethodConstraint("POST") },
+                new[]
+                {
+                    new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName),
+                    new RouteExtensions.ObfuscatedPathMetadata(4, Obfuscator.DefaultTelemetryToken)
+                });
+
+            routes.MapRoute(
+                RouteName.OrganizationMemberRejectRedirect,
+                "organization/{accountName}/members/reject/{confirmationToken}",
+                new { controller = "Organizations", action = nameof(OrganizationsController.RejectMemberRequestRedirect) },
+                new { httpMethod = new HttpMethodConstraint("GET") },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName),
@@ -506,7 +585,8 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.OrganizationMemberReject,
                 "organization/{accountName}/members/reject/{confirmationToken}",
-                new { controller = "Organizations", action = RouteName.OrganizationMemberReject },
+                new { controller = "Organizations", action = nameof(OrganizationsController.RejectMemberRequest) },
+                new { httpMethod = new HttpMethodConstraint("POST") },
                 new[]
                 {
                     new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName),

@@ -63,6 +63,7 @@ namespace NuGetGallery.AccountDeleter
         public bool CollectPerfLogs { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool AutoUpdateSearchIndex { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string EnforcedAuthProviderForAdmin { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string EnforcedTenantIdForAdmin { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string UserPasswordRegex { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string UserPasswordHint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int ExpirationInDaysForApiKeyV1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

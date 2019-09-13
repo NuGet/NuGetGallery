@@ -1708,6 +1708,45 @@ namespace NuGetGallery
 
             private const string TransformedUsername = "Account";
             private const string AdminUsername = "Admin";
+            private const string Token = "token";
+
+            [Fact]
+            public async Task WhenThereIsNoMigrationRequest_Fails()
+            {
+                Assert.False(await InvokeTransformUserToOrganization(
+                    3,
+                    migrationRequest: null,
+                    admin: new User(AdminUsername) { Credentials = new Credential[0] }));
+            }
+
+            [Fact]
+            public async Task WhenAdminUserDoesNotMatch_Fails()
+            {
+                Assert.False(await InvokeTransformUserToOrganization(
+                    3,
+                    new OrganizationMigrationRequest
+                    {
+                        AdminUser = new User(AdminUsername) { Key = 1, Credentials = new Credential[0] },
+                        ConfirmationToken = Token,
+                        RequestDate = DateTime.UtcNow
+                    },
+                    admin: new User("OtherAdmin") { Key = 2, Credentials = new Credential[0] }));
+            }
+
+            [Fact]
+            public async Task WhenTokenDoesNotMatch_Fails()
+            {
+                var admin = new User(AdminUsername) { Credentials = new Credential[0] };
+                Assert.False(await InvokeTransformUserToOrganization(
+                    3,
+                    new OrganizationMigrationRequest
+                    {
+                        AdminUser = admin,
+                        ConfirmationToken = "othertoken",
+                        RequestDate = DateTime.UtcNow
+                    },
+                    admin));
+            }
 
             [Fact]
             public async Task WhenAdminHasNoTenant_TransformsAccountWithoutPolicy()
@@ -1722,6 +1761,7 @@ namespace NuGetGallery
                     ar.AffectedMemberIsAdmin == true));
             }
 
+            [Fact]
             public async Task WhenAdminHasUnsupportedTenant_TransformsAccountWithoutPolicy()
             {
                 var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
@@ -1742,6 +1782,7 @@ namespace NuGetGallery
                     ar.AffectedMemberIsAdmin == true));
             }
 
+            [Fact]
             public async Task WhenAdminHasSupportedTenant_TransformsAccountWithPolicy()
             {
                 var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
@@ -1804,10 +1845,11 @@ namespace NuGetGallery
                     ar.AffectedMemberIsAdmin == true));
             }
 
-            private Task<bool> InvokeTransformUserToOrganization(int affectedRecords, User admin = null, bool subscribesToPolicy = false)
+            private Task<bool> InvokeTransformUserToOrganization(
+                int affectedRecords,
+                User admin = null,
+                bool subscribesToPolicy = false)
             {
-                // Arrange
-                var account = new User(TransformedUsername);
                 admin = admin ?? new User(AdminUsername)
                 {
                     Credentials = new Credential[] {
@@ -1819,6 +1861,26 @@ namespace NuGetGallery
                     }
                 };
 
+                var migrationRequest = new OrganizationMigrationRequest
+                {
+                    AdminUser = admin,
+                    ConfirmationToken = Token,
+                    RequestDate = DateTime.UtcNow,
+                };
+
+                return InvokeTransformUserToOrganization(affectedRecords, migrationRequest, admin, subscribesToPolicy);
+            }
+
+            private Task<bool> InvokeTransformUserToOrganization(
+                int affectedRecords,
+                OrganizationMigrationRequest migrationRequest,
+                User admin,
+                bool subscribesToPolicy = false)
+            {
+                // Arrange
+                var account = new User(TransformedUsername);
+                account.OrganizationMigrationRequest = migrationRequest;
+
                 _service.MockDatabase
                     .Setup(db => db.ExecuteSqlResourceAsync(It.IsAny<string>(), It.IsAny<object[]>()))
                     .Returns(Task.FromResult(affectedRecords));
@@ -1828,7 +1890,7 @@ namespace NuGetGallery
 
                 _service.MockSecurityPolicyService
                     .Verify(
-                        sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), true), 
+                        sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), true),
                         subscribesToPolicy ? Times.Once() : Times.Never());
 
                 return result;

@@ -10,6 +10,7 @@ namespace NuGetGallery
     public class ManageOrganizationsViewModel
     {
         public IEnumerable<ManageOrganizationsItemViewModel> Organizations { get; }
+        public PendingOrganizationMigrationRequestViewModel PendingMigration { get; }
 
         public ManageOrganizationsViewModel(User currentUser, IPackageService packageService)
         {
@@ -18,6 +19,10 @@ namespace NuGetGallery
             var pendingTransformations = currentUser.OrganizationMigrationRequests.Select(m => new ManageOrganizationsItemViewModel(m, packageService));
 
             Organizations = organizations.Concat(pendingMemberships).Concat(pendingTransformations);
+            if (currentUser.OrganizationMigrationRequest != null)
+            {
+                PendingMigration = new PendingOrganizationMigrationRequestViewModel(currentUser.OrganizationMigrationRequest);
+            }
         }
     }
 }

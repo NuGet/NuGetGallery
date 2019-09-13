@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery
 {
@@ -11,6 +12,8 @@ namespace NuGetGallery
     /// </summary>
     public interface ITelemetryClient
     {
+        void TrackTrace(string message, LogLevel logLevel, EventId eventId);
+
         void TrackMetric(string metricName, double value, IDictionary<string, string> properties = null);
 
         void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null);

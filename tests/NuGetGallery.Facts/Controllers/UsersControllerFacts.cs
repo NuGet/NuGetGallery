@@ -2681,18 +2681,93 @@ namespace NuGetGallery
             }
         }
 
+        public class TheConfirmTransformToOrganizationRedirectAction : TestContainer
+        {
+            [Fact]
+            public async Task RedirectsAndDoesNotPerformWriteOperation()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganizationRedirect(accountToTransform, "token");
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "/account/Organizations");
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendMessageAsync(
+                            It.IsAny<OrganizationTransformAcceptedMessage>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCompleted(It.IsAny<Organization>()),
+                        Times.Never());
+            }
+
+            private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "", bool success = true)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+
+                var controller = GetController<UsersController>();
+                var currentUser = new User("OrgAdmin")
+                {
+                    EmailAddress = "orgadmin@example.com"
+                };
+                controller.SetCurrentUser(currentUser);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(accountToTransform, false))
+                    .Returns(new User(accountToTransform)
+                    {
+                        EmailAddress = $"{accountToTransform}@example.com",
+                        OrganizationMigrationRequest = new OrganizationMigrationRequest
+                        {
+                            ConfirmationToken = "token",
+                            AdminUser = new User
+                            {
+                                Username = "OrgAdmin",
+                            },
+                        },
+                    });
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(s => s.TransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult(success));
+
+                return controller;
+            }
+        }
+
         public class TheConfirmTransformToOrganizationAction : TestContainer
         {
+            private const string AdminUsername = "OrgAdmin";
+            private const string Token = "token";
+
             [Fact]
             public async Task WhenAccountToTransformIsNotFound_ShowsError()
             {
                 // Arrange
                 var controller = GetController<UsersController>();
-                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                var currentUser = new User(AdminUsername) { EmailAddress = "orgadmin@example.com" };
                 controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization("account", "token") as ViewResult;
+                var result = await controller.ConfirmTransformToOrganization("account", Token) as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -2717,6 +2792,38 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WhenCurrentUserDoesNotMatchAdmin_ReturnsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, adminKey: 99);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization("account", Token) as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_SignInToConfirm, AdminUsername, accountToTransform),
+                    model.ErrorMessage);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendMessageAsync(
+                            It.IsAny<OrganizationTransformAcceptedMessage>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<bool>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCompleted(It.IsAny<Organization>()),
+                        Times.Never());
+            }
+
+            [Fact]
             public async Task WhenCanTransformReturnsFalse_ShowsError()
             {
                 // Arrange
@@ -2724,7 +2831,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, Token) as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -2756,7 +2863,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, success: false);
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, Token) as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -2789,7 +2896,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, success: true);
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, Token);
 
                 // Assert
                 Assert.NotNull(result);
@@ -2807,21 +2914,46 @@ namespace NuGetGallery
                         t => t.TrackOrganizationTransformCompleted(It.IsAny<User>()));
             }
 
-            private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "", bool success = true)
+            private UsersController CreateController(
+                string accountToTransform,
+                string canTransformErrorReason = "",
+                bool success = true,
+                int adminKey = 0)
+            {
+                return CreateController(
+                    new User(accountToTransform)
+                    {
+                        EmailAddress = $"{accountToTransform}@example.com",
+                        OrganizationMigrationRequest = new OrganizationMigrationRequest
+                        {
+                            ConfirmationToken = Token,
+                            AdminUser = new User
+                            {
+                                Key = adminKey,
+                                Username = AdminUsername,
+                            },
+                        },
+                    },
+                    canTransformErrorReason,
+                    success);
+            }
+
+            private UsersController CreateController(User accountToTransform, string canTransformErrorReason = "", bool success = true)
             {
                 // Arrange
                 var configurationService = GetConfigurationService();
 
                 var controller = GetController<UsersController>();
-                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                var currentUser = new User(AdminUsername)
+                {
+                    Key = 0,
+                    EmailAddress = "orgadmin@example.com"
+                };
                 controller.SetCurrentUser(currentUser);
 
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(accountToTransform, false))
-                    .Returns(new User(accountToTransform)
-                    {
-                        EmailAddress = $"{accountToTransform}@example.com"
-                    });
+                    .Setup(u => u.FindByUsername(accountToTransform.Username, false))
+                    .Returns(accountToTransform);
 
                 GetMock<IUserService>()
                     .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), out canTransformErrorReason))
@@ -2838,6 +2970,58 @@ namespace NuGetGallery
                 return controller;
             }
         }
+
+        public class TheRejectTransformToOrganizationRedirectAction : TestContainer
+        {
+            [Fact]
+            public async Task RedirectsAndDoesNotPerformWriteOperation()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform);
+
+                // Act
+                var result = await controller.RejectTransformToOrganizationRedirect(accountToTransform, "token");
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "/account/Organizations");
+
+                GetMock<IMessageService>().Verify(m =>
+                    m.SendMessageAsync(
+                        It.IsAny<OrganizationTransformRejectedMessage>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()),
+                    Times.Never);
+
+                GetMock<ITelemetryService>().Verify(
+                    t => t.TrackOrganizationTransformDeclined(It.IsAny<User>()),
+                    Times.Never);
+            }
+
+            private UsersController CreateController(string accountToTransform, bool success = true)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+
+                var controller = GetController<UsersController>();
+                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(accountToTransform, false))
+                    .Returns(new User(accountToTransform)
+                    {
+                        EmailAddress = $"{accountToTransform}@example.com"
+                    });
+
+                GetMock<IUserService>()
+                    .Setup(s => s.RejectTransformUserToOrganizationRequest(It.IsAny<User>(), It.IsAny<User>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult(success));
+
+                return controller;
+            }
+        }
+
 
         public class TheRejectTransformToOrganizationAction : TestContainer
         {
@@ -2951,6 +3135,59 @@ namespace NuGetGallery
                 return controller;
             }
         }
+
+        public class TheCancelTransformToOrganizationRedirectAction : TestContainer
+        {
+            [Fact]
+            public async Task RedirectsAndDoesNotPerformWriteOperation()
+            {
+                // Arrange
+                var controller = CreateController();
+
+                // Act
+                var result = await controller.CancelTransformToOrganizationRedirect("token");
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "/account/Organizations");
+
+                GetMock<IMessageService>().Verify(m =>
+                    m.SendMessageAsync(
+                        It.IsAny<OrganizationTransformRejectedMessage>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()),
+                    Times.Never);
+
+                GetMock<ITelemetryService>().Verify(
+                    t => t.TrackOrganizationTransformCancelled(It.IsAny<User>()),
+                    Times.Never);
+            }
+
+            private UsersController CreateController(bool success = true)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+
+                var controller = GetController<UsersController>();
+                var admin = new User("OrgToBe") { EmailAddress = "org@example.com" };
+                var currentUser = new User("OrgToBe")
+                {
+                    EmailAddress = "orgToBe@example.com",
+                    OrganizationMigrationRequest = new OrganizationMigrationRequest
+                    {
+                        AdminUser = admin,
+                        ConfirmationToken = "token"
+                    }
+                };
+                controller.SetCurrentUser(currentUser);
+
+                GetMock<IUserService>()
+                    .Setup(s => s.CancelTransformUserToOrganizationRequest(It.IsAny<User>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult(success));
+
+                return controller;
+            }
+        }
+
 
         public class TheCancelTransformToOrganizationAction : TestContainer
         {

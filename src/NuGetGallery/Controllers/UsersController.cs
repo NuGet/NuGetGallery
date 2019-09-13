@@ -130,7 +130,6 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName(RouteName.TransformToOrganization)]
         public virtual ActionResult TransformToOrganization()
         {
             var accountToTransform = GetCurrentUser();
@@ -154,7 +153,6 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         [ValidateAntiForgeryToken]
-        [ActionName(RouteName.TransformToOrganization)]
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
         {
             var accountToTransform = GetCurrentUser();
@@ -222,8 +220,20 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName(RouteName.TransformToOrganizationConfirmation)]
+        public virtual async Task<ActionResult> ConfirmTransformToOrganizationRedirect(string accountNameToTransform, string token)
+        {
+            return await ConfirmTransformToOrganizationAsync(accountNameToTransform, token, redirect: true);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
+        {
+            return await ConfirmTransformToOrganizationAsync(accountNameToTransform, token, redirect: false);
+        }
+
+        private async Task<ActionResult> ConfirmTransformToOrganizationAsync(string accountNameToTransform, string token, bool redirect)
         {
             var adminUser = GetCurrentUser();
 
@@ -239,6 +249,22 @@ namespace NuGetGallery
             if (!UserService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
                 return TransformToOrganizationFailed(errorReason);
+            }
+            
+            if (accountToTransform.OrganizationMigrationRequest != null
+                && accountToTransform.OrganizationMigrationRequest.ConfirmationToken == token
+                && !accountToTransform.OrganizationMigrationRequest.AdminUser.MatchesUser(adminUser))
+            {
+                return TransformToOrganizationFailed(string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_SignInToConfirm,
+                    accountToTransform.OrganizationMigrationRequest.AdminUser.Username,
+                    accountToTransform.Username));
+            }
+
+            if (redirect)
+            {
+                return Redirect(Url.ManageMyOrganizations());
             }
 
             if (!await UserService.TransformUserToOrganization(accountToTransform, adminUser, token))
@@ -260,8 +286,20 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName(RouteName.TransformToOrganizationRejection)]
+        public virtual async Task<ActionResult> RejectTransformToOrganizationRedirect(string accountNameToTransform, string token)
+        {
+            return await RejectTransformToOrganizationAsync(accountNameToTransform, token, redirect: true);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual async Task<ActionResult> RejectTransformToOrganization(string accountNameToTransform, string token)
+        {
+            return await RejectTransformToOrganizationAsync(accountNameToTransform, token, redirect: false);
+        }
+
+        private async Task<ActionResult> RejectTransformToOrganizationAsync(string accountNameToTransform, string token, bool redirect)
         {
             var adminUser = GetCurrentUser();
 
@@ -274,6 +312,11 @@ namespace NuGetGallery
             }
             else
             {
+                if (redirect)
+                {
+                    return Redirect(Url.ManageMyOrganizations());
+                }
+
                 if (await UserService.RejectTransformUserToOrganizationRequest(accountToTransform, adminUser, token))
                 {
                     var emailMessage = new OrganizationTransformRejectedMessage(_config, accountToTransform, adminUser, isCanceledByAdmin: true);
@@ -297,11 +340,28 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName(RouteName.TransformToOrganizationCancellation)]
+        public virtual async Task<ActionResult> CancelTransformToOrganizationRedirect(string token)
+        {
+            return await CancelTransformToOrganizationAsync(token, redirect: true);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual async Task<ActionResult> CancelTransformToOrganization(string token)
+        {
+            return await CancelTransformToOrganizationAsync(token, redirect: false);
+        }
+
+        private async Task<ActionResult> CancelTransformToOrganizationAsync(string token, bool redirect)
         {
             var accountToTransform = GetCurrentUser();
             var adminUser = accountToTransform.OrganizationMigrationRequest?.AdminUser;
+
+            if (redirect)
+            {
+                return Redirect(Url.ManageMyOrganizations());
+            }
 
             if (await UserService.CancelTransformUserToOrganizationRequest(accountToTransform, token))
             {

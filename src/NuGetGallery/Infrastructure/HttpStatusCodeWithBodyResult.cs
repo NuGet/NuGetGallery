@@ -10,6 +10,8 @@ namespace NuGetGallery
 {
     public class HttpStatusCodeWithBodyResult : HttpStatusCodeResult
     {
+        private const int MaxReasonPhraseLength = 512;
+
         private static readonly string[] LineEndings = new[] { "\n", "\r" };
 
         public string Body { get; private set; }
@@ -34,16 +36,27 @@ namespace NuGetGallery
 
         private static string ConvertToSingleLine(string reasonPhrase)
         {
-            if (reasonPhrase == null || LineEndings.All(x => !reasonPhrase.Contains(x)))
+            if (reasonPhrase != null)
             {
-                return reasonPhrase;
+                // Collapse multiple lines into a single line.
+                if (LineEndings.Any(x => reasonPhrase.Contains(x)))
+                {
+                    var lines = reasonPhrase
+                        .Split(LineEndings, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim());
+
+                    reasonPhrase = string.Join(" ", lines);
+                }
+
+                // Trim the status description if necessary.
+                // See: https://docs.microsoft.com/en-us/dotnet/api/system.web.httpresponse.statusdescription?redirectedfrom=MSDN&view=netframework-4.8#exceptions
+                if (reasonPhrase.Length > MaxReasonPhraseLength)
+                {
+                    reasonPhrase = reasonPhrase.Substring(0, MaxReasonPhraseLength - 3) + "...";
+                }
             }
 
-            var lines = reasonPhrase
-                .Split(LineEndings, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim());
-
-            return string.Join(" ", lines);
+            return reasonPhrase;
         }
     }
 }

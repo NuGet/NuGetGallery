@@ -312,7 +312,7 @@
                 )
             }
 
-            @if (Model.HasEmbeddedIcon && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
+            @if (Model.HasEmbeddedIcon && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && (Model.Available || Model.Validating))
             {
                 @ViewHelpers.AlertWarning(
                     @<text>
@@ -591,8 +591,8 @@
                             {
                                 <th>Status</th>
                             }
-                            <th aria-label="Signature Information"></th>
-                            <th aria-label="Deprecation Information"></th>
+                            <th aria-label="Signature Information" abbr="Signature Information"></th>
+                            <th aria-label="Deprecation Information" abbr="Deprecation Information"></th>
                         </tr>
                     </thead>
                     <tbody class="no-border">

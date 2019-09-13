@@ -13,6 +13,7 @@
             <ThirdPartyBinaries Include="Autofac.Integration.Owin.dll" />
             <ThirdPartyBinaries Include="Autofac.Integration.WebApi.dll" />
             <ThirdPartyBinaries Include="CommonMark.dll" />
+            <ThirdPartyBinaries Include="CsvHelper.dll" />
             <ThirdPartyBinaries Include="Dapper.StrongName.dll" />
             <ThirdPartyBinaries Include="DynamicData.EFCodeFirstProvider.dll" />
             <ThirdPartyBinaries Include="Elmah.dll" />
