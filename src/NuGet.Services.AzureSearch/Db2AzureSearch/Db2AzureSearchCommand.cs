@@ -18,7 +18,7 @@ using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
 {
-    public class Db2AzureSearchCommand
+    public class Db2AzureSearchCommand : IAzureSearchCommand
     {
         private readonly INewPackageRegistrationProducer _producer;
         private readonly IPackageEntityIndexActionBuilder _indexActionBuilder;

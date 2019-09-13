@@ -14,7 +14,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {
-    public class Catalog2AzureSearchCommand
+    public class Catalog2AzureSearchCommand : IAzureSearchCommand
     {
         public const string CursorRelativeUri = "cursor.json";
 

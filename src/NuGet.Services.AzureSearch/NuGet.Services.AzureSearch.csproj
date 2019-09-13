@@ -61,12 +61,14 @@
     <Compile Include="AuxiliaryFiles\IVerifiedPackagesDataClient.cs" />
     <Compile Include="AuxiliaryFiles\StringCache.cs" />
     <Compile Include="AuxiliaryFiles\VerifiedPackagesDataClient.cs" />
+    <Compile Include="AzureSearchJob.cs" />
     <Compile Include="AzureSearchScoringConfiguration.cs" />
     <Compile Include="BaseDocumentBuilder.cs" />
     <Compile Include="DatabaseOwnerFetcher.cs" />
     <Compile Include="Db2AzureSearch\InitialAuxiliaryData.cs" />
     <Compile Include="IAzureSearchTelemetryService.cs" />
     <Compile Include="IBaseDocumentBuilder.cs" />
+    <Compile Include="IAzureSearchCommand.cs" />
     <Compile Include="IDatabaseOwnerFetcher.cs" />
     <Compile Include="ISearchIndexActionBuilder.cs" />
     <Compile Include="JobOutcome.cs" />
@@ -192,6 +194,7 @@
     <Compile Include="SearchService\SearchTextBuilder.cs" />
     <Compile Include="AzureSearchTelemetryService.cs" />
     <Compile Include="SearchService\SecretRefresher.cs" />
+    <Compile Include="ServiceClientTracingLogger.cs" />
     <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />

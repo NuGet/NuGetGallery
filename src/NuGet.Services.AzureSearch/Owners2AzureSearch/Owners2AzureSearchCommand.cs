@@ -13,7 +13,7 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.AzureSearch.Owners2AzureSearch
 {
-    public class Owners2AzureSearchCommand
+    public class Owners2AzureSearchCommand : IAzureSearchCommand
     {
         private readonly IDatabaseOwnerFetcher _databaseOwnerFetcher;
         private readonly IOwnerDataClient _ownerDataClient;

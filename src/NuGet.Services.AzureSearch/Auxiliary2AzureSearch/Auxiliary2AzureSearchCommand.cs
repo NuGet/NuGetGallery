@@ -18,7 +18,7 @@ using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
-    public class Auxiliary2AzureSearchCommand
+    public class Auxiliary2AzureSearchCommand : IAzureSearchCommand
     {
         /// <summary>
         /// A package ID can result in one document per search filter if the there is a version that applies to each
