@@ -2,11 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
+using System.Xml;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging;
 
@@ -100,20 +101,23 @@ namespace NuGet.Jobs.GitHubIndexer
         {
             try
             {
-                var projDocument = XDocument.Load(fileStream);
-                var refs =
-                    projDocument
-                        .DescendantNodes()
-                        .OfType<XElement>()
-                        .Where(node => (node).Name.LocalName.Equals("PackageReference"));
+                using (var streamReader = new StreamReader(fileStream))
+                using (var xmlReader = XmlReader.Create(streamReader))
+                {
+                    var projDocument = new XmlDocument
+                    {
+                        XmlResolver = null
+                    };
 
-                return refs
-                    .Select(p => p.Attribute("Include"))
-                    .Where(includeAttr => includeAttr != null)// Select all that have an "Include" attribute
-                    .Select(includeAttr => includeAttr.Value)
-                    .Where(includeAttrValue => !includeAttrValue.Contains("$"))
-                    .Where(IsValidPackageId)
-                    .ToList();
+                    projDocument.Load(xmlReader);
+                    return GetAllPackageReferenceNodes(projDocument)
+                        .Select(p => p.Attributes["Include"])
+                        .Where(includeAttr => includeAttr != null) // Select all that have an "Include" attribute
+                        .Select(includeAttr => includeAttr.Value)
+                        .Where(includeAttrValue => !includeAttrValue.Contains("$"))
+                        .Where(IsValidPackageId)
+                        .ToList();
+                }
             }
             catch (Exception e)
             {
@@ -121,6 +125,24 @@ namespace NuGet.Jobs.GitHubIndexer
             }
 
             return Array.Empty<string>();
+        }
+
+        private IEnumerable<XmlNode> GetAllPackageReferenceNodes(XmlNode root)
+        {
+            var queue = new Queue<XmlNode>(new[] { root });
+            while (queue.Any())
+            {
+                var parent = queue.Dequeue();
+                foreach (var node in parent.ChildNodes.Cast<XmlNode>())
+                {
+                    if (node.LocalName.Equals("PackageReference"))
+                    {
+                        yield return node;
+                    }
+
+                    queue.Enqueue(node);
+                }
+            }
         }
 
         /// <summary>
