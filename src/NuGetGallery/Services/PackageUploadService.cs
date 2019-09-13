@@ -19,6 +19,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -148,7 +149,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = await CheckIconMetadataAsync(nuGetPackage, currentUser);
+            result = await CheckIconMetadataAsync(nuGetPackage, warnings, currentUser);
             if (result != null)
             {
                 //_telemetryService.TrackIconValidationFailure();
@@ -341,18 +342,22 @@ namespace NuGetGallery
             return null;
         }
 
-        private async Task<PackageValidationResult> CheckIconMetadataAsync(PackageArchiveReader nuGetPackage, User user)
+        private async Task<PackageValidationResult> CheckIconMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
         {
             var nuspecReader = GetNuspecReader(nuGetPackage);
-
             var iconElement = nuspecReader.IconElement;
+            var embeddedIconsEnabled = _featureFlagService.AreEmbeddedIconsEnabled(user);
 
             if (iconElement == null)
             {
+                if (embeddedIconsEnabled && nuspecReader.GetIconUrl() != null)
+                {
+                    warnings.Add(new IconUrlDeprecationValidationMessage());
+                }
                 return null;
             }
 
-            if (!_featureFlagService.AreEmbeddedIconsEnabled(user))
+            if (!embeddedIconsEnabled)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_EmbeddedIconNotAccepted);
             }

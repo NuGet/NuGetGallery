@@ -2427,6 +2427,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;iconUrl&gt; element will be deprecated, please consider switching to specifying the icon in the package..
+        /// </summary>
+        public static string UploadPackage_IconUrlDeprecated {
+            get {
+                return ResourceManager.GetString("UploadPackage_IconUrlDeprecated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflict {

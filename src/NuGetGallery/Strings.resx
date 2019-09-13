@@ -1150,4 +1150,7 @@ The {1} Team</value>
   <data name="SiteAdminNotLoggedInWithRequiredTenant" xml:space="preserve">
     <value>The site admins are required to sign in with the '{0}' tenant only.</value>
   </data>
+  <data name="UploadPackage_IconUrlDeprecated" xml:space="preserve">
+    <value>&lt;iconUrl&gt; element will be deprecated, please consider switching to specifying the icon in the package.</value>
+  </data>
 </root>
