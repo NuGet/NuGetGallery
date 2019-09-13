@@ -95,32 +95,24 @@ namespace NuGetGallery.Queries
                 Assert.True(allVersionsAreFromPackagesThatAreListed);
             }
 
-            [Fact]
-            public async void ValidPackageIdWithNullSemVerLevelReturnVersionsWhosePackagesHaveSemVerLevelNull()
+            [Theory]
+            [InlineData(null)]
+            [InlineData("2.0.0")]
+            [InlineData("2.0.0-rc.2")]
+            [InlineData("2.0.0-rc.1")]
+            [InlineData("1.0.0")]
+            [InlineData("1.0.0-beta")]
+            public async void ValidPackageIdWithSemVerLevelReturnVersionsWhosePackagesHaveSemVerLevelCompliant(string semVerLevel)
             {
-                var queryResult = await _packageVersionsQuery.Execute("nuget", null, null);
-
-                var allVersionsAreFromPackagesWithSemVerLevelNull = queryResult.All(version =>
+                var queryResult = await _packageVersionsQuery.Execute("nuget", null, semVerLevel);
+                
+                var allVersionsAreFromPackagesWithSemVerLevelCompliant = queryResult.All(version =>
                 {
                     _packageDictionary.TryGetValue(version, out var package);
-                    return !package.SemVerLevelKey.HasValue;
+                    return SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel).Compile()(package);
                 });
 
-                Assert.True(allVersionsAreFromPackagesWithSemVerLevelNull);
-            }
-
-            [Fact]
-            public async void ValidPackageIdWithValidSemVerLevelReturnVersionsWhosePackagesAreSemVerLevelNullOrLessThanSemVer2()
-            {
-                var queryResult = await _packageVersionsQuery.Execute("nuget", null, "2.0.0");
-
-                var allVersionsAreFromPackagesWithSemVerLevelNullOrLessThanSemVer2 = queryResult.All(version =>
-                {
-                    _packageDictionary.TryGetValue(version, out var package);
-                    return !package.SemVerLevelKey.HasValue || package.SemVerLevelKey <= SemVerLevelKey.SemVer2;
-                });
-
-                Assert.True(allVersionsAreFromPackagesWithSemVerLevelNullOrLessThanSemVer2);
+                Assert.True(allVersionsAreFromPackagesWithSemVerLevelCompliant);
             }
 
             [Theory]

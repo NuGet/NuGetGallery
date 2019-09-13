@@ -33,17 +33,8 @@ namespace NuGetGallery
             var query = _packageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Where(p => p.PackageRegistration.Id == id)
-                .Where(p => p.PackageStatusKey == PackageStatus.Available && p.Listed);
-
-            // SemVerLevel filter
-            if (SemVerLevelKey.ForSemVerLevel(semVerLevel) == SemVerLevelKey.SemVer2)
-            {
-                query = query.Where(p => !p.SemVerLevelKey.HasValue || p.SemVerLevelKey <= SemVerLevelKey.SemVer2);
-            }
-            else
-            {
-                query = query.Where(p => !p.SemVerLevelKey.HasValue);
-            }
+                .Where(p => p.PackageStatusKey == PackageStatus.Available && p.Listed)
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
 
             // prerelease filter
             if (!includePrerelease.HasValue || !includePrerelease.Value)
