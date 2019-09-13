@@ -27,6 +27,7 @@ namespace NuGetGallery
         {
             var query = _packageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
+                .Where(p => p.PackageStatusKey == PackageStatus.Available && p.Listed)
                 .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
 
             // prerelease filter
