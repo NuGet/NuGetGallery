@@ -23,32 +23,24 @@ namespace NuGetGallery.Queries
 
         public class Execute : FactBase
         {
-            [Fact]
-            public async void WithValidSemVerLevelReturnIdsWhosePackagesSemVerLevelAreEqualToSemVer2()
+            [Theory]
+            [InlineData(null)]
+            [InlineData("2.0.0")]
+            [InlineData("2.0.0-rc.2")]
+            [InlineData("2.0.0-rc.1")]
+            [InlineData("1.0.0")]
+            [InlineData("1.0.0-beta")]
+            public async void WithValidSemVerLevelReturnIdsWhosePackagesSemVerLevelCompliant(string semVerLevel)
             {
-                var queryResult = await _packageIdsQuery.Execute("nuget", null, "2.0.0");
+                var queryResult = await _packageIdsQuery.Execute("nuget", null, semVerLevel);
 
-                var allIdsAreFromPackagesWithSemVerLevelEqualToSemVer2 = queryResult.All(id =>
+                var allIdsAreFromPackagesWithSemVerLevelCompliant = queryResult.All(id =>
                 {
                     _packageDictionary.TryGetValue(id, out var package);
-                    return package.SemVerLevelKey == SemVerLevelKey.SemVer2;
+                    return SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel).Compile()(package);
                 });
 
-                Assert.True(allIdsAreFromPackagesWithSemVerLevelEqualToSemVer2);
-            }
-
-            [Fact]
-            public async void WithNullSemVerLevelReturnIdsWhosePackagesHaveSemVerLevelNull()
-            {
-                var queryResult = await _packageIdsQuery.Execute(null, null, null);
-
-                var allIdsAreFromPackagesWithSemVerLevelNull = queryResult.All(id =>
-                {
-                    _packageDictionary.TryGetValue(id, out var package);
-                    return !package.SemVerLevelKey.HasValue;
-                });
-
-                Assert.True(allIdsAreFromPackagesWithSemVerLevelNull);
+                Assert.True(allIdsAreFromPackagesWithSemVerLevelCompliant);
             }
 
             [Theory]

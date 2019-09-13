@@ -13,6 +13,7 @@ namespace NuGetGallery
     public class AutocompleteDatabasePackageIdsQuery : IAutocompletePackageIdsQuery
     {
         private readonly IReadOnlyEntityRepository<Package> _packageRepository;
+        private const int MaxResults = 30;
 
         public AutocompleteDatabasePackageIdsQuery(IReadOnlyEntityRepository<Package> packageRepository)
         {
@@ -25,17 +26,8 @@ namespace NuGetGallery
             string semVerLevel = null)
         {
             var query = _packageRepository.GetAll()
-                .Include(p => p.PackageRegistration);
-            
-            // SemVerLevel filter
-            if (SemVerLevelKey.ForSemVerLevel(semVerLevel) == SemVerLevelKey.SemVer2)
-            {
-                query = query.Where(p => p.SemVerLevelKey == SemVerLevelKey.SemVer2);
-            }
-            else
-            {
-                query = query.Where(p => !p.SemVerLevelKey.HasValue);
-            }
+                .Include(p => p.PackageRegistration)
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
 
             // prerelease filter
             if (!includePrerelease.HasValue || !includePrerelease.Value)
@@ -52,20 +44,17 @@ namespace NuGetGallery
                     .GroupBy(p => p.PackageRegistration.Id)
                     .Select(group => group.Key)
                     .OrderBy(id => id)
-                    .Take(30)
+                    .Take(MaxResults)
                     .ToList();
             }
             else
             {
-                ids = query.GroupBy(p => p.PackageRegistration.Id)
-                    .Select(group => new
-                    {
-                        Id = group.Key,
-                        MaxDownloadCount = group.Max(package => package.PackageRegistration.DownloadCount)
-                    })
-                    .OrderByDescending(group => group.MaxDownloadCount)
-                    .Select(group => group.Id)
-                    .Take(30)
+                ids = query
+                    .Select(p => p.PackageRegistration)
+                    .Distinct()
+                    .OrderByDescending(pr => pr.DownloadCount)
+                    .Select(pr => pr.Id)
+                    .Take(MaxResults)
                     .ToList();
             }
 
