@@ -6,6 +6,20 @@
   -->
   <PropertyGroup>
     <MicroBuild_NuPkgSigningEnabled>false</MicroBuild_NuPkgSigningEnabled>
+    <BatchSign Condition="'$(BatchSign)' == ''">true</BatchSign>
+    <RepositoryRootDirectory Condition="'$(RepositoryRootDirectory)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'build.ps1'))\</RepositoryRootDirectory>
+
+    <!--
+    By default, only run EnumerateFilesToSign if we are not batch signing. This property is explicitly set to true when
+    the batch signing project is running. The purpose of this logic is to skip enumerating files to sign when the
+    solution is building. This work only needs to happen when the batch signing is occurring. In other words, we should
+    only enumerate files to sign when:
+
+      1. Batch signing is disabled. Each project submits its out sign job are part of its build process.
+      2. Batch signing is enabled but we are building the "sign-binaries.proj" project and that project is call into
+         individual projects to disovery their files to sign.
+    -->
+    <SkipEnumerateFilesToSign Condition="'$(SkipEnumerateFilesToSign)' == ''">$(BatchSign)</SkipEnumerateFilesToSign>
   </PropertyGroup>
 
   <!--
@@ -31,24 +45,67 @@
   Cloud Service builds do a solution build then a "Publish" on the .ccproj. Only that "Publish" step needs to sign
   things.
   -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(BatchSign)' == 'false'">
     <SignFilesDependsOn Include="EnumerateFilesToSign" />
   </ItemGroup>
   <Target
     Name="EnumerateFilesToSign"
     AfterTargets="$(EnumerateFilesToSignAfterTargets)"
-    Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none'">
+    Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none' AND '$(SkipEnumerateFilesToSign)' != 'true'"
+    Returns="@(FilesToSign)">
 
     <ItemGroup>
-      <OutputToSign Include="$(MSBuildProjectDirectory)\%(IntermediateAssembly.Identity)" />
-      <OutputToSign Include="$(TargetPath)" />
-    </ItemGroup>
-    <ItemGroup>
+      <!--
+      Add fully qualified paths for the output and intermediate assemblies.
+      -->
+      <_OutputToSign Include="$(ProjectDir)%(IntermediateAssembly.Identity)" KeepDuplicates="false" />
+      <_OutputToSign Include="$(TargetPath)" KeepDuplicates="false" />
+      <!--
+      If we are batch signing, find all copies of the target file name in the repository. This handles the cases when
+      there is a project reference pointing to the current project and there is a copy of this output assembly in the
+      bin directory of another project. That assembly also needs to be signed.
+      -->
+      <_OutputToSign Include="$(RepositoryRootDirectory)**\$(TargetFileName)" Condition="'$(BatchSign)' == 'true'" />
       <FilesToSign
-        Include="%(OutputToSign.Identity)"
-        Condition="Exists('%(OutputToSign.Identity)')">
+        Include="$([System.IO.Path]::GetFullPath('%(_OutputToSign.Identity)'))"
+        Condition="Exists('%(_OutputToSign.Identity)')"
+        KeepDuplicates="false">
         <Authenticode>Microsoft400</Authenticode>
         <StrongName>MsSharedLib72</StrongName>
+      </FilesToSign>
+
+      <!--
+      Add fully qualified paths for PowerShell scripts. By convention, add common scripts that we use for jobs.
+      -->
+      <PowerShellScriptsToSign Include="Scripts\Functions.ps1"/>
+      <PowerShellScriptsToSign Include="Scripts\PostDeploy.ps1"/>
+      <PowerShellScriptsToSign Include="Scripts\PreDeploy.ps1"/>
+      <FilesToSign
+        Include="$([System.IO.Path]::GetFullPath('$(ProjectDir)%(PowerShellScriptsToSign.Identity)'))"
+        Condition="Exists('$(ProjectDir)%(PowerShellScriptsToSign.Identity)')"
+        KeepDuplicates="false">
+        <Authenticode>Microsoft400</Authenticode>
+      </FilesToSign>
+
+      <!--
+      Add fully qualified paths for checked in binaries. By convention, add common binaries that we use for jobs.
+      -->
+      <ExecutablesToSign Include="Scripts\nssm.exe"/>
+      <FilesToSign
+        Include="$([System.IO.Path]::GetFullPath('$(ProjectDir)%(ExecutablesToSign.Identity)'))"
+        Condition="Exists('$(ProjectDir)%(ExecutablesToSign.Identity)')"
+        KeepDuplicates="false">
+        <Authenticode>3PartySHA2</Authenticode>
+      </FilesToSign>
+
+      <!--
+      Add fully qualified paths for third-party binaries.
+      -->
+      <FilesToSign
+        Include="$([System.IO.Path]::GetFullPath('$(TargetDir)%(ThirdPartyBinaries.Identity)'))"
+        Condition="@(ThirdPartyBinaries->Count()) &gt; 0 AND Exists('$(TargetDir)%(ThirdPartyBinaries.Identity)')"
+        KeepDuplicates="false">
+        <Authenticode>3PartySHA2</Authenticode>
       </FilesToSign>
     </ItemGroup>
 

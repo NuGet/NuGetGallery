@@ -20,6 +20,9 @@ trap {
     exit 1
 }
 
+# Enable TLS 1.2 since GitHub requires it.
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
 . "$PSScriptRoot\build\common.ps1"
 
 Function Clean-Tests {
@@ -95,6 +98,11 @@ Invoke-BuildStep 'Restoring solution packages' { `
 Invoke-BuildStep 'Building solution' { `
         $SolutionPath = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
         Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore
+    } `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Signing the binaries' {
+        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
     } `
     -ev +BuildErrors
     

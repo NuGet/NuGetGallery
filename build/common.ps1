@@ -180,6 +180,27 @@ Function Invoke-BuildStep {
     }
 }
 
+Function Sign-Binaries {
+    [CmdletBinding()]
+    param(
+        [string]$Configuration = $DefaultConfiguration,
+        [int]$BuildNumber = (Get-BuildNumber),
+        [string]$MSBuildVersion = $DefaultMSBuildVersion,
+        [string[]]$ProjectsToSign = $null
+    )
+
+    if ($ProjectsToSign -eq $null) {
+        $repositoryDir = [IO.Path]::GetDirectoryName($PSScriptRoot)
+        $defaultProjectsToSign = Join-Path $repositoryDir "src\**\*.csproj"
+        $ProjectsToSign = @($defaultProjectsToSign)
+    }
+
+    $projectsToSignProperty = $ProjectsToSign -join ';'
+
+    $ProjectPath = Join-Path $PSScriptRoot "sign-binaries.proj"
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties "/p:ProjectsToSign=`"$projectsToSignProperty`""
+}
+
 Function Sign-Packages {
     [CmdletBinding()]
     param(
@@ -188,7 +209,7 @@ Function Sign-Packages {
         [string]$MSBuildVersion = $DefaultMSBuildVersion
     )
 
-    $ProjectPath = Join-Path $PSScriptRoot "sign.proj"
+    $ProjectPath = Join-Path $PSScriptRoot "sign-packages.proj"
     Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath
 }
 
@@ -372,33 +393,87 @@ Function Update-Submodule {
 
     Invoke-Git -Arguments $args
 }
-
-# Downloads NuGet.exe and VSTS Credential provider if missing
 Function Install-NuGet {
     [CmdletBinding()]
     param()
+
     $NuGetFolderPath = Split-Path -Path $NuGetExe -Parent
-    if (-not (Test-Path $NuGetFolderPath )) {
-        Trace-Log 'Creating folder "$($NuGetFolderPath)"'
-        New-Item $NuGetFolderPath -Type Directory | Out-Null
+    $NuGetInstalledMarker = Join-Path $NuGetFolderPath ".marker.v1"
+    $CredentialProviderDir = Join-Path $NuGetFolderPath "credprovider"
+    $CredentialProviderPath = Join-Path $CredentialProviderDir "plugins\netfx\CredentialProvider.Microsoft\CredentialProvider.Microsoft.exe"
+
+    if (Test-Path $NuGetInstalledMarker) {
+        Trace-Log "nuget.exe is already installed"
+        Trace-Log "Marker file exists: $NuGetInstalledMarker"
+    } else {
+        $progressPreference = 'SilentlyContinue'
+        try {
+            if (-not (Test-Path $NuGetFolderPath)) {
+                New-Item $NuGetFolderPath -Type Directory | Out-Null
+            }
+    
+            $CredentialProviderBundle = (Join-Path $NuGetClientRoot '.nuget\Microsoft.NuGet.CredentialProvider.zip')
+    
+            Trace-Log 'Downloading Azure Artifacts Credential Provider'
+            Invoke-WebRequest `
+                https://github.com/microsoft/artifacts-credprovider/releases/download/0.1.18/Microsoft.NuGet.CredentialProvider.zip `
+                -UseBasicParsing `
+                -OutFile $CredentialProviderBundle
+    
+            if (Test-Path $CredentialProviderDir) {
+                Remove-Item $CredentialProviderDir -Recurse -Force
+            }
+        
+            Trace-Log 'Extracting Azure Artifacts Credential Provider'
+            & $7zipExe x $CredentialProviderBundle "-o$CredentialProviderDir" "-y"
+            if ($LASTEXITCODE -ne 0) {
+                throw "7-zip failed to extract $CredentialProviderBundle"
+            }
+    
+            Remove-Item $CredentialProviderBundle
+
+            Trace-Log 'Downloading nuget.exe'
+            Invoke-WebRequest `
+                https://dist.nuget.org/win-x86-commandline/v5.3.0/nuget.exe `
+                -UseBasicParsing `
+                -OutFile $NuGetExe
+            
+            # Mark nuget.exe and associated files as installed.
+            $NuGetInstalledMarker | Out-File -FilePath $NuGetInstalledMarker
+        } catch {
+            if (Test-Path $NuGetExe) {
+                Remove-Item $NuGetExe -Recurse -Force
+            }
+            if (Test-Path $CredentialProviderDir) {
+                Remove-Item $CredentialProviderDir -Recurse -Force
+            }
+            if (Test-Path $NuGetInstalledMarker) {
+                Remove-Item $NuGetInstalledMarker -Recurse -Force
+            }
+            throw;
+        } finally {
+            $progressPreference = 'Continue'
+        }
     }
 
-    $CredentialProviderBundle = (Join-Path $NuGetClientRoot '.nuget\CredentialProviderBundle.zip')
-    if (-not (Test-Path $CredentialProviderBundle)) {
-        Trace-Log 'Downloading VSTS credential provider'
-
-        wget -UseBasicParsing https://msblox.pkgs.visualstudio.com/DefaultCollection/_apis/public/nuget/client/CredentialProviderBundle.zip -OutFile $CredentialProviderBundle
+    if (-not (Test-Path $CredentialProviderPath)) {
+        throw "No file exists at the expected credential provider path: $CredentialProviderPath"
     }
 
     if (-not (Test-Path $NuGetExe)) {
-        Trace-Log 'Extracting VSTS credential provider'
-        & $7zipExe e $CredentialProviderBundle "-o$NuGetFolderPath"
-
-        Remove-Item $CredentialProviderBundle
+        throw "No file exists at the expected nuget.exe path: $NuGetExe"
     }
+
+    Trace-Log "Setting NuGet .NET Framework credential path"
+    $env:NUGET_NETFX_PLUGIN_PATHS = $CredentialProviderPath
+    $env:NUGET_PLUGIN_PATHS = $CredentialProviderPath
     
-    Trace-Log 'Downloading latest prerelease of nuget.exe'
-    wget -UseBasicParsing https://dist.nuget.org/win-x86-commandline/v4.9.3/nuget.exe -OutFile $NuGetExe
+    # This is a mitigation for rampant timeouts from the credential provider.
+    # See https://github.com/NuGet/Home/issues/7842#issuecomment-531059076
+    $timeoutInSeconds = 30
+    Trace-Log "Increasing NuGet plug-in timeout values to $timeoutInSeconds seconds."
+    $env:NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS = $timeoutInSeconds
+    $env:NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS = $timeoutInSeconds
 }
 
 Function Configure-NuGetCredentials {
@@ -675,6 +750,7 @@ Function New-WebAppPackage {
     $opts += "/p:WebPublishMethod=Package"
     $opts += "/p:PackageAsSingleFile=true"
     $opts += "/p:PackageLocation=$Artifacts"
+    $opts += "/p:BatchSign=false"
     
     if (-not (Test-Path $Artifacts)) {
         New-Item $Artifacts -Type Directory
@@ -714,6 +790,7 @@ Function New-ProjectPackage {
     
     $opts += "/p:Configuration=$Configuration;BuildNumber=$(Format-BuildNumber $BuildNumber)"
     $opts += "/p:PackageOutputPath=$Artifacts"
+    $opts += "/p:NoBuild=true"
     
     if (-not $Sign)
     {

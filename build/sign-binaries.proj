@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="AfterBuild" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props" Condition="Exists('..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props')" />
+
+  <PropertyGroup>
+    <RepositoryRootDirectory>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))\</RepositoryRootDirectory>
+    <IntermediateOutputPath>$(RepositoryRootDirectory)artifacts\sign\obj\</IntermediateOutputPath>
+    <OutDir>$(RepositoryRootDirectory)</OutDir>
+    <SignTargetsDependOn>BatchSign</SignTargetsDependOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <_ProjectsToSign Condition="'$(ProjectsToSign)' == ''" Include="$(RepositoryRootDirectory)src\**\*.csproj" />
+    <_ProjectsToSign Condition="'$(ProjectsToSign)' != ''" Include="$(ProjectsToSign)" />
+  </ItemGroup>
+
+  <Target Name="BatchSign">
+    <Message Text="Projects considered:%0A@(_ProjectsToSign, '%0a')" Importance="High" />
+    <MSBuild
+      Projects="@(_ProjectsToSign)"
+      Properties="SkipEnumerateFilesToSign=false"
+      Targets="EnumerateFilesToSign">
+      <Output
+          TaskParameter="TargetOutputs"
+          ItemName="UnfilteredFilesToSign" />
+    </MSBuild>
+    <FindDuplicateFiles Files="@(UnfilteredFilesToSign)">
+      <Output
+        TaskParameter="UniqueFiles"
+        ItemName="FilesToSign" />
+      <Output
+        TaskParameter="DuplicateFiles"
+        ItemName="DuplicateFilesToSign" />
+    </FindDuplicateFiles>
+    <Message Text="Count of files to sign: @(FilesToSign->Count())" Importance="High" />
+    <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High"/>
+  </Target>
+
+  <Target Name="AfterBuild" DependsOnTargets="$(SignTargetsDependOn)" />
+
+  <Target Name="CopySignedFiles" AfterTargets="SignFiles">
+    <Copy
+      SourceFiles="@(DuplicateFilesToSign->'%(DuplicateOf)')"
+      DestinationFiles="@(DuplicateFilesToSign)" />
+  </Target>
+
+  <Import Project="FindDuplicateFiles.targets" />
+  <Import Project="..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets" Condition="Exists('..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" />
+</Project>
