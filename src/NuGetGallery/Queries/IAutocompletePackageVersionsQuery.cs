@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public interface IAutocompletePackageVersionsQuery
     {
-        Task<IReadOnlyList<string>> Execute(
+        Task<IEnumerable<string>> Execute(
             string id,
             bool? includePrerelease = false,
             string semVerLevel = null);
