@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public interface IAutocompletePackageIdsQuery
     {
-        Task<IEnumerable<string>> Execute(
+        Task<IReadOnlyList<string>> Execute(
             string partialId,
             bool? includePrerelease = false,
             string semVerLevel = null);

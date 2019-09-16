@@ -1,66 +1,65 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public class AutocompleteDatabasePackageIdsQuery
-        : AutocompleteDatabaseQuery, IAutocompletePackageIdsQuery
+    public class AutocompleteDatabasePackageIdsQuery : IAutocompletePackageIdsQuery
     {
-        private const string _partialIdSqlFormat = @"SELECT TOP 30 pr.ID
-FROM Packages p (NOLOCK)
-    JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
-WHERE {0} AND pr.ID LIKE {{0}}
-    {1}
-GROUP BY pr.ID
-ORDER BY pr.ID";
+        private readonly IReadOnlyEntityRepository<Package> _packageRepository;
+        private const int MaxResults = 30;
 
-        private const string _noPartialIdSql = @"SELECT TOP 30 pr.ID
-FROM Packages p (NOLOCK)
-    JOIN PackageRegistrations pr (NOLOCK) on pr.[Key] = p.PackageRegistrationKey
-WHERE  {0} 
-GROUP BY pr.ID
-ORDER BY MAX(pr.DownloadCount) DESC";
-        
-        public AutocompleteDatabasePackageIdsQuery(IEntitiesContext entities)
-            : base(entities)
+        public AutocompleteDatabasePackageIdsQuery(IReadOnlyEntityRepository<Package> packageRepository)
         {
+            _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
         }
 
-        public Task<IEnumerable<string>> Execute(
+        public Task<IReadOnlyList<string>> Execute(
             string partialId,
             bool? includePrerelease = false,
             string semVerLevel = null)
         {
-            // Create SQL filter on SemVerLevel
-            // By default, we filter out SemVer v2.0.0 package versions.
-            var semVerLevelSqlFilter = "p.[SemVerLevelKey] IS NULL";
-            if (!string.IsNullOrEmpty(semVerLevel))
-            {
-                var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
-                if (semVerLevelKey == SemVerLevelKey.SemVer2)
-                {
-                    semVerLevelSqlFilter = "p.[SemVerLevelKey] = " + SemVerLevelKey.SemVer2;
-                }
-            }
+            var query = _packageRepository.GetAll()
+                .Include(p => p.PackageRegistration)
+                .Where(p => p.PackageStatusKey == PackageStatus.Available && p.Listed)
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
 
-            if (string.IsNullOrWhiteSpace(partialId))
-            {
-                return RunSqlQuery(string.Format(CultureInfo.InvariantCulture, _noPartialIdSql, semVerLevelSqlFilter));
-            }
-
-            var prereleaseFilter = string.Empty;
+            // prerelease filter
             if (!includePrerelease.HasValue || !includePrerelease.Value)
             {
-                prereleaseFilter = "AND p.IsPrerelease = {1}";
+                query = query.Where(p => !p.IsPrerelease);
             }
 
-            var sql = string.Format(CultureInfo.InvariantCulture, _partialIdSqlFormat, semVerLevelSqlFilter, prereleaseFilter);
+            var ids = new List<string>();
 
-            return RunSqlQuery(sql, partialId + "%", includePrerelease ?? false);
+            // filters added for partialId
+            if (!string.IsNullOrWhiteSpace(partialId))
+            {
+                ids = query.Where(p => p.PackageRegistration.Id.StartsWith(partialId))
+                    .GroupBy(p => p.PackageRegistration.Id)
+                    .Select(group => group.Key)
+                    .OrderBy(id => id)
+                    .Take(MaxResults)
+                    .ToList();
+            }
+            else
+            {
+                ids = query
+                    .Select(p => p.PackageRegistration)
+                    .Distinct()
+                    .OrderByDescending(pr => pr.DownloadCount)
+                    .Select(pr => pr.Id)
+                    .Take(MaxResults)
+                    .ToList();
+            }
+
+            return Task.FromResult<IReadOnlyList<string>>(ids);
         }
     }
 }
