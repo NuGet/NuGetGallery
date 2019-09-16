@@ -27,7 +27,7 @@ namespace NuGetGallery
             _resilientSearchClient = resilientSearchClient;
         }
 
-        public async Task<IReadOnlyList<string>> RunServiceQuery(
+        public async Task<IEnumerable<string>> RunServiceQuery(
             string queryString, 
             bool? includePrerelease,
             string semVerLevel = null)
@@ -36,7 +36,7 @@ namespace NuGetGallery
             var result = await ExecuteQuery(queryString);
             var resultObject = JObject.Parse(result);
 
-            return resultObject["data"].Select(entry => entry.ToString()).ToList();
+            return resultObject["data"].Select(entry => entry.ToString());
         }
 
         internal async Task<string> ExecuteQuery(string queryString)
