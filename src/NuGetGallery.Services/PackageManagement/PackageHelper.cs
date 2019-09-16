@@ -41,16 +41,19 @@ namespace NuGetGallery
         /// If the input uri is https => leave as is
         /// If the input uri is not a valid uri or not http/https => return false
         /// </summary>
-        public static bool TryPrepareUrlForRendering(string uriString, out string readyUriString)
+        public static bool TryPrepareUrlForRendering(string uriString, out string readyUriString, bool rewriteAllHttp = false)
         {
             Uri returnUri = null;
             readyUriString = null;
 
             if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
             {
-                if (uri.IsHttpProtocol() && uri.IsDomainWithHttpsSupport())
+                if (uri.IsHttpProtocol())
                 {
-                    returnUri = uri.ToHttps();
+                    if (rewriteAllHttp || uri.IsDomainWithHttpsSupport())
+                    {
+                        returnUri = uri.ToHttps();
+                    }
                 }
                 else if (uri.IsHttpsProtocol() || uri.IsHttpProtocol())
                 {
