@@ -54,11 +54,6 @@ namespace NuGetGallery
                 throw new InvalidOperationException("A package that failed validation should never be listed!");
             }
 
-            if (!package.Listed && (package.IsLatestStable || package.IsLatest || package.IsLatestSemVer2 || package.IsLatestStableSemVer2))
-            {
-                throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");
-            }
-
             package.Listed = true;
             package.LastUpdated = DateTime.UtcNow;
             // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
@@ -98,7 +93,7 @@ namespace NuGetGallery
             // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
             package.LastEdited = DateTime.UtcNow;
 
-            if (ShouldUpdateIsLatestForPackageWhenUnlisting(package))
+            if (package.IsLatest || package.IsLatestStable || package.IsLatestSemVer2 || package.IsLatestStableSemVer2)
             {
                 await _packageService.UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
             }
@@ -171,11 +166,6 @@ WHERE [Key] IN ({0})";
                     $"Updated an unexpected number of packages when performing a bulk update! " +
                     $"Updated {result} packages instead of {expectedResult}.");
             }
-        }
-
-        private bool ShouldUpdateIsLatestForPackageWhenUnlisting(Package package)
-        {
-            return package.IsLatest || package.IsLatestStable || package.IsLatestSemVer2 || package.IsLatestStableSemVer2;
         }
     }
 }
