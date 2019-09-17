@@ -54,6 +54,10 @@ namespace NuGetGallery
                     {
                         returnUri = uri.ToHttps();
                     }
+                    else
+                    {
+                        returnUri = uri;
+                    }
                 }
                 else if (uri.IsHttpsProtocol() || uri.IsHttpProtocol())
                 {
