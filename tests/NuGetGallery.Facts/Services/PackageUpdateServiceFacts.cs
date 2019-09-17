@@ -76,25 +76,6 @@ namespace NuGetGallery.Services
                 }
             }
 
-            [Theory]
-            [MemberData(nameof(ThrowsWhenPackageIsLatest_Data))]
-            public async Task ThrowsWhenPackageIsLatest(PackageLatestState latestState)
-            {
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package = new Package
-                {
-                    Version = "1.0",
-                    PackageRegistration = packageRegistration,
-                    Listed = false
-                };
-
-                SetLatestOfPackage(package, latestState);
-
-                var service = Get<PackageUpdateService>();
-
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.MarkPackageListedAsync(package));
-            }
-
             [Fact]
             public async Task WritesAnAuditRecord()
             {
