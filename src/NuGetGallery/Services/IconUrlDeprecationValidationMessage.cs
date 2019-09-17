@@ -3,9 +3,6 @@
 
 namespace NuGetGallery
 {
-    /// <summary>
-    /// IconUrl element deprecation message.
-    /// </summary>
     public class IconUrlDeprecationValidationMessage : IValidationMessage
     {
         public string PlainTextMessage => $"{Strings.UploadPackage_IconUrlDeprecated} https://aka.ms/deprecateIconUrl";
