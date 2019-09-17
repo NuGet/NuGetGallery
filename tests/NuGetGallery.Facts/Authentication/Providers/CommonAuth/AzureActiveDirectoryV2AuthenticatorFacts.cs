@@ -219,7 +219,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             public static Claim Identifier = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.Identifier, "blarg", ClaimValueTypes.String, Authority);
             public static Claim Name = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.Name, "bloog", ClaimValueTypes.String, Authority);
             public static Claim TenantId = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.TenantId, TEST_TENANT_ID, ClaimValueTypes.String, Authority);
-            public static Claim Email = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.EmailAddress, "blarg@bloog.com", ClaimValueTypes.String, Authority);
+            public static Claim Email = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.EmailAddress, "blarg@bloog.test", ClaimValueTypes.String, Authority);
 
             public static ClaimsIdentity GetIdentity()
             {

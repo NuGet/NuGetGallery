@@ -20,7 +20,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
     {
         public static class V2Claims
         {
-            public const string EmailAddress = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress";
+            public const string EmailAddress = ClaimTypes.Email;
             public const string Identifier = "http://schemas.microsoft.com/identity/claims/objectidentifier";
             public const string Issuer = "iss";
             public const string Name = "name";
