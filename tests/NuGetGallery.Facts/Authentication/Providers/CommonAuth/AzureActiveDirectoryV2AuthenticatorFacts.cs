@@ -180,7 +180,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 Assert.Equal("blarg", result.Identifier);
                 Assert.Equal("bloog", result.Name);
                 Assert.Equal(AzureActiveDirectoryV2Authenticator.AuthenticationType.AzureActiveDirectory, result.AuthenticationType);
-                Assert.Equal("blarg@bloog.com", result.Email);
+                Assert.Equal("blarg@bloog.test", result.Email);
                 Assert.Equal(TestData.TEST_TENANT_ID, result.TenantId);
             }
 
@@ -206,7 +206,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 Assert.Equal("0ae45d63e22e4a60", result.Identifier);
                 Assert.Equal("bloog", result.Name);
                 Assert.Equal(AzureActiveDirectoryV2Authenticator.AuthenticationType.MicrosoftAccount, result.AuthenticationType);
-                Assert.Equal("blarg@bloog.com", result.Email);
+                Assert.Equal("blarg@bloog.test", result.Email);
                 Assert.Equal(AzureActiveDirectoryV2Authenticator.PersonalMSATenant, result.TenantId);
             }
         }
@@ -219,7 +219,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             public static Claim Identifier = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.Identifier, "blarg", ClaimValueTypes.String, Authority);
             public static Claim Name = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.Name, "bloog", ClaimValueTypes.String, Authority);
             public static Claim TenantId = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.TenantId, TEST_TENANT_ID, ClaimValueTypes.String, Authority);
-            public static Claim Email = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.Email, "blarg@bloog.com", ClaimValueTypes.String, Authority);
+            public static Claim Email = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.EmailAddress, "blarg@bloog.test", ClaimValueTypes.String, Authority);
 
             public static ClaimsIdentity GetIdentity()
             {
