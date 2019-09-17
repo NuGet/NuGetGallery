@@ -60,22 +60,6 @@ namespace NuGetGallery.Services
                 await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.MarkPackageListedAsync(package));
             }
 
-            public static IEnumerable<object[]> ThrowsWhenPackageIsLatest_Data
-            {
-                get
-                {
-                    foreach (var latestState in Enum.GetValues(typeof(PackageLatestState)).Cast<PackageLatestState>())
-                    {
-                        if (latestState == PackageLatestState.Not)
-                        {
-                            continue;
-                        }
-
-                        yield return MemberDataHelper.AsData(latestState);
-                    }
-                }
-            }
-
             [Fact]
             public async Task WritesAnAuditRecord()
             {
