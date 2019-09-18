@@ -101,13 +101,16 @@ namespace NuGet.Jobs.GitHubIndexer
         {
             try
             {
+                // Need to set XmlResolver to null for CA3053.
+                // FXCop does not understand initializer syntax, so we must directly set the property.
+                var xmlSettings = new XmlReaderSettings();
+                xmlSettings.XmlResolver = null;
+
                 using (var streamReader = new StreamReader(fileStream))
-                using (var xmlReader = XmlReader.Create(streamReader))
+                using (var xmlReader = XmlReader.Create(streamReader, xmlSettings))
                 {
-                    var projDocument = new XmlDocument
-                    {
-                        XmlResolver = null
-                    };
+                    var projDocument = new XmlDocument();
+                    projDocument.XmlResolver = null;
 
                     projDocument.Load(xmlReader);
                     return GetAllPackageReferenceNodes(projDocument)
