@@ -24,7 +24,8 @@ namespace NgTests
         {
             return new EndpointConfiguration(
                 registrationCursorUri: new Uri("https://example/reg"),
-                flatContainerCursorUri: new Uri("https://example/fc"));
+                flatContainerCursorUri: new Uri("https://example/fc"),
+                instanceNameToSearchConfig: new Dictionary<string, SearchEndpointConfiguration>());
         }
 
         public static CatalogEndpoint CreateCatalogEndpoint()
@@ -43,6 +44,18 @@ namespace NgTests
         {
             return new RegistrationEndpoint(
                 CreateEndpointConfig(),
+                () => null);
+        }
+
+        public static SearchEndpoint CreateSearchEndpoint(
+            string instanceName = "usnc",
+            string cursorUri = "https://example/search/cursor.json",
+            string baseUri = "https://example-search/")
+        {
+            return new SearchEndpoint(
+                instanceName,
+                new[] { new Uri(cursorUri) },
+                new Uri(baseUri),
                 () => null);
         }
 
