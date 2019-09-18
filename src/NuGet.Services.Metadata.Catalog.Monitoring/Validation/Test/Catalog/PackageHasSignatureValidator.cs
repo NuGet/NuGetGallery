@@ -19,9 +19,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         private readonly ILogger<PackageHasSignatureValidator> _logger;
 
         public PackageHasSignatureValidator(
+            CatalogEndpoint endpoint,
             ValidatorConfiguration config,
             ILogger<PackageHasSignatureValidator> logger)
-            : base(config, logger)
+            : base(endpoint, config, logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

@@ -13,9 +13,10 @@ namespace NgTests
         protected override RegistrationExistsValidator CreateValidator(
             ILogger<RegistrationExistsValidator> logger)
         {
+            var endpoint = ValidatorTestUtility.CreateRegistrationEndpoint();
             var config = ValidatorTestUtility.CreateValidatorConfig();
 
-            return new RegistrationExistsValidator(config, logger);
+            return new RegistrationExistsValidator(endpoint, config, logger);
         }
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes => new Func<PackageRegistrationIndexMetadata>[]

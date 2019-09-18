@@ -9,9 +9,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class RegistrationListedValidator : RegistrationLeafValidator
     {
         public RegistrationListedValidator(
+            RegistrationEndpoint endpoint,
             ValidatorConfiguration config,
             ILogger<RegistrationListedValidator> logger)
-            : base(config, logger)
+            : base(endpoint, config, logger)
         {
         }
 

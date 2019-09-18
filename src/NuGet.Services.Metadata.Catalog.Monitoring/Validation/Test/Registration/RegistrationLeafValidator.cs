@@ -11,8 +11,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public abstract class RegistrationLeafValidator : RegistrationValidator
     {
-        public RegistrationLeafValidator(ValidatorConfiguration config, ILogger<RegistrationLeafValidator> logger)
-            : base(config, logger)
+        public RegistrationLeafValidator(
+            RegistrationEndpoint endpoint,
+            ValidatorConfiguration config,
+            ILogger<RegistrationLeafValidator> logger)
+            : base(endpoint, config, logger)
         {
         }
 

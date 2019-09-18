@@ -8,8 +8,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public class RegistrationExistsValidator : RegistrationLeafValidator
     {
-        public RegistrationExistsValidator(ValidatorConfiguration config, ILogger<RegistrationExistsValidator> logger)
-            : base(config, logger)
+        public RegistrationExistsValidator(
+            RegistrationEndpoint endpoint,
+            ValidatorConfiguration config,
+            ILogger<RegistrationExistsValidator> logger)
+            : base(endpoint, config, logger)
         {
         }
 

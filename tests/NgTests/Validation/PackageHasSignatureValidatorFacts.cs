@@ -21,11 +21,25 @@ namespace NgTests.Validation
     {
         public class Constructor
         {
+            private readonly CatalogEndpoint _endpoint;
             private readonly ValidatorConfiguration _configuration;
 
             public Constructor()
             {
+                _endpoint = ValidatorTestUtility.CreateCatalogEndpoint();
                 _configuration = new ValidatorConfiguration(packageBaseAddress: "a", requireRepositorySignature: true);
+            }
+
+            [Fact]
+            public void WhenEndpointIsNull_Throws()
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new PackageHasSignatureValidator(
+                        endpoint: null,
+                        config: _configuration,
+                        logger: Mock.Of<ILogger<PackageHasSignatureValidator>>()));
+
+                Assert.Equal("endpoint", exception.ParamName);
             }
 
             [Fact]
@@ -33,6 +47,7 @@ namespace NgTests.Validation
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new PackageHasSignatureValidator(
+                        _endpoint,
                         config: null,
                         logger: Mock.Of<ILogger<PackageHasSignatureValidator>>()));
 
@@ -44,6 +59,7 @@ namespace NgTests.Validation
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new PackageHasSignatureValidator(
+                        _endpoint,
                         _configuration,
                         logger: null));
 
@@ -301,9 +317,10 @@ namespace NgTests.Validation
 
             protected PackageHasSignatureValidator CreateTarget(bool requireRepositorySignature = true)
             {
+                var endpoint = ValidatorTestUtility.CreateCatalogEndpoint();
                 var config = ValidatorTestUtility.CreateValidatorConfig(requireRepositorySignature: requireRepositorySignature);
 
-                return new PackageHasSignatureValidator(config, _logger.Object);
+                return new PackageHasSignatureValidator(endpoint, config, _logger.Object);
             }
 
             protected void AddCatalogLeaf(string path, CatalogLeaf leaf)

@@ -14,9 +14,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Registratio
     public class RegistrationDeprecationValidator : RegistrationIndexValidator
     {
         public RegistrationDeprecationValidator(
+            RegistrationEndpoint endpoint,
             ValidatorConfiguration config,
             ILogger<RegistrationDeprecationValidator> logger)
-            : base(config, logger)
+            : base(endpoint, config, logger)
         {
         }
 

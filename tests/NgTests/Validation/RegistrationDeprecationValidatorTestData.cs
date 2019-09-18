@@ -17,9 +17,10 @@ namespace NgTests.Validation
         protected override RegistrationDeprecationValidator CreateValidator(
             ILogger<RegistrationDeprecationValidator> logger)
         {
+            var endpoint = ValidatorTestUtility.CreateRegistrationEndpoint();
             var config = new ValidatorConfiguration("https://nuget.test/packages", requireRepositorySignature: false);
 
-            return new RegistrationDeprecationValidator(config, logger);
+            return new RegistrationDeprecationValidator(endpoint, config, logger);
         }
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes

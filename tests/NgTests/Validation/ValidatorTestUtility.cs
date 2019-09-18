@@ -20,6 +20,32 @@ namespace NgTests
 {
     public static class ValidatorTestUtility
     {
+        public static EndpointConfiguration CreateEndpointConfig()
+        {
+            return new EndpointConfiguration(
+                registrationCursorUri: new Uri("https://example/reg"),
+                flatContainerCursorUri: new Uri("https://example/fc"));
+        }
+
+        public static CatalogEndpoint CreateCatalogEndpoint()
+        {
+            return new CatalogEndpoint();
+        }
+
+        public static FlatContainerEndpoint CreateFlatContainerEndpoint()
+        {
+            return new FlatContainerEndpoint(
+                CreateEndpointConfig(),
+                () => null);
+        }
+
+        public static RegistrationEndpoint CreateRegistrationEndpoint()
+        {
+            return new RegistrationEndpoint(
+                CreateEndpointConfig(),
+                () => null);
+        }
+
         public static ValidatorConfiguration CreateValidatorConfig(
             string packageBaseAddress = "https://nuget.test/packages",
             bool requireRepositorySignature = false)
