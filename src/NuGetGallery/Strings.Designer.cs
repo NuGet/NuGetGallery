@@ -2355,7 +2355,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;licenseUrl&gt; element will be deprecated, please consider switching to specifying the license in the package..
+        ///   Looks up a localized string similar to The &lt;licenseUrl&gt; element is deprecated. Consider using the &lt;license&gt; element instead..
         /// </summary>
         public static string UploadPackage_DeprecatingLicenseUrl {
             get {
@@ -2427,7 +2427,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;iconUrl&gt; element will be deprecated, please consider switching to specifying the icon in the package..
+        ///   Looks up a localized string similar to The &lt;iconUrl&gt; element is deprecated. Consider using the &lt;icon&gt; element instead..
         /// </summary>
         public static string UploadPackage_IconUrlDeprecated {
             get {

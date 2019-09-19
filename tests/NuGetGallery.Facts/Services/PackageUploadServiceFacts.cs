@@ -554,7 +554,7 @@ namespace NuGetGallery
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                     Assert.Null(result.Message);
                     Assert.Single(result.Warnings);
-                    Assert.StartsWith("<licenseUrl> element will be deprecated, please consider switching to specifying the license in the package.", result.Warnings[0].PlainTextMessage);
+                    Assert.StartsWith("The <licenseUrl> element is deprecated. Consider using the <license> element instead.", result.Warnings[0].PlainTextMessage);
                     Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Warnings[0]);
                 }
             }
@@ -1162,8 +1162,8 @@ namespace NuGetGallery
                 Assert.Null(result.Message);
                 var warning = Assert.Single(result.Warnings);
                 Assert.IsType<IconUrlDeprecationValidationMessage>(warning);
-                Assert.StartsWith("<iconUrl> element will be deprecated, please consider switching to specifying the icon in the package.", warning.PlainTextMessage);
-                Assert.StartsWith("&lt;iconUrl&gt; element will be deprecated, please consider switching to specifying the icon in the package.", warning.RawHtmlMessage);
+                Assert.StartsWith("The <iconUrl> element is deprecated. Consider using the <icon> element instead.", warning.PlainTextMessage);
+                Assert.StartsWith("The &lt;iconUrl&gt; element is deprecated. Consider using the &lt;icon&gt; element instead.", warning.RawHtmlMessage);
             }
 
             [Fact]
