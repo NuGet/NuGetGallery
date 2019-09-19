@@ -269,6 +269,9 @@ namespace NuGetGallery
             [InlineData("> <text>Blockquote</text>", "<blockquote><p>&lt;text&gt;Blockquote&lt;/text&gt;</p></blockquote>")]
             [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>")]
             [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"nofollow\">text</a></p>")]
+            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>")]
+            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>")]
+            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>")]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml)
             {
                 Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd)));

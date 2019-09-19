@@ -210,16 +210,31 @@ namespace NuGetGallery
                     }
 
                     var inline = node.Inline;
-                    if (inline != null && inline.Tag == InlineTag.Link)
+                    if (inline != null)
                     {
-                        // Allow only http or https links in markdown. Transform link to https for known domains.
-                        if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString))
+                        if (inline.Tag == InlineTag.Link)
                         {
-                            inline.TargetUrl = string.Empty;
+                            // Allow only http or https links in markdown. Transform link to https for known domains.
+                            if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString))
+                            {
+                                inline.TargetUrl = string.Empty;
+                            }
+                            else
+                            {
+                                inline.TargetUrl = readyUriString;
+                            }
                         }
-                        else
+
+                        else if (inline.Tag == InlineTag.Image)
                         {
-                            inline.TargetUrl = readyUriString;
+                            if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                            {
+                                inline.TargetUrl = string.Empty;
+                            }
+                            else
+                            {
+                                inline.TargetUrl = readyUriString;
+                            }
                         }
                     }
                 }
