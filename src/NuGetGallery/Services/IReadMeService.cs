@@ -21,14 +21,14 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="readMeRequest">Request object.</param>
         /// <returns>HTML from markdown conversion.</returns>
-        Task<string> GetReadMeHtmlAsync(ReadMeRequest readMeRequest, Encoding encoding);
+        Task<RenderedReadMeResult> GetReadMeHtmlAsync(ReadMeRequest readMeRequest, Encoding encoding);
 
         /// <summary>
         /// Get the converted HTML from the stored ReadMe markdown.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <returns>ReadMe converted to HTML.</returns>
-        Task<string> GetReadMeHtmlAsync(Package package);
+        Task<RenderedReadMeResult> GetReadMeHtmlAsync(Package package);
 
         /// <summary>
         /// Get package ReadMe markdown from storage.

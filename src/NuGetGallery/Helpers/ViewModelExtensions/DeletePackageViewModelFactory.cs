@@ -31,7 +31,7 @@ namespace NuGetGallery
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons)
         {
-            _displayPackageViewModelFactory.Setup(viewModel, package, currentUser, deprecation: null, readMeHtml: null);
+            _displayPackageViewModelFactory.Setup(viewModel, package, currentUser, deprecation: null, readmeResult: null);
             return SetupInternal(viewModel, package, reasons);
         }
 

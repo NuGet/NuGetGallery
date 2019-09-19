@@ -258,7 +258,7 @@ namespace NuGetGallery
             [InlineData("<a href=\"javascript:alert('test');\">", "<p>&lt;a href=&quot;javascript:alert('test');&quot;&gt;</p>")]
             public void EncodesHtmlInMarkdown(string originalMd, string expectedHtml)
             {
-                Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd)));
+                Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd).Content));
             }
 
             [Theory]
@@ -274,7 +274,7 @@ namespace NuGetGallery
             [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>")]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml)
             {
-                Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd)));
+                Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd).Content));
             }
 
             [Fact]
@@ -285,7 +285,7 @@ namespace NuGetGallery
                 var package = new Package() { HasReadMe = false };
 
                 // Act & Assert
-                Assert.Null(await readMeService.GetReadMeHtmlAsync(package));
+                Assert.Null((await readMeService.GetReadMeHtmlAsync(package)).Content);
             }
 
             private static string StripNewLines(string text)

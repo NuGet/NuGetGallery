@@ -2724,7 +2724,7 @@ namespace NuGetGallery
             try
             {
                 var readMeHtml = await _readMeService.GetReadMeHtmlAsync(formData, Request.ContentEncoding);
-                return Json(new[] { readMeHtml });
+                return Json(new[] { readMeHtml?.Content });
             }
             catch (Exception ex)
             {

@@ -465,6 +465,7 @@
     <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
+    <Compile Include="Services\RenderedReadMeResult.cs" />
     <Compile Include="Services\SearchSideBySideService.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
     <Compile Include="Services\FlatContainerContentFileMetadataService.cs" />

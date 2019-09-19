@@ -8346,7 +8346,7 @@ namespace NuGetGallery
 
                 readmeService
                     .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
-                    .ReturnsAsync(html);
+                    .ReturnsAsync(new RenderedReadMeResult { Content = html } );
 
                 var result = await controller.PreviewReadMe(request);
 
