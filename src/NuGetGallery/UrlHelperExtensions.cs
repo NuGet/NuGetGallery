@@ -595,6 +595,23 @@ namespace NuGetGallery
             return GetActionLink(url, "Profiles", "Users", relativeUrl, routeValues);
         }
 
+        public static string Avatar(
+            this UrlHelper url,
+            string accountName,
+            int imageSize,
+            bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.GetAccountAvatar,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName },
+                    { "imageSize", imageSize },
+                });
+        }
+
         /// <summary>
         /// Initializes a user link that can be resolved at a later time.
         /// 

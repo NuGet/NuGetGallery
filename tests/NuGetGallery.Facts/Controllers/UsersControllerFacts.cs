@@ -3751,5 +3751,94 @@ namespace NuGetGallery
                 Assert.Equal(iconUrl, model.ListedPackages.Single().IconUrl);
             }
         }
+
+        public class TheGetAvatarAction : TestContainer
+        {
+            [Fact]
+            public async Task ReturnsNotFound()
+            {
+                // Arrange
+                GetMock<IGravatarProxyService>()
+                    .Setup(g => g.GetAvatarOrNullAsync("username", 100))
+                    .ReturnsAsync(() => null);
+
+                var controller = GetController<UsersController>();
+
+                // Act
+                var result = await controller.GetAvatar("username", 100);
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+                GetMock<IGravatarProxyService>()
+                    .Verify(g => g.GetAvatarOrNullAsync("username", 100), Times.Once);
+            }
+
+            [Fact]
+            public async Task ReturnsFileResult()
+            {
+                // Arrange
+                using (var stream = new MemoryStream(Encoding.ASCII.GetBytes("Hello World")))
+                {
+                    GetMock<IGravatarProxyService>()
+                        .Setup(g => g.GetAvatarOrNullAsync("username", 100))
+                        .ReturnsAsync(() => new GravatarProxyResult(stream, "image/png"));
+
+                    var controller = GetController<UsersController>();
+
+                    // Act
+                    var result = await controller.GetAvatar("username", 100);
+
+                    // Assert
+                    var fileResult = Assert.IsType<FileStreamResult>(result);
+
+                    string contentString;
+                    using (var reader = new StreamReader(fileResult.FileStream))
+                    {
+                        contentString = reader.ReadToEnd();
+                    }
+
+                    Assert.Equal("image/png", fileResult.ContentType);
+                    Assert.Equal("Hello World", contentString);
+                    GetMock<IGravatarProxyService>()
+                        .Verify(g => g.GetAvatarOrNullAsync("username", 100), Times.Once);
+                }
+            }
+
+            [Fact]
+            public async Task DefaultImageSize()
+            {
+                // Arrange
+                GetMock<IGravatarProxyService>()
+                    .Setup(g => g.GetAvatarOrNullAsync("username", 64))
+                    .ReturnsAsync(() => null);
+
+                var controller = GetController<UsersController>();
+
+                // Act
+                await controller.GetAvatar("username");
+
+                // Assert
+                GetMock<IGravatarProxyService>()
+                    .Verify(g => g.GetAvatarOrNullAsync("username", 64), Times.Once);
+            }
+
+            [Fact]
+            public async Task SupportsNullImageSize()
+            {
+                // Arrange
+                GetMock<IGravatarProxyService>()
+                    .Setup(g => g.GetAvatarOrNullAsync("username", 64))
+                    .ReturnsAsync(() => null);
+
+                var controller = GetController<UsersController>();
+
+                // Act
+                await controller.GetAvatar("username", imageSize: null);
+
+                // Assert
+                GetMock<IGravatarProxyService>()
+                    .Verify(g => g.GetAvatarOrNullAsync("username", 64), Times.Once);
+            }
+        }
     }
 }

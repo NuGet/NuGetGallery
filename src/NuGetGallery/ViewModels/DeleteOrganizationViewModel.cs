@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
@@ -11,23 +12,18 @@ namespace NuGetGallery
     {
         public DeleteOrganizationViewModel(
             Organization organizationToDelete, 
-            User currentUser,
-            IReadOnlyCollection<DeleteAccountListPackageItemViewModel> ownedPackages)
+            IReadOnlyCollection<DeleteAccountListPackageItemViewModel> ownedPackages,
+            IReadOnlyList<OrganizationMemberViewModel> members,
+            IReadOnlyList<OrganizationMemberViewModel> additionalMembers)
             : base(organizationToDelete, ownedPackages)
         {
-            Members = organizationToDelete.Members
-                .Select(m => new OrganizationMemberViewModel(m))
-                .ToList();
-
-            AdditionalMembers = organizationToDelete.Members
-                .Where(m => !m.Member.MatchesUser(currentUser))
-                .Select(m => new OrganizationMemberViewModel(m))
-                .ToList();
+            Members = members ?? throw new ArgumentNullException(nameof(members));
+            AdditionalMembers = additionalMembers ?? throw new ArgumentNullException(nameof(additionalMembers));
         }
 
-        public IEnumerable<OrganizationMemberViewModel> Members { get; set; }
+        public IReadOnlyList<OrganizationMemberViewModel> Members { get; set; }
         
-        public IEnumerable<OrganizationMemberViewModel> AdditionalMembers { get; set; }
+        public IReadOnlyList<OrganizationMemberViewModel> AdditionalMembers { get; set; }
 
         public bool HasAdditionalMembers => AdditionalMembers.Any();
     }

@@ -50,7 +50,8 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             IFeatureFlagService featureFlagService,
             IMessageServiceConfiguration messageServiceConfiguration,
-            IIconUrlProvider iconUrlProvider)
+            IIconUrlProvider iconUrlProvider,
+            IGravatarProxyService gravatarProxy)
             : base(
                   authService,
                   packageService,
@@ -62,7 +63,8 @@ namespace NuGetGallery
                   contentObjectService,
                   messageServiceConfiguration,
                   deleteAccountService,
-                  iconUrlProvider)
+                  iconUrlProvider,
+                  gravatarProxy)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));

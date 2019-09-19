@@ -83,5 +83,10 @@ namespace NuGetGallery
         /// Whether using the preview search to hijack OData queries is enabled.
         /// </summary>
         bool IsPreviewHijackEnabled();
+
+        /// <summary>
+        /// Whether Gravatar images should be proxied.
+        /// </summary>
+        bool IsGravatarProxyEnabled();
     }
 }

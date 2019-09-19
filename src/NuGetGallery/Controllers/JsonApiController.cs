@@ -25,19 +25,22 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
+        private readonly IFeatureFlagService _features;
 
         public JsonApiController(
             IPackageService packageService,
             IUserService userService,
             IMessageService messageService,
             IAppConfiguration appConfiguration,
-            IPackageOwnershipManagementService packageOwnershipManagementService)
+            IPackageOwnershipManagementService packageOwnershipManagementService,
+            IFeatureFlagService features)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
+            _features = features ?? throw new ArgumentNullException(nameof(features));
         }
 
         [HttpGet]
@@ -63,6 +66,7 @@ namespace NuGetGallery
 
             var packageAndReservedNamespaceOwners = packageRegistrationOwners.Intersect(allMatchingNamespaceOwners);
             var packageOwnersOnly = packageRegistrationOwners.Except(packageAndReservedNamespaceOwners);
+            var proxyGravatar = _features.IsGravatarProxyEnabled();
 
             var owners =
                 packageAndReservedNamespaceOwners
@@ -72,7 +76,8 @@ namespace NuGetGallery
                     registration,
                     Url,
                     isPending: false,
-                    isNamespaceOwner: true));
+                    isNamespaceOwner: true,
+                    proxyGravatar: proxyGravatar));
 
             var packageOwnersOnlyResultViewModel =
                 packageOwnersOnly
@@ -82,7 +87,8 @@ namespace NuGetGallery
                     registration,
                     Url,
                     isPending: false,
-                    isNamespaceOwner: false));
+                    isNamespaceOwner: false,
+                    proxyGravatar: proxyGravatar));
 
             owners = owners.Union(packageOwnersOnlyResultViewModel);
 
@@ -94,7 +100,8 @@ namespace NuGetGallery
                     registration,
                     Url,
                     isPending: true,
-                    isNamespaceOwner: false));
+                    isNamespaceOwner: false,
+                    proxyGravatar: proxyGravatar));
 
             var result = owners.Union(pending);
 
@@ -108,6 +115,7 @@ namespace NuGetGallery
             string id = addOwnerData.Id;
             string username = addOwnerData.Username;
             string message = addOwnerData.Message;
+            bool proxyGravatar = _features.IsGravatarProxyEnabled();
 
             if (Regex.IsMatch(username, GalleryConstants.EmailValidationRegex, RegexOptions.None, GalleryConstants.EmailValidationRegexTimeout))
             {
@@ -187,7 +195,8 @@ namespace NuGetGallery
                         model.Package,
                         Url,
                         isPending: !model.CurrentUserCanAcceptOnBehalfOfUser,
-                        isNamespaceOwner: false)
+                        isNamespaceOwner: false,
+                        proxyGravatar: proxyGravatar)
                 });
             }
             else

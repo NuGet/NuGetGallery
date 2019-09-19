@@ -191,6 +191,7 @@ namespace NuGetGallery.Telemetry
                 yield return new string[] { "packages/{id}/owners/{username}/reject/{token}", $"https://localhost/packages/pack1/owners/{user}/reject/sometoken", "https://localhost/packages/pack1/owners/ObfuscatedUserName/reject/ObfuscatedToken" };
                 yield return new string[] { "packages/{id}/required-signer/{username}", $"https://localhost/packages/pack1/required-signer/{user}", "https://localhost/packages/pack1/required-signer/ObfuscatedUserName" };
                 yield return new string[] { "profiles/{username}", $"https://localhost/profiles/{user}", "https://localhost/profiles/ObfuscatedUserName" };
+                yield return new string[] { "profiles/{accountName}/avatar", $"https://localhost/profiles/{user}/avatar", "https://localhost/profiles/ObfuscatedUserName/avatar" };
             }
 
             yield return new string[] { "account/transform/cancel/{token}", $"https://localhost/account/transform/cancel/sometoken", "https://localhost/account/transform/cancel/ObfuscatedToken" };

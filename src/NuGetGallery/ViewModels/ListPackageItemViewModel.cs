@@ -57,6 +57,7 @@ namespace NuGetGallery
         public bool CanSeeBreadcrumbWithProfile { get; set; }
         public bool CanDeleteSymbolsPackage { get; set; }
         public bool CanDeprecate { get; set; }
+        public bool ProxyGravatar { get; set; }
 
         public void SetShortDescriptionFrom(string fullDescription)
         {

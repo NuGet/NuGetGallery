@@ -37,5 +37,7 @@ namespace NuGetGallery
         public bool HasUnconfirmedEmailAddress { get; set; }
 
         public bool HasConfirmedEmailAddress { get; set; }
+
+        public bool ProxyGravatar { get; set; }
     }
 }

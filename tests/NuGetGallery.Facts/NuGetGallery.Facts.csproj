@@ -99,6 +99,7 @@
     <Compile Include="Services\ConfigurationIconFileProviderFacts.cs" />
     <Compile Include="Services\AsynchronousDeleteAccountServiceFacts.cs" />
     <Compile Include="Services\FeatureFlagServiceFacts.cs" />
+    <Compile Include="Services\GravatarProxyServiceFacts.cs" />
     <Compile Include="Services\IconUrlTemplateProcessorFacts.cs" />
     <Compile Include="Services\PackageDeprecationManagementServiceFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />

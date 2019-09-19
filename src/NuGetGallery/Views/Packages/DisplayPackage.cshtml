@@ -976,24 +976,31 @@
             <h2>Owners</h2>
             <ul class="list-unstyled owner-list">
                 @if (!Model.Owners.Any())
-    {
-            @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
-}
-else
-{
-foreach (var owner in Model.Owners)
-{
-            <li>
-                @if (!String.IsNullOrEmpty(owner.EmailAddress))
-    {
-            <a href="@Url.User(owner.Username)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
-}
-                <a href="@Url.User(owner.Username)" title="@owner.Username">
-                    @owner.Username
-                </a>
-            </li>
-}
-}
+                {
+                    @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
+                }
+                else
+                {
+                    foreach (var owner in Model.Owners)
+                    {
+                        <li>
+                            @if (!String.IsNullOrEmpty(owner.EmailAddress))
+                            {
+                                <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                    @ViewHelpers.GravatarImage(
+                                        Url,
+                                        owner.EmailAddress,
+                                        owner.Username,
+                                        GalleryConstants.GravatarElementSize,
+                                        Features.IsGravatarProxyEnabled())
+                                </a>
+                            }
+                            <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                @owner.Username
+                            </a>
+                        </li>
+                    }
+                }
             </ul>
 
             @if (!Model.Deleted)

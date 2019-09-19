@@ -119,6 +119,8 @@ namespace NuGetGallery
             services.AddSingleton(loggerFactory);
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
+            services.AddSingleton(p => new HttpClient());
+
             UrlHelperExtensions.SetConfigurationService(configuration);
 
             builder.RegisterInstance(configuration)
@@ -409,6 +411,10 @@ namespace NuGetGallery
 
             builder.RegisterType<IconUrlTemplateProcessor>()
                 .As<IIconUrlTemplateProcessor>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<GravatarProxyService>()
+                .As<IGravatarProxyService>()
                 .InstancePerLifetimeScope();
 
             RegisterFeatureFlagsService(builder, configuration);

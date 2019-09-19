@@ -92,6 +92,8 @@ namespace NuGetGallery.Views
             get { return _cookieConsentMessage.Value; }
         }
 
+        public IFeatureFlagService Features => NuGetContext.Features;
+
         public bool ShowAuthInHeader => true;
 
         public bool LinkOpenSearchXml => true;
