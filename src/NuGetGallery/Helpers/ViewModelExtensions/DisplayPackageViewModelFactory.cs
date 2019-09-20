@@ -93,6 +93,7 @@ namespace NuGetGallery
                 viewModel.DownloadsPerDay = viewModel.TotalDownloadCount / viewModel.TotalDaysSinceCreated; // for the package
                 viewModel.DownloadsPerDayLabel = viewModel.DownloadsPerDay < 1 ? "<1" : viewModel.DownloadsPerDay.ToNuGetNumberString();
                 viewModel.IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
+                viewModel.IsDotnetNewTemplatePackageType = package.PackageTypes.Any(e => e.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
             }
 
             if (deprecation != null)

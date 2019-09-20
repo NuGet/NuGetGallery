@@ -31,6 +31,7 @@ namespace NuGetGallery
         public bool HasSemVer2Version { get; set; }
         public bool HasSemVer2Dependency { get; set; }
         public bool IsDotnetToolPackageType { get; set; }
+        public bool IsDotnetNewTemplatePackageType { get; set; }
         public bool IsAtomFeedEnabled { get; set; }
         public bool IsPackageDeprecationEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }

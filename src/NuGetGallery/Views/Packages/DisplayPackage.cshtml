@@ -34,7 +34,21 @@
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
-                AlertMessage = string.Format("This package contains a <a href=\"{0}\">.NET Core Global Tool</a> you can call from the shell/command line.", "https://aka.ms/global-tools"),
+                AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET Core Global Tool</a> you can call from the shell/command line.",
+            }
+        };
+    }
+    else if (Model.IsDotnetNewTemplatePackageType)
+    {
+        packageManagers = new PackageManagerViewModel[]
+        {
+            new PackageManagerViewModel(".NET CLI")
+            {
+                Id = "dotnet-cli",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("dotnet new --install {0}::{1}", Model.Id, Model.Version),
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "This package contains a <a href='https://aka.ms/dotnet-new'>.NET Core Template Package</a> you can call from the shell/command line.",
             }
         };
     }
