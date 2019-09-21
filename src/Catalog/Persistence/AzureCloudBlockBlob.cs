@@ -34,9 +34,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _blob = blob ?? throw new ArgumentNullException(nameof(blob));
         }
 
-        public Task<bool> ExistsAsync(CancellationToken cancellationToken)
+        public async Task<bool> ExistsAsync(CancellationToken cancellationToken)
         {
-            return _blob.ExistsAsync();
+            return await _blob.ExistsAsync();
         }
 
         public async Task FetchAttributesAsync(CancellationToken cancellationToken)
@@ -44,9 +44,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             await _blob.FetchAttributesAsync(cancellationToken);
         }
 
-        public Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken)
         {
-            return Task.FromResult<IReadOnlyDictionary<string, string>>(
+            return await Task.FromResult<IReadOnlyDictionary<string, string>>(
                 new ReadOnlyDictionary<string, string>(_blob.Metadata));
         }
 
