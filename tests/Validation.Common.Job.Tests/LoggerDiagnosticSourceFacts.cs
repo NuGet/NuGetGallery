@@ -154,6 +154,52 @@ namespace Validation.Common.Job.Tests
                         It.IsAny<Func<LoggerDiagnosticsSource.TraceState, Exception, string>>()),
                     Times.Once);
             }
+
+            [Theory]
+            [InlineData(LogLevel.Critical, TraceEventType.Critical)]
+            [InlineData(LogLevel.Error, TraceEventType.Error)]
+            [InlineData(LogLevel.Warning, TraceEventType.Warning)]
+            [InlineData(LogLevel.Trace, TraceEventType.Information)]
+            [InlineData(LogLevel.Debug, TraceEventType.Verbose)]
+            [InlineData(LogLevel.Information, TraceEventType.Information)]
+            [InlineData(LogLevel.None, TraceEventType.Information)]
+            [InlineData((LogLevel)(-1), TraceEventType.Information)]
+            public void MapsToTraceEventType(LogLevel logLevel, TraceEventType traceEventType)
+            {
+                // Arrange
+                LoggerDiagnosticsSource.TraceState state = null;
+                _logger
+                    .Setup(x => x.Log(
+                        It.IsAny<LogLevel>(),
+                        It.IsAny<EventId>(),
+                        It.IsAny<LoggerDiagnosticsSource.TraceState>(),
+                        It.IsAny<Exception>(),
+                        It.IsAny<Func<LoggerDiagnosticsSource.TraceState, Exception, string>>()))
+                    .Callback<LogLevel, EventId, LoggerDiagnosticsSource.TraceState, Exception, Func<LoggerDiagnosticsSource.TraceState, Exception, string>>(
+                        (_, __, s, ___, ____) => state = s);
+
+                // Act
+                _target.TraceEvent(
+                    logLevel,
+                    new EventId(_id),
+                    _message,
+                    _member,
+                    _file,
+                    _line);
+
+                // Assert
+                Assert.Equal(traceEventType, state.TraceEventType);
+                Assert.Equal(_id, state.Id);
+
+                _logger.Verify(
+                    x => x.Log(
+                        logLevel,
+                        _id,
+                        state,
+                        null,
+                        It.IsAny<Func<LoggerDiagnosticsSource.TraceState, Exception, string>>()),
+                    Times.Once);
+            }
         }
 
         public class ExceptionEvent : BaseFacts
