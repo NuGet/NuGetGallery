@@ -248,8 +248,8 @@ namespace NuGetGallery
                             }
                             else
                             {
+                                output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
                                 inline.TargetUrl = readyUriString;
-                                output.ImagesRewritten = true;
                             }
                         }
                     }

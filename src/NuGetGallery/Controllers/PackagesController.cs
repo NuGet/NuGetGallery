@@ -2723,8 +2723,8 @@ namespace NuGetGallery
 
             try
             {
-                var readMeHtml = await _readMeService.GetReadMeHtmlAsync(formData, Request.ContentEncoding);
-                return Json(new[] { readMeHtml?.Content });
+                var readMeResult = await _readMeService.GetReadMeHtmlAsync(formData, Request.ContentEncoding);
+                return Json(readMeResult);
             }
             catch (Exception ex)
             {

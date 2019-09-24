@@ -308,7 +308,7 @@ var BindReadMeDataManager = (function () {
         }
 
         function displayReadMePreview(response) {
-            $("#readme-preview-contents").html(response);
+            $("#readme-preview-contents").html(response.Content);
             $("#readme-preview").removeClass("hidden");
 
             $('.readme-tabs').children().hide();

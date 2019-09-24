@@ -21,6 +21,7 @@ namespace NuGetGallery
         public IReadOnlyCollection<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
         public string ReadMeHtml { get; set; }
+        public bool ReadMeImagesRewritten { get; set; }
         public DateTime? LastEdited { get; set; }
         public int DownloadsPerDay { get; set; }
         public int TotalDaysSinceCreated { get; set; }
