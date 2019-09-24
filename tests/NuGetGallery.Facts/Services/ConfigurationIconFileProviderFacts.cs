@@ -19,7 +19,7 @@ namespace NuGetGallery
                     featureFlagService: null,
                     iconUrlTemplateProcessor: Mock.Of<IIconUrlTemplateProcessor>()));
 
-            Assert.Equal("configuration", ex.ParamName);
+            Assert.Equal("featureFlagService", ex.ParamName);
         }
 
         public void ConstructorThrowsWhenIconUrlTemplateProcessorIsNull()
