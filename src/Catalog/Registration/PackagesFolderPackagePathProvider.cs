@@ -30,6 +30,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         public string GetIconPath(string id, string version)
         {
+            return GetIconPath(id, version, normalize: true);
+        }
+
+        public string GetIconPath(string id, string version, bool normalize)
+        {
             if (id == null)
             {
                 throw new ArgumentNullException(nameof(id));
@@ -41,7 +46,15 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
 
             var idLowerCase = id.ToLowerInvariant();
-            var versionLowerCase = NuGetVersionUtility.NormalizeVersion(version).ToLowerInvariant();
+            string versionLowerCase;
+            if (normalize)
+            {
+                versionLowerCase = NuGetVersionUtility.NormalizeVersion(version).ToLowerInvariant();
+            }
+            else
+            {
+                versionLowerCase = version.ToLowerInvariant();
+            }
 
             return $"packages/{idLowerCase}/{versionLowerCase}/icon";
         }

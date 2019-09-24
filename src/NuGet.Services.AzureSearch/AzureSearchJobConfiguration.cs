@@ -27,19 +27,12 @@ namespace NuGet.Services.AzureSearch
         public int MaxConcurrentVersionListWriters { get; set; } = 8;
 
         public string GalleryBaseUrl { get; set; }
-        public string FlatContainerBaseUrl { get; set; }
-        public string FlatContainerContainerName { get; set; }
 
         public AzureSearchScoringConfiguration Scoring { get; set; }
 
         public Uri ParseGalleryBaseUrl()
         {
             return new Uri(GalleryBaseUrl, UriKind.Absolute);
-        }
-
-        public Uri ParseFlatContainerBaseUrl()
-        {
-            return new Uri(FlatContainerBaseUrl, UriKind.Absolute);
         }
     }
 }
