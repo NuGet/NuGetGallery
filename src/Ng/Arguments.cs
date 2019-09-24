@@ -90,6 +90,7 @@ namespace Ng
         public const string ContentIsFlatContainer = "contentIsFlatContainer";
         public const string CursorUri = "cursorUri";
         public const string FlatContainerName = "flatContainerName";
+        public const string AllIconsInFlatContainer = "allIconsInFlatContainer";
 
         #endregion
 

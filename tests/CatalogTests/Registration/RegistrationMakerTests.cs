@@ -277,8 +277,9 @@ namespace CatalogTests.Registration
                 _galleryBaseAddress,
                 partitionSize,
                 packageCountThreshold,
-                _telemetryService.Object,
-                CancellationToken.None);
+                forcePackagePathProviderForIcons: false,
+                telemetryService: _telemetryService.Object,
+                cancellationToken: CancellationToken.None);
 
             return (MemoryStorage)_storageFactory.Create(registrationKey.ToString());
         }

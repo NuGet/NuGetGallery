@@ -25,6 +25,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private readonly Uri _registrationBaseAddress;
         private readonly Uri _contentBaseAddress;
         private readonly Uri _galleryBaseAddress;
+        private readonly bool _forcePackagePathProviderForIcons;
 
         public RegistrationPersistence(
             StorageFactory storageFactory, 
@@ -33,7 +34,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             int partitionSize, 
             int packageCountThreshold, 
             Uri contentBaseAddress, 
-            Uri galleryBaseAddress)
+            Uri galleryBaseAddress,
+            bool forcePackagePathProviderForIcons)
         {
             _storage = new RecordingStorage(storageFactory.Create(registrationKey.ToString()));
             _postProcessGraph = postProcessGraph;
@@ -43,6 +45,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _registrationBaseAddress = storageFactory.BaseAddress;
             _contentBaseAddress = contentBaseAddress;
             _galleryBaseAddress = galleryBaseAddress;
+            _forcePackagePathProviderForIcons = forcePackagePathProviderForIcons;
         }
 
         public Task<IDictionary<RegistrationEntryKey, RegistrationCatalogEntry>> Load(CancellationToken cancellationToken)
@@ -52,7 +55,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         public async Task Save(IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> registration, CancellationToken cancellationToken)
         {
-            await Save(_storage, _postProcessGraph, _registrationBaseAddress, registration, _partitionSize, _packageCountThreshold, _contentBaseAddress, _galleryBaseAddress, cancellationToken);
+            await Save(_storage, _postProcessGraph, _registrationBaseAddress, registration, _partitionSize, _packageCountThreshold, _contentBaseAddress, _galleryBaseAddress, _forcePackagePathProviderForIcons, cancellationToken);
 
             await Cleanup(_storage, cancellationToken);
         }
@@ -177,7 +180,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             int partitionSize, 
             int packageCountThreshold, 
             Uri contentBaseAddress, 
-            Uri galleryBaseAddress, 
+            Uri galleryBaseAddress,
+            bool forcePackagePathProviderForIcons,
             CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.Save");
@@ -191,11 +195,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             if (items.Count < packageCountThreshold)
             {
-                await SaveSmallRegistration(storage, preprocessGraph, registrationBaseAddress, items, partitionSize, contentBaseAddress, galleryBaseAddress, cancellationToken);
+                await SaveSmallRegistration(storage, preprocessGraph, registrationBaseAddress, items, partitionSize, contentBaseAddress, galleryBaseAddress, forcePackagePathProviderForIcons, cancellationToken);
             }
             else
             {
-                await SaveLargeRegistration(storage, preprocessGraph, registrationBaseAddress, items, partitionSize, contentBaseAddress, galleryBaseAddress, cancellationToken);
+                await SaveLargeRegistration(storage, preprocessGraph, registrationBaseAddress, items, partitionSize, contentBaseAddress, galleryBaseAddress, forcePackagePathProviderForIcons, cancellationToken);
             }
         }
 
@@ -205,7 +209,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Uri registrationBaseAddress, 
             IList<RegistrationCatalogEntry> items, 
             int partitionSize, Uri contentBaseAddress, 
-            Uri galleryBaseAddress, 
+            Uri galleryBaseAddress,
+            bool forcePackagePathProviderForIcons,
             CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.SaveSmallRegistration");
@@ -214,7 +219,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             //await graphPersistence.Initialize();
 
-            await SaveRegistration(storage, preprocessGraph, registrationBaseAddress, items, null, graphPersistence, partitionSize, contentBaseAddress, galleryBaseAddress, cancellationToken);
+            await SaveRegistration(storage, preprocessGraph, registrationBaseAddress, items, null, graphPersistence, partitionSize, contentBaseAddress, galleryBaseAddress, forcePackagePathProviderForIcons, cancellationToken);
 
             // now the commit has happened the graphPersistence.Graph should contain all the data
 
@@ -230,14 +235,15 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             IList<RegistrationCatalogEntry> items, 
             int partitionSize, 
             Uri contentBaseAddress, 
-            Uri galleryBaseAddress,  
+            Uri galleryBaseAddress,
+            bool forcePackagePathProviderForIcons,
             CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.SaveLargeRegistration: registrationBaseAddress = {0} items: {1}", registrationBaseAddress, items.Count);
 
             IList<Uri> cleanUpList = new List<Uri>();
 
-            await SaveRegistration(storage, preprocessGraph, registrationBaseAddress, items, cleanUpList, null, partitionSize, contentBaseAddress, galleryBaseAddress, cancellationToken);
+            await SaveRegistration(storage, preprocessGraph, registrationBaseAddress, items, cleanUpList, null, partitionSize, contentBaseAddress, galleryBaseAddress, forcePackagePathProviderForIcons, cancellationToken);
         }
 
         private static async Task SaveRegistration(
@@ -249,7 +255,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             SingleGraphPersistence graphPersistence, 
             int partitionSize, 
             Uri contentBaseAddress, 
-            Uri galleryBaseAddress, 
+            Uri galleryBaseAddress,
+            bool forcePackagePathProviderForIcons,
             CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.SaveRegistration: registrationBaseAddress = {0} items: {1}", registrationBaseAddress, items.Count);
@@ -258,7 +265,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             {
                 foreach (var item in items)
                 {
-                    writer.Add(new RegistrationMakerCatalogItem(new Uri(item.ResourceUri), item.Graph, registrationBaseAddress, item.IsExistingItem, postProcessGraph, contentBaseAddress, galleryBaseAddress));
+                    writer.Add(new RegistrationMakerCatalogItem(new Uri(item.ResourceUri), item.Graph, registrationBaseAddress, item.IsExistingItem, postProcessGraph, forcePackagePathProviderForIcons, contentBaseAddress, galleryBaseAddress));
                 }
                 await writer.Commit(DateTime.UtcNow, null, cancellationToken);
             }

@@ -63,7 +63,8 @@ namespace Ng.Jobs
                    + Environment.NewLine
                    + "Optional Arguments"
                    + $"-{Arguments.StorageOperationMaxExecutionTimeInSeconds} <azureOperationMaxExecutionTimeInSeconds>"
-                   + $"-{Arguments.StorageServerTimeoutInSeconds} <storageServerTimeoutInSeconds>";
+                   + $"-{Arguments.StorageServerTimeoutInSeconds} <storageServerTimeoutInSeconds>"
+                   + $"-{Arguments.AllIconsInFlatContainer} [true|false]";
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
@@ -74,6 +75,7 @@ namespace Ng.Jobs
             var contentBaseAddress = arguments.GetOrDefault<string>(Arguments.ContentBaseAddress);
             var galleryBaseAddress = arguments.GetOrDefault<string>(Arguments.GalleryBaseAddress);
             var isContentFlatContainer = arguments.GetOrDefault<bool>(Arguments.ContentIsFlatContainer);
+            var allIconsInFlatContainer = arguments.GetOrDefault<bool>(Arguments.AllIconsInFlatContainer);
             var maxConcurrentBatches = MaxConcurrentBatches(arguments.GetOrDefault<int>(Arguments.MaxConcurrentBatches));
 
             // The term "legacy" here refers to the registration hives that do not contain any SemVer 2.0.0 packages.
@@ -107,6 +109,7 @@ namespace Ng.Jobs
                 storageFactories.SemVer2StorageFactory,
                 contentBaseAddress == null ? null : new Uri(contentBaseAddress),
                 galleryBaseAddress == null ? null : new Uri(galleryBaseAddress),
+                allIconsInFlatContainer,
                 TelemetryService,
                 Logger,
                 CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose),
