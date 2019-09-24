@@ -402,8 +402,5 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue("")]
         public string EmbeddedIconUrlTemplate { get; set; }
-
-        [DefaultValue(false)]
-        public bool ForceFlatContainerIcons { get; set; }
     }
 }

@@ -449,12 +449,5 @@ namespace NuGetGallery.Configuration
         /// '{version-lower}' will be replaced with the normalized package version in lowercase.
         /// </summary>
         string EmbeddedIconUrlTemplate { get; set; }
-
-        /// <summary>
-        /// Option to make Gallery assume all package icons (both external using iconUrl and embedded) are available by
-        /// the links produced using the <see cref="EmbeddedIconUrlTemplate"/> template.
-        /// Enabling it will cause all icon URLs generated using that template and regardless of IconUrl value.
-        /// </summary>
-        bool ForceFlatContainerIcons { get; set; }
     }
 }
