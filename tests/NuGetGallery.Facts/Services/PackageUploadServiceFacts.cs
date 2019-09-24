@@ -554,7 +554,7 @@ namespace NuGetGallery
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                     Assert.Null(result.Message);
                     Assert.Single(result.Warnings);
-                    Assert.StartsWith("<licenseUrl> element will be deprecated, please consider switching to specifying the license in the package.", result.Warnings[0].PlainTextMessage);
+                    Assert.StartsWith("The <licenseUrl> element is deprecated. Consider using the <license> element instead.", result.Warnings[0].PlainTextMessage);
                     Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Warnings[0]);
                 }
             }
@@ -1130,6 +1130,53 @@ namespace NuGetGallery
                 _featureFlagService
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
                     .Returns(true);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task WarnsAboutPackagesWithIconUrlForFlightedUsers()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    iconUrl: new Uri("https://nuget.test/icon"),
+                    iconFilename: null,
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
+                    .Returns(true);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                var warning = Assert.Single(result.Warnings);
+                Assert.IsType<IconUrlDeprecationValidationMessage>(warning);
+                Assert.StartsWith("The <iconUrl> element is deprecated. Consider using the <icon> element instead.", warning.PlainTextMessage);
+                Assert.StartsWith("The &lt;iconUrl&gt; element is deprecated. Consider using the &lt;icon&gt; element instead.", warning.RawHtmlMessage);
+            }
+
+            [Fact]
+            public async Task DoesntWarnAboutPackagesWithIconUrl()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    iconUrl: new Uri("https://nuget.test/icon"),
+                    iconFilename: null,
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
+                    .Returns(false);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -2218,6 +2265,7 @@ namespace NuGetGallery
                 bool isSigned = true,
                 int? desiredTotalEntryCount = null,
                 Func<string> getCustomNuspecNodes = null,
+                Uri iconUrl = null,
                 Uri licenseUrl = null,
                 string licenseExpression = null,
                 string licenseFilename = null,
@@ -2232,6 +2280,7 @@ namespace NuGetGallery
                     isSigned: isSigned,
                     desiredTotalEntryCount: desiredTotalEntryCount,
                     getCustomNuspecNodes: getCustomNuspecNodes,
+                    iconUrl: iconUrl,
                     licenseUrl: licenseUrl,
                     licenseExpression: licenseExpression,
                     licenseFilename: licenseFilename,
@@ -2249,6 +2298,7 @@ namespace NuGetGallery
                 bool isSigned = true,
                 int? desiredTotalEntryCount = null,
                 Func<string> getCustomNuspecNodes = null,
+                Uri iconUrl = null,
                 Uri licenseUrl = null,
                 string licenseExpression = null,
                 string licenseFilename = null,
@@ -2265,6 +2315,7 @@ namespace NuGetGallery
                     desiredTotalEntryCount: desiredTotalEntryCount,
                     getCustomNuspecNodes: getCustomNuspecNodes,
                     licenseUrl: licenseUrl,
+                    iconUrl: iconUrl,
                     licenseExpression: licenseExpression,
                     licenseFilename: licenseFilename,
                     licenseFileContents: GetBinaryLicenseFileContents(licenseFileBinaryContents, licenseFileContents),
