@@ -75,20 +75,34 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(null, null, null)]
-            [InlineData("", null, null)]
-            [InlineData("https://example.test/icon", null, null)]
-            [InlineData(null, "", null)]
-            [InlineData("", "", null)]
-            [InlineData("https://example.test/icon", "", null)]
-            [InlineData(null, " ", null)]
-            [InlineData("", " ", null)]
-            [InlineData("https://example.test/icon", " ", null)]
-            [InlineData(null, "https://storage.test/icon", "https://storage.test/icon")]
-            [InlineData("", "https://storage.test/icon", "https://storage.test/icon")]
-            [InlineData("https://example.test/icon", "https://storage.test/icon", "https://storage.test/icon")]
-            public void AlwaysUsesEmbeddedIconUrlTemplateWhenPackageHasEmbeddedIcon(string iconUrl, string templateProcessorOutput, string expectedIconUrl)
+            [InlineData(null, false, null, null)]
+            [InlineData("", false, null, null)]
+            [InlineData("https://example.test/icon", false, null, null)]
+            [InlineData(null, false, "", null)]
+            [InlineData("", false, "", null)]
+            [InlineData("https://example.test/icon", false, "", null)]
+            [InlineData(null, false, " ", null)]
+            [InlineData("", false, " ", null)]
+            [InlineData("https://example.test/icon", false, " ", null)]
+            [InlineData(null, false, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("", false, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("https://example.test/icon", false, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData(null, true, null, null)]
+            [InlineData("", true, null, null)]
+            [InlineData("https://example.test/icon", true, null, null)]
+            [InlineData(null, true, "", null)]
+            [InlineData("", true, "", null)]
+            [InlineData("https://example.test/icon", true, "", null)]
+            [InlineData(null, true, " ", null)]
+            [InlineData("", true, " ", null)]
+            [InlineData("https://example.test/icon", true, " ", null)]
+            [InlineData(null, true, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("", true, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("https://example.test/icon", true, "https://storage.test/icon", "https://storage.test/icon")]
+            public void AlwaysUsesEmbeddedIconUrlTemplateWhenPackageHasEmbeddedIcon(string iconUrl, bool forceFlatContainerIcons, string templateProcessorOutput, string expectedIconUrl)
             {
+                _configuration.ForceFlatContainerIcons = forceFlatContainerIcons;
+
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
@@ -115,16 +129,26 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(null, null, null)]
-            [InlineData("", null, null)]
-            [InlineData(" ", null, null)]
-            [InlineData(null, "https://internal.test/icon", null)]
-            [InlineData("", "https://internal.test/icon", null)]
-            [InlineData(" ", "https://internal.test/icon", null)]
-            [InlineData("https://external.test/icon", null, "https://external.test/icon")]
-            [InlineData("https://external.test/icon", "https://internal.test/icon", "https://external.test/icon")]
-            public void ProducesExpectedIconUrlWhenNoEmbeddedIcon(string iconUrl, string templateProcessorOutput, string expectedIconUrl)
+            [InlineData(null, false, null, null)]
+            [InlineData("", false, null, null)]
+            [InlineData(" ", false, null, null)]
+            [InlineData(null, false, "https://internal.test/icon", null)]
+            [InlineData("", false, "https://internal.test/icon", null)]
+            [InlineData(" ", false, "https://internal.test/icon", null)]
+            [InlineData("https://external.test/icon", false, null, "https://external.test/icon")]
+            [InlineData("https://external.test/icon", false, "https://internal.test/icon", "https://external.test/icon")]
+            [InlineData(null, true, null, null)]
+            [InlineData("", true, null, null)]
+            [InlineData(" ", true, null, null)]
+            [InlineData(null, true, "https://internal.test/icon", null)]
+            [InlineData("", true, "https://internal.test/icon", null)]
+            [InlineData(" ", true, "https://internal.test/icon", null)]
+            [InlineData("https://external.test/icon", true, null, null)]
+            [InlineData("https://external.test/icon", true, "https://internal.test/icon", "https://internal.test/icon")]
+            public void ProducesExpectedIconUrlWhenNoEmbeddedIcon(string iconUrl, bool forceFlatContainerIcons, string templateProcessorOutput, string expectedIconUrl)
             {
+                _configuration.ForceFlatContainerIcons = forceFlatContainerIcons;
+
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration

@@ -28,14 +28,15 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
 
-            if (package.HasEmbeddedIcon)
+            var hasExternalIconUrlSpecified = !string.IsNullOrWhiteSpace(package.IconUrl);
+            if (package.HasEmbeddedIcon || (_configuration.ForceFlatContainerIcons && hasExternalIconUrlSpecified))
             {
-                // never fall back to iconUrl if HasEmbeddedIcon is true
+                // never fall back to iconUrl in this case
                 return GetIconUrlFromTemplate(package);
             }
             else
             {
-                if (string.IsNullOrWhiteSpace(package.IconUrl))
+                if (!hasExternalIconUrlSpecified)
                 {
                     return null;
                 }
