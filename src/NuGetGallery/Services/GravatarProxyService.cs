@@ -14,18 +14,18 @@ namespace NuGetGallery
 {
     public class GravatarProxyService : IGravatarProxyService
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IEntityRepository<User> _users;
         private readonly IFeatureFlagService _features;
         private readonly ILogger<GravatarProxyService> _logger;
 
         public GravatarProxyService(
-            HttpClient httpClient,
+            IHttpClientFactory httpClientFactory,
             IEntityRepository<User> users,
             IFeatureFlagService features,
             ILogger<GravatarProxyService> logger)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _users = users ?? throw new ArgumentNullException(nameof(users));
             _features = features ?? throw new ArgumentNullException(nameof(features));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -50,7 +50,8 @@ namespace NuGetGallery
                 var url = GravatarHelper.Url(user.EmailAddress ?? user.UnconfirmedEmailAddress, imageSize);
 
                 // The response will be disposed when the caller disposes the content stream.
-                var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                var client = _httpClientFactory.CreateClient("gravatar");
+                var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
 
                 response.EnsureSuccessStatusCode();
 
