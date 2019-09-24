@@ -14,6 +14,11 @@ namespace NuGetGallery
 {
     public class GravatarProxyService : IGravatarProxyService
     {
+        private const string HttpContentTypeHeaderName = "Content-Type";
+        private const string HttpContentTypeDefaultValue = "application/octet-stream";
+
+        private const string GravatarHttpClientName = "gravatar";
+
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IEntityRepository<User> _users;
         private readonly IFeatureFlagService _features;
@@ -50,15 +55,20 @@ namespace NuGetGallery
                 var url = GravatarHelper.Url(user.EmailAddress ?? user.UnconfirmedEmailAddress, imageSize);
 
                 // The response will be disposed when the caller disposes the content stream.
-                var client = _httpClientFactory.CreateClient("gravatar");
+                var client = _httpClientFactory.CreateClient(GravatarHttpClientName);
                 var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
 
                 response.EnsureSuccessStatusCode();
 
-                var contentType = response.Content.Headers.ContentType.MediaType;
-                var contentStream = await response.Content.ReadAsStreamAsync();
+                string contentType = null;
+                if (response.Content.Headers.TryGetValues(HttpContentTypeHeaderName, out var contentTypes))
+                {
+                    contentType = contentTypes.FirstOrDefault();
+                }
 
-                return new GravatarProxyResult(contentStream, contentType);
+                return new GravatarProxyResult(
+                    await response.Content.ReadAsStreamAsync(),
+                    contentType ?? HttpContentTypeDefaultValue);
             }
             catch (Exception e)
             {

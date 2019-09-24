@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,9 +65,13 @@ namespace NuGetGallery
                 .Returns(() => users.AsQueryable());
 
             var httpClient = new HttpClient(_messageHandler);
+            var httpClientFactory = new Mock<IHttpClientFactory>();
+            httpClientFactory
+                .Setup(f => f.CreateClient("gravatar"))
+                .Returns(httpClient);
 
             _target = new GravatarProxyService(
-                httpClient,
+                httpClientFactory.Object,
                 _users.Object,
                 _features.Object,
                 Mock.Of<ILogger<GravatarProxyService>>());
@@ -121,7 +126,7 @@ namespace NuGetGallery
             // Assert
             Assert.NotNull(result);
             Assert.Equal("Hello", ToString(result.AvatarStream));
-            Assert.Equal("image/png", result.ContentType);
+            Assert.Equal("image/png; charset=utf-8", result.ContentType);
 
             _features
                 .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
@@ -147,7 +152,7 @@ namespace NuGetGallery
             // Assert
             Assert.NotNull(result);
             Assert.Equal("Hello", ToString(result.AvatarStream));
-            Assert.Equal("image/png", result.ContentType);
+            Assert.Equal("image/png; charset=utf-8", result.ContentType);
 
             _features
                 .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
@@ -170,7 +175,7 @@ namespace NuGetGallery
             // Assert
             Assert.NotNull(result);
             Assert.Equal("Hello", ToString(result.AvatarStream));
-            Assert.Equal("image/png", result.ContentType);
+            Assert.Equal("image/png; charset=utf-8", result.ContentType);
 
             _features
                 .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
@@ -194,7 +199,7 @@ namespace NuGetGallery
             // Assert
             Assert.NotNull(result);
             Assert.Equal("Hello", ToString(result.AvatarStream));
-            Assert.Equal("image/png", result.ContentType);
+            Assert.Equal("image/png; charset=utf-8", result.ContentType);
 
             _features
                 .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
@@ -220,6 +225,31 @@ namespace NuGetGallery
 
             // Assert
             Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task DefaultsContentType()
+        {
+            // Arrange
+            _features
+                .Setup(f => f.IsGravatarProxyEnabled())
+                .Returns(true);
+
+            _validGravatarResponse.Content.Headers.ContentType = null;
+            _messageHandler.AddHandler(UserGravatarUrlSize512, message => _validGravatarResponse);
+
+            // Act
+            var result = await _target.GetAvatarOrNullAsync(User.Username, 1000);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("Hello", ToString(result.AvatarStream));
+            Assert.Equal("application/octet-stream", result.ContentType);
+
+            _features
+                .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+            _users
+                .Verify(u => u.GetAll(), Times.Once);
         }
 
         public void Dispose()
