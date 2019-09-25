@@ -29,6 +29,15 @@ namespace NuGetGallery.Helpers
             return HttpUtility.HtmlDecode(url);
         }
 
+        /// <summary>
+        /// Generate the HTML to a Gravatar image.
+        /// </summary>
+        /// <param name="url">The URL builder.</param>
+        /// <param name="email">The user's email address.</param>
+        /// <param name="username">The user's username.</param>
+        /// <param name="size">The size of the gravatar image.</param>
+        /// <param name="responsive">If true, the image will scale with its parent element.</param>
+        /// <returns>The HTML for a Gravatar image.</returns>
         public static HtmlString Image(UrlHelper url, string email, string username, int size, bool responsive)
         {
             var classAttribute = responsive ? "owner-image img-responsive" : "owner-image";
