@@ -1,4 +1,4 @@
-﻿@model AccountViewModel      
+﻿@model AccountViewModel
 @{
     var parent = (WebViewPage)TempData["Parent"];
 
@@ -29,8 +29,7 @@
             Url,
             Model.CurrentEmailAddress,
             Model.AccountName,
-            GalleryConstants.GravatarElementSize,
-            Features.IsGravatarProxyEnabled())
+            GalleryConstants.GravatarElementSize)
     </text>,
     @<text>
         @if (Model.HasUnconfirmedEmailAddress)
