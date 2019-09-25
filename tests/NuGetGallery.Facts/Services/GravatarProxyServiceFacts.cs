@@ -18,7 +18,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class GravatarProxyServiceFacts : IDisposable
+    public class GravatarProxyServiceFacts
     {
         private static readonly User User = new User
         {
@@ -36,8 +36,6 @@ namespace NuGetGallery
         private const string UserGravatarUrlSize512 = "https://secure.gravatar.com/avatar/9394f8a07bb4df241de4660b315f8a90?s=512&r=g&d=retro";
         private const string UnconfirmedUserGravatarUrl = "https://secure.gravatar.com/avatar/9394f8a07bb4df241de4660b315f8a90?s=100&r=g&d=retro";
 
-        private readonly HttpResponseMessage _validGravatarResponse;
-
         private DelegateHttpMessageHandler _messageHandler;
         private Mock<IEntityRepository<User>> _users;
         private Mock<IFeatureFlagService> _features;
@@ -47,10 +45,6 @@ namespace NuGetGallery
         public GravatarProxyServiceFacts()
         {
             _messageHandler = new DelegateHttpMessageHandler();
-            _validGravatarResponse = new HttpResponseMessage();
-            _validGravatarResponse.StatusCode = HttpStatusCode.OK;
-            _validGravatarResponse.Content = new StringContent("Hello", Encoding.UTF8, "image/png");
-
             _features = new Mock<IFeatureFlagService>();
 
             var users = new List<User>
@@ -113,98 +107,111 @@ namespace NuGetGallery
         [Fact]
         public async Task ReturnsGravatarUrl()
         {
-            // Arrange
-            _features
-                .Setup(f => f.IsGravatarProxyEnabled())
-                .Returns(true);
+            using (var validGravatarResponse = ValidGravatarResponse)
+            {
+                // Arrange
+                _features
+                    .Setup(f => f.IsGravatarProxyEnabled())
+                    .Returns(true);
 
-            _messageHandler.AddHandler(UserGravatarUrl, message => _validGravatarResponse);
+                _messageHandler.AddHandler(UserGravatarUrl, message => validGravatarResponse);
 
-            // Act
-            var result = await _target.GetAvatarOrNullAsync(User.Username, 100);
+                // Act
+                var result = await _target.GetAvatarOrNullAsync(User.Username, 100);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Hello", ToString(result.AvatarStream));
-            Assert.Equal("image/png; charset=utf-8", result.ContentType);
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("Hello", ToString(result.AvatarStream));
+                Assert.Equal("image/png; charset=utf-8", result.ContentType);
 
-            _features
-                .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
-            _users
-                .Verify(u => u.GetAll(), Times.Once);
+                _features
+                    .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _users
+                    .Verify(u => u.GetAll(), Times.Once);
+            }
+
         }
 
         [Fact]
         public async Task PrefersConfirmedEmailAddress()
         {
-            // Arrange
-            _features
-                .Setup(f => f.IsGravatarProxyEnabled())
-                .Returns(true);
+            using (var validGravatarResponse = ValidGravatarResponse)
+            {
+                // Arrange
+                _features
+                    .Setup(f => f.IsGravatarProxyEnabled())
+                    .Returns(true);
 
-            User.UnconfirmedEmailAddress = "ignored@example.test";
+                User.UnconfirmedEmailAddress = "ignored@example.test";
 
-            _messageHandler.AddHandler(UserGravatarUrl, message => _validGravatarResponse);
+                _messageHandler.AddHandler(UserGravatarUrl, message => validGravatarResponse);
 
-            // Act
-            var result = await _target.GetAvatarOrNullAsync(User.Username, 100);
+                // Act
+                var result = await _target.GetAvatarOrNullAsync(User.Username, 100);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Hello", ToString(result.AvatarStream));
-            Assert.Equal("image/png; charset=utf-8", result.ContentType);
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("Hello", ToString(result.AvatarStream));
+                Assert.Equal("image/png; charset=utf-8", result.ContentType);
 
-            _features
-                .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
-            _users
-                .Verify(u => u.GetAll(), Times.Once);
+                _features
+                    .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _users
+                    .Verify(u => u.GetAll(), Times.Once);
+            }
         }
 
         public async Task FallsbackToUnconfirmedEmailAddress()
         {
-            // Arrange
-            _features
-                .Setup(f => f.IsGravatarProxyEnabled())
-                .Returns(true);
+            using (var validGravatarResponse = ValidGravatarResponse)
+            {
+                // Arrange
+                _features
+                    .Setup(f => f.IsGravatarProxyEnabled())
+                    .Returns(true);
 
-            _messageHandler.AddHandler(UnconfirmedUserGravatarUrl, message => _validGravatarResponse);
+                _messageHandler.AddHandler(UnconfirmedUserGravatarUrl, message => ValidGravatarResponse);
 
-            // Act
-            var result = await _target.GetAvatarOrNullAsync(UnconfirmedUser.Username, 100);
+                // Act
+                var result = await _target.GetAvatarOrNullAsync(UnconfirmedUser.Username, 100);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Hello", ToString(result.AvatarStream));
-            Assert.Equal("image/png; charset=utf-8", result.ContentType);
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("Hello", ToString(result.AvatarStream));
+                Assert.Equal("image/png; charset=utf-8", result.ContentType);
 
-            _features
-                .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
-            _users
-                .Verify(u => u.GetAll(), Times.Once);
+                _features
+                    .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _users
+                    .Verify(u => u.GetAll(), Times.Once);
+            }
         }
 
         [Fact]
         public async Task LimitsImageSize()
         {
-            // Arrange
-            _features
-                .Setup(f => f.IsGravatarProxyEnabled())
-                .Returns(true);
+            using (var validGravatarResponse = ValidGravatarResponse)
+            {
+                // Arrange
+                _features
+                    .Setup(f => f.IsGravatarProxyEnabled())
+                    .Returns(true);
 
-            _messageHandler.AddHandler(UserGravatarUrlSize512, message => _validGravatarResponse);
+                _messageHandler.AddHandler(UserGravatarUrlSize512, message => validGravatarResponse);
 
-            // Act
-            var result = await _target.GetAvatarOrNullAsync(User.Username, 1000);
+                // Act
+                var result = await _target.GetAvatarOrNullAsync(User.Username, 1000);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Hello", ToString(result.AvatarStream));
-            Assert.Equal("image/png; charset=utf-8", result.ContentType);
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("Hello", ToString(result.AvatarStream));
+                Assert.Equal("image/png; charset=utf-8", result.ContentType);
 
-            _features
-                .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
-            _users
-                .Verify(u => u.GetAll(), Times.Once);
+                _features
+                    .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _users
+                    .Verify(u => u.GetAll(), Times.Once);
+            }
         }
 
         [Theory]
@@ -230,31 +237,53 @@ namespace NuGetGallery
         [Fact]
         public async Task DefaultsContentType()
         {
-            // Arrange
-            _features
-                .Setup(f => f.IsGravatarProxyEnabled())
-                .Returns(true);
+            using (var gravatarResponseWithNoContentType = GravatarResponseWithNoContentType)
+            {
+                // Arrange
+                _features
+                    .Setup(f => f.IsGravatarProxyEnabled())
+                    .Returns(true);
 
-            _validGravatarResponse.Content.Headers.ContentType = null;
-            _messageHandler.AddHandler(UserGravatarUrlSize512, message => _validGravatarResponse);
+                _messageHandler.AddHandler(UserGravatarUrlSize512, message => gravatarResponseWithNoContentType);
 
-            // Act
-            var result = await _target.GetAvatarOrNullAsync(User.Username, 1000);
+                // Act
+                var result = await _target.GetAvatarOrNullAsync(User.Username, 1000);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("Hello", ToString(result.AvatarStream));
-            Assert.Equal("application/octet-stream", result.ContentType);
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("Hello", ToString(result.AvatarStream));
+                Assert.Equal("application/octet-stream", result.ContentType);
 
-            _features
-                .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
-            _users
-                .Verify(u => u.GetAll(), Times.Once);
+                _features
+                    .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _users
+                    .Verify(u => u.GetAll(), Times.Once);
+            }
         }
 
-        public void Dispose()
+        private HttpResponseMessage ValidGravatarResponse
         {
-            _validGravatarResponse.Dispose();
+            get
+            {
+                var response = new HttpResponseMessage();
+                response.StatusCode = HttpStatusCode.OK;
+                response.Content = new StringContent("Hello", Encoding.UTF8, "image/png");
+
+                return response;
+            }
+        }
+
+        private HttpResponseMessage GravatarResponseWithNoContentType
+        {
+            get
+            {
+                var response = new HttpResponseMessage();
+                response.StatusCode = HttpStatusCode.OK;
+                response.Content = new StringContent("Hello", Encoding.UTF8, "fake/fake");
+                response.Content.Headers.Remove("Content-Type");
+
+                return response;
+            }
         }
 
         private string ToString(Stream stream)

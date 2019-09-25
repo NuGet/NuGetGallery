@@ -70,25 +70,31 @@ namespace NuGetGallery
 
             var owners =
                 packageAndReservedNamespaceOwners
-                .Select(u => new PackageOwnersResultViewModel(
-                    u,
+                .Select(user => new PackageOwnersResultViewModel(
+                    user,
                     currentUser,
                     registration,
                     Url,
                     isPending: false,
                     isNamespaceOwner: true,
-                    proxyGravatar: proxyGravatar));
+                    avatarUrl: Url.Avatar(
+                        user,
+                        proxyGravatar,
+                        GalleryConstants.GravatarImageSize)));
 
             var packageOwnersOnlyResultViewModel =
                 packageOwnersOnly
-                .Select(u => new PackageOwnersResultViewModel(
-                    u,
+                .Select(user => new PackageOwnersResultViewModel(
+                    user,
                     currentUser,
                     registration,
                     Url,
                     isPending: false,
                     isNamespaceOwner: false,
-                    proxyGravatar: proxyGravatar));
+                    avatarUrl: Url.Avatar(
+                        user,
+                        proxyGravatar,
+                        GalleryConstants.GravatarImageSize)));
 
             owners = owners.Union(packageOwnersOnlyResultViewModel);
 
@@ -101,7 +107,10 @@ namespace NuGetGallery
                     Url,
                     isPending: true,
                     isNamespaceOwner: false,
-                    proxyGravatar: proxyGravatar));
+                    avatarUrl: Url.Avatar(
+                        r.NewOwner,
+                        proxyGravatar,
+                        GalleryConstants.GravatarImageSize)));
 
             var result = owners.Union(pending);
 
@@ -115,7 +124,6 @@ namespace NuGetGallery
             string id = addOwnerData.Id;
             string username = addOwnerData.Username;
             string message = addOwnerData.Message;
-            bool proxyGravatar = _features.IsGravatarProxyEnabled();
 
             if (Regex.IsMatch(username, GalleryConstants.EmailValidationRegex, RegexOptions.None, GalleryConstants.EmailValidationRegexTimeout))
             {
@@ -196,7 +204,10 @@ namespace NuGetGallery
                         Url,
                         isPending: !model.CurrentUserCanAcceptOnBehalfOfUser,
                         isNamespaceOwner: false,
-                        proxyGravatar: proxyGravatar)
+                        avatarUrl: Url.Avatar(
+                            model.User,
+                            _features.IsGravatarProxyEnabled(),
+                            GalleryConstants.GravatarImageSize))
                 });
             }
             else

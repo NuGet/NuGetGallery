@@ -164,7 +164,7 @@ namespace NuGetGallery
                     request.IsAdmin);
                 await MessageService.SendMessageAsync(organizationMembershipRequestInitiatedMessage);
 
-                return Json(new OrganizationMemberViewModel(request, GetGravatarUrl(request.NewMember)));
+                return Json(ToOrganizationMemberViewModel(request));
             }
             catch (EntityException e)
             {
@@ -322,7 +322,7 @@ namespace NuGetGallery
                 var emailMessage = new OrganizationMemberUpdatedMessage(MessageServiceConfiguration, account, membership);
                 await MessageService.SendMessageAsync(emailMessage);
 
-                return Json(new OrganizationMemberViewModel(membership, GetGravatarUrl(membership.Member)));
+                return Json(ToOrganizationMemberViewModel(membership));
             }
             catch (EntityException e)
             {
@@ -379,12 +379,12 @@ namespace NuGetGallery
             var currentUser = base.GetCurrentUser();
 
             var members = account.Members
-                .Select(m => new OrganizationMemberViewModel(m, GetGravatarUrl(m.Member)))
+                .Select(ToOrganizationMemberViewModel)
                 .ToList();
 
             var additionalMembers = account.Members
                 .Where(m => !m.Member.MatchesUser(currentUser))
-                .Select(m => new OrganizationMemberViewModel(m, GetGravatarUrl(m.Member)))
+                .Select(ToOrganizationMemberViewModel)
                 .ToList();
 
             return new DeleteOrganizationViewModel(
@@ -445,12 +445,11 @@ namespace NuGetGallery
         {
             base.UpdateAccountViewModel(account, model);
 
-            model.Members =
-                account.Members.Select(m => new OrganizationMemberViewModel(m, GetGravatarUrl(m.Member)))
-                .Concat(account.MemberRequests.Select(m => new OrganizationMemberViewModel(m, GetGravatarUrl(m.NewMember))));
+            var memberViewModels = account.Members.Select(ToOrganizationMemberViewModel);
+            var memberRequestViewModels = account.Members.Select(ToOrganizationMemberViewModel);
 
+            model.Members = memberViewModels.Concat(memberRequestViewModels);
             model.RequiresTenant = account.IsRestrictedToOrganizationTenantPolicy();
-
             model.CanManageMemberships =
                 ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account)
                     == PermissionsCheckResult.Allowed;
@@ -461,11 +460,24 @@ namespace NuGetGallery
             return Url.DeleteOrganizationCertificateTemplate(accountName);
         }
 
-        private string GetGravatarUrl(User user)
+        private OrganizationMemberViewModel ToOrganizationMemberViewModel(Membership membership)
         {
-            return _features.IsGravatarProxyEnabled()
-                ? Url.Avatar(user.Username, GalleryConstants.GravatarElementSize)
-                : GravatarHelper.Url(user.EmailAddress, GalleryConstants.GravatarElementSize);
+            var avatarUrl = Url.Avatar(
+                membership.Member,
+                _features.IsGravatarProxyEnabled(),
+                GalleryConstants.GravatarElementSize);
+
+            return new OrganizationMemberViewModel(membership, avatarUrl);
+        }
+
+        private OrganizationMemberViewModel ToOrganizationMemberViewModel(MembershipRequest membershipRequest)
+        {
+            var avatarUrl = Url.Avatar(
+                membershipRequest.NewMember,
+                _features.IsGravatarProxyEnabled(),
+                GalleryConstants.GravatarElementSize);
+
+            return new OrganizationMemberViewModel(membershipRequest, avatarUrl);
         }
     }
 }

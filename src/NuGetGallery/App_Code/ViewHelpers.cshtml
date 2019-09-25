@@ -206,41 +206,14 @@
     }
 }
 
-@helper GravatarImage(UrlHelper url, string email, string username, int size, bool proxy)
+@helper GravatarImage(UrlHelper url, string email, string username, int size)
 {
-    @GravatarImage(url, email, username, size, proxy, responsive: false);
+    @GravatarImage(url, email, username, size, responsive: false);
 }
 
-@helper GravatarImage(UrlHelper url, string email, string username, int size, bool proxy, bool responsive)
+@helper GravatarImage(UrlHelper url, string email, string username, int size, bool responsive)
 {
-    var classAttribute = responsive ? "owner-image img-responsive" : "owner-image";
-
-    // Load a higher resolution image than the element requires, to improve high DPI display.
-    var imageSize = size * 2;
-    var elementSize = size;
-
-    if (proxy)
-    {
-        <img src="@url.Avatar(username, size)"
-             class="@classAttribute"
-             height="@size"
-             width="@size"
-             title="@username"
-             alt="gravatar" />
-    }
-    else
-    {
-        @GravatarHelper.Image(
-             email,
-             imageSize,
-             attributes: new
-             {
-                 width = elementSize,
-                 height = elementSize,
-                 title = username,
-                 @class = classAttribute
-             });
-    }
+    @GravatarHelper.Image(url, email, username, size, responsive);
 }
 
 @helper UserLinkWithIcon(UrlHelper url, BasicUserViewModel user)

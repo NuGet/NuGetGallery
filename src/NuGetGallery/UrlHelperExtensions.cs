@@ -612,6 +612,18 @@ namespace NuGetGallery
                 });
         }
 
+        public static string Avatar(
+            this UrlHelper url,
+            User user,
+            bool proxy,
+            int imageSize,
+            bool relativeUrl = true)
+        {
+            return proxy
+                ? url.Avatar(user.Username, imageSize, relativeUrl)
+                : GravatarHelper.Url(user.EmailAddress, imageSize);
+        }
+
         /// <summary>
         /// Initializes a user link that can be resolved at a later time.
         /// 

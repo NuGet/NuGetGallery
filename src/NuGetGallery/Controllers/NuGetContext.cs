@@ -18,7 +18,6 @@ namespace NuGetGallery
         {
             Config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
             CookieComplianceService = DependencyResolver.Current.GetService<ICookieComplianceService>();
-            Features = DependencyResolver.Current.GetService<IFeatureFlagService>();
 
             _currentUser = new Lazy<User>(() => ctrl.OwinContext.GetCurrentUser());
         }
@@ -26,8 +25,6 @@ namespace NuGetGallery
         public IGalleryConfigurationService Config { get; internal set; }
 
         public User CurrentUser { get { return _currentUser.Value; } }
-
-        public IFeatureFlagService Features { get; }
 
         private ICookieComplianceService CookieComplianceService { get; }
 

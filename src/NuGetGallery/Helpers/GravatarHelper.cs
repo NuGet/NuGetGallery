@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Web;
+using System.Web.Mvc;
 using Microsoft.Web.Helpers;
 
 namespace NuGetGallery.Helpers
@@ -28,15 +29,45 @@ namespace NuGetGallery.Helpers
             return HttpUtility.HtmlDecode(url);
         }
 
-        public static HtmlString Image(string email, int size, object attributes = null)
+        public static HtmlString Image(UrlHelper url, string email, string username, int size, bool responsive)
         {
-            // The maximum allowed Gravatar size is 512 pixels.
-            if (size > 512)
+            var classAttribute = responsive ? "owner-image img-responsive" : "owner-image";
+
+            // Load a higher resolution image than the element requires, to improve high DPI display.
+            // However, the maximum allowed Gravatar size is 512 pixels.
+            var imageSize = (size * 2 > 512) ? 512 : size * 2;
+
+            var features = DependencyResolver.Current.GetService<IFeatureFlagService>();
+
+            if (features.IsGravatarProxyEnabled())
             {
-                size = 512;
+                var html = $@"<img src=""{url.Avatar(username, imageSize)}""
+                                class=""{classAttribute}""
+                                height=""{size}""
+                                width=""{size}""
+                                title=""{username}""
+                                alt=""gravatar"" />";
+
+                return new HtmlString(html);
             }
 
-            var gravatarHtml = email == null ? null : Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: attributes);
+            if (email == null)
+            {
+                return new HtmlString(value: null);
+            }
+
+            var gravatarHtml = Gravatar.GetHtml(
+                email,
+                imageSize,
+                "retro",
+                GravatarRating.G,
+                attributes: new
+                {
+                    width = size,
+                    height = size,
+                    title = username,
+                    @class = classAttribute
+                });
 
             if (gravatarHtml != null && ShouldUseSecureGravatar())
             {
