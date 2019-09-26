@@ -177,7 +177,7 @@ namespace NuGet.Services.AzureSearch
 
                 Target.PopulateMetadata(full, Data.NormalizedVersion, leaf);
 
-                Assert.Equal(FlatContainerIconPath, full.IconUrl);
+                Assert.Equal(Data.FlatContainerIconUrl, full.IconUrl);
             }
 
             [Fact]
@@ -197,6 +197,41 @@ namespace NuGet.Services.AzureSearch
 
                 Assert.Equal(iconUrl, full.IconUrl);
             }
+
+            [Fact]
+            public void IfLeafDoesNotHaveIconFileButHasUrl_UsesFlatContainerIfConfigured()
+            {
+                Config.AllIconsInFlatContainer = true;
+                var leaf = new PackageDetailsCatalogLeaf
+                {
+                    PackageId = Data.PackageId,
+                    PackageVersion = Data.NormalizedVersion,
+                    IconUrl = "iconUrl"
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.NormalizedVersion, leaf);
+
+                Assert.Equal(Data.FlatContainerIconUrl, full.IconUrl);
+            }
+
+            [Fact]
+            public void IfLeafDoesNotHaveAnyIconFile_NoIconUrlIsSet()
+            {
+                Config.AllIconsInFlatContainer = true;
+                var leaf = new PackageDetailsCatalogLeaf
+                {
+                    PackageId = Data.PackageId,
+                    PackageVersion = Data.NormalizedVersion
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.NormalizedVersion, leaf);
+
+                Assert.Null(full.IconUrl);
+            }
         }
 
         public class PopulateMetadataWithPackage : Facts
@@ -215,7 +250,7 @@ namespace NuGet.Services.AzureSearch
 
                 Target.PopulateMetadata(full, Data.PackageId, package);
 
-                Assert.Equal(FlatContainerIconPath, full.IconUrl);
+                Assert.Equal(Data.FlatContainerIconUrl, full.IconUrl);
             }
 
             [Fact]
@@ -233,6 +268,39 @@ namespace NuGet.Services.AzureSearch
                 Target.PopulateMetadata(full, Data.PackageId, package);
 
                 Assert.Equal(iconUrl, full.IconUrl);
+            }
+
+            [Fact]
+            public void IfPackageDoesNotHaveIconFileButHasUrl_UsesFlatContainerIfConfigured()
+            {
+                Config.AllIconsInFlatContainer = true;
+                var package = new Package
+                {
+                    NormalizedVersion = Data.NormalizedVersion,
+                    IconUrl = "iconUrl"
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.PackageId, package);
+
+                Assert.Equal(Data.FlatContainerIconUrl, full.IconUrl);
+            }
+
+            [Fact]
+            public void IfPackageDoesNotHaveAnyIconFile_NoIconUrlIsSet()
+            {
+                Config.AllIconsInFlatContainer = true;
+                var package = new Package
+                {
+                    NormalizedVersion = Data.NormalizedVersion,
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.PackageId, package);
+
+                Assert.Null(full.IconUrl);
             }
         }
 
@@ -256,9 +324,6 @@ namespace NuGet.Services.AzureSearch
             public Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> Options { get; }
             public AzureSearchJobConfiguration Config { get; }
             public BaseDocumentBuilder Target { get; }
-
-            public static string FlatContainerIconPath =
-                $"{Data.FlatContainerBaseUrl}{Data.FlatContainerContainerName}/{Data.PackageId.ToLowerInvariant()}/{Data.NormalizedVersion.ToLowerInvariant()}/icon";
         }
     }
 }
