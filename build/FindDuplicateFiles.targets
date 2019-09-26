@@ -9,7 +9,7 @@
       <DuplicateFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
     </ParameterGroup>
     <Task>
-      <Code Type="Class" Language="cs" Source="FindDuplicateFiles.cs" />
+      <Code Type="Class" Language="cs" Source="$(MSBuildThisFileDirectory)FindDuplicateFiles.cs" />
     </Task>
   </UsingTask>
 </Project>

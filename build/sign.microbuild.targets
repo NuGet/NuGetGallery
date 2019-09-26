@@ -35,7 +35,7 @@
   -->
   <PropertyGroup Condition="'$(WebPublishMethod)' == 'Package'">
     <EnumerateFilesToSignAfterTargets>PipelineCopyAllFilesToOneFolderForMsdeploy</EnumerateFilesToSignAfterTargets>
-    <PackageUsingManifestDependsOn>SignFiles</PackageUsingManifestDependsOn>
+    <PackageUsingManifestDependsOn>CopySignedFiles</PackageUsingManifestDependsOn>
   </PropertyGroup>
 
   <!--
@@ -46,13 +46,13 @@
   things.
   -->
   <ItemGroup Condition="'$(BatchSign)' == 'false'">
-    <SignFilesDependsOn Include="EnumerateFilesToSign" />
+    <SignFilesDependsOn Include="DedupeFilesToSign" />
   </ItemGroup>
   <Target
     Name="EnumerateFilesToSign"
     AfterTargets="$(EnumerateFilesToSignAfterTargets)"
     Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none' AND '$(SkipEnumerateFilesToSign)' != 'true'"
-    Returns="@(FilesToSign)">
+    Returns="@(UnfilteredFilesToSign)">
 
     <ItemGroup>
       <!--
@@ -66,13 +66,13 @@
       bin directory of another project. That assembly also needs to be signed.
       -->
       <_OutputToSign Include="$(RepositoryRootDirectory)**\$(TargetFileName)" Condition="'$(BatchSign)' == 'true'" />
-      <FilesToSign
+      <UnfilteredFilesToSign
         Include="$([System.IO.Path]::GetFullPath('%(_OutputToSign.Identity)'))"
         Condition="Exists('%(_OutputToSign.Identity)')"
         KeepDuplicates="false">
         <Authenticode>Microsoft400</Authenticode>
         <StrongName>MsSharedLib72</StrongName>
-      </FilesToSign>
+      </UnfilteredFilesToSign>
 
       <!--
       Add fully qualified paths for PowerShell scripts. By convention, add common scripts that we use for jobs.
@@ -80,33 +80,33 @@
       <PowerShellScriptsToSign Include="Scripts\Functions.ps1"/>
       <PowerShellScriptsToSign Include="Scripts\PostDeploy.ps1"/>
       <PowerShellScriptsToSign Include="Scripts\PreDeploy.ps1"/>
-      <FilesToSign
+      <UnfilteredFilesToSign
         Include="$([System.IO.Path]::GetFullPath('$(ProjectDir)%(PowerShellScriptsToSign.Identity)'))"
         Condition="Exists('$(ProjectDir)%(PowerShellScriptsToSign.Identity)')"
         KeepDuplicates="false">
         <Authenticode>Microsoft400</Authenticode>
-      </FilesToSign>
+      </UnfilteredFilesToSign>
 
       <!--
       Add fully qualified paths for checked in binaries. By convention, add common binaries that we use for jobs.
       -->
       <ExecutablesToSign Include="Scripts\nssm.exe"/>
-      <FilesToSign
+      <UnfilteredFilesToSign
         Include="$([System.IO.Path]::GetFullPath('$(ProjectDir)%(ExecutablesToSign.Identity)'))"
         Condition="Exists('$(ProjectDir)%(ExecutablesToSign.Identity)')"
         KeepDuplicates="false">
         <Authenticode>3PartySHA2</Authenticode>
-      </FilesToSign>
+      </UnfilteredFilesToSign>
 
       <!--
       Add fully qualified paths for third-party binaries.
       -->
-      <FilesToSign
+      <UnfilteredFilesToSign
         Include="$([System.IO.Path]::GetFullPath('$(TargetDir)%(ThirdPartyBinaries.Identity)'))"
         Condition="@(ThirdPartyBinaries->Count()) &gt; 0 AND Exists('$(TargetDir)%(ThirdPartyBinaries.Identity)')"
         KeepDuplicates="false">
         <Authenticode>3PartySHA2</Authenticode>
-      </FilesToSign>
+      </UnfilteredFilesToSign>
     </ItemGroup>
 
     <!--
@@ -114,20 +114,42 @@
     used for packaging.
     -->
     <ItemGroup Condition="'$(WebPublishMethod)' == 'Package'">
-      <FilesToSign
+      <UnfilteredFilesToSign
         Include="$(WPPAllFilesInSingleFolder)\bin\%(ThirdPartyBinaries.Identity)"
         Condition="Exists('$(WPPAllFilesInSingleFolder)\bin\%(ThirdPartyBinaries.Identity)')">
         <Authenticode>3PartySHA2</Authenticode>
-      </FilesToSign>
-      <FilesToSign
+      </UnfilteredFilesToSign>
+      <UnfilteredFilesToSign
         Include="$(WPPAllFilesInSingleFolder)\bin\$(TargetFileName)"
         Condition="Exists('$(WPPAllFilesInSingleFolder)\bin\$(TargetFileName)')">
         <Authenticode>Microsoft400</Authenticode>
         <StrongName>MsSharedLib72</StrongName>
-      </FilesToSign>
+      </UnfilteredFilesToSign>
     </ItemGroup>
+  </Target>
 
+  <Target
+    Name="DedupeFilesToSign"
+    DependsOnTargets="EnumerateFilesToSign">
+    <FindDuplicateFiles Files="@(UnfilteredFilesToSign)">
+      <Output
+        TaskParameter="UniqueFiles"
+        ItemName="FilesToSign" />
+      <Output
+        TaskParameter="DuplicateFiles"
+        ItemName="DuplicateFilesToSign" />
+    </FindDuplicateFiles>
     <Message Text="Count of files to sign: @(FilesToSign->Count())" Importance="High" />
     <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High" />
+  </Target>  
+
+  <Target Name="CopySignedFiles"
+    AfterTargets="SignFiles"
+    DependsOnTargets="SignFiles">
+    <Copy
+      SourceFiles="@(DuplicateFilesToSign->'%(DuplicateOf)')"
+      DestinationFiles="@(DuplicateFilesToSign)" />
   </Target>
+
+  <Import Project="FindDuplicateFiles.targets" />
 </Project>
