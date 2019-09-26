@@ -16,6 +16,7 @@ namespace NuGet.Services.AzureSearch
         public string StoragePath { get; set; }
         public string FlatContainerBaseUrl { get; set; }
         public string FlatContainerContainerName { get; set; }
+        public bool AllIconsInFlatContainer { get; set; }
 
         public string NormalizeStoragePath()
         {

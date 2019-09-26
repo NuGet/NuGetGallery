@@ -124,7 +124,8 @@ namespace NuGet.Services.AzureSearch
                 document.LicenseUrl = package.LicenseUrl;
             }
 
-            if (package.HasEmbeddedIcon)
+            if (package.HasEmbeddedIcon
+                || (!string.IsNullOrWhiteSpace(package.IconUrl) && _options.Value.AllIconsInFlatContainer))
             {
                 SetIconUrlFromFlatContainer(document);
             }
@@ -177,7 +178,8 @@ namespace NuGet.Services.AzureSearch
                 document.LicenseUrl = leaf.LicenseUrl;
             }
 
-            if (leaf.IconFile != null)
+            if (leaf.IconFile != null
+                || (!string.IsNullOrWhiteSpace(leaf.IconUrl) && _options.Value.AllIconsInFlatContainer))
             {
                 SetIconUrlFromFlatContainer(document);
             }
