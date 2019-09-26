@@ -55,6 +55,39 @@ namespace NuGet.Jobs.Validation
                 formatter: (s, e) => s.Message);
         }
 
+        public void TraceEvent(
+            LogLevel logLevel,
+            EventId eventId,
+            string message,
+            [CallerMemberName] string member = null,
+            [CallerFilePath] string file = null,
+            [CallerLineNumber] int line = 0)
+        {
+            _logger.Log(
+                logLevel,
+                eventId.Id,
+                state: new TraceState(LogLevelToTraceEventType(logLevel), eventId.Id, message, member, file, line),
+                exception: null,
+                formatter: (s, e) => s.Message);
+        }
+
+        private static TraceEventType LogLevelToTraceEventType(LogLevel logLevel)
+        {
+            switch (logLevel)
+            {
+                case LogLevel.Critical:
+                    return TraceEventType.Critical;
+                case LogLevel.Error:
+                    return TraceEventType.Error;
+                case LogLevel.Warning:
+                    return TraceEventType.Warning;
+                case LogLevel.Debug:
+                    return TraceEventType.Verbose;
+                default:
+                    return TraceEventType.Information;
+            }
+        }
+
         private static LogLevel TraceEventTypeToLogLevel(TraceEventType type)
         {
             switch (type)

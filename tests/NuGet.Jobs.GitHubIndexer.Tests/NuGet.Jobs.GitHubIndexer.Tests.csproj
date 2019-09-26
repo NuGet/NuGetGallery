@@ -46,6 +46,7 @@
     <Compile Include="GitHubSearcherFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReposIndexerFacts.cs" />
+    <Compile Include="RepoUtilsFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="moq">
@@ -63,6 +64,9 @@
       <Project>{42b1eb66-58f9-4d9a-8e23-ff12cbf5d643}</Project>
       <Name>NuGet.Jobs.GitHubIndexer</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="NuGetGallery.csproj.test" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

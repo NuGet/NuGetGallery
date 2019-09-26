@@ -117,7 +117,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 };
 
                 PackageFileServiceMock
-                    .Setup(x => x.UpdatePackageBlobMetadataAsync(It.IsAny<PackageValidationSet>()))
+                    .Setup(x => x.UpdatePackageBlobMetadataInValidationSetAsync(It.IsAny<PackageValidationSet>()))
                     .ReturnsAsync(streamMetadata);
 
                 await Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available);
@@ -144,7 +144,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     HashAlgorithm = CoreConstants.Sha512HashAlgorithmId
                 };
                 PackageFileServiceMock
-                    .Setup(x => x.UpdatePackageBlobMetadataAsync(It.IsAny<PackageValidationSet>()))
+                    .Setup(x => x.UpdatePackageBlobMetadataInValidationAsync(It.IsAny<PackageValidationSet>()))
                     .ReturnsAsync(streamMetadata);
                 PackageServiceMock
                     .Setup(x => x.UpdateMetadataAsync(Package, It.IsAny<PackageStreamMetadata>(), false))
@@ -200,9 +200,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageFileServiceMock
                     .Setup(x => x.CopyValidationPackageToPackageFileAsync(It.IsAny<PackageValidationSet>()))
                     .Throws(new InvalidOperationException("Duplicate!"));
-                
+
                 await Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available);
 
+                PackageFileServiceMock.Verify(
+                    x => x.UpdatePackageBlobMetadataInValidationAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Once);
                 PackageFileServiceMock.Verify(
                     x => x.CopyValidationPackageToPackageFileAsync(ValidationSet),
                     Times.Once);
@@ -239,8 +242,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Assert.Same(expected, actual);
 
                 PackageFileServiceMock.Verify(
+                    x => x.UpdatePackageBlobMetadataInValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Once);
+                PackageFileServiceMock.Verify(
                     x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet, It.Is<IAccessCondition>(y => y.IfNoneMatchETag == "*")),
                     Times.Once);
+                PackageFileServiceMock.Verify(
+                    x => x.UpdatePackageBlobMetadataInValidationAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Never);
                 PackageServiceMock.Verify(
                     x => x.UpdateStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
                     Times.Never);
@@ -272,8 +281,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Assert.Same(expected, actual);
 
                 PackageFileServiceMock.Verify(
+                    x => x.UpdatePackageBlobMetadataInValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Once);
+                PackageFileServiceMock.Verify(
                     x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet, It.Is<IAccessCondition>(y => y.IfMatchETag == "\"some-etag\"")),
                     Times.Once);
+                PackageFileServiceMock.Verify(
+                    x => x.UpdatePackageBlobMetadataInValidationAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Never);
                 PackageServiceMock.Verify(
                     x => x.UpdateStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
                     Times.Never);
@@ -422,6 +437,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .ReturnsAsync(true)
                     .Callback(() => operations.Add(nameof(IValidationFileService.DoesValidationSetPackageExistAsync)));
                 PackageFileServiceMock
+                    .Setup(x => x.UpdatePackageBlobMetadataInValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                    .ReturnsAsync(new PackageStreamMetadata())
+                    .Callback(() => operations.Add(nameof(IValidationFileService.UpdatePackageBlobMetadataInValidationSetAsync)));
+                PackageFileServiceMock
                     .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet, It.IsAny<IAccessCondition>()))
                     .Returns(Task.CompletedTask)
                     .Callback(() => operations.Add(nameof(IValidationFileService.CopyValidationSetPackageToPackageFileAsync)));
@@ -439,6 +458,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 var expectedOrder = new[]
                 {
                     nameof(IValidationFileService.DoesValidationSetPackageExistAsync),
+                    nameof(IValidationFileService.UpdatePackageBlobMetadataInValidationSetAsync),
                     nameof(IValidationFileService.CopyValidationSetPackageToPackageFileAsync),
                     nameof(IEntityService<Package>.UpdateStatusAsync),
                     nameof(IValidationFileService.DeleteValidationPackageFileAsync),
@@ -468,6 +488,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 var actual = await Assert.ThrowsAsync<StorageException>(
                     () => Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available));
                 Assert.Same(expected, actual);
+
+                PackageFileServiceMock.Verify(
+                    x => x.UpdatePackageBlobMetadataInValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Once);
+                PackageFileServiceMock.Verify(
+                    x => x.UpdatePackageBlobMetadataInValidationAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Never);
                 PackageFileServiceMock.Verify(
                     x => x.CopyValidationPackageToPackageFileAsync(It.IsAny<PackageValidationSet>()),
                     Times.Never);
@@ -498,6 +525,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .ReturnsAsync(false)
                     .Callback(() => operations.Add(nameof(IValidationFileService.DoesValidationSetPackageExistAsync)));
                 PackageFileServiceMock
+                    .Setup(x => x.UpdatePackageBlobMetadataInValidationAsync(It.IsAny<PackageValidationSet>()))
+                    .ReturnsAsync(new PackageStreamMetadata())
+                    .Callback(() => operations.Add(nameof(IValidationFileService.UpdatePackageBlobMetadataInValidationAsync)));
+                PackageFileServiceMock
                     .Setup(x => x.CopyValidationPackageToPackageFileAsync(ValidationSet))
                     .Returns(Task.CompletedTask)
                     .Callback(() => operations.Add(nameof(IValidationFileService.CopyValidationPackageToPackageFileAsync)));
@@ -515,6 +546,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 var expectedOrder = new[]
                 {
                     nameof(IValidationFileService.DoesValidationSetPackageExistAsync),
+                    nameof(IValidationFileService.UpdatePackageBlobMetadataInValidationAsync),
                     nameof(IValidationFileService.CopyValidationPackageToPackageFileAsync),
                     nameof(IEntityService<Package>.UpdateStatusAsync),
                     nameof(IValidationFileService.DeleteValidationPackageFileAsync),
@@ -599,10 +631,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     Hash = "hash",
                     HashAlgorithm = CoreConstants.Sha512HashAlgorithmId
                 };
-
-                PackageFileServiceMock
-                    .Setup(x => x.UpdatePackageBlobMetadataAsync(It.IsAny<PackageValidationSet>()))
-                    .ReturnsAsync(streamMetadata);
 
                 Target = new PackageStatusProcessor(
                     PackageServiceMock.Object,

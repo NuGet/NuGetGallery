@@ -148,7 +148,7 @@ namespace NuGet.Services.Revalidate
                     ValidatingType.Package,
                     entityKey: null);
 
-                await _validationEnqueuer.StartValidationAsync(message);
+                await _validationEnqueuer.SendMessageAsync(message);
 
                 _telemetryService.TrackPackageRevalidationStarted(revalidation.PackageId, revalidation.PackageNormalizedVersion);
                 _logger.LogInformation(

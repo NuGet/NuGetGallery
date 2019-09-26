@@ -27,7 +27,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _singletonService.Verify(s => s.IsSingletonAsync(), Times.Once);
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Never);
-                _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
+                _validationEnqueuer.Verify(e => e.SendMessageAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
                 Assert.Equal(StartRevalidationStatus.UnrecoverableError, result.Status);
                 Assert.Equal(0, result.RevalidationsStarted);
@@ -57,7 +57,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _jobState.Verify(s => s.IsKillswitchActiveAsync(), Times.Once);
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Never);
-                _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
+                _validationEnqueuer.Verify(e => e.SendMessageAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
                 Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
                 Assert.Equal(0, result.RevalidationsStarted);
@@ -87,7 +87,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _throttler.Verify(s => s.IsThrottledAsync(), Times.Once);
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Never);
-                _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
+                _validationEnqueuer.Verify(e => e.SendMessageAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
                 Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
                 Assert.Equal(0, result.RevalidationsStarted);
@@ -117,7 +117,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Never);
                 _healthService.Verify(h => h.IsHealthyAsync(), Times.Once);
-                _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
+                _validationEnqueuer.Verify(e => e.SendMessageAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
                 Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
                 Assert.Equal(0, result.RevalidationsStarted);
@@ -152,7 +152,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Once);
 
-                _validationEnqueuer.Verify(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
+                _validationEnqueuer.Verify(e => e.SendMessageAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
 
                 Assert.Equal(StartRevalidationStatus.RetryLater, result.Status);
                 Assert.Equal(0, result.RevalidationsStarted);
@@ -180,7 +180,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 var steps = new List<string>();
 
                 _validationEnqueuer
-                    .Setup(e => e.StartValidationAsync(It.IsAny<PackageValidationMessageData>()))
+                    .Setup(e => e.SendMessageAsync(It.IsAny<PackageValidationMessageData>()))
                     .Callback<PackageValidationMessageData>(m => steps.Add($"Enqueue {m.ProcessValidationSet.PackageId} {m.ProcessValidationSet.PackageNormalizedVersion}"))
                     .Returns(Task.CompletedTask);
 
@@ -201,7 +201,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 _jobState.Verify(s => s.IncreaseDesiredPackageEventRateAsync(), Times.Once);
 
                 _validationEnqueuer.Verify(
-                    e => e.StartValidationAsync(It.Is<PackageValidationMessageData>(m =>
+                    e => e.SendMessageAsync(It.Is<PackageValidationMessageData>(m =>
                         m.Type == PackageValidationMessageType.ProcessValidationSet &&
                         m.ProcessValidationSet.PackageId == _revalidation1.PackageId &&
                         m.ProcessValidationSet.PackageNormalizedVersion == _revalidation1.PackageNormalizedVersion &&

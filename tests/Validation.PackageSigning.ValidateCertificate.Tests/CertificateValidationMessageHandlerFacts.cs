@@ -57,7 +57,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateValidationService.Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Never);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 
@@ -83,7 +83,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateValidationService.Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Never);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 
@@ -330,10 +330,10 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 _certificateValidationService
                     .Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.Is<PackageValidationMessageData>(d => d.Type == PackageValidationMessageType.CheckValidator)),
+                    x => x.SendMessageAsync(It.Is<PackageValidationMessageData>(d => d.Type == PackageValidationMessageType.CheckValidator)),
                     Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Once);
             }
 
@@ -380,7 +380,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 _certificateValidationService
                     .Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 
@@ -428,7 +428,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 _certificateValidationService
                     .Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 

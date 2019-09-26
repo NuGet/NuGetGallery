@@ -85,7 +85,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             TelemetryServiceMock
                 .Verify(t => t.TrackValidatorTimeout(ValidationSet.PackageId, ValidationSet.PackageNormalizedVersion, ValidationSet.ValidationTrackingId, "IncompleteButTimedOut"));
             ValidationEnqueuerMock
-                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+                .Verify(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
             PackageFileServiceMock
                 .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
         }
@@ -113,7 +113,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             TelemetryServiceMock
                 .Verify(t => t.TrackValidationSetTimeout(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId));
             ValidationEnqueuerMock
-                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Never);
+                .Verify(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Never);
             PackageFileServiceMock
                 .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
 
@@ -160,7 +160,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 MessageServiceMock
                     .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Once);
                 ValidationEnqueuerMock
-                    .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+                    .Verify(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
                 PackageFileServiceMock
                     .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
             }
@@ -171,7 +171,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 MessageServiceMock
                     .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Never);
                 ValidationEnqueuerMock
-                    .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+                    .Verify(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
                 PackageFileServiceMock
                     .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
             }
@@ -188,7 +188,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             MessageServiceMock
                 .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Never);
             ValidationEnqueuerMock
-                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+                .Verify(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
             PackageFileServiceMock
                 .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
         }
@@ -225,7 +225,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             MessageServiceMock
                 .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Never);
             ValidationEnqueuerMock
-                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+                .Verify(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
             PackageFileServiceMock
                 .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
         }
@@ -241,7 +241,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             PackageValidationMessageData messageData = null;
             DateTimeOffset postponeTill = DateTimeOffset.MinValue;
             ValidationEnqueuerMock
-                .Setup(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
+                .Setup(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
                 .Returns(Task.FromResult(0))
                 .Callback<PackageValidationMessageData, DateTimeOffset>((pv, pt) => {
                     messageData = pv;
@@ -256,7 +256,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(s => s.UpdateValidationSetAsync(ValidationSet), Times.Once);
 
             ValidationEnqueuerMock
-                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once());
+                .Verify(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once());
 
             PackageStateProcessorMock.Verify(
                 x => x.SetStatusAsync(It.IsAny<PackageValidatingEntity>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()),
@@ -507,7 +507,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats, ScheduleNextCheck);
 
             ValidationEnqueuerMock
-                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once());
+                .Verify(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once());
 
             Assert.Equal(ValidationSetStatus.InProgress, ValidationSet.ValidationSetStatus);
         }
@@ -527,7 +527,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats, ScheduleNextCheck);
 
             ValidationEnqueuerMock.Verify(
-                ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
+                ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                 Times.Never);
             Assert.Equal(ValidationSetStatus.InProgress, ValidationSet.ValidationSetStatus);
         }
@@ -548,7 +548,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats, ScheduleNextCheck);
 
             ValidationEnqueuerMock
-                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Never());
+                .Verify(ve => ve.SendMessageAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Never());
 
             Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
         }

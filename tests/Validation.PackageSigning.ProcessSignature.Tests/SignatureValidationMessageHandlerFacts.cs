@@ -177,10 +177,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     x => x.SaveStatusAsync(It.IsAny<ValidatorStatus>()),
                     Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.Is<PackageValidationMessageData>(d => d.Type == PackageValidationMessageType.CheckValidator)),
+                    x => x.SendMessageAsync(It.Is<PackageValidationMessageData>(d => d.Type == PackageValidationMessageType.CheckValidator)),
                     Times.Once);
             }
 
@@ -203,7 +203,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     x => x.SaveStatusAsync(It.IsAny<ValidatorStatus>()),
                     Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 
@@ -223,7 +223,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     x => x.SaveStatusAsync(It.IsAny<ValidatorStatus>()),
                     Times.Never);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 

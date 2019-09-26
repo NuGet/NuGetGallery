@@ -48,6 +48,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 SymbolPackageFileServiceMock.Verify(spfs => spfs.DoesValidationSetPackageExistAsync(It.IsAny<PackageValidationSet>()), Times.Never);
                 SymbolPackageFileServiceMock.Verify(spfs => spfs.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>(), It.IsAny<IAccessCondition>()), Times.Never);
                 SymbolPackageFileServiceMock.Verify(spfs => spfs.CopyValidationPackageToPackageFileAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+                SymbolPackageFileServiceMock.Verify(spfs => spfs.UpdatePackageBlobMetadataInValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+                SymbolPackageFileServiceMock.Verify(spfs => spfs.UpdatePackageBlobMetadataInValidationAsync(It.IsAny<PackageValidationSet>()), Times.Never);
                 SymbolsPackageServiceMock.Verify(sps => sps.UpdateStatusAsync(It.IsAny < SymbolPackage>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Never);
             }
 
@@ -78,6 +80,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 SymbolPackageFileServiceMock.Verify(spfs => spfs.DoesValidationSetPackageExistAsync(It.IsAny<PackageValidationSet>()), Times.Never);
                 SymbolPackageFileServiceMock.Verify(spfs => spfs.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>(), It.IsAny<IAccessCondition>()), Times.Never);
                 SymbolPackageFileServiceMock.Verify(spfs => spfs.CopyValidationPackageToPackageFileAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+                SymbolPackageFileServiceMock.Verify(spfs => spfs.UpdatePackageBlobMetadataInValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+                SymbolPackageFileServiceMock.Verify(spfs => spfs.UpdatePackageBlobMetadataInValidationAsync(It.IsAny<PackageValidationSet>()), Times.Never);
                 SymbolsPackageServiceMock.Verify(sps => sps.UpdateStatusAsync(It.IsAny<SymbolPackage>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Never);
             }
 

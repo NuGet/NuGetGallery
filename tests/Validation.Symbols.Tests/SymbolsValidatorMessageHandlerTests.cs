@@ -71,7 +71,7 @@ namespace Validation.Symbols.Tests
                 // Assert
                 Assert.True(result);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 
@@ -90,7 +90,7 @@ namespace Validation.Symbols.Tests
                 // Assert
                 Assert.True(result);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 
@@ -130,10 +130,10 @@ namespace Validation.Symbols.Tests
                 Assert.True(result);
                 _validatorStateService.Verify(ss => ss.SaveStatusAsync(It.IsAny<ValidatorStatus>()), Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.Is<PackageValidationMessageData>(d => d.Type == PackageValidationMessageType.CheckValidator)),
+                    x => x.SendMessageAsync(It.Is<PackageValidationMessageData>(d => d.Type == PackageValidationMessageType.CheckValidator)),
                     Times.Once);
             }
 
@@ -155,7 +155,7 @@ namespace Validation.Symbols.Tests
                 Assert.True(result);
                 _validatorStateService.Verify(ss => ss.SaveStatusAsync(It.IsAny<ValidatorStatus>()), Times.Once);
                 _validationEnqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
 
