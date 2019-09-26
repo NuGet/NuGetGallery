@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -25,12 +26,19 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
             IReadOnlyList<GitFileInfo> repoFiles,
             Mock<ITelemetryService> mockTelemetry,
             Action<string> onDisposeHandler,
-            Func<ICheckedOutFile, IReadOnlyList<string>> configFileParser = null)
+            Func<ICheckedOutFile, IReadOnlyList<string>> configFileParser = null,
+            bool shouldTimeOut = false)
         {
             var mockConfig = new Mock<IOptionsSnapshot<GitHubIndexerConfiguration>>();
+            var config = new GitHubIndexerConfiguration();
+            if (shouldTimeOut)
+            {
+                config.RepoIndexingTimeout = TimeSpan.Zero;
+            }
+
             mockConfig
                 .SetupGet(x => x.Value)
-                .Returns(new GitHubIndexerConfiguration());
+                .Returns(config);
 
             var mockSearcher = new Mock<IGitRepoSearcher>();
             mockSearcher
@@ -41,6 +49,14 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
             RepositoryInformation mockVal;
             mockRepoCache
                 .Setup(x => x.TryGetCachedVersion(It.IsAny<WritableRepositoryInformation>(), out mockVal))
+                .Callback(() => {
+                    if (shouldTimeOut)
+                    {
+                        // A minute should be long enough to cancel the task.
+                        // If the task isn't canceled, the test runtime will only be minorly affected.
+                        Thread.Sleep(60 * 1000);
+                    }
+                })
                 .Returns(false); // Simulate no cache
             mockRepoCache
                 .Setup(x => x.Persist(It.IsAny<RepositoryInformation>()));
@@ -155,6 +171,33 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 uploadMetric.Verify(m => m.Dispose(), Times.Never);
 
                 telemetry.Verify(t => t.TrackEmptyGitHubUsageBlob(), Times.Once);
+            }
+
+            [Fact]
+            public async Task TestTimeoutCancelsProcessing()
+            {
+                var repo = new WritableRepositoryInformation("owner/test", url: "", stars: 100, description: "", mainBranch: "master");
+                var configFileNames = new string[] { "packages.config", "someProjFile.csproj", "someProjFile.props", "someProjFile.targets" };
+                var repoFiles = new List<GitFileInfo>()
+                {
+                    new GitFileInfo("file1.txt", 1),
+                    new GitFileInfo("file2.txt", 1),
+                    new GitFileInfo(configFileNames[0], 1),
+                    new GitFileInfo(configFileNames[1], 1),
+                    new GitFileInfo(configFileNames[2], 1),
+                    new GitFileInfo(configFileNames[3], 1)
+                };
+
+                var telemetry = new Mock<ITelemetryService>();
+                var indexer = CreateIndexer(
+                    repo,
+                    repoFiles,
+                    telemetry,
+                    // This should not be called because the process will be cancelled before it writes.
+                    onDisposeHandler: (string serializedValue) => Assert.True(false),
+                    shouldTimeOut: true);
+
+                await Assert.ThrowsAsync<OperationCanceledException>(() => indexer.RunAsync());
             }
 
             [Fact]
