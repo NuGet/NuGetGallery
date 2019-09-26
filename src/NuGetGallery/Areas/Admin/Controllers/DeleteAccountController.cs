@@ -53,6 +53,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Rename(string accountName)
         {
             try
