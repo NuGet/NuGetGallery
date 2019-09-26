@@ -27,6 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private readonly StorageFactory _semVer2StorageFactory;
         private readonly ShouldIncludeRegistrationPackage _shouldIncludeSemVer2ForLegacyStorageFactory;
         private readonly RegistrationMakerCatalogItem.PostProcessGraph _postProcessGraphForLegacyStorageFactory;
+        private readonly bool _forcePackagePathProviderForIcons;
         private readonly int _maxConcurrentBatches;
         private readonly ILogger _logger;
 
@@ -36,6 +37,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             StorageFactory semVer2StorageFactory,
             Uri contentBaseAddress,
             Uri galleryBaseAddress,
+            bool forcePackagePathProviderForIcons,
             ITelemetryService telemetryService,
             ILogger logger,
             Func<HttpMessageHandler> handlerFunc = null,
@@ -55,6 +57,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _postProcessGraphForLegacyStorageFactory = GetPostProcessGraphForLegacyStorageFactory(_semVer2StorageFactory);
             ContentBaseAddress = contentBaseAddress;
             GalleryBaseAddress = galleryBaseAddress;
+            _forcePackagePathProviderForIcons = forcePackagePathProviderForIcons;
 
             if (maxConcurrentBatches < 1)
             {
@@ -155,6 +158,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     galleryBaseAddress: GalleryBaseAddress,
                     partitionSize: PartitionSize,
                     packageCountThreshold: PackageCountThreshold,
+                    forcePackagePathProviderForIcons: _forcePackagePathProviderForIcons,
                     telemetryService: _telemetryService,
                     cancellationToken: cancellationToken);
                 tasks.Add(legacyTask);
@@ -162,15 +166,16 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 if (_semVer2StorageFactory != null)
                 {
                     var semVer2Task = RegistrationMaker.ProcessAsync(
-                       registrationKey: new RegistrationKey(sortedGraphs.Key),
-                       newItems: sortedGraphs.Value,
-                       storageFactory: _semVer2StorageFactory,
-                       contentBaseAddress: ContentBaseAddress,
-                       galleryBaseAddress: GalleryBaseAddress,
-                       partitionSize: PartitionSize,
-                       packageCountThreshold: PackageCountThreshold,
-                       telemetryService: _telemetryService,
-                       cancellationToken: cancellationToken);
+                        registrationKey: new RegistrationKey(sortedGraphs.Key),
+                        newItems: sortedGraphs.Value,
+                        storageFactory: _semVer2StorageFactory,
+                        contentBaseAddress: ContentBaseAddress,
+                        galleryBaseAddress: GalleryBaseAddress,
+                        partitionSize: PartitionSize,
+                        packageCountThreshold: PackageCountThreshold,
+                        forcePackagePathProviderForIcons: _forcePackagePathProviderForIcons,
+                        telemetryService: _telemetryService,
+                        cancellationToken: cancellationToken);
                     tasks.Add(semVer2Task);
                 }
 

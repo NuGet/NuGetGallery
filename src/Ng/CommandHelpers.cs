@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
@@ -454,7 +455,60 @@ namespace Ng
         {
             var registrationCursorUri = arguments.GetOrThrow<Uri>(Arguments.RegistrationCursorUri);
             var flatContainerCursorUri = arguments.GetOrThrow<Uri>(Arguments.FlatContainerCursorUri);
-            return new EndpointConfiguration(registrationCursorUri, flatContainerCursorUri);
+
+            var instanceNameToSearchBaseUri = GetSuffixToUri(arguments, Arguments.SearchBaseUriPrefix);
+            var instanceNameToSearchCursorUri = GetSuffixToUri(arguments, Arguments.SearchCursorUriPrefix);
+            var instanceNameToSearchConfig = new Dictionary<string, SearchEndpointConfiguration>();
+            foreach (var pair in instanceNameToSearchBaseUri)
+            {
+                var instanceName = pair.Key;
+
+                // Find all cursors with an instance name starting with the search base URI instance name. We do this
+                // because there may be multiple potential cursors representing the state of a search service.
+                var matchingCursors = instanceNameToSearchCursorUri.Keys.Where(x => x.StartsWith(instanceName)).ToList();
+
+                if (!matchingCursors.Any())
+                {
+                    throw new ArgumentException(
+                        $"The -{Arguments.SearchBaseUriPrefix}{instanceName} argument does not have any matching " +
+                        $"-{Arguments.SearchCursorUriPrefix}{instanceName}* arguments.");
+                }
+
+                instanceNameToSearchConfig[instanceName] = new SearchEndpointConfiguration(
+                    matchingCursors.Select(x => instanceNameToSearchCursorUri[x]).ToList(),
+                    pair.Value);
+
+                foreach (var key in matchingCursors)
+                {
+                    instanceNameToSearchCursorUri.Remove(key);
+                }
+            }
+            
+            // See if there are any search cursor URI arguments left over and error out. Better to fail than to ignore
+            // an argument that the user expected to be relevant.
+            if (instanceNameToSearchCursorUri.Any())
+            {
+                throw new ArgumentException(
+                    $"There are -{Arguments.SearchCursorUriPrefix}* arguments without matching " +
+                    $"-{Arguments.SearchBaseUriPrefix}* arguments. The unmatched suffixes were: {string.Join(", ", instanceNameToSearchCursorUri.Keys)}");
+            }
+
+            return new EndpointConfiguration(
+                registrationCursorUri,
+                flatContainerCursorUri,
+                instanceNameToSearchConfig);
+        }
+
+        private static Dictionary<string, Uri> GetSuffixToUri(IDictionary<string, string> arguments, string prefix)
+        {
+            var suffixToUri = new Dictionary<string, Uri>();
+            foreach (var key in arguments.Keys.Where(x => x.StartsWith(prefix)))
+            {
+                var suffix = key.Substring(prefix.Length);
+                suffixToUri[suffix] = arguments.GetOrThrow<Uri>(key);
+            }
+
+            return suffixToUri;
         }
 
         public static IPackageMonitoringStatusService GetPackageMonitoringStatusService(IDictionary<string, string> arguments, ICatalogStorageFactory storageFactory, ILoggerFactory loggerFactory)

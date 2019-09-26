@@ -8,8 +8,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public class RegistrationIdValidator : RegistrationIndexValidator
     {
-        public RegistrationIdValidator(ValidatorConfiguration config, ILogger<RegistrationIdValidator> logger)
-            : base(config, logger)
+        public RegistrationIdValidator(
+            RegistrationEndpoint endpoint,
+            ValidatorConfiguration config,
+            ILogger<RegistrationIdValidator> logger)
+            : base(endpoint, config, logger)
         {
         }
 

@@ -9,9 +9,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class RegistrationRequireLicenseAcceptanceValidator : RegistrationIndexValidator
     {
         public RegistrationRequireLicenseAcceptanceValidator(
+            RegistrationEndpoint endpoint,
             ValidatorConfiguration config,
             ILogger<RegistrationRequireLicenseAcceptanceValidator> logger)
-            : base(config, logger)
+            : base(endpoint, config, logger)
         {
         }
 

@@ -55,7 +55,8 @@ namespace CatalogTests.Registration
                 registrationBaseAddress,
                 isExistingItem: false,
                 postProcessGraph: g => g,
-                packageContentBaseAddress: packageContentBaseAddress)
+                packageContentBaseAddress: packageContentBaseAddress,
+                forcePathProviderForIcons: false)
             {
                 BaseAddress = new Uri("http://example/registration/mypackage/"),
             };
@@ -135,7 +136,8 @@ namespace CatalogTests.Registration
                     isExistingItem: false,
                     postProcessGraph: g => g,
                     packageContentBaseAddress: _packageContentBaseAddress,
-                    galleryBaseAddress: new Uri(galleryBaseAddress))
+                    galleryBaseAddress: new Uri(galleryBaseAddress),
+                    forcePathProviderForIcons: false)
                 {
                     BaseAddress = _baseAddress,
                 };
@@ -156,16 +158,19 @@ namespace CatalogTests.Registration
             }
 
             [Theory]
-            [InlineData(null, null, "")]
-            [InlineData("http://icon.test/", null, "http://icon.test/")]
-            [InlineData(null, "icon.png", "http://example/content/test-container/mypackage/1.2.3/icon")]
-            [InlineData("http://icon.test/", "icon.png", "http://example/content/test-container/mypackage/1.2.3/icon")]
-            [InlineData(null, "icon.jpg", "http://example/content/test-container/mypackage/1.2.3/icon")]
-            [InlineData(null, "icon.jpeg", "http://example/content/test-container/mypackage/1.2.3/icon")]
-            [InlineData(null, "icon.gif", "http://example/content/test-container/mypackage/1.2.3/icon")]
-            [InlineData(null, "icon.svg", "http://example/content/test-container/mypackage/1.2.3/icon")]
-            [InlineData(null, "icon.exe", "http://example/content/test-container/mypackage/1.2.3/icon")]
-            public void CreatePageContent_SetsIconUrlProperly(string iconUrl, string iconFile, string expectedIconUrl)
+            [InlineData(null, null, false, "")]
+            [InlineData("http://icon.test/", null, false, "http://icon.test/")]
+            [InlineData("http://icon.test/", null, true, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.png", false, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.png", true, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData("http://icon.test/", "icon.png", false, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData("http://icon.test/", "icon.png", true, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.jpg", false, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.jpeg", false, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.gif", false, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.svg", false, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            [InlineData(null, "icon.exe", false, "http://example/content/test-container/mypackage/1.2.3/icon")]
+            public void CreatePageContent_SetsIconUrlProperly(string iconUrl, string iconFile, bool forceFlatContainer, string expectedIconUrl)
             {
                 // Arrange
                 AddTriple(_catalogUri, Schema.Predicates.IconUrl, iconUrl);
@@ -178,7 +183,8 @@ namespace CatalogTests.Registration
                     isExistingItem: false,
                     postProcessGraph: g => g,
                     packageContentBaseAddress: _packageContentBaseAddress,
-                    galleryBaseAddress: new Uri("http://gallery.test"))
+                    galleryBaseAddress: new Uri("http://gallery.test"),
+                    forcePathProviderForIcons: forceFlatContainer)
                 {
                     BaseAddress = _baseAddress,
                 };
@@ -298,7 +304,8 @@ namespace CatalogTests.Registration
                     _registrationBaseAddress,
                     isExistingItem: false,
                     postProcessGraph: shouldPostProcess ? RegistrationCollector.FilterOutDeprecationInformation : g => g,
-                    packageContentBaseAddress: _packageContentBaseAddress)
+                    packageContentBaseAddress: _packageContentBaseAddress,
+                    forcePathProviderForIcons: false)
                 {
                     BaseAddress = _baseAddress,
                 };

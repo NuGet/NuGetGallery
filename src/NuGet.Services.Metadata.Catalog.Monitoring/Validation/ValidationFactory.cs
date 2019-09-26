@@ -34,7 +34,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
 
             var collection = new ServiceCollection();
-            collection.AddLogging();
+            collection.AddSingleton(loggerFactory);
+            collection.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
             var builder = new ContainerBuilder();
             builder.Populate(collection);
@@ -42,9 +43,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             builder.RegisterValidatorConfiguration(validatorConfig);
             builder.RegisterEndpointConfiguration(endpointConfig);
             builder.RegisterMessageHandlerFactory(messageHandlerFactory);
-            builder.RegisterEndpoints();
+            builder.RegisterEndpoints(endpointConfig);
             builder.RegisterSourceRepositories(galleryUrl, indexUrl, galleryDatabase);
-            builder.RegisterValidators();
+            builder.RegisterValidators(endpointConfig);
 
             builder
                 .RegisterInstance(auditingStorageFactory)
@@ -88,13 +89,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
 
             var collection = new ServiceCollection();
-            collection.AddLogging();
+            collection.AddSingleton(loggerFactory);
+            collection.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
             var builder = new ContainerBuilder();
             builder.Populate(collection);
 
             builder.RegisterEndpointConfiguration(endpointConfig);
-            builder.RegisterEndpoints();
+            builder.RegisterEndpoints(endpointConfig);
             builder.RegisterMessageHandlerFactory(messageHandlerFactory);
 
             builder

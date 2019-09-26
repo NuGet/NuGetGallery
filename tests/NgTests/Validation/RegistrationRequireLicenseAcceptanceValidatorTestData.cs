@@ -13,9 +13,10 @@ namespace NgTests
         protected override RegistrationRequireLicenseAcceptanceValidator CreateValidator(
             ILogger<RegistrationRequireLicenseAcceptanceValidator> logger)
         {
+            var endpoint = ValidatorTestUtility.CreateRegistrationEndpoint();
             var config = new ValidatorConfiguration("https://nuget.test/packages", requireRepositorySignature: false);
 
-            return new RegistrationRequireLicenseAcceptanceValidator(config, logger);
+            return new RegistrationRequireLicenseAcceptanceValidator(endpoint, config, logger);
         }
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes => new Func<PackageRegistrationIndexMetadata>[]

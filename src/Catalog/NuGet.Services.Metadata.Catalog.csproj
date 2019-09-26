@@ -87,6 +87,8 @@
     <Compile Include="CatalogIndexEntry.cs" />
     <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="CatalogTypeConverter.cs" />
+    <Compile Include="Persistence\CloudBlockBlobClientWrapper.cs" />
+    <Compile Include="Persistence\CloudBlobDirectoryWrapper.cs" />
     <Compile Include="CloudBlobStorageExtensions.cs" />
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CatalogCommitItem.cs" />
@@ -114,6 +116,8 @@
     <Compile Include="Helpers\PackageContentUriBuilder.cs" />
     <Compile Include="Helpers\PackageUtility.cs" />
     <Compile Include="ICatalogIndexProcessor.cs" />
+    <Compile Include="Persistence\ICloudBlockBlobClient.cs" />
+    <Compile Include="Persistence\ICloudBlobDirectory.cs" />
     <Compile Include="IPackageCatalogItemCreator.cs" />
     <Compile Include="IPackagesContainerHandler.cs" />
     <Compile Include="IHttpRetryStrategy.cs" />

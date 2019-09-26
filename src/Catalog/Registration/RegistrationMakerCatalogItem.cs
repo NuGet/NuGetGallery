@@ -28,17 +28,19 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private DateTime _publishedDate;
         private bool _listed;
         private readonly PostProcessGraph _postProcessGraph;
+        private readonly bool _forcePathProviderForIcons;
 
         // This should be set before class is instantiated
         public static IPackagePathProvider PackagePathProvider = null;
 
         public RegistrationMakerCatalogItem(
-            Uri catalogUri, 
-            IGraph catalogItem, 
-            Uri registrationBaseAddress, 
-            bool isExistingItem, 
-            PostProcessGraph postProcessGraph, 
-            Uri packageContentBaseAddress = null, 
+            Uri catalogUri,
+            IGraph catalogItem,
+            Uri registrationBaseAddress,
+            bool isExistingItem,
+            PostProcessGraph postProcessGraph,
+            bool forcePathProviderForIcons,
+            Uri packageContentBaseAddress = null,
             Uri galleryBaseAddress = null)
         {
             _catalogUri = catalogUri;
@@ -47,6 +49,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             _galleryBaseAddress = galleryBaseAddress;
             _registrationBaseAddress = registrationBaseAddress;
             _postProcessGraph = postProcessGraph;
+            _forcePathProviderForIcons = forcePathProviderForIcons;
 
             IsExistingItem = isExistingItem;
         }
@@ -233,7 +236,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             var iconUrl = GetOptionalObject(_catalogItem, subject, Schema.Predicates.IconUrl);
             var iconFile = GetOptionalObject(_catalogItem, subject, Schema.Predicates.IconFile);
 
-            if (!string.IsNullOrWhiteSpace(iconFile) && !string.IsNullOrWhiteSpace(packageId) && !string.IsNullOrWhiteSpace(packageVersion))
+            var shouldUsePathProvider = !string.IsNullOrWhiteSpace(iconFile) || (_forcePathProviderForIcons && !string.IsNullOrWhiteSpace(iconUrl));
+
+            if (shouldUsePathProvider && !string.IsNullOrWhiteSpace(packageId) && !string.IsNullOrWhiteSpace(packageVersion))
             {
                 // The embedded icon file case. We assume here that catalog2dnx did its job
                 // and extracted the icon file to the appropriate location.
@@ -241,8 +246,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 return new Uri(_packageContentBaseAddress, path).AbsoluteUri;
             }
 
-            // TODO: Update when iconUrl ingestion work is done: https://github.com/nuget/nugetgallery/issues/7061
-            return iconUrl ?? string.Empty;
+            return _forcePathProviderForIcons || iconUrl == null ? string.Empty : iconUrl;
         }
 
         private static string GetRequiredObject(IGraph graph, INode subject, Uri predicate)

@@ -98,8 +98,11 @@
     <Compile Include="Utility\SafeExceptionConverter.cs" />
     <Compile Include="Validation\Result\ShouldRunTestResult.cs" />
     <Compile Include="Validation\Test\Endpoint\AggregateEndpointCursor.cs" />
+    <Compile Include="Validation\Test\Endpoint\SearchEndpoint.cs" />
+    <Compile Include="Validation\Test\Endpoint\SearchEndpointConfiguration.cs" />
     <Compile Include="Validation\Test\Exceptions\AggregateMetadataInconsistencyException.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationDeprecationValidator.cs" />
+    <Compile Include="Validation\Test\Search\SearchHasVersionValidator.cs" />
     <Compile Include="Validation\ValidationCollector.cs" />
     <Compile Include="Validation\Result\AggregateValidationResult.cs" />
     <Compile Include="Validation\Result\PackageValidationResult.cs" />

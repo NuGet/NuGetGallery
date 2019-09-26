@@ -9,6 +9,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
     public interface IPackagePathProvider
     {
         string GetIconPath(string id, string version);
+        string GetIconPath(string id, string version, bool normalize);
         string GetPackagePath(string id, string version);
     }
 }

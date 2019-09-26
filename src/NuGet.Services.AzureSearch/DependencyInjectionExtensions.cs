@@ -9,6 +9,7 @@ using Microsoft.Azure.Search;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -287,6 +288,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ISearchResponseBuilder, SearchResponseBuilder>();
             services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
             services.AddTransient<ISearchTextBuilder, SearchTextBuilder>();
+            services.AddTransient<IServiceClientTracingInterceptor, ServiceClientTracingLogger>();
             services.AddTransient<ISimpleHttpClient, SimpleHttpClient>();
             services.AddTransient<ISystemTime, SystemTime>();
             services.AddTransient<ITelemetryService, TelemetryService>();

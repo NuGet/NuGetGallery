@@ -21,6 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Uri galleryBaseAddress,
             int partitionSize,
             int packageCountThreshold,
+            bool forcePackagePathProviderForIcons,
             ITelemetryService telemetryService,
             CancellationToken cancellationToken)
         {
@@ -34,6 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 galleryBaseAddress,
                 partitionSize,
                 packageCountThreshold,
+                forcePackagePathProviderForIcons,
                 telemetryService,
                 cancellationToken);
         }
@@ -48,12 +50,13 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Uri galleryBaseAddress,
             int partitionSize,
             int packageCountThreshold,
+            bool forcePackagePathProviderForIcons,
             ITelemetryService telemetryService,
             CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationMaker.Process: registrationKey = {0} newItems: {1}", registrationKey, newItems.Count);
 
-            IRegistrationPersistence registration = new RegistrationPersistence(storageFactory, postProcessGraph, registrationKey, partitionSize, packageCountThreshold, contentBaseAddress, galleryBaseAddress);
+            IRegistrationPersistence registration = new RegistrationPersistence(storageFactory, postProcessGraph, registrationKey, partitionSize, packageCountThreshold, contentBaseAddress, galleryBaseAddress, forcePackagePathProviderForIcons);
 
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> existing = await registration.Load(cancellationToken);
 

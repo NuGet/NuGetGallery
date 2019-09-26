@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
+using Microsoft.Extensions.Logging;
 using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -57,11 +58,39 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 .As<Func<HttpMessageHandler>>();
         }
 
-        public static void RegisterEndpoints(this ContainerBuilder builder)
+        public static void RegisterEndpoints(
+            this ContainerBuilder builder,
+            EndpointConfiguration endpointConfig)
         {
             builder.RegisterEndpoint<RegistrationEndpoint>();
             builder.RegisterEndpoint<FlatContainerEndpoint>();
             builder.RegisterEndpoint<CatalogEndpoint>();
+            builder.RegisterSearchEndpoints(endpointConfig);
+        }
+
+        private static void RegisterSearchEndpoints(this ContainerBuilder builder, EndpointConfiguration endpointConfig)
+        {
+            foreach (var pair in endpointConfig.InstanceNameToSearchConfiguration)
+            {
+                var config = pair.Value;
+
+                builder
+                    .Register(c => new SearchEndpoint(
+                        pair.Key,
+                        pair.Value.CursorUris,
+                        pair.Value.BaseUri,
+                        c.Resolve<Func<HttpMessageHandler>>()))
+                    .As<IEndpoint>()
+                    .Keyed<SearchEndpoint>(pair.Key);
+
+                builder
+                    .Register(c => new EndpointValidator<SearchEndpoint>(
+                        c.ResolveKeyed<SearchEndpoint>(pair.Key),
+                        c.ResolveKeyed<IEnumerable<IValidator<SearchEndpoint>>>(pair.Key),
+                        c.Resolve<ILogger<AggregateValidator>>()))
+                    .As<IAggregateValidator>()
+                    .Keyed<EndpointValidator<SearchEndpoint>>(pair.Key);
+            }
         }
 
         private static void RegisterEndpoint<T>(this ContainerBuilder builder)
@@ -78,7 +107,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 .As<IAggregateValidator>();
         }
 
-        public static void RegisterValidators(this ContainerBuilder builder)
+        public static void RegisterValidators(this ContainerBuilder builder, EndpointConfiguration endpointConfig)
         {
             // Catalog validators
             builder.RegisterValidator<CatalogEndpoint, PackageHasSignatureValidator>();
@@ -93,6 +122,23 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             // Flat-container validators
             builder.RegisterValidator<FlatContainerEndpoint, PackageIsRepositorySignedValidator>();
+
+            // Search validators
+            foreach (var pair in endpointConfig.InstanceNameToSearchConfiguration)
+            {
+                builder.RegisterSearchValidator<SearchHasVersionValidator>(pair.Key);
+            }
+        }
+
+        private static void RegisterSearchValidator<TValidator>(this ContainerBuilder builder, string instanceName)
+            where TValidator : IValidator<SearchEndpoint>
+        {
+            builder
+                .RegisterType<TValidator>()
+                .Keyed<IValidator<SearchEndpoint>>(instanceName)
+                .WithParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(SearchEndpoint),
+                    (pi, ctx) => ctx.ResolveKeyed<SearchEndpoint>(instanceName));
         }
 
         private static void RegisterValidator<TEndpoint, TValidator>(this ContainerBuilder builder)

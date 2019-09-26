@@ -11,8 +11,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public abstract class FlatContainerValidator : Validator<FlatContainerEndpoint>
     {
-        public FlatContainerValidator(ValidatorConfiguration config, ILogger<FlatContainerValidator> logger)
-            : base(config, logger)
+        public FlatContainerValidator(
+            FlatContainerEndpoint endpoint,
+            ValidatorConfiguration config,
+            ILogger<FlatContainerValidator> logger)
+            : base(endpoint, config, logger)
         {
         }
 

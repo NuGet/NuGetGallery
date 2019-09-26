@@ -90,6 +90,7 @@ namespace Ng
         public const string ContentIsFlatContainer = "contentIsFlatContainer";
         public const string CursorUri = "cursorUri";
         public const string FlatContainerName = "flatContainerName";
+        public const string AllIconsInFlatContainer = "allIconsInFlatContainer";
 
         #endregion
 
@@ -142,6 +143,20 @@ namespace Ng
         /// The url of the cursor for <see cref="FlatContainerEndpoint"/>.
         /// </summary>
         public const string FlatContainerCursorUri = "flatContainerCursorUri";
+
+        /// <summary>
+        /// The argument prefix for the cursor of a <see cref="SearchEndpoint"/>. There are multiple search endpoints
+        /// so a parameter matching this prefix represents the cursor for a single instance. The suffix (after the prefix)
+        /// is the instance identifier, e.g. "usnc-a".
+        /// </summary>
+        public const string SearchCursorUriPrefix = "searchCursorUri-";
+
+        /// <summary>
+        /// The argument prefix for the base URL of a <see cref="SearchEndpoint"/>. There should be the same number of
+        /// <see cref="SearchBaseUriPrefix"/> parameters passed as <see cref="SearchCursorUriPrefix"/> with the same
+        /// set of suffixes.
+        /// </summary>
+        public const string SearchBaseUriPrefix = "searchBaseUri-";
 
         /// <summary>
         /// The folder in which <see cref="PackageMonitoringStatus"/>es are saved by the <see cref="PackageMonitoringStatusService"/>.

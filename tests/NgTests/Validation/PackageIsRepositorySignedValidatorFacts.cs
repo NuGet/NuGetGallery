@@ -23,10 +23,24 @@ namespace NgTests.Validation
         public class Constructor
         {
             private readonly ValidatorConfiguration _configuration;
+            private readonly FlatContainerEndpoint _endpoint;
 
             public Constructor()
             {
+                _endpoint = ValidatorTestUtility.CreateFlatContainerEndpoint();
                 _configuration = new ValidatorConfiguration(packageBaseAddress: "a", requireRepositorySignature: true);
+            }
+
+            [Fact]
+            public void WhenEndpointIsNull_Throws()
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new PackageIsRepositorySignedValidator(
+                        endpoint: null,
+                        config: _configuration,
+                        logger: Mock.Of<ILogger<PackageIsRepositorySignedValidator>>()));
+
+                Assert.Equal("endpoint", exception.ParamName);
             }
 
             [Fact]
@@ -34,6 +48,7 @@ namespace NgTests.Validation
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new PackageIsRepositorySignedValidator(
+                        _endpoint,
                         config: null,
                         logger: Mock.Of<ILogger<PackageIsRepositorySignedValidator>>()));
 
@@ -45,6 +60,7 @@ namespace NgTests.Validation
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new PackageIsRepositorySignedValidator(
+                        _endpoint,
                         _configuration,
                         logger: null));
 
@@ -198,10 +214,11 @@ namespace NgTests.Validation
 
             protected PackageIsRepositorySignedValidator CreateTarget(bool requireRepositorySignature = true)
             {
+                var endpoint = ValidatorTestUtility.CreateFlatContainerEndpoint();
                 var logger = Mock.Of<ILogger<PackageIsRepositorySignedValidator>>();
                 var config = ValidatorTestUtility.CreateValidatorConfig(requireRepositorySignature: requireRepositorySignature);
 
-                return new PackageIsRepositorySignedValidator(config, logger);
+                return new PackageIsRepositorySignedValidator(endpoint, config, logger);
             }
 
             protected ValidationContext CreateValidationContext(string packageResource = null)

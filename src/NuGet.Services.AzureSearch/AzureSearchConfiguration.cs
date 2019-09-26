@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace NuGet.Services.AzureSearch
 {
     public class AzureSearchConfiguration
@@ -12,6 +14,8 @@ namespace NuGet.Services.AzureSearch
         public string StorageConnectionString { get; set; }
         public string StorageContainer { get; set; }
         public string StoragePath { get; set; }
+        public string FlatContainerBaseUrl { get; set; }
+        public string FlatContainerContainerName { get; set; }
 
         public string NormalizeStoragePath()
         {
@@ -22,6 +26,11 @@ namespace NuGet.Services.AzureSearch
             }
 
             return storagePath;
+        }
+
+        public Uri ParseFlatContainerBaseUrl()
+        {
+            return new Uri(FlatContainerBaseUrl, UriKind.Absolute);
         }
     }
 }

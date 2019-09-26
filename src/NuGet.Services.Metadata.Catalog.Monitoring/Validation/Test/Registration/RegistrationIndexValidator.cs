@@ -9,8 +9,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public abstract class RegistrationIndexValidator : RegistrationValidator
     {
-        public RegistrationIndexValidator(ValidatorConfiguration config, ILogger<RegistrationIndexValidator> logger)
-            : base(config, logger)
+        public RegistrationIndexValidator(
+            RegistrationEndpoint endpoint,
+            ValidatorConfiguration config,
+            ILogger<RegistrationIndexValidator> logger)
+            : base(endpoint, config, logger)
         {
         }
 

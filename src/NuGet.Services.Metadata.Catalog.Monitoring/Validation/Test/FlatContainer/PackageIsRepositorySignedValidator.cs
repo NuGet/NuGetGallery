@@ -16,9 +16,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class PackageIsRepositorySignedValidator : FlatContainerValidator
     {
         public PackageIsRepositorySignedValidator(
+            FlatContainerEndpoint endpoint,
             ValidatorConfiguration config,
             ILogger<PackageIsRepositorySignedValidator> logger)
-            : base(config, logger)
+            : base(endpoint, config, logger)
         {
         }
 

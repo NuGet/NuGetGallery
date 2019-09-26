@@ -3,9 +3,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Configuration;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -38,6 +41,7 @@ namespace NgTests.Validation
             IEnumerable<DeletionAuditEntry> deletionAuditEntries = null,
             Dictionary<FeedType, SourceRepository> feedToSource = null,
             CollectorHttpClient client = null,
+            HttpClientHandler clientHandler = null,
             CancellationToken? token = null,
             ILogger<ValidationContext> logger = null,
             IPackageTimestampMetadataResource timestampMetadataResource = null,
@@ -62,6 +66,14 @@ namespace NgTests.Validation
 
                 v3Repository.Setup(x => x.GetResource<IPackageRegistrationMetadataResource>())
                     .Returns(v3Resource ?? Mock.Of<IPackageRegistrationMetadataResource>());
+
+                v3Repository.Setup(x => x.GetResource<HttpSourceResource>())
+                    .Returns(new HttpSourceResource(new HttpSource(
+                        new PackageSource("https://example/v3/index.json"),
+                        () => Task.FromResult<HttpHandlerResource>(new HttpHandlerResourceV3(
+                            clientHandler ?? new HttpClientHandler(),
+                            clientHandler ?? Mock.Of<HttpMessageHandler>())),
+                        NullThrottle.Instance)));
             }
 
             var sourceRepositories = new ValidationSourceRepositories(
@@ -73,7 +85,7 @@ namespace NgTests.Validation
                 entries ?? Enumerable.Empty<CatalogIndexEntry>(),
                 deletionAuditEntries ?? Enumerable.Empty<DeletionAuditEntry>(),
                 sourceRepositories,
-                client ?? new CollectorHttpClient(),
+                client ?? new CollectorHttpClient(clientHandler),
                 token ?? CancellationToken.None,
                 logger ?? Mock.Of<ILogger<ValidationContext>>());
         }
