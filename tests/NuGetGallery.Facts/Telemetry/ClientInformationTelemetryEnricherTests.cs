@@ -37,7 +37,9 @@ namespace NuGetGallery.Telemetry
         {
             // Arrange
             var telemetry = (ITelemetry)telemetryType.GetConstructor(new Type[] { }).Invoke(new object[] { });
-            telemetry.Context.Properties.Add("Test", "blala");
+
+            var itemTelemetry = telemetry as ISupportProperties;
+            itemTelemetry.Properties.Add("Test", "blala");
 
             var headers = new NameValueCollection
             {
@@ -54,11 +56,11 @@ namespace NuGetGallery.Telemetry
             // Assert
             if (telemetry is RequestTelemetry)
             {
-                Assert.Equal(5, telemetry.Context.Properties.Count);
+                Assert.Equal(5, itemTelemetry.Properties.Count);
             }
             else
             {
-                Assert.Equal(1, telemetry.Context.Properties.Count);
+                Assert.Equal(1, itemTelemetry.Properties.Count);
             }
         }
 
@@ -147,9 +149,9 @@ namespace NuGetGallery.Telemetry
             var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
             httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
 
-           return new TestableClientInformationTelemetryEnricher(httpContext.Object);
+            return new TestableClientInformationTelemetryEnricher(httpContext.Object);
         }
     }
 
-    
+
 }
