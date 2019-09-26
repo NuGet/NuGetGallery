@@ -73,7 +73,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="readMeRequest">Request object.</param>
         /// <returns>HTML from markdown conversion.</returns>
-        public async Task<string> GetReadMeHtmlAsync(ReadMeRequest readMeRequest, Encoding encoding)
+        public async Task<RenderedReadMeResult> GetReadMeHtmlAsync(ReadMeRequest readMeRequest, Encoding encoding)
         {
             var markdown = await GetReadMeMdAsync(readMeRequest, encoding);
             return GetReadMeHtml(markdown);
@@ -84,11 +84,17 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <returns>ReadMe converted to HTML.</returns>
-        public async Task<string> GetReadMeHtmlAsync(Package package)
+        public async Task<RenderedReadMeResult> GetReadMeHtmlAsync(Package package)
         {
             var readMeMd = await GetReadMeMdAsync(package);
+            var result = new RenderedReadMeResult
+            {
+                Content = readMeMd,
+                ImagesRewritten = false
+            };
+
             return string.IsNullOrEmpty(readMeMd) ?
-                readMeMd :
+                result :
                 GetReadMeHtml(readMeMd);
         }
 
@@ -169,8 +175,14 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="readMeMd">ReadMe.md content.</param>
         /// <returns>HTML content.</returns>
-        internal static string GetReadMeHtml(string readMeMd)
+        internal static RenderedReadMeResult GetReadMeHtml(string readMeMd)
         {
+            var output = new RenderedReadMeResult()
+            {
+                ImagesRewritten = false,
+                Content = ""
+            };
+
             // HTML encode markdown, except for block quotes, to block inline html.
             var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readMeMd), "> ");
 
@@ -233,6 +245,7 @@ namespace NuGetGallery
                             }
                             else
                             {
+                                output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
                                 inline.TargetUrl = readyUriString;
                             }
                         }
@@ -245,7 +258,8 @@ namespace NuGetGallery
             {
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
 
-                return CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
+                output.Content = CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
+                return output;
             }
         }
 

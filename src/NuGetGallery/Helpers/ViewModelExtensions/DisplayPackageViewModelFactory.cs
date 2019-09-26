@@ -22,7 +22,7 @@ namespace NuGetGallery
             Package package,
             User currentUser,
             PackageDeprecation deprecation,
-            string readmeHtml)
+            RenderedReadMeResult readmeResult)
         {
             var viewModel = new DisplayPackageViewModel();
             return Setup(
@@ -30,7 +30,7 @@ namespace NuGetGallery
                 package,
                 currentUser,
                 deprecation,
-                readmeHtml);
+                readmeResult);
         }
 
         public DisplayPackageViewModel Setup(
@@ -38,11 +38,11 @@ namespace NuGetGallery
             Package package,
             User currentUser,
             PackageDeprecation deprecation,
-            string readMeHtml)
+            RenderedReadMeResult readmeResult)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
             SetupCommon(viewModel, package, pushedBy: null);
-            return SetupInternal(viewModel, package, currentUser, deprecation, readMeHtml);
+            return SetupInternal(viewModel, package, currentUser, deprecation, readmeResult);
         }
 
         private DisplayPackageViewModel SetupInternal(
@@ -50,7 +50,7 @@ namespace NuGetGallery
             Package package,
             User currentUser,
             PackageDeprecation deprecation,
-            string readMeHtml)
+            RenderedReadMeResult readmeResult)
         {
             viewModel.HasSemVer2Version = viewModel.NuGetVersion.IsSemVer2;
             viewModel.HasSemVer2Dependency = package.Dependencies.ToList()
@@ -112,7 +112,8 @@ namespace NuGetGallery
                 viewModel.CustomMessage = deprecation.CustomMessage;
             }
 
-            viewModel.ReadMeHtml = readMeHtml;
+            viewModel.ReadMeHtml = readmeResult?.Content;
+            viewModel.ReadMeImagesRewritten = readmeResult != null ? readmeResult.ImagesRewritten : false;
             viewModel.HasEmbeddedIcon = package.HasEmbeddedIcon;
 
             return viewModel;

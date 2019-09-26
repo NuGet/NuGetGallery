@@ -446,6 +446,10 @@
                         </h2>
                     </div>
                     <div id="readme-container" class="collapse in">
+                        @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
+                        {
+                            @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
+                        }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)
                         </div>

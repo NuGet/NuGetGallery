@@ -308,7 +308,7 @@ var BindReadMeDataManager = (function () {
         }
 
         function displayReadMePreview(response) {
-            $("#readme-preview-contents").html(response);
+            $("#readme-preview-contents").html(response.Content);
             $("#readme-preview").removeClass("hidden");
 
             $('.readme-tabs').children().hide();
@@ -316,6 +316,10 @@ var BindReadMeDataManager = (function () {
             $("#edit-markdown").removeClass("hidden");
             $("#preview-html").addClass("hidden");
             clearReadMeError();
+
+            if (response.ImagesRewritten) {
+                displayReadMeWarning("Some images were automatically rewritten to use secure links and might be broken.");
+            }
         }
 
         function displayReadMeEditMarkdown() {
@@ -328,6 +332,11 @@ var BindReadMeDataManager = (function () {
             $("#preview-html").removeClass("hidden");
         }
 
+        function displayReadMeWarning(errorMsg) {
+            $("#readme-warnings").removeClass("hidden");
+            $("#readme-warning-content").text(errorMsg);
+        }
+
         function displayReadMeError(errorMsg) {
             $("#readme-errors").removeClass("hidden");
             $("#preview-readme-button").attr("disabled", "disabled");
@@ -335,6 +344,11 @@ var BindReadMeDataManager = (function () {
         }
 
         function clearReadMeError() {
+            if (!$("#readme-warnings").hasClass("hidden")) {
+                $("#readme-warnings").addClass("hidden");
+                $("#readme-warning-content").text("");
+            }
+
             if (!$("#readme-errors").hasClass("hidden")) {
                 $("#readme-errors").addClass("hidden");
                 $("#readme-error-content").text("");

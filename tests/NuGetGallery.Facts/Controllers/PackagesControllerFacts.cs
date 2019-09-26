@@ -8346,13 +8346,12 @@ namespace NuGetGallery
 
                 readmeService
                     .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
-                    .ReturnsAsync(html);
+                    .ReturnsAsync(new RenderedReadMeResult { Content = html } );
 
                 var result = await controller.PreviewReadMe(request);
 
-                var stringArray = Assert.IsType<string[]>(result.Data);
-                Assert.Single(stringArray);
-                Assert.Equal(html, stringArray[0]);
+                var readmeResult = Assert.IsType<RenderedReadMeResult>(result.Data);
+                Assert.Equal(html, readmeResult.Content);
             }
 
             [Fact]
