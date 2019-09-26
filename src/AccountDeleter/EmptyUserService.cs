@@ -144,5 +144,10 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
+
+        public Task RenameDeletedAccount(User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

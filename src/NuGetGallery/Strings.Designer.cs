@@ -731,15 +731,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An unexpected error occurred. Contact support for assistance..
-        /// </summary>
-        public static string DefaultUserSafeExceptionMessage {
-            get {
-                return ResourceManager.GetString("DefaultUserSafeExceptionMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last administrator and cannot be deleted..
         /// </summary>
         public static string DeleteMember_CannotDeleteLastAdmin {

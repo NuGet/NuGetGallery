@@ -48,7 +48,7 @@ namespace NuGetGallery
             {
                 return uvex.UserMessage;
             }
-            return Strings.DefaultUserSafeExceptionMessage;
+            return ServicesStrings.DefaultUserSafeExceptionMessage;
         }
 
         public static void Log(this Exception self)

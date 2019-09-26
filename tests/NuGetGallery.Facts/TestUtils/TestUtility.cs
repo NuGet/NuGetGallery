@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Areas.Admin;
 
 namespace NuGetGallery
 {
@@ -80,8 +81,28 @@ namespace NuGetGallery
             controller.ControllerContext = controllerContext;
             var routeCollection = new RouteCollection();
             Routes.RegisterRoutes(routeCollection);
+            RegisterAdminRoutes(routeCollection);
             controller.Url = new UrlHelper(requestContext, routeCollection);
             return httpContext;
+        }
+
+        /// <remarks>
+        /// Admin routes are registered in <see cref="AdminAreaRegistration.RegisterArea(AreaRegistrationContext)"/> using a <see cref="AreaRegistrationContext"/> instead of in <see cref="Routes"/>.
+        /// Unfortunately, because we register the routing for our tests using a <see cref="RouteCollection"/> and not a <see cref="AreaRegistrationContext"/>, we must duplicate the logic.
+        /// </remarks>
+        public static void RegisterAdminRoutes(RouteCollection routeCollection)
+        {
+            routeCollection.MapRoute(
+                "Admin_default",
+                "Admin/{controller}/{action}/{id}",
+                new
+                {
+                    controller = "Home",
+                    action = "Index",
+                    id = UrlParameter.Optional,
+                    area = AdminAreaRegistration.Name
+                }
+            );
         }
 
         public static void SetupUrlHelper(Controller controller, Mock<HttpContextBase> mockHttpContext)

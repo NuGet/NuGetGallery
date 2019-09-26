@@ -872,6 +872,22 @@ namespace NuGetGallery
                 });
         }
 
+        public static string AdminRenameDeletedAccount(
+            this UrlHelper url,
+            string accountName,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                nameof(DeleteAccountController.Rename),
+                "DeleteAccount",
+                relativeUrl,
+                area: AdminAreaRegistration.Name,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
         public static string ReportPackage(
             this UrlHelper url,
             IPackageVersionModel package,
