@@ -17,6 +17,7 @@ namespace NuGetGallery
         private const string AsyncAccountDeleteFeatureName = GalleryPrefix + "AsyncAccountDelete";
         private const string SelfServiceAccountDeleteFeatureName = GalleryPrefix + "SelfServiceAccountDelete";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
+        private const string ForceFlatContainerIconsFeatureName = GalleryPrefix + "ForceFlatContainerIcons";
         private const string GitHubUsageFlightName = GalleryPrefix + "GitHubUsage";
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
@@ -89,6 +90,11 @@ namespace NuGetGallery
         public bool AreEmbeddedIconsEnabled(User user)
         {
             return _client.IsEnabled(EmbeddedIconFlightName, user, defaultValue: false);
+        }
+
+        public bool IsForceFlatContainerIconsEnabled()
+        {
+            return _client.IsEnabled(ForceFlatContainerIconsFeatureName, defaultValue: false);
         }
 
         private bool IsEnabled(string flight, User user, bool defaultValue)

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using CommonMark.Syntax;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
@@ -13,21 +12,21 @@ namespace NuGetGallery
     public class ConfigurationIconFileProviderFacts
     {
         [Fact]
-        public void ConstructorThrowsWhenConfigurationIsNull()
+        public void ConstructorThrowsWhenFeatureFlagServiceIsNull()
         {
             var ex = Assert.Throws<ArgumentNullException>(
                 () => new ConfigurationIconFileProvider(
-                    configuration: null,
+                    featureFlagService: null,
                     iconUrlTemplateProcessor: Mock.Of<IIconUrlTemplateProcessor>()));
 
-            Assert.Equal("configuration", ex.ParamName);
+            Assert.Equal("featureFlagService", ex.ParamName);
         }
 
         public void ConstructorThrowsWhenIconUrlTemplateProcessorIsNull()
         {
             var ex = Assert.Throws<ArgumentNullException>(
                 () => new ConfigurationIconFileProvider(
-                    configuration: Mock.Of<IAppConfiguration>(),
+                    featureFlagService: Mock.Of<IFeatureFlagService>(),
                     iconUrlTemplateProcessor: null));
 
             Assert.Equal("iconUrlTemplateProcessor", ex.ParamName);
@@ -49,17 +48,17 @@ namespace NuGetGallery
         {
             protected const string DefaultIconUrlTemplateProcessorResult = "https://processor.call.expected.test/";
             protected ConfigurationIconFileProvider _target;
-            protected AppConfiguration _configuration;
+            protected Mock<IFeatureFlagService> _featureFlagServiceMock;
             protected Mock<IIconUrlTemplateProcessor> _iconUrlTemplateProcessorMock;
 
             public ConfigurationIconFileProviderFactsBase()
             {
-                _configuration = new AppConfiguration();
+                _featureFlagServiceMock = new Mock<IFeatureFlagService>();
                 _iconUrlTemplateProcessorMock = new Mock<IIconUrlTemplateProcessor>();
                 _iconUrlTemplateProcessorMock
                     .Setup(x => x.Process(It.IsAny<Package>()))
                     .Returns(DefaultIconUrlTemplateProcessorResult);
-                _target = new ConfigurationIconFileProvider(_configuration, _iconUrlTemplateProcessorMock.Object);
+                _target = new ConfigurationIconFileProvider(_featureFlagServiceMock.Object, _iconUrlTemplateProcessorMock.Object);
             }
         }
 
@@ -75,20 +74,36 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(null, null, null)]
-            [InlineData("", null, null)]
-            [InlineData("https://example.test/icon", null, null)]
-            [InlineData(null, "", null)]
-            [InlineData("", "", null)]
-            [InlineData("https://example.test/icon", "", null)]
-            [InlineData(null, " ", null)]
-            [InlineData("", " ", null)]
-            [InlineData("https://example.test/icon", " ", null)]
-            [InlineData(null, "https://storage.test/icon", "https://storage.test/icon")]
-            [InlineData("", "https://storage.test/icon", "https://storage.test/icon")]
-            [InlineData("https://example.test/icon", "https://storage.test/icon", "https://storage.test/icon")]
-            public void AlwaysUsesEmbeddedIconUrlTemplateWhenPackageHasEmbeddedIcon(string iconUrl, string templateProcessorOutput, string expectedIconUrl)
+            [InlineData(null, false, null, null)]
+            [InlineData("", false, null, null)]
+            [InlineData("https://example.test/icon", false, null, null)]
+            [InlineData(null, false, "", null)]
+            [InlineData("", false, "", null)]
+            [InlineData("https://example.test/icon", false, "", null)]
+            [InlineData(null, false, " ", null)]
+            [InlineData("", false, " ", null)]
+            [InlineData("https://example.test/icon", false, " ", null)]
+            [InlineData(null, false, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("", false, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("https://example.test/icon", false, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData(null, true, null, null)]
+            [InlineData("", true, null, null)]
+            [InlineData("https://example.test/icon", true, null, null)]
+            [InlineData(null, true, "", null)]
+            [InlineData("", true, "", null)]
+            [InlineData("https://example.test/icon", true, "", null)]
+            [InlineData(null, true, " ", null)]
+            [InlineData("", true, " ", null)]
+            [InlineData("https://example.test/icon", true, " ", null)]
+            [InlineData(null, true, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("", true, "https://storage.test/icon", "https://storage.test/icon")]
+            [InlineData("https://example.test/icon", true, "https://storage.test/icon", "https://storage.test/icon")]
+            public void AlwaysUsesEmbeddedIconUrlTemplateWhenPackageHasEmbeddedIcon(string iconUrl, bool forceFlatContainerIcons, string templateProcessorOutput, string expectedIconUrl)
             {
+                _featureFlagServiceMock
+                    .Setup(ffs => ffs.IsForceFlatContainerIconsEnabled())
+                    .Returns(forceFlatContainerIcons);
+
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
@@ -115,16 +130,28 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(null, null, null)]
-            [InlineData("", null, null)]
-            [InlineData(" ", null, null)]
-            [InlineData(null, "https://internal.test/icon", null)]
-            [InlineData("", "https://internal.test/icon", null)]
-            [InlineData(" ", "https://internal.test/icon", null)]
-            [InlineData("https://external.test/icon", null, "https://external.test/icon")]
-            [InlineData("https://external.test/icon", "https://internal.test/icon", "https://external.test/icon")]
-            public void ProducesExpectedIconUrlWhenNoEmbeddedIcon(string iconUrl, string templateProcessorOutput, string expectedIconUrl)
+            [InlineData(null, false, null, null)]
+            [InlineData("", false, null, null)]
+            [InlineData(" ", false, null, null)]
+            [InlineData(null, false, "https://internal.test/icon", null)]
+            [InlineData("", false, "https://internal.test/icon", null)]
+            [InlineData(" ", false, "https://internal.test/icon", null)]
+            [InlineData("https://external.test/icon", false, null, "https://external.test/icon")]
+            [InlineData("https://external.test/icon", false, "https://internal.test/icon", "https://external.test/icon")]
+            [InlineData(null, true, null, null)]
+            [InlineData("", true, null, null)]
+            [InlineData(" ", true, null, null)]
+            [InlineData(null, true, "https://internal.test/icon", null)]
+            [InlineData("", true, "https://internal.test/icon", null)]
+            [InlineData(" ", true, "https://internal.test/icon", null)]
+            [InlineData("https://external.test/icon", true, null, null)]
+            [InlineData("https://external.test/icon", true, "https://internal.test/icon", "https://internal.test/icon")]
+            public void ProducesExpectedIconUrlWhenNoEmbeddedIcon(string iconUrl, bool forceFlatContainerIcons, string templateProcessorOutput, string expectedIconUrl)
             {
+                _featureFlagServiceMock
+                    .Setup(ffs => ffs.IsForceFlatContainerIconsEnabled())
+                    .Returns(forceFlatContainerIcons);
+
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
