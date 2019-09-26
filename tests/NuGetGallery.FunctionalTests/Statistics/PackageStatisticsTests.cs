@@ -3,24 +3,14 @@
 
 using System;
 using System.ComponentModel;
-using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests.Statistics
 {
     public class PackageStatisticsTests
     {
-        public PackageStatisticsTests()
-        {
-            // Suppress SSL validation for *.cloudapp.net.
-            ServicePointManagerInitializer.InitializeServerCertificateValidationCallback();
-        }
-
         /// <summary>
         /// Double-checks whether expected fields exist in the packages feed.
         /// </summary>

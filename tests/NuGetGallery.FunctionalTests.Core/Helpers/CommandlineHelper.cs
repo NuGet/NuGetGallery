@@ -173,11 +173,6 @@ namespace NuGetGallery.FunctionalTests
             var nugetProcess = new Process();
             var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
 
-            foreach (var trustedCertificate in GalleryConfiguration.Instance.TrustedHttpsCertificates)
-            {
-                arguments.AddRange(new[] { "-TrustedHttpsCertificate", trustedCertificate });
-            }
-
             arguments.Add(NonInteractiveSwitchString);
 
             var argumentsString = string.Join(" ", arguments);
