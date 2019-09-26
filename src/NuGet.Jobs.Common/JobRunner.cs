@@ -19,7 +19,8 @@ namespace NuGet.Jobs
         public static IServiceContainer ServiceContainer;
 
         private static ILogger _logger;
-        
+
+        private const string HeartbeatProperty_JobLoopExitCode = "JobLoopExitCode";
         private const string JobSucceeded = "Job Succeeded";
         private const string JobUninitialized = "Job Failed to Initialize";
         private const string JobFailed = "Job Failed to Run";
@@ -89,10 +90,20 @@ namespace NuGet.Jobs
                 // Setup logging
                 if (!ApplicationInsights.Initialized)
                 {
-                    string instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
+                    var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
+                    var heartbeatIntervalSeconds = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.HeartbeatIntervalSeconds);
                     if (!string.IsNullOrWhiteSpace(instrumentationKey))
                     {
-                        ApplicationInsights.Initialize(instrumentationKey);
+                        if (heartbeatIntervalSeconds.HasValue)
+                        {
+                            ApplicationInsights.Initialize(
+                                instrumentationKey,
+                                TimeSpan.FromSeconds(heartbeatIntervalSeconds.Value));
+                        }
+                        else
+                        {
+                            ApplicationInsights.Initialize(instrumentationKey);
+                        }
                     }
                 }
 
@@ -127,7 +138,7 @@ namespace NuGet.Jobs
                     {
                         _logger.LogInformation("SleepDuration is not provided or is not a valid integer. Unit is milliSeconds. Assuming default of 5000 ms...");
                     }
-                    
+
                     sleepDuration = 5000;
                 }
                 else if (!runContinuously.Value)
@@ -182,8 +193,8 @@ namespace NuGet.Jobs
 
         private static string PrettyPrintTime(double milliSeconds)
         {
-            var seconds = (milliSeconds/1000.0);
-            var minutes = (milliSeconds/60000.0);
+            var seconds = (milliSeconds / 1000.0);
+            var minutes = (milliSeconds / 60000.0);
             return
                 $"'{milliSeconds:F3}' ms (or '{seconds:F3}' seconds or '{minutes:F3}' mins)";
         }
@@ -199,7 +210,16 @@ namespace NuGet.Jobs
             var stopWatch = new Stopwatch();
             Stopwatch timeSinceInitialization = null;
 
-            int exitCode;
+            int exitCode = 0;
+
+            // This tells Application Insights that, even though a heartbeat is reported, 
+            // the state of the application is unhealthy when the exitcode is different from zero.
+            // The heartbeat metadata is enriched with the job loop exit code.
+            ApplicationInsights.HeartbeatManager?.AddHeartbeatProperty(
+                HeartbeatProperty_JobLoopExitCode,
+                exitCode.ToString(),
+                isHealthy: exitCode == 0);
+
             while (true)
             {
                 _logger.LogInformation("Running {RunType}", (runContinuously ? " continuously..." : " once..."));
@@ -234,6 +254,11 @@ namespace NuGet.Jobs
                     _logger.LogInformation("Job run ended...");
                     stopWatch.Stop();
                     _logger.LogInformation("Job run took {RunDuration}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
+
+                    ApplicationInsights.HeartbeatManager?.SetHeartbeatProperty(
+                        HeartbeatProperty_JobLoopExitCode,
+                        exitCode.ToString(),
+                        isHealthy: exitCode == 0);
                 }
 
                 if (!runContinuously)
@@ -245,7 +270,7 @@ namespace NuGet.Jobs
 
                 // Wait for <sleepDuration> milliSeconds and run the job again
                 _logger.LogInformation("Will sleep for {SleepDuration} before the next Job run", PrettyPrintTime(sleepDuration));
-                
+
                 await Task.Delay(sleepDuration);
             }
 
