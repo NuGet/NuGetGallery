@@ -62,6 +62,7 @@
     <Compile Include="Arguments.cs" />
     <Compile Include="Extensions\TaskExtensions.cs" />
     <Compile Include="Helpers\EmptySecretInjector.cs" />
+    <Compile Include="Jobs\Catalog2IconJob.cs" />
     <Compile Include="Jobs\Catalog2PackageFixupJob.cs" />
     <Compile Include="Jobs\Db2MonitoringJob.cs" />
     <Compile Include="Telemetry\JobNameTelemetryInitializer.cs" />

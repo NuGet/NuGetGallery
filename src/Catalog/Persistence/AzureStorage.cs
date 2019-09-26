@@ -11,6 +11,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.DataMovement;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -51,6 +52,49 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _compressContent = compressContent;
             _throttle = throttle ?? NullThrottle.Instance;
             Verbose = verbose;
+        }
+
+        public AzureStorage(
+            Uri storageBaseUri,
+            TimeSpan maxExecutionTime,
+            TimeSpan serverTimeout,
+            bool useServerSideCopy,
+            bool compressContent,
+            bool verbose,
+            IThrottle throttle)
+            : this(GetCloudBlobDirectoryUri(storageBaseUri), storageBaseUri, maxExecutionTime, serverTimeout, initializeContainer: false)
+        {
+            _useServerSideCopy = useServerSideCopy;
+            _compressContent = compressContent;
+            _throttle = throttle ?? NullThrottle.Instance;
+            Verbose = verbose;
+        }
+
+        private static ICloudBlobDirectory GetCloudBlobDirectoryUri(Uri storageBaseUri)
+        {
+            if (storageBaseUri.AbsoluteUri.Contains('%'))
+            {
+                // Later in the code for the sake of simplicity wrong things are done with URL that 
+                // can explode when URL is specially crafted with certain URL-encoded characters.
+                // Since it is URL for our storage root where we know that we don't use anything
+                // that requires URL-encoding, we'll just throw here just in case, to keep code
+                // below simple.
+                throw new ArgumentException("Storage URL cannot contain URL-encoded characters");
+            }
+
+            var pathSegments = storageBaseUri.AbsolutePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            if (pathSegments.Length < 1)
+            {
+                throw new ArgumentException("Storage URL must contain some path");
+            }
+
+            var anonymousCredentials = new StorageCredentials();
+            var blobEndpoint = new Uri(storageBaseUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped));
+            var storageAccount = new CloudStorageAccount(anonymousCredentials, blobEndpoint, queueEndpoint: null, tableEndpoint: null, fileEndpoint: null);
+            var containerName = pathSegments[0];
+            var pathInContainer = string.Join("/", pathSegments.Skip(1));
+            var container = storageAccount.CreateCloudBlobClient().GetContainerReference(containerName);
+            return new CloudBlobDirectoryWrapper(container.GetDirectoryReference(pathInContainer));
         }
 
         public AzureStorage(

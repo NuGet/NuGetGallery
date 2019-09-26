@@ -115,6 +115,7 @@ Invoke-BuildStep 'Creating artifacts' {
 
         $nuspecPackages = `
             "src\Ng\Catalog2Dnx.nuspec", `
+            "src\Ng\Catalog2icon.nuspec", `
             "src\Ng\Catalog2Lucene.nuspec", `
             "src\Ng\Catalog2Monitoring.nuspec", `
             "src\Ng\Catalog2Registration.nuspec", `
