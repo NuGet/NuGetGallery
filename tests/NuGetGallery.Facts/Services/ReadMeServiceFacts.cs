@@ -262,19 +262,21 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("# Heading", "<h2>Heading</h2>")]
-            [InlineData("- List", "<ul><li>List</li></ul>")]
-            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"nofollow\">text</a></p>")]
-            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"nofollow\">text</a></p>")]
-            [InlineData("> <text>Blockquote</text>", "<blockquote><p>&lt;text&gt;Blockquote&lt;/text&gt;</p></blockquote>")]
-            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>")]
-            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"nofollow\">text</a></p>")]
-            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>")]
-            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>")]
-            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>")]
-            public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml)
+            [InlineData("# Heading", "<h2>Heading</h2>", false)]
+            [InlineData("- List", "<ul><li>List</li></ul>", false)]
+            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"nofollow\">text</a></p>", false)]
+            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false)]
+            [InlineData("> <text>Blockquote</text>", "<blockquote><p>&lt;text&gt;Blockquote&lt;/text&gt;</p></blockquote>", false)]
+            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>", false)]
+            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false)]
+            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true)]
+            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", false)]
+            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>", true)]
+            public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected)
             {
-                Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd).Content));
+                var readMeResult = ReadMeService.GetReadMeHtml(originalMd);
+                Assert.Equal(expectedHtml, StripNewLines(readMeResult.Content));
+                Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
             }
 
             [Fact]

@@ -8,7 +8,5 @@ namespace NuGetGallery
         public string Content { get; set; }
         
         public bool ImagesRewritten { get; set; }
-
-        public bool LinksRewritten { get; set; }
     }
 }

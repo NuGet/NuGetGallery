@@ -90,7 +90,6 @@ namespace NuGetGallery
             var result = new RenderedReadMeResult
             {
                 Content = readMeMd,
-                LinksRewritten = false,
                 ImagesRewritten = false
             };
 
@@ -180,7 +179,6 @@ namespace NuGetGallery
         {
             var output = new RenderedReadMeResult()
             {
-                LinksRewritten = false,
                 ImagesRewritten = false,
                 Content = ""
             };
@@ -236,7 +234,6 @@ namespace NuGetGallery
                             else
                             {
                                 inline.TargetUrl = readyUriString;
-                                output.LinksRewritten = true;
                             }
                         }
 
