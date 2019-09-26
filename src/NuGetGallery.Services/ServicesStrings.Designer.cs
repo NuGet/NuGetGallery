@@ -1580,7 +1580,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot renamed a deleted account that is not deleted..
+        ///   Looks up a localized string similar to Cannot rename an account that is not deleted..
         /// </summary>
         public static string RenameDeletedAccount_NotDeleted {
             get {

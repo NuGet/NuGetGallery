@@ -727,15 +727,14 @@ namespace NuGetGallery
 
             var accountDelete = AccountDeleteRepository
                 .GetAll()
-                .Where(d => d.DeletedAccountKey == user.Key)
-                .Single();
+                .Single(d => d.DeletedAccountKey == user.Key);
 
             if (accountDelete.WasUsernameReleased)
             {
                 throw new UserSafeException(ServicesStrings.RenameDeletedAccount_AlreadyRenamed);
             }
 
-            user.Username = Guid.NewGuid().ToString();
+            user.Username = "deleted-" + Guid.NewGuid().ToString();
             accountDelete.WasUsernameReleased = true;
 
             return AccountDeleteRepository.CommitChangesAsync();

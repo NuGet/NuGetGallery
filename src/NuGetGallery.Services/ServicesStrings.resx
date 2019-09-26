@@ -1131,6 +1131,6 @@ The {1} Team</value>
     <value>Cannot rename a deleted account that was already renamed.</value>
   </data>
   <data name="RenameDeletedAccount_NotDeleted" xml:space="preserve">
-    <value>Cannot renamed a deleted account that is not deleted.</value>
+    <value>Cannot rename an account that is not deleted.</value>
   </data>
 </root>

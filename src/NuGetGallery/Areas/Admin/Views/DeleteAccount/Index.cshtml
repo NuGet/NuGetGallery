@@ -37,9 +37,12 @@
                         <a data-bind="visible: !IsDeleted, attr: { href: DeleteLink }">
                             <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
                         </a>
-                        <a data-bind="visible: IsDeleted, attr: { href: RenameLink }">
-                            <i class="ms-Icon ms-Icon--Rename" aria-hidden="true"></i>
-                        </a>
+                        <form method="post" data-bind="visible: IsDeleted, attr: { action: RenameLink, id: $parent.getRenameFormId(AccountName) }">
+                            @Html.AntiForgeryToken()
+                            <a href="#" title="Rename account"  data-bind="click: $parent.rename.bind(this, AccountName), attr: { 'aria-label': 'Rename account ' + AccountName }">
+                                <i class="ms-Icon ms-Icon--Rename" aria-hidden="true"></i>
+                            </a>
+                        </form>
                     </td>
                 </tr>
             </tbody>
@@ -91,6 +94,14 @@
                 };
 
                 this.searchResults = ko.observableArray([]);
+
+                this.getRenameFormId = function (accountName) {
+                    return 'rename-' + accountName;
+                }
+
+                this.rename = function (accountName) {
+                    $('#' + $self.getRenameFormId(accountName)).submit();
+                }
             };
 
             ko.applyBindings(new viewModel(), $('#stage').get(0));

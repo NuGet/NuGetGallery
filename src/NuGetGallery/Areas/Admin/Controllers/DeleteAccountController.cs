@@ -52,7 +52,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 
-        [HttpGet]
+        [HttpPost]
         public virtual async Task<ActionResult> Rename(string accountName)
         {
             try
