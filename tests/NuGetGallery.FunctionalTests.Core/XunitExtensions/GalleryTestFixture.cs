@@ -14,8 +14,6 @@ namespace NuGetGallery.FunctionalTests
     {
         public GalleryTestFixture()
         {
-            // suppress SSL validation for *.cloudapp.net
-            ServicePointManagerInitializer.InitializeServerCertificateValidationCallback();
             Task.Run(async () =>
             {
                 await CheckIfBaseTestPackageExistsAsync();
