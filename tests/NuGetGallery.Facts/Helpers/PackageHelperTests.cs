@@ -25,6 +25,59 @@ namespace NuGetGallery.Helpers
             Assert.Equal(shouldRender, PackageHelper.ShouldRenderUrl(url, secureOnly: secureOnly));
         }
 
+        [Theory]
+        [InlineData("http://nuget.org/", false, "http://nuget.org/", true)]
+        [InlineData("http://nuget.org/", true, "https://nuget.org/", true)]
+        [InlineData("https://nuget.org/", false, "https://nuget.org/", true)]
+        [InlineData("https://nuget.org/", true, "https://nuget.org/", true)]
+        [InlineData("http://www.github.com/", false, "https://www.github.com/", true)]
+        [InlineData("http://www.github.com/", true, "https://www.github.com/", true)]
+        [InlineData("https://www.github.com/", false, "https://www.github.com/", true)]
+        [InlineData("https://www.github.com/", true, "https://www.github.com/", true)]
+        [InlineData("http://fake.github.com/", false, "https://fake.github.com/", true)]
+        [InlineData("http://fake.github.com/", true, "https://fake.github.com/", true)]
+        [InlineData("https://fake.github.com/", false, "https://fake.github.com/", true)]
+        [InlineData("https://fake.github.com/", true, "https://fake.github.com/", true)]
+        [InlineData("http://github.com/", false, "https://github.com/", true)]
+        [InlineData("http://github.com/", true, "https://github.com/", true)]
+        [InlineData("https://github.com/", false, "https://github.com/", true)]
+        [InlineData("https://github.com/", true, "https://github.com/", true)]
+        [InlineData("http://fake.github.io/", false, "https://fake.github.io/", true)]
+        [InlineData("http://fake.github.io/", true, "https://fake.github.io/", true)]
+        [InlineData("https://fake.github.io/", false, "https://fake.github.io/", true)]
+        [InlineData("https://fake.github.io/", true, "https://fake.github.io/", true)]
+        [InlineData("http://codeplex.com/", false, "https://codeplex.com/", true)]
+        [InlineData("http://codeplex.com/", true, "https://codeplex.com/", true)]
+        [InlineData("https://codeplex.com/", false, "https://codeplex.com/", true)]
+        [InlineData("https://codeplex.com/", true, "https://codeplex.com/", true)]
+        [InlineData("http://microsoft.com/", false, "https://microsoft.com/", true)]
+        [InlineData("http://microsoft.com/", true, "https://microsoft.com/", true)]
+        [InlineData("https://microsoft.com/", false, "https://microsoft.com/", true)]
+        [InlineData("https://microsoft.com/", true, "https://microsoft.com/", true)]
+        [InlineData("http://asp.net/", false, "https://asp.net/", true)]
+        [InlineData("http://asp.net/", true, "https://asp.net/", true)]
+        [InlineData("https://asp.net/", false, "https://asp.net/", true)]
+        [InlineData("https://asp.net/", true, "https://asp.net/", true)]
+        [InlineData("http://msdn.com/", false, "https://msdn.com/", true)]
+        [InlineData("http://msdn.com/", true, "https://msdn.com/", true)]
+        [InlineData("https://msdn.com/", false, "https://msdn.com/", true)]
+        [InlineData("https://msdn.com/", true, "https://msdn.com/", true)]
+        [InlineData("http://aka.ms/", false, "https://aka.ms/", true)]
+        [InlineData("http://aka.ms/", true, "https://aka.ms/", true)]
+        [InlineData("https://aka.ms/", false, "https://aka.ms/", true)]
+        [InlineData("https://aka.ms/", true, "https://aka.ms/", true)]
+        [InlineData("http://www.mono-project.com/", false, "https://www.mono-project.com/", true)]
+        [InlineData("http://www.mono-project.com/", true, "https://www.mono-project.com/", true)]
+        [InlineData("https://www.mono-project.com/", false, "https://www.mono-project.com/", true)]
+        [InlineData("https://www.mono-project.com/", true, "https://www.mono-project.com/", true)]
+        [InlineData("git://nuget.org", true, null, false)]
+        [InlineData("git://nuget.org", false, null, false)]
+        public void PrepareUrlForRenderingTest(string input, bool alwaysRewriteHttp, string expectedOutput, bool expectConversion)
+        {
+            Assert.Equal(expectConversion, PackageHelper.TryPrepareUrlForRendering(input, out string readyUriString, alwaysRewriteHttp));
+            Assert.Equal(expectedOutput, readyUriString);
+        }
+
         public class TheGetSelectListTextMethod
         {
             public const string Version = "1.0.1+build";

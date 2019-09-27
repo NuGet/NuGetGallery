@@ -77,7 +77,9 @@
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
-    <Compile Include="AutocompleteServiceQueryFacts.cs" />
+    <Compile Include="Queries\AutocompleteDatabasePackageIdsQueryFacts.cs" />
+    <Compile Include="Queries\AutocompleteDatabasePackageVersionsQueryFacts.cs" />
+    <Compile Include="Queries\AutocompleteServiceQueryFacts.cs" />
     <Compile Include="Controllers\ExperimentsControllerFacts.cs" />
     <Compile Include="Controllers\FeaturesControllerFacts.cs" />
     <Compile Include="Controllers\ManageDeprecationJsonApiControllerFacts.cs" />
@@ -97,6 +99,7 @@
     <Compile Include="Services\ConfigurationIconFileProviderFacts.cs" />
     <Compile Include="Services\AsynchronousDeleteAccountServiceFacts.cs" />
     <Compile Include="Services\FeatureFlagServiceFacts.cs" />
+    <Compile Include="Services\GravatarProxyServiceFacts.cs" />
     <Compile Include="Services\IconUrlTemplateProcessorFacts.cs" />
     <Compile Include="Services\PackageDeprecationManagementServiceFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
@@ -117,8 +120,8 @@
     <Compile Include="Infrastructure\Authentication\ApiKeyV3Facts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4Facts.cs" />
     <Compile Include="Infrastructure\Authentication\V3HasherTests.cs" />
-    <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
-    <Compile Include="AutocompleteServicePackageVersionsQueryFacts.cs" />
+    <Compile Include="Queries\AutocompleteServicePackageIdsQueryFacts.cs" />
+    <Compile Include="Queries\AutocompleteServicePackageVersionsQueryFacts.cs" />
     <Compile Include="App_Start\ConfigurationServiceFacts.cs" />
     <Compile Include="Controllers\AppControllerFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />

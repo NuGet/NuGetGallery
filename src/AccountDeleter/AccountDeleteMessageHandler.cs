@@ -80,8 +80,7 @@ namespace NuGetGallery.AccountDeleter
                     var configuration = _accountDeleteConfigurationAccessor.Value;
                     var senderAddress = configuration.EmailConfiguration.GalleryOwner;
                     var ccEmail = new List<MailAddress>();
-                    // toEmail.Add(new MailAddress(recipientEmail)); // Temporarily disable sending to end user while we are in phase 1.
-                    toEmail.Add(new MailAddress(senderAddress)); // Remove this when we switch to phase 2.
+                    toEmail.Add(new MailAddress(recipientEmail));
                     ccEmail.Add(new MailAddress(senderAddress));
 
                     var recipients = new EmailRecipients(toEmail, ccEmail);

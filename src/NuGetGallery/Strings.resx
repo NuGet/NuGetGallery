@@ -1006,7 +1006,7 @@ The {1} Team</value>
     <value>Unknown error!</value>
   </data>
   <data name="UploadPackage_DeprecatingLicenseUrl" xml:space="preserve">
-    <value>&lt;licenseUrl&gt; element will be deprecated, please consider switching to specifying the license in the package.</value>
+    <value>The &lt;licenseUrl&gt; element is deprecated. Consider using the &lt;license&gt; element instead.</value>
   </data>
   <data name="UploadPackage_DeprecationUrlUsage" xml:space="preserve">
     <value>The license deprecation URL must be used in conjunction with specifying the license in the package.</value>
@@ -1149,5 +1149,8 @@ The {1} Team</value>
   </data>
   <data name="SiteAdminNotLoggedInWithRequiredTenant" xml:space="preserve">
     <value>The site admins are required to sign in with the '{0}' tenant only.</value>
+  </data>
+  <data name="UploadPackage_IconUrlDeprecated" xml:space="preserve">
+    <value>The &lt;iconUrl&gt; element is deprecated. Consider using the &lt;icon&gt; element instead.</value>
   </data>
 </root>

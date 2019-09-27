@@ -102,6 +102,7 @@ namespace NuGetGallery
         public const string DeleteUserCertificate = "DeleteUserCertificate";
         public const string GetUserCertificate = "GetUserCertificate";
         public const string GetUserCertificates = "GetUserCertificates";
+        public const string GetAccountAvatar = "GetUserAvatar";
         public const string AddOrganizationCertificate = "AddOrganizationCertificate";
         public const string DeleteOrganizationCertificate = "DeleteOrganizationCertificate";
         public const string GetOrganizationCertificate = "GetOrganizationCertificate";

@@ -17,7 +17,12 @@
                         {
                             <tr class="manage-package-listing">
                                 <td class="align-middle hidden-xs">
-                                    @GravatarHelper.Image(member.EmailAddress, 32)
+                                    @GravatarHelper.Image(
+                                        Url,
+                                        member.EmailAddress,
+                                        member.Username,
+                                        size: 32,
+                                        responsive: false)
                                 </td>
                                 <td class="align-middle package-id">
                                     <a href="@Url.User(member.Username)">@member.Username.Abbreviate(35)</a>

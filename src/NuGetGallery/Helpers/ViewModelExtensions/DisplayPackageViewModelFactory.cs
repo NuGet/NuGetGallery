@@ -22,7 +22,7 @@ namespace NuGetGallery
             Package package,
             User currentUser,
             PackageDeprecation deprecation,
-            string readmeHtml)
+            RenderedReadMeResult readmeResult)
         {
             var viewModel = new DisplayPackageViewModel();
             return Setup(
@@ -30,7 +30,7 @@ namespace NuGetGallery
                 package,
                 currentUser,
                 deprecation,
-                readmeHtml);
+                readmeResult);
         }
 
         public DisplayPackageViewModel Setup(
@@ -38,11 +38,11 @@ namespace NuGetGallery
             Package package,
             User currentUser,
             PackageDeprecation deprecation,
-            string readMeHtml)
+            RenderedReadMeResult readmeResult)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
             SetupCommon(viewModel, package, pushedBy: null);
-            return SetupInternal(viewModel, package, currentUser, deprecation, readMeHtml);
+            return SetupInternal(viewModel, package, currentUser, deprecation, readmeResult);
         }
 
         private DisplayPackageViewModel SetupInternal(
@@ -50,7 +50,7 @@ namespace NuGetGallery
             Package package,
             User currentUser,
             PackageDeprecation deprecation,
-            string readMeHtml)
+            RenderedReadMeResult readmeResult)
         {
             viewModel.HasSemVer2Version = viewModel.NuGetVersion.IsSemVer2;
             viewModel.HasSemVer2Dependency = package.Dependencies.ToList()
@@ -93,6 +93,7 @@ namespace NuGetGallery
                 viewModel.DownloadsPerDay = viewModel.TotalDownloadCount / viewModel.TotalDaysSinceCreated; // for the package
                 viewModel.DownloadsPerDayLabel = viewModel.DownloadsPerDay < 1 ? "<1" : viewModel.DownloadsPerDay.ToNuGetNumberString();
                 viewModel.IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
+                viewModel.IsDotnetNewTemplatePackageType = package.PackageTypes.Any(e => e.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
             }
 
             if (deprecation != null)
@@ -111,7 +112,8 @@ namespace NuGetGallery
                 viewModel.CustomMessage = deprecation.CustomMessage;
             }
 
-            viewModel.ReadMeHtml = readMeHtml;
+            viewModel.ReadMeHtml = readmeResult?.Content;
+            viewModel.ReadMeImagesRewritten = readmeResult != null ? readmeResult.ImagesRewritten : false;
             viewModel.HasEmbeddedIcon = package.HasEmbeddedIcon;
 
             return viewModel;

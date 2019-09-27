@@ -467,6 +467,9 @@ img.reserved-indicator-icon {
   max-width: 300px;
   max-height: 300px;
 }
+#verify-package-container .verify-package-field p {
+  white-space: pre-line;
+}
 @media (-ms-high-contrast: active) {
   svg {
     color: WindowText;

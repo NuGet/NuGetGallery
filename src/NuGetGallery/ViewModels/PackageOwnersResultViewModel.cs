@@ -25,12 +25,19 @@ namespace NuGetGallery
 
         public bool IsNamespaceOwner;
 
-        public PackageOwnersResultViewModel(User user, User currentUser, PackageRegistration packageRegistration, UrlHelper url, bool isPending, bool isNamespaceOwner)
+        public PackageOwnersResultViewModel(
+            User user,
+            User currentUser,
+            PackageRegistration packageRegistration,
+            UrlHelper url,
+            bool isPending,
+            bool isNamespaceOwner,
+            string avatarUrl)
         {
             Name = user.Username;
             EmailAddress = user.EmailAddress;
             ProfileUrl = url.User(user, relativeUrl: false);
-            ImageUrl = GravatarHelper.Url(user.EmailAddress, size: GalleryConstants.GravatarImageSize);
+            ImageUrl = avatarUrl;
             GrantsCurrentUserAccess = ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissions(currentUser, user, packageRegistration) == PermissionsCheckResult.Allowed;
             IsCurrentUserAdminOfOrganization = (user as Organization)?.GetMembershipOfUser(currentUser)?.IsAdmin ?? false;
             Pending = isPending;

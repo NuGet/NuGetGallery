@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.UI;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -54,6 +55,8 @@ namespace NuGetGallery
 
         protected IIconUrlProvider IconUrlProvider { get; }
 
+        protected IGravatarProxyService GravatarProxy { get; }
+
         private readonly DeleteAccountListPackageItemViewModelFactory _deleteAccountListPackageItemViewModelFactory;
 
         public AccountsController(
@@ -67,7 +70,8 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             IMessageServiceConfiguration messageServiceConfiguration,
             IDeleteAccountService deleteAccountService,
-            IIconUrlProvider iconUrlProvider)
+            IIconUrlProvider iconUrlProvider,
+            IGravatarProxyService gravatarProxy)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             PackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -80,6 +84,7 @@ namespace NuGetGallery
             MessageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
             DeleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             IconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
+            GravatarProxy = gravatarProxy ?? throw new ArgumentNullException(nameof(gravatarProxy));
 
             _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService, IconUrlProvider);
         }
@@ -620,6 +625,24 @@ namespace NuGetGallery
                 });
 
             return Json(HttpStatusCode.OK, certificates, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        [OutputCache(
+            Duration = GalleryConstants.GravatarCacheDurationSeconds,
+            Location = OutputCacheLocation.Downstream,
+            VaryByParam = "imageSize")]
+        public async Task<ActionResult> GetAvatar(
+            string accountName,
+            int? imageSize = GalleryConstants.GravatarImageSize)
+        {
+            var result = await GravatarProxy.GetAvatarOrNullAsync(accountName, imageSize ?? GalleryConstants.GravatarImageSize);
+            if (result == null)
+            {
+                return HttpNotFound();
+            }
+
+            return File(result.AvatarStream, result.ContentType);
         }
 
         private bool CanManageCertificates(User currentUser, User account)

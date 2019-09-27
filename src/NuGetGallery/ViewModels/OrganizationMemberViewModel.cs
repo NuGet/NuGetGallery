@@ -3,36 +3,40 @@
 
 using System;
 using NuGet.Services.Entities;
-using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
     public class OrganizationMemberViewModel
     {
-        public OrganizationMemberViewModel(Membership membership)
-            : this(membership?.Member)
+        public OrganizationMemberViewModel(Membership membership, string gravatarUrl)
+            : this(membership?.Member, gravatarUrl)
         {
             IsAdmin = membership.IsAdmin;
             Pending = false;
         }
 
-        public OrganizationMemberViewModel(MembershipRequest request)
-            : this(request?.NewMember)
+        public OrganizationMemberViewModel(MembershipRequest request, string gravatarUrl)
+            : this(request?.NewMember, gravatarUrl)
         {
             IsAdmin = request.IsAdmin;
             Pending = true;
         }
 
-        private OrganizationMemberViewModel(User member)
+        private OrganizationMemberViewModel(User member, string gravatarUrl)
         {
             if (member == null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
 
+            if (string.IsNullOrEmpty(gravatarUrl))
+            {
+                throw new ArgumentNullException(nameof(gravatarUrl));
+            }
+
             Username = member.Username;
             EmailAddress = member.EmailAddress;
-            GravatarUrl = GravatarHelper.Url(EmailAddress, GalleryConstants.GravatarElementSize);
+            GravatarUrl = gravatarUrl;
         }
 
         public string Username { get; }

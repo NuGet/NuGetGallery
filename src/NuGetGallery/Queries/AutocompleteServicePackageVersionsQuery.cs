@@ -17,7 +17,7 @@ namespace NuGetGallery
         {
         }
 
-        public async Task<IEnumerable<string>> Execute(
+        public async Task<IReadOnlyList<string>> Execute(
             string id, 
             bool? includePrerelease,
             string semVerLevel = null)

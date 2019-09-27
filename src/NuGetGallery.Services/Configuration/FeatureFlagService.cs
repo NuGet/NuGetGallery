@@ -17,6 +17,7 @@ namespace NuGetGallery
         private const string AsyncAccountDeleteFeatureName = GalleryPrefix + "AsyncAccountDelete";
         private const string SelfServiceAccountDeleteFeatureName = GalleryPrefix + "SelfServiceAccountDelete";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
+        private const string ForceFlatContainerIconsFeatureName = GalleryPrefix + "ForceFlatContainerIcons";
         private const string GitHubUsageFlightName = GalleryPrefix + "GitHubUsage";
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
@@ -27,6 +28,7 @@ namespace NuGetGallery
         private const string TyposquattingFeatureName = GalleryPrefix + "Typosquatting";
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
         private const string PreviewHijackFeatureName = GalleryPrefix + "PreviewHijack";
+        private const string GravatarProxyFeatureName = GalleryPrefix + "GravatarProxy";
 
         private readonly IFeatureFlagClient _client;
 
@@ -91,6 +93,11 @@ namespace NuGetGallery
             return _client.IsEnabled(EmbeddedIconFlightName, user, defaultValue: false);
         }
 
+        public bool IsForceFlatContainerIconsEnabled()
+        {
+            return _client.IsEnabled(ForceFlatContainerIconsFeatureName, defaultValue: false);
+        }
+
         private bool IsEnabled(string flight, User user, bool defaultValue)
         {
             return _client.IsEnabled(flight, user, defaultValue);
@@ -119,6 +126,11 @@ namespace NuGetGallery
         public bool IsPreviewHijackEnabled()
         {
             return _client.IsEnabled(PreviewHijackFeatureName, defaultValue: false);
+        }
+
+        public bool IsGravatarProxyEnabled()
+        {
+            return _client.IsEnabled(GravatarProxyFeatureName, defaultValue: false);
         }
     }
 }

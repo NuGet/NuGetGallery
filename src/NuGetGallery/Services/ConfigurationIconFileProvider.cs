@@ -12,12 +12,12 @@ namespace NuGetGallery
     /// </summary>
     public class ConfigurationIconFileProvider : IIconUrlProvider
     {
-        private readonly IAppConfiguration _configuration;
+        private readonly IFeatureFlagService _featureFlagService;
         private readonly IIconUrlTemplateProcessor _iconUrlTemplateProcessor;
 
-        public ConfigurationIconFileProvider(IAppConfiguration configuration, IIconUrlTemplateProcessor iconUrlTemplateProcessor)
+        public ConfigurationIconFileProvider(IFeatureFlagService featureFlagService, IIconUrlTemplateProcessor iconUrlTemplateProcessor)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _iconUrlTemplateProcessor = iconUrlTemplateProcessor ?? throw new ArgumentNullException(nameof(iconUrlTemplateProcessor));
         }
 
@@ -28,14 +28,15 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
 
-            if (package.HasEmbeddedIcon)
+            var hasExternalIconUrlSpecified = !string.IsNullOrWhiteSpace(package.IconUrl);
+            if (package.HasEmbeddedIcon || (_featureFlagService.IsForceFlatContainerIconsEnabled() && hasExternalIconUrlSpecified))
             {
-                // never fall back to iconUrl if HasEmbeddedIcon is true
+                // never fall back to iconUrl in this case
                 return GetIconUrlFromTemplate(package);
             }
             else
             {
-                if (string.IsNullOrWhiteSpace(package.IconUrl))
+                if (!hasExternalIconUrlSpecified)
                 {
                     return null;
                 }

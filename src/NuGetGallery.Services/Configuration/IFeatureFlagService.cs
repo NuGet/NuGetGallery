@@ -57,6 +57,12 @@ namespace NuGetGallery
         bool AreEmbeddedIconsEnabled(User user);
 
         /// <summary>
+        /// Whether the icons are assumed to be present in flat container.
+        /// </summary>
+        /// <returns></returns>
+        bool IsForceFlatContainerIconsEnabled();
+
+        /// <summary>
         /// Whether the user is able to access the search side-by-side experiment.
         /// </summary>
         bool IsSearchSideBySideEnabled(User user);
@@ -83,5 +89,10 @@ namespace NuGetGallery
         /// Whether using the preview search to hijack OData queries is enabled.
         /// </summary>
         bool IsPreviewHijackEnabled();
+
+        /// <summary>
+        /// Whether Gravatar images should be proxied.
+        /// </summary>
+        bool IsGravatarProxyEnabled();
     }
 }

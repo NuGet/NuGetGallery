@@ -21,6 +21,7 @@ namespace NuGetGallery
         public IReadOnlyCollection<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
         public string ReadMeHtml { get; set; }
+        public bool ReadMeImagesRewritten { get; set; }
         public DateTime? LastEdited { get; set; }
         public int DownloadsPerDay { get; set; }
         public int TotalDaysSinceCreated { get; set; }
@@ -31,6 +32,7 @@ namespace NuGetGallery
         public bool HasSemVer2Version { get; set; }
         public bool HasSemVer2Dependency { get; set; }
         public bool IsDotnetToolPackageType { get; set; }
+        public bool IsDotnetNewTemplatePackageType { get; set; }
         public bool IsAtomFeedEnabled { get; set; }
         public bool IsPackageDeprecationEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }

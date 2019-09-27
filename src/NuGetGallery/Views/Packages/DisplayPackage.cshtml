@@ -34,7 +34,21 @@
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
-                AlertMessage = string.Format("This package contains a <a href=\"{0}\">.NET Core Global Tool</a> you can call from the shell/command line.", "https://aka.ms/global-tools"),
+                AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET Core Global Tool</a> you can call from the shell/command line.",
+            }
+        };
+    }
+    else if (Model.IsDotnetNewTemplatePackageType)
+    {
+        packageManagers = new PackageManagerViewModel[]
+        {
+            new PackageManagerViewModel(".NET CLI")
+            {
+                Id = "dotnet-cli",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("dotnet new --install {0}::{1}", Model.Id, Model.Version),
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "This package contains a <a href='https://aka.ms/dotnet-new'>.NET Core Template Package</a> you can call from the shell/command line.",
             }
         };
     }
@@ -432,6 +446,10 @@
                         </h2>
                     </div>
                     <div id="readme-container" class="collapse in">
+                        @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
+                        {
+                            @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
+                        }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)
                         </div>
@@ -962,24 +980,30 @@
             <h2>Owners</h2>
             <ul class="list-unstyled owner-list">
                 @if (!Model.Owners.Any())
-    {
-            @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
-}
-else
-{
-foreach (var owner in Model.Owners)
-{
-            <li>
-                @if (!String.IsNullOrEmpty(owner.EmailAddress))
-    {
-            <a href="@Url.User(owner.Username)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, GalleryConstants.GravatarElementSize)</a>
-}
-                <a href="@Url.User(owner.Username)" title="@owner.Username">
-                    @owner.Username
-                </a>
-            </li>
-}
-}
+                {
+                    @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
+                }
+                else
+                {
+                    foreach (var owner in Model.Owners)
+                    {
+                        <li>
+                            @if (!String.IsNullOrEmpty(owner.EmailAddress))
+                            {
+                                <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                    @ViewHelpers.GravatarImage(
+                                        Url,
+                                        owner.EmailAddress,
+                                        owner.Username,
+                                        GalleryConstants.GravatarElementSize)
+                                </a>
+                            }
+                            <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                @owner.Username
+                            </a>
+                        </li>
+                    }
+                }
             </ul>
 
             @if (!Model.Deleted)
