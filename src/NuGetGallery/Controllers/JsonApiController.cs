@@ -25,19 +25,22 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
+        private readonly IFeatureFlagService _features;
 
         public JsonApiController(
             IPackageService packageService,
             IUserService userService,
             IMessageService messageService,
             IAppConfiguration appConfiguration,
-            IPackageOwnershipManagementService packageOwnershipManagementService)
+            IPackageOwnershipManagementService packageOwnershipManagementService,
+            IFeatureFlagService features)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
+            _features = features ?? throw new ArgumentNullException(nameof(features));
         }
 
         [HttpGet]
@@ -63,26 +66,35 @@ namespace NuGetGallery
 
             var packageAndReservedNamespaceOwners = packageRegistrationOwners.Intersect(allMatchingNamespaceOwners);
             var packageOwnersOnly = packageRegistrationOwners.Except(packageAndReservedNamespaceOwners);
+            var proxyGravatar = _features.IsGravatarProxyEnabled();
 
             var owners =
                 packageAndReservedNamespaceOwners
-                .Select(u => new PackageOwnersResultViewModel(
-                    u,
+                .Select(user => new PackageOwnersResultViewModel(
+                    user,
                     currentUser,
                     registration,
                     Url,
                     isPending: false,
-                    isNamespaceOwner: true));
+                    isNamespaceOwner: true,
+                    avatarUrl: Url.Avatar(
+                        user,
+                        proxyGravatar,
+                        GalleryConstants.GravatarImageSize)));
 
             var packageOwnersOnlyResultViewModel =
                 packageOwnersOnly
-                .Select(u => new PackageOwnersResultViewModel(
-                    u,
+                .Select(user => new PackageOwnersResultViewModel(
+                    user,
                     currentUser,
                     registration,
                     Url,
                     isPending: false,
-                    isNamespaceOwner: false));
+                    isNamespaceOwner: false,
+                    avatarUrl: Url.Avatar(
+                        user,
+                        proxyGravatar,
+                        GalleryConstants.GravatarImageSize)));
 
             owners = owners.Union(packageOwnersOnlyResultViewModel);
 
@@ -94,7 +106,11 @@ namespace NuGetGallery
                     registration,
                     Url,
                     isPending: true,
-                    isNamespaceOwner: false));
+                    isNamespaceOwner: false,
+                    avatarUrl: Url.Avatar(
+                        r.NewOwner,
+                        proxyGravatar,
+                        GalleryConstants.GravatarImageSize)));
 
             var result = owners.Union(pending);
 
@@ -187,7 +203,11 @@ namespace NuGetGallery
                         model.Package,
                         Url,
                         isPending: !model.CurrentUserCanAcceptOnBehalfOfUser,
-                        isNamespaceOwner: false)
+                        isNamespaceOwner: false,
+                        avatarUrl: Url.Avatar(
+                            model.User,
+                            _features.IsGravatarProxyEnabled(),
+                            GalleryConstants.GravatarImageSize))
                 });
             }
             else

@@ -12,7 +12,12 @@
 <section role="main" class="container main-container page-profile">
     <div class="row">
         <aside class="col-md-3 col-md-push-9 profile-details">
-            @ViewHelpers.GravatarImage(Model.EmailAddress ?? Model.UnconfirmedEmailAddress, Model.Username, GalleryConstants.GravatarImageSizeLarge, responsive: true)
+            @ViewHelpers.GravatarImage(
+                Url,
+                Model.EmailAddress ?? Model.UnconfirmedEmailAddress,
+                Model.Username,
+                GalleryConstants.GravatarImageSizeLarge,
+                responsive: true)
             <div class="statistics">
                 <div class="statistic">
                     <div class="value">@Model.AllPackages.Count.ToNuGetNumberString()</div>

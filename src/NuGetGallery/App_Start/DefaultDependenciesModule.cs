@@ -411,6 +411,9 @@ namespace NuGetGallery
                 .As<IIconUrlTemplateProcessor>()
                 .InstancePerLifetimeScope();
 
+            services.AddHttpClient();
+            services.AddScoped<IGravatarProxyService, GravatarProxyService>();
+
             RegisterFeatureFlagsService(builder, configuration);
             RegisterMessagingService(builder, configuration);
 

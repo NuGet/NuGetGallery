@@ -24,6 +24,7 @@ namespace NuGetGallery
         public const int GravatarElementSize = 32;
         public const int GravatarImageSize = GravatarElementSize * 2;
         public const int GravatarImageSizeLarge = 332;
+        public const int GravatarCacheDurationSeconds = 300;
 
         public const int MaxEmailSubjectLength = 255;
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("4.1.0.0");

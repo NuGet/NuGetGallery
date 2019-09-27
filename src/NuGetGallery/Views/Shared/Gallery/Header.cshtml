@@ -114,7 +114,11 @@
                                     <ul class="dropdown-menu" role="menu" aria-labelledby="account-dropdown">
                                         <li class="dropdown-header row">
                                             <div class="col-sm-3">
-                                                @ViewHelpers.GravatarImage(CurrentUser.EmailAddress ?? CurrentUser.UnconfirmedEmailAddress, CurrentUser.Username, 50)
+                                                @ViewHelpers.GravatarImage(
+                                                    Url,
+                                                    CurrentUser.EmailAddress,
+                                                    CurrentUser.Username,
+                                                    size: 50)
                                             </div>
                                             <div class="col-sm-9 dropdown-profile">
                                                 <span class="dropdown-username">@User.Identity.Name.Abbreviate(20)</span>

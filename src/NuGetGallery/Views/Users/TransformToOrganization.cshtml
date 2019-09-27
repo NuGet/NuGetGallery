@@ -70,7 +70,12 @@
                             @Html.Label("Logo")
                         </div>
                         <div>
-                            @ViewHelpers.GravatarImage(CurrentUser.EmailAddress, CurrentUser.Username, GalleryConstants.GravatarImageSizeLarge, responsive: true)
+                            @ViewHelpers.GravatarImage(
+                                Url,
+                                CurrentUser.EmailAddress,
+                                CurrentUser.Username,
+                                GalleryConstants.GravatarImageSizeLarge,
+                                responsive: true)
                         </div>
                     </aside>
                 </div>

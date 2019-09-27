@@ -823,6 +823,42 @@ namespace NuGetGallery.Controllers
                     Assert.Contains(result, m => ModelMatchesUser(m, fakes.OrganizationOwner, grantsCurrentUserAccess: true, isCurrentUserAdminOfOrganization: true));
                 }
 
+                [Fact]
+                public void UsesGravatarIfProxyingDisabled()
+                {
+                    GetMock<IFeatureFlagService>()
+                        .Setup(f => f.IsGravatarProxyEnabled())
+                        .Returns(false);
+
+                    var fakes = Get<Fakes>();
+                    var currentUser = fakes.Owner;
+                    var result = InvokeAsUser(currentUser).ToList();
+
+                    Assert.Equal(2, result.Count);
+                    Assert.Equal(
+                        "https://secure.gravatar.com/avatar/f97acb220d5765fc9d56e45f826b9fc2?s=64&r=g&d=retro",
+                        result[0].ImageUrl);
+                    Assert.Equal(
+                        "https://secure.gravatar.com/avatar/5ed91983fd0fc9a6df3d7c1a2a050290?s=64&r=g&d=retro",
+                        result[1].ImageUrl);
+                }
+
+                [Fact]
+                public void ProxiesGravatar()
+                {
+                    GetMock<IFeatureFlagService>()
+                        .Setup(f => f.IsGravatarProxyEnabled())
+                        .Returns(true);
+
+                    var fakes = Get<Fakes>();
+                    var currentUser = fakes.Owner;
+                    var result = InvokeAsUser(currentUser).ToList();
+
+                    Assert.Equal(2, result.Count);
+                    Assert.Equal("/profiles/testPackageOwner/avatar?imageSize=64", result[0].ImageUrl);
+                    Assert.Equal("/profiles/testOrganizationOwner/avatar?imageSize=64", result[1].ImageUrl);
+                }
+
                 private IEnumerable<PackageOwnersResultViewModel> InvokeAsUser(User currentUser)
                 {
                     var controller = GetController<JsonApiController>();

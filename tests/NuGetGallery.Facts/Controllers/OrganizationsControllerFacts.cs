@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
+using NuGet.ContentModel;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -444,7 +445,7 @@ namespace NuGetGallery
 
         public class TheAddMemberAction : AccountsControllerTestContainer
         {
-            private const string defaultMemberName = "member";
+            private const string DefaultMemberName = "member";
 
             public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
@@ -524,7 +525,7 @@ namespace NuGetGallery
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal("error", result.Data);
 
-                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(account, defaultMemberName, isAdmin), Times.Once);
+                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(account, DefaultMemberName, isAdmin), Times.Once);
             }
 
             [Theory]
@@ -541,12 +542,14 @@ namespace NuGetGallery
                             msg =>
                             msg.Organization == account
                             && msg.RequestingUser == controller.GetCurrentUser()
-                            && msg.PendingUser == It.Is<User>(u => u.Username == defaultMemberName)
+                            && msg.PendingUser == It.Is<User>(u => u.Username == DefaultMemberName)
                             && msg.IsAdmin == isAdmin),
                         false,
                         false))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
+
+                account.EmailAddress = "hello@test.example";
 
                 // Act
                 var result = await InvokeAddMember(controller, account, getCurrentUser, isAdmin: isAdmin);
@@ -556,7 +559,7 @@ namespace NuGetGallery
                         It.Is<OrganizationMembershipRequestMessage>(
                             msg =>
                             msg.Organization == account
-                            && msg.NewUser == It.Is<User>(u => u.Username == defaultMemberName)
+                            && msg.NewUser == It.Is<User>(u => u.Username == DefaultMemberName)
                             && msg.AdminUser == controller.GetCurrentUser()
                             && msg.IsAdmin == isAdmin),
                         false,
@@ -569,11 +572,14 @@ namespace NuGetGallery
                 Assert.IsType<JsonResult>(result);
 
                 dynamic data = result.Data;
-                Assert.Equal(defaultMemberName, data.Username);
+                Assert.Equal(DefaultMemberName, data.Username);
                 Assert.Equal(isAdmin, data.IsAdmin);
                 Assert.Equal(true, data.Pending);
+                Assert.Equal(
+                    "https://secure.gravatar.com/avatar/a22526ad5b00a9a99b440ed239dbdbad?s=32&r=g&d=retro",
+                    data.GravatarUrl);
 
-                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(account, defaultMemberName, isAdmin), Times.Once);
+                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(account, DefaultMemberName, isAdmin), Times.Once);
                 messageService
                     .Verify(s => s.SendMessageAsync(
                         It.IsAny<OrganizationMembershipRequestInitiatedMessage>(),
@@ -581,11 +587,39 @@ namespace NuGetGallery
                         false));
             }
 
+            [Theory]
+            [MemberData(nameof(AllowedCurrentUsers_IsAdmin_Data))]
+            public async Task ReturnsAvatarProxyUrl(Func<Fakes, User> getCurrentUser, bool isAdmin)
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsGravatarProxyEnabled())
+                    .Returns(true);
+
+                var controller = GetController();
+                var account = GetAccount(controller);
+                var messageService = GetMock<IMessageService>();
+
+                account.EmailAddress = "hello@test.example";
+
+                // Act
+                var result = await InvokeAddMember(controller, account, getCurrentUser, isAdmin: isAdmin);
+
+                // Assert
+                Assert.Equal(0, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+
+                dynamic data = result.Data;
+                Assert.Equal(
+                    $"/profiles/{data.Username}/avatar?imageSize=32",
+                    data.GravatarUrl);
+            }
+
             private Task<JsonResult> InvokeAddMember(
                 OrganizationsController controller,
                 Organization account,
                 Func<Fakes, User> getCurrentUser,
-                string memberName = defaultMemberName,
+                string memberName = DefaultMemberName,
                 bool isAdmin = false,
                 EntityException exception = null)
             {
@@ -609,6 +643,9 @@ namespace NuGetGallery
                         IsAdmin = isAdmin,
                         ConfirmationToken = "token"
                     };
+
+                    request.NewMember.EmailAddress = $"{memberName}@test.example";
+
                     setup.Returns(Task.FromResult(request)).Verifiable();
                 }
 
@@ -1122,6 +1159,9 @@ namespace NuGetGallery
                 dynamic data = result.Data;
                 Assert.Equal(defaultMemberName, data.Username);
                 Assert.Equal(isAdmin, data.IsAdmin);
+                Asset.Equals(
+                    "https://secure.gravatar.com/avatar/a22526ad5b00a9a99b440ed239dbdbad?s=32&r=g&d=retro",
+                    data.GravatarUrl);
 
                 GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
 
@@ -1131,6 +1171,30 @@ namespace NuGetGallery
                        false,
                        false),
                        Times.Once);
+            }
+
+            [Theory]
+            [MemberData(nameof(AllowedCurrentUsers_IsAdmin_Data))]
+            public async Task ReturnsAvatarProxyUrl(Func<Fakes, User> getCurrentUser, bool isAdmin)
+            {
+                // Arrange
+	            GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsGravatarProxyEnabled())
+                    .Returns(true);
+                var controller = GetController();
+                var account = GetAccount(controller);
+
+                // Act
+                var result = await InvokeUpdateMember(controller, account, getCurrentUser, isAdmin: isAdmin);
+
+                // Assert
+                Assert.Equal(0, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+
+                dynamic data = result.Data;
+                Asset.Equals(
+                    $"/profiles/{data.Username}/avatar?imageSize=32",
+                    data.GravatarUrl);
             }
 
             private Task<JsonResult> InvokeUpdateMember(
@@ -1160,6 +1224,8 @@ namespace NuGetGallery
                         Member = new User(memberName),
                         IsAdmin = isAdmin
                     };
+
+                    membership.Member.EmailAddress = $"{memberName}@test.example";
                     setup.Returns(Task.FromResult(membership)).Verifiable();
                 }
 

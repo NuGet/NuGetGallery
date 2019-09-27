@@ -45,6 +45,7 @@ namespace NuGetGallery
             "Users/ConfirmTransformToOrganizationRedirect",
             "Users/Delete",
             "Users/Profiles",
+            "Users/GetAvatar",
             "Users/RejectTransformToOrganization",
             "Users/RejectTransformToOrganizationRedirect",
             "Users/ResetPassword",

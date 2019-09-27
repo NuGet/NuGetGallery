@@ -2,7 +2,8 @@
   "Features": {
     "NuGetGallery.Typosquatting": "Enabled",
     "NuGetGallery.PackagesAtomFeed": "Enabled",
-    "NuGetGallery.PreviewHijack": "Enabled"
+    "NuGetGallery.PreviewHijack": "Enabled",
+    "NuGetGallery.GravatarProxy":  "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

@@ -343,6 +343,12 @@ namespace NuGetGallery
                 new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
+                RouteName.GetAccountAvatar,
+                "profiles/{accountName}/avatar",
+                new { controller = "Users", action = "GetAvatar" },
+                new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
+
+            routes.MapRoute(
                 RouteName.GetUserCertificate,
                 "account/certificates/{thumbprint}",
                 new { controller = "Users", action = "GetCertificate" },
