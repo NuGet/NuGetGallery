@@ -621,7 +621,7 @@ namespace NuGetGallery
         {
             return proxy
                 ? url.Avatar(user.Username, imageSize, relativeUrl)
-                : GravatarHelper.Url(user.EmailAddress, imageSize);
+                : GravatarHelper.RawUrl(user.EmailAddress, imageSize);
         }
 
         /// <summary>

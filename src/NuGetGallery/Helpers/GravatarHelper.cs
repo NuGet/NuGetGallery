@@ -11,7 +11,13 @@ namespace NuGetGallery.Helpers
         private const string UnsecureGravatarUrl = "http://www.gravatar.com/";
         private const string SecureGravatarUrl = "https://secure.gravatar.com/";
 
-        public static string Url(string email, int size)
+        /// <summary>
+        /// Generates a URL to Gravatar that isn't proxied.
+        /// </summary>
+        /// <param name="email">The user's email address.</param>
+        /// <param name="size">The size of the gravatar image.</param>
+        /// <returns>The image URL, direct to Gravatar without proxying.</returns>
+        public static string RawUrl(string email, int size)
         {
             // The maximum allowed Gravatar size is 512 pixels.
             if (size > 512)
@@ -27,6 +33,21 @@ namespace NuGetGallery.Helpers
             }
 
             return HttpUtility.HtmlDecode(url);
+        }
+
+        /// <summary>
+        /// Generates a URL to Gravatar that is proxied.
+        /// </summary>
+        /// <param name="email">The user's email address.</param>
+        /// <param name="size">The size of the gravatar image.</param>
+        /// <returns>The image URL, proxied.</returns>
+        public static string Url(UrlHelper url, string email, string username, int imageSize)
+        {
+            var features = DependencyResolver.Current.GetService<IFeatureFlagService>();
+
+            return (features.IsGravatarProxyEnabled())
+                ? url.Avatar(username, imageSize)
+                : RawUrl(email, imageSize);
         }
 
         /// <summary>

@@ -52,7 +52,7 @@ namespace NuGetGallery
 
             try
             {
-                var url = GravatarHelper.Url(user.EmailAddress ?? user.UnconfirmedEmailAddress, imageSize);
+                var url = GravatarHelper.RawUrl(user.EmailAddress ?? user.UnconfirmedEmailAddress, imageSize);
 
                 // The response will be disposed when the caller disposes the content stream.
                 var client = _httpClientFactory.CreateClient(GravatarHttpClientName);
