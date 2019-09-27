@@ -34,6 +34,13 @@ namespace NuGet.Services.Storage
         /// This method should throw if <paramref name="message"/> was not returned by <see cref="OnGetNext(CancellationToken)"/>.
         /// </remarks>
         Task RemoveAsync(StorageQueueMessage message, CancellationToken token);
+
+        /// <summary>
+        /// Fetches the number of messages in the queue (or a close approximation).
+        /// </summary>
+        /// <param name="token">A token to cancel the task with.</param>
+        /// <returns>An approximation of the number of messages in the queue or null if no approximation could be made.</returns>
+        Task<int?> GetMessageCount(CancellationToken token);
     }
 
     /// <summary>
@@ -68,5 +75,12 @@ namespace NuGet.Services.Storage
         /// <paramref name="message"/> MUST have been previously returned by <see cref="GetNextAsync(CancellationToken)"/>.
         /// </remarks>
         Task RemoveAsync(StorageQueueMessage<T> message, CancellationToken token);
+
+        /// <summary>
+        /// Fetches the number of messages in the queue (or a close approximation).
+        /// </summary>
+        /// <param name="token">A token to cancel the task with.</param>
+        /// <returns>An approximation of the number of messages in the queue or null if no approximation could be made.</returns>
+        Task<int?> GetMessageCount(CancellationToken token);
     }
 }

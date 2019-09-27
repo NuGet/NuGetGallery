@@ -42,6 +42,11 @@ namespace NuGet.Services.Storage
             return _queue.RemoveAsync(SerializeMessage(message), token);
         }
 
+        public Task<int?> GetMessageCount(CancellationToken token)
+        {
+            return _queue.GetMessageCount(token);
+        }
+
         private StorageQueueMessage SerializeMessage(StorageQueueMessage<T> message)
         {
             if (message is DeserializedStorageQueueMessage<T> deserializedMessage)

@@ -64,5 +64,12 @@ namespace NuGet.Services.Storage
 
             await (await _queueTask.Value).DeleteMessageAsync((message as AzureStorageQueueMessage).Message, token);
         }
+
+        public async Task<int?> GetMessageCount(CancellationToken token)
+        {
+            var queue = await _queueTask.Value;
+            await queue.FetchAttributesAsync(token);
+            return queue.ApproximateMessageCount;
+        }
     }
 }
