@@ -110,6 +110,9 @@
     <Compile Include="Helpers\RegistrationIndependentPackage.cs" />
     <Compile Include="Helpers\RegistrationPackageDetails.cs" />
     <Compile Include="Helpers\UtilsTests.cs" />
+    <Compile Include="Icons\CatalogLeafDataProcessorFacts.cs" />
+    <Compile Include="Icons\IconCopyResultCacheFacts.cs" />
+    <Compile Include="Icons\IconProcessorFacts.cs" />
     <Compile Include="PackageCatalogItemCreatorTests.cs" />
     <Compile Include="PackageCatalogItemTests.cs" />
     <Compile Include="PackageDeprecationItemTests.cs" />

@@ -26,7 +26,8 @@ namespace Ng
             { "catalog2monitoring", typeof(Catalog2MonitoringJob) },
             { "monitoring2monitoring", typeof(Monitoring2MonitoringJob) },
             { "monitoringprocessor", typeof(MonitoringProcessorJob) },
-            { "catalog2packagefixup", typeof(Catalog2PackageFixupJob) }
+            { "catalog2packagefixup", typeof(Catalog2PackageFixupJob) },
+            { "catalog2icon", typeof(Catalog2IconJob) },
         };
 
         public static NgJob GetJob(string jobName, ITelemetryService telemetryService, ILoggerFactory loggerFactory)

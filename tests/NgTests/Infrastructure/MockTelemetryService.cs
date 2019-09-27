@@ -104,5 +104,35 @@ namespace NgTests.Infrastructure
 
             return TrackDuration(nameof(TrackGetPackageQueryDuration), properties);
         }
+
+        public void TrackExternalIconIngestionSuccess(string packageId, string normalizedPackageVersion)
+        {
+        }
+
+        public void TrackIconExtractionSuccess(string packageId, string normalizedPackageVersion)
+        {
+        }
+
+        public IDisposable TrackExternalIconProcessingDuration(string packageId, string normalizedPackageVersion)
+        {
+            return TrackDuration(nameof(TrackExternalIconProcessingDuration));
+        }
+
+        public IDisposable TrackEmbeddedIconProcessingDuration(string packageId, string normalizedPackageVersion)
+        {
+            return TrackDuration(nameof(TrackEmbeddedIconProcessingDuration));
+        }
+
+        public void TrackIconDeletionSuccess(string packageId, string normalizedPackageVersion)
+        {
+        }
+
+        public void TrackIconDeletionFailure(string packageId, string normalizedPackageVersion)
+        {
+        }
+
+        public void TrackExternalIconIngestionFailure(string packageId, string normalizedPackageVersion)
+        {
+        }
     }
 }

@@ -30,6 +30,13 @@ namespace NuGet.Services.Metadata.Catalog
 
         void TrackMetric(string name, ulong metric, IDictionary<string, string> properties = null);
         DurationMetric TrackDuration(string name, IDictionary<string, string> properties = null);
+        IDisposable TrackExternalIconProcessingDuration(string packageId, string normalizedPackageVersion);
+        IDisposable TrackEmbeddedIconProcessingDuration(string packageId, string normalizedPackageVersion);
+        void TrackIconDeletionSuccess(string packageId, string normalizedPackageVersion);
+        void TrackIconDeletionFailure(string packageId, string normalizedPackageVersion);
+        void TrackExternalIconIngestionSuccess(string packageId, string normalizedPackageVersion);
+        void TrackExternalIconIngestionFailure(string packageId, string normalizedPackageVersion);
+        void TrackIconExtractionSuccess(string packageId, string normalizedPackageVersion);
         void TrackIconExtractionFailure(string packageId, string normalizedPackageVersion);
         IDisposable TrackGetPackageDetailsQueryDuration(Db2CatalogCursor cursor);
         IDisposable TrackGetPackageQueryDuration(string packageId, string packageVersion);

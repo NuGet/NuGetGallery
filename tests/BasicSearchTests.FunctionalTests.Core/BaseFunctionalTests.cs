@@ -21,14 +21,8 @@ namespace BasicSearchTests.FunctionalTests.Core
         public BaseFunctionalTests(string baseUrl)
         {
             // Arrange
-            IgnoreCertificateValidationErrors();
             RetryHandler = new RetryHandler(new HttpClientHandler());
             Client = new HttpClient(RetryHandler) { BaseAddress = new Uri(baseUrl) };
-        }
-
-        private static void IgnoreCertificateValidationErrors()
-        {
-            ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
         }
 
         public void Dispose()
