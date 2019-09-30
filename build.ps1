@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch = 'zlocal',
     [string]$CommitSHA,
-    [string]$BuildBranch = '1f60ff35a3cebf1a0c5fb631d2534fd5b4a11edc'
+    [string]$BuildBranch = 'd298565f387e93995a179ef8ae6838f1be37904f'
 )
 
 $msBuildVersion = 15;
@@ -120,6 +120,11 @@ Invoke-BuildStep 'Building solution' {
     Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" $SolutionPath -SkipRestore:$SkipRestore `
     } `
     -args $Configuration, $BuildNumber, (Join-Path $PSScriptRoot "NuGet.Jobs.sln"), $SkipRestore `
+    -ev +BuildErrors 
+
+Invoke-BuildStep 'Signing the binaries' {
+        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
+    } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Prepare NuGetCDNRedirect Package' { Prepare-NuGetCDNRedirect } `
