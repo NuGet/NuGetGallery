@@ -74,7 +74,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             return null;
         }
 
-        public async Task<Uri> SaveExternalIcon(Uri originalIconUrl, Uri storageUrl, IStorage cacheStorage, CancellationToken cancellationToken)
+        public async Task<Uri> SaveExternalIcon(Uri originalIconUrl, Uri storageUrl, IStorage mainDestinationStorage, IStorage cacheStorage, CancellationToken cancellationToken)
         {
             if (_externalIconCopyResults == null)
             {
@@ -95,7 +95,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             var cacheStoragePath = GetCachePath(originalIconUrl);
             var cacheUrl = cacheStorage.ResolveUri(cacheStoragePath);
 
-            await cacheStorage.CopyAsync(storageUrl, cacheStorage, cacheUrl, null, cancellationToken);
+            await mainDestinationStorage.CopyAsync(storageUrl, cacheStorage, cacheUrl, null, cancellationToken);
             // Technically, we could get away without storing the success in the dictionary,
             // but then each get attempt from the cache would result in HTTP request to cache
             // storage that drastically reduces usefulness of the cache (we trade one HTTP request

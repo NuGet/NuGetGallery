@@ -40,7 +40,7 @@ namespace CatalogTests.Icons
         [Fact]
         public async Task SaveExternalIconThrowsIfNotInitialized()
         {
-            await Assert.ThrowsAsync<InvalidOperationException>(() => Target.SaveExternalIcon(new Uri("https://whatever"), new Uri("https://storage.test"), Mock.Of<IStorage>(), CancellationToken.None));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => Target.SaveExternalIcon(new Uri("https://whatever"), new Uri("https://storage.test"), Mock.Of<IStorage>(), Mock.Of<IStorage>(), CancellationToken.None));
         }
 
         [Fact]
@@ -68,8 +68,8 @@ namespace CatalogTests.Icons
 
             if (success)
             {
-                await Target.SaveExternalIcon(new Uri(sourceUrl), storageUrl, IconCacheStorageMock.Object, CancellationToken.None);
-                IconCacheStorageMock
+                await Target.SaveExternalIcon(new Uri(sourceUrl), storageUrl, StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
+                StorageMock
                     .Verify(ics => ics.CopyAsync(storageUrl, IconCacheStorageMock.Object, It.IsAny<Uri>(), It.IsAny<IReadOnlyDictionary<string, string>>(), CancellationToken.None));
             }
             else
@@ -108,13 +108,13 @@ namespace CatalogTests.Icons
             var firstSucessStorageUrl = new Uri(firstSuccessStorageUrlString);
             var secondSuccessStorageUrl = new Uri("https://storage2");
 
-            await Target.SaveExternalIcon(originalIconUrl, firstSucessStorageUrl, IconCacheStorageMock.Object, CancellationToken.None);
-            IconCacheStorageMock
+            await Target.SaveExternalIcon(originalIconUrl, firstSucessStorageUrl, StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
+            StorageMock
                 .Verify(
                     ics => ics.CopyAsync(firstSucessStorageUrl, IconCacheStorageMock.Object, It.IsAny<Uri>(), It.IsAny<IReadOnlyDictionary<string, string>>(), CancellationToken.None),
                     Times.Once);
-            await Target.SaveExternalIcon(originalIconUrl, secondSuccessStorageUrl, IconCacheStorageMock.Object, CancellationToken.None);
-            IconCacheStorageMock
+            await Target.SaveExternalIcon(originalIconUrl, secondSuccessStorageUrl, StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
+            StorageMock
                 .Verify(
                     ics => ics.CopyAsync(secondSuccessStorageUrl, It.IsAny<IStorage>(), It.IsAny<Uri>(), It.IsAny<IReadOnlyDictionary<string, string>>(), It.IsAny<CancellationToken>()),
                     Times.Never);
@@ -138,8 +138,8 @@ namespace CatalogTests.Icons
             var successStorageUrl = new Uri(successStorageUrlString);
 
             Target.SaveExternalCopyFailure(originalIconUrl);
-            await Target.SaveExternalIcon(originalIconUrl, successStorageUrl, IconCacheStorageMock.Object, CancellationToken.None);
-            IconCacheStorageMock
+            await Target.SaveExternalIcon(originalIconUrl, successStorageUrl, StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
+            StorageMock
                 .Verify(
                     ics => ics.CopyAsync(successStorageUrl, IconCacheStorageMock.Object, It.IsAny<Uri>(), It.IsAny<IReadOnlyDictionary<string, string>>(), CancellationToken.None),
                     Times.Once);
@@ -158,7 +158,7 @@ namespace CatalogTests.Icons
 
             await Target.InitializeAsync(CancellationToken.None);
 
-            await Target.SaveExternalIcon(new Uri("https://sourcez"), new Uri("https://storage1/d"), IconCacheStorageMock.Object, CancellationToken.None);
+            await Target.SaveExternalIcon(new Uri("https://sourcez"), new Uri("https://storage1/d"), StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
             Target.SaveExternalCopyFailure(new Uri("https://sourcey"));
 
             string savedContent = null;
@@ -189,9 +189,6 @@ namespace CatalogTests.Icons
                 .Verifiable();
 
             IconCacheStorageMock = new Mock<IStorage>();
-            IconCacheStorageMock
-                .Setup(ics => ics.CopyAsync(It.IsAny<Uri>(), It.IsAny<IStorage>(), It.IsAny<Uri>(), It.IsAny<IReadOnlyDictionary<string, string>>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
             IconCacheStorageMock
                 .Setup(ics => ics.ResolveUri(It.IsAny<string>()))
                 .Returns(new Uri(DefaultResolvedUrlString));

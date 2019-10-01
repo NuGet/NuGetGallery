@@ -206,6 +206,15 @@ namespace CatalogTests.Icons
                 IconCopyResultCacheMock
                     .Setup(c => c.Get(It.Is<Uri>(u => u.AbsoluteUri == IconUrlString)))
                     .Returns(ExternalIconCopyResult.Success(new Uri(IconUrlString), new Uri(CachedResult)));
+                IconCacheStorageMock
+                    .Setup(
+                        ds => ds.CopyAsync(
+                            It.Is<Uri>(u => u.AbsoluteUri == CachedResult),
+                            DestinationStorageMock.Object,
+                            It.Is<Uri>(u => u.AbsoluteUri == ResolvedUriString),
+                            It.IsAny<IReadOnlyDictionary<string, string>>(),
+                            CancellationToken.None))
+                    .Returns(Task.CompletedTask);
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
@@ -215,7 +224,7 @@ namespace CatalogTests.Icons
                     null,
                     CancellationToken.None);
 
-                DestinationStorageMock
+                IconCacheStorageMock
                     .Verify(
                         ds => ds.CopyAsync(
                             It.Is<Uri>(u => u.AbsoluteUri == CachedResult),
@@ -267,7 +276,7 @@ namespace CatalogTests.Icons
                     .Setup(c => c.Get(It.Is<Uri>(u => u.AbsoluteUri == IconUrlString)))
                     .Returns(ExternalIconCopyResult.Success(new Uri(IconUrlString), new Uri(CachedResult)));
 
-                DestinationStorageMock
+                IconCacheStorageMock
                     .SetupSequence(
                         ds => ds.CopyAsync(
                             It.Is<Uri>(u => u.AbsoluteUri == CachedResult),
@@ -286,7 +295,7 @@ namespace CatalogTests.Icons
                     null,
                     CancellationToken.None);
 
-                DestinationStorageMock
+                IconCacheStorageMock
                     .Verify(
                         ds => ds.CopyAsync(
                             It.Is<Uri>(u => u.AbsoluteUri == CachedResult),
@@ -308,7 +317,7 @@ namespace CatalogTests.Icons
                     .Setup(c => c.Get(It.Is<Uri>(u => u.AbsoluteUri == IconUrlString)))
                     .Returns(ExternalIconCopyResult.Success(new Uri(IconUrlString), new Uri(CachedResult)));
 
-                DestinationStorageMock
+                IconCacheStorageMock
                     .Setup(
                         ds => ds.CopyAsync(
                             It.Is<Uri>(u => u.AbsoluteUri == CachedResult),
@@ -337,7 +346,7 @@ namespace CatalogTests.Icons
                     null,
                     CancellationToken.None);
 
-                DestinationStorageMock
+                IconCacheStorageMock
                     .Verify(
                         ds => ds.CopyAsync(
                             It.Is<Uri>(u => u.AbsoluteUri == CachedResult),

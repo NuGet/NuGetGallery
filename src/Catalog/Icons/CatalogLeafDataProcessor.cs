@@ -77,7 +77,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 return;
             }
             var cachedResult = _iconCopyResultCache.Get(iconUrl);
-            if (cachedResult != null && await TryTakeFromCache(iconUrl, cachedResult, destinationStorage, item, cancellationToken))
+            if (cachedResult != null && await TryTakeFromCache(iconUrl, cachedResult, iconCacheStorage, destinationStorage, item, cancellationToken))
             {
                 return;
             }
@@ -101,7 +101,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             {
                 try
                 {
-                    await _iconCopyResultCache.SaveExternalIcon(iconUrl, ingestionResult.ResultUrl, iconCacheStorage, cancellationToken);
+                    await _iconCopyResultCache.SaveExternalIcon(iconUrl, ingestionResult.ResultUrl, destinationStorage, iconCacheStorage, cancellationToken);
                 }
                 catch (Exception e)
                 {
@@ -117,7 +117,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             }
         }
 
-        private async Task<bool> TryTakeFromCache(Uri iconUrl, ExternalIconCopyResult cachedResult, IStorage destinationStorage, CatalogCommitItem item, CancellationToken cancellationToken)
+        private async Task<bool> TryTakeFromCache(Uri iconUrl, ExternalIconCopyResult cachedResult, IStorage iconCacheStorage, IStorage destinationStorage, CatalogCommitItem item, CancellationToken cancellationToken)
         {
             if (cachedResult.IsCopySucceeded)
             {
@@ -136,7 +136,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 try
                 {
                     await Retry.IncrementalAsync(
-                        async () => await destinationStorage.CopyAsync(storageUrl, destinationStorage, destinationUrl, null, cancellationToken),
+                        async () => await iconCacheStorage.CopyAsync(storageUrl, destinationStorage, destinationUrl, null, cancellationToken),
                         e => { _logger.LogWarning(0, e, "Exception while copying from cache {StorageUrl}", storageUrl); return true; },
                         MaxBlobStorageCopyAttempts,
                         initialWaitInterval: TimeSpan.FromSeconds(5),
