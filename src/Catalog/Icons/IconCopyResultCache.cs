@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
@@ -21,11 +22,14 @@ namespace NuGet.Services.Metadata.Catalog.Icons
         private ConcurrentDictionary<Uri, ExternalIconCopyResult> _externalIconCopyResults = null;
 
         private readonly IStorage _auxStorage;
+        private readonly ILogger<IconCopyResultCache> _logger;
 
         public IconCopyResultCache(
-            IStorage auxStorage)
+            IStorage auxStorage,
+            ILogger<IconCopyResultCache> logger)
         {
             _auxStorage = auxStorage ?? throw new ArgumentNullException(nameof(auxStorage));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -94,6 +98,11 @@ namespace NuGet.Services.Metadata.Catalog.Icons
 
             var cacheStoragePath = GetCachePath(originalIconUrl);
             var cacheUrl = cacheStorage.ResolveUri(cacheStoragePath);
+
+            _logger.LogInformation("Going to store {IconUrl} in cache from {StorageUrl} to {CacheUrl}",
+                originalIconUrl.AbsoluteUri,
+                storageUrl.AbsoluteUri,
+                cacheUrl.AbsoluteUri);
 
             await mainDestinationStorage.CopyAsync(storageUrl, cacheStorage, cacheUrl, null, cancellationToken);
             // Technically, we could get away without storing the success in the dictionary,

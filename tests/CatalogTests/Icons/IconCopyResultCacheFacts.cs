@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Metadata.Catalog.Icons;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -203,7 +204,9 @@ namespace CatalogTests.Icons
                 .Setup(s => s.LoadAsync(new Uri("https://cache.test/blob"), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(responseStreamContentMock.Object);
 
-            Target = new IconCopyResultCache(StorageMock.Object);
+            Target = new IconCopyResultCache(
+                StorageMock.Object,
+                Mock.Of<ILogger<IconCopyResultCache>>());
         }
 
         private const string DefaultResolvedUrlString = "https://resolved.test/uri";

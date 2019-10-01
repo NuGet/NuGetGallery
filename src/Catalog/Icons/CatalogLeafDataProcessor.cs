@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage.DataMovement;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
@@ -102,6 +103,11 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 try
                 {
                     await _iconCopyResultCache.SaveExternalIcon(iconUrl, ingestionResult.ResultUrl, destinationStorage, iconCacheStorage, cancellationToken);
+                }
+                catch (TransferException e) when (e.ErrorCode == TransferErrorCode.MismatchCopyId && _iconCopyResultCache.Get(iconUrl)?.IsCopySucceeded == true)
+                {
+                    // There was a concurrent cache save request and this thread lost.
+                    // Cache was properly updated, so we'll just ignore that exception.
                 }
                 catch (Exception e)
                 {
