@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.SqlClient;
 using GalleryTools.Commands;
+using GalleryTools.Utils;
 using Microsoft.Extensions.CommandLineUtils;
 
 namespace GalleryTools
@@ -21,6 +23,9 @@ namespace GalleryTools
             commandLineApplication.Command("filldevdeps", BackfillDevelopmentDependencyCommand.Configure);
             commandLineApplication.Command("verifyapikey", VerifyApiKeyCommand.Configure);
             commandLineApplication.Command("updateIsLatest", UpdateIsLatestCommand.Configure);
+            commandLineApplication.Command("deleteUnconfirmed", DeleteUnconfirmedAccountsCommand.Configure);
+
+            ConfigureActiveDirectoryInteractiveSqlAuthentication(commandLineApplication);
 
             try
             {
@@ -30,6 +35,34 @@ namespace GalleryTools
             {
                 Console.WriteLine($"Error: {e}");
                 return 1;
+            }
+        }
+
+        private static void ConfigureActiveDirectoryInteractiveSqlAuthentication(CommandLineApplication commandLineApplication)
+        {
+            foreach (var command in commandLineApplication.Commands)
+            {
+                var clientIdOption = command.Option(
+                    "-c | --clientId",
+                    "The client ID to use to authenticate over interactive AAD.", CommandOptionType.SingleValue);
+
+                var interactiveAuthProvider = new InteractiveActiveDirectoryAuthProvider();
+                SqlAuthenticationProvider.SetProvider(
+                    SqlAuthenticationMethod.ActiveDirectoryInteractive,
+                    interactiveAuthProvider);
+
+                // We want to set the client ID before the existing command, but not replace it.
+                var existingCommandInvocation = command.Invoke;
+                command.OnExecute(
+                    () =>
+                    {
+                        if (clientIdOption.HasValue())
+                        {
+                            interactiveAuthProvider.ClientId = clientIdOption.Value();
+                        }
+
+                        return existingCommandInvocation();
+                    });
             }
         }
     }
