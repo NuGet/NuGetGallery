@@ -33,4 +33,5 @@ namespace GalleryTools
                 return 1;
             }
         }
+    }
 }
