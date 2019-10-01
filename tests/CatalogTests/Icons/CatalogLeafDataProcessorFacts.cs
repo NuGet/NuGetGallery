@@ -61,6 +61,7 @@ namespace CatalogTests.Icons
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
                     leaf,
                     hasIconUrl ? IconUrlString : null,
                     iconFilename,
@@ -100,6 +101,7 @@ namespace CatalogTests.Icons
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
                     leaf,
                     IconUrlString,
                     null,
@@ -136,6 +138,7 @@ namespace CatalogTests.Icons
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
                     leaf,
                     IconUrlString,
                     null,
@@ -179,6 +182,7 @@ namespace CatalogTests.Icons
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
                     leaf,
                     IconUrlString,
                     null,
@@ -205,6 +209,7 @@ namespace CatalogTests.Icons
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
                     leaf,
                     IconUrlString,
                     null,
@@ -234,6 +239,7 @@ namespace CatalogTests.Icons
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
                     leaf,
                     IconUrlString,
                     null,
@@ -274,6 +280,7 @@ namespace CatalogTests.Icons
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
                     leaf,
                     IconUrlString,
                     null,
@@ -324,6 +331,7 @@ namespace CatalogTests.Icons
                 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
                     leaf,
                     IconUrlString,
                     null,
@@ -402,6 +410,7 @@ namespace CatalogTests.Icons
             protected Mock<ITelemetryService> TelemetryServiceMock { get; set; }
             protected Mock<ILogger<CatalogLeafDataProcessor>> LoggerMock { get; set; }
             protected Mock<IStorage> DestinationStorageMock { get; set; }
+            protected Mock<IStorage> IconCacheStorageMock { get; set; }
             protected CatalogLeafDataProcessor Target { get; set; }
 
             public TestBase()
@@ -413,6 +422,7 @@ namespace CatalogTests.Icons
                 TelemetryServiceMock = new Mock<ITelemetryService>();
                 LoggerMock = new Mock<ILogger<CatalogLeafDataProcessor>>();
                 DestinationStorageMock = new Mock<IStorage>();
+                IconCacheStorageMock = new Mock<IStorage>();
 
                 TelemetryServiceMock
                     .Setup(ts => ts.TrackEmbeddedIconProcessingDuration(It.IsAny<string>(), It.IsAny<string>()))

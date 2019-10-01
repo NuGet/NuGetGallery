@@ -69,6 +69,7 @@ namespace Ng.Jobs
                 catalogClient,
                 leafProcessor,
                 iconCopyResultCache,
+                auxStorageFactory,
                 CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose),
                 LoggerFactory.CreateLogger<IconsCollector>());
             var cursorStorage = auxStorageFactory.Create();

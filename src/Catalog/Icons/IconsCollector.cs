@@ -22,6 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
         private readonly ICatalogClient _catalogClient;
         private readonly ICatalogLeafDataProcessor _catalogLeafDataProcessor;
         private readonly IIconCopyResultCachePersistence _iconCopyResultCache;
+        private readonly IStorageFactory _iconCacheStorageFactory;
         private readonly ILogger<IconsCollector> _logger;
 
         public IconsCollector(
@@ -31,6 +32,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             ICatalogClient catalogClient,
             ICatalogLeafDataProcessor catalogLeafDataProcessor,
             IIconCopyResultCachePersistence iconCopyResultCache,
+            IStorageFactory iconCacheStorageFactory,
             Func<HttpMessageHandler> httpHandlerFactory,
             ILogger<IconsCollector> logger)
             : base(index, telemetryService, httpHandlerFactory, httpClientTimeout: TimeSpan.FromMinutes(5))
@@ -39,6 +41,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
             _catalogLeafDataProcessor = catalogLeafDataProcessor ?? throw new ArgumentNullException(nameof(catalogLeafDataProcessor));
             _iconCopyResultCache = iconCopyResultCache ?? throw new ArgumentNullException(nameof(iconCopyResultCache));
+            _iconCacheStorageFactory = iconCacheStorageFactory ?? throw new ArgumentNullException(nameof(iconCacheStorageFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -85,7 +88,8 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             CancellationToken cancellationToken)
         {
             await Task.Yield();
-            var storage = _targetStorageFactory.Create();
+            var targetStorage = _targetStorageFactory.Create();
+            var iconCacheStorage = _iconCacheStorageFactory.Create();
 
             using (_logger.BeginScope("{CallGuid}", Guid.NewGuid()))
             while (items.TryTake(out var entries))
@@ -107,11 +111,11 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                                 _logger.LogError(0, e, "Error while trying to retrieve catalog leaf {LeafUrl}", item.Uri.AbsoluteUri);
                                 throw;
                             }
-                            await _catalogLeafDataProcessor.ProcessPackageDetailsLeafAsync(storage, item, leaf.IconUrl, leaf.IconFile, cancellationToken);
+                            await _catalogLeafDataProcessor.ProcessPackageDetailsLeafAsync(targetStorage, iconCacheStorage, item, leaf.IconUrl, leaf.IconFile, cancellationToken);
                         }
                         else if (item.IsPackageDelete)
                         {
-                            await _catalogLeafDataProcessor.ProcessPackageDeleteLeafAsync(storage, item, cancellationToken);
+                            await _catalogLeafDataProcessor.ProcessPackageDeleteLeafAsync(targetStorage, item, cancellationToken);
                         }
                     }
                 }
