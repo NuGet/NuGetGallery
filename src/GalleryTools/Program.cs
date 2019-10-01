@@ -25,8 +25,6 @@ namespace GalleryTools
             commandLineApplication.Command("updateIsLatest", UpdateIsLatestCommand.Configure);
             commandLineApplication.Command("deleteUnconfirmed", DeleteUnconfirmedAccountsCommand.Configure);
 
-            ConfigureActiveDirectoryInteractiveSqlAuthentication(commandLineApplication);
-
             try
             {
                 return commandLineApplication.Execute(args);
@@ -37,33 +35,4 @@ namespace GalleryTools
                 return 1;
             }
         }
-
-        private static void ConfigureActiveDirectoryInteractiveSqlAuthentication(CommandLineApplication commandLineApplication)
-        {
-            foreach (var command in commandLineApplication.Commands)
-            {
-                var clientIdOption = command.Option(
-                    "-c | --clientId",
-                    "The client ID to use to authenticate over interactive AAD.", CommandOptionType.SingleValue);
-
-                var interactiveAuthProvider = new InteractiveActiveDirectoryAuthProvider();
-                SqlAuthenticationProvider.SetProvider(
-                    SqlAuthenticationMethod.ActiveDirectoryInteractive,
-                    interactiveAuthProvider);
-
-                // We want to set the client ID before the existing command, but not replace it.
-                var existingCommandInvocation = command.Invoke;
-                command.OnExecute(
-                    () =>
-                    {
-                        if (clientIdOption.HasValue())
-                        {
-                            interactiveAuthProvider.ClientId = clientIdOption.Value();
-                        }
-
-                        return existingCommandInvocation();
-                    });
-            }
-        }
-    }
 }
