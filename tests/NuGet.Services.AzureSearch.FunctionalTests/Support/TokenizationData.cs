@@ -47,6 +47,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
 
         public static readonly IEnumerable<object[]> LowercasesAndAddsTokensOnCasingAndNonAlphaNumeric = ToMemberData(new Dictionary<string, string[]>
         {
+            { "Microsoft.EntityFrameworkCore.SqlServer.Design", new[] { "microsoft", "entityframeworkcore", "entity", "framework", "core", "sqlserver", "sql", "server", "design" } },
             { "HelloWorld", new[] { "helloworld", "hello", "world" } },
             { "foo2bar", new[] { "foo2bar", "foo", "2", "bar" } },
             { "HTML", new[] { "html"} },

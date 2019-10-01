@@ -31,6 +31,33 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
 
         protected CommonFixture Fixture { get; private set; }
 
+        protected async Task<IReadOnlyList<string>> AutocompleteAsync(
+            string query,
+            int? skip = 0,
+            int? take = 20,
+            bool includePrerelease = true,
+            bool includeSemVer2 = true)
+        {
+            var results = await AutocompleteAsync(new AutocompleteBuilder()
+            {
+                Query = query,
+                Skip = skip,
+                Take = take,
+                Prerelease = includePrerelease,
+                IncludeSemVer2 = includeSemVer2,
+            });
+
+            var ids = results.Data.Select(t => t.ToLowerInvariant()).ToList();
+
+            _testOutputHelper.WriteLine("Got IDs:");
+            for (var i = 0; i < ids.Count; i++)
+            {
+                _testOutputHelper.WriteLine($"{i + 1}. {ids[i]}");
+            }
+
+            return ids;
+        }
+
         /// <summary>
         /// Queries the NuGet Search API.
         /// See: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-for-packages
@@ -76,7 +103,12 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             return await SearchAsync<V3SearchResult>(searchBuilder);
         }
 
-        private async Task<T> SearchAsync<T>(QueryBuilder searchBuilder) where T: SearchResult
+        private async Task<AutocompleteResult> AutocompleteAsync(AutocompleteBuilder searchBuilder)
+        {
+            return await SearchAsync<AutocompleteResult>(searchBuilder);
+        }
+
+        private async Task<T> SearchAsync<T>(QueryBuilder searchBuilder)
         {
             var queryUrl = searchBuilder.RequestUri;
             _testOutputHelper.WriteLine($"Fetching: {queryUrl}");

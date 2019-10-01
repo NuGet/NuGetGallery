@@ -56,6 +56,7 @@
     <Compile Include="BasicTests\V3SearchProtocolTests.cs" />
     <Compile Include="BasicTests\V2SearchProtocolTests.cs" />
     <Compile Include="BasicTests\SearchAvailabilityTests.cs" />
+    <Compile Include="Relevancy\AutocompleteRelevancyFunctionalTests.cs" />
     <Compile Include="Support\TestUtilities.cs" />
     <Compile Include="Support\RelevancyTheoryAttribute.cs" />
     <Compile Include="Support\RelevancyFactAttribute.cs" />
