@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.WindowsAzure.ServiceRuntime;
 
@@ -34,13 +35,23 @@ namespace NuGetGallery
         public void Initialize(ITelemetry telemetry)
         {
             if (telemetry == null
-                || DeploymentId == null
-                || telemetry.Context.Properties.ContainsKey(PropertyKey))
+                || DeploymentId == null)
             {
                 return;
             }
 
-            telemetry.Context.Properties.Add(PropertyKey, DeploymentId);
+            var itemTelemetry = telemetry as ISupportProperties;
+            if (itemTelemetry == null)
+            {
+                return;
+            }
+
+            if (itemTelemetry.Properties.ContainsKey(PropertyKey))
+            {
+                return;
+            }
+
+            itemTelemetry.Properties.Add(PropertyKey, DeploymentId);
         }
     }
 }
