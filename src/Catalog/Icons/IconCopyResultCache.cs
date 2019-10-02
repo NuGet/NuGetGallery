@@ -20,6 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
         private const string CacheFilename = "c2i_cache.json";
 
         private ConcurrentDictionary<Uri, ExternalIconCopyResult> _externalIconCopyResults = null;
+        private ConcurrentDictionary<Uri, SemaphoreSlim> _uriSemaphores = null;
 
         private readonly IStorage _auxStorage;
         private readonly ILogger<IconCopyResultCache> _logger;
@@ -30,6 +31,8 @@ namespace NuGet.Services.Metadata.Catalog.Icons
         {
             _auxStorage = auxStorage ?? throw new ArgumentNullException(nameof(auxStorage));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _uriSemaphores = new ConcurrentDictionary<Uri, SemaphoreSlim>();
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -85,32 +88,63 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 throw new InvalidOperationException("Object was not initialized");
             }
 
-            if (_externalIconCopyResults.TryGetValue(originalIconUrl, out var copyResult))
+            var uriSemaphore = GetUriSemaphore(originalIconUrl);
+            // Attempting to copy to the same location from multiple sources at the same time will throw,
+            // so we'll guard the copy attempt with semaphore.
+            // We'll guard the whole operation so we wouln't even try to copy items to cache more than once.
+            await uriSemaphore.WaitAsync(cancellationToken);
+            try
             {
-                if (copyResult.IsCopySucceeded)
+                if (_externalIconCopyResults.TryGetValue(originalIconUrl, out var copyResult))
                 {
-                    return copyResult.StorageUrl;
+                    if (copyResult.IsCopySucceeded)
+                    {
+                        return copyResult.StorageUrl;
+                    }
+
+                    // if we have failure stored, we'll try to replace it with success,
+                    // now that we've seen one.
                 }
 
-                // if we have failure stored, we'll try to replace it with success,
-                // now that we've seen one.
+                var cacheStoragePath = GetCachePath(originalIconUrl);
+                var cacheUrl = cacheStorage.ResolveUri(cacheStoragePath);
+
+                _logger.LogInformation("Going to store {IconUrl} in cache from {StorageUrl} to {CacheUrl}",
+                    originalIconUrl.AbsoluteUri,
+                    storageUrl.AbsoluteUri,
+                    cacheUrl.AbsoluteUri);
+
+                await mainDestinationStorage.CopyAsync(storageUrl, cacheStorage, cacheUrl, null, cancellationToken);
+                // Technically, we could get away without storing the success in the dictionary,
+                // but then each get attempt from the cache would result in HTTP request to cache
+                // storage that drastically reduces usefulness of the cache (we trade one HTTP request
+                // for another).
+                Set(originalIconUrl, ExternalIconCopyResult.Success(originalIconUrl, cacheUrl));
+                return cacheUrl;
+            }
+            finally
+            {
+                uriSemaphore.Release();
+            }
+        }
+
+        private SemaphoreSlim GetUriSemaphore(Uri originalIconUrl)
+        {
+            SemaphoreSlim semaphore = null;
+            if (!_uriSemaphores.TryGetValue(originalIconUrl, out semaphore))
+            {
+                semaphore = new SemaphoreSlim(1, 1);
+                if (!_uriSemaphores.TryAdd(originalIconUrl, semaphore))
+                {
+                    // there was a concurrent thread trying to do the same
+                    if (!_uriSemaphores.TryGetValue(originalIconUrl, out semaphore))
+                    {
+                        throw new InvalidOperationException("Failed to get a URL semaphore that must have existed");
+                    }
+                }
             }
 
-            var cacheStoragePath = GetCachePath(originalIconUrl);
-            var cacheUrl = cacheStorage.ResolveUri(cacheStoragePath);
-
-            _logger.LogInformation("Going to store {IconUrl} in cache from {StorageUrl} to {CacheUrl}",
-                originalIconUrl.AbsoluteUri,
-                storageUrl.AbsoluteUri,
-                cacheUrl.AbsoluteUri);
-
-            await mainDestinationStorage.CopyAsync(storageUrl, cacheStorage, cacheUrl, null, cancellationToken);
-            // Technically, we could get away without storing the success in the dictionary,
-            // but then each get attempt from the cache would result in HTTP request to cache
-            // storage that drastically reduces usefulness of the cache (we trade one HTTP request
-            // for another).
-            Set(originalIconUrl, ExternalIconCopyResult.Success(originalIconUrl, cacheUrl));
-            return cacheUrl;
+            return semaphore;
         }
 
         public void SaveExternalCopyFailure(Uri iconUrl)

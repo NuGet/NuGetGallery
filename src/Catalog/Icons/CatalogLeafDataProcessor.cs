@@ -104,11 +104,6 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 {
                     await _iconCopyResultCache.SaveExternalIcon(iconUrl, ingestionResult.ResultUrl, destinationStorage, iconCacheStorage, cancellationToken);
                 }
-                catch (TransferException e) when (e.ErrorCode == TransferErrorCode.MismatchCopyId && _iconCopyResultCache.Get(iconUrl)?.IsCopySucceeded == true)
-                {
-                    // There was a concurrent cache save request and this thread lost.
-                    // Cache was properly updated, so we'll just ignore that exception.
-                }
                 catch (Exception e)
                 {
                     // we will report and ignore such exceptions. Failure to store icon will cause the original icon
