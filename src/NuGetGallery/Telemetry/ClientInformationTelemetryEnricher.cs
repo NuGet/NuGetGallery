@@ -24,23 +24,19 @@ namespace NuGetGallery
                     // cannot be used since it will fail if the key already exists.
                     // https://github.com/microsoft/ApplicationInsights-dotnet-server/issues/977
 
-                    // We need to cast to ISupportProperties to avoid using the deprecated telemetry.Context.Properties API.
-                    // https://github.com/Microsoft/ApplicationInsights-Home/issues/300
-                    var itemTelemetry = (ISupportProperties)telemetry;
-
                     // ClientVersion is available for NuGet clients starting version 4.1.0-~4.5.0 
                     // Was deprecated and replaced by Protocol version
-                    itemTelemetry.Properties[TelemetryService.ClientVersion]
+                    telemetry.Context.Properties[TelemetryService.ClientVersion]
                         = httpContext.Request.Headers[ServicesConstants.ClientVersionHeaderName];
 
-                    itemTelemetry.Properties[TelemetryService.ProtocolVersion]
+                    telemetry.Context.Properties[TelemetryService.ProtocolVersion]
                         = httpContext.Request.Headers[ServicesConstants.NuGetProtocolHeaderName];
 
-                    itemTelemetry.Properties[TelemetryService.ClientInformation]
+                    telemetry.Context.Properties[TelemetryService.ClientInformation]
                         = httpContext.GetClientInformation();
 
                     // Is the user authenticated or this is an anonymous request?
-                    itemTelemetry.Properties[TelemetryService.IsAuthenticated]
+                    telemetry.Context.Properties[TelemetryService.IsAuthenticated]
                         = httpContext.Request.IsAuthenticated.ToString();
                 }
             }
