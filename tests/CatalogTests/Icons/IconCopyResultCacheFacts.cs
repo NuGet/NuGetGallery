@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Metadata.Catalog.Icons;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -37,15 +39,21 @@ namespace CatalogTests.Icons
         }
 
         [Fact]
-        public void SetThrowsIfNotInitialized()
+        public async Task SaveExternalIconThrowsIfNotInitialized()
         {
-            Assert.Throws<InvalidOperationException>(() => Target.Set(new Uri("https://whatever"), ExternalIconCopyResult.Fail(new Uri("https://another"))));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => Target.SaveExternalIcon(new Uri("https://whatever"), new Uri("https://storage.test"), Mock.Of<IStorage>(), Mock.Of<IStorage>(), CancellationToken.None));
+        }
+
+        [Fact]
+        public void SaveExternalCopyFailureThrowsIfNotInitialized()
+        {
+            Assert.Throws<InvalidOperationException>(() => Target.SaveExternalCopyFailure(new Uri("https://whatever")));
         }
 
         [Fact]
         public void ClearThrowsIfNotInitialized()
         {
-            Assert.Throws<InvalidOperationException>(() => Target.Clear(new Uri("https://whatever"), new Uri("https://another")));
+            Assert.Throws<InvalidOperationException>(() => Target.Clear(new Uri("https://whatever")));
         }
 
         [Theory]
@@ -54,73 +62,94 @@ namespace CatalogTests.Icons
         public async Task SmokeTest(string sourceUrl, string storageUrlString, bool expectedSuccess)
         {
             Data = "{}";
-
             await Target.InitializeAsync(CancellationToken.None);
 
             var storageUrl = storageUrlString == null ? null : new Uri(storageUrlString);
-            Target.Set(new Uri(sourceUrl), new ExternalIconCopyResult { SourceUrl = new Uri(sourceUrl), StorageUrl = storageUrl });
-            var item = Target.Get(new Uri(sourceUrl));
-            Assert.Equal(sourceUrl, item.SourceUrl.AbsoluteUri);
-            if (storageUrlString == null)
+            var success = storageUrlString != null;
+
+            if (success)
             {
-                Assert.Null(item.StorageUrl);
+                await Target.SaveExternalIcon(new Uri(sourceUrl), storageUrl, StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
+                StorageMock
+                    .Verify(ics => ics.CopyAsync(storageUrl, IconCacheStorageMock.Object, It.IsAny<Uri>(), It.IsAny<IReadOnlyDictionary<string, string>>(), CancellationToken.None));
             }
             else
             {
-                Assert.Equal(storageUrlString, item.StorageUrl.AbsoluteUri);
+                Target.SaveExternalCopyFailure(new Uri(sourceUrl));
+            }
+            var item = Target.Get(new Uri(sourceUrl));
+            Assert.Equal(sourceUrl, item.SourceUrl.AbsoluteUri);
+            if (success)
+            {
+                Assert.True(item.IsCopySucceeded);
+                Assert.Equal(DefaultResolvedUrlString, item.StorageUrl.AbsoluteUri);
+            }
+            else
+            {
+                Assert.False(item.IsCopySucceeded);
+                Assert.Null(item.StorageUrl);
             }
             Assert.Equal(expectedSuccess, item.IsCopySucceeded);
 
-            Target.Clear(new Uri(sourceUrl), storageUrl);
+            Target.Clear(new Uri(sourceUrl));
             item = Target.Get(new Uri(sourceUrl));
             Assert.Null(item);
         }
 
         [Fact]
-        public async Task SetDoesNotOverwrite()
+        public async Task SaveExternalIconDoesNotOverwriteSuccess()
         {
             Data = "{}";
 
             await Target.InitializeAsync(CancellationToken.None);
 
-            Target.Set(new Uri("https://source"), ExternalIconCopyResult.Success(new Uri("https://source1/d"), new Uri("https://storage1/d")));
-            Target.Set(new Uri("https://source"), ExternalIconCopyResult.Success(new Uri("https://source2"), new Uri("https://storage2")));
-            var item = Target.Get(new Uri("https://source"));
+            const string originalIconUrlString = "https://source/";
+            var originalIconUrl = new Uri(originalIconUrlString);
+            const string firstSuccessStorageUrlString = "https://storage1/d";
+            var firstSucessStorageUrl = new Uri(firstSuccessStorageUrlString);
+            var secondSuccessStorageUrl = new Uri("https://storage2");
 
-            Assert.Equal("https://source1/d", item.SourceUrl.AbsoluteUri);
-            Assert.Equal("https://storage1/d", item.StorageUrl.AbsoluteUri);
+            await Target.SaveExternalIcon(originalIconUrl, firstSucessStorageUrl, StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
+            StorageMock
+                .Verify(
+                    ics => ics.CopyAsync(firstSucessStorageUrl, IconCacheStorageMock.Object, It.IsAny<Uri>(), It.IsAny<IReadOnlyDictionary<string, string>>(), CancellationToken.None),
+                    Times.Once);
+            await Target.SaveExternalIcon(originalIconUrl, secondSuccessStorageUrl, StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
+            StorageMock
+                .Verify(
+                    ics => ics.CopyAsync(secondSuccessStorageUrl, It.IsAny<IStorage>(), It.IsAny<Uri>(), It.IsAny<IReadOnlyDictionary<string, string>>(), It.IsAny<CancellationToken>()),
+                    Times.Never);
+
+            var item = Target.Get(originalIconUrl);
+            Assert.True(item.IsCopySucceeded);
+            Assert.Equal(originalIconUrlString, item.SourceUrl.AbsoluteUri);
+            Assert.Equal(DefaultResolvedUrlString, item.StorageUrl.AbsoluteUri);
         }
 
         [Fact]
-        public async Task ClearsWhenStorageMatches()
+        public async Task SaveExternalIconOverwritesFailures()
         {
             Data = "{}";
 
             await Target.InitializeAsync(CancellationToken.None);
 
-            Target.Set(new Uri("https://source"), ExternalIconCopyResult.Success(new Uri("https://source1"), new Uri("https://storage1")));
-            var item = Target.Get(new Uri("https://source"));
-            Assert.NotNull(item);
-            Target.Clear(new Uri("https://source"), new Uri("https://storage1"));
-            item = Target.Get(new Uri("https://source"));
-            Assert.Null(item);
-        }
+            const string originalIconUrlString = "https://source/";
+            var originalIconUrl = new Uri(originalIconUrlString);
+            const string successStorageUrlString = "https://storage2/";
+            var successStorageUrl = new Uri(successStorageUrlString);
 
-        [Fact]
-        public async Task NotClearsWhenStorageNotMatch()
-        {
-            Data = "{}";
+            Target.SaveExternalCopyFailure(originalIconUrl);
+            await Target.SaveExternalIcon(originalIconUrl, successStorageUrl, StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
+            StorageMock
+                .Verify(
+                    ics => ics.CopyAsync(successStorageUrl, IconCacheStorageMock.Object, It.IsAny<Uri>(), It.IsAny<IReadOnlyDictionary<string, string>>(), CancellationToken.None),
+                    Times.Once);
 
-            await Target.InitializeAsync(CancellationToken.None);
+            var item = Target.Get(originalIconUrl);
 
-            Target.Set(new Uri("https://source"), ExternalIconCopyResult.Success(new Uri("https://source1/d"), new Uri("https://storage1/d")));
-            var item = Target.Get(new Uri("https://source"));
-            Assert.NotNull(item);
-            Target.Clear(new Uri("https://source"), new Uri("https://storage2"));
-            item = Target.Get(new Uri("https://source"));
-            Assert.NotNull(item);
-            Assert.Equal("https://source1/d", item.SourceUrl.AbsoluteUri);
-            Assert.Equal("https://storage1/d", item.StorageUrl.AbsoluteUri);
+            Assert.True(item.IsCopySucceeded);
+            Assert.Equal(originalIconUrlString, item.SourceUrl.AbsoluteUri);
+            Assert.Equal(DefaultResolvedUrlString, item.StorageUrl.AbsoluteUri);
         }
 
         [Fact]
@@ -130,8 +159,8 @@ namespace CatalogTests.Icons
 
             await Target.InitializeAsync(CancellationToken.None);
 
-            Target.Set(new Uri("https://sourcez"), ExternalIconCopyResult.Success(new Uri("https://source1/d"), new Uri("https://storage1/d")));
-            Target.Set(new Uri("https://sourcey"), ExternalIconCopyResult.Success(new Uri("https://source2/d"), new Uri("https://storage2/d")));
+            await Target.SaveExternalIcon(new Uri("https://sourcez"), new Uri("https://storage1/d"), StorageMock.Object, IconCacheStorageMock.Object, CancellationToken.None);
+            Target.SaveExternalCopyFailure(new Uri("https://sourcey"));
 
             string savedContent = null;
 
@@ -146,11 +175,9 @@ namespace CatalogTests.Icons
                 .Verify(s => s.SaveAsync(new Uri("https://cache.test/blob"), It.IsAny<StringStorageContent>(), CancellationToken.None), Times.Once);
 
             Assert.Contains("https://sourcez", savedContent);
+            Assert.DoesNotContain("https://storage1/d", savedContent); // this url is only used for copying blob
+            Assert.Contains(DefaultResolvedUrlString, savedContent);
             Assert.Contains("https://sourcey", savedContent);
-            Assert.Contains("https://source1/d", savedContent);
-            Assert.Contains("https://source2/d", savedContent);
-            Assert.Contains("https://storage1/d", savedContent);
-            Assert.Contains("https://storage2/d", savedContent);
         }
 
         public IconCopyResultCacheFacts()
@@ -162,6 +189,11 @@ namespace CatalogTests.Icons
                 .Returns(new Uri("https://cache.test/blob"))
                 .Verifiable();
 
+            IconCacheStorageMock = new Mock<IStorage>();
+            IconCacheStorageMock
+                .Setup(ics => ics.ResolveUri(It.IsAny<string>()))
+                .Returns(new Uri(DefaultResolvedUrlString));
+
             var responseStreamContentMock = new Mock<StorageContent>();
             responseStreamContentMock
                 .Setup(rsc => rsc.GetContentStream())
@@ -172,12 +204,17 @@ namespace CatalogTests.Icons
                 .Setup(s => s.LoadAsync(new Uri("https://cache.test/blob"), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(responseStreamContentMock.Object);
 
-            Target = new IconCopyResultCache(StorageMock.Object);
+            Target = new IconCopyResultCache(
+                StorageMock.Object,
+                Mock.Of<ILogger<IconCopyResultCache>>());
         }
+
+        private const string DefaultResolvedUrlString = "https://resolved.test/uri";
 
         private string Data { get; set; }
 
         private Mock<IStorage> StorageMock { get; set; }
         private IconCopyResultCache Target { get; set; }
+        private Mock<IStorage> IconCacheStorageMock { get; set; }
     }
 }
