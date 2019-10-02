@@ -92,7 +92,11 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             // Attempting to copy to the same location from multiple sources at the same time will throw,
             // so we'll guard the copy attempt with semaphore.
             // We'll guard the whole operation so we wouln't even try to copy items to cache more than once.
-            await uriSemaphore.WaitAsync(cancellationToken);
+            if (!await uriSemaphore.WaitAsync(TimeSpan.Zero, cancellationToken))
+            {
+                _logger.LogInformation("Failed to enter the semaphore for {IconUrl} immediately, starting to wait", originalIconUrl);
+                await uriSemaphore.WaitAsync(cancellationToken);
+            }
             try
             {
                 if (_externalIconCopyResults.TryGetValue(originalIconUrl, out var copyResult))
@@ -130,21 +134,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
 
         private SemaphoreSlim GetUriSemaphore(Uri originalIconUrl)
         {
-            SemaphoreSlim semaphore = null;
-            if (!_uriSemaphores.TryGetValue(originalIconUrl, out semaphore))
-            {
-                semaphore = new SemaphoreSlim(1, 1);
-                if (!_uriSemaphores.TryAdd(originalIconUrl, semaphore))
-                {
-                    // there was a concurrent thread trying to do the same
-                    if (!_uriSemaphores.TryGetValue(originalIconUrl, out semaphore))
-                    {
-                        throw new InvalidOperationException("Failed to get a URL semaphore that must have existed");
-                    }
-                }
-            }
-
-            return semaphore;
+            return _uriSemaphores.GetOrAdd(originalIconUrl, _ => new SemaphoreSlim(1, 1));
         }
 
         public void SaveExternalCopyFailure(Uri iconUrl)
