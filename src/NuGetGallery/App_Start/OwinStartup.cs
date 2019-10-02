@@ -79,7 +79,20 @@ namespace NuGetGallery
             var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(instrumentationKey))
             {
-                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+                var heartbeatIntervalSeconds = config.Current.AppInsightsHeartbeatIntervalSeconds;
+
+                if (heartbeatIntervalSeconds > 0)
+                {
+                    // Configure instrumentation key, heartbeat interval, 
+                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
+                    ApplicationInsights.Initialize(instrumentationKey, TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+                }
+                else
+                {
+                    // Configure instrumentation key,
+                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
+                    ApplicationInsights.Initialize(instrumentationKey);
+                }
 
                 // Add enrichers
                 TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentIdTelemetryEnricher());
