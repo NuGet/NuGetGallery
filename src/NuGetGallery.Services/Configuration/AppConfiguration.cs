@@ -134,8 +134,8 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets the storage mechanism used by this instance of the gallery
         /// </summary>
-        [DefaultValue(StorageType.NotSpecified)]
-        public StorageType StorageType { get; set; }
+        [DefaultValue(NuGetGallery.Configuration.StorageType.NotSpecified)]
+        public string StorageType { get; set; }
 
         /// <summary>
         /// Gets the URI of the SMTP host to use. Or null if SMTP is not being used

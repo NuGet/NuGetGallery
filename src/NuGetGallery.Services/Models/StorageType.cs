@@ -2,10 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 namespace NuGetGallery.Configuration
 {
-    public enum StorageType
+    public static class StorageType
     {
-        NotSpecified = 0,
-        FileSystem,
-        AzureStorage
+        public const string NotSpecified = "";
+        public const string FileSystem = "FileSystem";
+        public const string AzureStorage = "AzureStorage";
     }
 }
