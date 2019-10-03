@@ -18,12 +18,6 @@ namespace NuGetGallery.LoadTests
     [TestClass]
     public class LoadTests
     {
-        public LoadTests()
-        {
-            // suppress SSL validation for *.cloudapp.net
-            ServicePointManagerInitializer.InitializeServerCertificateValidationCallback();
-        }
-
         [TestMethod]
         [Description("Tries to download a packages from v2 feed and make sure the re-direction happens properly.")]
         [TestCategory("P0Tests")]

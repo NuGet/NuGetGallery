@@ -16,9 +16,6 @@ namespace NuGetGallery.FunctionalTests
         protected GalleryTestBase(ITestOutputHelper testOutputHelper)
         {
             TestOutputHelper = testOutputHelper;
-
-            // suppress SSL validation for *.cloudapp.net
-            ServicePointManagerInitializer.InitializeServerCertificateValidationCallback();
         }
 
         public ITestOutputHelper TestOutputHelper { get; private set; }

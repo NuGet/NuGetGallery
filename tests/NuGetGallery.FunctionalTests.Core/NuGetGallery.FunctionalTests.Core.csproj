@@ -73,7 +73,6 @@
   <ItemGroup>
     <Compile Include="GalleryConfiguration.cs" />
     <Compile Include="Helpers\AssertAndValidationHelper.cs" />
-    <Compile Include="Helpers\ServicePointManagerInitializer.cs" />
     <Compile Include="Helpers\UploadHelper.cs" />
     <Compile Include="XunitExtensions\CategoryAttribute.cs" />
     <Compile Include="XunitExtensions\ClearMachineCacheFixture.cs" />
