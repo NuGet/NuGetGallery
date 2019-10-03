@@ -13,7 +13,7 @@ using Xunit;
 
 namespace NuGetGallery.Telemetry
 {
-    public class ClientTelemetryPIIProcessorTests 
+    public class ClientTelemetryPIIProcessorTests
     {
         private RouteCollection _currentRoutes;
 
@@ -35,6 +35,20 @@ namespace NuGetGallery.Telemetry
 
             // Act
             piiProcessor.Process(null);
+        }
+
+        [Fact]
+        public void NullRequestTelemetryUrlDoesNotThrow()
+        {
+            // Arange
+            var piiProcessor = CreatePIIProcessor();
+            var requestTelemetry = new RequestTelemetry
+            {
+                Url = null
+            };
+
+            // Act
+            piiProcessor.Process(requestTelemetry);
         }
 
         [Theory]
@@ -99,7 +113,7 @@ namespace NuGetGallery.Telemetry
 
         private ClientTelemetryPIIProcessor CreatePIIProcessor(string url = "")
         {
-            return new TestClientTelemetryPIIProcessor(new TestProcessorNext(), url );
+            return new TestClientTelemetryPIIProcessor(new TestProcessorNext(), url);
         }
 
         private class TestProcessorNext : ITelemetryProcessor
@@ -113,7 +127,7 @@ namespace NuGetGallery.Telemetry
         {
             private string _url = string.Empty;
 
-            public TestClientTelemetryPIIProcessor(ITelemetryProcessor next, string url) : base (next)
+            public TestClientTelemetryPIIProcessor(ITelemetryProcessor next, string url) : base(next)
             {
                 _url = url;
             }
@@ -132,7 +146,8 @@ namespace NuGetGallery.Telemetry
             {
                 Route webRoute = r as Route;
                 return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
-            }).Select((r) => {
+            }).Select((r) =>
+            {
                 var dd = ((Route)r).Defaults;
                 return $"{dd["controller"]}/{dd["action"]}";
             }).Distinct().ToList();
@@ -199,7 +214,7 @@ namespace NuGetGallery.Telemetry
 
         public static List<string> GenerateUserNames()
         {
-            return new List<string>{ "user1", "user.1", "user_1", "user-1"};
+            return new List<string> { "user1", "user.1", "user_1", "user-1" };
         }
     }
 }
