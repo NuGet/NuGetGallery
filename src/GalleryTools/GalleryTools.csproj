@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>GalleryTools</RootNamespace>
     <AssemblyName>GalleryTools</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
@@ -85,7 +85,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Autofac">
-      <Version>4.6.2</Version>
+      <Version>4.7.2</Version>
     </PackageReference>
     <PackageReference Include="CsvHelper">
       <Version>7.1.1</Version>
