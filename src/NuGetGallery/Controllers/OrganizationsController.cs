@@ -446,7 +446,7 @@ namespace NuGetGallery
             base.UpdateAccountViewModel(account, model);
 
             var memberViewModels = account.Members.Select(ToOrganizationMemberViewModel);
-            var memberRequestViewModels = account.Members.Select(ToOrganizationMemberViewModel);
+            var memberRequestViewModels = account.MemberRequests.Select(ToOrganizationMemberViewModel);
 
             model.Members = memberViewModels.Concat(memberRequestViewModels);
             model.RequiresTenant = account.IsRestrictedToOrganizationTenantPolicy();

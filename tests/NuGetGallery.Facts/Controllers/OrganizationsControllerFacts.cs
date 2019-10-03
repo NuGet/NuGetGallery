@@ -10,6 +10,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Configuration;
 using System.Web.Mvc;
 using Moq;
 using NuGet.ContentModel;
@@ -77,6 +78,68 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<OrganizationAccountViewModel>(result, "ManageOrganization");
                 Assert.Equal(canManage, model.CanManage);
                 Assert.Equal(canManageMemberships, model.CanManageMemberships);
+            }
+
+            [Fact]
+            public void ReturnsPendingMembers()
+            {
+                // Arrange
+                var adminUser = new User("Current user")
+                {
+                    Roles = new[]
+                    {
+                        new Role { Name = Constants.AdminRoleName }
+                    }
+                };
+
+                var organizationOwner = new User("Organization owner")
+                {
+                    EmailAddress = "owner@example.test"
+                };
+
+                var pendingMember = new User("Pending member")
+                {
+                    EmailAddress = "pending@example.test"
+                };
+
+                var organization = new Organization
+                {
+                    Members = new[]
+                    {
+                        new Membership
+                        {
+                            Member = organizationOwner
+                        },
+                    },
+                    MemberRequests = new[]
+                    {
+                        new MembershipRequest
+                        {
+                            NewMember = pendingMember
+                        }
+                    }
+                };
+
+                var controller = GetController();
+                controller.SetCurrentUser(adminUser);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername("test-organization", /*includeDeleted:*/ false))
+                    .Returns(organization);
+
+                // Act
+                var result = controller.ManageOrganization("test-organization");
+
+                // Assert
+                var model = ResultAssert.IsView<OrganizationAccountViewModel>(result, "ManageOrganization");
+
+                var members = model.Members.ToList();
+
+                Assert.Equal("Organization owner", members[0].Username);
+                Assert.False(members[0].Pending);
+
+                Assert.Equal("Pending member", members[1].Username);
+                Assert.True(members[1].Pending);
             }
         }
 
