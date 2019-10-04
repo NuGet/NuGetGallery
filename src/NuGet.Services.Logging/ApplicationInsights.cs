@@ -40,7 +40,13 @@ namespace NuGet.Services.Logging
                     if (heartbeatManager != null)
                     {
                         heartbeatManager.HeartbeatInterval = heartbeatInterval.Value;
+
+                        Trace.TraceInformation($"Telemetry initialized using configured heartbeat interval: {heartbeatInterval.Value}.");
                     }
+                }
+                else
+                {
+                    Trace.TraceInformation($"Telemetry initialized using default heartbeat interval.");
                 }
 
                 Initialized = true;
