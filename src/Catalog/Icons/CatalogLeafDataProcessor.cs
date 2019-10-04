@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage.DataMovement;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
@@ -48,7 +49,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             // so can't remove anything. Will rely on the copy code to catch the copy failure and cleanup the cache appropriately.
         }
 
-        public async Task ProcessPackageDetailsLeafAsync(IStorage destinationStorage, CatalogCommitItem item, string iconUrlString, string iconFile, CancellationToken cancellationToken)
+        public async Task ProcessPackageDetailsLeafAsync(IStorage destinationStorage, IStorage iconCacheStorage, CatalogCommitItem item, string iconUrlString, string iconFile, CancellationToken cancellationToken)
         {
             var hasExternalIconUrl = !string.IsNullOrWhiteSpace(iconUrlString);
             var hasEmbeddedIcon = !string.IsNullOrWhiteSpace(iconFile);
@@ -56,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             {
                 using (_logger.BeginScope("Processing icon url {IconUrl}", iconUrl))
                 {
-                    await ProcessExternalIconUrlAsync(destinationStorage, item, iconUrl, cancellationToken);
+                    await ProcessExternalIconUrlAsync(destinationStorage, iconCacheStorage, item, iconUrl, cancellationToken);
                 }
             }
             else if (hasEmbeddedIcon)
@@ -65,7 +66,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             }
         }
 
-        private async Task ProcessExternalIconUrlAsync(IStorage destinationStorage, CatalogCommitItem item, Uri iconUrl, CancellationToken cancellationToken)
+        private async Task ProcessExternalIconUrlAsync(IStorage destinationStorage, IStorage iconCacheStorage, CatalogCommitItem item, Uri iconUrl, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Found external icon url {IconUrl} for {PackageId} {PackageVersion}",
                 iconUrl,
@@ -77,17 +78,17 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 return;
             }
             var cachedResult = _iconCopyResultCache.Get(iconUrl);
-            if (cachedResult != null && await TryTakeFromCache(iconUrl, cachedResult, destinationStorage, item, cancellationToken))
+            if (cachedResult != null && await TryTakeFromCache(iconUrl, cachedResult, iconCacheStorage, destinationStorage, item, cancellationToken))
             {
                 return;
             }
             using (_telemetryService.TrackExternalIconProcessingDuration(item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString()))
             {
-                await CopyIcon(iconUrl, destinationStorage, item, cancellationToken);
+                await CopyIcon(iconUrl, destinationStorage, iconCacheStorage, item, cancellationToken);
             }
         }
 
-        private async Task CopyIcon(Uri iconUrl, IStorage destinationStorage, CatalogCommitItem item, CancellationToken cancellationToken)
+        private async Task CopyIcon(Uri iconUrl, IStorage destinationStorage, IStorage iconCacheStorage, CatalogCommitItem item, CancellationToken cancellationToken)
         {
             var ingestionResult = await Retry.IncrementalAsync(
                 async () => await TryIngestExternalIconAsync(item, iconUrl, destinationStorage, cancellationToken),
@@ -97,20 +98,27 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 initialWaitInterval: TimeSpan.FromSeconds(5),
                 waitIncrement: TimeSpan.FromSeconds(1));
 
-            ExternalIconCopyResult cacheItem;
             if (ingestionResult.Result == AttemptResult.Success)
             {
-                cacheItem = ExternalIconCopyResult.Success(iconUrl, ingestionResult.ResultUrl);
+                try
+                {
+                    await _iconCopyResultCache.SaveExternalIcon(iconUrl, ingestionResult.ResultUrl, destinationStorage, iconCacheStorage, cancellationToken);
+                }
+                catch (Exception e)
+                {
+                    // we will report and ignore such exceptions. Failure to store icon will cause the original icon
+                    // to be re-retrieved next time it is encountered.
+                    _logger.LogWarning(0, e, "Failed to store icon in the cache");
+                }
             }
             else
             {
                 _telemetryService.TrackExternalIconIngestionFailure(item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());
-                cacheItem = ExternalIconCopyResult.Fail(iconUrl);
+                _iconCopyResultCache.SaveExternalCopyFailure(iconUrl);
             }
-            _iconCopyResultCache.Set(iconUrl, cacheItem);
         }
 
-        private async Task<bool> TryTakeFromCache(Uri iconUrl, ExternalIconCopyResult cachedResult, IStorage destinationStorage, CatalogCommitItem item, CancellationToken cancellationToken)
+        private async Task<bool> TryTakeFromCache(Uri iconUrl, ExternalIconCopyResult cachedResult, IStorage iconCacheStorage, IStorage destinationStorage, CatalogCommitItem item, CancellationToken cancellationToken)
         {
             if (cachedResult.IsCopySucceeded)
             {
@@ -129,7 +137,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 try
                 {
                     await Retry.IncrementalAsync(
-                        async () => await destinationStorage.CopyAsync(storageUrl, destinationStorage, destinationUrl, null, cancellationToken),
+                        async () => await iconCacheStorage.CopyAsync(storageUrl, destinationStorage, destinationUrl, null, cancellationToken),
                         e => { _logger.LogWarning(0, e, "Exception while copying from cache {StorageUrl}", storageUrl); return true; },
                         MaxBlobStorageCopyAttempts,
                         initialWaitInterval: TimeSpan.FromSeconds(5),
@@ -140,7 +148,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                     _logger.LogWarning(0, e, "Copy from cache failed after {NumRetries} attempts. Falling back to copy from external URL. {StorageUrl}",
                         MaxBlobStorageCopyAttempts,
                         storageUrl);
-                    _iconCopyResultCache.Clear(iconUrl, storageUrl);
+                    _iconCopyResultCache.Clear(iconUrl);
                     return false;
                 }
             }

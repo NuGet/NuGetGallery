@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NuGet.Services.Metadata.Catalog.Icons
 {
@@ -18,17 +21,28 @@ namespace NuGet.Services.Metadata.Catalog.Icons
         ExternalIconCopyResult Get(Uri iconUrl);
 
         /// <summary>
-        /// Stores the copy result for a given external icon URL.
+        /// Copies the successfully retrieved icon blob from destination storage to the cache and
+        /// takes note of success so it could be reused later.
         /// </summary>
-        /// <param name="iconUrl">External icon URL.</param>
-        /// <param name="newItem">Copy attempt result.</param>
-        void Set(Uri iconUrl, ExternalIconCopyResult newItem);
+        /// <param name="originalIconUrl">The original URL of an icon.</param>
+        /// <param name="storageUrl">Storage URL where icon was copied to.</param>
+        /// <param name="mainDestinationStorage">Storage to which <paramref name="storageUrl"/> points to.</param>
+        /// <param name="cacheStorage">Storage to use for icon cache.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Uri of the icon in the cache storage.</returns>
+        Task<Uri> SaveExternalIcon(Uri originalIconUrl, Uri storageUrl, IStorage mainDestinationStorage, IStorage cacheStorage, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Removes the copy result URL (if we have one cached) if destination URL is the expected one. Useful when the package is deleted to prevent subsequent failures.
+        /// Takes note of a failure to copy the external package icon so it's not retried later.
+        /// </summary>
+        /// <param name="iconUrl">The external icon URL.</param>
+        void SaveExternalCopyFailure(Uri iconUrl);
+
+
+        /// <summary>
+        /// Removes the copy result URL (if we have one cached).
         /// </summary>
         /// <param name="externalIconUrl">External icon URL.</param>
-        /// <param name="targetStorageUrl">Expected storage URL for the icon. Item will only be removed if the cached result is successful copy and target URL is the same as supplied.</param>
-        void Clear(Uri externalIconUrl, Uri targetStorageUrl);
+        void Clear(Uri externalIconUrl);
     }
 }
