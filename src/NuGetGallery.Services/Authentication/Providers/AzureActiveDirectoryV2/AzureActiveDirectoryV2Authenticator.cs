@@ -188,7 +188,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             emailClaim = emailClaim ?? preferredUsernameClaim;
             if (emailClaim == null)
             {
-                throw new ArgumentException($"External Authentication is missing required claim: '{V2Claims.EmailAddress}'");
+                throw new ArgumentException($"External Authentication is missing required claims: '{V2Claims.EmailAddress}' and '{V2Claims.PreferredUsername}");
             }
 
             var acrClaim = claimsIdentity.FindFirst(V2Claims.ACR);
