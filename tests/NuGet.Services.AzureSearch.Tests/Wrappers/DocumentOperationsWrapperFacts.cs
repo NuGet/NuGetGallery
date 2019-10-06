@@ -14,7 +14,6 @@ using Microsoft.Rest;
 using Microsoft.Rest.Azure;
 using Moq;
 using Moq.Language;
-using NuGet.Services.AzureSearch.Support;
 using Xunit;
 using Xunit.Abstractions;
 

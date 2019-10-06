@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
-using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.V3;
 using Xunit;
 using Xunit.Abstractions;
 

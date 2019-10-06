@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.V3;
 
 namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {

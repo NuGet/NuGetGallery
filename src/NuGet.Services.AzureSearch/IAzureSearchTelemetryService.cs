@@ -42,7 +42,6 @@ namespace NuGet.Services.AzureSearch
             long newDownloads);
         void TrackWarmQuery(string indexName, TimeSpan elapsed);
         void TrackLastCommitTimestampQuery(string indexName, DateTimeOffset? lastCommitTimestamp, TimeSpan elapsed);
-        IDisposable TrackCatalogLeafDownloadBatch(int count);
         void TrackReadLatestIndexedDownloads(int? packageIdCount, bool notModified, TimeSpan elapsed);
         IDisposable TrackReplaceLatestIndexedDownloads(int packageIdCount);
         void TrackAuxiliary2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed);

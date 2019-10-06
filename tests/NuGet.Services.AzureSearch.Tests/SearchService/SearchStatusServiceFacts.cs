@@ -10,7 +10,6 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
-using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
 using Xunit;
 using Xunit.Abstractions;

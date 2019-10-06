@@ -5,18 +5,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F591130F-181A-4C53-8025-4390F46BD51D}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>NuGet.Jobs</RootNamespace>
-    <AssemblyName>NuGet.Jobs.Catalog2AzureSearch</AssemblyName>
+    <ProjectGuid>{C3F9A738-9759-4B2B-A50D-6507B28A659B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGet.Services.V3</RootNamespace>
+    <AssemblyName>NuGet.Services.V3</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -26,7 +25,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -38,18 +36,29 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Job.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="CommitCollectorConfiguration.cs" />
+    <Compile Include="DefaultBlobRequestOptions.cs" />
+    <Compile Include="DependencyInjectionExtensions.cs" />
+    <Compile Include="Support\Guard.cs" />
+    <Compile Include="Support\IdAndValue.cs" />
+    <Compile Include="IV3TelemetryService.cs" />
+    <Compile Include="Support\KeyValuePair.cs" />
+    <Compile Include="V3TelemetryService.cs" />
+    <Compile Include="CommitCollectorHost.cs" />
+    <Compile Include="CommitCollectorUtility.cs" />
+    <Compile Include="ICollector.cs" />
+    <Compile Include="ICommitCollectorConfiguration.cs" />
+    <Compile Include="ICommitCollectorLogic.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="NuGet.Jobs.Catalog2AzureSearch.nuspec" />
-    <None Include="Scripts\Functions.ps1" />
-    <None Include="Scripts\PostDeploy.ps1" />
-    <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Scripts\nssm.exe" />
+    <Compile Include="Support\ReferenceEqualityComparer.cs" />
+    <Compile Include="Registration\IRegistrationClient.cs" />
+    <Compile Include="Registration\Models\RegistrationCatalogEntry.cs" />
+    <Compile Include="Registration\Models\RegistrationIndex.cs" />
+    <Compile Include="Registration\Models\RegistrationLeaf.cs" />
+    <Compile Include="Registration\Models\RegistrationLeafItem.cs" />
+    <Compile Include="Registration\Models\RegistrationPage.cs" />
+    <Compile Include="Registration\RegistrationClient.cs" />
+    <Compile Include="Registration\RegistrationUrlBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core">
@@ -57,23 +66,22 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="NuGet.Services.Validation.Common.Job">
+      <Version>4.3.0-dev-3159955</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
-      <Project>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</Project>
+      <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
+      <Project>{DDB34145-870F-42C3-9663-A9390CEE1E35}</Project>
+      <Name>NuGet.Indexing</Name>
     </ProjectReference>
     <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
       <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
       <Name>NuGet.Protocol.Catalog</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">
-      <Project>{1a53fe3d-8041-4773-942f-d73aef5b82b2}</Project>
-      <Name>NuGet.Services.AzureSearch</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NuGet.Services.V3\NuGet.Services.V3.csproj">
-      <Project>{C3F9A738-9759-4B2B-A50D-6507B28A659B}</Project>
-      <Name>NuGet.Services.V3</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

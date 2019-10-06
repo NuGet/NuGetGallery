@@ -18,6 +18,7 @@ using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Entities;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.V3;
 using NuGet.Versioning;
 using NuGetGallery;
 using Xunit;
@@ -27,10 +28,13 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 {
     public class AzureSearchCollectorLogicIntegrationTests
     {
+        private CommitCollectorConfiguration _utilityConfig;
+        private Mock<IOptionsSnapshot<CommitCollectorConfiguration>> _utilityOptions;
         private Catalog2AzureSearchConfiguration _config;
         private Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
         private Mock<ITelemetryClient> _telemetryClient;
         private AzureSearchTelemetryService _telemetryService;
+        private V3TelemetryService _v3TelemetryService;
         private Mock<IEntitiesContextFactory> _entitiesContextFactory;
         private Mock<IEntitiesContext> _entitiesContext;
         private DatabaseOwnerFetcher _ownerFetcher;
@@ -47,15 +51,22 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         private InMemoryDocumentsOperations _searchDocuments;
         private Mock<ISearchIndexClientWrapper> _hijackIndex;
         private InMemoryDocumentsOperations _hijackDocuments;
+        private CommitCollectorUtility _commitCollectorUtility;
         private AzureSearchCollectorLogic _collector;
 
         public AzureSearchCollectorLogicIntegrationTests(ITestOutputHelper output)
         {
+            _utilityConfig = new CommitCollectorConfiguration
+            {
+                MaxConcurrentCatalogLeafDownloads = 1,
+            };
+            _utilityOptions = new Mock<IOptionsSnapshot<CommitCollectorConfiguration>>();
+            _utilityOptions.Setup(x => x.Value).Returns(() => _utilityConfig);
+
             _config = new Catalog2AzureSearchConfiguration
             {
                 MaxConcurrentBatches = 1,
                 MaxConcurrentVersionListWriters = 1,
-                MaxConcurrentCatalogLeafDownloads = 1,
                 StorageContainer = "integration-tests-container",
                 StoragePath = "integration-tests-path",
                 RegistrationsBaseUrl = "https://example/registrations/",
@@ -70,6 +81,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
             _telemetryClient = new Mock<ITelemetryClient>();
             _telemetryService = new AzureSearchTelemetryService(_telemetryClient.Object);
+            _v3TelemetryService = new V3TelemetryService(_telemetryClient.Object);
 
             // Mock the database that is used for fetching owner information. The product code only reads
             // from the database so it is less important to have a realistic, stateful implementation.
@@ -114,8 +126,13 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _hijackDocuments = new InMemoryDocumentsOperations();
             _hijackIndex.Setup(x => x.Documents).Returns(() => _hijackDocuments);
 
-            _collector = new AzureSearchCollectorLogic(
+            _commitCollectorUtility = new CommitCollectorUtility(
                 _catalogClient,
+                _v3TelemetryService,
+                _utilityOptions.Object,
+                output.GetLogger<CommitCollectorUtility>());
+
+            _collector = new AzureSearchCollectorLogic(
                 _builder,
                 () => new BatchPusher(
                     _searchIndex.Object,
@@ -124,6 +141,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     _options.Object,
                     _telemetryService,
                     output.GetLogger<BatchPusher>()),
+                _commitCollectorUtility,
                 _options.Object,
                 _telemetryService,
                 output.GetLogger<AzureSearchCollectorLogic>());

@@ -3,9 +3,9 @@
 
 using System;
 
-namespace NuGet.Services.AzureSearch
+namespace NuGet.Services
 {
-    internal static class Guard
+    public static class Guard
     {
         /// <remarks>
         /// We could use <see cref="System.Diagnostics.Debug.Assert(bool, string)"/> here, but it's preferable in this

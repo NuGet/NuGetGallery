@@ -13,7 +13,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
-using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Entities;
 using NuGetGallery;
 using Xunit;

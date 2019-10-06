@@ -230,16 +230,6 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public IDisposable TrackCatalogLeafDownloadBatch(int count)
-        {
-            return _telemetryClient.TrackDuration(
-                Prefix + "CatalogLeafDownloadBatchSeconds",
-                new Dictionary<string, string>
-                {
-                    { "Count", count.ToString() },
-                });
-        }
-
         public void TrackDocumentCountQuery(string indexName, long count, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(

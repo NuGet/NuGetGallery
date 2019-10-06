@@ -10,7 +10,6 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
-using NuGet.Services.AzureSearch.Support;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;

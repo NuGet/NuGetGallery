@@ -15,7 +15,6 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.AzureSearch.Support;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Net;
 using System.Net.Http;
 using Autofac;
 using Microsoft.Azure.Search;
@@ -13,10 +12,8 @@ using Microsoft.Rest;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using NuGet.Jobs.Validation;
 using NuGet.Protocol;
 using NuGet.Protocol.Catalog;
-using NuGet.Protocol.Registration;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
@@ -24,10 +21,9 @@ using NuGet.Services.AzureSearch.Db2AzureSearch;
 using NuGet.Services.AzureSearch.Owners2AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Wrappers;
-using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Services.V3;
 using NuGetGallery;
-using NuGetGallery.Diagnostics;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -106,7 +102,7 @@ namespace NuGet.Services.AzureSearch
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.StorageConnectionString,
-                        GetBlobRequestOptions());
+                        DefaultBlobRequestOptions.Create());
                 })
                 .Keyed<ICloudBlobClient>(key);
 
@@ -204,7 +200,7 @@ namespace NuGet.Services.AzureSearch
                     var options = c.Resolve<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.AuxiliaryDataStorageConnectionString,
-                        GetBlobRequestOptions());
+                        DefaultBlobRequestOptions.Create());
                 })
                 .Keyed<ICloudBlobClient>(key);
 
@@ -216,31 +212,9 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<ILogger<AuxiliaryFileClient>>()));
         }
 
-        private static BlobRequestOptions GetBlobRequestOptions()
-        {
-            return new BlobRequestOptions
-            {
-                ServerTimeout = TimeSpan.FromMinutes(2),
-                MaximumExecutionTime = TimeSpan.FromMinutes(10),
-                LocationMode = LocationMode.PrimaryThenSecondary,
-                RetryPolicy = new ExponentialRetry(),
-            };
-        }
-
         public static IServiceCollection AddAzureSearch(this IServiceCollection services)
         {
-            services
-                .AddTransient(p => new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-                });
-
-            services
-                .AddTransient(p => (HttpMessageHandler)new TelemetryHandler(
-                    p.GetRequiredService<ITelemetryService>(),
-                    p.GetRequiredService<HttpClientHandler>()));
-
-            services.AddSingleton(p => new HttpClient(p.GetRequiredService<HttpMessageHandler>()));
+            services.AddV3();
 
             services
                 .AddTransient<ISearchServiceClient>(p =>
@@ -250,11 +224,6 @@ namespace NuGet.Services.AzureSearch
                         options.Value.SearchServiceName,
                         new SearchCredentials(options.Value.SearchServiceApiKey));
                 });
-
-            services
-                .AddTransient<ICatalogClient, CatalogClient>(p => new CatalogClient(
-                    p.GetRequiredService<ISimpleHttpClient>(),
-                    p.GetRequiredService<ILogger<CatalogClient>>()));
 
             services.AddSingleton<IAuxiliaryDataCache, AuxiliaryDataCache>();
             services.AddScoped(p => p.GetRequiredService<IAuxiliaryDataCache>().Get());
@@ -269,10 +238,8 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IBaseDocumentBuilder, BaseDocumentBuilder>();
             services.AddTransient<ICatalogIndexActionBuilder, CatalogIndexActionBuilder>();
             services.AddTransient<ICatalogLeafFetcher, CatalogLeafFetcher>();
-            services.AddTransient<ICollector, AzureSearchCollector>();
             services.AddTransient<ICommitCollectorLogic, AzureSearchCollectorLogic>();
             services.AddTransient<IDatabaseOwnerFetcher, DatabaseOwnerFetcher>();
-            services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddTransient<IDownloadSetComparer, DownloadSetComparer>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
@@ -281,7 +248,6 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
             services.AddTransient<IOwnerSetComparer, OwnerSetComparer>();
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
-            services.AddTransient<IRegistrationClient, RegistrationClient>();
             services.AddTransient<ISearchDocumentBuilder, SearchDocumentBuilder>();
             services.AddTransient<ISearchIndexActionBuilder, SearchIndexActionBuilder>();
             services.AddTransient<ISearchParametersBuilder, SearchParametersBuilder>();
@@ -289,9 +255,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
             services.AddTransient<ISearchTextBuilder, SearchTextBuilder>();
             services.AddTransient<IServiceClientTracingInterceptor, ServiceClientTracingLogger>();
-            services.AddTransient<ISimpleHttpClient, SimpleHttpClient>();
             services.AddTransient<ISystemTime, SystemTime>();
-            services.AddTransient<ITelemetryService, TelemetryService>();
 
             return services;
         }

@@ -3,7 +3,6 @@
 
 using Microsoft.Azure.Search.Models;
 using Moq;
-using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery;

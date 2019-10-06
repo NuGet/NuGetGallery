@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="..\..\sign.thirdparty.props" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -96,7 +97,6 @@
     <Compile Include="SearchService\AuxiliaryFileReloader.cs" />
     <Compile Include="AzureSearchConfiguration.cs" />
     <Compile Include="AzureSearchJobConfiguration.cs" />
-    <Compile Include="Catalog2AzureSearch\AzureSearchCollector.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogic.cs" />
     <Compile Include="Catalog2AzureSearch\Catalog2AzureSearchCommand.cs" />
     <Compile Include="Catalog2AzureSearch\Catalog2AzureSearchConfiguration.cs" />
@@ -105,14 +105,11 @@
     <Compile Include="Catalog2AzureSearch\CatalogLeafFetcher.cs" />
     <Compile Include="Catalog2AzureSearch\ICatalogIndexActionBuilder.cs" />
     <Compile Include="Catalog2AzureSearch\ICatalogLeafFetcher.cs" />
-    <Compile Include="Catalog2AzureSearch\ICommitCollectorLogic.cs" />
     <Compile Include="Catalog2AzureSearch\LatestCatalogLeaves.cs" />
-    <Compile Include="Catalog2AzureSearch\ReferenceEqualityComparer.cs" />
     <Compile Include="DependencyInjectionExtensions.cs" />
     <Compile Include="DocumentUtilities.cs" />
     <Compile Include="HijackDocumentBuilder.cs" />
     <Compile Include="IBatchPusher.cs" />
-    <Compile Include="Catalog2AzureSearch\ICollector.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommand.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchConfiguration.cs" />
     <Compile Include="EntitiesContextFactory.cs" />
@@ -121,7 +118,6 @@
     <Compile Include="Db2AzureSearch\INewPackageRegistrationProducer.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistration.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducer.cs" />
-    <Compile Include="IdAndValue.cs" />
     <Compile Include="IHijackDocumentBuilder.cs" />
     <Compile Include="IIndexBuilder.cs" />
     <Compile Include="IndexActions.cs" />
@@ -138,14 +134,6 @@
     <Compile Include="Models\IKeyedDocument.cs" />
     <Compile Include="Models\SearchDocument.cs" />
     <Compile Include="Db2AzureSearch\PackageEntityIndexActionBuilder.cs" />
-    <Compile Include="Registration\IRegistrationClient.cs" />
-    <Compile Include="Registration\Models\RegistrationCatalogEntry.cs" />
-    <Compile Include="Registration\Models\RegistrationIndex.cs" />
-    <Compile Include="Registration\Models\RegistrationLeafItem.cs" />
-    <Compile Include="Registration\Models\RegistrationPage.cs" />
-    <Compile Include="Registration\RegistrationClient.cs" />
-    <Compile Include="Registration\Models\RegistrationLeaf.cs" />
-    <Compile Include="Registration\RegistrationUrlBuilder.cs" />
     <Compile Include="SearchDocumentBuilder.cs" />
     <Compile Include="SearchService\AuxiliaryData.cs" />
     <Compile Include="AuxiliaryFiles\AuxiliaryFileResult.cs" />
@@ -198,14 +186,12 @@
     <Compile Include="AzureSearchTelemetryService.cs" />
     <Compile Include="SearchService\SecretRefresher.cs" />
     <Compile Include="ServiceClientTracingLogger.cs" />
-    <Compile Include="VersionList\Guard.cs" />
     <Compile Include="VersionList\HijackIndexChange.cs" />
     <Compile Include="VersionList\HijackIndexChangeType.cs" />
     <Compile Include="VersionList\HijackDocumentChanges.cs" />
     <Compile Include="VersionList\IndexChanges.cs" />
     <Compile Include="VersionList\IVersionListDataClient.cs" />
     <Compile Include="VersionList\LatestIndexChanges.cs" />
-    <Compile Include="VersionList\KeyValuePair.cs" />
     <Compile Include="VersionList\LatestVersionInfo.cs" />
     <Compile Include="VersionList\MutableHijackDocumentChanges.cs" />
     <Compile Include="VersionList\MutableIndexChanges.cs" />
@@ -245,9 +231,6 @@
     <PackageReference Include="Microsoft.Azure.Search">
       <Version>5.0.3</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.3.0-dev-3159955</Version>
-    </PackageReference>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
       <Version>4.8.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -266,6 +249,10 @@
     <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
       <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
       <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.V3\NuGet.Services.V3.csproj">
+      <Project>{c3f9a738-9759-4b2b-a50d-6507b28a659b}</Project>
+      <Name>NuGet.Services.V3</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

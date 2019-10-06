@@ -3,9 +3,9 @@
 
 using System;
 
-namespace NuGet.Services.AzureSearch
+namespace NuGet.Services
 {
-    internal class IdAndValue<T>
+    public class IdAndValue<T>
     {
         public IdAndValue(string id, T value)
         {

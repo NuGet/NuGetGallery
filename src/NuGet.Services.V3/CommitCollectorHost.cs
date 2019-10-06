@@ -10,21 +10,21 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
 
-namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
+namespace NuGet.Services.V3
 {
     /// <summary>
-    /// This is a minimal integration class between the core of the catalog2azuresearch collector and the complex
-    /// collector infrastructure that we have today.
+    /// This is a minimal integration class between the core of the collectors based on NuGet.Jobs infrastructure and
+    /// the overly complex collector infrastructure that we have today.
     /// </summary>
-    public class AzureSearchCollector : CommitCollector, ICollector
+    public class CommitCollectorHost : CommitCollector, ICollector
     {
         private readonly ICommitCollectorLogic _logic;
 
-        public AzureSearchCollector(
+        public CommitCollectorHost(
             ICommitCollectorLogic logic,
             ITelemetryService telemetryService,
             Func<HttpMessageHandler> handlerFunc,
-            IOptionsSnapshot<Catalog2AzureSearchConfiguration> options) : base(
+            IOptionsSnapshot<CommitCollectorConfiguration> options) : base(
                 new Uri(options.Value.Source),
                 telemetryService,
                 handlerFunc,

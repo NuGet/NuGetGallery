@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.AzureSearch.Support
+namespace NuGet.Services
 {
     public class TestHttpMessageHandler : HttpMessageHandler
     {
