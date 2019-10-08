@@ -44,7 +44,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
         public async Task ProcessPackageDeleteLeafAsync(Storage storage, CatalogCommitItem item, CancellationToken cancellationToken)
         {
             var targetStoragePath = GetTargetStorageIconPath(item);
-            await _iconProcessor.DeleteIcon(storage, targetStoragePath, cancellationToken, item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());
+            await _iconProcessor.DeleteIconAsync(storage, targetStoragePath, cancellationToken, item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());
             // it would be nice to remove the icon copy result from cache for this item, but we don't have an icon URL here,
             // so can't remove anything. Will rely on the copy code to catch the copy failure and cleanup the cache appropriately.
         }
@@ -113,6 +113,8 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             }
             else
             {
+                var destinationStoragePath = GetTargetStorageIconPath(item);
+                await _iconProcessor.DeleteIconAsync(destinationStorage, destinationStoragePath, cancellationToken, item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());
                 _telemetryService.TrackExternalIconIngestionFailure(item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());
                 _iconCopyResultCache.SaveExternalCopyFailure(iconUrl);
             }
@@ -120,13 +122,13 @@ namespace NuGet.Services.Metadata.Catalog.Icons
 
         private async Task<bool> TryTakeFromCache(Uri iconUrl, ExternalIconCopyResult cachedResult, IStorage iconCacheStorage, IStorage destinationStorage, CatalogCommitItem item, CancellationToken cancellationToken)
         {
+            var targetStoragePath = GetTargetStorageIconPath(item);
             if (cachedResult.IsCopySucceeded)
             {
                 _logger.LogInformation("Seen {IconUrl} before, will copy from {CachedLocation}",
                     iconUrl,
                     cachedResult.StorageUrl);
                 var storageUrl = cachedResult.StorageUrl;
-                var targetStoragePath = GetTargetStorageIconPath(item);
                 var destinationUrl = destinationStorage.ResolveUri(targetStoragePath);
                 if (storageUrl == destinationUrl)
                 {
@@ -158,6 +160,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                     iconUrl,
                     item.PackageIdentity.Id,
                     item.PackageIdentity.Version);
+                await _iconProcessor.DeleteIconAsync(destinationStorage, targetStoragePath, cancellationToken, item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());
             }
             return true;
         }
@@ -171,7 +174,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             using (var packageStream = await packageBlobReference.GetStreamAsync(cancellationToken))
             {
                 var targetStoragePath = GetTargetStorageIconPath(item);
-                var resultUrl = await _iconProcessor.CopyEmbeddedIconFromPackage(
+                var resultUrl = await _iconProcessor.CopyEmbeddedIconFromPackageAsync(
                     packageStream,
                     iconFile,
                     destinationStorage,
@@ -266,7 +269,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                     using (var iconDataStream = await response.Content.ReadAsStreamAsync())
                     {
                         var targetStoragePath = GetTargetStorageIconPath(item);
-                        resultUrl = await _iconProcessor.CopyIconFromExternalSource(iconDataStream, destinationStorage, targetStoragePath, cancellationToken, item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());
+                        resultUrl = await _iconProcessor.CopyIconFromExternalSourceAsync(iconDataStream, destinationStorage, targetStoragePath, cancellationToken, item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString());
                     }
                 }
             } while (retry && --maxRetries >= 0);

@@ -29,7 +29,7 @@ namespace CatalogTests.Icons
 
                 using (var ms = new MemoryStream(data))
                 {
-                    await Target.CopyIconFromExternalSource(ms, DestinationStorageMock.Object, "somePath", CancellationToken.None, "theid", "1.2.3");
+                    await Target.CopyIconFromExternalSourceAsync(ms, DestinationStorageMock.Object, "somePath", CancellationToken.None, "theid", "1.2.3");
                 }
 
                 DestinationStorageMock.Verify(ds => ds.SaveAsync(
@@ -44,7 +44,7 @@ namespace CatalogTests.Icons
             {
                 using (var ms = new MemoryStream(data))
                 {
-                    await Target.CopyIconFromExternalSource(ms, DestinationStorageMock.Object, "somePath", CancellationToken.None, "theid", "1.2.3");
+                    await Target.CopyIconFromExternalSourceAsync(ms, DestinationStorageMock.Object, "somePath", CancellationToken.None, "theid", "1.2.3");
                 }
 
                 DestinationStorageMock.Verify(ds => ds.SaveAsync(
@@ -61,7 +61,7 @@ namespace CatalogTests.Icons
             {
                 using (var packageStream = PrepareZippedImage("icon.xyz", new byte[] { 0xFF, 0xD8, 0xFF, 0x21, 0x17 }))
                 {
-                    await Target.CopyEmbeddedIconFromPackage(packageStream, "icon.foo", DestinationStorageMock.Object, "somepath", CancellationToken.None, "theid", "1.2.3");
+                    await Target.CopyEmbeddedIconFromPackageAsync(packageStream, "icon.foo", DestinationStorageMock.Object, "somepath", CancellationToken.None, "theid", "1.2.3");
                 }
 
                 DestinationStorageMock.Verify(ds => ds.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -86,7 +86,7 @@ namespace CatalogTests.Icons
                     .Returns(destinationUri);
                 using (var packageStream = PrepareZippedImage(iconFilename, imageData))
                 {
-                    await Target.CopyEmbeddedIconFromPackage(packageStream, iconFilename, DestinationStorageMock.Object, "somepath", CancellationToken.None, "theid", "1.2.3");
+                    await Target.CopyEmbeddedIconFromPackageAsync(packageStream, iconFilename, DestinationStorageMock.Object, "somepath", CancellationToken.None, "theid", "1.2.3");
                 }
 
                 DestinationStorageMock.Verify(

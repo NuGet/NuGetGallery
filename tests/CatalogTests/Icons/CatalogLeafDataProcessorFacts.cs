@@ -37,7 +37,7 @@ namespace CatalogTests.Icons
                 await Target.ProcessPackageDeleteLeafAsync(destinationStorageMock.Object, leaf, CancellationToken.None);
 
                 IconProcessorMock
-                    .Verify(ip => ip.DeleteIcon(destinationStorageMock.Object, expectedPath, CancellationToken.None, It.IsAny<string>(), It.IsAny<string>()));
+                    .Verify(ip => ip.DeleteIconAsync(destinationStorageMock.Object, expectedPath, CancellationToken.None, It.IsAny<string>(), It.IsAny<string>()));
             }
         }
 
@@ -69,7 +69,7 @@ namespace CatalogTests.Icons
 
                 IconProcessorMock
                     .Verify(
-                        ip => ip.CopyEmbeddedIconFromPackage(
+                        ip => ip.CopyEmbeddedIconFromPackageAsync(
                             It.IsAny<Stream>(),
                             iconFilename,
                             DestinationStorageMock.Object,
@@ -109,7 +109,7 @@ namespace CatalogTests.Icons
 
                 IconProcessorMock
                     .Verify(
-                        ip => ip.CopyIconFromExternalSource(
+                        ip => ip.CopyIconFromExternalSourceAsync(
                             ExternalIconStream,
                             DestinationStorageMock.Object,
                             expectedPath,
@@ -153,7 +153,7 @@ namespace CatalogTests.Icons
 
                 IconProcessorMock
                     .Verify(
-                        ip => ip.CopyIconFromExternalSource(
+                        ip => ip.CopyIconFromExternalSourceAsync(
                             ExternalIconStream,
                             DestinationStorageMock.Object,
                             "theid/3.4.2/icon",
@@ -268,6 +268,50 @@ namespace CatalogTests.Icons
             }
 
             [Fact]
+            public async Task DeletesIconOnCopyFailure()
+            {
+                var leaf = CreateCatalogLeaf();
+
+                ExternalIconContentProviderMock
+                    .Setup(cp => cp.TryGetResponseAsync(
+                        It.Is<Uri>(u => u.AbsoluteUri == IconUrlString),
+                        CancellationToken.None))
+                    .ReturnsAsync(TryGetResponseResult.FailCannotRetry());
+
+                await Target.ProcessPackageDetailsLeafAsync(
+                    DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
+                    leaf,
+                    IconUrlString,
+                    null,
+                    CancellationToken.None);
+
+                IconProcessorMock
+                    .Verify(ip => ip.DeleteIconAsync(DestinationStorageMock.Object, "theid/3.4.2/icon", CancellationToken.None, leaf.PackageIdentity.Id, leaf.PackageIdentity.Version.ToNormalizedString()));
+            }
+
+            [Fact]
+            public async Task DeletesIconOnCachedCopyFailure()
+            {
+                var leaf = CreateCatalogLeaf();
+
+                IconCopyResultCacheMock
+                    .Setup(c => c.Get(It.Is<Uri>(u => u.AbsoluteUri == IconUrlString)))
+                    .Returns(ExternalIconCopyResult.Fail(new Uri(IconUrlString)));
+
+                await Target.ProcessPackageDetailsLeafAsync(
+                    DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
+                    leaf,
+                    IconUrlString,
+                    null,
+                    CancellationToken.None);
+
+                IconProcessorMock
+                    .Verify(ip => ip.DeleteIconAsync(DestinationStorageMock.Object, "theid/3.4.2/icon", CancellationToken.None, leaf.PackageIdentity.Id, leaf.PackageIdentity.Version.ToNormalizedString()));
+            }
+
+            [Fact]
             public async Task RetriesFailedCopyFromOperationsCache()
             {
                 var leaf = CreateCatalogLeaf();
@@ -358,7 +402,7 @@ namespace CatalogTests.Icons
 
                 IconProcessorMock
                     .Verify(
-                        ip => ip.CopyIconFromExternalSource(
+                        ip => ip.CopyIconFromExternalSourceAsync(
                             ExternalIconStream,
                             DestinationStorageMock.Object,
                             "theid/3.4.2/icon",
@@ -397,7 +441,7 @@ namespace CatalogTests.Icons
             {
                 IconProcessorMock
                     .Verify(
-                        ip => ip.CopyIconFromExternalSource(
+                        ip => ip.CopyIconFromExternalSourceAsync(
                             It.IsAny<Stream>(),
                             It.IsAny<IStorage>(),
                             It.IsAny<string>(),

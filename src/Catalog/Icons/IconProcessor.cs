@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Common;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
@@ -30,7 +31,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Uri> CopyIconFromExternalSource(
+        public async Task<Uri> CopyIconFromExternalSourceAsync(
             Stream iconDataStream,
             IStorage destinationStorage,
             string destinationStoragePath,
@@ -59,22 +60,28 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             return destinationUri;
         }
 
-        public async Task DeleteIcon(
-            Storage destinationStorage,
+        public async Task DeleteIconAsync(
+            IStorage destinationStorage,
             string destinationStoragePath,
             CancellationToken cancellationToken,
             string packageId,
             string normalizedPackageVersion)
         {
             _logger.LogInformation("Deleting icon blob {IconPath}", destinationStoragePath);
-            if (destinationStorage.Exists(destinationStoragePath))
+            var iconUri = new Uri(destinationStorage.BaseAddress, destinationStoragePath);
+            try
             {
-                var iconUri = new Uri(destinationStorage.BaseAddress, destinationStoragePath);
-                await destinationStorage.DeleteAsync(iconUri, cancellationToken);
+                await destinationStorage.DeleteAsync(iconUri, cancellationToken, new DeleteRequestOptionsWithAccessCondition(AccessCondition.GenerateIfExistsCondition()));
             }
+            catch
+            {
+                _telemetryService.TrackIconDeletionFailure(packageId, normalizedPackageVersion);
+                throw;
+            }
+            _telemetryService.TrackIconDeletionSuccess(packageId, normalizedPackageVersion);
         }
 
-        public async Task<Uri> CopyEmbeddedIconFromPackage(
+        public async Task<Uri> CopyEmbeddedIconFromPackageAsync(
             Stream packageStream,
             string iconFilename,
             IStorage destinationStorage,
