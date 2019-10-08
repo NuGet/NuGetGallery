@@ -19,6 +19,9 @@ namespace NuGet.Services.BasicSearch
         [ConfigurationKeyPrefix(SerilogPrefix)]
         public string ApplicationInsightsInstrumentationKey { get; set; }
 
+        [ConfigurationKeyPrefix(SerilogPrefix)]
+        public int ApplicationInsightsHeartbeatIntervalSeconds { get; set; }
+
         [ConfigurationKeyPrefix(SearchPrefix)]
         [ConfigurationKey("IndexRefresh")]
         [DefaultValue(300)]

@@ -172,10 +172,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Storage">
-      <Version>2.25.0-sb-queuesize-32353</Version>
-    </PackageReference>
-    <PackageReference Include="WindowsAzure.Storage">
-      <Version>8.2.1</Version>
+      <Version>2.57.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

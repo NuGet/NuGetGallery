@@ -41,16 +41,21 @@ namespace NuGet.Services.BasicSearch
         private SearchTelemetryClient _searchTelemetryClient;
         private IConfigurationFactory _configFactory;
 
-        public void Configuration(IAppBuilder app, IConfigurationFactory configFactory, Directory directory,
+        public void Configuration(
+            IAppBuilder app,
+            IConfigurationFactory configFactory,
+            Directory directory,
             ILoader loader)
         {
             _configFactory = configFactory;
             var config = GetConfiguration().Result;
 
             // Configure
-            if ( ! string.IsNullOrEmpty(config.ApplicationInsightsInstrumentationKey))
+            if (!string.IsNullOrEmpty(config.ApplicationInsightsInstrumentationKey))
             {
-                TelemetryConfiguration.Active.InstrumentationKey = config.ApplicationInsightsInstrumentationKey;
+                Logging.ApplicationInsights.Initialize(
+                    config.ApplicationInsightsInstrumentationKey,
+                    TimeSpan.FromSeconds(config.ApplicationInsightsHeartbeatIntervalSeconds));
             }
 
             // Add telemetry initializers
@@ -218,7 +223,7 @@ namespace NuGet.Services.BasicSearch
             {
                 return await _configFactory.Get<BasicSearchConfiguration>();
             }
-            catch (KeyVaultClientException e) 
+            catch (KeyVaultClientException e)
             {
                 // The status code we expect is (e.Status == HttpStatusCode.Unauthorized || e.Status == HttpStatusCode.Forbidden) but the catch is not explicit since confidence here is low.
 
