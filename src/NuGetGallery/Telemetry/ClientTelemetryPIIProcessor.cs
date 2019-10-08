@@ -86,7 +86,7 @@ namespace NuGetGallery
 
         private void ModifyDependencyItem(DependencyTelemetry dependencyTelemetryItem)
         {
-            // Remove the hashed email address from Gravatar dependency telemetry.
+            // Obfuscate the hashed email address from Gravatar URLs.
             if (dependencyTelemetryItem.Type != HttpDependencyType)
             {
                 return;
@@ -97,7 +97,6 @@ namespace NuGetGallery
                 return;
             }
 
-            // Obfuscate the hashed email address from Gravatar URLs.
             if (!uri.Host.EndsWith("gravatar.com") || !uri.AbsolutePath.StartsWith("/avatar/"))
             {
                 return;
