@@ -19,7 +19,7 @@ namespace NuGet.Protocol.Catalog {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class TestData {
@@ -105,6 +105,15 @@ namespace NuGet.Protocol.Catalog {
         public static string CatalogLeafInvalidDependencyVersionRangeUrl {
             get {
                 return ResourceManager.GetString("CatalogLeafInvalidDependencyVersionRangeUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/newtonsoft.json/12.0.1.json&quot;,&quot;@type&quot;:&quot;nuget:PackageDetails&quot;,&quot;commitTimeStamp&quot;:&quot;2019-10-10T00:00:00+00:00&quot;,&quot;nuget:id&quot;:&quot;Newtonsoft.Json&quot;,&quot;nuget:version&quot;:&quot;12.0.1&quot;}.
+        /// </summary>
+        public static string CatalogLeafItem {
+            get {
+                return ResourceManager.GetString("CatalogLeafItem", resourceCulture);
             }
         }
         
