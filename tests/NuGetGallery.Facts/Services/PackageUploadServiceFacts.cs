@@ -1167,6 +1167,28 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task DoesntWarnAboutPackagesWithNoIconForFlightedUsers()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    iconUrl: null,
+                    iconFilename: null,
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.AreEmbeddedIconsEnabled(_currentUser))
+                    .Returns(true);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
             public async Task DoesntWarnAboutPackagesWithIconUrl()
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
