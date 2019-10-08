@@ -12,6 +12,8 @@ namespace NuGetGallery
 {
     public class ClientTelemetryPIIProcessor : ITelemetryProcessor
     {
+        private const string HttpDependencyType = "HTTP";
+
         private ITelemetryProcessor Next { get; }
 
         public ClientTelemetryPIIProcessor(ITelemetryProcessor next)
@@ -27,38 +29,52 @@ namespace NuGetGallery
 
         private void ModifyItem(ITelemetry item)
         {
-            var requestTelemetryItem = item as RequestTelemetry;
+            if (item is RequestTelemetry requestTelemetryItem)
+            {
+                ModifyRequestItem(requestTelemetryItem);
+            }
 
+            else if (item is DependencyTelemetry dependencyTelemetryItem)
+            {
+                ModifyDependencyItem(dependencyTelemetryItem);
+            }
+        }
+
+        private void ModifyRequestItem(RequestTelemetry requestTelemetryItem)
+        {
             // In some cases, Application Insights reports an intermediate request as a workaround 
             // when AI lost correlation context and has to restore it.
             // Hence, RequestTelemetry.Url may be null.
             // See https://github.com/microsoft/ApplicationInsights-dotnet-server/pull/898
             // and https://docs.microsoft.com/en-us/dotnet/api/microsoft.applicationinsights.datacontracts.requesttelemetry.url
-            if (requestTelemetryItem != null && requestTelemetryItem.Url != null)
+            if (requestTelemetryItem.Url == null)
             {
-                var route = GetCurrentRoute();
-                if (route == null)
-                {
-                    return;
-                }
+                return;
+            }
 
-                requestTelemetryItem.Url = RouteExtensions.ObfuscateUrlQuery(requestTelemetryItem.Url, RouteExtensions.ObfuscatedReturnUrlMetadata);
-                // Removes the first /
-                var requestPath = requestTelemetryItem.Url.AbsolutePath.TrimStart('/');
-                var obfuscatedPath = route.ObfuscateUrlPath(requestPath);
-                if (obfuscatedPath != null)
+            var route = GetCurrentRoute();
+            if (route == null)
+            {
+                return;
+            }
+
+            requestTelemetryItem.Url = RouteExtensions.ObfuscateUrlQuery(requestTelemetryItem.Url, RouteExtensions.ObfuscatedReturnUrlMetadata);
+            // Removes the first /
+            var requestPath = requestTelemetryItem.Url.AbsolutePath.TrimStart('/');
+            var obfuscatedPath = route.ObfuscateUrlPath(requestPath);
+            if (obfuscatedPath != null)
+            {
+                requestTelemetryItem.Url = new Uri(requestTelemetryItem.Url.ToString().Replace(requestPath, obfuscatedPath));
+                requestTelemetryItem.Name = requestTelemetryItem.Name.Replace(requestPath, obfuscatedPath);
+                if (requestTelemetryItem.Context.Operation?.Name != null)
                 {
-                    requestTelemetryItem.Url = new Uri(requestTelemetryItem.Url.ToString().Replace(requestPath, obfuscatedPath));
-                    requestTelemetryItem.Name = requestTelemetryItem.Name.Replace(requestPath, obfuscatedPath);
-                    if (requestTelemetryItem.Context.Operation?.Name != null)
-                    {
-                        requestTelemetryItem.Context.Operation.Name = requestTelemetryItem.Context.Operation.Name.Replace(requestPath, obfuscatedPath);
-                    }
+                    requestTelemetryItem.Context.Operation.Name = requestTelemetryItem.Context.Operation.Name.Replace(requestPath, obfuscatedPath);
                 }
             }
         }
 
-        public virtual Route GetCurrentRoute()
+        // Protected and virtual for testing purposes.
+        protected virtual Route GetCurrentRoute()
         {
             if (HttpContext.Current == null)
             {
@@ -66,6 +82,31 @@ namespace NuGetGallery
             }
 
             return RouteTable.Routes.GetRouteData(new HttpContextWrapper(HttpContext.Current))?.Route as Route;
+        }
+
+        private void ModifyDependencyItem(DependencyTelemetry dependencyTelemetryItem)
+        {
+            // Remove the hashed email address from Gravatar dependency telemetry.
+            if (dependencyTelemetryItem.Type != HttpDependencyType)
+            {
+                return;
+            }
+
+            if (!Uri.TryCreate(dependencyTelemetryItem.Data, UriKind.Absolute, out var uri))
+            {
+                return;
+            }
+
+            // Obfuscate the hashed email address from Gravatar URLs.
+            if (!uri.Host.EndsWith("gravatar.com") || !uri.AbsolutePath.StartsWith("/avatar/"))
+            {
+                return;
+            }
+
+            var builder = new UriBuilder(uri);
+            builder.Path = "/avatar/Obfuscated";
+
+            dependencyTelemetryItem.Data = builder.Uri.ToString();
         }
     }
 }

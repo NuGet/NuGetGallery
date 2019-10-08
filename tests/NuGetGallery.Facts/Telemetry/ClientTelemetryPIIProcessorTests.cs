@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Routing;
@@ -111,6 +112,74 @@ namespace NuGetGallery.Telemetry
             Assert.Empty(piiUrlRoutes.Except(generatorRoutes));
         }
 
+        [Theory]
+        [MemberData(nameof(ObfuscatesGravatarUrlData))]
+        public void ObfuscatesGravatarUrl(DependencyTelemetry input, string expectedData)
+        {
+            var target = CreatePIIProcessor();
+
+            target.Process(input);
+
+            Assert.Equal(expectedData, input.Data);
+        }
+
+        public static IEnumerable<object[]> ObfuscatesGravatarUrlData()
+        {
+            object[] ObfuscatesGravatarUrlData(string input, string expected)
+            {
+                return new object[]
+                {
+                    new DependencyTelemetry
+                    {
+                        Type = "HTTP",
+                        Data = input
+                    },
+
+                    expected
+                };
+            }
+
+            // Hashed email addresses are obfuscated from Gravatar URLs.
+            yield return ObfuscatesGravatarUrlData(
+                input: "http://gravatar.com/avatar/abc",
+                expected: "http://gravatar.com/avatar/Obfuscated");
+            yield return ObfuscatesGravatarUrlData(
+                input: "https://secure.gravatar.com/avatar/abc",
+                expected: "https://secure.gravatar.com/avatar/Obfuscated");
+            yield return ObfuscatesGravatarUrlData(
+                input: "https://secure.gravatar.com:443/avatar/abc",
+                expected: "https://secure.gravatar.com/avatar/Obfuscated");
+            yield return ObfuscatesGravatarUrlData(
+                input: "https://gravatar.com/avatar/abc?s=512&d=retro",
+                expected: "https://gravatar.com/avatar/Obfuscated?s=512&d=retro");
+            yield return ObfuscatesGravatarUrlData(
+                input: "https://gravatar.com/avatar/weird/url/but/whatever",
+                expected: "https://gravatar.com/avatar/Obfuscated");
+
+            // Unknown routes and invalid URLs are ignored
+            yield return ObfuscatesGravatarUrlData(
+                input: "https://gravatar.com/unknown/route",
+                expected: "https://gravatar.com/unknown/route");
+            yield return ObfuscatesGravatarUrlData(
+                input: "https://example.test/avatar/abc",
+                expected: "https://example.test/avatar/abc");
+            yield return ObfuscatesGravatarUrlData(
+                input: "avatar/abc",
+                expected: "avatar/abc");
+
+            // The target must be "HTTP" for the data to be obfuscated
+            yield return new object[]
+            {
+                new DependencyTelemetry
+                {
+                    Target = "Blob",
+                    Data = "http://gravatar.com/avatar/abc"
+                },
+
+                "http://gravatar.com/avatar/abc"
+            };
+        }
+
         private ClientTelemetryPIIProcessor CreatePIIProcessor(string url = "")
         {
             return new TestClientTelemetryPIIProcessor(new TestProcessorNext(), url);
@@ -132,12 +201,11 @@ namespace NuGetGallery.Telemetry
                 _url = url;
             }
 
-            public override Route GetCurrentRoute()
+            protected override Route GetCurrentRoute()
             {
                 var handler = new Mock<IRouteHandler>();
                 return new Route(_url, handler.Object);
             }
-
         }
 
         private List<string> GetPIIOperationsFromRoute()
