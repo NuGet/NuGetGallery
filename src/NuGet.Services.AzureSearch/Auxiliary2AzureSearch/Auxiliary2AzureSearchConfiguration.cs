@@ -14,5 +14,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         public string AuxiliaryDataStorageExcludedPackagesPath { get; }
         public string AuxiliaryDataStorageVerifiedPackagesPath { get; set; }
         public TimeSpan MinPushPeriod { get; set; }
+        public int MaxDownloadCountDecreases { get; set; } = 15000;
     }
 }

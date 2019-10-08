@@ -6,26 +6,24 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
     public class DownloadSetComparer : IDownloadSetComparer
     {
-        /// <summary>
-        /// If there are more than this number of packages (ID + version) that have their download count decrease,
-        /// throw an exception. This indicates a data issue and we should proceed no further.
-        /// </summary>
-        private const int MaxDecreases = 5000;
-
         private readonly IAzureSearchTelemetryService _telemetryService;
+        private readonly IOptionsSnapshot<Auxiliary2AzureSearchConfiguration> _options;
         private readonly ILogger<DownloadSetComparer> _logger;
 
         public DownloadSetComparer(
             IAzureSearchTelemetryService telemetryService,
+            IOptionsSnapshot<Auxiliary2AzureSearchConfiguration> options,
             ILogger<DownloadSetComparer> logger)
         {
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -68,6 +66,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             _logger.LogInformation("There are {Count} package IDs with download count changes.", result.Count);
+            _logger.LogInformation("There are {Count} package versions with download count decreases.", decreaseCount);
+
+            if (decreaseCount > _options.Value.MaxDownloadCountDecreases)
+            {
+                throw new InvalidOperationException("Too many download count decreases are occurring.");
+            }
 
             stopwatch.Stop();
             _telemetryService.TrackDownloadSetComparison(oldData.Count, newData.Count, result.Count, stopwatch.Elapsed);
@@ -102,20 +106,20 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 {
                     decreaseCount++;
 
-                    if (decreaseCount > MaxDecreases)
+                    // Don't emit too many telemetry events. At a certain point the detail provided by additional events
+                    // doesn't help investigation and can overwhelm Application Insights.
+                    if (decreaseCount <= _options.Value.MaxDownloadCountDecreases)
                     {
-                        throw new InvalidOperationException("Too many download count decreases are occurring.");
+                        _telemetryService.TrackDownloadCountDecrease(
+                            id,
+                            version,
+                            oldHasId,
+                            oldHasVersion,
+                            oldCount,
+                            newHasId,
+                            newHasVersion,
+                            newCount);
                     }
-
-                    _telemetryService.TrackDownloadCountDecrease(
-                        id,
-                        version,
-                        oldHasId,
-                        oldHasVersion,
-                        oldCount,
-                        newHasId,
-                        newHasVersion,
-                        newCount);
                 }
             }
         }

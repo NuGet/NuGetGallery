@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
@@ -30,12 +31,14 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             [Theory]
-            [InlineData(4999, false)]
-            [InlineData(5000, false)]
-            [InlineData(5001, true)]
-            [InlineData(5002, true)]
+            [InlineData(9, false)]
+            [InlineData(10, false)]
+            [InlineData(11, true)]
+            [InlineData(12, true)]
             public void DetectsTooManyDecreases(int decreases, bool tooMany)
             {
+                Config.MaxDownloadCountDecreases = 10;
+
                 var oldData = new DownloadData();
                 oldData.SetDownloadCount($"NuGet.Frameworks", "1.0.0-alpha", 1);
                 for (var i = 0; i < decreases; i++)
@@ -50,6 +53,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 {
                     var ex = Assert.Throws<InvalidOperationException>(() => Target.Compare(oldData, newData));
                     Assert.Equal("Too many download count decreases are occurring.", ex.Message);
+                    Assert.Contains($"There are {decreases} package versions with download count decreases.", Logger.Messages);
                 }
                 else
                 {
@@ -248,15 +252,22 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public Facts(ITestOutputHelper output)
             {
                 TelemetryService = new Mock<IAzureSearchTelemetryService>();
+                Options = new Mock<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>>();
                 Logger = output.GetLogger<DownloadSetComparer>();
+
+                Config = new Auxiliary2AzureSearchConfiguration();
+                Options.Setup(x => x.Value).Returns(() => Config);
 
                 Target = new DownloadSetComparer(
                     TelemetryService.Object,
+                    Options.Object,
                     Logger);
             }
 
             public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
+            public Mock<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>> Options { get; }
             public RecordingLogger<DownloadSetComparer> Logger { get; }
+            public Auxiliary2AzureSearchConfiguration Config { get; }
             public DownloadSetComparer Target { get; }
 
             public void VerifyDecreaseTelemetry(Times times)
