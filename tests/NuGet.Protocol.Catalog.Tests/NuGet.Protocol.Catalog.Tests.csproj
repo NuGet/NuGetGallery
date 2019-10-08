@@ -36,6 +36,7 @@
   <ItemGroup>
     <Compile Include="CatalogClientFacts.cs" />
     <Compile Include="CatalogProcessorSettingsFacts.cs" />
+    <Compile Include="Models\CatalogLeafItemFacts.cs" />
     <Compile Include="Models\ModelExtensionsFacts.cs" />
     <Compile Include="NullLogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

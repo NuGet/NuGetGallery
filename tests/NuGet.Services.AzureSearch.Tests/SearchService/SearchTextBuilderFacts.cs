@@ -117,14 +117,14 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public class Autocomplete : FactsBase
         {
-            // TODO: This should use the autocomplete package id field
-            // See https://github.com/NuGet/NuGetGallery/issues/6972
             [Theory]
-            [InlineData("Test", "packageId:Test*")]
-            [InlineData("Test ", "packageId:Test*")]
-            [InlineData("title:test", "packageId:title\\:test*")]
-            [InlineData("Hello world", "packageId:Hello\\ world*")]
-            [InlineData("Hello world ", "packageId:Hello\\ world*")]
+            [InlineData("Test", "packageId:Test* +tokenizedPackageId:Test* packageId:Test^1000")]
+            [InlineData("Test ", "packageId:Test* +tokenizedPackageId:Test* packageId:Test^1000")]
+            [InlineData("title:test", "packageId:title\\:test* +tokenizedPackageId:title\\:test*")]
+            [InlineData("Hello world", "packageId:Hello\\ world* +tokenizedPackageId:Hello\\ world*")]
+            [InlineData("Hello world ", "packageId:Hello\\ world* +tokenizedPackageId:Hello\\ world*")]
+            [InlineData("Hello.world", "packageId:Hello.world* +tokenizedPackageId:Hello* +tokenizedPackageId:world* packageId:Hello.world^1000")]
+            [InlineData("Foo.BarBaz", "packageId:Foo.BarBaz* +tokenizedPackageId:Foo* +tokenizedPackageId:BarBaz* packageId:Foo.BarBaz^1000")]
             public void PackageIdAutocomplete(string input, string expected)
             {
                 var request = new AutocompleteRequest

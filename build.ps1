@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '1f60ff35a3cebf1a0c5fb631d2534fd5b4a11edc'
+    [string]$BuildBranch = 'd298565f387e93995a179ef8ae6838f1be37904f'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -97,6 +97,11 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
 Invoke-BuildStep 'Building solution' { 
         $SolutionPath = Join-Path $PSScriptRoot "NuGet.Services.Metadata.sln"
         Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore `
+    } `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Signing the binaries' {
+        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
     } `
     -ev +BuildErrors
 

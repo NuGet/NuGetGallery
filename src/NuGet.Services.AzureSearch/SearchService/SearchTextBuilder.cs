@@ -68,10 +68,43 @@ namespace NuGet.Services.AzureSearch.SearchService
             // Query package ids. If autocompleting package ids, allow prefix matches.
             var builder = new AzureSearchTextBuilder();
 
-            builder.AppendScopedTerm(
-                fieldName: IndexFields.PackageId,
-                term: request.Query,
-                prefixSearch: request.Type == AutocompleteRequestType.PackageIds);
+            if (request.Type == AutocompleteRequestType.PackageIds)
+            {
+                var trimmedQuery = request.Query.Trim();
+
+                builder.AppendScopedTerm(
+                    fieldName: IndexFields.PackageId,
+                    term: trimmedQuery,
+                    prefixSearch: true);
+
+                var pieces = trimmedQuery.Split(PackageIdSeparators);
+                foreach (var piece in pieces)
+                {
+                    if (string.IsNullOrWhiteSpace(piece))
+                    {
+                        continue;
+                    }
+
+                    builder.AppendScopedTerm(
+                        fieldName: IndexFields.TokenizedPackageId,
+                        term: piece,
+                        required: true,
+                        prefixSearch: true);
+                }
+
+                if (IsId(trimmedQuery))
+                {
+                    builder.AppendExactMatchPackageIdBoost(trimmedQuery, _options.Value.ExactMatchBoost);
+                }
+            }
+            else
+            {
+                builder.AppendScopedTerm(
+                    fieldName: IndexFields.PackageId,
+                    term: request.Query,
+                    prefixSearch: false);
+            }
+
 
             return builder.ToString();
         }
@@ -150,9 +183,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             // symbols (a.k.a. separators) in it.
             if (scopedTerms.Count == 0
                 && unscopedTerms.Count == 1
-                && unscopedTerms[0].Length <= PackageIdValidator.MaxPackageIdLength
-                && unscopedTerms[0].IndexOfAny(PackageIdSeparators) >= 0
-                && PackageIdValidator.IsValidPackageId(unscopedTerms[0]))
+                && IsIdWithSeparator(unscopedTerms[0]))
             {
                 builder.AppendExactMatchPackageIdBoost(unscopedTerms[0], _options.Value.ExactMatchBoost);
             }
@@ -189,6 +220,17 @@ namespace NuGet.Services.AzureSearch.SearchService
                 default:
                     return values;
             }
+        }
+
+        private static bool IsId(string query)
+        {
+            return query.Length <= PackageIdValidator.MaxPackageIdLength
+                && PackageIdValidator.IsValidPackageId(query);
+        }
+
+        private static bool IsIdWithSeparator(string query)
+        {
+            return query.IndexOfAny(PackageIdSeparators) >= 0 && IsId(query);
         }
     }
 }
