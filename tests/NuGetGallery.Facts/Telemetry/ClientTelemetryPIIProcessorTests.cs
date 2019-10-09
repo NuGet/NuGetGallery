@@ -114,82 +114,98 @@ namespace NuGetGallery.Telemetry
 
         [Theory]
         [MemberData(nameof(ObfuscatesGravatarUrlData))]
-        public void ObfuscatesGravatarUrl(DependencyTelemetry input, string expectedData)
+        public void ObfuscatesGravatarUrl(DependencyTelemetry input, string expectedData, string expectedName)
         {
             var target = CreatePIIProcessor();
 
             target.Process(input);
 
             Assert.Equal(expectedData, input.Data);
+            Assert.Equal(expectedName, input.Name);
         }
 
         public static IEnumerable<object[]> ObfuscatesGravatarUrlData()
         {
-            object[] ObfuscatesGravatarUrlData(string input, string expected)
+            object[] ObfuscatesGravatarUrlData(
+                string inputType = "HTTP",
+                string inputData = null,
+                string inputName = null,
+                string expectedData = null,
+                string expectedName = null)
             {
                 return new object[]
                 {
                     new DependencyTelemetry
                     {
-                        Type = "HTTP",
-                        Data = input
+                        Type = inputType,
+                        Data = inputData,
+                        Name = inputName,
                     },
 
-                    expected
+                    expectedData,
+                    expectedName,
                 };
             }
 
             // Hashed email addresses are obfuscated from Gravatar URLs.
             yield return ObfuscatesGravatarUrlData(
-                input: "http://gravatar.com/avatar/abc",
-                expected: "http://gravatar.com/avatar/Obfuscated");
+                inputData: "http://gravatar.com/avatar/abc",
+                inputName: "GET /avatar/abc",
+                expectedData: "http://gravatar.com/avatar/Obfuscated",
+                expectedName: "GET /avatar/Obfuscated");
             yield return ObfuscatesGravatarUrlData(
-                input: "https://secure.gravatar.com/avatar/abc",
-                expected: "https://secure.gravatar.com/avatar/Obfuscated");
+                inputData: "https://secure.gravatar.com/avatar/abc",
+                inputName: "GET /avatar/abc",
+                expectedData: "https://secure.gravatar.com/avatar/Obfuscated",
+                expectedName: "GET /avatar/Obfuscated");
             yield return ObfuscatesGravatarUrlData(
-                input: "https://secure.gravatar.com:443/avatar/abc",
-                expected: "https://secure.gravatar.com/avatar/Obfuscated");
+                inputData: "https://secure.gravatar.com:443/avatar/abc",
+                inputName: "GET /avatar/abc",
+                expectedData: "https://secure.gravatar.com/avatar/Obfuscated",
+                expectedName: "GET /avatar/Obfuscated");
             yield return ObfuscatesGravatarUrlData(
-                input: "https://gravatar.com/avatar/abc?s=512&d=retro",
-                expected: "https://gravatar.com/avatar/Obfuscated?s=512&d=retro");
+                inputData: "https://gravatar.com/avatar/abc?s=512&d=retro",
+                inputName: "GET /avatar/abc",
+                expectedData: "https://gravatar.com/avatar/Obfuscated?s=512&d=retro",
+                expectedName: "GET /avatar/Obfuscated");
             yield return ObfuscatesGravatarUrlData(
-                input: "https://gravatar.com/avatar/weird/url/but/whatever",
-                expected: "https://gravatar.com/avatar/Obfuscated");
+                inputData: "https://gravatar.com/avatar/weird/url/but/whatever",
+                inputName: "GET /avatar/abc",
+                expectedData: "https://gravatar.com/avatar/Obfuscated",
+                expectedName: "GET /avatar/Obfuscated");
+
+            // Casing of the telemetry type should not matter.
+            yield return ObfuscatesGravatarUrlData(
+                inputType: "Http",
+                inputData: "http://gravatar.com/avatar/abc",
+                inputName: "GET /avatar/abc",
+                expectedData: "http://gravatar.com/avatar/Obfuscated",
+                expectedName: "GET /avatar/Obfuscated");
 
             // Unknown routes and invalid URLs are ignored
             yield return ObfuscatesGravatarUrlData(
-                input: "https://gravatar.com/unknown/route",
-                expected: "https://gravatar.com/unknown/route");
+                inputData: "https://gravatar.com/unknown/route",
+                inputName: "GET /unknown/route",
+                expectedData: "https://gravatar.com/unknown/route",
+                expectedName: "GET /unknown/route");
             yield return ObfuscatesGravatarUrlData(
-                input: "https://example.test/avatar/abc",
-                expected: "https://example.test/avatar/abc");
+                inputData: "https://example.test/avatar/abc",
+                inputName: "GET /avatar/abc",
+                expectedData: "https://example.test/avatar/abc",
+                expectedName: "GET /avatar/abc");
             yield return ObfuscatesGravatarUrlData(
-                input: "avatar/abc",
-                expected: "avatar/abc");
+                inputData: "avatar/abc",
+                inputName: "GET /avatar/abc",
+                expectedData: "avatar/abc",
+                expectedName: "GET /avatar/abc");
 
             // The type must be "HTTP" for the data to be obfuscated
-            // Casing of the type should not matter.
-            yield return new object[]
-            {
-                new DependencyTelemetry
-                {
-                    Type = "Http",
-                    Data = "http://gravatar.com/avatar/abc"
-                },
-
-                "http://gravatar.com/avatar/Obfuscated"
-            };
-
-            yield return new object[]
-            {
-                new DependencyTelemetry
-                {
-                    Type = "Blob",
-                    Data = "http://gravatar.com/avatar/abc"
-                },
-
-                "http://gravatar.com/avatar/abc"
-            };
+            yield return ObfuscatesGravatarUrlData(
+                inputType: "Blob",
+                inputData: "http://gravatar.com/avatar/abc",
+                inputName: "GET /avatar/abc",
+                expectedData: "http://gravatar.com/avatar/abc",
+                expectedName: "GET /avatar/abc");
         }
 
         private ClientTelemetryPIIProcessor CreatePIIProcessor(string url = "")

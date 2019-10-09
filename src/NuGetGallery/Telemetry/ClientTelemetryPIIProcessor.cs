@@ -105,6 +105,7 @@ namespace NuGetGallery
             var builder = new UriBuilder(uri);
             builder.Path = "/avatar/Obfuscated";
 
+            dependencyTelemetryItem.Name = "GET /avatar/Obfuscated";
             dependencyTelemetryItem.Data = builder.Uri.ToString();
         }
     }
