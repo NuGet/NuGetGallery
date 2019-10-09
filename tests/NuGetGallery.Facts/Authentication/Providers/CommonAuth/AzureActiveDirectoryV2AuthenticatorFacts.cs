@@ -150,7 +150,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             }
 
             [Fact]
-            public void ThrowsForMissingEmailClaim()
+            public void ThrowsForMissingEmailAndPreferredUsernameClaim()
             {
                 // Arrange
                 var authenticator = new AzureActiveDirectoryV2Authenticator();
@@ -163,6 +163,49 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 
                 // Act and assert
                 Assert.Throws<ArgumentException>(() => authenticator.GetIdentityInformation(claimsIdentity));
+            }
+
+            [Fact]
+            public void DoesNotThrowForMissingEmailClaimIfPreferredUsernameClaimIsPresent()
+            {
+                // Arrange
+                var authenticator = new AzureActiveDirectoryV2Authenticator();
+                var claimsIdentity = new ClaimsIdentity(new[] {
+                    TestData.Issuer,
+                    TestData.TenantId,
+                    TestData.Identifier,
+                    TestData.Name,
+                    TestData.PreferredUsername
+                });
+
+                // Act
+                var result = authenticator.GetIdentityInformation(claimsIdentity);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(TestData.PreferredUsername.Value, result.Email);
+            }
+
+            [Fact]
+            public void EmailClaimIsPreferredOverPreferredUsernameClaime()
+            {
+                // Arrange
+                var authenticator = new AzureActiveDirectoryV2Authenticator();
+                var claimsIdentity = new ClaimsIdentity(new[] {
+                    TestData.Issuer,
+                    TestData.TenantId,
+                    TestData.Identifier,
+                    TestData.Name,
+                    TestData.Email,
+                    TestData.PreferredUsername
+                });
+
+                // Act
+                var result = authenticator.GetIdentityInformation(claimsIdentity);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(TestData.Email.Value, result.Email);
             }
 
             [Fact]
@@ -220,6 +263,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             public static Claim Name = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.Name, "bloog", ClaimValueTypes.String, Authority);
             public static Claim TenantId = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.TenantId, TEST_TENANT_ID, ClaimValueTypes.String, Authority);
             public static Claim Email = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.EmailAddress, "blarg@bloog.test", ClaimValueTypes.String, Authority);
+            public static Claim PreferredUsername = new Claim(AzureActiveDirectoryV2Authenticator.V2Claims.PreferredUsername, "preferredUsername@bloog.test", ClaimValueTypes.String, Authority);
 
             public static ClaimsIdentity GetIdentity()
             {
@@ -228,7 +272,8 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                     TenantId,
                     Identifier,
                     Name,
-                    Email
+                    Email,
+                    PreferredUsername
                 });
             }
         }
