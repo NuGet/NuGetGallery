@@ -167,24 +167,24 @@ namespace NuGetGallery.Telemetry
                 input: "avatar/abc",
                 expected: "avatar/abc");
 
-            // The target must be "HTTP" for the data to be obfuscated
+            // The type must be "HTTP" for the data to be obfuscated
+            // Casing of the type should not matter.
             yield return new object[]
             {
                 new DependencyTelemetry
                 {
-                    Target = "Http",
+                    Type = "Http",
                     Data = "http://gravatar.com/avatar/abc"
                 },
 
                 "http://gravatar.com/avatar/Obfuscated"
             };
 
-            // The target must be "HTTP" for the data to be obfuscated
             yield return new object[]
             {
                 new DependencyTelemetry
                 {
-                    Target = "Blob",
+                    Type = "Blob",
                     Data = "http://gravatar.com/avatar/abc"
                 },
 
