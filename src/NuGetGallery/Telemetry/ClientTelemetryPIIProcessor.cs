@@ -87,7 +87,7 @@ namespace NuGetGallery
         private void ModifyDependencyItem(DependencyTelemetry dependencyTelemetryItem)
         {
             // Obfuscate the hashed email address from Gravatar URLs.
-            if (dependencyTelemetryItem.Type != HttpDependencyType)
+            if (!dependencyTelemetryItem.Type.Equals(HttpDependencyType, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }

@@ -172,6 +172,18 @@ namespace NuGetGallery.Telemetry
             {
                 new DependencyTelemetry
                 {
+                    Target = "Http",
+                    Data = "http://gravatar.com/avatar/abc"
+                },
+
+                "http://gravatar.com/avatar/Obfuscated"
+            };
+
+            // The target must be "HTTP" for the data to be obfuscated
+            yield return new object[]
+            {
+                new DependencyTelemetry
+                {
                     Target = "Blob",
                     Data = "http://gravatar.com/avatar/abc"
                 },
