@@ -82,7 +82,7 @@
                     <table class="table" role="list">
                         <thead>
                             <tr class="manage-certificate-headings">
-                                <th>Fingerprint</th>
+                                <th>Fingerprint (SHA-256)</th>
                                 <th>Subject</th>
                                 <th>Expiration</th>
                                 <th>Issuer</th>
@@ -91,7 +91,7 @@
                         </thead>
                         <tbody data-bind="foreach: $data.certificates">
                             <tr class="manage-certificate-listing" role="listitem">
-                                <td data-bind="text: Sha1Thumbprint"></td>
+                                <td><samp class="small-fingerprint" data-bind="text: Thumbprint"></samp></td>
                                 <td data-bind="text: ShortSubject, attr: { title: Subject }"></td>
                                 <td data-bind="text: ExpirationDisplay, attr: {
                                     title: IsExpired ? 'This certificate\'s expiration date is in the past. Future packages signed with this certificate will fail validation. Upload a renewed certificate to enable signed package uploads.' : ExpirationIso,
@@ -109,6 +109,17 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <p>
+                        The SHA-256 fingerprint can be found by calculating the SHA-256 hash of the DER encoded
+                        certificate file (.cer). The fingerprint should be hex-encoded. This can be done with a variety
+                        of tools.
+                    </p>
+                    <p>
+                        <b>PowerShell:</b> <samp>Get-FileHash -Algorithm SHA256 .\my-public-certificate.cer</samp>
+                        <br />
+                        <b>nuget.exe:</b> <samp>nuget.exe verify -Signatures .\my-signed-package.1.0.0.nupkg</samp>
+                    </p>
                 </div>
             </div>
         </div>

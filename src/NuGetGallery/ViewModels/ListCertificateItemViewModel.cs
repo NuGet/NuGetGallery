@@ -15,7 +15,7 @@ namespace NuGetGallery
         /// </summary>
         private const int AbbreviationLength = 36;
 
-        public string Sha1Thumbprint { get; }
+        public string Thumbprint { get; }
         public bool HasInfo { get; }
         public bool IsExpired { get; }
         public string ExpirationDisplay { get; }
@@ -34,7 +34,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(certificate));
             }
 
-            Sha1Thumbprint = certificate.Sha1Thumbprint;
+            Thumbprint = certificate.Thumbprint;
             HasInfo = certificate.Expiration.HasValue;
             if (certificate.Expiration.HasValue)
             {

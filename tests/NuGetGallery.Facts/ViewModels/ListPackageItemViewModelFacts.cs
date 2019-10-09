@@ -253,7 +253,6 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Key = 4,
                     Thumbprint = "D",
-                    Sha1Thumbprint = "E"
                 };
 
                 _packageRegistration = new PackageRegistration()
@@ -301,7 +300,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
                 viewModel.CanDisplayPrivateMetadata = true;
 
-                Assert.Equal("Signed with certificate (E)", viewModel.SignatureInformation);
+                Assert.Equal("Signed with certificate (D)", viewModel.SignatureInformation);
             }
 
             [Fact]
@@ -315,7 +314,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 var viewModel = CreateListPackageItemViewModel(_package, _user1);
 
                 Assert.True(viewModel.CanDisplayPrivateMetadata);
-                Assert.Equal("Signed with A's certificate (E)", viewModel.SignatureInformation);
+                Assert.Equal("Signed with A's certificate (D)", viewModel.SignatureInformation);
             }
 
             [Fact]
@@ -331,7 +330,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 var viewModel = CreateListPackageItemViewModel(_package, _user1);
 
                 Assert.True(viewModel.CanDisplayPrivateMetadata);
-                Assert.Equal("Signed with A and B's certificate (E)", viewModel.SignatureInformation);
+                Assert.Equal("Signed with A and B's certificate (D)", viewModel.SignatureInformation);
             }
 
             [Fact]
@@ -349,7 +348,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 var viewModel = CreateListPackageItemViewModel(_package, _user1);
 
                 Assert.True(viewModel.CanDisplayPrivateMetadata);
-                Assert.Equal("Signed with A, B, and C's certificate (E)", viewModel.SignatureInformation);
+                Assert.Equal("Signed with A, B, and C's certificate (D)", viewModel.SignatureInformation);
             }
 
             private void ActivateCertificate(User user)

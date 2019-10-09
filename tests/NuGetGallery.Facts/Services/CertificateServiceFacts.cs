@@ -51,7 +51,9 @@ namespace NuGetGallery.Services
             _certificate = new Certificate()
             {
                 Key = 1,
+#pragma warning disable CS0618 // Set the value for minimal testing.
                 Sha1Thumbprint = _sha1Thumbprint,
+#pragma warning restore CS0618
                 Thumbprint = _sha256Thumbprint,
                 UserCertificates = new List<UserCertificate>()
             };
@@ -202,9 +204,7 @@ namespace NuGetGallery.Services
                 .Returns(new EnumerableQuery<Certificate>(Array.Empty<Certificate>()));
             _certificateRepository.Setup(
                 x => x.InsertOnCommit(
-                    It.Is<Certificate>(certificate =>
-                        certificate.Sha1Thumbprint == _sha1Thumbprint &&
-                        certificate.Thumbprint == _sha256Thumbprint)));
+                    It.Is<Certificate>(certificate => certificate.Thumbprint == _sha256Thumbprint)));
             _certificateRepository.Setup(x => x.CommitChangesAsync())
                 .Returns(Task.CompletedTask);
             _fileStorageService.Setup(
@@ -231,7 +231,9 @@ namespace NuGetGallery.Services
                 var certificate = await service.AddCertificateAsync(file);
 
                 Assert.NotNull(certificate);
+#pragma warning disable CS0618 // Assert the value is set properly, but we will never read it.
                 Assert.Equal(_sha1Thumbprint, certificate.Sha1Thumbprint);
+#pragma warning restore CS0618
                 Assert.Equal(_sha256Thumbprint, certificate.Thumbprint);
             }
 
@@ -255,7 +257,6 @@ namespace NuGetGallery.Services
 
                 Assert.NotNull(certificate);
                 Assert.Equal(1, certificate.Key);
-                Assert.Equal(_sha1Thumbprint, certificate.Sha1Thumbprint);
                 Assert.Equal(_sha256Thumbprint, certificate.Thumbprint);
             }
 

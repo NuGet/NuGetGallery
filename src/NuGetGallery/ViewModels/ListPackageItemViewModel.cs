@@ -16,7 +16,7 @@ namespace NuGetGallery
 
         private string _signatureInformation;
         private IReadOnlyCollection<string> _signerUsernames;
-        private string _sha1Thumbprint;
+        private string _thumbprint;
 
         public string Authors { get; set; }
         public IReadOnlyCollection<BasicUserViewModel> Owners { get; set; }
@@ -64,15 +64,15 @@ namespace NuGetGallery
             IsDescriptionTruncated = wasTruncated;
         }
 
-        public void UpdateSignatureInformation(IReadOnlyCollection<string> signerUsernames, string sha1Thumbprint)
+        public void UpdateSignatureInformation(IReadOnlyCollection<string> signerUsernames, string thumbprint)
         {
-            if ((signerUsernames == null && sha1Thumbprint != null) || (signerUsernames != null && sha1Thumbprint == null))
+            if ((signerUsernames == null && thumbprint != null) || (signerUsernames != null && thumbprint == null))
             {
-                throw new ArgumentException($"{nameof(signerUsernames)} and {nameof(sha1Thumbprint)} arguments must either be both null or both non-null.");
+                throw new ArgumentException($"{nameof(signerUsernames)} and {nameof(thumbprint)} arguments must either be both null or both non-null.");
             }
 
             _signerUsernames = signerUsernames;
-            _sha1Thumbprint = sha1Thumbprint;
+            _thumbprint = thumbprint;
             _signatureInformation = null;
         }
 
@@ -107,7 +107,7 @@ namespace NuGetGallery
                 builder.Append($" and {_signerUsernames.Last()}'s");
             }
 
-            builder.Append($" certificate ({_sha1Thumbprint})");
+            builder.Append($" certificate ({_thumbprint})");
 
             return builder.ToString();
         }

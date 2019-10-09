@@ -3292,7 +3292,6 @@ namespace NuGetGallery
                 _certificate = new Certificate()
                 {
                     Key = 2,
-                    Sha1Thumbprint = "b",
                     Thumbprint = "c"
                 };
             }
@@ -3354,7 +3353,7 @@ namespace NuGetGallery
 
                 Assert.True(viewModel.CanDelete);
                 Assert.Equal($"/account/certificates/{_certificate.Thumbprint}", viewModel.DeleteUrl);
-                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(_certificate.Thumbprint, viewModel.Thumbprint);
                 Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
 
@@ -3381,7 +3380,6 @@ namespace NuGetGallery
                 _certificate = new Certificate()
                 {
                     Key = 2,
-                    Sha1Thumbprint = "b",
                     Thumbprint = "c"
                 };
             }
@@ -3430,7 +3428,7 @@ namespace NuGetGallery
 
                 Assert.True(viewModel.CanDelete);
                 Assert.Equal($"/account/certificates/{_certificate.Thumbprint}", viewModel.DeleteUrl);
-                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(_certificate.Thumbprint, viewModel.Thumbprint);
                 Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
 
@@ -3461,7 +3459,6 @@ namespace NuGetGallery
                 _certificate = new Certificate()
                 {
                     Key = 2,
-                    Sha1Thumbprint = "b",
                     Thumbprint = "c"
                 };
             }
@@ -3589,7 +3586,6 @@ namespace NuGetGallery
                 _certificate = new Certificate()
                 {
                     Key = 2,
-                    Sha1Thumbprint = "b",
                     Thumbprint = "c"
                 };
             }
