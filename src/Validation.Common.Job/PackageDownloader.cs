@@ -60,7 +60,7 @@ namespace NuGet.Jobs.Validation
             try
             {
                 // Download the package from the network to a temporary file.
-                using (var response = await _httpClient.GetAsync(packageUri, HttpCompletionOption.ResponseHeadersRead))
+                using (var response = await _httpClient.GetAsync(packageUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                 {
                     _logger.LogInformation(
                         "Received response {StatusCode}: {ReasonPhrase} of type {ContentType} for request {PackageUri}",
@@ -75,6 +75,7 @@ namespace NuGet.Jobs.Validation
                     }
 
                     using (var networkStream = await response.Content.ReadAsStreamAsync())
+                    using (cancellationToken.Register(() => networkStream.Close()))
                     {
                         packageStream = FileStreamUtility.GetTemporaryFile();
 
