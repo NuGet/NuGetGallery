@@ -245,13 +245,13 @@
       <Version>2.58.0-ryuyu-update-common-3110497</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Messaging.Email">
-      <Version>2.55.0</Version>
+      <Version>2.58.0-ryuyu-update-common-3110497</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.55.0</Version>
+      <Version>2.58.0-ryuyu-update-common-3110497</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.55.0</Version>
+      <Version>2.58.0-ryuyu-update-common-3110497</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>

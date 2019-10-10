@@ -292,10 +292,10 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.55.0</Version>
+      <Version>2.58.0-ryuyu-update-common-3110497</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.55.0</Version>
+      <Version>2.58.0-ryuyu-update-common-3110497</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.WebBackgrounder">
       <Version>0.2.0</Version>
