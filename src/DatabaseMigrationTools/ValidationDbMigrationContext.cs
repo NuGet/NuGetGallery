@@ -14,16 +14,10 @@ namespace NuGetGallery.DatabaseMigrationTools
         public ValidationDbMigrationContext(SqlConnection sqlConnection)
         {
             SqlConnection = sqlConnection ?? throw new ArgumentNullException(nameof(sqlConnection));
-            SqlConnectionAccessToken = sqlConnection.AccessToken;
-
-            ValidationDbContextFactory.ValidationEntitiesContextFactory = () =>
-            {
-                SetSqlConnectionAccessToken();
-                return new ValidationEntitiesContext(SqlConnection);
-            };
 
             var migrationsConfiguration = new ValidationMigrationsConfiguration();
-            GetDbMigrator = () => new DbMigrator(migrationsConfiguration);
+            var migrationsDbContext = new ValidationEntitiesContext(sqlConnection);
+            GetDbMigrator = () => new DbMigrator(migrationsConfiguration, migrationsDbContext);
         }
     }
 }

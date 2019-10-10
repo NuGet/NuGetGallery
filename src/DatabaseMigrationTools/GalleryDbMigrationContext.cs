@@ -14,16 +14,10 @@ namespace NuGetGallery.DatabaseMigrationTools
         public GalleryDbMigrationContext(SqlConnection sqlConnection)
         {
             SqlConnection = sqlConnection ?? throw new ArgumentNullException(nameof(sqlConnection));
-            SqlConnectionAccessToken = sqlConnection.AccessToken;
-
-            GalleryDbContextFactory.GalleryEntitiesContextFactory = () =>
-            {
-                SetSqlConnectionAccessToken();
-                return new EntitiesContext(SqlConnection, readOnly: false);
-            };
 
             var migrationsConfiguration = new MigrationsConfiguration();
-            GetDbMigrator = () => new DbMigrator(migrationsConfiguration);
+            var migrationsDbContext = new EntitiesContext(sqlConnection, false);
+            GetDbMigrator = () => new DbMigrator(migrationsConfiguration, migrationsDbContext);
         }
     }
 }

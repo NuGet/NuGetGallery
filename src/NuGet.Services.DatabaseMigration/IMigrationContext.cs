@@ -16,10 +16,7 @@ namespace NuGet.Services.DatabaseMigration
         /// SqlConnection to the target database.
         /// </summary>
         SqlConnection SqlConnection { get; }
-        /// <summary>
-        /// Access token (AAD) for connection authentication.
-        /// </summary>
-        string SqlConnectionAccessToken { get; }
+
         /// <summary>
         /// The Func to get the DbMigrator which executes the migration.
         /// </summary>

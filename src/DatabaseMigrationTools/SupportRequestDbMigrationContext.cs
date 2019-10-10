@@ -15,16 +15,10 @@ namespace NuGetGallery.DatabaseMigrationTools
         public SupportRequestDbMigrationContext(SqlConnection sqlConnection)
         {
             SqlConnection = sqlConnection ?? throw new ArgumentNullException(nameof(sqlConnection));
-            SqlConnectionAccessToken = sqlConnection.AccessToken;
-
-            SupportRequestDbContextFactory.SupportRequestEntitiesContextFactory = () =>
-            {
-                SetSqlConnectionAccessToken();
-                return new SupportRequestDbContext(SqlConnection);
-            };
 
             var migrationsConfiguration = new SupportRequestMigrationsConfiguration();
-            GetDbMigrator = () => new DbMigrator(migrationsConfiguration);
+            var migrationsDbContext = new SupportRequestDbContext(sqlConnection);
+            GetDbMigrator = () => new DbMigrator(migrationsConfiguration, migrationsDbContext);
         }
     }
 }

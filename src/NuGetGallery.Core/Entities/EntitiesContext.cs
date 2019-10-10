@@ -1,33 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
-using System.Data.Entity.Infrastructure.Annotations;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity.Infrastructure.Annotations;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    /// <summary>
-    /// This GalleryDbContextFactory is provided for running migrations in a flexible way as follows:
-    /// 1. Run migration using DbConnection; (For DatabaseMigrationTools with AAD token)
-    /// 2. Run migration using connection string;
-    /// 3. Run migration using default connection string ("Gallery.SqlServer") in a web.config; (For command-line migration with integrated AAD/username+password)
-    /// </summary>
-    public class GalleryDbContextFactory : IDbContextFactory<EntitiesContext>
-    {
-        public static Func<EntitiesContext> GalleryEntitiesContextFactory;
-        public EntitiesContext Create()
-        {
-            var factory = GalleryEntitiesContextFactory;
-            return factory == null ? new EntitiesContext("Gallery.SqlServer", readOnly: false) : factory();
-        }
-    }
-
     [DbConfigurationType(typeof(EntitiesConfiguration))]
     public class EntitiesContext
         : ObjectMaterializedInterceptingDbContext, IEntitiesContext
@@ -39,6 +21,16 @@ namespace NuGetGallery
         {
             // Don't run migrations, ever!
             Database.SetInitializer<EntitiesContext>(null);
+        }
+
+        /// <summary>
+        /// This constructor is provided mainly for purposes of running migrations from Package Manager console,
+        /// or any other scenario where a connection string will be set after the EntitiesContext is created
+        /// (and read only mode is don't care).
+        /// </summary>
+        public EntitiesContext()
+            : this("Gallery.SqlServer", false) // Use the connection string in a web.config (if one is found)
+        {
         }
 
         /// <summary>
