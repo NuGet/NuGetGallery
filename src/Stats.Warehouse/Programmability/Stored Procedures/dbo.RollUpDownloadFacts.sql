@@ -5,6 +5,10 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
+	-- We want this query to always be the deadlock victim.
+	-- Rolling up existing download facts is not as important as inserting new statistics.
+	SET DEADLOCK_PRIORITY LOW;
+
 	IF @MinAgeInDays IS NOT NULL
 	BEGIN
 
