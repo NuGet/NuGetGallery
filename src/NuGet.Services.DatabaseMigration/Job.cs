@@ -46,8 +46,7 @@ namespace NuGet.Services.DatabaseMigration
             var migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
 
             ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
-                migrationContext.SqlConnection,
-                migrationContext.SqlConnectionAccessToken);
+                migrationContext.SqlConnection);
 
             migrationContext.SqlConnection.Dispose();
         }
@@ -96,13 +95,10 @@ namespace NuGet.Services.DatabaseMigration
             }
         }
 
-        private void ExecuteDatabaseMigration(Func<DbMigrator> getMigrator, SqlConnection sqlConnection, string accessToken)
+        private void ExecuteDatabaseMigration(Func<DbMigrator> getMigrator, SqlConnection sqlConnection)
         {
             var migrator = getMigrator();
             var migratorForScripting = getMigrator();
-
-            OverwriteSqlConnection(migrator, sqlConnection, accessToken);
-            OverwriteSqlConnection(migratorForScripting, sqlConnection, accessToken);
 
             var sqlConnectionDataSource = sqlConnection.DataSource;
             var sqlConnectionDatabase = sqlConnection.Database;
@@ -154,24 +150,6 @@ namespace NuGet.Services.DatabaseMigration
             {
                 Logger.LogInformation("There are no pending migrations to execute.");
             }
-        }
-
-        // Overwrite the database connection of DbMigrator.
-        // Hit the bug:  https://github.com/aspnet/EntityFramework6/issues/522
-        // Consider deleting/updating this section when the new Entity Framework 6.3 or higher version is released.
-        private void OverwriteSqlConnection(DbMigrator migrator, SqlConnection sqlConnection, string accessToken)
-        {
-            var historyRepository = typeof(DbMigrator).GetField(
-                "_historyRepository",
-                BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(migrator);
-
-            var connectionField = historyRepository.GetType().BaseType.GetField(
-                "_existingConnection",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-
-            sqlConnection.AccessToken = accessToken;
-            connectionField.SetValue(historyRepository, sqlConnection);
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)

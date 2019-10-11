@@ -23,7 +23,7 @@ namespace NuGetGallery.DatabaseMigrationTools
             };
 
             var migrationsConfiguration = new ValidationMigrationsConfiguration();
-            GetDbMigrator = () => new DbMigrator(migrationsConfiguration);
+            GetDbMigrator = () => new DbMigrator(migrationsConfiguration, new ValidationEntitiesContext(SqlConnection));
         }
     }
 }
