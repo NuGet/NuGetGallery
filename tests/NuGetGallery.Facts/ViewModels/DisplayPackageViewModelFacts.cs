@@ -87,6 +87,8 @@ namespace NuGetGallery.ViewModels
         [InlineData("http://githubpages.github.io/my.page", "https://githubpages.github.io/my.page")]
         [InlineData("http://githubpages.github.com", "https://githubpages.github.com/")]
         [InlineData("http://weblogs.asp.net/j/fontawesome-portable", "https://weblogs.asp.net/j/fontawesome-portable")]
+        [InlineData("http://www.nuget.org/", "https://www.nuget.org/")]
+        [InlineData("http://www.nugettest.org/", "https://www.nugettest.org/")]
         public void ItInitializesProjectUrl(string projectUrl, string expected)
         {
             var package = new Package
