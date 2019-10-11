@@ -38,7 +38,11 @@ namespace NuGetGallery
 
         public static bool IsDomainWithHttpsSupport(this Uri uri)
         {
-            return IsGitHubUri(uri) || IsGitHubPagerUri(uri) || IsCodeplexUri(uri) || IsMicrosoftUri(uri);
+            return IsGitHubUri(uri) || 
+                   IsGitHubPagerUri(uri) || 
+                   IsCodeplexUri(uri) || 
+                   IsMicrosoftUri(uri) || 
+                   IsNuGetUri(uri);
         }
 
         public static bool IsGitHubUri(this Uri uri)
@@ -65,6 +69,12 @@ namespace NuGetGallery
                    uri.IsInDomain("msdn.com") ||
                    string.Equals(uri.Authority, "aka.ms", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "www.mono-project.com", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsNuGetUri(this Uri uri)
+        {
+            return uri.IsInDomain("nuget.org") ||
+                   uri.IsInDomain("nugettest.org");
         }
 
         private static bool IsInDomain(this Uri uri, string domain)
