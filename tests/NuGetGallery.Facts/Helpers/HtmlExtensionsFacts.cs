@@ -67,7 +67,7 @@ namespace NuGetGallery.Helpers
             [InlineData("My site is https://www.nuget.org/packages.", "My site is <a href=\"https://www.nuget.org/packages\" rel=\"nofollow\">https://www.nuget.org/packages</a>.")]
             [InlineData("My site is http://www.nuget.org/?foo&bar=2#a", "My site is <a href=\"https://www.nuget.org/?foo&amp;bar=2#a\" rel=\"nofollow\">https://www.nuget.org/?foo&amp;bar=2#a</a>")]
             [InlineData("My site is http://www.nuget.org/?foo[]=a", "My site is <a href=\"https://www.nuget.org/?foo\" rel=\"nofollow\">https://www.nuget.org/?foo</a>[]=a")]
-            [InlineData("http://a.com http://b.com", "<a href=\"https://a.com/\" rel=\"nofollow\">https://a.com/</a> <a href=\"https://b.com/\" rel=\"nofollow\">https://b.com/</a>")]
+            [InlineData("http://a.com http://b.com", "http://a.com http://b.com")]
             [InlineData("http://www.nuget.org/ is my site.", "<a href=\"https://www.nuget.org/\" rel=\"nofollow\">https://www.nuget.org/</a> is my site.")]
             [InlineData("\"http://www.nuget.org/\" is my site.", "&quot;<a href=\"https://www.nuget.org/\" rel=\"nofollow\">https://www.nuget.org/</a>&quot; is my site.")]
             [InlineData("\'http://www.nuget.org/\' is my site.", "&#39;<a href=\"https://www.nuget.org/\" rel=\"nofollow\">https://www.nuget.org/</a>&#39; is my site.")]
