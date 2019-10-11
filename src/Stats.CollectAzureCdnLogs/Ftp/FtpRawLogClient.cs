@@ -205,6 +205,7 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             var request = (FtpWebRequest)WebRequest.Create(uri);
             request.Credentials = new NetworkCredential(_username, _password);
             request.EnableSsl = true;
+            request.KeepAlive = false;
 
             return request;
         }
