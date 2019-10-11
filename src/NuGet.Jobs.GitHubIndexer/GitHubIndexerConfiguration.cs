@@ -41,5 +41,10 @@ namespace NuGet.Jobs.GitHubIndexer
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
         public bool StorageReadAccessGeoRedundant { get; set; }
+
+        /// <summary>
+        /// How long to sleep after succeeding. If the job fails this setting will be ignored.
+        /// </summary>
+        public TimeSpan SleepAfterSuccess { get; set; }
     }
 }

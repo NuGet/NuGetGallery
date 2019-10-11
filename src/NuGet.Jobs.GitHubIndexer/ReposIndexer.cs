@@ -30,6 +30,7 @@ namespace NuGet.Jobs.GitHubIndexer
         private readonly ILogger<ReposIndexer> _logger;
         private readonly int _maxDegreeOfParallelism;
         private readonly TimeSpan _repoIndexingTimeout;
+        private readonly TimeSpan _sleepAfterSuccess;
         private readonly IRepositoriesCache _repoCache;
         private readonly IRepoFetcher _repoFetcher;
         private readonly IConfigFileParser _configFileParser;
@@ -59,6 +60,7 @@ namespace NuGet.Jobs.GitHubIndexer
 
             _maxDegreeOfParallelism = configuration.Value.MaxDegreeOfParallelism;
             _repoIndexingTimeout = configuration.Value.RepoIndexingTimeout;
+            _sleepAfterSuccess = configuration.Value.SleepAfterSuccess;
             _cloudClient = cloudClient ?? throw new ArgumentNullException(nameof(cloudClient));
             _telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
         }
@@ -109,6 +111,9 @@ namespace NuGet.Jobs.GitHubIndexer
             // Delete the repos and cache directory
             Directory.Delete(RepositoriesDirectory, recursive: true);
             Directory.Delete(CacheDirectory, recursive: true);
+
+            _logger.LogInformation("The job has succeeded. Sleeping for {Duration} before terminating.", _sleepAfterSuccess);
+            await Task.Delay(_sleepAfterSuccess);
         }
 
         private async Task WriteFinalBlobAsync(List<RepositoryInformation> finalList)
