@@ -8,6 +8,13 @@ namespace NuGet.Jobs.GitHubIndexer
     public interface ITelemetryService
     {
         /// <summary>
+        /// Track the duration to run the GitHub Indexer job.
+        /// </summary>
+        /// <param name="duration">The time taken to run the GitHub indexer job.</param>
+        /// <param name="completed">If <see langword="false"/>, the job terminated unexpectedly.</param>
+        void TrackRunDuration(TimeSpan duration, bool completed);
+
+        /// <summary>
         /// Track the duration to find GitHub repositories to index.
         /// </summary>
         IDisposable TrackDiscoverRepositoriesDuration();

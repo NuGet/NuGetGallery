@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -67,50 +68,67 @@ namespace NuGet.Jobs.GitHubIndexer
 
         public async Task RunAsync()
         {
-            var repos = await _searcher.GetPopularRepositories();
-            var inputBag = new ConcurrentBag<WritableRepositoryInformation>(repos);
-            var outputBag = new ConcurrentBag<RepositoryInformation>();
+            var runDuration = Stopwatch.StartNew();
+            var completed = false;
 
-            // Create the repos and cache directories
-            Directory.CreateDirectory(RepositoriesDirectory);
-            Directory.CreateDirectory(CacheDirectory);
-
-            await ProcessInParallel(inputBag, repo =>
+            try
             {
-                try
-                {
-                    outputBag.Add(ProcessSingleRepo(repo));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(0, ex, "[{RepoName}] Can't process repo", repo.Id);
-                }
-            });
+                var repos = await _searcher.GetPopularRepositories();
+                var inputBag = new ConcurrentBag<WritableRepositoryInformation>(repos);
+                var outputBag = new ConcurrentBag<RepositoryInformation>();
 
-            var finalList = outputBag
-                .Where(repo => repo.Dependencies.Any())
-                .OrderByDescending(x => x.Stars)
-                .ThenBy(x => x.Id)
-                .ToList();
+                // Create the repos and cache directories
+                Directory.CreateDirectory(RepositoriesDirectory);
+                Directory.CreateDirectory(CacheDirectory);
 
-            if (finalList.Any())
-            {
-                using (_telemetry.TrackUploadGitHubUsageBlobDuration())
+                await ProcessInParallel(inputBag, repo =>
                 {
-                    _logger.LogInformation("Uploading the GitHub Usage blob...");
-                    await WriteFinalBlobAsync(finalList);
-                    _logger.LogInformation("Uploaded the GitHub Usage blob...");
+                    try
+                    {
+                        outputBag.Add(ProcessSingleRepo(repo));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(0, ex, "[{RepoName}] Can't process repo", repo.Id);
+                    }
+                });
+
+                var finalList = outputBag
+                    .Where(repo => repo.Dependencies.Any())
+                    .OrderByDescending(x => x.Stars)
+                    .ThenBy(x => x.Id)
+                    .ToList();
+
+                if (finalList.Any())
+                {
+                    using (_telemetry.TrackUploadGitHubUsageBlobDuration())
+                    {
+                        _logger.LogInformation("Uploading the GitHub Usage blob...");
+                        await WriteFinalBlobAsync(finalList);
+                        _logger.LogInformation("Uploaded the GitHub Usage blob...");
+                    }
                 }
+                else
+                {
+                    _telemetry.TrackEmptyGitHubUsageBlob();
+                    _logger.LogError("The final GitHub Usage blob is empty!");
+                }
+
+                // Delete the repos and cache directory
+                Directory.Delete(RepositoriesDirectory, recursive: true);
+                Directory.Delete(CacheDirectory, recursive: true);
+
+                completed = true;
+                runDuration.Stop();
+
+                _logger.LogInformation(
+                    "Finished indexing GitHub repositories in {TotalSeconds} seconds.",
+                    runDuration.Elapsed.TotalSeconds);
             }
-            else
+            finally
             {
-                _telemetry.TrackEmptyGitHubUsageBlob();
-                _logger.LogError("The final GitHub Usage blob is empty!");
+                _telemetry.TrackRunDuration(runDuration.Elapsed, completed);
             }
-
-            // Delete the repos and cache directory
-            Directory.Delete(RepositoriesDirectory, recursive: true);
-            Directory.Delete(CacheDirectory, recursive: true);
 
             _logger.LogInformation("The job has succeeded. Sleeping for {Duration} before terminating.", _sleepAfterSuccess);
             await Task.Delay(_sleepAfterSuccess);
