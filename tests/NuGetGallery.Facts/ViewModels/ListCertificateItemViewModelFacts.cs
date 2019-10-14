@@ -22,12 +22,12 @@ namespace NuGetGallery.ViewModels
         [InlineData("a", "b")]
         [InlineData("c", null)]
         [InlineData("d", "")]
-        public void Constructor_InitializesProperties(string sha1Thumbprint, string deleteUrl)
+        public void Constructor_InitializesProperties(string thumbprint, string deleteUrl)
         {
-            var certificate = new Certificate() { Sha1Thumbprint = sha1Thumbprint };
+            var certificate = new Certificate() { Thumbprint = thumbprint };
             var viewModel = new ListCertificateItemViewModel(certificate, deleteUrl);
 
-            Assert.Equal(sha1Thumbprint, viewModel.Sha1Thumbprint);
+            Assert.Equal(thumbprint, viewModel.Thumbprint);
             Assert.Equal(deleteUrl, viewModel.DeleteUrl);
             Assert.Equal(!string.IsNullOrEmpty(deleteUrl), viewModel.CanDelete);
         }

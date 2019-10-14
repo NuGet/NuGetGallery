@@ -59,7 +59,9 @@ namespace NuGetGallery
 
                     certificate = new Certificate()
                     {
+#pragma warning disable CS0618 // Only set the SHA1 thumbprint, for backwards compatibility. Never read it.
                         Sha1Thumbprint = certificateFile.Sha1Thumbprint,
+#pragma warning restore CS0618
                         Thumbprint = certificateFile.Sha256Thumbprint,
                         UserCertificates = new List<UserCertificate>()
                     };

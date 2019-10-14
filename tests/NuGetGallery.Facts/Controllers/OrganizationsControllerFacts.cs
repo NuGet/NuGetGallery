@@ -1816,7 +1816,6 @@ namespace NuGetGallery
                 _certificate = new Certificate()
                 {
                     Key = 3,
-                    Sha1Thumbprint = "c",
                     Thumbprint = "d"
                 };
 
@@ -1936,7 +1935,7 @@ namespace NuGetGallery
 
                 Assert.True(viewModel.CanDelete);
                 Assert.Equal($"/organization/{_organization.Username}/certificates/{_certificate.Thumbprint}", viewModel.DeleteUrl);
-                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(_certificate.Thumbprint, viewModel.Thumbprint);
                 Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
 
@@ -1960,7 +1959,7 @@ namespace NuGetGallery
 
                 Assert.False(viewModel.CanDelete);
                 Assert.Null(viewModel.DeleteUrl);
-                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(_certificate.Thumbprint, viewModel.Thumbprint);
                 Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
 
@@ -1995,7 +1994,6 @@ namespace NuGetGallery
                 _certificate = new Certificate()
                 {
                     Key = 3,
-                    Sha1Thumbprint = "c",
                     Thumbprint = "d"
                 };
 
@@ -2102,7 +2100,7 @@ namespace NuGetGallery
 
                 Assert.True(viewModel.CanDelete);
                 Assert.Equal($"/organization/{_organization.Username}/certificates/{_certificate.Thumbprint}", viewModel.DeleteUrl);
-                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(_certificate.Thumbprint, viewModel.Thumbprint);
                 Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
 
@@ -2126,7 +2124,7 @@ namespace NuGetGallery
 
                 Assert.False(viewModel.CanDelete);
                 Assert.Null(viewModel.DeleteUrl);
-                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(_certificate.Thumbprint, viewModel.Thumbprint);
                 Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
 
@@ -2165,7 +2163,6 @@ namespace NuGetGallery
                 _certificate = new Certificate()
                 {
                     Key = 3,
-                    Sha1Thumbprint = "c",
                     Thumbprint = "d"
                 };
 
@@ -2354,7 +2351,6 @@ namespace NuGetGallery
                 _certificate = new Certificate()
                 {
                     Key = 3,
-                    Sha1Thumbprint = "c",
                     Thumbprint = "d"
                 };
 
