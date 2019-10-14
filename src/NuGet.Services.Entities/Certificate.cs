@@ -18,6 +18,7 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the SHA-1 thumbprint of the certificate.
         /// </summary>
+        [Obsolete("This property should not be used since SHA-1 usage is avoided in NuGetGallery.")]
         public string Sha1Thumbprint { get; set; }
 
         /// <summary>

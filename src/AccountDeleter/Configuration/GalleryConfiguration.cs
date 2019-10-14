@@ -48,7 +48,7 @@ namespace NuGetGallery.AccountDeleter
         public bool FeedOnlyMode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string FileStorageDirectory { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string Brand { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public StorageType StorageType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string StorageType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Uri SmtpUri { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string SqlConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string SqlConnectionStringSupportRequest { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

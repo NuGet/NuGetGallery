@@ -26,10 +26,14 @@ namespace NuGetGallery.Helpers
         }
 
         [Theory]
-        [InlineData("http://nuget.org/", false, "http://nuget.org/", true)]
+        [InlineData("http://nuget.org/", false, "https://nuget.org/", true)]
         [InlineData("http://nuget.org/", true, "https://nuget.org/", true)]
         [InlineData("https://nuget.org/", false, "https://nuget.org/", true)]
         [InlineData("https://nuget.org/", true, "https://nuget.org/", true)]
+        [InlineData("http://nugettest.org/", false, "https://nugettest.org/", true)]
+        [InlineData("http://nugettest.org/", true, "https://nugettest.org/", true)]
+        [InlineData("https://nugettest.org/", false, "https://nugettest.org/", true)]
+        [InlineData("https://nugettest.org/", true, "https://nugettest.org/", true)]
         [InlineData("http://www.github.com/", false, "https://www.github.com/", true)]
         [InlineData("http://www.github.com/", true, "https://www.github.com/", true)]
         [InlineData("https://www.github.com/", false, "https://www.github.com/", true)]

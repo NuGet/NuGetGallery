@@ -55,7 +55,7 @@ namespace NuGetGallery
             {
                 var owners = package.PackageRegistration?.Owners ?? Enumerable.Empty<User>();
                 var signerUsernames = owners.Where(owner => owner.UserCertificates.Any(uc => uc.CertificateKey == package.CertificateKey)).Select(owner => owner.Username).ToList();
-                viewModel.UpdateSignatureInformation(signerUsernames, package.Certificate.Sha1Thumbprint);
+                viewModel.UpdateSignatureInformation(signerUsernames, package.Certificate.Thumbprint);
             }
 
             return viewModel;

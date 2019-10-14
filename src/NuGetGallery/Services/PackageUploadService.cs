@@ -350,7 +350,7 @@ namespace NuGetGallery
 
             if (iconElement == null)
             {
-                if (embeddedIconsEnabled && nuspecReader.GetIconUrl() != null)
+                if (embeddedIconsEnabled && !string.IsNullOrWhiteSpace(nuspecReader.GetIconUrl()))
                 {
                     warnings.Add(new IconUrlDeprecationValidationMessage());
                 }

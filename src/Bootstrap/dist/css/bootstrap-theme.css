@@ -324,6 +324,10 @@ img.reserved-indicator-icon {
 .breadcrumb-menu h1 {
   margin-top: 0px;
 }
+.page-account-settings .small-fingerprint,
+.page-manage-organizations .small-fingerprint {
+  font-size: 75%;
+}
 .modal-backdrop.in {
   opacity: 0.8 !important;
   position: fixed;
