@@ -22,5 +22,10 @@ namespace NuGet.Services.DatabaseMigration
                 SqlConnection.AccessToken = SqlConnectionAccessToken;
             }
         }
+
+        public void Dispose()
+        {
+            SqlConnection?.Dispose();
+        }
     }
 }

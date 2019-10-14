@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using System.Data.Entity.Migrations;
@@ -43,12 +42,10 @@ namespace NuGet.Services.DatabaseMigration
         {
             Logger.LogInformation("Initializing database migration context...");
 
-            var migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider);
-
-            ExecuteDatabaseMigration(migrationContext.GetDbMigrator,
-                migrationContext.SqlConnection);
-
-            migrationContext.SqlConnection.Dispose();
+            using (var migrationContext = await _migrationContextFactory.CreateMigrationContextAsync(_migrationTargetDatabase, _serviceProvider))
+            {
+                ExecuteDatabaseMigration(migrationContext.GetDbMigrator, migrationContext.SqlConnection);
+            }
         }
 
         public void CheckIsValidMigration(List<string> databaseMigrations, List<string> localMigrations)
