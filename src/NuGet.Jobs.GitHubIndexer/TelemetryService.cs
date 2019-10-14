@@ -10,6 +10,7 @@ namespace NuGet.Jobs.GitHubIndexer
     public class TelemetryService : ITelemetryService
     {
         private const string Prefix = "GitHubIndexer.";
+        private const string RunDuration = Prefix + "RunDurationSeconds";
         private const string DiscoverRepositoriesDuration = Prefix + "DiscoverRepositoriesDurationSeconds";
         private const string IndexRepositoryDuration = Prefix + "IndexRepositoryDurationSeconds";
         private const string ListFilesDuration = Prefix + "ListFilesDurationSeconds";
@@ -17,6 +18,7 @@ namespace NuGet.Jobs.GitHubIndexer
         private const string UploadGitHubUsageBlobDuration = Prefix + "UploadGitHubUsageBlobDurationSeconds";
         private const string EmptyGitHubUsageBlob = Prefix + "EmptyGitHubUsageBlob";
 
+        private const string Completed = "Completed";
         private const string RepositoryName = "RepositoryName";
 
         private readonly ITelemetryClient _telemetryClient;
@@ -24,6 +26,17 @@ namespace NuGet.Jobs.GitHubIndexer
         public TelemetryService(ITelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+        }
+
+        public void TrackRunDuration(TimeSpan duration, bool completed)
+        {
+            _telemetryClient.TrackMetric(
+                RunDuration,
+                duration.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { Completed, completed.ToString() }
+                });
         }
 
         public IDisposable TrackDiscoverRepositoriesDuration()

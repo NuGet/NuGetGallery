@@ -117,6 +117,46 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
         public class TheRunMethod
         {
             [Fact]
+            public async Task TracksNotCompleted()
+            {
+                // Arrange
+                var exception = new NotSupportedException("Look ma, I'm an exception!");
+
+                var options = new Mock<IOptionsSnapshot<GitHubIndexerConfiguration>>();
+                options
+                    .Setup(o => o.Value)
+                    .Returns(new GitHubIndexerConfiguration());
+
+                var searcher = new Mock<IGitRepoSearcher>();
+                searcher
+                    .Setup(s => s.GetPopularRepositories())
+                    .Throws(exception);
+
+                var telemetry = new Mock<ITelemetryService>();
+
+                var target = new ReposIndexer(
+                    searcher.Object,
+                    Mock.Of<ILogger<ReposIndexer>>(),
+                    Mock.Of<IRepositoriesCache>(),
+                    Mock.Of<IConfigFileParser>(),
+                    Mock.Of<IRepoFetcher>(),
+                    Mock.Of<ICloudBlobClient>(),
+                    options.Object,
+                    telemetry.Object);
+
+                // Act
+                var result = await Assert.ThrowsAsync<NotSupportedException>(
+                    () => target.RunAsync());
+
+                // Assert
+                Assert.Equal("Look ma, I'm an exception!", result.Message);
+
+                telemetry.Verify(
+                    t => t.TrackRunDuration(It.IsAny<TimeSpan>(), /* completed: */ false),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task TestNoDependenciesInFiles()
             {
                 var repo = new WritableRepositoryInformation("owner/test", url: "", stars: 100, description: "", mainBranch: "master");
@@ -164,6 +204,9 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 telemetry.Verify(t => t.TrackListFilesDuration("owner/test"), Times.Once);
                 telemetry.Verify(t => t.TrackCheckOutFilesDuration("owner/test"), Times.Once);
                 telemetry.Verify(t => t.TrackUploadGitHubUsageBlobDuration(), Times.Never);
+                telemetry.Verify(
+                    t => t.TrackRunDuration(It.IsAny<TimeSpan>(), /* completed: */ true),
+                    Times.Once);
 
                 indexMetric.Verify(m => m.Dispose(), Times.Once);
                 listMetric.Verify(m => m.Dispose(), Times.Once);
@@ -267,6 +310,9 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 telemetry.Verify(t => t.TrackListFilesDuration("owner/test"), Times.Once);
                 telemetry.Verify(t => t.TrackCheckOutFilesDuration("owner/test"), Times.Once);
                 telemetry.Verify(t => t.TrackUploadGitHubUsageBlobDuration(), Times.Once);
+                telemetry.Verify(
+                    t => t.TrackRunDuration(It.IsAny<TimeSpan>(), /* completed: */ true),
+                    Times.Once);
 
                 indexMetric.Verify(m => m.Dispose(), Times.Once);
                 listMetric.Verify(m => m.Dispose(), Times.Once);
@@ -348,6 +394,9 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                 telemetry.Verify(t => t.TrackListFilesDuration("owner/test"), Times.Once);
                 telemetry.Verify(t => t.TrackCheckOutFilesDuration("owner/test"), Times.Once);
                 telemetry.Verify(t => t.TrackUploadGitHubUsageBlobDuration(), Times.Once);
+                telemetry.Verify(
+                    t => t.TrackRunDuration(It.IsAny<TimeSpan>(), /* completed: */ true),
+                    Times.Once);
 
                 indexMetric.Verify(m => m.Dispose(), Times.Once);
                 listMetric.Verify(m => m.Dispose(), Times.Once);
