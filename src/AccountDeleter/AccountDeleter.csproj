@@ -107,7 +107,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.1.0-master-2602271</Version>
+      <Version>4.3.0-ryuyu-update-extensions-3142787</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.58.0-ryuyu-update-common-3142384</Version>
@@ -122,7 +122,7 @@
       <Version>2.58.0-ryuyu-update-common-3142384</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.1.0-dev-2759568</Version>
+      <Version>4.3.0-ryuyu-update-extensions-3142787</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
