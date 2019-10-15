@@ -128,6 +128,8 @@ namespace NuGet.Services.AzureSearch
             public DbSet<SymbolPackage> SymbolPackages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<Package> Packages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<PackageDeprecation> Deprecations { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<PackageVulnerability> Vulnerabilities { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
             public bool Disposed { get; private set; }
 
