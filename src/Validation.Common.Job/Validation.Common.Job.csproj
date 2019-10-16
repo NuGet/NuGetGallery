@@ -56,6 +56,7 @@
     <Compile Include="ICommonTelemetryService.cs" />
     <Compile Include="IPackageDownloader.cs" />
     <Compile Include="Leases\ILeaseService.cs" />
+    <Compile Include="Leases\LeaseConfiguration.cs" />
     <Compile Include="Leases\LeaseResult.cs" />
     <Compile Include="Leases\CloudBlobLeaseService.cs" />
     <Compile Include="LoggerDiagnosticsService.cs" />

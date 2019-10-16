@@ -21,5 +21,10 @@ namespace NuGet.Jobs.Validation
         {
             return _featureFlagClient.IsEnabled(ValidationPrefix + "QueueBack", defaultValue: false);
         }
+
+        public bool IsOrchestratorLeaseEnabled()
+        {
+            return _featureFlagClient.IsEnabled(ValidationPrefix + "OrchestratorLease", defaultValue: false);
+        }
     }
 }
