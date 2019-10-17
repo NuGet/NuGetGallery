@@ -24,7 +24,7 @@ namespace NuGetGallery.DatabaseMigrationTools
             };
 
             var migrationsConfiguration = new SupportRequestMigrationsConfiguration();
-            GetDbMigrator = () => new DbMigrator(migrationsConfiguration);
+            GetDbMigrator = () => new DbMigrator(migrationsConfiguration, new SupportRequestDbContext(SqlConnection));
         }
     }
 }
