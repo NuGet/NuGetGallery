@@ -15,6 +15,8 @@ namespace NuGet.Services.Configuration
         private ISecretReaderFactory _secretReaderFactory;
         private Lazy<ISecretInjector> _secretInjector;
 
+        public IEnumerable<Microsoft.Extensions.Configuration.IConfigurationProvider> Providers => throw new NotImplementedException();
+
         private ISecretInjector InitSecretInjector()
         {
             return _secretReaderFactory.CreateSecretInjector(_secretReaderFactory.CreateSecretReader());
