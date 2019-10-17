@@ -147,6 +147,40 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             }
         }
 
+        public class LoadDownloadOverridesAsync : BaseFacts
+        {
+            public LoadDownloadOverridesAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            [Fact]
+            public async Task ReadsContent()
+            {
+                var json = @"
+{
+    ""A"": 10,
+    ""B"": 1
+}
+";
+                _blob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
+
+                var actual = await _target.LoadDownloadOverridesAsync();
+
+                Assert.NotNull(actual);
+                Assert.Equal(10, actual["A"]);
+                Assert.Equal(1, actual["B"]);
+                Assert.Equal(1, actual["b"]);
+                _blobClient.Verify(x => x.GetContainerReference("my-container"), Times.Once);
+                _blobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Once);
+                _container.Verify(x => x.GetBlobReference("my-download-overrides.json"), Times.Once);
+                _container.Verify(x => x.GetBlobReference(It.IsAny<string>()), Times.Once);
+                _blob.Verify(x => x.OpenReadAsync(It.Is<AccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == null)), Times.Once);
+                _blob.Verify(x => x.OpenReadAsync(It.IsAny<AccessCondition>()), Times.Once);
+            }
+        }
+
         public abstract class BaseFacts
         {
             protected readonly Mock<ICloudBlobClient> _blobClient;
@@ -172,6 +206,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 _config.AuxiliaryDataStorageContainer = "my-container";
                 _config.AuxiliaryDataStorageDownloadsPath = "my-downloads.json";
+                _config.AuxiliaryDataStorageDownloadOverridesPath = "my-download-overrides.json";
                 _config.AuxiliaryDataStorageVerifiedPackagesPath = "my-verified-packages.json";
                 _config.AuxiliaryDataStorageExcludedPackagesPath = "my-excluded-packages.json";
                 _options.Setup(x => x.Value).Returns(() => _config);

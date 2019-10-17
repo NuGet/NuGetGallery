@@ -37,6 +37,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly NewPackageRegistrationProducer _target;
             private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
             private readonly DownloadData _downloads;
+            private readonly Dictionary<string, long> _downloadOverrides;
             private readonly HashSet<string> _verifiedPackages;
             private HashSet<string> _excludedPackages;
 
@@ -64,6 +65,10 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _auxiliaryFileClient
                     .Setup(x => x.LoadDownloadDataAsync())
                     .ReturnsAsync(() => _downloads);
+                _downloadOverrides = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+                _auxiliaryFileClient
+                    .Setup(x => x.LoadDownloadOverridesAsync())
+                    .ReturnsAsync(() => _downloadOverrides);
                 _verifiedPackages = new HashSet<string>();
                 _auxiliaryFileClient
                     .Setup(x => x.LoadVerifiedPackagesAsync())
@@ -362,6 +367,154 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         inner: null));
 
                 await Assert.ThrowsAsync<StorageException>(async () => await _target.ProduceWorkAsync(_work, _token));
+            }
+
+            [Fact]
+            public async Task OverridesDownloadCounts()
+            {
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 1,
+                    Id = "A",
+                    Packages = new[]
+                    {
+                        new Package { Version = "1.0.0" },
+                        new Package { Version = "2.0.0" },
+                    },
+                });
+                _downloads.SetDownloadCount("A", "1.0.0", 12);
+                _downloads.SetDownloadCount("A", "2.0.0", 23);
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 2,
+                    Id = "B",
+                    Packages = new[]
+                    {
+                        new Package { Version = "3.0.0" },
+                        new Package { Version = "4.0.0" },
+                    },
+                });
+                _downloads.SetDownloadCount("B", "3.0.0", 5);
+                _downloads.SetDownloadCount("B", "4.0.0", 4);
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 3,
+                    Id = "C",
+                    Packages = new[]
+                    {
+                        new Package { Version = "5.0.0" },
+                        new Package { Version = "6.0.0" },
+                    },
+                });
+                _downloads.SetDownloadCount("C", "5.0.0", 2);
+                _downloads.SetDownloadCount("C", "6.0.0", 3);
+
+                InitializePackagesFromPackageRegistrations();
+
+                _downloadOverrides["A"] = 55;
+                _downloadOverrides["b"] = 66;
+
+                var result = await _target.ProduceWorkAsync(_work, _token);
+
+                // Documents should have overriden downloads.
+                var work = _work.Reverse().ToList();
+                Assert.Equal(3, work.Count);
+
+                Assert.Equal("A", work[0].PackageId);
+                Assert.Equal("1.0.0", work[0].Packages[0].Version);
+                Assert.Equal("2.0.0", work[0].Packages[1].Version);
+                Assert.Equal(55, work[0].TotalDownloadCount);
+
+                Assert.Equal("B", work[1].PackageId);
+                Assert.Equal("3.0.0", work[1].Packages[0].Version);
+                Assert.Equal("4.0.0", work[1].Packages[1].Version);
+                Assert.Equal(66, work[1].TotalDownloadCount);
+
+                Assert.Equal("C", work[2].PackageId);
+                Assert.Equal("5.0.0", work[2].Packages[0].Version);
+                Assert.Equal("6.0.0", work[2].Packages[1].Version);
+                Assert.Equal(5, work[2].TotalDownloadCount);
+
+                // Downloads auxiliary file should have original downloads.
+                Assert.Equal(12, result.Downloads["A"]["1.0.0"]);
+                Assert.Equal(23, result.Downloads["A"]["2.0.0"]);
+                Assert.Equal(5, result.Downloads["B"]["3.0.0"]);
+                Assert.Equal(4, result.Downloads["B"]["4.0.0"]);
+                Assert.Equal(2, result.Downloads["C"]["5.0.0"]);
+                Assert.Equal(3, result.Downloads["C"]["6.0.0"]);
+            }
+
+            [Fact]
+            public async Task DoesNotOverrideIfDownloadsGreaterOrPackageHasNoDownloads()
+            {
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 1,
+                    Id = "A",
+                    Packages = new[]
+                    {
+                        new Package { Version = "1.0.0" },
+                        new Package { Version = "2.0.0" },
+                    },
+                });
+                _downloads.SetDownloadCount("A", "1.0.0", 100);
+                _downloads.SetDownloadCount("A", "2.0.0", 200);
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 2,
+                    Id = "B",
+                    Packages = new[]
+                    {
+                        new Package { Version = "3.0.0" },
+                        new Package { Version = "4.0.0" },
+                    },
+                });
+                _downloads.SetDownloadCount("B", "3.0.0", 5);
+                _downloads.SetDownloadCount("B", "4.0.0", 4);
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 3,
+                    Id = "C",
+                    Packages = new[]
+                    {
+                        new Package { Version = "5.0.0" },
+                    },
+                });
+                _downloads.SetDownloadCount("C", "5.0.0", 0);
+
+                InitializePackagesFromPackageRegistrations();
+
+                _downloadOverrides["A"] = 55;
+                _downloadOverrides["C"] = 66;
+                _downloadOverrides["D"] = 77;
+
+                var result = await _target.ProduceWorkAsync(_work, _token);
+
+                // Documents should have overriden downloads.
+                var work = _work.Reverse().ToList();
+                Assert.Equal(3, work.Count);
+
+                Assert.Equal("A", work[0].PackageId);
+                Assert.Equal("1.0.0", work[0].Packages[0].Version);
+                Assert.Equal("2.0.0", work[0].Packages[1].Version);
+                Assert.Equal(300, work[0].TotalDownloadCount);
+
+                Assert.Equal("B", work[1].PackageId);
+                Assert.Equal("3.0.0", work[1].Packages[0].Version);
+                Assert.Equal("4.0.0", work[1].Packages[1].Version);
+                Assert.Equal(9, work[1].TotalDownloadCount);
+
+                Assert.Equal("C", work[2].PackageId);
+                Assert.Equal("5.0.0", work[2].Packages[0].Version);
+                Assert.Equal(0, work[2].TotalDownloadCount);
+
+                // Downloads auxiliary file should have original downloads.
+                Assert.Equal(100, result.Downloads["A"]["1.0.0"]);
+                Assert.Equal(200, result.Downloads["A"]["2.0.0"]);
+                Assert.Equal(5, result.Downloads["B"]["3.0.0"]);
+                Assert.Equal(4, result.Downloads["B"]["4.0.0"]);
+                Assert.DoesNotContain("C", result.Downloads.Keys);
+                Assert.DoesNotContain("D", result.Downloads.Keys);
             }
 
             private void InitializePackagesFromPackageRegistrations()

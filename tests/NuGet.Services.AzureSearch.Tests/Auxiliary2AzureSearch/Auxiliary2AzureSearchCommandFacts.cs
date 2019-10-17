@@ -6,7 +6,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Castle.Core.Logging;
 using Microsoft.Azure.Search.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
@@ -197,6 +199,171 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 Assert.Equal(10, downloadData.GetDownloadCount("ValidId"));
                 Assert.Contains("There were 1 invalid IDs, 2 invalid versions, and 1 non-normalized IDs.", Logger.Messages);
             }
+
+            [Fact]
+            public async Task OverridesDownloadCounts()
+            {
+                DownloadSetComparer
+                    .Setup(c => c.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
+                    .Returns<DownloadData, DownloadData>((oldData, newData) =>
+                    {
+                        return new SortedDictionary<string, long>(
+                            newData.ToDictionary(d => d.Key, d => d.Value.Total),
+                            StringComparer.OrdinalIgnoreCase);
+                    });
+
+                NewDownloadData.SetDownloadCount("A", "1.0.0", 12);
+                NewDownloadData.SetDownloadCount("A", "2.0.0", 34);
+
+                NewDownloadData.SetDownloadCount("B", "3.0.0", 5);
+                NewDownloadData.SetDownloadCount("B", "4.0.0", 4);
+
+                NewDownloadData.SetDownloadCount("C", "5.0.0", 2);
+                NewDownloadData.SetDownloadCount("C", "6.0.0", 3);
+
+                DownloadOverrides["A"] = 55;
+                DownloadOverrides["b"] = 66;
+
+                await Target.ExecuteAsync();
+
+                // Documents should have new data with overriden downloads.
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("A", SearchFilters.IncludePrereleaseAndSemVer2, 55),
+                        Times.Once);
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("B", SearchFilters.IncludePrereleaseAndSemVer2, 66),
+                        Times.Once);
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("C", SearchFilters.IncludePrereleaseAndSemVer2, 5),
+                        Times.Once);
+
+                // Downloads auxiliary file should have new data without overriden downloads.
+                DownloadDataClient.Verify(
+                    c => c.ReplaceLatestIndexedAsync(
+                        It.Is<DownloadData>(d =>
+                            d["A"].Total == 46 &&
+                            d["A"]["1.0.0"] == 12 &&
+                            d["A"]["2.0.0"] == 34 &&
+
+                            d["B"].Total == 9 &&
+                            d["B"]["3.0.0"] == 5 &&
+                            d["B"]["4.0.0"] == 4 &&
+
+                            d["C"].Total == 5 &&
+                            d["C"]["5.0.0"] == 2 &&
+                            d["C"]["6.0.0"] == 3),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task AlwaysAppliesDownloadOverrides()
+            {
+                DownloadSetComparer
+                    .Setup(c => c.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
+                    .Returns<DownloadData, DownloadData>((oldData, newData) =>
+                    {
+                        var config = new Auxiliary2AzureSearchConfiguration();
+                        var telemetry = Mock.Of<IAzureSearchTelemetryService>();
+                        var logger = Mock.Of<ILogger<DownloadSetComparer>>();
+                        var options = new Mock<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>>();
+
+                        options.Setup(o => o.Value).Returns(config);
+
+                        return new DownloadSetComparer(telemetry, options.Object, logger)
+                            .Compare(oldData, newData);
+                    });
+
+                // Download override should be applied even if the package's downloads haven't changed.
+                OldDownloadData.SetDownloadCount("A", "1.0.0", 1);
+                NewDownloadData.SetDownloadCount("A", "1.0.0", 1);
+                DownloadOverrides["A"] = 2;
+
+                await Target.ExecuteAsync();
+
+                // Documents should have new data with overriden downloads.
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("A", SearchFilters.IncludePrereleaseAndSemVer2, 2),
+                        Times.Once);
+
+                // Downloads auxiliary file should have new data without overriden downloads.
+                DownloadDataClient.Verify(
+                    c => c.ReplaceLatestIndexedAsync(
+                        It.Is<DownloadData>(d =>
+                            d["A"].Total == 1 &&
+                            d["A"]["1.0.0"] == 1),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotOverrideIfDownloadsGreaterOrPackageHasNoDownloads()
+            {
+                DownloadSetComparer
+                    .Setup(c => c.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
+                    .Returns<DownloadData, DownloadData>((oldData, newData) =>
+                    {
+                        return new SortedDictionary<string, long>(
+                            newData.ToDictionary(d => d.Key, d => d.Value.Total),
+                            StringComparer.OrdinalIgnoreCase);
+                    });
+
+                NewDownloadData.SetDownloadCount("A", "1.0.0", 100);
+                NewDownloadData.SetDownloadCount("A", "2.0.0", 200);
+
+                NewDownloadData.SetDownloadCount("B", "3.0.0", 5);
+                NewDownloadData.SetDownloadCount("B", "4.0.0", 4);
+
+                NewDownloadData.SetDownloadCount("C", "5.0.0", 0);
+
+                DownloadOverrides["A"] = 55;
+                DownloadOverrides["C"] = 66;
+                DownloadOverrides["D"] = 77;
+
+                await Target.ExecuteAsync();
+
+                // Documents should have new data with overriden downloads.
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("A", SearchFilters.IncludePrereleaseAndSemVer2, 300),
+                        Times.Once);
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("B", SearchFilters.IncludePrereleaseAndSemVer2, 9),
+                        Times.Once);
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("B", SearchFilters.IncludePrereleaseAndSemVer2, 9),
+                        Times.Once);
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("C", It.IsAny<SearchFilters>(), It.IsAny<long>()),
+                        Times.Never);
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("D", It.IsAny<SearchFilters>(), It.IsAny<long>()),
+                        Times.Never);
+
+                // Downloads auxiliary file should have new data without overriden downloads.
+                DownloadDataClient.Verify(
+                    c => c.ReplaceLatestIndexedAsync(
+                        It.Is<DownloadData>(d =>
+                            d.Keys.Count() == 2 &&
+
+                            d["A"].Total == 300 &&
+                            d["A"]["1.0.0"] == 100 &&
+                            d["A"]["2.0.0"] == 200 &&
+
+                            d["B"].Total == 9 &&
+                            d["B"]["3.0.0"] == 5 &&
+                            d["B"]["4.0.0"] == 4),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+            }
         }
 
         public abstract class Facts
@@ -231,6 +398,10 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .ReturnsAsync(() => OldDownloadResult);
                 NewDownloadData = new DownloadData();
                 AuxiliaryFileClient.Setup(x => x.LoadDownloadDataAsync()).ReturnsAsync(() => NewDownloadData);
+                DownloadOverrides = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+                AuxiliaryFileClient
+                    .Setup(x => x.LoadDownloadOverridesAsync())
+                    .ReturnsAsync(() => DownloadOverrides);
 
                 OldVerifiedPackagesData = new HashSet<string>();
                 OldVerifiedPackagesResult = Data.GetAuxiliaryFileResult(OldVerifiedPackagesData, "verified-packages-etag");
@@ -310,6 +481,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public DownloadData OldDownloadData { get; }
             public AuxiliaryFileResult<DownloadData> OldDownloadResult { get; }
             public DownloadData NewDownloadData { get; }
+            public Dictionary<string, long> DownloadOverrides { get; }
             public SortedDictionary<string, long> Changes { get; }
             public Auxiliary2AzureSearchCommand Target { get; }
             public IndexActions IndexActions { get; set; }

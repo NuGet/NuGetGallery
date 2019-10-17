@@ -77,6 +77,16 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     logger: _logger));
         }
 
+        public async Task<IReadOnlyDictionary<string, long>> LoadDownloadOverridesAsync()
+        {
+            return await LoadAuxiliaryFileAsync(
+                _options.Value.AuxiliaryDataStorageDownloadOverridesPath,
+                loader => DownloadOverrides.Load(
+                    fileName: null,
+                    loader: loader,
+                    logger: _logger));
+        }
+
         private async Task<T> LoadAuxiliaryFileAsync<T>(
             string blobName,
             Func<ILoader, T> loadData) where T : class

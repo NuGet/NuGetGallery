@@ -54,6 +54,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             // numbers we don't use the gallery DB values.
             var downloads = await _auxiliaryFileClient.LoadDownloadDataAsync();
 
+            // Fetch the download overrides from the auxiliary file. Note that the overriden downloads are kept
+            // separate from downloads data as the original data will be persisted to auxiliary data, whereas the
+            // overriden data will be persisted to Azure Search.
+            var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
+            var overridenDownloads = downloads.ApplyDownloadOverrides(downloadOverrides, _logger);
+
             // Fetch the verified packages file. This is not used inside the index but is used at query-time in the
             // Azure Search service. We want to copy this file to the local region's storage container to improve
             // availability and start-up of the service.
@@ -94,7 +100,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                     allWork.Add(new NewPackageRegistration(
                         pr.Id,
-                        downloads.GetDownloadCount(pr.Id),
+                        overridenDownloads.GetDownloadCount(pr.Id),
                         pr.Owners,
                         packages,
                         isExcludedByDefault));

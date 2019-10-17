@@ -13,6 +13,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public string AuxiliaryDataStorageConnectionString { get; set; }
         public string AuxiliaryDataStorageContainer { get; set; }
         public string AuxiliaryDataStorageDownloadsPath { get; set; }
+        public string AuxiliaryDataStorageDownloadOverridesPath { get; set; }
         public string AuxiliaryDataStorageExcludedPackagesPath { get; set; }
         public string AuxiliaryDataStorageVerifiedPackagesPath { get; set; }
     }
