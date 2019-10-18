@@ -58,7 +58,19 @@ namespace Ng
                 TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobNameTelemetryInitializer(jobName, instanceName));
 
                 // Configure ApplicationInsights
-                ApplicationInsights.Initialize(arguments.GetOrDefault<string>(Arguments.InstrumentationKey));
+                var instrumentationKey = arguments.GetOrDefault<string>(Arguments.InstrumentationKey);
+                var heartbeatIntervalSeconds = arguments.GetOrDefault<int>(Arguments.HeartbeatIntervalSeconds);
+
+                if (heartbeatIntervalSeconds == 0)
+                {
+                    ApplicationInsights.Initialize(instrumentationKey);
+                }
+                else
+                {
+                    ApplicationInsights.Initialize(
+                        instrumentationKey,
+                        TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+                }
 
                 // Create an ILoggerFactory
                 var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: true);
@@ -83,7 +95,7 @@ namespace Ng
             catch (ArgumentException ae)
             {
                 _logger?.LogError("A required argument was not found or was malformed/invalid: {Exception}", ae);
-                
+
                 Console.WriteLine(job != null ? job.GetUsage() : NgJob.GetUsageBase());
             }
             catch (Exception e)

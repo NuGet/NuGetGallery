@@ -15,6 +15,7 @@ namespace Ng
         public const string Gallery = "gallery";
         public const string Id = "id";
         public const string InstrumentationKey = "instrumentationkey";
+        public const string HeartbeatIntervalSeconds = "HeartbeatIntervalSeconds";
         public const string Path = "path";
         public const string Source = "source";
         public const string Verbose = "verbose";

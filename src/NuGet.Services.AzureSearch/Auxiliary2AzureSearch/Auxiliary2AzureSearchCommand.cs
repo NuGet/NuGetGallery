@@ -144,8 +144,15 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             _logger.LogInformation("Removing invalid IDs and versions from the new data.");
             CleanDownloadData(newData);
 
+            // Fetch the download overrides from the auxiliary file. Note that the overriden downloads are kept
+            // separate from downloads data as the original data will be persisted to auxiliary data, whereas the
+            // overriden data will be persisted to Azure Search.
+            _logger.LogInformation("Overriding download count data.");
+            var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
+            var overridenDownloads = newData.ApplyDownloadOverrides(downloadOverrides, _logger);
+
             _logger.LogInformation("Detecting download count changes.");
-            var changes = _downloadSetComparer.Compare(oldResult.Data, newData);
+            var changes = _downloadSetComparer.Compare(oldResult.Data, overridenDownloads);
             var idBag = new ConcurrentBag<string>(changes.Keys);
             _logger.LogInformation("{Count} package IDs have download count changes.", idBag.Count);
 

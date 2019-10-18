@@ -120,9 +120,12 @@ namespace NuGet.Services.SearchService
             var configuration = GetConfiguration();
 
             var instrumentationKey = configuration.Root.GetValue<string>("ApplicationInsights_InstrumentationKey");
+            var heartbeatIntervalSeconds = configuration.Root.GetValue("ApplicationInsights_HeartbeatIntervalSeconds", 60);
             if (!string.IsNullOrWhiteSpace(instrumentationKey))
             {
-                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+                ApplicationInsights.Initialize(
+                    instrumentationKey, 
+                    TimeSpan.FromSeconds(heartbeatIntervalSeconds));
             }
 
             TelemetryConfiguration.Active.TelemetryInitializers.Add(new AzureWebAppTelemetryInitializer());
