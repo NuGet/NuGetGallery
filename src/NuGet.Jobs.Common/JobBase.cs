@@ -98,7 +98,7 @@ namespace NuGet.Jobs
         public SqlConnectionStringBuilder RegisterDatabase<T>(
             IServiceProvider services,
             bool testConnection = true)
-            where T : IDbConfiguration
+            where T : class, IDbConfiguration, new()
         {
             if (services == null)
             {

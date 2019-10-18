@@ -168,7 +168,7 @@ namespace NuGet.Jobs
         }
 
         private void RegisterDatabaseIfConfigured<TDbConfiguration>(IServiceProvider serviceProvider, bool testConnection)
-            where TDbConfiguration : IDbConfiguration
+            where TDbConfiguration : class, IDbConfiguration, new()
         {
             var dbConfiguration = serviceProvider.GetRequiredService<IOptionsSnapshot<TDbConfiguration>>();
             if (!string.IsNullOrEmpty(dbConfiguration.Value?.ConnectionString))

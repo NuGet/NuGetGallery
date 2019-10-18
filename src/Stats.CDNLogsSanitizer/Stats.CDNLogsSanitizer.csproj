@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Stats.CDNLogsSanitizer</RootNamespace>
     <AssemblyName>Stats.CDNLogsSanitizer</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -67,7 +67,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.5-dev-3032701</Version>
+      <Version>4.4.5-dev-3159574</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
