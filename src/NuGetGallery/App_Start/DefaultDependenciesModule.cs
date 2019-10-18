@@ -20,7 +20,6 @@ using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using Elmah;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -98,7 +97,20 @@ namespace NuGetGallery
             var instrumentationKey = configuration.Current.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(instrumentationKey))
             {
-                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+                var heartbeatIntervalSeconds = configuration.Current.AppInsightsHeartbeatIntervalSeconds;
+
+                if (heartbeatIntervalSeconds > 0)
+                {
+                    // Configure instrumentation key, heartbeat interval, 
+                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
+                    ApplicationInsights.Initialize(instrumentationKey, TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+                }
+                else
+                {
+                    // Configure instrumentation key,
+                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
+                    ApplicationInsights.Initialize(instrumentationKey);
+                }
             }
 
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);

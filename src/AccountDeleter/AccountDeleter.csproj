@@ -123,6 +123,8 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
       <Version>4.3.0-ryuyu-update-extensions-3142787</Version>
+    <PackageReference Include="NuGet.Services.Validation.Common.Job">
+      <Version>4.2.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
