@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
+using NuGet.Jobs.Validation.Leases;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 
@@ -20,6 +21,8 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidationSetProvider<SymbolPackage> validationSetProvider,
             IValidationSetProcessor validationSetProcessor,
             IValidationOutcomeProcessor<SymbolPackage> validationOutcomeProcessor,
+            ILeaseService leaseService,
+            IPackageValidationEnqueuer validationEnqueuer,
             IFeatureFlagService featureFlagService,
             ITelemetryService telemetryService,
             ILogger<SymbolValidationMessageHandler> logger) : base(
@@ -28,6 +31,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 validationSetProvider,
                 validationSetProcessor,
                 validationOutcomeProcessor,
+                leaseService,
+                validationEnqueuer,
                 featureFlagService,
                 telemetryService,
                 logger)

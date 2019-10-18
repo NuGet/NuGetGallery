@@ -216,6 +216,8 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
 
             _enqueuerMock
                 .Verify(e => e.EnqueueScanAsync(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+            _enqueuerMock
+                .Verify(e => e.EnqueueScanAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
             _validatorStateServiceMock
                 .Verify(vss => vss.AddStatusAsync(It.IsAny<ValidatorStatus>()), Times.Never);
             _validatorStateServiceMock
@@ -353,6 +355,8 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
 
             _enqueuerMock
                 .Verify(e => e.EnqueueScanAsync(_request.ValidationId, _request.NupkgUrl), Times.Once);
+            _enqueuerMock
+                .Verify(e => e.EnqueueScanAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
 
             _validatorStateServiceMock
                 .Verify(vss => vss.TryAddValidatorStatusAsync(_request, _status, ValidationStatus.Incomplete), Times.Once);
@@ -385,6 +389,8 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
 
             _enqueuerMock
                 .Verify(e => e.EnqueueScanAsync(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+            _enqueuerMock
+                .Verify(e => e.EnqueueScanAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
             _validatorStateServiceMock
                 .Verify(vss => vss.TryAddValidatorStatusAsync(It.IsAny<IValidationRequest>(), It.IsAny<ValidatorStatus>(), It.IsAny<ValidationStatus>()), Times.Never);
         }
@@ -410,6 +416,8 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
 
             _enqueuerMock
                 .Verify(e => e.EnqueueScanAndSignAsync(_request.ValidationId, _request.NupkgUrl, _config.V3ServiceIndexUrl, It.IsAny<List<string>>()), Times.Once);
+            _enqueuerMock
+                .Verify(e => e.EnqueueScanAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
 
             _validatorStateServiceMock
                 .Verify(v =>

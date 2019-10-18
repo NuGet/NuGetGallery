@@ -17,16 +17,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.ServiceBus.Messaging;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
+using NuGet.Jobs.Validation.Leases;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.Configuration;
 using NuGet.Services.Entities;
-using NuGet.Services.FeatureFlags;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
@@ -65,7 +67,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string EmailConfigurationSectionName = "Email";
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
         private const string FlatContainerConfigurationSectionName = "FlatContainer";
-        private const string FeatureFlagConfigurationSectionName = "FeatureFlags";
+        private const string LeaseConfigurationSectionName = "Leases";
 
         private const string EmailBindingKey = EmailConfigurationSectionName;
         private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
@@ -203,6 +205,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.Configure<SymbolScanOnlyConfiguration>(configurationRoot.GetSection(SymbolScanOnlySectionName));
             services.Configure<ScanAndSignEnqueuerConfiguration>(configurationRoot.GetSection(ScanAndSignSectionName));
             services.Configure<FlatContainerConfiguration>(configurationRoot.GetSection(FlatContainerConfigurationSectionName));
+            services.Configure<LeaseConfiguration>(configurationRoot.GetSection(LeaseConfigurationSectionName));
 
             services.Configure<SymbolsValidationConfiguration>(configurationRoot.GetSection(SymbolsValidatorSectionName));
             services.Configure<SymbolsIngesterConfiguration>(configurationRoot.GetSection(SymbolsIngesterSectionName));
@@ -379,6 +382,7 @@ namespace NuGet.Services.Validation.Orchestrator
             }
 
             ValidationJobBase.ConfigureFeatureFlagAutofacServices(containerBuilder);
+            ConfigureLeaseService(containerBuilder);
 
             return new AutofacServiceProvider(containerBuilder.Build());
         }
@@ -455,6 +459,19 @@ namespace NuGet.Services.Validation.Orchestrator
                     (pi, ctx) => pi.ParameterType == typeof(TimeSpan?),
                     (pi, ctx) => ctx.Resolve<IOptionsSnapshot<ValidateCertificateConfiguration>>().Value.CertificateRevalidationThreshold)
                 .As<PackageCertificatesValidator>();
+        }
+
+        private static void ConfigureLeaseService(ContainerBuilder builder)
+        {
+            builder
+                .Register(c =>
+                {
+                    var config = c.Resolve<IOptionsSnapshot<LeaseConfiguration>>().Value;
+                    var storageAccount = CloudStorageAccount.Parse(config.ConnectionString);
+                    var blobClient = storageAccount.CreateCloudBlobClient();
+                    return new CloudBlobLeaseService(blobClient, config.ContainerName, config.StoragePath);
+                })
+                .As<ILeaseService>();
         }
 
         private static void ConfigureScanAndSignProcessor(ContainerBuilder builder)

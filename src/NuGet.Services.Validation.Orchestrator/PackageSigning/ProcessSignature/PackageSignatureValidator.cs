@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Storage;
-using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;

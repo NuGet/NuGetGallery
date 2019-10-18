@@ -11,5 +11,12 @@ namespace NuGet.Jobs.Validation
         /// https://github.com/NuGet/NuGetGallery/issues/7185
         /// </summary>
         bool IsQueueBackEnabled();
+
+        /// <summary>
+        /// Determines whether orchestrator should try to acquire a lease specific to the entity it is processing.
+        /// The progress of this work is tracked here:
+        /// https://github.com/NuGet/NuGetGallery/issues/7629
+        /// </summary>
+        bool IsOrchestratorLeaseEnabled();
     }
 }
