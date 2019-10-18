@@ -12,7 +12,8 @@ namespace NuGetGallery.FunctionalTests
 {
     public class ProfileTests : GalleryTestBase
     {
-        public ProfileTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        public ProfileTests(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
         {
         }
 
