@@ -117,6 +117,21 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             Assert.Equal(messageDelayDays, (_serializedMessage.ScheduledEnqueueTimeUtc - DateTimeOffset.UtcNow).TotalDays, 0);
         }
 
+        [Theory]
+        [InlineData(23, 25, 25)]
+        [InlineData(42, 25, 25)]
+        public async Task SetsEnqueueTimeWhenOverriden(int cfgDelayDays, int argDelayDays, int expectedDelayDays)
+        {
+            _configuration.MessageDelay = TimeSpan.FromDays(cfgDelayDays);
+
+            await _target.EnqueueScanAsync(
+                _validationRequest.ValidationId,
+                _validationRequest.NupkgUrl,
+                messageDeliveryDelayOverride: TimeSpan.FromDays(argDelayDays));
+
+            Assert.Equal(expectedDelayDays, (_serializedMessage.ScheduledEnqueueTimeUtc - DateTimeOffset.UtcNow).TotalDays, 0);
+        }
+
         [Fact]
         public async Task SendsMessage()
         {
@@ -170,6 +185,22 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             await _target.EnqueueScanAndSignAsync(_validationRequest.ValidationId, _validationRequest.NupkgUrl, V3ServiceIndexUrl, _owners);
 
             Assert.Equal(messageDelayDays, (_serializedMessage.ScheduledEnqueueTimeUtc - DateTimeOffset.UtcNow).TotalDays, 0);
+        }
+
+        [Theory]
+        [InlineData(23, 25, 25)]
+        [InlineData(42, 25, 25)]
+        public async Task SetsEnqueueTimeWhenOverriden(int cfgDelayDays, int argDelayDays, int expectedDelayDays)
+        {
+            _configuration.MessageDelay = TimeSpan.FromDays(cfgDelayDays);
+
+            await _target.EnqueueScanAndSignAsync(_validationRequest.ValidationId,
+                _validationRequest.NupkgUrl,
+                V3ServiceIndexUrl,
+                _owners,
+                messageDeliveryDelayOverride: TimeSpan.FromDays(argDelayDays));
+
+            Assert.Equal(expectedDelayDays, (_serializedMessage.ScheduledEnqueueTimeUtc - DateTimeOffset.UtcNow).TotalDays, 0);
         }
 
         [Fact]
