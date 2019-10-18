@@ -20,7 +20,7 @@ namespace NuGetGallery.FunctionalTests.License
         }
 
         [Fact]
-        [Description("Push an invalidp package with license expression and verify uploading is blocked")]
+        [Description("Push an invalid package with license expression and verify uploading is blocked")]
         [Priority(1)]
         [Category("P1Tests")]
         public async Task UploadInValidPackageWithLicenseExpression()

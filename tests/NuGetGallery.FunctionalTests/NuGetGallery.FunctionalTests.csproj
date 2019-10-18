@@ -91,6 +91,7 @@
     <Compile Include="ErrorHandling\SimulatedErrorRequest.cs" />
     <Compile Include="ErrorHandling\SimulatedErrorType.cs" />
     <Compile Include="ErrorHandling\TestResponse.cs" />
+    <Compile Include="ProfileTests.cs" />
     <Compile Include="ODataFeeds\CuratedFeedTest.cs" />
     <Compile Include="ODataFeeds\SearchTest.cs" />
     <Compile Include="ODataFeeds\V2FeedExtendedTests.cs" />
