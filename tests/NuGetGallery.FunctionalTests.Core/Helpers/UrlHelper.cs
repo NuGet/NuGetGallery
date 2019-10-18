@@ -200,7 +200,7 @@ namespace NuGetGallery.FunctionalTests
 
         public static string GetAvatarUrl(string accountName)
         {
-            return BaseUrl + $@"profiles/{accountName}/avatar";
+            return BaseUrl + $"profiles/{accountName}/avatar";
         }
 
         private static string EnsureTrailingSlash(string siteRoot)
