@@ -43,9 +43,15 @@ namespace NuGet.Services.Entities
         /// </remarks>
         public User DeletedBy { get; set; }
 
-         /// <summary>
-         /// The signature of the admin.
-         /// </summary>
-         public string Signature { get; set; }
+        /// <summary>
+        /// The signature of the admin.
+        /// </summary>
+        public string Signature { get; set; }
+
+        /// <summary>
+        /// Whether or not the username of the deleted account was released.
+        /// The username of a deleted account should be eventually released so that new users can take the username.
+        /// </summary>
+        public bool WasUsernameReleased { get; set; }
     }
 }
