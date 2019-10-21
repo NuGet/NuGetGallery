@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NuGet.Services.AzureSearch</RootNamespace>
     <AssemblyName>NuGet.Services.AzureSearch</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -52,6 +52,7 @@
     <Compile Include="Auxiliary2AzureSearch\Auxiliary2AzureSearchConfiguration.cs" />
     <Compile Include="Auxiliary2AzureSearch\DownloadSetComparer.cs" />
     <Compile Include="Auxiliary2AzureSearch\IDownloadSetComparer.cs" />
+    <Compile Include="AuxiliaryFiles\AuxiliaryDataStorageConfiguration.cs" />
     <Compile Include="AuxiliaryFiles\DownloadDataExtensions.cs" />
     <Compile Include="AuxiliaryFiles\DownloadOverrides.cs" />
     <Compile Include="AuxiliaryFiles\SimpleCloudBlobExtensions.cs" />
@@ -245,7 +246,7 @@
       <Version>5.0.3</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.2.0</Version>
+      <Version>4.3.0-dev-3159955</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
       <Version>4.8.0</Version>

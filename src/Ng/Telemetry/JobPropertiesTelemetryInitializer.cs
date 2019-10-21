@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using NuGet.Services.Metadata.Catalog;
 
@@ -21,9 +22,11 @@ namespace Ng
         {
             if (_telemetryService.GlobalDimensions != null)
             {
+                var supportProperties = (ISupportProperties)telemetry;
+
                 foreach (var dimension in _telemetryService.GlobalDimensions)
                 {
-                    telemetry.Context.Properties[dimension.Key] = dimension.Value;
+                    supportProperties.Properties[dimension.Key] = dimension.Value;
                 }
             }
         }

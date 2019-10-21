@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 
 namespace NuGet.Services.BasicSearch
@@ -14,7 +15,8 @@ namespace NuGet.Services.BasicSearch
         {
             if (SafeRoleEnvironment.TryGetDeploymentId(out var id))
             {
-                telemetry.Context.Properties[DeploymentId] = id;
+                var supportProperties = (ISupportProperties)telemetry;
+                supportProperties.Properties[DeploymentId] = id;
             }
         }
     }

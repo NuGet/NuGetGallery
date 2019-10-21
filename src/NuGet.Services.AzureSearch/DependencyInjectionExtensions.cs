@@ -201,7 +201,7 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<ICloudBlobClient>(c =>
                 {
-                    var options = c.Resolve<IOptionsSnapshot<IAuxiliaryDataStorageConfiguration>>();
+                    var options = c.Resolve<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>();
                     return new CloudBlobClientWrapper(
                         options.Value.AuxiliaryDataStorageConnectionString,
                         GetBlobRequestOptions());
@@ -211,7 +211,7 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<IAuxiliaryFileClient>(c => new AuxiliaryFileClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
-                    c.Resolve<IOptionsSnapshot<IAuxiliaryDataStorageConfiguration>>(),
+                    c.Resolve<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<AuxiliaryFileClient>>()));
         }
