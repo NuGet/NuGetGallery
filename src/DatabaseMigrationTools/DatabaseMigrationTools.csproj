@@ -64,7 +64,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.3.0-ryuyu-update-extensions-3142787</Version>
+      <Version>4.3.0-dev-3159955</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
       <Version>2.58.0</Version>
