@@ -18,6 +18,7 @@ namespace NuGetGallery.Auditing
         public DateTime Created { get; }
         public DateTime? Expires { get; }
         public DateTime? LastUsed { get; }
+        public string TenantId { get; }
 
         public CredentialAuditRecord(Credential credential, bool removed)
         {
@@ -30,6 +31,7 @@ namespace NuGetGallery.Auditing
             Type = credential.Type;
             Description = credential.Description;
             Identity = credential.Identity;
+            TenantId = credential.TenantId;
 
             // Track the value for credentials that are definitely revocable (API Key, etc.) and have been removed
             if (removed)
