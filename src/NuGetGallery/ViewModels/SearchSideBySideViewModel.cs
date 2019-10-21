@@ -15,6 +15,8 @@ namespace NuGetGallery
         public const string CommentsLabel = "Comments:";
         public const string EmailLabel = "Email (optional, provide only if you want us to be able to follow up):";
 
+        public bool IsDisabled { get; set; }
+
         public string SearchTerm { get; set; } = string.Empty;
 
         public bool OldSuccess { get; set; }

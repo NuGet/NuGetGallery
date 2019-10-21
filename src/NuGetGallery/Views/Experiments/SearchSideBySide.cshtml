@@ -8,187 +8,209 @@
 
 <section role="main" class="main-container page-search-sxs">
     <div class="container">
-        <div class="row">
-            <div class="col-xs-12">
-                <h1>Step 1: enter a search query</h1>
-                @ViewHelpers.Section(
-                    this,
-                    "instructions",
-                    @<text>Instructions</text>,
-                    @<text></text>,
-                    @<text>
-                        <p>
-                            Enter a search query below. The query will be sent to our existing search service ("old
-                            results") as well as to our new search implementation that is based on Azure Search ("new
-                            results").
-                        </p>
-                        <p>
-                            Once you provide a search query, take a look at the results and fill out the form below so
-                            that we can understand your thoughts on how the new results can be improved. We're still
-                            playing with how the search query is parsed and how relevant packages are ranked so any
-                            input you can provide is helpful!
-                        </p>
-                        <p>
-                            If you'd like us to be able to reach out to your concerning some feedback you have left,
-                            please leave your email address. We'll read all of your feedback whether it is anonymous
-                            or not and would be happy to start a conversation over email if you have more ideas or
-                            concerns that don't fit well in the little comment box below.
-                        </p>
-                        <p>
-                            If you're happy with the new results, we'd love to hear that too.
-                        </p>
-                        <p>
-                            A lot of ideas have already been voiced on the
-                            <a href="https://github.com/NuGet/NuGetGallery/issues/4124">Improve search on NuGet.org</a>
-                            GitHub issue but this side-by-side page is intended to help us gather even more feedback.
-                        </p>
-                    </text> ,
-                    expanded: false)
-
-                <form aria-label="Package search bar" action="@Url.SearchSideBySide()" method="get">
-                    @Html.Partial("_SearchBar")
-                </form>
+        @if (Model.IsDisabled)
+        {
+            <div class="row">
+                <div class="col-xs-offset-3 col-xs-6 text-center">
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            The side-by-side search page is now <b>closed</b>.
+                            <br /><br />
+                            Thank you for trying out the side-by-side preview. The new and improved NuGet search
+                            is now <a href="@Url.PackageList()">live</a>! For details about the initial release, check out the
+                            <a href="https://devblogs.microsoft.com/nuget/new-and-improved-nuget-search/">blog post</a>.
+                            The old search results are no longer available.
+                            <br /><br />
+                            Keep an eye on <a href="https://twitter.com/nuget">Twitter</a> to hear about future search
+                            improvements that you can try out.
+                        </text>)
+                </div>
             </div>
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+        }
+        else
         {
             <div class="row">
                 <div class="col-xs-12">
-                    <h1>Step 2: examine the search results</h1>
+                    <h1>Step 1: enter a search query</h1>
+                    @ViewHelpers.Section(
+                        this,
+                        "instructions",
+                            @<text>Instructions</text>,
+                            @<text></text>,
+                            @<text>
+                                <p>
+                                    Enter a search query below. The query will be sent to our existing search service ("old
+                                    results") as well as to our new search implementation that is based on Azure Search ("new
+                                    results").
+                                </p>
+                                <p>
+                                    Once you provide a search query, take a look at the results and fill out the form below so
+                                    that we can understand your thoughts on how the new results can be improved. We're still
+                                    playing with how the search query is parsed and how relevant packages are ranked so any
+                                    input you can provide is helpful!
+                                </p>
+                                <p>
+                                    If you'd like us to be able to reach out to your concerning some feedback you have left,
+                                    please leave your email address. We'll read all of your feedback whether it is anonymous
+                                    or not and would be happy to start a conversation over email if you have more ideas or
+                                    concerns that don't fit well in the little comment box below.
+                                </p>
+                                <p>
+                                    If you're happy with the new results, we'd love to hear that too.
+                                </p>
+                                <p>
+                                    A lot of ideas have already been voiced on the
+                                    <a href="https://github.com/NuGet/NuGetGallery/issues/4124">Improve search on NuGet.org</a>
+                                    GitHub issue but this side-by-side page is intended to help us gather even more feedback.
+                                </p>
+                            </text> ,
+                    expanded: false)
+
+                    <form aria-label="Package search bar" action="@Url.SearchSideBySide()" method="get">
+                        @Html.Partial("_SearchBar")
+                    </form>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-xs-6">
-                    <div class="list-packages" role="list">
-                        <h2 class="text-center">Old results</h2>
-                        @{ var oldItemIndex = 0; }
-                        @foreach (var package in Model.OldItems)
-                        {
-                            @Html.Partial(
-                                "_ListPackage",
-                                package,
-                                new ViewDataDictionary
-                                {
-                                    { "eventName", "old-search-selection" },
-                                    { "itemIndex", oldItemIndex },
-                                    { "showEditButton", false },
-                                })
-                            oldItemIndex++;
-                        }
 
-                        @if (!Model.OldSuccess)
-                        {
-                            <i>The old results could not be loaded.</i>
-                        }
-                        else if (!Model.OldItems.Any())
-                        {
-                            <i>No results.</i>
-                        }
-                    </div>
-                </div>
-                <div class="col-xs-6">
-                    <div class="list-packages" role="list">
-                        <h2 class="text-center">New results</h2>
-                        @{ var newItemIndex = 0; }
-                        @foreach (var package in Model.NewItems)
-                        {
-                            @Html.Partial(
-                                "_ListPackage",
-                                package,
-                                new ViewDataDictionary
-                                {
-                                    { "eventName", "new-search-selection" },
-                                    { "itemIndex", newItemIndex },
-                                    { "showEditButton", false },
-                                })
-                            newItemIndex++;
-                        }
-
-                        @if (!Model.NewSuccess)
-                        {
-                            <i>The new results could not be loaded.</i>
-                        }
-                        else if (!Model.NewItems.Any())
-                        {
-                            <i>No results.</i>
-                        }
-                    </div>
-                </div>
-            </div>
-            
-            if (Model.OldSuccess && Model.NewSuccess)
+            if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
             {
                 <div class="row">
                     <div class="col-xs-12">
-                        <h1>Step 3: provide feedback</h1>
-                        <p>All fields are optional, but please take some time to tell us your thoughts!</p>
-
-                        @using (Html.BeginForm("SearchSideBySide", "Experiments"))
-                        {
-                            <fieldset class="form">
-                                @Html.AntiForgeryToken()
-
-                                @Html.HiddenFor(m => m.SearchTerm)
-                                @Html.HiddenFor(m => m.OldSuccess)
-                                @Html.HiddenFor(m => m.OldHits)
-                                @Html.HiddenFor(m => m.NewSuccess)
-                                @Html.HiddenFor(m => m.NewHits)
-
-                                <div class="form-group @Html.HasErrorFor(m => m.BetterSide)">
-                                    @Html.ShowLabelFor(m => m.BetterSide)
-                                    <div class="radio">
-                                        <label>
-                                            <input type="radio" name="BetterSide" id="better-side-old" value="Old">
-                                            Old results
-                                        </label>
-                                        <label>
-                                            <input type="radio" name="BetterSide" id="better-side-new" value="New">
-                                            New results
-                                        </label>
-                                        <label>
-                                            <input type="radio" name="BetterSide" id="better-side-neither" value="Neither">
-                                            Neither
-                                        </label>
-                                    </div>
-                                    @Html.ShowValidationMessagesFor(m => m.BetterSide)
-                                </div>
-                                <div class="hidden form-group @Html.HasErrorFor(m => m.MostRelevantPackage)" id="most-revelant-package">
-                                    @Html.ShowLabelFor(m => m.MostRelevantPackage)
-                                    @Html.ShowTextBoxFor(m => m.MostRelevantPackage, placeholder: "Package ID")
-                                    @Html.ShowValidationMessagesFor(m => m.MostRelevantPackage)
-                                </div>
-                                <div class="hidden form-group @Html.HasErrorFor(m => m.ExpectedPackages)" id="expected-packages">
-                                    @Html.ShowLabelFor(m => m.ExpectedPackages)
-                                    @Html.ShowTextBoxFor(m => m.ExpectedPackages, placeholder: "PackageA, PackageB")
-                                    @Html.ShowValidationMessagesFor(m => m.ExpectedPackages)
-                                </div>
-                                <div class="form-group @Html.HasErrorFor(m => m.Comments)">
-                                    @Html.ShowLabelFor(m => m.Comments)
-                                    @Html.ShowTextAreaFor(m => m.Comments, 5, 50)
-                                    @Html.ShowValidationMessagesFor(m => m.Comments)
-                                </div>
-                                <div class="form-group @Html.HasErrorFor(m => m.EmailAddress)">
-                                    @Html.ShowLabelFor(m => m.EmailAddress)
-                                    @Html.ShowTextBoxFor(m => m.EmailAddress)
-                                    @Html.ShowValidationMessagesFor(m => m.EmailAddress)
-                                </div>
-                                <div class="form-group">
-                                    <input type="submit" class="btn btn-primary form-control" value="Submit feedback" title="Submit feedback" />
-                                </div>
-                            </fieldset>
-                            <p>
-                                Your data will be respected and protected. Please see the
-                                <a href="https://privacy.microsoft.com/">Microsoft Privacy Policy</a> for more
-                                information.
-                            </p>
-                        }
+                        <h1>Step 2: examine the search results</h1>
                     </div>
                 </div>
-            }
-            else
-            {
-                @ViewHelpers.AlertDanger(@<text>Some of the search results could not be loaded. Please try again later.</text>)
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div class="list-packages" role="list">
+                            <h2 class="text-center">Old results</h2>
+                            @{ var oldItemIndex = 0; }
+                            @foreach (var package in Model.OldItems)
+                            {
+                                @Html.Partial(
+                                    "_ListPackage",
+                                    package,
+                                    new ViewDataDictionary
+                                    {
+                                        { "eventName", "old-search-selection" },
+                                        { "itemIndex", oldItemIndex },
+                                        { "showEditButton", false },
+                                    })
+                                oldItemIndex++;
+                            }
+
+                            @if (!Model.OldSuccess)
+                            {
+                                <i>The old results could not be loaded.</i>
+                            }
+                            else if (!Model.OldItems.Any())
+                            {
+                                <i>No results.</i>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div class="list-packages" role="list">
+                            <h2 class="text-center">New results</h2>
+                            @{ var newItemIndex = 0; }
+                            @foreach (var package in Model.NewItems)
+                            {
+                                @Html.Partial(
+                                    "_ListPackage",
+                                    package,
+                                    new ViewDataDictionary
+                                    {
+                                        { "eventName", "new-search-selection" },
+                                        { "itemIndex", newItemIndex },
+                                        { "showEditButton", false },
+                                    })
+                                newItemIndex++;
+                            }
+
+                            @if (!Model.NewSuccess)
+                            {
+                                <i>The new results could not be loaded.</i>
+                            }
+                            else if (!Model.NewItems.Any())
+                            {
+                                <i>No results.</i>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                if (Model.OldSuccess && Model.NewSuccess)
+                {
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <h1>Step 3: provide feedback</h1>
+                            <p>All fields are optional, but please take some time to tell us your thoughts!</p>
+
+                            @using (Html.BeginForm("SearchSideBySide", "Experiments"))
+                            {
+                                <fieldset class="form">
+                                    @Html.AntiForgeryToken()
+
+                                    @Html.HiddenFor(m => m.SearchTerm)
+                                    @Html.HiddenFor(m => m.OldSuccess)
+                                    @Html.HiddenFor(m => m.OldHits)
+                                    @Html.HiddenFor(m => m.NewSuccess)
+                                    @Html.HiddenFor(m => m.NewHits)
+
+                                    <div class="form-group @Html.HasErrorFor(m => m.BetterSide)">
+                                        @Html.ShowLabelFor(m => m.BetterSide)
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="BetterSide" id="better-side-old" value="Old">
+                                                Old results
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="BetterSide" id="better-side-new" value="New">
+                                                New results
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="BetterSide" id="better-side-neither" value="Neither">
+                                                Neither
+                                            </label>
+                                        </div>
+                                        @Html.ShowValidationMessagesFor(m => m.BetterSide)
+                                    </div>
+                                    <div class="hidden form-group @Html.HasErrorFor(m => m.MostRelevantPackage)" id="most-revelant-package">
+                                        @Html.ShowLabelFor(m => m.MostRelevantPackage)
+                                        @Html.ShowTextBoxFor(m => m.MostRelevantPackage, placeholder: "Package ID")
+                                        @Html.ShowValidationMessagesFor(m => m.MostRelevantPackage)
+                                    </div>
+                                    <div class="hidden form-group @Html.HasErrorFor(m => m.ExpectedPackages)" id="expected-packages">
+                                        @Html.ShowLabelFor(m => m.ExpectedPackages)
+                                        @Html.ShowTextBoxFor(m => m.ExpectedPackages, placeholder: "PackageA, PackageB")
+                                        @Html.ShowValidationMessagesFor(m => m.ExpectedPackages)
+                                    </div>
+                                    <div class="form-group @Html.HasErrorFor(m => m.Comments)">
+                                        @Html.ShowLabelFor(m => m.Comments)
+                                        @Html.ShowTextAreaFor(m => m.Comments, 5, 50)
+                                        @Html.ShowValidationMessagesFor(m => m.Comments)
+                                    </div>
+                                    <div class="form-group @Html.HasErrorFor(m => m.EmailAddress)">
+                                        @Html.ShowLabelFor(m => m.EmailAddress)
+                                        @Html.ShowTextBoxFor(m => m.EmailAddress)
+                                        @Html.ShowValidationMessagesFor(m => m.EmailAddress)
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="submit" class="btn btn-primary form-control" value="Submit feedback" title="Submit feedback" />
+                                    </div>
+                                </fieldset>
+                                <p>
+                                    Your data will be respected and protected. Please see the
+                                    <a href="https://privacy.microsoft.com/">Microsoft Privacy Policy</a> for more
+                                    information.
+                                </p>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @ViewHelpers.AlertDanger(@<text>Some of the search results could not be loaded. Please try again later.</text>)
+                }
             }
         }
     </div>
@@ -196,66 +218,69 @@
 
 @section bottomScripts {
     @ViewHelpers.SectionsScript(this)
-    <script type="text/javascript">
-        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
-        {
-            // Emit an event representing the search page and the page index. This make it easier for the search selection
-            // event to be correlated in Google Analytics.
-            <text>
-            window.nuget.sendAnalyticsEvent('search-page', 'search-sxs-prerel', @Html.Raw(Json.Encode(Model.SearchTerm)), 0);
-            </text>
-        }
-        
-        $(function () {
-            var $betterSideOld = $("#better-side-old");
-            var $betterSideNew = $("#better-side-new");
-            var $betterSideNeither = $("#better-side-neither");
-            var $mostRevelantPackage = $("#most-revelant-package");
-            var $mostRevelantPackageInput = $mostRevelantPackage.find("input");
-            var $expectedPackages = $("#expected-packages");
-            var $expectedPackagesInput = $expectedPackages.find("input");
-            var $emailAddress = $('#EmailAddress');
+    @if (!Model.IsDisabled)
+    {
+        <script type="text/javascript">
+            @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+            {
+                // Emit an event representing the search page and the page index. This make it easier for the search selection
+                // event to be correlated in Google Analytics.
+                <text>
+                window.nuget.sendAnalyticsEvent('search-page', 'search-sxs-prerel', @Html.Raw(Json.Encode(Model.SearchTerm)), 0);
+                </text>
+            }
 
-            // Remember the email address provided the last time they submitted feedback.
-            var storage = window['localStorage'];
-            if (storage) {
-                var key = 'search_sxs_email';
-                var email = storage.getItem(key);
-                if (email !== null) {
-                    $emailAddress.val(email);
+            $(function () {
+                var $betterSideOld = $("#better-side-old");
+                var $betterSideNew = $("#better-side-new");
+                var $betterSideNeither = $("#better-side-neither");
+                var $mostRevelantPackage = $("#most-revelant-package");
+                var $mostRevelantPackageInput = $mostRevelantPackage.find("input");
+                var $expectedPackages = $("#expected-packages");
+                var $expectedPackagesInput = $expectedPackages.find("input");
+                var $emailAddress = $('#EmailAddress');
+
+                // Remember the email address provided the last time they submitted feedback.
+                var storage = window['localStorage'];
+                if (storage) {
+                    var key = 'search_sxs_email';
+                    var email = storage.getItem(key);
+                    if (email !== null) {
+                        $emailAddress.val(email);
+                    }
+
+                    $emailAddress.closest('form').submit(function () {
+                        storage.setItem(key, $emailAddress.val());
+                    });
                 }
 
-                $emailAddress.closest('form').submit(function () {
-                    storage.setItem(key, $emailAddress.val());
+                var showHiddenInputs = function () {
+                    if ($betterSideOld.prop('checked') || $betterSideNew.prop('checked')) {
+                        $mostRevelantPackage.removeClass('hidden');
+                        $expectedPackages.addClass('hidden');
+
+                        // Reset the input names so only the visible field is submitted.
+                        $mostRevelantPackageInput.attr('name', 'MostRelevantPackage');
+                        $expectedPackagesInput.attr('name', '');
+                    }
+
+                    if ($betterSideNeither.prop('checked')) {
+                        $mostRevelantPackage.addClass('hidden');
+                        $mostRevelantPackageInput.attr('name', '');
+
+                        // Reset the input names so only the visible field is submitted.
+                        $expectedPackages.removeClass('hidden');
+                        $expectedPackagesInput.attr('name', 'ExpectedPackages');
+                    }
+                }
+
+                $("input[type=radio]").change(function () {
+                    showHiddenInputs();
                 });
-            }
 
-            var showHiddenInputs = function () {
-                if ($betterSideOld.prop('checked') || $betterSideNew.prop('checked')) {
-                    $mostRevelantPackage.removeClass('hidden');
-                    $expectedPackages.addClass('hidden');
-
-                    // Reset the input names so only the visible field is submitted.
-                    $mostRevelantPackageInput.attr('name', 'MostRelevantPackage');
-                    $expectedPackagesInput.attr('name', '');
-                }
-
-                if ($betterSideNeither.prop('checked')) {
-                    $mostRevelantPackage.addClass('hidden');
-                    $mostRevelantPackageInput.attr('name', '');
-
-                    // Reset the input names so only the visible field is submitted.
-                    $expectedPackages.removeClass('hidden');
-                    $expectedPackagesInput.attr('name', 'ExpectedPackages');
-                }
-            }
-
-            $("input[type=radio]").change(function () {
+                // Run this logic once to catch any form state set by the browser (e.g. on back button press).
                 showHiddenInputs();
-            });
-
-            // Run this logic once to catch any form state set by the browser (e.g. on back button press).
-            showHiddenInputs();
-        })
-    </script>
+            })
+        </script>
+    }
 }
