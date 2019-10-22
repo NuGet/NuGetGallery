@@ -19,5 +19,15 @@ namespace NuGet.Services.AzureSearch.SearchService
             : base(message)
         {
         }
+
+        /// <summary>
+        /// Create a new invalid search request exception with a provided inner exception for debugging.
+        /// </summary>
+        /// <param name="message">The message to display to the user. Must not contain sensitive information.</param>
+        /// <param name="innerException">This exception will not be shown to the user.</param>
+        public InvalidSearchRequestException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 }

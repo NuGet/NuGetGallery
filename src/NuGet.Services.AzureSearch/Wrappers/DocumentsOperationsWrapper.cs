@@ -8,6 +8,7 @@ using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Rest.Azure;
+using NuGet.Services.AzureSearch.SearchService;
 
 namespace NuGet.Services.AzureSearch.Wrappers
 {
@@ -94,6 +95,10 @@ namespace NuGet.Services.AzureSearch.Wrappers
                 catch (CloudException ex) when (allow404 && ex.Response?.StatusCode == HttpStatusCode.NotFound)
                 {
                     return default(T);
+                }
+                catch (CloudException ex) when (ex.Response?.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    throw new InvalidSearchRequestException("The provided query is invalid.", ex);
                 }
                 catch (Exception ex)
                 {
