@@ -27,7 +27,7 @@ namespace NuGetGallery.Controllers
             var currentUser = GetCurrentUser();
             if (!_featureFlagService.IsSearchSideBySideEnabled(currentUser))
             {
-                return new HttpNotFoundResult();
+                return View(new SearchSideBySideViewModel { IsDisabled = true });
             }
 
             var viewModel = await _searchSideBySideService.SearchAsync(q, currentUser);
