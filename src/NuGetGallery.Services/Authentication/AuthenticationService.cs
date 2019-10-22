@@ -675,6 +675,9 @@ namespace NuGetGallery.Authentication
             // Authenticate!
             if (result.Credential != null)
             {
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(
+                    new User("NonExistentDummyAuditUser"), AuditedUserAction.ExternalLoginAttempt, result.Credential));
+
                 result.Authentication = await Authenticate(result.Credential);
             }
 

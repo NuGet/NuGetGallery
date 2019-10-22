@@ -51,6 +51,17 @@ namespace NuGetGallery.Auditing
             Assert.Null(record.Value);
         }
 
+        [Theory]
+        [InlineData(CredentialTypes.External.MicrosoftAccount)]
+        [InlineData(CredentialTypes.External.AzureActiveDirectoryAccount)]
+        public void Constructor_ExternalCredentialSetsValue(string externalType)
+        {
+            var credential = new Credential(type: externalType, value: "b");
+            var record = new CredentialAuditRecord(credential, removed: false);
+
+            Assert.Equal("b", record.Value);
+        }
+
         [Fact]
         public void Constructor_NonRemovalOfPasswordDoesNotSetValue()
         {
@@ -72,6 +83,7 @@ namespace NuGetGallery.Auditing
                 Description = "a",
                 Expires = expires,
                 Identity = "b",
+                TenantId = "c",
                 Key = 1,
                 LastUsed = lastUsed,
                 Scopes = new List<Scope>() { new Scope(subject: "c", allowedAction: "d") },
@@ -84,6 +96,7 @@ namespace NuGetGallery.Auditing
             Assert.Equal("a", record.Description);
             Assert.Equal(expires, record.Expires);
             Assert.Equal("b", record.Identity);
+            Assert.Equal("c", record.TenantId);
             Assert.Equal(1, record.Key);
             Assert.Equal(lastUsed, record.LastUsed);
             Assert.Single(record.Scopes);

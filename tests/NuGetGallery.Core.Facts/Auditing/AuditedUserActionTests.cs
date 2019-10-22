@@ -30,7 +30,8 @@ namespace NuGetGallery.Auditing
                 "RemoveOrganizationMember",
                 "UpdateOrganizationMember",
                 "EnabledMultiFactorAuthentication",
-                "DisabledMultiFactorAuthentication"
+                "DisabledMultiFactorAuthentication",
+                "ExternalLoginAttempt"
             };
 
             Verify(typeof(AuditedUserAction), expectedNames);
