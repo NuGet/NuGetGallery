@@ -33,8 +33,12 @@ namespace NuGetGallery.Auditing
             Identity = credential.Identity;
             TenantId = credential.TenantId;
 
-            // Track the value for credentials that are definitely revocable (API Key, etc.) and have been removed
-            if (removed)
+            // Track the value for credentials that are external (object id) or definitely revocable (API Key, etc.) and have been removed
+            if (credential.IsExternal())
+            {
+                Value = credential.Value;
+            }
+            else if (removed)
             {
                 if (Type == null)
                 {
