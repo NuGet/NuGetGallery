@@ -32,13 +32,18 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task ReturnsViewResult()
             {
+                SearchSideBySideService
+                    .Setup(x => x.SearchAsync(It.IsAny<string>(), It.IsAny<User>()))
+                    .ReturnsAsync(() => ViewModel);
+
                 var result = await Target.SearchSideBySide(SearchTerm);
 
-                Assert.IsType<ViewResult>(result);
+                var model = ResultAssert.IsView<SearchSideBySideViewModel>(result);
+                Assert.Same(ViewModel, model);
             }
 
             [Fact]
-            public async Task ReturnsNotFoundWhenFeatureFlagIsDisabled()
+            public async Task ReturnsIsDisabledWhenFeatureFlagIsDisabled()
             {
                 FeatureFlagService
                     .Setup(x => x.IsSearchSideBySideEnabled(It.IsAny<User>()))
@@ -46,7 +51,8 @@ namespace NuGetGallery.Controllers
 
                 var result = await Target.SearchSideBySide(SearchTerm);
 
-                Assert.IsType<HttpNotFoundResult>(result);
+                var model = ResultAssert.IsView<SearchSideBySideViewModel>(result);
+                Assert.True(model.IsDisabled);
             }
         }
 

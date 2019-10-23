@@ -10,7 +10,7 @@ namespace NuGet.Services.DatabaseMigration
     /// <summary>
     /// This interface is used to define the context needed for database migration.
     /// </summary>
-    public interface IMigrationContext
+    public interface IMigrationContext : IDisposable
     {
         /// <summary>
         /// SqlConnection to the target database.

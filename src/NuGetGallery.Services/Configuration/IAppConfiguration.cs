@@ -206,6 +206,11 @@ namespace NuGetGallery.Configuration
         double AppInsightsSamplingPercentage { get; set; }
 
         /// <summary>
+        /// Gets the Application Insights heartbeat interval in seconds associated with this deployment.
+        /// </summary>
+        int AppInsightsHeartbeatIntervalSeconds { get; set; }
+
+        /// <summary>
         /// Gets the protocol-independent site root
         /// </summary>
         string SiteRoot { get; set; }

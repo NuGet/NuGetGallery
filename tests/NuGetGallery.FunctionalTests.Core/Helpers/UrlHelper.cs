@@ -198,6 +198,11 @@ namespace NuGetGallery.FunctionalTests
             return BaseUrl + @"Packages/" + packageId + "/ContactOwners";
         }
 
+        public static string GetAvatarUrl(string accountName)
+        {
+            return BaseUrl + $"profiles/{accountName}/avatar";
+        }
+
         private static string EnsureTrailingSlash(string siteRoot)
         {
             if (siteRoot == null)
