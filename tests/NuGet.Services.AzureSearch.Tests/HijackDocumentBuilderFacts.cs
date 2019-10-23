@@ -380,7 +380,7 @@ namespace NuGet.Services.AzureSearch
             public void LeavesNullRequiresLicenseAcceptanceAsNull()
             {
                 var leaf = Data.Leaf;
-                leaf.RequireLicenseAgreement = null;
+                leaf.RequireLicenseAcceptance = null;
 
                 var document = _target.FullFromCatalog(Data.NormalizedVersion, Data.HijackDocumentChanges, leaf);
 

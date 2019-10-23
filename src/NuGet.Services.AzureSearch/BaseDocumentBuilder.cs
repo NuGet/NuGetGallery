@@ -158,7 +158,7 @@ namespace NuGet.Services.AzureSearch
             document.ProjectUrl = leaf.ProjectUrl;
             document.Published = leaf.Published;
             document.ReleaseNotes = leaf.ReleaseNotes;
-            document.RequiresLicenseAcceptance = leaf.RequireLicenseAgreement;
+            document.RequiresLicenseAcceptance = leaf.RequireLicenseAcceptance;
             document.SemVerLevel = leaf.IsSemVer2() ? SemVerLevelKey.SemVer2 : SemVerLevelKey.Unknown;
             document.SortableTitle = GetSortableTitle(leaf.Title, leaf.PackageId);
             document.Summary = leaf.Summary;

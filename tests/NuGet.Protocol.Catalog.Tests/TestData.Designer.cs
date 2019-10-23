@@ -196,6 +196,34 @@ namespace NuGet.Protocol.Catalog {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;https://api.nuget.org/v3/catalog0/data/2015.02.01.06.22.45/antixss.4.0.1.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDetails&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;authors&quot;: &quot;Microsoft&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;b3f4fc8a-7522-42a3-8fee-a91d5488c0b1&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2015-02-01T06:22:45.8488496Z&quot;,
+        ///  &quot;created&quot;: &quot;2011-01-07T07:49:50.307Z&quot;,
+        ///  &quot;description&quot;: &quot;AntiXSS is an encoding library which uses a safe list approach to encoding. It provides Html, XML, Url, Form, LDAP, CSS, JScript and VBScr [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string PackageDetailsLeafWithRequireLicenseAcceptance {
+            get {
+                return ResourceManager.GetString("PackageDetailsLeafWithRequireLicenseAcceptance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://api.nuget.org/v3/catalog0/data/2015.02.01.06.22.45/antixss.4.0.1.json.
+        /// </summary>
+        public static string PackageDetailsLeafWithRequireLicenseAcceptanceUrl {
+            get {
+                return ResourceManager.GetString("PackageDetailsLeafWithRequireLicenseAcceptanceUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json&quot;,&quot;@type&quot;:[&quot;catalog:CatalogRoot&quot;,&quot;PackageRegistration&quot;,&quot;catalog:Permalink&quot;],&quot;commitId&quot;:&quot;bef2767e-f5ae-4713-b5fc-510945bacdf9&quot;,&quot;commitTimeStamp&quot;:&quot;2018-11-26T19:53:07.9393299Z&quot;,&quot;count&quot;:1,&quot;items&quot;:[{&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json#page/0.1.1/0.3.1&quot;,&quot;@type&quot;:&quot;catalog:CatalogPage&quot;,&quot;commitId&quot;:&quot;bef2767e-f5ae-4713-b5fc-510945bacdf9&quot;,&quot;commitTimeStamp&quot;:&quot;2018-11-26T19:53:07.9393299Z&quot;,&quot;c [rest of string was truncated]&quot;;.
         /// </summary>
         public static string RegistrationIndexInlinedItems {

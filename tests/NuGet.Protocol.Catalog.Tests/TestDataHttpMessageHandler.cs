@@ -24,6 +24,7 @@ namespace NuGet.Protocol.Catalog
             { TestData.RegistrationLeafListedUrl, () => TestData.RegistrationLeafListed },
             { TestData.RegistrationPageUrl, () => TestData.RegistrationPage },
             { TestData.CatalogLeafInvalidDependencyVersionRangeUrl, () => TestData.CatalogLeafInvalidDependencyVersionRange },
+            { TestData.PackageDetailsLeafWithRequireLicenseAcceptanceUrl, () => TestData.PackageDetailsLeafWithRequireLicenseAcceptance },
         };
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

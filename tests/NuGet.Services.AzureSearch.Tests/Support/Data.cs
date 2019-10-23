@@ -181,7 +181,7 @@ namespace NuGet.Services.AzureSearch.Support
             ProjectUrl = "https://github.com/Azure/azure-storage-net",
             Published = new DateTimeOffset(new DateTime(2017, 1, 3), TimeSpan.Zero),
             ReleaseNotes = "Release notes.",
-            RequireLicenseAgreement = true,
+            RequireLicenseAcceptance = true,
             Summary = "Summary.",
             Tags = new List<string> { "Microsoft", "Azure", "Storage", "Table", "Blob", "File", "Queue", "Scalable", "windowsazureofficial" },
             Title = "Windows Azure Storage",
