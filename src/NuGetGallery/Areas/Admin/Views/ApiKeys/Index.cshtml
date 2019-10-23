@@ -1,0 +1,153 @@
+﻿@model ApiKeyRevokeViewModel
+@{
+    ViewBag.Title = "Revoke API Keys";
+}
+
+<section role="main" class="container main-container">
+    <h2>Verify Api Keys</h2>
+    <p style="color:grey">
+        Please follow the format as below: <br />
+        {"ApiKey":"oy2apikey1","LeakedURL":"https://leakedURL1"} <br />
+        {"ApiKey":"oy2apikey2","LeakedURL":"https://leakedURL2"}
+    </p>
+    <form>
+        <textarea placeholder="Verify Api keys to revoke" autocomplete="off" autofocus style="width: 100%" rows="5" data-bind="value: verifyQuery" required></textarea><br />
+        <input type="button" value="Verify" data-bind="click: verify" /><br />
+    </form>
+    <div class="alert alert-warning" id="invalidInputAlert" role="alert" style="display: none" data-bind="visible: isNotValidInput()"></div>
+    <table class="table" style="display: none" data-bind="visible: verifyResults().length > 0">
+        <thead>
+            <tr>
+                <th style="width: 2%; vertical-align: middle"><input type="checkbox" data-bind="visible: findAnyValidApiKeys"/></th>
+                <th style="width: 40%; vertical-align: middle">Api Key</th>
+                <th>Information</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: verifyResults">
+            <tr>
+                <td style="width: 2%; vertical-align: middle" ><input type="checkbox" data-bind="visible: ApiKeyViewModel"/></td>
+                <td style="width: 40%; vertical-align: middle"><span data-bind="text: ApiKey"></span></td>
+                <td>
+                    <!-- ko if: ApiKeyViewModel -->
+                        <span data-bind="visible: ApiKeyViewModel.Type">
+                            <code>Type:</code> <span data-bind="text: ApiKeyViewModel.Type"></span><br />
+                        </span>
+                        <span data-bind="visible: ApiKeyViewModel.Owner">
+                            <code>Owner:</code> <a data-bind="text: ApiKeyViewModel.Owner, attr: { href: $parent.generateProfileUrl(ApiKeyViewModel.Owner)}"></a><br />
+                        </span>
+                        <span>
+                            <code>Status:</code>
+                            <!-- ko if: ApiKeyViewModel.HasExpired -->
+                            Expired <br />
+                            <!-- /ko -->
+                            <!-- ko ifnot: ApiKeyViewModel.HasExpired -->
+                            <!-- ko if: ApiKeyViewModel.Expires -->
+                            Expires <span data-bind="text: moment(ApiKeyViewModel.Expires).fromNow()"></span><br />
+                            <!-- /ko -->
+                            <!-- ko ifnot: ApiKeyViewModel.Expires -->
+                            Never expires<br />
+                            <!-- /ko -->
+                            <!-- /ko -->
+                        </span>
+                        <span data-bind="visible: ApiKeyViewModel.Description">
+                            <code>Description:</code> <span data-bind="text: ApiKeyViewModel.Description"></span><br />
+                        </span>
+                        <code>Leaked URL:</code> <a data-bind="text: LeakedURL, attr: {href: LeakedURL}"></a><br />
+                    <!-- /ko -->
+                    <!-- ko ifnot: ApiKeyViewModel -->
+                    Not Found
+                    <!-- /ko -->
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+@section BottomScripts {
+    <script>
+        $(document).ready(function () {
+            var viewModel = function () {
+                var $self = this;
+
+                this.verifyQuery = ko.observable('');
+                this.verifyResults = ko.observableArray([]);
+                this.isNotValidInput = ko.observable(false);
+
+                this.verify = function () {
+                    $self.verifyResults.removeAll();
+                    if (!$self.validateInput($self.verifyQuery())) {
+                        return;
+                    };
+                    $.ajax({
+                        url: '@Url.Action("Verify", "ApiKeys", new {area = "Admin"})?verifyQuery=' + encodeURIComponent($self.verifyQuery()),
+                        cache: false,
+                        dataType: 'json',
+                        success: function(data) {
+                            for (var i = 0; i < data.length; i++) {
+                                data[i].Selected = ko.observable(false);
+                            }
+                            $self.verifyResults(data);
+                        }
+                    })
+                    .fail(function(jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    });
+                };
+
+                this.generateProfileUrl = function (u) {
+                    return '/profiles/' + u;
+                };
+
+                this.findAnyValidApiKeys = ko.pureComputed(function () {
+                    var results = $self.verifyResults();
+                    if (!results || results.length === 0) {
+                        return false;
+                    }
+
+                    for (var i = 0; i < results.length; i++) {
+                        if (!(results[i].ApiKeyViewModel == null)) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
+
+                this.validateInput = function () {
+                    var input = $self.verifyQuery();
+                    if (!input || input.trim().length === 0) {
+                        $self.isNotValidInput(true);
+                        $('#invalidInputAlert').html('<span>Invalid empty input!</span>');
+                        return false;
+                    }
+
+                    var queries = input.match(/[^\r\n]+/g);
+                    for (var i = 0; i < queries.length; i++) {
+                        var query = queries[i];
+                        if (query.trim().length === 0) {
+                            continue;
+                        }
+                        try {
+                            var queryObject = JSON.parse(query);
+                            if (!queryObject.hasOwnProperty('ApiKey') || !queryObject.hasOwnProperty('LeakedURL')) {
+                                $self.isNotValidInput(true);
+                                $('#invalidInputAlert').html('<span>Invalid input! The query lacks the required property: ApiKey or LeakedURL.</span>');
+                                return false;
+                            }
+                        } catch (err)
+                        {
+                            $self.isNotValidInput(true);
+                            $('#invalidInputAlert').html('<span>Invalid input! The query is not using the valid JSON format.</span>');
+                            return false;
+                        }
+                    }
+
+                    $self.isNotValidInput(false);
+                    return true;
+                };
+            };
+
+            ko.applyBindings(new viewModel(), $('#stage').get(0));
+        });
+    </script>
+}

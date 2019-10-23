@@ -16,5 +16,19 @@ namespace NuGetGallery.Authentication
         /// <param name="commitChanges">Default true. Commits changes immediately if true.</param>
         /// <returns>Returns a task that will complete when the credential has succesfully been removed.</returns>
         Task RemoveCredential(User user, Credential cred, bool commitChanges = true);
+
+        /// <summary>
+        /// Authenticate the Api Key
+        /// </summary>
+        /// <param name="apiKey">Api Key</param>
+        /// <returns>Returns a task that will complete with the authenticated user or null if there is no matched user.</returns>
+        Task<AuthenticatedUser> Authenticate(string apiKey);
+
+        /// <summary>
+        /// Create the CredentialViewModel given the credential
+        /// </summary>
+        /// <param name="credential">credential needed to generate the ViewModel</param>
+        /// <returns>Returns the CredentialViewModel given the credential.</returns>
+        CredentialViewModel DescribeCredential(Credential credential);
     }
 }
