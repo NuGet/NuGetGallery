@@ -67,6 +67,7 @@ namespace NuGetGallery
             return uri.IsInDomain("microsoft.com") ||
                    uri.IsInDomain("asp.net") || 
                    uri.IsInDomain("msdn.com") ||
+                   uri.IsInDomain("odata.org") ||
                    string.Equals(uri.Authority, "aka.ms", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "www.mono-project.com", StringComparison.OrdinalIgnoreCase);
         }
