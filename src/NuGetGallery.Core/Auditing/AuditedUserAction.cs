@@ -24,6 +24,6 @@ namespace NuGetGallery.Auditing
         UpdateOrganizationMember,
         EnabledMultiFactorAuthentication,
         DisabledMultiFactorAuthentication,
-        ExternalLoginAttempt
+        ExternalLoginAttempt,
     }
 }
