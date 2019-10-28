@@ -7,7 +7,7 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using Moq;
 
-namespace NuGet.Services.AzureSearch.Support
+namespace NuGet.Services
 {
     public static class DbSetMockFactory
     {

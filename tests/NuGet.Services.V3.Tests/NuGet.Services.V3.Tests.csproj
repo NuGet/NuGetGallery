@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{CCB4D5EF-AC84-449D-AC6E-0A0AD295483A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGet.Services.V3</RootNamespace>
+    <AssemblyName>NuGet.Services.V3.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Registration\RegistrationClientFacts.cs" />
+    <Compile Include="Registration\RegistrationUrlBuilderFacts.cs" />
+    <Compile Include="Support\Cursor.cs" />
+    <Compile Include="Support\DbSetMockFactory.cs" />
+    <Compile Include="Support\RecordingLogger.cs" />
+    <Compile Include="Support\TestCursorStorage.cs" />
+    <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
+    <Compile Include="Support\TestHttpMessageHandler.cs" />
+    <Compile Include="Support\TestOutputHelperExtensions.cs" />
+    <Compile Include="Support\XunitLogger.cs" />
+    <Compile Include="Support\XunitLoggerFactoryExtensions.cs" />
+    <Compile Include="Support\XunitLoggerProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Moq">
+      <Version>4.10.1</Version>
+    </PackageReference>
+    <PackageReference Include="xunit">
+      <Version>2.4.1</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>2.4.1</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
+      <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
+      <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Services.V3\NuGet.Services.V3.csproj">
+      <Project>{c3f9a738-9759-4b2b-a50d-6507b28a659b}</Project>
+      <Name>NuGet.Services.V3</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog.Tests\NuGet.Protocol.Catalog.Tests.csproj">
+      <Project>{1f3bc053-796c-4a35-88f4-955a0f142197}</Project>
+      <Name>NuGet.Protocol.Catalog.Tests</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
+</Project>

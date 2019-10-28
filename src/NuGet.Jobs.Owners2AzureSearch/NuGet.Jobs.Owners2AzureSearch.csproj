@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>NuGet.Jobs</RootNamespace>
     <AssemblyName>NuGet.Jobs.Owners2AzureSearch</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>

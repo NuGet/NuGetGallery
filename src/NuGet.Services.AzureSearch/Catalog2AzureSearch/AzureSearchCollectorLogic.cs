@@ -10,29 +10,30 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.V3;
 
 namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {
     public class AzureSearchCollectorLogic : ICommitCollectorLogic
     {
-        private readonly ICatalogClient _catalogClient;
         private readonly ICatalogIndexActionBuilder _indexActionBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
+        private readonly CommitCollectorUtility _utility;
         private readonly IOptionsSnapshot<Catalog2AzureSearchConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AzureSearchCollectorLogic> _logger;
 
         public AzureSearchCollectorLogic(
-            ICatalogClient catalogClient,
             ICatalogIndexActionBuilder indexActionBuilder,
             Func<IBatchPusher> batchPusherFactory,
+            CommitCollectorUtility utility,
             IOptionsSnapshot<Catalog2AzureSearchConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
             ILogger<AzureSearchCollectorLogic> logger)
         {
-            _catalogClient = catalogClient ?? throw new ArgumentNullException(nameof(catalogClient));
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
+            _utility = utility ?? throw new ArgumentNullException(nameof(utility));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -43,51 +44,21 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     nameof(options),
                     $"The {nameof(AzureSearchJobConfiguration.MaxConcurrentBatches)} must be greater than zero.");
             }
-
-            if (_options.Value.MaxConcurrentCatalogLeafDownloads <= 0)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(options),
-                    $"The {nameof(Catalog2AzureSearchConfiguration.MaxConcurrentCatalogLeafDownloads)} must be greater than zero.");
-            }
         }
 
         public Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(IEnumerable<CatalogCommitItem> catalogItems)
         {
-            if (!catalogItems.Any())
-            {
-                return Task.FromResult(Enumerable.Empty<CatalogCommitItemBatch>());
-            }
-
-            var maxCommitTimestamp = catalogItems.Max(x => x.CommitTimeStamp);
-
             // Create a single batch of all unprocessed catalog items so that we can have complete control of the
             // parallelism in this class.
-            return Task.FromResult<IEnumerable<CatalogCommitItemBatch>>(new[]
-            {
-                new CatalogCommitItemBatch(
-                    catalogItems,
-                    key: null,
-                    commitTimestamp: maxCommitTimestamp),
-            });
+            return Task.FromResult(_utility.CreateSingleBatch(catalogItems));
         }
 
         public async Task OnProcessBatchAsync(
             IEnumerable<CatalogCommitItem> items)
         {
             var itemList = items.ToList();
-
-            // Ignore all but the latest catalog commit items per package identity.
-            var latestItems = items
-                .GroupBy(x => x.PackageIdentity)
-                .Select(GetLatest)
-                .ToList();
-
-            // Group the catalog commit items by package ID.
-            var workEnumerable = latestItems
-                .GroupBy(x => x.PackageIdentity.Id, StringComparer.OrdinalIgnoreCase)
-                .Select(x => new Work(x.Key, x.ToList()));
-            var allWork = new ConcurrentBag<Work>(workEnumerable);
+            var latestItems = _utility.GetLatestPerIdentity(items);
+            var allWork = _utility.GroupById(latestItems);
 
             using (_telemetryService.TrackCatalog2AzureSearchProcessBatch(itemList.Count, latestItems.Count, allWork.Count))
             {
@@ -109,10 +80,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
         private async Task<ConcurrentBag<IdAndValue<IndexActions>>> ProcessWorkAsync(
             IReadOnlyList<CatalogCommitItem> latestItems,
-            ConcurrentBag<Work> allWork)
+            ConcurrentBag<IdAndValue<IReadOnlyList<CatalogCommitItem>>> allWork)
         {
             // Fetch the full catalog leaf for each item that is the package details type.
-            var allEntryToLeaf = await GetEntryToLeafAsync(latestItems);
+            var allEntryToLeaf = await _utility.GetEntryToDetailsLeafAsync(latestItems);
 
             // Process the package ID groups in parallel, collecting all index actions for later.
             var output = new ConcurrentBag<IdAndValue<IndexActions>>();
@@ -124,108 +95,17 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     while (allWork.TryTake(out var work))
                     {
                         var entryToLeaf = work
-                            .Entries
-                            .Where(IsOnlyPackageDetails)
+                            .Value
+                            .Where(CommitCollectorUtility.IsOnlyPackageDetails)
                             .ToDictionary(e => e, e => allEntryToLeaf[e], ReferenceEqualityComparer<CatalogCommitItem>.Default);
-                        var indexActions = await GetPackageIdIndexActionsAsync(work.Entries, entryToLeaf);
-                        output.Add(new IdAndValue<IndexActions>(work.PackageId, indexActions));
+                        var indexActions = await GetPackageIdIndexActionsAsync(work.Value, entryToLeaf);
+                        output.Add(new IdAndValue<IndexActions>(work.Id, indexActions));
                     }
                 })
                 .ToList();
             await Task.WhenAll(tasks);
 
             return output;
-        }
-
-        private CatalogCommitItem GetLatest(IEnumerable<CatalogCommitItem> entries)
-        {
-            CatalogCommitItem max = null;
-            foreach (var entry in entries)
-            {
-                if (max == null)
-                {
-                    max = entry;
-                    continue;
-                }
-
-                Guard.Assert(
-                    StringComparer.OrdinalIgnoreCase.Equals(max.PackageIdentity, entry.PackageIdentity),
-                    "The entries compared should have the same package identity.");
-
-                if (entry.CommitTimeStamp > max.CommitTimeStamp)
-                {
-                    max = entry;
-                }
-                else if (entry.CommitTimeStamp == max.CommitTimeStamp)
-                {
-                    const string message = "There are multiple catalog leaves for a single package at one time.";
-                    _logger.LogError(
-                        message + " ID: {PackageId}, version: {PackageVersion}, commit timestamp: {CommitTimestamp:O}",
-                        entry.PackageIdentity.Id,
-                        entry.PackageIdentity.Version.ToFullString(),
-                        entry.CommitTimeStamp);
-                    throw new InvalidOperationException(message);
-                }
-            }
-
-            return max;
-        }
-
-        private async Task<IReadOnlyDictionary<CatalogCommitItem, PackageDetailsCatalogLeaf>> GetEntryToLeafAsync(
-            IEnumerable<CatalogCommitItem> entries)
-        {
-            var packageDetailsEntries = entries.Where(IsOnlyPackageDetails);
-            var allWork = new ConcurrentBag<CatalogCommitItem>(packageDetailsEntries);
-            var output = new ConcurrentBag<KeyValuePair<CatalogCommitItem, PackageDetailsCatalogLeaf>>();
-
-            using (_telemetryService.TrackCatalogLeafDownloadBatch(allWork.Count))
-            {
-                var tasks = Enumerable
-                    .Range(0, _options.Value.MaxConcurrentCatalogLeafDownloads)
-                    .Select(async x =>
-                    {
-                        await Task.Yield();
-                        while (allWork.TryTake(out var work))
-                        {
-                            try
-                            {
-                                _logger.LogInformation(
-                                    "Downloading catalog leaf for {PackageId} {Version}: {Url}",
-                                    work.PackageIdentity.Id,
-                                    work.PackageIdentity.Version.ToNormalizedString(),
-                                    work.Uri.AbsoluteUri);
-
-                                var leaf = await _catalogClient.GetPackageDetailsLeafAsync(work.Uri.AbsoluteUri);
-                                output.Add(KeyValuePair.Create(work, leaf));
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(
-                                    0,
-                                    ex,
-                                    "An exception was thrown when fetching the package details leaf for {Id} {Version}. " +
-                                    "The URL is {Url}",
-                                    work.PackageIdentity.Id,
-                                    work.PackageIdentity.Version,
-                                    work.Uri.AbsoluteUri);
-                                throw;
-                            }
-                        }
-                    })
-                    .ToList();
-
-                await Task.WhenAll(tasks);
-
-                return output.ToDictionary(
-                    x => x.Key,
-                    x => x.Value,
-                    ReferenceEqualityComparer<CatalogCommitItem>.Default);
-            }
-        }
-
-        private static bool IsOnlyPackageDetails(CatalogCommitItem e)
-        {
-            return e.IsPackageDetails && !e.IsPackageDelete;
         }
 
         private async Task<IndexActions> GetPackageIdIndexActionsAsync(
@@ -241,20 +121,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 packageId,
                 entries,
                 entryToLeaf);
-        }
-
-        private class Work
-        {
-            public Work(
-                string packageId,
-                IReadOnlyList<CatalogCommitItem> entries)
-            {
-                PackageId = packageId ?? throw new ArgumentNullException(nameof(packageId));
-                Entries = entries ?? throw new ArgumentNullException(nameof(entries));
-            }
-
-            public string PackageId { get; }
-            public IReadOnlyList<CatalogCommitItem> Entries { get; }
         }
     }
 }

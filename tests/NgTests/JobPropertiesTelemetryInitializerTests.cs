@@ -49,7 +49,7 @@ namespace NgTests
 
             initializer.Initialize(_telemetry.Object);
 
-            Assert.Empty(_telemetryContext.Properties);
+            Assert.Empty(_telemetryContext.GlobalProperties);
         }
 
         [Fact]
@@ -58,11 +58,13 @@ namespace NgTests
             _telemetryService.SetupGet(x => x.GlobalDimensions)
                 .Returns(_globalDimensions);
 
+            var telemetry = new TestableTelemetry();
+
             var initializer = new JobPropertiesTelemetryInitializer(_telemetryService.Object);
 
-            initializer.Initialize(_telemetry.Object);
+            initializer.Initialize(telemetry);
 
-            Assert.Empty(_telemetryContext.Properties);
+            Assert.Empty(_telemetryContext.GlobalProperties);
         }
 
         [Fact]
@@ -73,23 +75,19 @@ namespace NgTests
                 { "a", "b" },
                 { "c", "d" }
             };
-            var telemetryContext = new TelemetryContext();
-            var telemetry = new Mock<ITelemetry>();
+            var telemetry = new TestableTelemetry();
             var telemetryService = new Mock<ITelemetryService>();
-
-            telemetry.SetupGet(x => x.Context)
-                .Returns(telemetryContext);
 
             telemetryService.SetupGet(x => x.GlobalDimensions)
                 .Returns(globalDimensions);
 
             var initializer = new JobPropertiesTelemetryInitializer(telemetryService.Object);
 
-            initializer.Initialize(telemetry.Object);
+            initializer.Initialize(telemetry);
 
-            Assert.Equal(2, telemetryContext.Properties.Count);
-            Assert.Equal("b", telemetryContext.Properties["a"]);
-            Assert.Equal("d", telemetryContext.Properties["c"]);
+            Assert.Equal(2, telemetry.Properties.Count);
+            Assert.Equal("b", telemetry.Properties["a"]);
+            Assert.Equal("d", telemetry.Properties["c"]);
         }
     }
 }

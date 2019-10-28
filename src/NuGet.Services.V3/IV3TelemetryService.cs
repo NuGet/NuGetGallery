@@ -2,13 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Newtonsoft.Json;
 
-namespace NuGet.Services.AzureSearch.Support
+namespace NuGet.Services.V3
 {
-    public class Cursor
+    public interface IV3TelemetryService
     {
-        [JsonProperty("value")]
-        public DateTime Value { get; set; }
+        IDisposable TrackCatalogLeafDownloadBatch(int count);
     }
 }

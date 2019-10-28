@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NuGet.Services.AzureSearch</RootNamespace>
     <AssemblyName>NuGet.Services.AzureSearch.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -71,9 +71,7 @@
     <Compile Include="SearchIndexActionBuilderFacts.cs" />
     <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommandFacts.cs" />
     <Compile Include="Owners2AzureSearch\OwnerSetComparerFacts.cs" />
-    <Compile Include="Registration\RegistrationUrlBuilderFacts.cs" />
     <Compile Include="SearchDocumentBuilderFacts.cs" />
-    <Compile Include="Registration\RegistrationClientFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataCacheFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataFacts.cs" />
     <Compile Include="AuxiliaryFiles\AuxiliaryFileClientFacts.cs" />
@@ -85,18 +83,8 @@
     <Compile Include="SearchService\SearchResponseBuilderFacts.cs" />
     <Compile Include="SearchService\SearchStatusServiceFacts.cs" />
     <Compile Include="SearchService\SearchTextBuilderFacts.cs" />
-    <Compile Include="Support\Cursor.cs" />
     <Compile Include="Support\Data.cs" />
     <Compile Include="Support\SerializationUtilities.cs" />
-    <Compile Include="Support\DbSetMockFactory.cs" />
-    <Compile Include="Support\RecordingLogger.cs" />
-    <Compile Include="Support\TestCursorStorage.cs" />
-    <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
-    <Compile Include="Support\TestHttpMessageHandler.cs" />
-    <Compile Include="Support\TestOutputHelperExtensions.cs" />
-    <Compile Include="Support\XunitLogger.cs" />
-    <Compile Include="Support\XunitLoggerFactoryExtensions.cs" />
-    <Compile Include="Support\XunitLoggerProvider.cs" />
     <Compile Include="VersionList\FilteredVersionListFacts.cs" />
     <Compile Include="VersionList\MutableHijackDocumentChangesFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -123,9 +111,13 @@
       <Project>{1a53fe3d-8041-4773-942f-d73aef5b82b2}</Project>
       <Name>NuGet.Services.AzureSearch</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NuGet.Protocol.Catalog.Tests\NuGet.Protocol.Catalog.Tests.csproj">
-      <Project>{1f3bc053-796c-4a35-88f4-955a0f142197}</Project>
-      <Name>NuGet.Protocol.Catalog.Tests</Name>
+    <ProjectReference Include="..\..\src\NuGet.Services.V3\NuGet.Services.V3.csproj">
+      <Project>{c3f9a738-9759-4b2b-a50d-6507b28a659b}</Project>
+      <Name>NuGet.Services.V3</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.V3.Tests\NuGet.Services.V3.Tests.csproj">
+      <Project>{ccb4d5ef-ac84-449d-ac6e-0a0ad295483a}</Project>
+      <Name>NuGet.Services.V3.Tests</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

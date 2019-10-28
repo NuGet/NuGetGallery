@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.AzureSearch.Support
+namespace NuGet.Services
 {
     // Copied from https://msdn.microsoft.com/en-us/library/dn314429.aspx
     public class TestDbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider

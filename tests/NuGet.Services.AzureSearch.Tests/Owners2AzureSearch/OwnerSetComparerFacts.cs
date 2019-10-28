@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
-using NuGet.Services.AzureSearch.Support;
 using Xunit;
 using Xunit.Abstractions;
 

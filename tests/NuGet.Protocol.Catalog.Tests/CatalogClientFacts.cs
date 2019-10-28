@@ -92,6 +92,23 @@ namespace NuGet.Protocol.Catalog
             }
 
             [Fact]
+            public async Task ParsesRequiresLicenseAcceptance()
+            {
+                // Arrange
+                using (var httpClient = new HttpClient(new TestDataHttpMessageHandler()))
+                {
+                    var client = GetCatalogClient(httpClient);
+
+                    // Act
+                    var actual = await client.GetPackageDetailsLeafAsync(TestData.PackageDetailsLeafWithRequireLicenseAcceptanceUrl);
+
+                    // Assert
+                    Assert.NotNull(actual);
+                    Assert.True(actual.RequireLicenseAcceptance);
+                }
+            }
+
+            [Fact]
             public async Task WorksWithNuGetOrgDependencyVersionRangeArraySnapshot()
             {
                 // Arrange

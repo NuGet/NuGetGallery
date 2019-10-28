@@ -8,8 +8,8 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Catalog;
-using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.V3;
 using NuGet.Versioning;
 using Xunit;
 using Xunit.Abstractions;
@@ -238,10 +238,15 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             protected readonly Mock<ICatalogClient> _catalogClient;
             protected readonly Mock<ICatalogIndexActionBuilder> _catalogIndexActionBuilder;
             protected readonly Mock<IBatchPusher> _batchPusher;
-            protected readonly Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
-            protected readonly Catalog2AzureSearchConfiguration _config;
+            protected readonly CommitCollectorUtility _utility;
+            protected readonly Mock<IOptionsSnapshot<CommitCollectorConfiguration>> _utilityOptions;
+            protected readonly Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _collectorOptions;
+            protected readonly CommitCollectorConfiguration _utilityConfig;
+            protected readonly Catalog2AzureSearchConfiguration _collectorConfig;
             protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
+            protected readonly Mock<IV3TelemetryService> _v3TelemetryService;
             protected readonly RecordingLogger<AzureSearchCollectorLogic> _logger;
+            protected readonly RecordingLogger<CommitCollectorUtility> _utilityLogger;
             protected readonly AzureSearchCollectorLogic _target;
 
             public BaseFacts(ITestOutputHelper output)
@@ -249,20 +254,31 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _catalogClient = new Mock<ICatalogClient>();
                 _catalogIndexActionBuilder = new Mock<ICatalogIndexActionBuilder>();
                 _batchPusher = new Mock<IBatchPusher>();
-                _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
-                _config = new Catalog2AzureSearchConfiguration();
+                _utilityOptions = new Mock<IOptionsSnapshot<CommitCollectorConfiguration>>();
+                _collectorOptions = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
+                _utilityConfig = new CommitCollectorConfiguration();
+                _collectorConfig = new Catalog2AzureSearchConfiguration();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
+                _v3TelemetryService = new Mock<IV3TelemetryService>();
                 _logger = output.GetLogger<AzureSearchCollectorLogic>();
+                _utilityLogger = output.GetLogger<CommitCollectorUtility>();
 
-                _options.Setup(x => x.Value).Returns(() => _config);
-                _config.MaxConcurrentBatches = 1;
-                _config.MaxConcurrentCatalogLeafDownloads = 1;
+                _utilityOptions.Setup(x => x.Value).Returns(() => _utilityConfig);
+                _utilityConfig.MaxConcurrentCatalogLeafDownloads = 1;
+                _collectorOptions.Setup(x => x.Value).Returns(() => _collectorConfig);
+                _collectorConfig.MaxConcurrentBatches = 1;
+
+                _utility = new CommitCollectorUtility(
+                    _catalogClient.Object,
+                    _v3TelemetryService.Object,
+                    _utilityOptions.Object,
+                    _utilityLogger);
 
                 _target = new AzureSearchCollectorLogic(
-                    _catalogClient.Object,
                     _catalogIndexActionBuilder.Object,
                     () => _batchPusher.Object,
-                    _options.Object,
+                    _utility,
+                    _collectorOptions.Object,
                     _telemetryService.Object,
                     _logger);
             }

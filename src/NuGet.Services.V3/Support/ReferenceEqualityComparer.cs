@@ -2,9 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
+namespace NuGet.Services
 {
     /// <summary>
     /// Source: https://stackoverflow.com/a/35520207
@@ -17,11 +18,13 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         {
         }
 
+        [DebuggerStepThrough]
         public bool Equals(T x, T y)
         {
             return ReferenceEquals(x, y);
         }
 
+        [DebuggerStepThrough]
         public int GetHashCode(T obj)
         {
             return RuntimeHelpers.GetHashCode(obj);

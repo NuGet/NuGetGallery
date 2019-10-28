@@ -462,6 +462,72 @@
   <data name="PackageDetailsCatalogLeafUrl" xml:space="preserve">
     <value>https://api.nuget.org/v3/catalog0/data/2017.11.06.22.07.49/dotnettency.container.1.3.2.json</value>
   </data>
+  <data name="PackageDetailsLeafWithRequireLicenseAcceptance" xml:space="preserve">
+    <value>{
+  "@id": "https://api.nuget.org/v3/catalog0/data/2015.02.01.06.22.45/antixss.4.0.1.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "Microsoft",
+  "catalog:commitId": "b3f4fc8a-7522-42a3-8fee-a91d5488c0b1",
+  "catalog:commitTimeStamp": "2015-02-01T06:22:45.8488496Z",
+  "created": "2011-01-07T07:49:50.307Z",
+  "description": "AntiXSS is an encoding library which uses a safe list approach to encoding. It provides Html, XML, Url, Form, LDAP, CSS, JScript and VBScript encoding methods to allow \nyou to avoid Cross Site Scripting attacks. This library is part of the Microsoft SDL tools.",
+  "id": "AntiXSS",
+  "isPrerelease": false,
+  "language": "en-US",
+  "lastEdited": "0001-01-01T00:00:00Z",
+  "licenseUrl": "http://wpl.codeplex.com/license",
+  "packageHash": "Yim7Vde4dMtYF2mASw881JHKqs/TJ70O8QSIXAETYjznpKGxOXx46nbKbuldU9OgFqHcXabMZJWu8MVU4/uHOg==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 329780,
+  "published": "1900-01-01T00:00:00Z",
+  "requireLicenseAcceptance": true,
+  "summary": "AntiXSS is an encoding library which uses a safe list approach to encoding. It provides Html, XML, Url, Form, LDAP, CSS, JScript and VBScript encoding methods to allow \nyou to avoid Cross Site Scripting attacks. This library is part of the Microsoft SDL tools.",
+  "version": "4.0.1",
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    }
+  }
+}</value>
+  </data>
+  <data name="PackageDetailsLeafWithRequireLicenseAcceptanceUrl" xml:space="preserve">
+    <value>https://api.nuget.org/v3/catalog0/data/2015.02.01.06.22.45/antixss.4.0.1.json</value>
+  </data>
   <data name="RegistrationIndexInlinedItems" xml:space="preserve">
     <value>{"@id":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json","@type":["catalog:CatalogRoot","PackageRegistration","catalog:Permalink"],"commitId":"bef2767e-f5ae-4713-b5fc-510945bacdf9","commitTimeStamp":"2018-11-26T19:53:07.9393299Z","count":1,"items":[{"@id":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json#page/0.1.1/0.3.1","@type":"catalog:CatalogPage","commitId":"bef2767e-f5ae-4713-b5fc-510945bacdf9","commitTimeStamp":"2018-11-26T19:53:07.9393299Z","count":4,"items":[{"@id":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/0.1.1.json","@type":"Package","commitId":"bef2767e-f5ae-4713-b5fc-510945bacdf9","commitTimeStamp":"2018-11-26T19:53:07.9393299Z","catalogEntry":{"@id":"https://api.nuget.org/v3/catalog0/data/2018.11.13.04.43.04/microbuild.core.0.1.1.json","@type":"PackageDetails","authors":"Microsoft","description":"MicroBuild bootstrapper package which wires up build targets that load and execute other MicroBuild plugins during the build","iconUrl":"","id":"MicroBuild.Core","language":"","licenseUrl":"","listed":false,"minClientVersion":"","packageContent":"https://api.nuget.org/v3-flatcontainer/microbuild.core/0.1.1/microbuild.core.0.1.1.nupkg","projectUrl":"","published":"1900-01-01T00:00:00+00:00","requireLicenseAcceptance":false,"summary":"","tags":["MicroBuild"],"title":"","version":"0.1.1"},"packageContent":"https://api.nuget.org/v3-flatcontainer/microbuild.core/0.1.1/microbuild.core.0.1.1.nupkg","registration":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json"},{"@id":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/0.2.0.json","@type":"Package","commitId":"bef2767e-f5ae-4713-b5fc-510945bacdf9","commitTimeStamp":"2018-11-26T19:53:07.9393299Z","catalogEntry":{"@id":"https://api.nuget.org/v3/catalog0/data/2018.11.13.04.43.04/microbuild.core.0.2.0.json","@type":"PackageDetails","authors":"Microsoft","description":"MicroBuild bootstrapper package which wires up build targets that load and execute other MicroBuild plugins during the build","iconUrl":"","id":"MicroBuild.Core","language":"","licenseUrl":"http://microsoft.mit-license.org/","listed":false,"minClientVersion":"","packageContent":"https://api.nuget.org/v3-flatcontainer/microbuild.core/0.2.0/microbuild.core.0.2.0.nupkg","projectUrl":"","published":"1900-01-01T00:00:00+00:00","requireLicenseAcceptance":false,"summary":"","tags":["MicroBuild"],"title":"","version":"0.2.0"},"packageContent":"https://api.nuget.org/v3-flatcontainer/microbuild.core/0.2.0/microbuild.core.0.2.0.nupkg","registration":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json"},{"@id":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/0.3.0.json","@type":"Package","commitId":"bef2767e-f5ae-4713-b5fc-510945bacdf9","commitTimeStamp":"2018-11-26T19:53:07.9393299Z","catalogEntry":{"@id":"https://api.nuget.org/v3/catalog0/data/2018.11.26.19.52.28/microbuild.core.0.3.0.json","@type":"PackageDetails","authors":"Microsoft","description":"MicroBuild bootstrapper package which wires up build targets that load and execute other MicroBuild plugins during the build","iconUrl":"","id":"MicroBuild.Core","language":"","licenseUrl":"http://microsoft.mit-license.org/","listed":false,"minClientVersion":"","packageContent":"https://api.nuget.org/v3-flatcontainer/microbuild.core/0.3.0/microbuild.core.0.3.0.nupkg","projectUrl":"","published":"1900-01-01T00:00:00+00:00","requireLicenseAcceptance":false,"summary":"","tags":["MicroBuild"],"title":"","version":"0.3.0"},"packageContent":"https://api.nuget.org/v3-flatcontainer/microbuild.core/0.3.0/microbuild.core.0.3.0.nupkg","registration":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json"},{"@id":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/0.3.1.json","@type":"Package","commitId":"bef2767e-f5ae-4713-b5fc-510945bacdf9","commitTimeStamp":"2018-11-26T19:53:07.9393299Z","catalogEntry":{"@id":"https://api.nuget.org/v3/catalog0/data/2018.11.26.19.49.07/microbuild.core.0.3.1.json","@type":"PackageDetails","authors":"Microsoft","description":"MicroBuild bootstrapper package which wires up build targets that load and execute other MicroBuild plugins during the build","iconUrl":"https://github.com/MicrosoftDocs/Microbuild.Core/blob/master/extension-icon.png?raw=true","id":"MicroBuild.Core","language":"en-US","licenseUrl":"http://microsoft.mit-license.org/","listed":true,"minClientVersion":"","packageContent":"https://api.nuget.org/v3-flatcontainer/microbuild.core/0.3.1/microbuild.core.0.3.1.nupkg","projectUrl":"https://aka.ms/microbuild.package","published":"2018-11-13T04:26:56.943+00:00","requireLicenseAcceptance":true,"summary":"","tags":["MicroBuild"],"title":"","version":"0.3.1"},"packageContent":"https://api.nuget.org/v3-flatcontainer/microbuild.core/0.3.1/microbuild.core.0.3.1.nupkg","registration":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json"}],"parent":"https://api.nuget.org/v3/registration3-gz-semver2/microbuild.core/index.json","lower":"0.1.1","upper":"0.3.1"}],"@context":{"@vocab":"http://schema.nuget.org/schema#","catalog":"http://schema.nuget.org/catalog#","xsd":"http://www.w3.org/2001/XMLSchema#","items":{"@id":"catalog:item","@container":"@set"},"commitTimeStamp":{"@id":"catalog:commitTimeStamp","@type":"xsd:dateTime"},"commitId":{"@id":"catalog:commitId"},"count":{"@id":"catalog:count"},"parent":{"@id":"catalog:parent","@type":"@id"},"tags":{"@container":"@set","@id":"tag"},"packageTargetFrameworks":{"@container":"@set","@id":"packageTargetFramework"},"dependencyGroups":{"@container":"@set","@id":"dependencyGroup"},"dependencies":{"@container":"@set","@id":"dependency"},"packageContent":{"@type":"@id"},"published":{"@type":"xsd:dateTime"},"registration":{"@type":"@id"}}}</value>
   </data>

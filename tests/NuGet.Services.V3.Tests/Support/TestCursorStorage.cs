@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
-namespace NuGet.Services.AzureSearch.Support
+namespace NuGet.Services
 {
     public class TestCursorStorage : Metadata.Catalog.Persistence.Storage
     {

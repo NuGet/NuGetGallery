@@ -12,7 +12,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Rest;
 using Microsoft.Rest.Azure;
 using Moq;
-using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGetGallery;
 using Xunit;

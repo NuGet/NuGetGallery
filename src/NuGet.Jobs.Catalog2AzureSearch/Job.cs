@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
+using NuGet.Services.V3;
 
 namespace NuGet.Jobs
 {
@@ -17,6 +18,7 @@ namespace NuGet.Jobs
             base.ConfigureJobServices(services, configurationRoot);
 
             services.Configure<Catalog2AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.Configure<CommitCollectorConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchJobConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
         }

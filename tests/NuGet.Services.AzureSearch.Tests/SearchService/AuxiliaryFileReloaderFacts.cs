@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
-using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
 using Xunit;
 using Xunit.Abstractions;

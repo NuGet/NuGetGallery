@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>NuGet.Jobs</RootNamespace>
     <AssemblyName>NuGet.Jobs.Catalog2AzureSearch</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -70,6 +70,10 @@
     <ProjectReference Include="..\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">
       <Project>{1a53fe3d-8041-4773-942f-d73aef5b82b2}</Project>
       <Name>NuGet.Services.AzureSearch</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.V3\NuGet.Services.V3.csproj">
+      <Project>{C3F9A738-9759-4B2B-A50D-6507B28A659B}</Project>
+      <Name>NuGet.Services.V3</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

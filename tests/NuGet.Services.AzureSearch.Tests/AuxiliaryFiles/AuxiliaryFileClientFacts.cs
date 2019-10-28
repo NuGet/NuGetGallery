@@ -10,7 +10,6 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
-using NuGet.Services.AzureSearch.Support;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
@@ -185,7 +184,9 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         {
             protected readonly Mock<ICloudBlobClient> _blobClient;
             protected readonly Db2AzureSearchConfiguration _config;
+            protected readonly AuxiliaryDataStorageConfiguration _configStorage;
             protected readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
+            protected readonly Mock<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>> _optionsStorage;
             protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly RecordingLogger<AuxiliaryFileClient> _logger;
             protected readonly Mock<ICloudBlobContainer> _container;
@@ -197,7 +198,9 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             {
                 _blobClient = new Mock<ICloudBlobClient>();
                 _config = new Db2AzureSearchConfiguration();
+                _configStorage = new AuxiliaryDataStorageConfiguration();
                 _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
+                _optionsStorage = new Mock<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
                 _logger = output.GetLogger<AuxiliaryFileClient>();
                 _container = new Mock<ICloudBlobContainer>();
@@ -210,6 +213,14 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 _config.AuxiliaryDataStorageVerifiedPackagesPath = "my-verified-packages.json";
                 _config.AuxiliaryDataStorageExcludedPackagesPath = "my-excluded-packages.json";
                 _options.Setup(x => x.Value).Returns(() => _config);
+
+                _configStorage.AuxiliaryDataStorageContainer = "my-container";
+                _configStorage.AuxiliaryDataStorageDownloadsPath = "my-downloads.json";
+                _configStorage.AuxiliaryDataStorageDownloadOverridesPath = "my-download-overrides.json";
+                _configStorage.AuxiliaryDataStorageVerifiedPackagesPath = "my-verified-packages.json";
+                _configStorage.AuxiliaryDataStorageExcludedPackagesPath = "my-excluded-packages.json";
+                _optionsStorage.Setup(x => x.Value).Returns(() => _configStorage);
+
                 _blobClient
                     .Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns(() => _container.Object);
@@ -228,7 +239,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 _target = new AuxiliaryFileClient(
                     _blobClient.Object,
-                    _options.Object,
+                    _optionsStorage.Object,
                     _telemetryService.Object,
                     _logger);
             }

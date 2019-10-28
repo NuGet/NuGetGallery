@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 
-namespace NuGet.Services.AzureSearch.Support
+namespace NuGet.Services
 {
     public class RecordingLogger<T> : ILogger<T>
     {

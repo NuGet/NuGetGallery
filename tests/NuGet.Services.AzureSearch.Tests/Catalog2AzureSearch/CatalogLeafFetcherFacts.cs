@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
-using NuGet.Services.AzureSearch.Support;
 using NuGet.Versioning;
 using Xunit;
 using Xunit.Abstractions;

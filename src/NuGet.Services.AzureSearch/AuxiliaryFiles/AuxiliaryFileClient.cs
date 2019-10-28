@@ -18,14 +18,14 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
     public class AuxiliaryFileClient : IAuxiliaryFileClient
     {
         private readonly ICloudBlobClient _cloudBlobClient;
-        private readonly IOptionsSnapshot<IAuxiliaryDataStorageConfiguration> _options;
+        private readonly IOptionsSnapshot<AuxiliaryDataStorageConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AuxiliaryFileClient> _logger;
         private readonly Lazy<ICloudBlobContainer> _lazyContainer;
 
         public AuxiliaryFileClient(
             ICloudBlobClient cloudBlobClient,
-            IOptionsSnapshot<IAuxiliaryDataStorageConfiguration> options,
+            IOptionsSnapshot<AuxiliaryDataStorageConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
             ILogger<AuxiliaryFileClient> logger)
         {

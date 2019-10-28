@@ -19,8 +19,7 @@ namespace NuGet.Jobs
             base.ConfigureJobServices(services, configurationRoot);
 
             services.Configure<Db2AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
-            services.AddTransient<IOptionsSnapshot<IAuxiliaryDataStorageConfiguration>>(
-                p => p.GetRequiredService<IOptionsSnapshot<Db2AzureSearchConfiguration>>());
+            services.Configure<AuxiliaryDataStorageConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchJobConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
         }

@@ -2,9 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.DataContracts;
-using Moq;
 using Ng;
 using Xunit;
 
@@ -33,19 +30,15 @@ namespace NgTests
         [Fact]
         public void Initialize_WhenTelemetryIsNotNull_SetsJobNameAndInstanceName()
         {
-            var telemetryContext = new TelemetryContext();
-            var telemetry = new Mock<ITelemetry>();
-
-            telemetry.SetupGet(x => x.Context)
-                .Returns(telemetryContext);
+            var telemetry = new TestableTelemetry();
 
             var initializer = new JobNameTelemetryInitializer(jobName: "a", instanceName: "b");
 
-            initializer.Initialize(telemetry.Object);
+            initializer.Initialize(telemetry);
 
-            Assert.Equal(2, telemetryContext.Properties.Count);
-            Assert.Equal("a", telemetryContext.Properties["JobName"]);
-            Assert.Equal("b", telemetryContext.Properties["InstanceName"]);
+            Assert.Equal(2, telemetry.Properties.Count);
+            Assert.Equal("a", telemetry.Properties["JobName"]);
+            Assert.Equal("b", telemetry.Properties["InstanceName"]);
         }
     }
 }

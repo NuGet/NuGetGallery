@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Services.Metadata.Catalog;
 
-namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
+namespace NuGet.Services.V3
 {
     public interface ICollector
     {

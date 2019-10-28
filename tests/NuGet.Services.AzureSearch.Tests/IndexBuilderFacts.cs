@@ -14,7 +14,6 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.AzureSearch.ScoringProfiles;
 using NuGet.Services.AzureSearch.SearchService;
-using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGetGallery;
 using Xunit;

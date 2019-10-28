@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 
 namespace Ng
@@ -23,8 +24,18 @@ namespace Ng
 
         public void Initialize(ITelemetry telemetry)
         {
-            telemetry.Context.Properties[JobNameKey] = _jobName;
-            telemetry.Context.Properties[InstanceNameKey] = _instanceName;
+            // Note that telemetry initializers can be called multiple times for the same telemetry item, so
+            // these operations need to not fail if called again. In this particular case, Dictionary.Add
+            // cannot be used since it will fail if the key already exists.
+            // https://github.com/microsoft/ApplicationInsights-dotnet-server/issues/977
+
+            // We need to cast to ISupportProperties to avoid using the deprecated telemetry.Context.Properties API.
+            // https://github.com/Microsoft/ApplicationInsights-Home/issues/300
+
+            var supportProperties = (ISupportProperties)telemetry;
+
+            supportProperties.Properties[JobNameKey] = _jobName;
+            supportProperties.Properties[InstanceNameKey] = _instanceName;
         }
     }
 }

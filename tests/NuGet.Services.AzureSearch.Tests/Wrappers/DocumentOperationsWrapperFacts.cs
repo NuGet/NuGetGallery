@@ -14,7 +14,7 @@ using Microsoft.Rest;
 using Microsoft.Rest.Azure;
 using Moq;
 using Moq.Language;
-using NuGet.Services.AzureSearch.Support;
+using NuGet.Services.AzureSearch.SearchService;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -201,6 +201,20 @@ namespace NuGet.Services.AzureSearch.Wrappers
                 {
                     await Assert.ThrowsAsync<AzureSearchException>(() => ExecuteAsync());
                 }
+            }
+
+            [Fact]
+            public async Task RethrowsBadRequest()
+            {
+                Setup()
+                    .ThrowsAsync(new CloudException
+                    {
+                        Response = new HttpResponseMessageWrapper(new HttpResponseMessage(HttpStatusCode.BadRequest), string.Empty),
+                    });
+
+                var ex = await Assert.ThrowsAsync<InvalidSearchRequestException>(() => ExecuteAsync());
+                Assert.Equal("The provided query is invalid.", ex.Message);
+                Assert.IsType<CloudException>(ex.InnerException);
             }
 
             [Fact]

@@ -3,10 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Services.V3;
 
 namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 {
-    public class Catalog2AzureSearchConfiguration : AzureSearchJobConfiguration
+    public class Catalog2AzureSearchConfiguration : AzureSearchJobConfiguration, ICommitCollectorConfiguration
     {
         public int MaxConcurrentCatalogLeafDownloads { get; set; } = 64;
         public bool CreateContainersAndIndexes { get; set; }

@@ -284,13 +284,25 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { @"title:""a""", "title:a" },
 
                     // Lucene keywords are removed unless quoted with other terms
-                    { @"AND OR", @"*" },
-                    { @"""AND"" ""OR""", @"*" },
+                    { @"AND OR NOT", @"*" },
+                    { @"and or not", @"*" },
+                    { @"""AND""", @"*" },
+                    { @"""OR""", @"*" },
+                    { @"""NOT""", @"*" },
+                    { @"""AND"" ""OR"" ""NOT""", @"*" },
+                    { @"""AND OR NOT""", @"""AND OR NOT""" },
                     { @"""AND OR""", @"""AND OR""" },
+                    { @"""OR NOT""", @"""OR NOT""" },
+                    { @"""AND NOT""", @"""AND NOT""" },
+                    { @""" AND""", @""" AND""" },
+                    { @""" OR """, @""" OR """ },
+                    { @"""NOT """, @"""NOT """ },
                     { @"hello AND world", @"hello world (+hello +world)^2" },
                     { @"hello OR world", @"hello world (+hello +world)^2" },
+                    { @"hello NOT world", @"hello world (+hello +world)^2" },
                     { @"title:""hello AND world""", @"title:""hello AND world""" },
                     { @"title:""hello OR world""", @"title:""hello OR world""" },
+                    { @"title:""hello NOT world""", @"title:""hello NOT world""" },
 
                     // Special characters are escaped
                     { @"title:+ description:""+""", @"+title:\+ +description:\+" },

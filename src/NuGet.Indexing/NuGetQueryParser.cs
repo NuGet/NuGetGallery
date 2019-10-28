@@ -10,7 +10,18 @@ namespace NuGet.Indexing
 {
     public class NuGetQueryParser
     {
-        private readonly Dictionary<QueryField, string[]> _queryFieldNames = new Dictionary<QueryField, string[]>
+        /// <summary>
+        /// These words have special meaning that we will discard.
+        /// https://docs.microsoft.com/en-us/azure/search/query-lucene-syntax#bkmk_boolean
+        /// </summary>
+        private static readonly HashSet<string> SpecialWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "AND",
+            "OR",
+            "NOT",
+        };
+
+        private static readonly IReadOnlyDictionary<QueryField, string[]> _queryFieldNames = new Dictionary<QueryField, string[]>
         {
             { QueryField.Id,  new [] { "id" } },
             { QueryField.PackageId,  new [] { "packageid" } },
@@ -73,7 +84,7 @@ namespace NuGet.Indexing
                 }
                 else if (token.Type == Token.TokenType.Value)
                 {
-                    if (token.Value.ToLowerInvariant() == "and" || token.Value.ToLowerInvariant() == "or")
+                    if (SpecialWords.Contains(token.Value))
                     {
                         continue;
                     }
