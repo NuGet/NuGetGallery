@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GitHubVulnerabilities2Db.Collector;
 using GitHubVulnerabilities2Db.GraphQL;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Cursor;
 using Xunit;
@@ -41,7 +42,8 @@ namespace GitHubVulnerabilities2Db.Facts
 
             _service = new AdvisoryCollectorQueryService(
                 _queryServiceMock.Object,
-                _queryBuilderMock.Object);
+                _queryBuilderMock.Object,
+                Mock.Of<ILogger<AdvisoryCollectorQueryService>>());
         }
 
         private readonly Mock<IQueryService> _queryServiceMock;
