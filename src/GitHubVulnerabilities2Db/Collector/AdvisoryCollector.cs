@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHubVulnerabilities2Db.Ingest;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Cursor;
 
 namespace GitHubVulnerabilities2Db.Collector
@@ -15,21 +16,25 @@ namespace GitHubVulnerabilities2Db.Collector
         public AdvisoryCollector(
             ReadWriteCursor<DateTimeOffset> cursor,
             IAdvisoryCollectorQueryService queryService,
-            IAdvisoryIngestor ingestor)
+            IAdvisoryIngestor ingestor,
+            ILogger<AdvisoryCollector> logger)
         {
             _cursor = cursor ?? throw new ArgumentNullException(nameof(cursor));
             _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
             _ingestor = ingestor ?? throw new ArgumentNullException(nameof(ingestor));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         private readonly ReadWriteCursor<DateTimeOffset> _cursor;
         private readonly IAdvisoryCollectorQueryService _queryService;
         private readonly IAdvisoryIngestor _ingestor;
+        private readonly ILogger<AdvisoryCollector> _logger;
 
-        public async Task<bool> Process(CancellationToken token)
+        public async Task<bool> ProcessAsync(CancellationToken token)
         {
             var advisories = await _queryService.GetAdvisoriesSinceAsync(_cursor, token);
             var hasAdvisories = advisories != null && advisories.Any();
+            _logger.LogInformation("Found {AdvisoryCount} new advisories to process", advisories?.Count() ?? 0);
             if (hasAdvisories)
             {
                 var lastUpdatedAt = advisories.Max(i => i.UpdatedAt);

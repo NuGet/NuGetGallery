@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHubVulnerabilities2Db.GraphQL;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Cursor;
 
 namespace GitHubVulnerabilities2Db.Collector
@@ -15,25 +16,32 @@ namespace GitHubVulnerabilities2Db.Collector
     {
         public AdvisoryCollectorQueryService(
             IQueryService queryService,
-            IAdvisoryCollectorQueryBuilder queryBuilder)
+            IAdvisoryCollectorQueryBuilder queryBuilder,
+            ILogger<AdvisoryCollectorQueryService> logger)
         {
             _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
             _queryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         private readonly IQueryService _queryService;
         private readonly IAdvisoryCollectorQueryBuilder _queryBuilder;
+        private readonly ILogger<AdvisoryCollectorQueryService> _logger;
 
         public async Task<IReadOnlyList<SecurityAdvisory>> GetAdvisoriesSinceAsync(ReadCursor<DateTimeOffset> cursor, CancellationToken token)
         {
             await cursor.Load(token);
-            var firstQuery = _queryBuilder.CreateSecurityAdvisoriesQuery(updatedSince: cursor.Value);
+            var lastUpdated = cursor.Value;
+            _logger.LogInformation("Fetching advisories updated since {LastUpdated}", lastUpdated);
+            var firstQuery = _queryBuilder.CreateSecurityAdvisoriesQuery(lastUpdated);
             var firstResponse = await _queryService.QueryAsync(firstQuery, token);
             var lastAdvisoryEdges = firstResponse?.Data?.SecurityAdvisories?.Edges?.ToList() ?? Enumerable.Empty<Edge<SecurityAdvisory>>();
             var advisories = lastAdvisoryEdges.Select(e => e.Node).ToList();
             while (lastAdvisoryEdges.Any())
             {
-                var nextQuery = _queryBuilder.CreateSecurityAdvisoriesQuery(afterCursor: lastAdvisoryEdges.Last().Cursor);
+                var lastCursor = lastAdvisoryEdges.Last().Cursor;
+                _logger.LogInformation("Fetching advisories with cursor after {LastCursor}", lastCursor);
+                var nextQuery = _queryBuilder.CreateSecurityAdvisoriesQuery(afterCursor: lastCursor);
                 var nextResponse = await _queryService.QueryAsync(nextQuery, token);
                 lastAdvisoryEdges = nextResponse?.Data?.SecurityAdvisories?.Edges?.ToList() ?? Enumerable.Empty<Edge<SecurityAdvisory>>();
                 advisories.AddRange(lastAdvisoryEdges.Select(e => e.Node));
@@ -48,6 +56,7 @@ namespace GitHubVulnerabilities2Db.Collector
             var lastVulnerabilitiesFetchedCount = advisory.Vulnerabilities?.Edges?.Count() ?? 0;
             while (lastVulnerabilitiesFetchedCount == _queryBuilder.GetMaximumResultsPerRequest())
             {
+                _logger.LogInformation("Fetching more vulnerabilities for advisory with database key {GitHubDatabaseKey}", advisory.DatabaseId);
                 var queryForAdditionalVulnerabilities = _queryBuilder.CreateSecurityAdvisoryQuery(advisory);
                 var responseForAdditionalVulnerabilities = await _queryService.QueryAsync(queryForAdditionalVulnerabilities, token);
                 var advisoryWithAdditionalVulnerabilities = responseForAdditionalVulnerabilities.Data.SecurityAdvisory;

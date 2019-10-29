@@ -34,7 +34,7 @@ namespace GitHubVulnerabilities2Db
             var collector = _serviceProvider.GetRequiredService<IAdvisoryCollector>();
             using (var tokenSource = new CancellationTokenSource())
             {
-                while (await collector.Process(tokenSource.Token)) ;
+                while (await collector.ProcessAsync(tokenSource.Token)) ;
             }
         }
 

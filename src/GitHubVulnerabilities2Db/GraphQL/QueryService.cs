@@ -24,12 +24,12 @@ namespace GitHubVulnerabilities2Db.GraphQL
             InitializationConfiguration initializationConfiguration,
             HttpClient client)
         {
-            InitializationConfiguration = initializationConfiguration ?? throw new ArgumentNullException(nameof(initializationConfiguration));
-            Client = client ?? throw new ArgumentNullException(nameof(client));
+            _initializationConfiguration = initializationConfiguration ?? throw new ArgumentNullException(nameof(initializationConfiguration));
+            _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        public InitializationConfiguration InitializationConfiguration { get; set; }
-        public HttpClient Client { get; set; }
+        private readonly InitializationConfiguration _initializationConfiguration;
+        private readonly HttpClient _client;
 
         public async Task<QueryResponse> QueryAsync(string query, CancellationToken token)
         {
@@ -38,14 +38,14 @@ namespace GitHubVulnerabilities2Db.GraphQL
                 ["query"] = query
             };
 
-            var response = await GetResponseFromQuery(queryJObject.ToString(), token);
+            var response = await MakeWebRequestAsync(queryJObject.ToString(), token);
             return JsonConvert.DeserializeObject<QueryResponse>(response);
         }
 
-        private async Task<string> GetResponseFromQuery(string query, CancellationToken token)
+        private async Task<string> MakeWebRequestAsync(string query, CancellationToken token)
         {
             using (var request = CreateRequest(query))
-            using (var response = await Client.SendAsync(request, HttpCompletionOption.ResponseContentRead, token))
+            using (var response = await _client.SendAsync(request, HttpCompletionOption.ResponseContentRead, token))
             {
                 return await response.Content.ReadAsStringAsync();
             }
@@ -56,12 +56,12 @@ namespace GitHubVulnerabilities2Db.GraphQL
             var message = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = InitializationConfiguration.GitHubGraphQLQueryEndpoint,
+                RequestUri = _initializationConfiguration.GitHubGraphQLQueryEndpoint,
                 Content = new StringContent(query, Encoding.UTF8, "application/json")
             };
 
             message.Headers.Authorization = new AuthenticationHeaderValue(
-                "Bearer", InitializationConfiguration.GitHubPersonalAccessToken);
+                "Bearer", _initializationConfiguration.GitHubPersonalAccessToken);
             message.Headers.UserAgent.TryParseAdd(UserAgent);
             return message;
         }
