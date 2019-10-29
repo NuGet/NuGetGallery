@@ -7,14 +7,6 @@ using System.Collections.Generic;
 namespace GitHubVulnerabilities2Db.GraphQL
 {
     /// <summary>
-    /// Interface for queryable types returned by the GraphQL API.
-    /// </summary>
-    public interface INode
-    {
-        DateTimeOffset UpdatedAt { get; set; }
-    }
-
-    /// <summary>
     /// https://developer.github.com/v4/object/securityadvisory/
     /// </summary>
     public class SecurityAdvisory : INode

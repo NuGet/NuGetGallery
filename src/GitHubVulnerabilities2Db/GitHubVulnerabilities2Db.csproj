@@ -55,7 +55,7 @@
     <Compile Include="Gallery\ThrowingSecurityPolicyService.cs" />
     <Compile Include="Gallery\ThrowingTelemetryService.cs" />
     <Compile Include="GraphQL\IQueryService.cs" />
-    <Compile Include="GraphQL\Node.cs" />
+    <Compile Include="GraphQL\SecurityAdvisory.cs" />
     <Compile Include="GraphQL\QueryResponse.cs" />
     <Compile Include="GraphQL\QueryService.cs" />
     <Compile Include="Ingest\AdvisoryIngestor.cs" />

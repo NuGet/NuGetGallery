@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 
 namespace GitHubVulnerabilities2Db.GraphQL
@@ -29,6 +30,14 @@ namespace GitHubVulnerabilities2Db.GraphQL
         /// https://developer.github.com/v4/object/securityvulnerabilityconnection/
         /// </summary>
         public ConnectionResponseData<SecurityVulnerability> SecurityVulnerabilities { get; set; }
+    }
+
+    /// <summary>
+    /// Interface for queryable types returned by the GraphQL API.
+    /// </summary>
+    public interface INode
+    {
+        DateTimeOffset UpdatedAt { get; set; }
     }
 
     /// <summary>
