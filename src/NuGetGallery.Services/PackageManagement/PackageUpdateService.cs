@@ -120,11 +120,6 @@ namespace NuGetGallery
                 throw new ArgumentException(nameof(packages));
             }
 
-            if (packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
-            {
-                throw new ArgumentException("All packages to update must have the same ID.", nameof(packages));
-            }
-
             await UpdatePackagesInBulkAsync(packages.Select(p => p.Key).ToList());
 
             if (updateIndex)

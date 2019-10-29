@@ -155,12 +155,14 @@
     <Compile Include="PackageManagement\IPackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\IPackageService.cs" />
     <Compile Include="PackageManagement\IPackageUpdateService.cs" />
+    <Compile Include="PackageManagement\IPackageVulnerabilityService.cs" />
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
     <Compile Include="PackageManagement\PackageDeleteDecision.cs" />
     <Compile Include="PackageManagement\PackageHelper.cs" />
     <Compile Include="PackageManagement\PackageOwnerRequestService.cs" />
     <Compile Include="PackageManagement\PackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\PackageService.cs" />
+    <Compile Include="PackageManagement\PackageVulnerabilityService.cs" />
     <Compile Include="PackageManagement\ReservedNamespaceService.cs" />
     <Compile Include="Permissions\ActionRequiringAccountPermissions.cs" />
     <Compile Include="Permissions\ActionRequiringEntityPermissions.cs" />
