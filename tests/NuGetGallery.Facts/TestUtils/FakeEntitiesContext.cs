@@ -162,6 +162,30 @@ namespace NuGetGallery
             }
         }
 
+        public DbSet<PackageVulnerability> Vulnerabilities
+        {
+            get
+            {
+                return Set<PackageVulnerability>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        public DbSet<VulnerablePackageVersionRange> VulnerableRanges
+        {
+            get
+            {
+                return Set<VulnerablePackageVersionRange>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;

@@ -19,6 +19,8 @@ namespace NuGetGallery
         DbSet<ReservedNamespace> ReservedNamespaces { get; set; }
         DbSet<UserCertificate> UserCertificates { get; set; }
         DbSet<SymbolPackage> SymbolPackages { get; set; }
+        DbSet<PackageVulnerability> Vulnerabilities { get; set; }
+        DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
 
         Task<int> SaveChangesAsync();
         void DeleteOnCommit<T>(T entity) where T : class;
