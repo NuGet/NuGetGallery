@@ -183,13 +183,11 @@ namespace NuGetGallery.Services
         public class TheUpdatePackagesAsyncMethod : TestContainer
         {
             private readonly Mock<IEntitiesContext> _mockEntitiesContext;
-            private readonly Mock<IPackageService> _mockPackageService;
             private readonly Mock<IDatabase> _mockDatabase;
 
             public TheUpdatePackagesAsyncMethod()
             {
                 _mockEntitiesContext = GetMock<IEntitiesContext>();
-                _mockPackageService = GetMock<IPackageService>();
 
                 _mockDatabase = GetMock<IDatabase>();
                 _mockEntitiesContext

@@ -124,8 +124,12 @@ namespace NuGetGallery
 
             if (updateIndex)
             {
-                // The indexing service will find the latest version of the package to index--it doesn't matter what package we pass in.
-                _indexingService.UpdatePackage(packages.First());
+                // The indexing service will find the latest version of a package to index--it doesn't matter what package we pass in.
+                // We do, however, need to pass in a single package for each registration to ensure that each package is indexed.
+                foreach (var package in packages.GroupBy(p => p.PackageRegistration).Select(g => g.First()))
+                {
+                    _indexingService.UpdatePackage(package);
+                }
             }
         }
 
