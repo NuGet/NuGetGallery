@@ -277,7 +277,7 @@ namespace NuGet.Services.Entities
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
 
         /// <summary>
-        /// Gets and sets the list of vulnerabilites that this package has.
+        /// Gets or sets the list of vulnerabilites that this package has.
         /// </summary>
         public ICollection<VulnerablePackageVersionRange> Vulnerabilities { get; set; }
 
