@@ -6,6 +6,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGet.Services.Entities
 {
+    /// <summary>
+    /// Represents an <see cref="PackageRegistration.Id"/> and version range pair that is vulnerable to a <see cref="PackageVulnerability"/>.
+    /// </summary>
     public class VulnerablePackageVersionRange : IEntity
     {
         public VulnerablePackageVersionRange()
