@@ -261,6 +261,10 @@
     <Compile Include="Migrations\201906262145129_EmbeddedIconFlag.Designer.cs">
       <DependentUpon>201906262145129_EmbeddedIconFlag.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201910291956170_AddPackageVulnerabilities.cs" />
+    <Compile Include="Migrations\201910291956170_AddPackageVulnerabilities.Designer.cs">
+      <DependentUpon>201910291956170_AddPackageVulnerabilities.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\GravatarProxyResult.cs" />
@@ -1619,6 +1623,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201906262145129_EmbeddedIconFlag.resx">
       <DependentUpon>201906262145129_EmbeddedIconFlag.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201910291956170_AddPackageVulnerabilities.resx">
+      <DependentUpon>201910291956170_AddPackageVulnerabilities.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
