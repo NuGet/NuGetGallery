@@ -10,6 +10,7 @@ namespace NuGetGallery.Helpers
     {
         private const string UnsecureGravatarUrl = "http://www.gravatar.com/";
         private const string SecureGravatarUrl = "https://secure.gravatar.com/";
+        private const string SecureEnGravatarUrl = "https://en.gravatar.com/";
 
         /// <summary>
         /// Generates a URL to Gravatar that isn't proxied.
@@ -29,7 +30,10 @@ namespace NuGetGallery.Helpers
 
             if (url != null && ShouldUseSecureGravatar())
             {
-                url = url.Replace(UnsecureGravatarUrl, SecureGravatarUrl);
+                var features = DependencyResolver.Current.GetService<IFeatureFlagService>();
+                var secureUrl = features.UseGravatarEnSubdomain() ? SecureEnGravatarUrl : SecureGravatarUrl;
+
+                url = url.Replace(UnsecureGravatarUrl, secureUrl);
             }
 
             return HttpUtility.HtmlDecode(url);

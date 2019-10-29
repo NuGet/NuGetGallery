@@ -94,5 +94,10 @@ namespace NuGetGallery
         /// Whether Gravatar images should be proxied.
         /// </summary>
         bool IsGravatarProxyEnabled();
+
+        /// <summary>
+        /// Whether the "en.gravatar.com" subdomain should be used to load Gravatar images.
+        /// </summary>
+        bool UseGravatarEnSubdomain();
     }
 }
