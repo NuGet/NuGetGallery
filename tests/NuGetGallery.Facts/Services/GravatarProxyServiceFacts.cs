@@ -87,6 +87,8 @@ namespace NuGetGallery
 
             _features
                 .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+            _features
+                .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
 
         }
 
@@ -103,6 +105,8 @@ namespace NuGetGallery
 
             _features
                 .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+            _features
+                .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
             _users
                 .Verify(u => u.GetAll(), Times.Once);
         }
@@ -132,6 +136,8 @@ namespace NuGetGallery
 
                 _features
                     .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _features
+                    .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
                 _users
                     .Verify(u => u.GetAll(), Times.Once);
             }
@@ -162,6 +168,8 @@ namespace NuGetGallery
 
                 _features
                     .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _features
+                    .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
                 _users
                     .Verify(u => u.GetAll(), Times.Once);
             }
@@ -194,6 +202,8 @@ namespace NuGetGallery
 
                 _features
                     .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _features
+                    .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
                 _users
                     .Verify(u => u.GetAll(), Times.Once);
             }
@@ -220,6 +230,8 @@ namespace NuGetGallery
 
                 _features
                     .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _features
+                    .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
                 _users
                     .Verify(u => u.GetAll(), Times.Once);
             }
@@ -250,6 +262,8 @@ namespace NuGetGallery
 
                 _features
                     .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _features
+                    .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
                 _users
                     .Verify(u => u.GetAll(), Times.Once);
             }
@@ -300,6 +314,8 @@ namespace NuGetGallery
 
                 _features
                     .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
+                _features
+                    .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
                 _users
                     .Verify(u => u.GetAll(), Times.Once);
             }
