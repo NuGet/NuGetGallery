@@ -25,6 +25,7 @@ namespace GitHubVulnerabilities2Db.Facts
         [InlineData("= 1.0.0, < 2.0.0")] // max already specified
         [InlineData("< 1.0.0, = 2.0.0")] // max already specified
         [InlineData("= 1.0.0, = 2.0.0")] // min and max already specified
+        [InlineData("= 1.0.0, = 1.0.0")] // min and max already specified
         public void ThrowsArgumentNullExceptionWithInvalidInput(string input)
         {
             Assert.Throws<ArgumentException>(() => Parser.ToNuGetVersionRange(input));
