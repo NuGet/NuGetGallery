@@ -6,7 +6,7 @@ using GitHubVulnerabilities2Db.GraphQL;
 
 namespace GitHubVulnerabilities2Db.Collector
 {
-    public interface IAdvisoryCollectorQueryBuilder
+    public interface IAdvisoryQueryBuilder
     {
         int GetMaximumResultsPerRequest();
         string CreateSecurityAdvisoriesQuery(DateTimeOffset? updatedSince = null, string afterCursor = null);

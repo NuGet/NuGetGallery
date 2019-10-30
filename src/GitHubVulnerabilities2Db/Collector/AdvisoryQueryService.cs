@@ -12,21 +12,21 @@ using NuGet.Services.Cursor;
 
 namespace GitHubVulnerabilities2Db.Collector
 {
-    public class AdvisoryCollectorQueryService : IAdvisoryCollectorQueryService
+    public class AdvisoryQueryService : IAdvisoryQueryService
     {
-        public AdvisoryCollectorQueryService(
+        private readonly IQueryService _queryService;
+        private readonly IAdvisoryQueryBuilder _queryBuilder;
+        private readonly ILogger<AdvisoryQueryService> _logger;
+
+        public AdvisoryQueryService(
             IQueryService queryService,
-            IAdvisoryCollectorQueryBuilder queryBuilder,
-            ILogger<AdvisoryCollectorQueryService> logger)
+            IAdvisoryQueryBuilder queryBuilder,
+            ILogger<AdvisoryQueryService> logger)
         {
             _queryService = queryService ?? throw new ArgumentNullException(nameof(queryService));
             _queryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
-        private readonly IQueryService _queryService;
-        private readonly IAdvisoryCollectorQueryBuilder _queryBuilder;
-        private readonly ILogger<AdvisoryCollectorQueryService> _logger;
 
         public async Task<IReadOnlyList<SecurityAdvisory>> GetAdvisoriesSinceAsync(ReadCursor<DateTimeOffset> cursor, CancellationToken token)
         {

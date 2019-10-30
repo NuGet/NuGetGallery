@@ -7,7 +7,7 @@ using GitHubVulnerabilities2Db.GraphQL;
 
 namespace GitHubVulnerabilities2Db.Collector
 {
-    public class AdvisoryCollectorQueryBuilder : IAdvisoryCollectorQueryBuilder
+    public class AdvisoryQueryBuilder : IAdvisoryQueryBuilder
     {
         public int GetMaximumResultsPerRequest() => 100;
 

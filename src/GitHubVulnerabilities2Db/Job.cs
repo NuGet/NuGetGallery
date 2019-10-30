@@ -40,7 +40,7 @@ namespace GitHubVulnerabilities2Db
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            ConfigureInitializationSection<InitializationConfiguration>(services, configurationRoot);
+            ConfigureInitializationSection<GitHubVulnerabilities2DbConfiguration>(services, configurationRoot);
         }
 
         public void Dispose()
@@ -51,7 +51,7 @@ namespace GitHubVulnerabilities2Db
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
             containerBuilder
-                .RegisterAdapter<IOptionsSnapshot<InitializationConfiguration>, InitializationConfiguration>(c => c.Value);
+                .RegisterAdapter<IOptionsSnapshot<GitHubVulnerabilities2DbConfiguration>, GitHubVulnerabilities2DbConfiguration>(c => c.Value);
 
             ConfigureQueryServices(containerBuilder);
             ConfigureIngestionServices(containerBuilder);
@@ -125,12 +125,12 @@ namespace GitHubVulnerabilities2Db
                 .As<IQueryService>();
 
             containerBuilder
-                .RegisterType<AdvisoryCollectorQueryBuilder>()
-                .As<IAdvisoryCollectorQueryBuilder>();
+                .RegisterType<AdvisoryQueryBuilder>()
+                .As<IAdvisoryQueryBuilder>();
 
             containerBuilder
-                .RegisterType<AdvisoryCollectorQueryService>()
-                .As<IAdvisoryCollectorQueryService>();
+                .RegisterType<AdvisoryQueryService>()
+                .As<IAdvisoryQueryService>();
         }
 
         protected void ConfigureCollectorServices(ContainerBuilder containerBuilder)
@@ -138,7 +138,7 @@ namespace GitHubVulnerabilities2Db
             containerBuilder
                 .Register(ctx =>
                 {
-                    var config = ctx.Resolve<InitializationConfiguration>();
+                    var config = ctx.Resolve<GitHubVulnerabilities2DbConfiguration>();
                     return CloudStorageAccount.Parse(config.StorageConnectionString);
                 })
                 .As<CloudStorageAccount>();
@@ -147,7 +147,7 @@ namespace GitHubVulnerabilities2Db
                 .RegisterType<AzureStorageFactory>()
                 .WithParameter(
                     (parameter, ctx) => parameter.Name == "containerName",
-                    (parameter, ctx) => ctx.Resolve<InitializationConfiguration>().CursorContainerName)
+                    (parameter, ctx) => ctx.Resolve<GitHubVulnerabilities2DbConfiguration>().CursorContainerName)
                 .As<StorageFactory>()
                 .As<IStorageFactory>();
 
@@ -160,9 +160,9 @@ namespace GitHubVulnerabilities2Db
                 .As<IAdvisoryCollector>();
         }
 
-        private DurableCursor CreateCursor(IComponentContext ctx, Func<InitializationConfiguration, string> getBlobName)
+        private DurableCursor CreateCursor(IComponentContext ctx, Func<GitHubVulnerabilities2DbConfiguration, string> getBlobName)
         {
-            var config = ctx.Resolve<IOptionsSnapshot<InitializationConfiguration>>().Value;
+            var config = ctx.Resolve<IOptionsSnapshot<GitHubVulnerabilities2DbConfiguration>>().Value;
             var storageFactory = ctx.Resolve<IStorageFactory>();
             var storage = storageFactory.Create();
             return new DurableCursor(storage.ResolveUri(getBlobName(config)), storage, DateTimeOffset.MinValue);

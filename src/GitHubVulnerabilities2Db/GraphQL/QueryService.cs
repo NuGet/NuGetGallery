@@ -20,16 +20,16 @@ namespace GitHubVulnerabilities2Db.GraphQL
         /// </remarks>
         public const string UserAgent = "NuGet.Jobs.GitHubVulnerabilities2Db";
 
+        private readonly GitHubVulnerabilities2DbConfiguration _configuration;
+        private readonly HttpClient _client;
+
         public QueryService(
-            InitializationConfiguration initializationConfiguration,
+            GitHubVulnerabilities2DbConfiguration initializationConfiguration,
             HttpClient client)
         {
-            _initializationConfiguration = initializationConfiguration ?? throw new ArgumentNullException(nameof(initializationConfiguration));
+            _configuration = initializationConfiguration ?? throw new ArgumentNullException(nameof(initializationConfiguration));
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
-
-        private readonly InitializationConfiguration _initializationConfiguration;
-        private readonly HttpClient _client;
 
         public async Task<QueryResponse> QueryAsync(string query, CancellationToken token)
         {
@@ -56,12 +56,12 @@ namespace GitHubVulnerabilities2Db.GraphQL
             var message = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = _initializationConfiguration.GitHubGraphQLQueryEndpoint,
+                RequestUri = _configuration.GitHubGraphQLQueryEndpoint,
                 Content = new StringContent(query, Encoding.UTF8, "application/json")
             };
 
             message.Headers.Authorization = new AuthenticationHeaderValue(
-                "Bearer", _initializationConfiguration.GitHubPersonalAccessToken);
+                "Bearer", _configuration.GitHubPersonalAccessToken);
             message.Headers.UserAgent.TryParseAdd(UserAgent);
             return message;
         }

@@ -17,9 +17,9 @@ using Xunit;
 
 namespace GitHubVulnerabilities2Db.Facts
 {
-    public class AdvisoryCollectorQueryServiceFacts
+    public class AdvisoryQueryServiceFacts
     {
-        public AdvisoryCollectorQueryServiceFacts()
+        public AdvisoryQueryServiceFacts()
         {
             _token = CancellationToken.None;
             _cursorMock = new Mock<ReadWriteCursor<DateTimeOffset>>();
@@ -35,24 +35,24 @@ namespace GitHubVulnerabilities2Db.Facts
 
             _queryServiceMock = new Mock<IQueryService>();
             _maxResultsPerQuery = 3;
-            _queryBuilderMock = new Mock<IAdvisoryCollectorQueryBuilder>();
+            _queryBuilderMock = new Mock<IAdvisoryQueryBuilder>();
             _queryBuilderMock
                 .Setup(x => x.GetMaximumResultsPerRequest())
                 .Returns(_maxResultsPerQuery);
 
-            _service = new AdvisoryCollectorQueryService(
+            _service = new AdvisoryQueryService(
                 _queryServiceMock.Object,
                 _queryBuilderMock.Object,
-                Mock.Of<ILogger<AdvisoryCollectorQueryService>>());
+                Mock.Of<ILogger<AdvisoryQueryService>>());
         }
 
         private readonly Mock<IQueryService> _queryServiceMock;
         private readonly int _maxResultsPerQuery;
-        private readonly Mock<IAdvisoryCollectorQueryBuilder> _queryBuilderMock;
+        private readonly Mock<IAdvisoryQueryBuilder> _queryBuilderMock;
         private readonly Mock<ReadWriteCursor<DateTimeOffset>> _cursorMock;
         private readonly DateTimeOffset _cursorValue;
         private readonly CancellationToken _token;
-        private readonly AdvisoryCollectorQueryService _service;
+        private readonly AdvisoryQueryService _service;
 
         [Fact]
         public async Task NoResults()
@@ -248,7 +248,7 @@ namespace GitHubVulnerabilities2Db.Facts
                 response);
 
         private void SetupQueryResult(
-            Expression<Func<IAdvisoryCollectorQueryBuilder, string>> expression,
+            Expression<Func<IAdvisoryQueryBuilder, string>> expression,
             QueryResponse response)
         {
             var query = Guid.NewGuid().ToString();

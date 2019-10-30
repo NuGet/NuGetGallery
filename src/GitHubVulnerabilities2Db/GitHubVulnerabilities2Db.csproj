@@ -44,12 +44,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collector\AdvisoryCollector.cs" />
-    <Compile Include="Collector\AdvisoryCollectorQueryBuilder.cs" />
-    <Compile Include="Collector\AdvisoryCollectorQueryService.cs" />
+    <Compile Include="Collector\AdvisoryQueryBuilder.cs" />
+    <Compile Include="Collector\AdvisoryQueryService.cs" />
     <Compile Include="Collector\IAdvisoryCollector.cs" />
-    <Compile Include="Collector\IAdvisoryCollectorQueryBuilder.cs" />
-    <Compile Include="Collector\IAdvisoryCollectorQueryService.cs" />
-    <Compile Include="Configuration\InitializationConfiguration.cs" />
+    <Compile Include="Collector\IAdvisoryQueryBuilder.cs" />
+    <Compile Include="Collector\IAdvisoryQueryService.cs" />
+    <Compile Include="Configuration\GitHubVulnerabilities2DbConfiguration.cs" />
     <Compile Include="Gallery\ThrowingAuditingService.cs" />
     <Compile Include="Gallery\ThrowingIndexingService.cs" />
     <Compile Include="Gallery\ThrowingSecurityPolicyService.cs" />

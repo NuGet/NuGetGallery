@@ -13,7 +13,7 @@ namespace GitHubVulnerabilities2Db.Collector
     /// <summary>
     /// Wrapper around <see cref="IQueryService"/> to make it easier to query for <see cref="SecurityAdvisory"/>s using a cursor.
     /// </summary>
-    public interface IAdvisoryCollectorQueryService
+    public interface IAdvisoryQueryService
     {
         Task<IReadOnlyList<SecurityAdvisory>> GetAdvisoriesSinceAsync(ReadCursor<DateTimeOffset> cursor, CancellationToken token);
     }

@@ -13,6 +13,9 @@ namespace GitHubVulnerabilities2Db.Ingest
 {
     public class AdvisoryIngestor : IAdvisoryIngestor
     {
+        private readonly IPackageVulnerabilityService _packageVulnerabilityService;
+        private readonly IGitHubVersionRangeParser _gitHubVersionRangeParser;
+
         public AdvisoryIngestor(
             IPackageVulnerabilityService packageVulnerabilityService,
             IGitHubVersionRangeParser gitHubVersionRangeParser)
@@ -20,9 +23,6 @@ namespace GitHubVulnerabilities2Db.Ingest
             _packageVulnerabilityService = packageVulnerabilityService ?? throw new ArgumentNullException(nameof(packageVulnerabilityService));
             _gitHubVersionRangeParser = gitHubVersionRangeParser ?? throw new ArgumentNullException(nameof(gitHubVersionRangeParser));
         }
-
-        private readonly IPackageVulnerabilityService _packageVulnerabilityService;
-        private readonly IGitHubVersionRangeParser _gitHubVersionRangeParser;
 
         public async Task Ingest(IReadOnlyList<SecurityAdvisory> advisories)
         {

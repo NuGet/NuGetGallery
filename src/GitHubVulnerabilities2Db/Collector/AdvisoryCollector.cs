@@ -13,9 +13,14 @@ namespace GitHubVulnerabilities2Db.Collector
 {
     public class AdvisoryCollector : IAdvisoryCollector
     {
+        private readonly ReadWriteCursor<DateTimeOffset> _cursor;
+        private readonly IAdvisoryQueryService _queryService;
+        private readonly IAdvisoryIngestor _ingestor;
+        private readonly ILogger<AdvisoryCollector> _logger;
+
         public AdvisoryCollector(
             ReadWriteCursor<DateTimeOffset> cursor,
-            IAdvisoryCollectorQueryService queryService,
+            IAdvisoryQueryService queryService,
             IAdvisoryIngestor ingestor,
             ILogger<AdvisoryCollector> logger)
         {
@@ -24,11 +29,6 @@ namespace GitHubVulnerabilities2Db.Collector
             _ingestor = ingestor ?? throw new ArgumentNullException(nameof(ingestor));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
-        private readonly ReadWriteCursor<DateTimeOffset> _cursor;
-        private readonly IAdvisoryCollectorQueryService _queryService;
-        private readonly IAdvisoryIngestor _ingestor;
-        private readonly ILogger<AdvisoryCollector> _logger;
 
         public async Task<bool> ProcessAsync(CancellationToken token)
         {

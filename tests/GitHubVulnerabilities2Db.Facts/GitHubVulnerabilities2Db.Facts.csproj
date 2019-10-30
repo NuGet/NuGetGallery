@@ -41,7 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdvisoryCollectorQueryServiceFacts.cs" />
+    <Compile Include="AdvisoryQueryServiceFacts.cs" />
     <Compile Include="AdvisoryIngestorFacts.cs" />
     <Compile Include="GitHubVersionRangeParserFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

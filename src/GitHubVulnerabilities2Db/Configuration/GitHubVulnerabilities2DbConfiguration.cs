@@ -5,7 +5,7 @@ using System;
 
 namespace GitHubVulnerabilities2Db.Configuration
 {
-    public class InitializationConfiguration
+    public class GitHubVulnerabilities2DbConfiguration
     {
         /// <summary>
         /// GitHub's v4 GraphQL API endpoint.
