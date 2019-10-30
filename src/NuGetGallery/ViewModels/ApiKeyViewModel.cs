@@ -20,6 +20,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(cred));
             }
 
+            if (cred.Scopes == null)
+            {
+                throw new ArgumentNullException(nameof(cred.Scopes));
+            }
+
             // Currently ApiKeys.cshtml has single Owner per ApiKey restriction.
             var owner = cred
                 .Scopes
