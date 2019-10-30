@@ -4,7 +4,7 @@
     "NuGetGallery.PackagesAtomFeed": "Enabled",
     "NuGetGallery.PreviewHijack": "Enabled",
     "NuGetGallery.GravatarProxy": "Enabled",
-    "NuGetGallery.GravatarEnSubdomain": "Enabled"
+    "NuGetGallery.GravatarProxyEnSubdomain": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
