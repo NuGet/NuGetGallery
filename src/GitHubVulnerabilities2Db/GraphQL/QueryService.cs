@@ -45,7 +45,7 @@ namespace GitHubVulnerabilities2Db.GraphQL
         private async Task<string> MakeWebRequestAsync(string query, CancellationToken token)
         {
             using (var request = CreateRequest(query))
-            using (var response = await _client.SendAsync(request, HttpCompletionOption.ResponseContentRead, token))
+            using (var response = await _client.SendAsync(request, token))
             {
                 return await response.Content.ReadAsStringAsync();
             }
