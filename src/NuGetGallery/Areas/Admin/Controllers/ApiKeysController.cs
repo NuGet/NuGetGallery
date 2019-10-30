@@ -54,7 +54,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     }
                     var leakedUrl = queryObject.LeakedUrl;
 
-                    var credential = _authenticationService.Verify(apiKey);
+                    var credential = _authenticationService.GetApiKeyCredential(apiKey);
                     var apiKeyViewModel = credential == null ? null : new ApiKeyViewModel(_authenticationService.DescribeCredential(credential));
 
                     results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl, isRevocable: IsRevocable(apiKeyViewModel)));

@@ -27,6 +27,6 @@ namespace NuGetGallery.Authentication
         /// Verify the ApiKey
         /// </summary>
         /// <returns>Return a credential if there is a matched apiKey or null if there is not.</returns>
-        Credential Verify(string apiKey);
+        Credential GetApiKeyCredential(string apiKey);
     }
 }

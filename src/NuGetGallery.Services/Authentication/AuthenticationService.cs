@@ -158,7 +158,7 @@ namespace NuGetGallery.Authentication
                 new Credential { Type = CredentialTypes.ApiKey.Prefix, Value = apiKey });
         }
 
-        public Credential Verify(string apiKey)
+        public Credential GetApiKeyCredential(string apiKey)
         {
             var credential = new Credential { Type = CredentialTypes.ApiKey.Prefix, Value = apiKey };
             return FindMatchingApiKey(credential);
