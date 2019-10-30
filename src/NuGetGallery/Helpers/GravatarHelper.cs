@@ -20,6 +20,11 @@ namespace NuGetGallery.Helpers
         /// <returns>The image URL, direct to Gravatar without proxying.</returns>
         public static string RawUrl(string email, int size)
         {
+            return RawUrl(email, size, useEnSubdomain: false);
+        }
+
+        public static string RawUrl(string email, int size, bool useEnSubdomain)
+        {
             // The maximum allowed Gravatar size is 512 pixels.
             if (size > 512)
             {
@@ -30,10 +35,9 @@ namespace NuGetGallery.Helpers
 
             if (url != null && ShouldUseSecureGravatar())
             {
-                var features = DependencyResolver.Current.GetService<IFeatureFlagService>();
-                var secureUrl = features.UseGravatarEnSubdomain() ? SecureEnGravatarUrl : SecureGravatarUrl;
+                var secureDomain = useEnSubdomain ? SecureEnGravatarUrl : SecureGravatarUrl;
 
-                url = url.Replace(UnsecureGravatarUrl, secureUrl);
+                url = url.Replace(UnsecureGravatarUrl, secureDomain);
             }
 
             return HttpUtility.HtmlDecode(url);

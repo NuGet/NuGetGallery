@@ -134,7 +134,7 @@ namespace NuGetGallery
             return _client.IsEnabled(GravatarProxyFeatureName, defaultValue: false);
         }
 
-        public bool UseGravatarEnSubdomain()
+        public bool ProxyGravatarEnSubdomain()
         {
             return _client.IsEnabled(GravatarEnSubdomainFeatureName, defaultValue: false);
         }
