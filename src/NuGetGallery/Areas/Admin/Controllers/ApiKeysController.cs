@@ -59,15 +59,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                     results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl, isRevocable: IsRevocable(apiKeyViewModel)));
                 }
-                catch (Exception e)
+                catch (JsonException)
                 {
-                    if (e is JsonException)
-                    {
-                        return Json(HttpStatusCode.BadRequest, $"Invalid input! {query} is not using the valid JSON format.");
-                    }
-
-                    _telemetryService.TraceException(e);
-                    return Json(HttpStatusCode.InternalServerError);
+                    return Json(HttpStatusCode.BadRequest, $"Invalid input! {query} is not using the valid JSON format.");
                 }
             }
 
