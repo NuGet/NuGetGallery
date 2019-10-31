@@ -24,10 +24,10 @@ namespace GitHubVulnerabilities2Db.GraphQL
         private readonly HttpClient _client;
 
         public QueryService(
-            GitHubVulnerabilities2DbConfiguration initializationConfiguration,
+            GitHubVulnerabilities2DbConfiguration configuration,
             HttpClient client)
         {
-            _configuration = initializationConfiguration ?? throw new ArgumentNullException(nameof(initializationConfiguration));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
