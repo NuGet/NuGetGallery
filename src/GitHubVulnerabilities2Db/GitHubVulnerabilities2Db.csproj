@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{26BB718A-E1C1-4E70-9008-FB8EE7A7F7E5}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>GitHubVulnerabilities2Db</RootNamespace>
+    <AssemblyName>GitHubVulnerabilities2Db</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Collector\AdvisoryCollector.cs" />
+    <Compile Include="Collector\AdvisoryQueryBuilder.cs" />
+    <Compile Include="Collector\AdvisoryQueryService.cs" />
+    <Compile Include="Collector\IAdvisoryCollector.cs" />
+    <Compile Include="Collector\IAdvisoryQueryBuilder.cs" />
+    <Compile Include="Collector\IAdvisoryQueryService.cs" />
+    <Compile Include="Configuration\GitHubVulnerabilities2DbConfiguration.cs" />
+    <Compile Include="Gallery\ThrowingAuditingService.cs" />
+    <Compile Include="Gallery\ThrowingIndexingService.cs" />
+    <Compile Include="Gallery\ThrowingSecurityPolicyService.cs" />
+    <Compile Include="Gallery\ThrowingTelemetryService.cs" />
+    <Compile Include="GraphQL\Edge.cs" />
+    <Compile Include="GraphQL\IQueryService.cs" />
+    <Compile Include="GraphQL\INode.cs" />
+    <Compile Include="GraphQL\SecurityAdvisory.cs" />
+    <Compile Include="GraphQL\QueryResponse.cs" />
+    <Compile Include="GraphQL\QueryService.cs" />
+    <Compile Include="GraphQL\SecurityVulnerability.cs" />
+    <Compile Include="Ingest\AdvisoryIngestor.cs" />
+    <Compile Include="Ingest\GitHubVersionRangeParser.cs" />
+    <Compile Include="Ingest\GitHubVersionRangeParsingException.cs" />
+    <Compile Include="Ingest\IAdvisoryIngestor.cs" />
+    <Compile Include="Ingest\IGitHubVersionRangeParser.cs" />
+    <Compile Include="Job.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="GitHubVulnerabilities2Db.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Scripts\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MicroBuild.Core">
+      <Version>0.3.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="NuGet.Jobs.Common">
+      <Version>4.3.0-dev-3159955</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Cursor">
+      <Version>2.57.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Scripts\nssm.exe" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
+      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
+      <Name>NuGetGallery.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj">
+      <Project>{c7d5e850-33fa-4ec5-8d7f-b1c8dd5d48f9}</Project>
+      <Name>NuGetGallery.Services</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
+  </PropertyGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
+  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+</Project>
