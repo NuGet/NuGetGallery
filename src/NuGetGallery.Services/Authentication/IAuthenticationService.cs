@@ -24,7 +24,7 @@ namespace NuGetGallery.Authentication
         CredentialViewModel DescribeCredential(Credential credential);
 
         /// <summary>
-        /// Verify the ApiKey
+        /// Get the ApiKey credential given the apiKey
         /// </summary>
         /// <returns>Return a credential if there is a matched apiKey or null if there is not.</returns>
         Credential GetApiKeyCredential(string apiKey);
