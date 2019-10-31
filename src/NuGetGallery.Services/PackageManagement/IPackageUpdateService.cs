@@ -28,9 +28,6 @@ namespace NuGetGallery
         /// <summary>
         /// Marks the packages in <paramref name="packages"/> as updated.
         /// </summary>
-        /// <param name="packages">
-        /// The packages to mark as updated. All packages must have the same <see cref="PackageRegistration"/>.
-        /// </param>
         /// <param name="updateIndex">If true, <see cref="IIndexingService.UpdatePackage(Package)"/> will be called.</param>
         Task UpdatePackagesAsync(IReadOnlyList<Package> packages, bool updateIndex = true);
     }
