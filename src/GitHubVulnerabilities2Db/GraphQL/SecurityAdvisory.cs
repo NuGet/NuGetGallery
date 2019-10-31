@@ -27,23 +27,4 @@ namespace GitHubVulnerabilities2Db.GraphQL
     {
         public string Url { get; set; }
     }
-
-    /// <summary>
-    /// https://developer.github.com/v4/object/securityvulnerability/
-    /// </summary>
-    public class SecurityVulnerability : INode
-    {
-        public SecurityVulnerabilityPackage Package { get; set; }
-        public string VulnerableVersionRange { get; set; }
-        public DateTimeOffset UpdatedAt { get; set; }
-        public SecurityAdvisory Advisory { get; set; }
-    }
-
-    /// <summary>
-    /// https://developer.github.com/v4/object/securityadvisorypackage/
-    /// </summary>
-    public class SecurityVulnerabilityPackage
-    {
-        public string Name { get; set; }
-    }
 }

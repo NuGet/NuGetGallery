@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 
 namespace GitHubVulnerabilities2Db.GraphQL
@@ -33,27 +32,10 @@ namespace GitHubVulnerabilities2Db.GraphQL
     }
 
     /// <summary>
-    /// Interface for queryable types returned by the GraphQL API.
-    /// </summary>
-    public interface INode
-    {
-        DateTimeOffset UpdatedAt { get; set; }
-    }
-
-    /// <summary>
     /// Allows accessing <typeparamref name="TNode"/>s returned by GraphQL query.
     /// </summary>
     public class ConnectionResponseData<TNode> where TNode : INode
     {
         public IEnumerable<Edge<TNode>> Edges { get; set; }
-    }
-
-    /// <summary>
-    /// Wraps a <typeparamref name="TNode"/> with its <see cref="Cursor"/>.
-    /// </summary>
-    public class Edge<TNode> where TNode : INode
-    {
-        public string Cursor { get; set; }
-        public TNode Node { get; set; }
     }
 }

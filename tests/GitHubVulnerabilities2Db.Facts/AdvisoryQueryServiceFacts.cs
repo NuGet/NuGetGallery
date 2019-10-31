@@ -101,6 +101,55 @@ namespace GitHubVulnerabilities2Db.Facts
         }
 
         [Fact]
+        public async Task DedupesIdenticalVulnerabilities()
+        {
+            // Arrange
+            var id = "identical";
+            var range = "(,)";
+            var firstVulnerability = new SecurityVulnerability
+            {
+                Package = new SecurityVulnerabilityPackage { Name = id },
+                VulnerableVersionRange = range
+            };
+
+            var secondVulnerability = new SecurityVulnerability
+            {
+                Package = new SecurityVulnerabilityPackage { Name = id },
+                VulnerableVersionRange = range
+            };
+
+            var advisory = new SecurityAdvisory
+            {
+                Vulnerabilities = new ConnectionResponseData<SecurityVulnerability>
+                {
+                    Edges = new[] 
+                    {
+                        new Edge<SecurityVulnerability> { Node = firstVulnerability },
+                        new Edge<SecurityVulnerability> { Node = secondVulnerability }
+                    }
+                }
+            };
+
+            var response = CreateResponseFromEdges(new[] { new Edge<SecurityAdvisory> { Node = advisory } });
+            SetupFirstQueryResult(response);
+
+            // Act
+            var results = await _service.GetAdvisoriesSinceAsync(
+                _cursorMock.Object, _token);
+
+            // Assert
+            Assert.Single(results, advisory);
+            Assert.Single(results.Single().Vulnerabilities.Edges);
+            var node = results.Single().Vulnerabilities.Edges.Single().Node;
+            Assert.Equal(id, node.Package.Name);
+            Assert.Equal(range, node.VulnerableVersionRange);
+
+            _cursorMock.Verify();
+            _queryBuilderMock.Verify();
+            _queryServiceMock.Verify();
+        }
+
+        [Fact]
         public async Task ManyResultsShouldPage()
         {
             // Arrange

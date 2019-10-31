@@ -54,10 +54,13 @@
     <Compile Include="Gallery\ThrowingIndexingService.cs" />
     <Compile Include="Gallery\ThrowingSecurityPolicyService.cs" />
     <Compile Include="Gallery\ThrowingTelemetryService.cs" />
+    <Compile Include="GraphQL\Edge.cs" />
     <Compile Include="GraphQL\IQueryService.cs" />
+    <Compile Include="GraphQL\INode.cs" />
     <Compile Include="GraphQL\SecurityAdvisory.cs" />
     <Compile Include="GraphQL\QueryResponse.cs" />
     <Compile Include="GraphQL\QueryService.cs" />
+    <Compile Include="GraphQL\SecurityVulnerability.cs" />
     <Compile Include="Ingest\AdvisoryIngestor.cs" />
     <Compile Include="Ingest\GitHubVersionRangeParser.cs" />
     <Compile Include="Ingest\IAdvisoryIngestor.cs" />
