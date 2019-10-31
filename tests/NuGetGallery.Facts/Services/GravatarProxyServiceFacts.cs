@@ -88,7 +88,7 @@ namespace NuGetGallery
             _features
                 .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
             _features
-                .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
+                .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Never);
 
         }
 
@@ -106,7 +106,7 @@ namespace NuGetGallery
             _features
                 .Verify(f => f.IsGravatarProxyEnabled(), Times.Once);
             _features
-                .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Once);
+                .Verify(f => f.ProxyGravatarEnSubdomain(), Times.Never);
             _users
                 .Verify(u => u.GetAll(), Times.Once);
         }
