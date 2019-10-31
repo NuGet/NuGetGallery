@@ -7,7 +7,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle("GitHubVulnerabilities2Db")]
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany(".NET Foundation")]
 [assembly: AssemblyProduct("GitHubVulnerabilities2Db")]
 [assembly: AssemblyCopyright("\x00a9 .NET Foundation. All rights reserved.")]
