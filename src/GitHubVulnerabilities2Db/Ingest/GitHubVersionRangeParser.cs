@@ -17,12 +17,12 @@ namespace GitHubVulnerabilities2Db.Ingest
             }
 
             // Remove commas in version range. They exist solely for readability.
-            gitHubVersionRange = gitHubVersionRange.Replace(",", string.Empty);
+            var gitHubVersionRangeWithoutCommas = gitHubVersionRange.Replace(",", string.Empty);
 
             // A GitHub version range consists of pairs of:
             // 1. A symbol (<, >, <=, or >=), which defines whether the next version is the minimum or maximum and whether or not it's included or excluded in the range.
             // 2. A SemVer version.
-            var versionRangeParts = gitHubVersionRange.Split(' ');
+            var versionRangeParts = gitHubVersionRangeWithoutCommas.Split(' ');
             if (versionRangeParts.Length > 4)
             {
                 throw new GitHubVersionRangeParsingException(
