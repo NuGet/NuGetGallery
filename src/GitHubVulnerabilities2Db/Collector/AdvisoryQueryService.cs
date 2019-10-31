@@ -47,10 +47,10 @@ namespace GitHubVulnerabilities2Db.Collector
                 advisories.AddRange(lastAdvisoryEdges.Select(e => e.Node));
             }
 
-            return await Task.WhenAll(advisories.Select(a => FetchAllVulnerabilities(a, token)));
+            return await Task.WhenAll(advisories.Select(a => FetchAllVulnerabilitiesAsync(a, token)));
         }
 
-        private async Task<SecurityAdvisory> FetchAllVulnerabilities(SecurityAdvisory advisory, CancellationToken token)
+        private async Task<SecurityAdvisory> FetchAllVulnerabilitiesAsync(SecurityAdvisory advisory, CancellationToken token)
         {
             // If the last time we fetched this advisory, it returned the maximum amount of vulnerabilities, query again to fetch the next batch.
             var lastVulnerabilitiesFetchedCount = advisory.Vulnerabilities?.Edges?.Count() ?? 0;
