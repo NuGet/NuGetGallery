@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("GitHubVulnerabilities2Db")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Background job to ingest GitHub vulnerability data into Gallery database.")]
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
 #else
