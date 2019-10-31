@@ -17,13 +17,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public class ApiKeysControllerFacts
     {
         private readonly Mock<IAuthenticationService> _authenticationService;
-        private readonly Mock<ITelemetryService> _telemetryService;
         private readonly Mock<HttpContextBase> _httpContextBase;
 
         public ApiKeysControllerFacts()
         {
             _authenticationService = new Mock<IAuthenticationService>();
-            _telemetryService = new Mock<ITelemetryService>();
             _httpContextBase = new Mock<HttpContextBase>();
         }
 
@@ -36,7 +34,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                 .Returns(() => null);
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -78,7 +76,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
                 .Returns(() => GetCredentialViewModel(apiKeyType, hasExpired));
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -114,7 +112,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
                 .Returns(() => GetCredentialViewModel(CredentialTypes.ApiKey.V4, false));
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -182,7 +180,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public void GivenEmptyVerifyQuery_ItReturnsWarning(string verifyQuery)
         {
             // Arrange
-            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -205,7 +203,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Arrange
             var _authenticationService = new Mock<IAuthenticationService>();
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -228,9 +226,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                 .Throws(new Exception(exceptionMessage));
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
+            // Act and Assert
             var exception = Assert.Throws<Exception>(() => apiKeysController.Verify(verifyQuery));
             Assert.Equal(exceptionMessage, exception.Message);
         }

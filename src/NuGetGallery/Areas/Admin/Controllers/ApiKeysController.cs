@@ -14,12 +14,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public class ApiKeysController : AdminControllerBase
     {
         private readonly IAuthenticationService _authenticationService;
-        private readonly ITelemetryService _telemetryService;
 
-        public ApiKeysController(IAuthenticationService authenticationService, ITelemetryService telemetryService)
+        public ApiKeysController(IAuthenticationService authenticationService)
         {
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
-            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(authenticationService));
         }
 
         [HttpGet]

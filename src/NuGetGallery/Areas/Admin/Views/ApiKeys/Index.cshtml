@@ -11,25 +11,25 @@
         {"ApiKey":"oy2apikey2","LeakedUrl":"https://leakedUrl2"}
     </p>
     <form>
-        <textarea placeholder="Verify API keys to revoke" autocomplete="off" autofocus style="width: 100%" rows="5" data-bind="value: verifyQuery" required></textarea><br />
+        <textarea class="form-control" placeholder="Verify API keys to revoke" autocomplete="off" autofocus rows="5" data-bind="value: verifyQuery"></textarea><br />
         <input type="button" value="Verify" data-bind="click: verify" /><br />
     </form>
     <!-- ko if: Error -->
     @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
     <!-- /ko -->
-    <table class="table" style="display: none" data-bind="visible: verifiedResults().length > 0">
+    <table class="table" style="word-break: break-word; display: none" data-bind="visible: verifiedResults().length > 0">
         <thead>
             <tr>
-                <th style="width: 2%; vertical-align: middle"><input type="checkbox" data-bind="visible: findAnyRevocableApiKeys" /></th>
-                <th style="width: 40%; vertical-align: middle">Api Key</th>
-                <th>Information</th>
+                <th class="col-sm-1"><input type="checkbox" data-bind="visible: findAnyRevocableApiKeys" /></th>
+                <th class="col-sm-5">Api Key</th>
+                <th class="col-sm-6">Information</th>
             </tr>
         </thead>
         <tbody data-bind="foreach: verifiedResults">
             <tr>
-                <td style="width: 2%; vertical-align: middle"><input type="checkbox" data-bind="visible: IsRevocable" /></td>
-                <td style="width: 40%; vertical-align: middle"><span data-bind="text: ApiKey"></span></td>
-                <td>
+                <td class="col-sm-1" style="vertical-align: middle"><input type="checkbox" data-bind="visible: IsRevocable" /></td>
+                <td class="col-sm-5" style="vertical-align: middle"><span data-bind="text: ApiKey"></span></td>
+                <td class="col-sm-6" style="vertical-align: middle">
                     <!-- ko if: ApiKeyViewModel -->
                     <span data-bind="visible: ApiKeyViewModel.Type">
                         <code>Type:</code> <span data-bind="text: ApiKeyViewModel.Type"></span><br />
