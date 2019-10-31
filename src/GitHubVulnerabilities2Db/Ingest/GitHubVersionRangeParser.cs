@@ -12,7 +12,8 @@ namespace GitHubVulnerabilities2Db.Ingest
         {
             if (string.IsNullOrWhiteSpace(gitHubVersionRange))
             {
-                throw new ArgumentException("A version range cannot be null or whitespace!");
+                throw new GitHubVersionRangeParsingException(
+                    gitHubVersionRange, "A version range cannot be null or whitespace!");
             }
 
             // Remove commas in version range. They exist solely for readability.
@@ -24,7 +25,8 @@ namespace GitHubVulnerabilities2Db.Ingest
             var versionRangeParts = gitHubVersionRange.Split(' ');
             if (versionRangeParts.Length > 4)
             {
-                throw new ArgumentException("A version range cannot contain more than two pairs.");
+                throw new GitHubVersionRangeParsingException(
+                    gitHubVersionRange, "A version range cannot contain more than two pairs.");
             }
 
             NuGetVersion minVersion = null;
@@ -36,7 +38,8 @@ namespace GitHubVulnerabilities2Db.Ingest
             {
                 if (versionRangeParts.Length <= i + 1)
                 {
-                    throw new ArgumentException("The number of version range parts must be a multiple of two.");
+                    throw new GitHubVersionRangeParsingException(
+                        gitHubVersionRange, "The number of version range parts must be a multiple of two.");
                 }
 
                 // The symbol is the first part of the version range pair.
@@ -70,7 +73,8 @@ namespace GitHubVulnerabilities2Db.Ingest
                         includeMinVersion = true;
                         break;
                     default:
-                        throw new ArgumentException($"{symbol} is not a valid symbol in a version range.");
+                        throw new GitHubVersionRangeParsingException(
+                            gitHubVersionRange, $"{symbol} is not a valid symbol in a version range.");
                 }
 
                 if (isMin)
@@ -81,7 +85,8 @@ namespace GitHubVulnerabilities2Db.Ingest
                     }
                     else
                     {
-                        throw new ArgumentException("The minimum version is already defined for the version range.");
+                        throw new GitHubVersionRangeParsingException(
+                            gitHubVersionRange, "The minimum version is already defined for the version range.");
                     }
                 }
 
@@ -93,7 +98,8 @@ namespace GitHubVulnerabilities2Db.Ingest
                     }
                     else
                     {
-                        throw new ArgumentException("The maximum version is already defined for the version range.");
+                        throw new GitHubVersionRangeParsingException(
+                            gitHubVersionRange, "The maximum version is already defined for the version range.");
                     }
                 }
             }

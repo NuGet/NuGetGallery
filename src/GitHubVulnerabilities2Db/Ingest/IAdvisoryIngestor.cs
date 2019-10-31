@@ -12,6 +12,6 @@ namespace GitHubVulnerabilities2Db.Ingest
     /// </summary>
     public interface IAdvisoryIngestor
     {
-        Task Ingest(IReadOnlyList<SecurityAdvisory> advisories);
+        Task IngestAsync(IReadOnlyList<SecurityAdvisory> advisories);
     }
 }

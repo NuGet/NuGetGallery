@@ -63,6 +63,7 @@
     <Compile Include="GraphQL\SecurityVulnerability.cs" />
     <Compile Include="Ingest\AdvisoryIngestor.cs" />
     <Compile Include="Ingest\GitHubVersionRangeParser.cs" />
+    <Compile Include="Ingest\GitHubVersionRangeParsingException.cs" />
     <Compile Include="Ingest\IAdvisoryIngestor.cs" />
     <Compile Include="Ingest\IGitHubVersionRangeParser.cs" />
     <Compile Include="Job.cs" />

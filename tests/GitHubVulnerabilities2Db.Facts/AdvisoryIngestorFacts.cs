@@ -22,7 +22,7 @@ namespace GitHubVulnerabilities2Db.Facts
             public async Task IngestsNone()
             {
                 // Act
-                await Ingestor.Ingest(Enumerable.Empty<SecurityAdvisory>().ToList());
+                await Ingestor.IngestAsync(Enumerable.Empty<SecurityAdvisory>().ToList());
 
                 // Assert
                 PackageVulnerabilityServiceMock
@@ -58,7 +58,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     .Verifiable();
 
                 // Act
-                await Ingestor.Ingest(new[] { advisory });
+                await Ingestor.IngestAsync(new[] { advisory });
 
                 // Assert
                 PackageVulnerabilityServiceMock.Verify();
@@ -118,7 +118,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     .Verifiable();
 
                 // Act
-                await Ingestor.Ingest(new[] { advisory });
+                await Ingestor.IngestAsync(new[] { advisory });
 
                 // Assert
                 PackageVulnerabilityServiceMock.Verify();

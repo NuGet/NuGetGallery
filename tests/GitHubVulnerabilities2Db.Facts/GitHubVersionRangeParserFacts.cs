@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using GitHubVulnerabilities2Db.Ingest;
 using Xunit;
 
@@ -26,9 +25,10 @@ namespace GitHubVulnerabilities2Db.Facts
         [InlineData("< 1.0.0, = 2.0.0")] // max already specified
         [InlineData("= 1.0.0, = 2.0.0")] // min and max already specified
         [InlineData("= 1.0.0, = 1.0.0")] // min and max already specified
-        public void ThrowsArgumentNullExceptionWithInvalidInput(string input)
+        public void ThrowsGitHubVersionRangeParsingExceptionWithInvalidInput(string input)
         {
-            Assert.Throws<ArgumentException>(() => Parser.ToNuGetVersionRange(input));
+            var exception = Assert.Throws<GitHubVersionRangeParsingException>(() => Parser.ToNuGetVersionRange(input));
+            Assert.Equal(input, exception.InvalidVersionRange);
         }
 
         [Theory]

@@ -38,7 +38,7 @@ namespace GitHubVulnerabilities2Db.Collector
             if (hasAdvisories)
             {
                 var lastUpdatedAt = advisories.Max(i => i.UpdatedAt);
-                await _ingestor.Ingest(advisories.Select(v => v).ToList());
+                await _ingestor.IngestAsync(advisories.Select(v => v).ToList());
                 _cursor.Value = lastUpdatedAt;
                 await _cursor.Save(token);
             }

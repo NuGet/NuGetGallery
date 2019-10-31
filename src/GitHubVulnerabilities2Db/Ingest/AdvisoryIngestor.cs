@@ -24,7 +24,7 @@ namespace GitHubVulnerabilities2Db.Ingest
             _gitHubVersionRangeParser = gitHubVersionRangeParser ?? throw new ArgumentNullException(nameof(gitHubVersionRangeParser));
         }
 
-        public async Task Ingest(IReadOnlyList<SecurityAdvisory> advisories)
+        public async Task IngestAsync(IReadOnlyList<SecurityAdvisory> advisories)
         {
             foreach (var advisory in advisories)
             {
