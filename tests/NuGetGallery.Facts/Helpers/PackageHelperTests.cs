@@ -74,6 +74,10 @@ namespace NuGetGallery.Helpers
         [InlineData("http://www.mono-project.com/", true, "https://www.mono-project.com/", true)]
         [InlineData("https://www.mono-project.com/", false, "https://www.mono-project.com/", true)]
         [InlineData("https://www.mono-project.com/", true, "https://www.mono-project.com/", true)]
+        [InlineData("http://www.odata.org/", false, "https://www.odata.org/", true)]
+        [InlineData("http://www.odata.org/", true, "https://www.odata.org/", true)]
+        [InlineData("https://www.odata.org/", false, "https://www.odata.org/", true)]
+        [InlineData("https://www.odata.org/", true, "https://www.odata.org/", true)]
         [InlineData("git://nuget.org", true, null, false)]
         [InlineData("git://nuget.org", false, null, false)]
         public void PrepareUrlForRenderingTest(string input, bool alwaysRewriteHttp, string expectedOutput, bool expectConversion)

@@ -675,6 +675,12 @@ namespace NuGetGallery.Authentication
             // Authenticate!
             if (result.Credential != null)
             {
+                // We want to audit the received credential from external authentication. We use the UserAuditRecord
+                // for easier logging, since it actually needs a `User`, instead we use a dummy user because at this point
+                // we do not have the actual user context since this request has not yet been authenticated.
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(
+                    new User("NonExistentDummyAuditUser"), AuditedUserAction.ExternalLoginAttempt, result.Credential));
+
                 result.Authentication = await Authenticate(result.Credential);
             }
 
