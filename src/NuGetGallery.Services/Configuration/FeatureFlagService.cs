@@ -29,6 +29,7 @@ namespace NuGetGallery
         private const string TyposquattingFlightName = GalleryPrefix + "TyposquattingFlight";
         private const string PreviewHijackFeatureName = GalleryPrefix + "PreviewHijack";
         private const string GravatarProxyFeatureName = GalleryPrefix + "GravatarProxy";
+        private const string GravatarProxyEnSubdomainFeatureName = GalleryPrefix + "GravatarProxyEnSubdomain";
 
         private readonly IFeatureFlagClient _client;
 
@@ -131,6 +132,11 @@ namespace NuGetGallery
         public bool IsGravatarProxyEnabled()
         {
             return _client.IsEnabled(GravatarProxyFeatureName, defaultValue: false);
+        }
+
+        public bool ProxyGravatarEnSubdomain()
+        {
+            return _client.IsEnabled(GravatarProxyEnSubdomainFeatureName, defaultValue: false);
         }
     }
 }
