@@ -20,6 +20,7 @@ namespace NuGetGallery
         string Name { get; }
         DateTime LastModifiedUtc { get; }
         string ETag { get; }
+        bool IsSnapshot { get; }
 
         Task<Stream> OpenReadAsync(AccessCondition accessCondition);
         Task<Stream> OpenWriteAsync(AccessCondition accessCondition);
@@ -64,5 +65,7 @@ namespace NuGetGallery
             TimeSpan serverTimeout,
             TimeSpan maxExecutionTime,
             CancellationToken cancellationToken);
+
+        Task SnapshotAsync(CancellationToken token);
     }
 }

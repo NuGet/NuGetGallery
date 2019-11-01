@@ -63,6 +63,91 @@ namespace NuGetGallery
         }
 
         [BlobStorageFact]
+        public async Task EnumeratesBlobs()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var blobAName = $"{_prefixA}/a.txt";
+            var blobBName = $"{_prefixA}/b.txt";
+            var blobCName = $"{_prefixA}/c.txt";
+            await _targetA.SaveFileAsync(folderName, blobAName, new MemoryStream(Encoding.UTF8.GetBytes("A")));
+            await _targetA.SaveFileAsync(folderName, blobCName, new MemoryStream(Encoding.UTF8.GetBytes("C")));
+            await _targetA.SaveFileAsync(folderName, blobBName, new MemoryStream(Encoding.UTF8.GetBytes("B")));
+
+            var container = _clientA.GetContainerReference(folderName);
+
+            // Act
+            var segmentA = await container.ListBlobsSegmentedAsync(
+                _prefixA,
+                useFlatBlobListing: true,
+                blobListingDetails: BlobListingDetails.None,
+                maxResults: 2,
+                blobContinuationToken: null,
+                options: null,
+                operationContext: null,
+                cancellationToken: CancellationToken.None);
+            var segmentB = await container.ListBlobsSegmentedAsync(
+                _prefixA,
+                useFlatBlobListing: true,
+                blobListingDetails: BlobListingDetails.None,
+                maxResults: 2,
+                blobContinuationToken: segmentA.ContinuationToken,
+                options: null,
+                operationContext: null,
+                cancellationToken: CancellationToken.None);
+
+            // Assert
+            Assert.Equal(2, segmentA.Results.Count);
+            Assert.Equal(blobAName, segmentA.Results[0].Name);
+            Assert.Equal(blobBName, segmentA.Results[1].Name);
+            Assert.Equal(blobCName, Assert.Single(segmentB.Results).Name);
+        }
+
+        [BlobStorageFact]
+        public async Task EnumeratesSnapshots()
+        {
+            // Arrange
+            var folderName = CoreConstants.Folders.ValidationFolderName;
+            var blobAName = $"{_prefixA}/a.txt";
+            var blobBName = $"{_prefixA}/b.txt";
+            await _targetA.SaveFileAsync(folderName, blobAName, new MemoryStream(Encoding.UTF8.GetBytes("A")));
+            await _targetA.SaveFileAsync(folderName, blobBName, new MemoryStream(Encoding.UTF8.GetBytes("B")));
+
+            var container = _clientA.GetContainerReference(folderName);
+            var blobA = container.GetBlobReference(blobAName);
+            await blobA.SnapshotAsync(CancellationToken.None);
+
+            // Act
+            var segmentA = await container.ListBlobsSegmentedAsync(
+                _prefixA,
+                useFlatBlobListing: true,
+                blobListingDetails: BlobListingDetails.Snapshots,
+                maxResults: 2,
+                blobContinuationToken: null,
+                options: null,
+                operationContext: null,
+                cancellationToken: CancellationToken.None);
+            var segmentB = await container.ListBlobsSegmentedAsync(
+                _prefixA,
+                useFlatBlobListing: true,
+                blobListingDetails: BlobListingDetails.Snapshots,
+                maxResults: 2,
+                blobContinuationToken: segmentA.ContinuationToken,
+                options: null,
+                operationContext: null,
+                cancellationToken: CancellationToken.None);
+
+            // Assert
+            Assert.Equal(2, segmentA.Results.Count);
+            Assert.Equal(blobAName, segmentA.Results[0].Name);
+            Assert.True(segmentA.Results[0].IsSnapshot);
+            Assert.Equal(blobAName, segmentA.Results[1].Name);
+            Assert.False(segmentA.Results[1].IsSnapshot);
+            Assert.Equal(blobBName, Assert.Single(segmentB.Results).Name);
+            Assert.False(segmentB.Results[0].IsSnapshot);
+        }
+
+        [BlobStorageFact]
         public async Task AllowsDefaultRequestOptionsToBeSet()
         {
             // Arrange

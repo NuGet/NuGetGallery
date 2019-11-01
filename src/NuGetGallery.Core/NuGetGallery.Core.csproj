@@ -179,6 +179,7 @@
     <Compile Include="NuGetVersionExtensions.cs" />
     <Compile Include="SemVerLevelKey.cs" />
     <Compile Include="Services\AccessConditionWrapper.cs" />
+    <Compile Include="Services\BlobResultSegmentWrapper.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobCoreFileStorageService.cs" />
@@ -194,6 +195,7 @@
     <Compile Include="Services\ICloudBlobContainerInformationProvider.cs" />
     <Compile Include="Services\IContentFileMetadataService.cs" />
     <Compile Include="Services\ICoreLicenseFileService.cs" />
+    <Compile Include="Services\ISimpleBlobResultSegment.cs" />
     <Compile Include="Services\IStringTemplateProcessor.cs" />
     <Compile Include="Services\PackageAlreadyExistsException.cs" />
     <Compile Include="Services\FileAlreadyExistsException.cs" />
