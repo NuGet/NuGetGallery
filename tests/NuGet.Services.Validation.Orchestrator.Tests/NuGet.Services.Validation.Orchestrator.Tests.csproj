@@ -79,9 +79,6 @@
     <Compile Include="Criteria\PackageCriteriaEvaluatorFacts.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EntityFramework">
-      <Version>6.1.3</Version>
-    </PackageReference>
     <PackageReference Include="moq">
       <Version>4.7.145</Version>
     </PackageReference>
