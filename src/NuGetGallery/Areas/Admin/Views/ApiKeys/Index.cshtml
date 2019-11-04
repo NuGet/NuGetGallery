@@ -5,7 +5,7 @@
 
 <section role="main" class="container main-container">
     <h2>Verify API Keys</h2>
-    <p style="color:grey">
+    <p class="text-muted">
         Please follow the format as below: <br />
         {"ApiKey":"oy2apikey1","LeakedUrl":"https://leakedUrl1"} <br />
         {"ApiKey":"oy2apikey2","LeakedUrl":"https://leakedUrl2"}
@@ -17,7 +17,7 @@
     <!-- ko if: Error -->
     @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
     <!-- /ko -->
-    <table class="table" style="word-break: break-word; display: none" data-bind="visible: verifiedResults().length > 0">
+    <table class="table break-word" data-bind="visible: verifiedResults().length > 0">
         <thead>
             <tr>
                 <th class="col-sm-1"><input type="checkbox" data-bind="visible: findAnyRevocableApiKeys" /></th>
