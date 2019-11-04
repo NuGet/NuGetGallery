@@ -133,6 +133,7 @@
     <Compile Include="App_Start\SessionPersistence.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
+    <Compile Include="Areas\Admin\Controllers\ApiKeysController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
     <Compile Include="Areas\Admin\Controllers\FeaturesController.cs" />
@@ -186,6 +187,7 @@
     <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ApiKeyRevokeViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SiteAdminsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidatedPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
@@ -1809,6 +1811,7 @@
     <Content Include="Areas\Admin\Views\Features\_EditFlight.cshtml" />
     <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
     <Content Include="Areas\Admin\Views\SiteAdmins\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\ApiKeys\Index.cshtml" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\gallery\autocomplete.js" />

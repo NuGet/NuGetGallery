@@ -158,6 +158,12 @@ namespace NuGetGallery.Authentication
                 new Credential { Type = CredentialTypes.ApiKey.Prefix, Value = apiKey });
         }
 
+        public Credential GetApiKeyCredential(string apiKey)
+        {
+            var credential = new Credential { Type = CredentialTypes.ApiKey.Prefix, Value = apiKey };
+            return FindMatchingApiKey(credential);
+        }
+
         public virtual async Task<AuthenticatedUser> Authenticate(Credential credential)
         {
             return await AuthenticateInternal(FindMatchingCredential, credential);
