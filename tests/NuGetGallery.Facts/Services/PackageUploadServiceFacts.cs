@@ -2239,6 +2239,7 @@ namespace NuGetGallery
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ICoreLicenseFileService> _licenseFileService;
             protected readonly Mock<IDiagnosticsService> _diagnosticsService;
+            protected readonly Mock<IPackageVulnerabilityService> _vulnerabilityService;
             protected Package _package;
             protected Stream _packageFile;
             protected ArgumentException _unexpectedException;
@@ -2286,6 +2287,8 @@ namespace NuGetGallery
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(It.IsAny<User>()))
                     .Returns(false);
 
+                _vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+
                 _target = new PackageUploadService(
                     _packageService.Object,
                     _packageFileService.Object,
@@ -2297,7 +2300,8 @@ namespace NuGetGallery
                     _telemetryService.Object,
                     _licenseFileService.Object,
                     _diagnosticsService.Object,
-                    _featureFlagService.Object);
+                    _featureFlagService.Object,
+                    _vulnerabilityService.Object);
             }
 
             protected static Mock<TestPackageReader> GeneratePackage(
