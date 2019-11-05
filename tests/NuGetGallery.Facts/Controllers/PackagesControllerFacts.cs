@@ -3519,7 +3519,7 @@ namespace NuGetGallery
 
         public class TheUpdateListedMethod : TestContainer
         {
-            [Fact]
+            [Theory]
             [InlineData(false)]
             [InlineData(true)]
             public async Task Returns404IfNotFound(bool listed)
