@@ -15,10 +15,13 @@ namespace NuGet.Protocol.Catalog
         [JsonProperty("count")]
         public int Count { get; set; }
 
+        [JsonProperty("parent")]
+        public string Parent { get; set; }
+
         [JsonProperty("items")]
         public List<CatalogLeafItem> Items { get; set; }
 
-        [JsonProperty("parent")]
-        public string Parent { get; set; }
+        [JsonProperty("@context")]
+        public CatalogPageContext Context { get; set; }
     }
 }

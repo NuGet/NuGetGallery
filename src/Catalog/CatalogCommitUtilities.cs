@@ -158,7 +158,7 @@ namespace NuGet.Services.Metadata.Catalog
             ILogger logger,
             CancellationToken cancellationToken)
         {
-            IEnumerable<CatalogCommit> rootItems = await fetchCatalogCommitsAsync(client, front, cancellationToken);
+            var rootItems = await fetchCatalogCommitsAsync(client, front, back, cancellationToken);
 
             var hasAnyBatchFailed = false;
             var hasAnyBatchBeenProcessed = false;

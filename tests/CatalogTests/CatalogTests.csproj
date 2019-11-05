@@ -80,6 +80,7 @@
     <Compile Include="CatalogIndexReaderTests.cs" />
     <Compile Include="CatalogCommitTests.cs" />
     <Compile Include="CollectorHttpClientTests.cs" />
+    <Compile Include="CommitCollectorFacts.cs" />
     <Compile Include="Dnx\DnxCatalogCollectorTests.cs" />
     <Compile Include="Dnx\DnxMakerTests.cs" />
     <Compile Include="Extensions\DateTimeExtensionsTests.cs" />

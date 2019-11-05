@@ -64,6 +64,7 @@
       <DependentUpon>TestRegistrationEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="Db2CatalogTests.cs" />
+    <Compile Include="Infrastructure\InMemoryHttpHandler.cs" />
     <Compile Include="Infrastructure\MemoryStorage.cs" />
     <Compile Include="Infrastructure\MemoryStorageFactory.cs" />
     <Compile Include="Infrastructure\MockServerHttpClientHandlerExtensions.cs" />
