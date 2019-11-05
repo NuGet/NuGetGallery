@@ -28,5 +28,11 @@ namespace NuGetGallery.Authentication
         /// </summary>
         /// <returns>Return a credential if there is a matched apiKey or null if there is not.</returns>
         Credential GetApiKeyCredential(string apiKey);
+
+        /// <summary>
+        /// Revoke the credential
+        /// </summary>
+        /// <returns>Revoke and expire the credential.</returns>
+        Task RevokeCredential(Credential credential, CredentialRevokedByType credentialRevokedBy);
     }
 }

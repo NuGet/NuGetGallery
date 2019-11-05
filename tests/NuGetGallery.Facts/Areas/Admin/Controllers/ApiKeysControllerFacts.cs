@@ -18,23 +18,25 @@ namespace NuGetGallery.Areas.Admin.Controllers
     {
         private readonly Mock<IAuthenticationService> _authenticationService;
         private readonly Mock<HttpContextBase> _httpContextBase;
+        private readonly Mock<ITelemetryService> _telemetryService;
 
         public ApiKeysControllerFacts()
         {
             _authenticationService = new Mock<IAuthenticationService>();
             _httpContextBase = new Mock<HttpContextBase>();
+            _telemetryService = new Mock<ITelemetryService>();
         }
 
         [Fact]
         public void GivenNotExistedApiKey_ItReturnsResultWithNullApiKeyViewModel()
         {
             // Arrange
-            var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\"}";
+            var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"}";
             var _authenticationService = new Mock<IAuthenticationService>();
             _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                 .Returns(() => null);
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -48,8 +50,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Assert.Equal(1, apiKeyRevokeViewModels.Count);
             var apiKeyRevokeViewModel = Assert.IsType<ApiKeyRevokeViewModel>(apiKeyRevokeViewModels[0]);
             Assert.Null(apiKeyRevokeViewModel.ApiKeyViewModel);
+            Assert.Null(apiKeyRevokeViewModel.RevokedBy);
+            Assert.Null(apiKeyRevokeViewModel.LeakedUrl);
             Assert.Equal("apiKey1", apiKeyRevokeViewModel.ApiKey);
-            Assert.Equal("https://leakedUrl1", apiKeyRevokeViewModel.LeakedUrl);
             Assert.False(apiKeyRevokeViewModel.IsRevocable);
 
             _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
@@ -68,7 +71,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public void GivenExistedApiKey_ItReturnsResultWithApiKeyViewModel(string apiKeyType, bool hasExpired, bool isRevocable)
         {
             // Arrange
-            var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\"}";
+            var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"}";
             var _authenticationService = new Mock<IAuthenticationService>();
 
             _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
@@ -76,7 +79,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
                 .Returns(() => GetCredentialViewModel(apiKeyType, hasExpired));
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -93,7 +96,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Assert.Equal(apiKeyType, apiKeyRevokeViewModel.ApiKeyViewModel.Type);
             Assert.Equal(hasExpired, apiKeyRevokeViewModel.ApiKeyViewModel.HasExpired);
             Assert.Equal("apiKey1", apiKeyRevokeViewModel.ApiKey);
-            Assert.Equal("https://leakedUrl1", apiKeyRevokeViewModel.LeakedUrl);
             Assert.Equal(isRevocable, apiKeyRevokeViewModel.IsRevocable);
 
             _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
@@ -112,7 +114,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
                 .Returns(() => GetCredentialViewModel(CredentialTypes.ApiKey.V4, false));
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -139,19 +141,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             get
             {
-                yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"apiKey2\",\"LeakedUrl\":\"https://leakedUrl2\"} \n" +
-                                            "{\"ApiKey\":\"apiKey3\",\"LeakedUrl\":\"https://leakedUrl3\"} \n",
+                yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl2\"} \n" +
+                                            "{\"ApiKey\":\"apiKey3\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl3\"} \n",
                                             new List<string>{"apiKey1", "apiKey2", "apiKey3" },
                                             new List<string>{ "https://leakedUrl1", "https://leakedUrl2", "https://leakedUrl3"} };
-                yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"apiKey2\",\"LeakedUrl\":\"https://leakedUrl2\"} \n",
+                yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl2\"} \n",
                                             new List<string>{"apiKey1", "apiKey2" },
                                             new List<string>{ "https://leakedUrl1", "https://leakedUrl2" } };
-                yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"APIKEY1\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"apiKey2\",\"LeakedUrl\":\"https://leakedUrl2\"} \n",
+                yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"APIKEY1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl2\"} \n",
                                             new List<string>{"apiKey1", "apiKey2" },
                                             new List<string>{ "https://leakedUrl1", "https://leakedUrl2" } };
             }
@@ -180,7 +182,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public void GivenEmptyVerifyQuery_ItReturnsWarning(string verifyQuery)
         {
             // Arrange
-            var apiKeysController = new ApiKeysController(_authenticationService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -203,7 +205,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Arrange
             var _authenticationService = new Mock<IAuthenticationService>();
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act
@@ -219,14 +221,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public void GivenVerifyQuery_ItThrowsExceptionFromDependencies()
         {
             // Arrange
-            var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\"}";
+            var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"}";
             var exceptionMessage = "Some exceptions!";
             var _authenticationService = new Mock<IAuthenticationService>();
 
             _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                 .Throws(new Exception(exceptionMessage));
 
-            var apiKeysController = new ApiKeysController(_authenticationService.Object);
+            var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
             // Act and Assert

@@ -173,6 +173,7 @@
     </Compile>
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
+    <Compile Include="Areas\Admin\Models\RevokeApiKeysRequest.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
@@ -272,6 +273,9 @@
     <Compile Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs" />
     <Compile Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.designer.cs">
       <DependentUpon>201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
+    <Compile Include="Migrations\201911050112509_AddCredentialRevokedBy.cs" />
+    <Compile Include="Migrations\201911050112509_AddCredentialRevokedBy.Designer.cs">
+      <DependentUpon>201911050112509_AddCredentialRevokedBy.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs" />
     <Compile Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.designer.cs">
@@ -1641,6 +1645,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.resx">
       <DependentUpon>201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201911050112509_AddCredentialRevokedBy.resx">
+      <DependentUpon>201911050112509_AddCredentialRevokedBy.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.resx">
       <DependentUpon>201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>

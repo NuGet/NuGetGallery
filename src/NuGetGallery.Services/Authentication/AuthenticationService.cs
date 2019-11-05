@@ -164,6 +164,18 @@ namespace NuGetGallery.Authentication
             return FindMatchingApiKey(credential);
         }
 
+        public async Task RevokeCredential(Credential credential, CredentialRevokedByType revokedBy)
+        {
+            if (credential == null)
+            {
+                throw new ArgumentNullException(nameof(credential));
+            }
+
+            credential.Expires = _dateTimeProvider.UtcNow;
+            credential.RevokedBy = revokedBy;
+            await Entities.SaveChangesAsync();
+        }
+
         public virtual async Task<AuthenticatedUser> Authenticate(Credential credential)
         {
             return await AuthenticateInternal(FindMatchingCredential, credential);
@@ -593,7 +605,8 @@ namespace NuGetGallery.Authentication
                         s.Subject,
                         NuGetScopes.Describe(s.AllowedAction)))
                     .ToList(),
-                ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null
+                ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null,
+                RevokedBy = credential.RevokedBy != null ? Enum.GetName(typeof(CredentialRevokedByType), credential.RevokedBy) : null
             };
 
             credentialViewModel.HasExpired = credential.HasExpired ||
