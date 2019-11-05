@@ -696,6 +696,26 @@ namespace NuGetGallery
                 Assert.Equal(expectExceptionMessageInResponse ? EnsureValidExceptionMessage : Strings.FailedToReadUploadFile, (result as HttpStatusCodeWithBodyResult).StatusDescription);
             }
 
+            [Fact]
+            public async Task CreatePackageReturns400IfMinClientVersionIsTooHigh()
+            {
+                // Arrange
+                const string HighClientVerison = "6.0.0.0";
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42", minClientVersion: HighClientVerison);
+
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                ActionResult result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+                Assert.Contains(HighClientVerison, (result as HttpStatusCodeWithBodyResult).StatusDescription);
+            }
+
             [Theory]
             [InlineData("ILike*Asterisks")]
             [InlineData("I_.Like.-Separators")]
@@ -1023,7 +1043,7 @@ namespace NuGetGallery
             public async Task WillCreateAPackageWithNewRegistration()
             {
                 var packageId = "theId";
-                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42", minClientVersion: "1.0.0");
 
                 var currentUser = new User("currentUser") { Key = 1, EmailAddress = "currentUser@confirmed.com" };
                 var controller = new TestableApiController(GetConfigurationService());
