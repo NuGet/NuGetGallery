@@ -3562,7 +3562,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", false);
 
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
@@ -3630,7 +3630,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", false);
 
                 // Assert
                 packageService.Verify();
@@ -3667,7 +3667,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: true, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", true);
 
                 // Assert
                 packageService.Verify();
@@ -3701,7 +3701,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: true, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", true);
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.Forbidden);
@@ -3834,7 +3834,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", false);
 
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);

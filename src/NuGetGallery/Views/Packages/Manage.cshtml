@@ -67,7 +67,7 @@
         // Set up owners section
         var packageId = "@Model.Id";
         var isUserAnAdmin = "@Model.IsCurrentUserAnAdmin";
-        var packageUrl = "@Url.Package(Model.Id)";
+        var packageUrl = "@Url.ManagePackage(new TrivialPackageVersionModel(Model.Id, Model.Version))";
         var getPackageOwnersUrl = "@Url.GetPackageOwners()";
         var addPackageOwnerUrl = "@Url.AddPackageOwner()";
         var removePackageOwnerUrl = "@Url.RemovePackageOwner()";
