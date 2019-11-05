@@ -302,6 +302,53 @@ namespace NuGetGallery.Authentication
             }
         }
 
+        public class TheGetApiKeyCredentialMethod : TestContainer
+        {
+            private Fakes _fakes;
+            private AuthenticationService _authenticationService;
+
+            public TheGetApiKeyCredentialMethod()
+            {
+                _fakes = Get<Fakes>();
+                _authenticationService = Get<AuthenticationService>();
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V3)]
+            [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1)]
+            public void GivenValidApiKey_ItReturnsCredential(string apiKeyType)
+            {
+                // Arrange
+                var cred = _fakes.User.Credentials.Single(
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
+
+                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred, _fakes);
+
+                // Act
+                var result = _authenticationService.GetApiKeyCredential(plaintextValue);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Same(cred, result);
+            }
+
+            [Theory]
+            [InlineData("abc")]
+            [InlineData("oy2cshhnw5nmevgh36jajq4opv5nyjnutapjuhl7xb623m")]
+            [InlineData("5db11250-7204-458c-a2b8-3fb577b84d2f")]
+            public void GivenInvalidApiKey_ItReturnsNull(string apiKeyType)
+            {
+                // Act
+                var result = _authenticationService.GetApiKeyCredential(apiKeyType);
+
+                // Assert
+                Assert.Null(result);
+            }
+        }
+
         public class TheAuthenticateApiKeyMethod : TestContainer
         {
             private Fakes _fakes;
@@ -343,7 +390,7 @@ namespace NuGetGallery.Authentication
                 var cred = _fakes.User.Credentials.Single(
                     c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
-                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred);
+                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred, _fakes);
 
                 // Act
                 var result = await _authenticationService.Authenticate(plaintextValue);
@@ -371,7 +418,7 @@ namespace NuGetGallery.Authentication
 
                 Assert.False(cred.LastUsed.HasValue);
 
-                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred);
+                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred, _fakes);
 
                 // Act
                 var result = await _authenticationService.Authenticate(plaintextValue);
@@ -396,7 +443,7 @@ namespace NuGetGallery.Authentication
 
                 cred.Expires = DateTime.UtcNow.AddDays(-1);
 
-                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred);
+                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred, _fakes);
 
                 // Act
                 var result = await _authenticationService.Authenticate(plaintextValue);
@@ -422,7 +469,7 @@ namespace NuGetGallery.Authentication
                 cred.LastUsed = DateTime.UtcNow.AddDays(-20);
 
                 var service = Get<AuthenticationService>();
-                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred);
+                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred, _fakes);
 
                 // Act
                 var result = await service.Authenticate(plaintextValue);
@@ -493,7 +540,7 @@ namespace NuGetGallery.Authentication
                 creds.Add(cred1);
                 creds.Add(cred2);
 
-                var plaintextValue = GetPlaintextApiKey(apiKeyType, cred1);
+                var plaintextValue = GetPlaintextApiKey(apiKeyType, cred1, _fakes);
 
                 // Act
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await _authenticationService.Authenticate(plaintextValue));
@@ -521,25 +568,25 @@ namespace NuGetGallery.Authentication
                     ar.Action == AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser &&
                     string.IsNullOrEmpty(ar.UsernameOrEmail)));
             }
+        }
 
-            private string GetPlaintextApiKey(string apiKeyType, Credential cred)
+        private static string GetPlaintextApiKey(string apiKeyType, Credential cred, Fakes fakes)
+        {
+            string plaintextValue;
+            if (apiKeyType == CredentialTypes.ApiKey.V3)
             {
-                string plaintextValue;
-                if (apiKeyType == CredentialTypes.ApiKey.V3)
-                {
-                    plaintextValue = _fakes.ApiKeyV3PlaintextValue;
-                }
-                else if (apiKeyType == CredentialTypes.ApiKey.V4)
-                {
-                    plaintextValue = _fakes.ApiKeyV4PlaintextValue;
-                }
-                else
-                {
-                    plaintextValue = cred.Value;
-                }
-
-                return plaintextValue;
+                plaintextValue = fakes.ApiKeyV3PlaintextValue;
             }
+            else if (apiKeyType == CredentialTypes.ApiKey.V4)
+            {
+                plaintextValue = fakes.ApiKeyV4PlaintextValue;
+            }
+            else
+            {
+                plaintextValue = cred.Value;
+            }
+
+            return plaintextValue;
         }
 
         public class TheAuthenticateMethod : TestContainer

@@ -62,6 +62,7 @@
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="App_Start\StorageDependentFacts.cs" />
     <Compile Include="App_Start\RuntimeServiceProviderTests.cs" />
+    <Compile Include="Areas\Admin\Controllers\ApiKeysControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageControllerFacts.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Services\IconUrlTemplateProcessorFacts.cs" />
     <Compile Include="Services\PackageDeprecationManagementServiceFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
+    <Compile Include="Services\PackageVulnerabilityServiceFacts.cs" />
     <Compile Include="Services\SearchSideBySideServiceFacts.cs" />
     <Compile Include="Services\PackageUpdateServiceFacts.cs" />
     <Compile Include="Services\StatusServiceFacts.cs" />

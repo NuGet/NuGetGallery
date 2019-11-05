@@ -81,7 +81,7 @@ namespace NuGetGallery
 
                 foreach (var blob in blobs.OfType<CloudBlockBlob>())
                 {
-                    blob.DeleteIfExists();
+                    blob.DeleteIfExists(DeleteSnapshotsOption.IncludeSnapshots);
                 }
             }
         }

@@ -67,6 +67,8 @@ namespace NuGetGallery
         public DbSet<Certificate> Certificates { get; set; }
         public DbSet<UserCertificate> UserCertificates { get; set; }
         public DbSet<SymbolPackage> SymbolPackages { get; set; }
+        public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
+        public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
 
         /// <summary>
         /// User or organization accounts.
@@ -449,6 +451,25 @@ namespace NuGetGallery
                 .WithMany()
                 .HasForeignKey(d => d.DeprecatedByUserKey)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageVulnerability>()
+                .HasKey(v => v.Key)
+                .HasMany(v => v.AffectedRanges)
+                .WithRequired(pv => pv.Vulnerability)
+                .HasForeignKey(pv => pv.VulnerabilityKey);
+
+            modelBuilder.Entity<PackageVulnerability>()
+                .HasIndex(v => v.GitHubDatabaseKey)
+                .IsUnique();
+
+            modelBuilder.Entity<VulnerablePackageVersionRange>()
+                .HasKey(pv => pv.Key)
+                .HasMany(pv => pv.Packages)
+                .WithMany(p => p.Vulnerabilities);
+
+            modelBuilder.Entity<VulnerablePackageVersionRange>()
+                .HasIndex(pv => new { pv.VulnerabilityKey, pv.PackageId, pv.PackageVersionRange })
+                .IsUnique();
         }
 #pragma warning restore 618
     }

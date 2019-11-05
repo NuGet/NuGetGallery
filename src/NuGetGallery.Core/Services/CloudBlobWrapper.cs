@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Markdig.Extensions.Tables;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -24,6 +25,7 @@ namespace NuGetGallery
         public string Name => _blob.Name;
         public DateTime LastModifiedUtc => _blob.Properties.LastModified?.UtcDateTime ?? DateTime.MinValue;
         public string ETag => _blob.Properties.ETag;
+        public bool IsSnapshot => _blob.IsSnapshot;
 
         public CloudBlobWrapper(CloudBlockBlob blob)
         {
@@ -92,6 +94,11 @@ namespace NuGetGallery
         public async Task<bool> ExistsAsync()
         {
             return await _blob.ExistsAsync();
+        }
+
+        public async Task SnapshotAsync(CancellationToken token)
+        {
+            await _blob.SnapshotAsync(token);
         }
 
         public async Task SetPropertiesAsync()

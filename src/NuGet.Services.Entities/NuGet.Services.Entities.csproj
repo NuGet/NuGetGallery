@@ -78,6 +78,8 @@
     <Compile Include="PackageRegistration.cs" />
     <Compile Include="PackageStatus.cs" />
     <Compile Include="PackageType.cs" />
+    <Compile Include="PackageVulnerability.cs" />
+    <Compile Include="PackageVulnerabilitySeverity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReservedNamespace.cs" />
     <Compile Include="Role.cs" />
@@ -91,6 +93,7 @@
     <Compile Include="User.cs" />
     <Compile Include="UserCertificate.cs" />
     <Compile Include="UserSecurityPolicy.cs" />
+    <Compile Include="VulnerablePackageVersionRange.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EntityFramework">

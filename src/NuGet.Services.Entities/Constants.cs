@@ -7,5 +7,6 @@ namespace NuGet.Services.Entities
     {
         public const string AdminRoleName = "Admins";
         public const int MaxPackageIdLength = 128;
+        public const int MaxPackageVersionLength = 64;
     }
 }
