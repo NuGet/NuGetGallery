@@ -708,7 +708,6 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
-
                 // Act
                 ActionResult result = await controller.CreatePackagePut();
 
