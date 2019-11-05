@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace NuGet.Protocol.Registration
@@ -13,6 +14,9 @@ namespace NuGet.Protocol.Registration
     {
         [JsonProperty("@id")]
         public string Url { get; set; }
+
+        [JsonProperty("@type")]
+        public List<string> Types { get; set; }
 
         [JsonProperty("catalogEntry")]
         public string CatalogEntry { get; set; }
@@ -28,5 +32,8 @@ namespace NuGet.Protocol.Registration
 
         [JsonProperty("registration")]
         public string Registration { get; set; }
+
+        [JsonProperty("@context")]
+        public RegistrationLeafContext Context { get; set; }
     }
 }

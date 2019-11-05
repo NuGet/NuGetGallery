@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Newtonsoft.Json;
-using NuGet.Protocol.Catalog.Serialization;
 
 namespace NuGet.Protocol.Catalog
 {
-    public class PackageDependency
+    public abstract class BasePackageDependencyGroup<TDependency> where TDependency : PackageDependency
     {
         [JsonProperty("@id")]
         public string Url { get; set; }
@@ -14,11 +14,10 @@ namespace NuGet.Protocol.Catalog
         [JsonProperty("@type")]
         public string Type { get; set; }
 
-        [JsonProperty("id")]
-        public string Id { get; set; }
+        [JsonProperty("dependencies")]
+        public List<TDependency> Dependencies { get; set; }
 
-        [JsonProperty("range")]
-        [JsonConverter(typeof(PackageDependencyRangeConverter))]
-        public string Range { get; set; }
+        [JsonProperty("targetFramework")]
+        public string TargetFramework { get; set; }
     }
 }
