@@ -3627,7 +3627,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService);
                 controller.SetCurrentUser(currentUser);
-                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+                TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
                 // Act
                 var result = await controller.UpdateListed("Foo", "1.0", false);
@@ -3635,7 +3635,6 @@ namespace NuGetGallery
                 // Assert
                 packageService.Verify();
                 Assert.IsType<RedirectResult>(result);
-                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }
 
             [Theory]
@@ -3647,6 +3646,7 @@ namespace NuGetGallery
                 {
                     PackageRegistration = new PackageRegistration { Id = "Foo" },
                     Version = "1.0",
+                    NormalizedVersion = "1.0.0",
                     Listed = true
                 };
                 package.PackageRegistration.Owners.Add(owner);
@@ -3664,7 +3664,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService);
                 controller.SetCurrentUser(currentUser);
-                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+                TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
                 // Act
                 var result = await controller.UpdateListed("Foo", "1.0", true);
@@ -3672,7 +3672,6 @@ namespace NuGetGallery
                 // Assert
                 packageService.Verify();
                 Assert.IsType<RedirectResult>(result);
-                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }
 
             [Fact]
