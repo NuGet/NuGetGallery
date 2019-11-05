@@ -47,7 +47,7 @@ namespace NuGetGallery.Controllers
                 MemberDataHelper.Combine(
                     Enumerable
                         .Repeat(
-                            MemberDataHelper.BooleanDataSet(), 4)
+                            MemberDataHelper.BooleanDataSet(), 5)
                         .ToArray());
 
             [Theory]
