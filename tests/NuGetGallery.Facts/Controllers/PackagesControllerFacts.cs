@@ -3519,6 +3519,31 @@ namespace NuGetGallery
 
         public class TheUpdateListedMethod : TestContainer
         {
+            [Fact]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task Returns404IfNotFound(bool listed)
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns((Package)null);
+                // Note: this Mock must be strict because it guarantees that MarkPackageListedAsync is not called!
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.UpdateListed("Foo", "1.0", listed);
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal((int)HttpStatusCode.NotFound, httpStatusCodeResult.StatusCode);
+            }
+
             public static IEnumerable<object[]> NotOwner_Data
             {
                 get
@@ -3635,6 +3660,9 @@ namespace NuGetGallery
                 // Assert
                 packageService.Verify();
                 Assert.IsType<RedirectResult>(result);
+                Assert.Equal(
+                    "The package has been unlisted. It may take several hours for this change to propagate through our system.",
+                    controller.TempData["Message"]);
             }
 
             [Theory]
@@ -3672,6 +3700,9 @@ namespace NuGetGallery
                 // Assert
                 packageService.Verify();
                 Assert.IsType<RedirectResult>(result);
+                Assert.Equal(
+                    "The package has been listed. It may take several hours for this change to propagate through our system.",
+                    controller.TempData["Message"]);
             }
 
             [Fact]
