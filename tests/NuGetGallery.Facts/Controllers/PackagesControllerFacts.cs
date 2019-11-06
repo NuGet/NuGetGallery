@@ -3539,9 +3539,7 @@ namespace NuGetGallery
                 var result = await controller.UpdateListed("Foo", "1.0", listed);
 
                 // Assert
-                Assert.IsType<HttpStatusCodeResult>(result);
-                var httpStatusCodeResult = result as HttpStatusCodeResult;
-                Assert.Equal((int)HttpStatusCode.NotFound, httpStatusCodeResult.StatusCode);
+                Assert.IsType<HttpNotFoundResult>(result);
             }
 
             public static IEnumerable<object[]> NotOwner_Data
