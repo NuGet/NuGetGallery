@@ -234,22 +234,38 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                     // If there are non-field-scoped terms and no field-scoped terms, at least of one the non-field-scoped terms is required.
                     // Results that match all terms are boosted.
+                    // Results that match all terms after tokenization are boosted.
                     { "foo", "foo" },
                     { "foo bar", "foo bar (+foo +bar)^2" },
-                    { "foo.bar baz.qux", "foo.bar baz.qux (+foo.bar +baz.qux)^2" },
+                    { "foo.bar baz.qux", "foo.bar baz.qux (+foo.bar +baz.qux)^2 (+foo +bar +baz +qux)^2" },
                     { "id packageId VERSION Title description tag author summary owner owners",
                         "id packageId VERSION Title description tag author summary owner owners " +
-                        "(+id +packageId +VERSION +Title +description +tag +author +summary +owner +owners)^2" },
-                    
+                        "(+id +packageId +VERSION +Title +description +tag +author +summary +owner +owners)^2 " +
+                        "(+id +package +Id +VERSION +Title +description +tag +author +summary +owner +owners)^2" },
+
                     // If there is a single non-field-scoped term that is a valid package ID and has separator
-                    // characters, mega boost the exact match.
-                    { "foo.bar", "foo.bar packageId:foo.bar^1000" },
-                    { "foo_bar", "foo_bar packageId:foo_bar^1000" },
-                    { "foo-bar", @"foo\-bar packageId:foo\-bar^1000" },
-                    { "  foo.bar.Baz   ", "foo.bar.Baz packageId:foo.bar.Baz^1000" },
-                    { @"""foo.bar""", @"foo.bar packageId:foo.bar^1000" },
-                    { @"""foo-bar""", @"foo\-bar packageId:foo\-bar^1000" },
-                    { @"""foo_bar""", "foo_bar packageId:foo_bar^1000" },
+                    // characters, boost results that match all tokens from query, and mega boost the exact match.
+                    { "foo.bar", "foo.bar (+foo +bar)^2 packageId:foo.bar^1000" },
+                    { "foo_bar", "foo_bar (+foo +bar)^2 packageId:foo_bar^1000" },
+                    { "foo-bar", @"foo\-bar (+foo +bar)^2 packageId:foo\-bar^1000" },
+                    { "  foo.bar.Baz   ", "foo.bar.Baz (+foo +bar +Baz)^2 packageId:foo.bar.Baz^1000" },
+                    { @"""foo.bar""", @"foo.bar (+foo +bar)^2 packageId:foo.bar^1000" },
+                    { @"""foo-bar""", @"foo\-bar (+foo +bar)^2 packageId:foo\-bar^1000" },
+                    { @"""foo_bar""", "foo_bar (+foo +bar)^2 packageId:foo_bar^1000" },
+
+                    // Boost results that match all tokens from unscoped terms in the query.
+                    { "foo.bar buzz", "foo.bar buzz (+foo.bar +buzz)^2 (+foo +bar +buzz)^2" },
+                    { "foo_bar buzz", "foo_bar buzz (+foo_bar +buzz)^2 (+foo +bar +buzz)^2" },
+                    { "foo-bar buzz", @"foo\-bar buzz (+foo\-bar +buzz)^2 (+foo +bar +buzz)^2" },
+                    { "foo,bar, buzz", @"foo,bar, buzz (+foo,bar, +buzz)^2 (+foo +bar +buzz)^2" },
+                    { "fooBar buzz", "fooBar buzz (+fooBar +buzz)^2 (+foo +Bar +buzz)^2" },
+                    { "foo5 buzz", "foo5 buzz (+foo5 +buzz)^2 (+foo +5 +buzz)^2" },
+                    { "FOO5 buzz", "FOO5 buzz (+FOO5 +buzz)^2 (+FOO +5 +buzz)^2" },
+                    { "5FOO buzz", "5FOO buzz (+5FOO +buzz)^2 (+5 +FOO +buzz)^2" },
+                    { "foo5foo", "foo5foo (+foo +5)^2" },
+                    { "FOO5FOO", "FOO5FOO (+FOO +5)^2" },
+                    { "fooFoo", "fooFoo (+foo +Foo)^2" },
+                    { "FOOFoo", "FOOFoo" },
 
                     // Phrases are supported in queries
                     { @"""foo bar""", @"""foo bar""" },

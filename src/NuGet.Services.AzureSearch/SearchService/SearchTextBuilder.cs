@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
 using NuGet.Indexing;
 using NuGet.Packaging;
@@ -16,6 +17,11 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         public const string MatchAllDocumentsQuery = "*";
         private static readonly char[] PackageIdSeparators = new[] { '.', '-', '_' };
+        private static readonly char[] TokenizationSeparators = new[] { '.', '-', '_', ',' };
+        private static readonly Regex TokenizePackageIdRegex = new Regex(
+            @"((?<=[a-z])(?=[A-Z])|((?<=[0-9])(?=[A-Za-z]))|((?<=[A-Za-z])(?=[0-9]))|[.\-_,])",
+            RegexOptions.None,
+            matchTimeout: TimeSpan.FromSeconds(10));
 
         private static readonly IReadOnlyDictionary<QueryField, string> FieldNames = new Dictionary<QueryField, string>
         {
@@ -170,11 +176,19 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 builder.AppendTerms(unscopedTerms);
 
-                // Generate a clause to favor results that match all unscoped terms.
-                // We don't need to include scoped terms as these are already required.
+                // Favor results that match all unscoped terms.
+                // We don't need to include scoped terms as these are required.
                 if (unscopedTerms.Count > 1)
                 {
                     builder.AppendBoostIfMatchAllTerms(unscopedTerms, _options.Value.MatchAllTermsBoost);
+                }
+
+                // Try to favor results that match all unscoped terms after tokenization.
+                // Don't generate this clause if it is equal to or a subset of the "match all unscoped terms" clause.
+                var tokenizedUnscopedTerms = new HashSet<string>(unscopedTerms.SelectMany(Tokenize));
+                if (tokenizedUnscopedTerms.Count > unscopedTerms.Count || !tokenizedUnscopedTerms.All(unscopedTerms.Contains))
+                {
+                    builder.AppendBoostIfMatchAllTerms(tokenizedUnscopedTerms.ToList(), _options.Value.MatchAllTermsBoost);
                 }
             }
 
@@ -231,6 +245,49 @@ namespace NuGet.Services.AzureSearch.SearchService
         private static bool IsIdWithSeparator(string query)
         {
             return query.IndexOfAny(PackageIdSeparators) >= 0 && IsId(query);
+        }
+
+        /// <summary>
+        /// Tokenizes terms. This is similar to <see cref="PackageIdCustomAnalyzer"/> with the following differences:
+        /// 
+        /// 1. Does not split terms on whitespace
+        /// 2. Does not split terms on the following characters: ' ; : * # ! ~ + ( ) [ ] { }
+        /// </summary>
+        /// <param name="term"></param>
+        /// <returns></returns>
+        private static IReadOnlyList<string> Tokenize(string term)
+        {
+            // Don't tokenize phrases. These are multiple terms that were wrapped in quotes.
+            if (term.Any(char.IsWhiteSpace))
+            {
+                return new List<string> { term };
+            }
+
+            return TokenizePackageIdRegex
+                .Split(term)
+                .Where(t => !string.IsNullOrEmpty(t))
+                .Where(t => !IsTokenizationSeparator(t))
+                .ToList();
+        }
+
+        private static bool IsPackageIdSeparator(string input)
+        {
+            if (input.Length != 1)
+            {
+                return false;
+            }
+
+            return PackageIdSeparators.Any(separator => input[0] == separator);
+        }
+
+        private static bool IsTokenizationSeparator(string input)
+        {
+            if (input.Length != 1)
+            {
+                return false;
+            }
+
+            return TokenizationSeparators.Any(separator => input[0] == separator);
         }
     }
 }
