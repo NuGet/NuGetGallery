@@ -81,7 +81,9 @@
     <Compile Include="Models\CatalogLeafItem.cs" />
     <Compile Include="Models\CatalogLeafType.cs" />
     <Compile Include="Models\CatalogPage.cs" />
+    <Compile Include="Models\CatalogPageContext.cs" />
     <Compile Include="Models\CatalogPageItem.cs" />
+    <Compile Include="Models\ContextTypeDescription.cs" />
     <Compile Include="Models\ICatalogLeafItem.cs" />
     <Compile Include="Models\ModelExtensions.cs" />
     <Compile Include="Models\PackageDeleteCatalogLeaf.cs" />

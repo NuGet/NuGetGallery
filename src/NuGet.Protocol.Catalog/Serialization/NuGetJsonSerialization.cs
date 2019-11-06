@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace NuGet.Protocol.Catalog
 {
-    internal static class NuGetJsonSerialization
+    public static class NuGetJsonSerialization
     {
         public static JsonSerializer Serializer => JsonSerializer.Create(Settings);
 

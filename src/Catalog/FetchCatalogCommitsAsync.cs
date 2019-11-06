@@ -9,6 +9,7 @@ namespace NuGet.Services.Metadata.Catalog
 {
     internal delegate Task<IEnumerable<CatalogCommit>> FetchCatalogCommitsAsync(
         CollectorHttpClient client,
-        ReadWriteCursor front,
+        ReadCursor front,
+        ReadCursor back,
         CancellationToken cancellationToken);
 }

@@ -11,7 +11,6 @@ using Lucene.Net.Index;
 using Microsoft.Extensions.Logging;
 using NuGet.Indexing;
 using NuGet.Services.Configuration;
-using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs

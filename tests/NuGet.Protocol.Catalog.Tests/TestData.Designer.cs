@@ -109,7 +109,7 @@ namespace NuGet.Protocol.Catalog {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/newtonsoft.json/12.0.1.json&quot;,&quot;@type&quot;:&quot;nuget:PackageDetails&quot;,&quot;commitTimeStamp&quot;:&quot;2019-10-10T00:00:00+00:00&quot;,&quot;nuget:id&quot;:&quot;Newtonsoft.Json&quot;,&quot;nuget:version&quot;:&quot;12.0.1&quot;}.
+        ///   Looks up a localized string similar to {&quot;@id&quot;:&quot;https://api.nuget.org/v3/registration3-gz-semver2/newtonsoft.json/12.0.1.json&quot;,&quot;@type&quot;:&quot;nuget:PackageDetails&quot;,&quot;commitId&quot;:&quot;47065e84-b83a-434f-9619-1b2f17df91b9&quot;,&quot;commitTimeStamp&quot;:&quot;2019-10-10T00:00:00+00:00&quot;,&quot;nuget:id&quot;:&quot;Newtonsoft.Json&quot;,&quot;nuget:version&quot;:&quot;12.0.1&quot;}.
         /// </summary>
         public static string CatalogLeafItem {
             get {

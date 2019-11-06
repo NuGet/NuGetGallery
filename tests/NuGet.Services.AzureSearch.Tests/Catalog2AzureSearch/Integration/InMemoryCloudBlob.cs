@@ -26,6 +26,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         public Uri Uri => throw new NotImplementedException();
         public string Name => throw new NotImplementedException();
         public DateTime LastModifiedUtc => throw new NotImplementedException();
+        public bool IsSnapshot => throw new NotImplementedException();
 
         public string ETag
         {
@@ -130,6 +131,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         }
 
         public Task SetPropertiesAsync(AccessCondition accessCondition)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SnapshotAsync(CancellationToken token)
         {
             throw new NotImplementedException();
         }

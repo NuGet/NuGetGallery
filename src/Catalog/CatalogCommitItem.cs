@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json.Linq;
@@ -14,8 +15,14 @@ namespace NuGet.Services.Metadata.Catalog
     /// <summary>
     /// Represents a single item in a catalog commit.
     /// </summary>
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public sealed class CatalogCommitItem : IComparable
     {
+        private string DebuggerDisplay =>
+            $"Catalog item {PackageIdentity?.Id} {PackageIdentity?.Version.ToNormalizedString()}" +
+            $"{(IsPackageDetails ? " (" + nameof(Schema.DataTypes.PackageDetails) + ")" : string.Empty)}" +
+            $"{(IsPackageDelete ? " (" + nameof(Schema.DataTypes.PackageDelete) + ")" : string.Empty)}";
+
         private const string _typeKeyword = "@type";
 
         public CatalogCommitItem(

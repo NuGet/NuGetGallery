@@ -80,6 +80,7 @@
     <Compile Include="CatalogIndexReaderTests.cs" />
     <Compile Include="CatalogCommitTests.cs" />
     <Compile Include="CollectorHttpClientTests.cs" />
+    <Compile Include="CommitCollectorFacts.cs" />
     <Compile Include="Dnx\DnxCatalogCollectorTests.cs" />
     <Compile Include="Dnx\DnxMakerTests.cs" />
     <Compile Include="Extensions\DateTimeExtensionsTests.cs" />
@@ -274,9 +275,6 @@
     </PackageReference>
     <PackageReference Include="Moq">
       <Version>4.10.1</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Packaging">
-      <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
       <Version>2.58.0</Version>

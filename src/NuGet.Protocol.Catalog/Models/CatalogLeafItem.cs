@@ -15,6 +15,9 @@ namespace NuGet.Protocol.Catalog
         [JsonConverter(typeof(CatalogLeafItemTypeConverter))]
         public CatalogLeafType Type { get; set; }
 
+        [JsonProperty("commitId")]
+        public string CommitId { get; set; }
+
         [JsonProperty("commitTimeStamp")]
         public DateTimeOffset CommitTimestamp { get; set; }
 

@@ -30,7 +30,7 @@ namespace NuGet.Services.Metadata.Catalog
             ReadCursor back,
             CancellationToken cancellationToken)
         {
-            IEnumerable<CatalogCommit> commits = await FetchCatalogCommitsAsync(client, front, cancellationToken);
+            var commits = await FetchCatalogCommitsAsync(client, front, back, cancellationToken);
 
             bool acceptNextBatch = false;
 
@@ -107,7 +107,8 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected async Task<IEnumerable<CatalogCommit>> FetchCatalogCommitsAsync(
             CollectorHttpClient client,
-            ReadWriteCursor front,
+            ReadCursor front,
+            ReadCursor back,
             CancellationToken cancellationToken)
         {
             JObject root;
@@ -119,12 +120,62 @@ namespace NuGet.Services.Metadata.Catalog
                 root = await client.GetJObjectAsync(Index, cancellationToken);
             }
 
-            IEnumerable<CatalogCommit> commits = root["items"]
-                .Select(item => CatalogCommit.Create((JObject)item))
-                .Where(item => item.CommitTimeStamp > front.Value)
-                .OrderBy(item => item.CommitTimeStamp);
+            var commits = root["items"].Select(item => CatalogCommit.Create((JObject)item));
+            return GetCommitsInRange(commits, front.Value, back.Value);
+        }
 
-            return commits;
+
+        public static IEnumerable<CatalogCommit> GetCommitsInRange(
+            IEnumerable<CatalogCommit> commits,
+            DateTimeOffset minCommitTimestamp,
+            DateTimeOffset maxCommitTimestamp)
+        {
+            // Only consider pages that have a (latest) commit timestamp greater than the minimum bound. If a page has
+            // a commit timestamp greater than the minimum bound, then there is at least one item with a commit
+            // timestamp greater than the minimum bound. Sort the pages by commit timestamp so that they are
+            // in chronological order.
+            var upperRange = commits
+                .Where(x => x.CommitTimeStamp > minCommitTimestamp)
+                .OrderBy(x => x.CommitTimeStamp);
+
+            // Take pages from the sorted list until the (latest) commit timestamp goes past the maximum commit
+            // timestamp. This essentially LINQ's TakeWhile plus one more element. Because the maximum bound is
+            // inclusive, we need to yield any page that has a (latest) commit timestamp that is less than or
+            // equal to the maximum bound.
+            //
+            // Consider the following pages (bounded by square brackets, labeled P-0 ... P-N) containing commits
+            // (C-0 ... C-N). The front cursor (exclusive minimum bound) is marked by the letter "F" and the back
+            // cursor (inclusive upper bound) is marked by the letter "B".
+            //
+            //        ---- P-0 ----     ---- P-1 ----     ---- P-2 ----     ----- P-3 -----
+            //      [ C-0, C-1, C-2 ] [ C-3, C-4, C-5 ] [ C-6, C-7, C-8 ] [ C-9, C-10, C-11 ]
+            //              |    |       |                 |    |    |
+            // Scenario #1: F    |       |                 |    B    |
+            //                   |       |                 |         |
+            //   P-0, P-1, and P-2 should be downloaded and C-2 to C-7 should be processed. Note that P-3 should not
+            //   even be considered because P-2 is the first page with a maximum commit timestamp greater than "B".
+            //                   |       |                 |         |
+            // Scenario #2:      |       F                 |         B
+            //                   |                         |
+            //   P-1 and P-2 should be downloaded and C-4 to C-8 should be processed. The concept of a timestamp-based
+            //   cursor requires that commit timestamps strictly increase. Additionally, our catalog implementation
+            //   never allows a commit to be split across multiple pages. In other words, if C-8 is at the end of P-2
+            //   the consumer of the catalog can assume that P-3 only has commits later than C-8 and therefore P-3 need
+            //   not be considered.                        |
+            //                   |                         |
+            // Scenario #3:      F                         B
+            //
+            //   P-1 and P-2 should be downloaded and C-3 to C-6 should be processed. Because "F" (an exclusive bound)
+            //   is pointing to the latest commit timestamp in P-0, that page can be completely ignored.
+            foreach (var page in upperRange)
+            {
+                yield return page;
+                
+                if (page.CommitTimeStamp >= maxCommitTimestamp)
+                {
+                    break;
+                }
+            }
         }
 
         protected virtual Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(IEnumerable<CatalogCommitItem> catalogItems)

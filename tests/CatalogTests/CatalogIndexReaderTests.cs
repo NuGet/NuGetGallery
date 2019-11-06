@@ -4,12 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NgTests.Data;
+using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 using Xunit;
@@ -66,35 +64,6 @@ namespace CatalogTests
             Assert.Equal(new[] { "nuget:PackageDetails" }, entryList[2].Types);
 
             Assert.Same(entryList[0].Id, entryList[1].Id);
-        }
-
-        private class InMemoryHttpHandler : HttpMessageHandler
-        {
-            private readonly IReadOnlyDictionary<string, string> _responses;
-
-            public InMemoryHttpHandler(IReadOnlyDictionary<string, string> responses)
-            {
-                _responses = responses;
-            }
-
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                HttpResponseMessage responseMessage;
-                string response;
-                if (_responses.TryGetValue(request.RequestUri.ToString(), out response))
-                {
-                    responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
-                    {
-                        Content = new StringContent(response)
-                    };
-                }
-                else
-                {
-                    responseMessage = new HttpResponseMessage(HttpStatusCode.NotFound);
-                }
-
-                return Task.FromResult(responseMessage);
-            }
         }
     }
 }

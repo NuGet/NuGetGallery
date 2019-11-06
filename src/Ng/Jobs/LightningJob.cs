@@ -257,9 +257,9 @@ namespace Ng.Jobs
 
                 foreach (var packageRegistrationGroup in catalogIndexEntries
                     .OrderBy(x => x.CommitTimeStamp)
-                    .ThenBy(x => x.Id)
+                    .ThenBy(x => x.Id, StringComparer.OrdinalIgnoreCase)
                     .ThenBy(x => x.Version)
-                    .GroupBy(x => x.Id))
+                    .GroupBy(x => x.Id, StringComparer.OrdinalIgnoreCase))
                 {
                     streamWriter.WriteLine("Element@{0}. {1}", numberOfEntries++, packageRegistrationGroup.Key);
 
