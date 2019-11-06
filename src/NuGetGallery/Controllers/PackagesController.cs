@@ -1905,8 +1905,39 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> UpdateListed(string id, string version, bool? listed)
         {
-            // Edit does exactly the same thing that Delete used to do... REUSE ALL THE CODE!
-            return await Edit(id, version, listed, Url.Package);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            {
+                return HttpForbidden();
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeResult(403, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
+            }
+
+            string action;
+            if (!(listed ?? false))
+            {
+                action = "unlisted";
+                await _packageUpdateService.MarkPackageUnlistedAsync(package);
+            }
+            else
+            {
+                action = "listed";
+                await _packageUpdateService.MarkPackageListedAsync(package);
+            }
+            TempData["Message"] = string.Format(
+                CultureInfo.CurrentCulture,
+                "The package has been {0}. It may take several hours for this change to propagate through our system.",
+                action);
+
+            return Redirect(Url.ManagePackage(new TrivialPackageVersionModel(package)));
         }
 
         [UIAuthorize]
@@ -1969,9 +2000,11 @@ namespace NuGetGallery
                 }
             }
 
+            TempData["Message"] = "Your package's documentation has been updated.";
+
             return Json(new
             {
-                location = returnUrl ?? Url.Package(id, version)
+                location = returnUrl ?? Url.ManagePackage(new TrivialPackageVersionModel(id, version))
             });
         }
 
@@ -2127,43 +2160,6 @@ namespace NuGetGallery
                 return _messageService.SendMessageAsync(emailMessage);
             });
             return Task.WhenAll(tasks);
-        }
-
-        internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, bool, string> urlFactory)
-        {
-            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-
-            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
-            {
-                return HttpForbidden();
-            }
-
-            if (package.PackageRegistration.IsLocked)
-            {
-                return new HttpStatusCodeResult(403, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
-            }
-
-            string action;
-            if (!(listed ?? false))
-            {
-                action = "unlisted";
-                await _packageUpdateService.MarkPackageUnlistedAsync(package);
-            }
-            else
-            {
-                action = "listed";
-                await _packageUpdateService.MarkPackageListedAsync(package);
-            }
-            TempData["Message"] = string.Format(
-                CultureInfo.CurrentCulture,
-                "The package has been {0}. It may take several hours for this change to propagate through our system.",
-                action);
-
-            return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
         [UIAuthorize]
