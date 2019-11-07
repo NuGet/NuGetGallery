@@ -2,7 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
@@ -32,21 +33,28 @@ namespace NuGet.Services.Logging
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
                 TelemetryConfiguration.Active.TelemetryInitializers.Add(new TelemetryContextInitializer());
 
+                // Construct a TelemetryClient to emit traces so we can track and debug AI initialization.
+                var telemetryClient = new TelemetryClient();
+
                 // Configure heartbeat interval if specified.
                 // When not defined or null, the DiagnosticsTelemetryModule will use its internal defaults (heartbeat enabled, interval of 15 minutes).
                 if (heartbeatInterval.HasValue)
                 {
-                    var heartbeatManager = GetHeartbeatPropertyManager();
+                    var heartbeatManager = GetHeartbeatPropertyManager(telemetryClient);
                     if (heartbeatManager != null)
                     {
                         heartbeatManager.HeartbeatInterval = heartbeatInterval.Value;
 
-                        Trace.TraceInformation($"Telemetry initialized using configured heartbeat interval: {heartbeatInterval.Value}.");
+                        telemetryClient.TrackTrace(
+                            $"Telemetry initialized using configured heartbeat interval: {heartbeatInterval.Value}.",
+                            SeverityLevel.Information);
                     }
                 }
                 else
                 {
-                    Trace.TraceInformation($"Telemetry initialized using default heartbeat interval.");
+                    telemetryClient.TrackTrace(
+                        "Telemetry initialized using default heartbeat interval.",
+                        SeverityLevel.Information);
                 }
 
                 Initialized = true;
@@ -57,7 +65,7 @@ namespace NuGet.Services.Logging
             }
         }
 
-        private static IHeartbeatPropertyManager GetHeartbeatPropertyManager()
+        private static IHeartbeatPropertyManager GetHeartbeatPropertyManager(TelemetryClient telemetryClient)
         {
             if (HeartbeatManager == null)
             {
@@ -76,13 +84,15 @@ namespace NuGet.Services.Logging
                 catch (Exception hearbeatManagerAccessException)
                 {
                     // An non-critical, unexpected exception occurred trying to access the heartbeat manager.
-                    Trace.TraceError($"There was an error accessing heartbeat manager. Details: {hearbeatManagerAccessException.ToInvariantString()}");
+                    telemetryClient.TrackTrace(
+                        $"There was an error accessing heartbeat manager. Details: {hearbeatManagerAccessException.ToInvariantString()}",
+                        SeverityLevel.Error);
                 }
 
                 if (HeartbeatManager == null)
                 {
                     // Heartbeat manager unavailable: log warning.
-                    Trace.TraceWarning("Heartbeat manager unavailable");
+                    telemetryClient.TrackTrace("Heartbeat manager unavailable", SeverityLevel.Warning);
                 }
             }
 
