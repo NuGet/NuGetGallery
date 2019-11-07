@@ -11,12 +11,15 @@ namespace NuGetGallery
 
         public string Identity { get; set; }
 
-        public GalleryHomeViewModel() : this(showTransformModal: false, transformIntoOrganization: false, identity: null) { }
+        public bool ShowEnable2FAModal { get; set; }
 
-        public GalleryHomeViewModel(bool showTransformModal, bool transformIntoOrganization, string identity = null)
+        public GalleryHomeViewModel() : this(showTransformModal: false, transformIntoOrganization: false, showEnable2FAModal: false, identity: null) { }
+
+        public GalleryHomeViewModel(bool showTransformModal, bool transformIntoOrganization, bool showEnable2FAModal, string identity = null)
         {
             ShowTransformModal = showTransformModal;
             TransformIntoOrganization = transformIntoOrganization;
+            ShowEnable2FAModal = showEnable2FAModal;
             Identity = identity;
         }
     }

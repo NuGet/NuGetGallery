@@ -1,0 +1,35 @@
+﻿@model GalleryHomeViewModel
+@{ 
+    var title = "Enable 2FA for NuGet.org";
+}
+
+<div class="modal-dialog modal-box">
+    <div class="modal-title">
+        <span class="title-text">@title</span>
+        <button type="button" class="dismiss-button" data-dismiss="modal" aria-label="Close">
+            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="tag-node">
+            <span class="title-text">
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                Enable 2FA <a class="title-text" target="_blank" href="https://aka.ms/nuget-enable-2fa">Learn more.</a>
+            </span>
+        </div>
+        <div class="transform-text">
+            <span>We noticed you are not using 2FA for authentication. For securing your NuGet.org it is recommended that you use multi-factor authentication when logging into NuGet.org. Please authenticate with 2FA for your Microsoft account to enable 2FA for your NuGet profile.</span>
+            <br /><br />
+            <b>Note:</b> No changes will be made to your account except for the authentication mechanism.
+        </div>
+        <div class="action-node">
+            <!--Modify the link below to set 2FA login for current MSA login session-->
+            <button type="button" class="btn btn-default btn-block action-button"  onclick="window.location.href = '@Url.AuthenticateExternal("/")'">
+                <img height="24" width="24" alt="" aria-hidden="true"
+                        src="@Href("~/Content/gallery/img/microsoft-account.svg")"
+                        @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />
+                <span>Login with 2FA</span>
+            </button>
+        </div>
+    </div>
+</div>

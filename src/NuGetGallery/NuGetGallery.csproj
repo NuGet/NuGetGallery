@@ -1891,6 +1891,7 @@
     <Content Include="Views\Packages\_DisplayPackageDeprecation.cshtml" />
     <Content Include="Views\Experiments\SearchSideBySide.cshtml" />
     <Content Include="Views\Api\HealthProbeApi.cshtml" />
+    <Content Include="Views\Pages\_Enable2FA.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

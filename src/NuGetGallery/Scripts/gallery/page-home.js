@@ -28,6 +28,13 @@ $(function () {
         });
     };
 
+    function show2FAModal() {
+        $("#popUp2FAModal").modal({
+            show: true,
+            focus: true
+        });
+    };
+
     function updateStats() {
         $.get('/stats/totals')
             .done(function (data) {
@@ -72,5 +79,9 @@ $(function () {
     updateStats();
     if (window.showModal) {
         showModal();
+    }
+
+    if (window.show2FAModal) {
+        show2FAModal();
     }
 });

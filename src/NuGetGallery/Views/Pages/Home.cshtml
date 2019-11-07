@@ -25,6 +25,15 @@
         @Html.Partial("_TransformOrLink", Model)
     </div>
 }
+else if (Model.ShowEnable2FAModal)
+{
+    <script type="text/javascript">
+        window.show2FAModal = true;
+    </script>
+    <div id="popUp2FAModal" role="dialog" class="modal fade modal-container" data-backdrop="static" tabindex="-1">
+        @Html.Partial("_Enable2FA", Model)
+    </div>
+}
 
 <section role="main" class="page-home">
     <div class="jumbotron text-center">
