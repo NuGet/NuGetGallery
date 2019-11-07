@@ -267,6 +267,10 @@
     <Compile Include="Migrations\201910291956170_AddPackageVulnerabilities.Designer.cs">
       <DependentUpon>201910291956170_AddPackageVulnerabilities.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201911070020395_AddVulnerablePackageVersionRangeIdIndex.cs" />
+    <Compile Include="Migrations\201911070020395_AddVulnerablePackageVersionRangeIdIndex.Designer.cs">
+      <DependentUpon>201911070020395_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\GravatarProxyResult.cs" />
@@ -1628,6 +1632,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201910291956170_AddPackageVulnerabilities.resx">
       <DependentUpon>201910291956170_AddPackageVulnerabilities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201911070020395_AddVulnerablePackageVersionRangeIdIndex.resx">
+      <DependentUpon>201911070020395_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
