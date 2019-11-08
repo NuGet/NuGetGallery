@@ -19,6 +19,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
     {
         private readonly IAuthenticationService _authenticationService;
         private readonly ITelemetryService _telemetryService;
+        internal const int MaxAllowedVerifyQueryLength = 3000;
 
         public ApiKeysController(IAuthenticationService authenticationService, ITelemetryService telemetryService)
         {
@@ -38,7 +39,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             if (string.IsNullOrWhiteSpace(verifyQuery))
             {
-                return Json(HttpStatusCode.BadRequest, "Invalid empty input.");
+                return Json(HttpStatusCode.BadRequest, "Invalid empty input!");
+            }
+
+            if (verifyQuery.Length > MaxAllowedVerifyQueryLength)
+            {
+                return Json(HttpStatusCode.BadRequest, $"Invalid input! Exceed the max allowed length: {MaxAllowedVerifyQueryLength}.");
             }
 
             var queries = verifyQuery.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(q => q.Trim()).ToList();

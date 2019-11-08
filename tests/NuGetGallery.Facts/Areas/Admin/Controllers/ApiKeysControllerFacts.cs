@@ -6,6 +6,7 @@ using System.Net;
 using System.Web;
 using System.Linq;
 using System.Web.Mvc;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using Moq;
 using Xunit;
@@ -14,7 +15,6 @@ using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Areas.Admin.Models;
 using Newtonsoft.Json;
-using System.Threading.Tasks;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -249,7 +249,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 var jsonResult = Assert.IsType<JsonResult>(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, apiKeysController.Response.StatusCode);
-                Assert.Equal("Invalid empty input.", jsonResult.Data);
+                Assert.Equal("Invalid empty input!", jsonResult.Data);
+            }
+
+            [Fact]
+            public void GivenVerifyQueryWithExceedMaxLength_ItReturnsWarning()
+            {
+                // Arrange
+                var verifyQuery = new string('a', ApiKeysController.MaxAllowedVerifyQueryLength + 1);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+                TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+
+                // Act
+                var result = apiKeysController.Verify(verifyQuery);
+
+                // Assert
+                var jsonResult = Assert.IsType<JsonResult>(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, apiKeysController.Response.StatusCode);
+                Assert.Equal($"Invalid input! Exceed the max allowed length: {ApiKeysController.MaxAllowedVerifyQueryLength}.", jsonResult.Data);
             }
 
             [Theory]
