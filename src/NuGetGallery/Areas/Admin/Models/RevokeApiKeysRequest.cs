@@ -8,7 +8,7 @@ namespace NuGetGallery.Areas.Admin.Models
 {
     public class RevokeApiKeysRequest
     {
-        public List<string> SelectedApiKeys { get; set; }
+        public List<string> SelectedApiKeyRevokeViewModelsInJSON { get; set; }
 
         [Required(ErrorMessage = "Please sign using your name.")]
         [StringLength(1000)]
