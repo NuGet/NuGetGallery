@@ -38,10 +38,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             if (string.IsNullOrWhiteSpace(verifyQuery))
             {
-                return Json(HttpStatusCode.BadRequest, "Invalid empty input!");
+                return Json(HttpStatusCode.BadRequest, "Invalid empty input.");
             }
 
-            var queries = verifyQuery.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var queries = verifyQuery.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(q => q.Trim()).ToList();
 
             var results = new List<ApiKeyRevokeViewModel>();
             var verifiedApiKey = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -96,14 +96,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             if (revokeApiKeysRequest == null)
             {
-                TempData["ErrorMessage"] = "The API keys revoking request can not be null!";
+                TempData["ErrorMessage"] = "The API keys revoking request can not be null.";
                 return View(nameof(Index));
             }
 
-            var failures = new List<string>();
-            foreach (var selectedApiKey in revokeApiKeysRequest.SelectedApiKeys)
+            var failedApiKeys = new List<string>();
+            foreach (var selectedApiKeyRevokeViewModel in revokeApiKeysRequest.SelectedApiKeyRevokeViewModelsInJSON)
             {
-                var apiKeyInfo = JsonConvert.DeserializeObject<ApiKeyRevokeViewModel>(selectedApiKey);
+                var apiKeyInfo = JsonConvert.DeserializeObject<ApiKeyRevokeViewModel>(selectedApiKeyRevokeViewModel);
                 try
                 {
                     var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
@@ -112,14 +112,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
                 catch(Exception e)
                 {
-                    failures.Add($"Failed to revoke the API key {apiKeyInfo.ApiKey}: {e.GetUserSafeMessage()}");
+                    failedApiKeys.Add($"{apiKeyInfo.ApiKey}");
                     _telemetryService.TraceException(e);
                 }
             }
 
-            if (failures.Any())
+            if (failedApiKeys.Any())
             {
-                TempData["ErrorMessage"] = string.Join(" ", failures.ToArray());
+                TempData["ErrorMessage"] = $"Failed to revoke the API key: { string.Join(", ", failedApiKeys.ToArray()) }." +
+                    $"Please check the telemetry for details.";
             }
             else
             {
@@ -135,11 +136,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 return false;
             }
-            if (apiKeyViewModel.HasExpired)
+            if (!CredentialTypes.IsApiKey(apiKeyViewModel.Type))
             {
                 return false;
             }
-            if (!CredentialTypes.IsApiKey(apiKeyViewModel.Type))
+            if (apiKeyViewModel.HasExpired)
             {
                 return false;
             }
@@ -153,13 +154,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         private class ApiKeyAndLeakedUrl
         {
-            [JsonProperty("ApiKey")]
+            [JsonProperty("ApiKey", Required = Required.Always)]
             public string ApiKey { get; set; }
 
-            [JsonProperty("LeakedUrl")]
+            [JsonProperty("LeakedUrl", Required = Required.Always)]
             public string LeakedUrl { get; set; }
 
-            [JsonProperty("RevokedBy")]
+            [JsonProperty("RevokedBy", Required = Required.Always)]
             public string RevokedBy { get; set; }
         }
     }

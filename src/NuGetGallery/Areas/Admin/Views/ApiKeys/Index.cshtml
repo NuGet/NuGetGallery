@@ -8,8 +8,8 @@
     <h2>Verify API Keys</h2>
     <p class="text-muted">
         Please follow the format as below: <br />
-        {"ApiKey":"oy2apikey1","RevokedBy":"GitHub","LeakedUrl":"https://leakedUrl1"} <br />
-        {"ApiKey":"oy2apikey2","RevokedBy":"GitHub","LeakedUrl":"https://leakedUrl2"}
+        {"ApiKey":"oy2apikey1","LeakedUrl":"https://leakedUrl1","RevokedBy":"GitHub"} <br />
+        {"ApiKey":"oy2apikey2","LeakedUrl":"https://leakedUrl2","RevokedBy":"GitHub"}
     </p>
     <form>
         <textarea class="form-control" placeholder="Verify API keys to revoke" autocomplete="off" autofocus rows="5" data-bind="value: verifyQuery"></textarea><br />
@@ -34,7 +34,7 @@
             <tbody data-bind="foreach: verifiedResults">
                 <tr>
                     <td class="col-sm-1" style="vertical-align: middle">
-                        <input type="checkbox" name="SelectedApiKeys" data-bind="visible: IsRevocable, checked: Selected, value: ko.toJSON($data)" />
+                        <input type="checkbox" name="SelectedApiKeyRevokeViewModelsInJSON" data-bind="visible: IsRevocable, checked: Selected, value: ko.toJSON($data)" />
                     </td>
                     <td class="col-sm-5" style="vertical-align: middle">
                         <span data-bind="text: ApiKey"></span>

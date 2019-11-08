@@ -349,6 +349,42 @@ namespace NuGetGallery.Authentication
             }
         }
 
+        public class TheRevokeCredentialMethod : TestContainer
+        {
+            private Fakes _fakes;
+            private AuthenticationService _authenticationService;
+
+            public TheRevokeCredentialMethod()
+            {
+                _fakes = Get<Fakes>();
+                _authenticationService = Get<AuthenticationService>();
+            }
+
+            [Fact]
+            public async Task GivenValidCredential_RevokeCredential()
+            {
+                await Assert.ThrowsAsync<ArgumentNullException>(async ()
+                    => await _authenticationService.RevokeCredential(null, It.IsAny<CredentialRevokedByType>()));
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevokedByType.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevokedByType.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevokedByType.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevokedByType.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, CredentialRevokedByType.GitHub)]
+            public async Task GivenValidCredential_RevokeCredential(string apiKeyType, CredentialRevokedByType revokedByType)
+            {
+                var cred = _fakes.User.Credentials.Single(
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
+                await _authenticationService.RevokeCredential(cred, revokedByType);
+
+                Assert.True(cred.HasExpired);
+                Assert.Equal(revokedByType, cred.RevokedBy);
+                _authenticationService.Entities.VerifyCommitChanges();
+            }
+        }
+
         public class TheAuthenticateApiKeyMethod : TestContainer
         {
             private Fakes _fakes;
@@ -1774,6 +1810,7 @@ namespace NuGetGallery.Authentication
                 Assert.Null(description.AuthUI);
                 Assert.Equal(Strings.NonScopedApiKeyDescription, description.Description);
                 Assert.Equal(expectedHasExpired, description.HasExpired);
+                Assert.Null(description.RevokedBy);
             }
 
             [InlineData(false)]
@@ -1806,6 +1843,7 @@ namespace NuGetGallery.Authentication
                 Assert.Null(description.AuthUI);
                 Assert.Equal(cred.Description, description.Description);
                 Assert.Equal(hasExpired, description.HasExpired);
+                Assert.Null(description.RevokedBy);
 
                 Assert.True(description.Scopes.Count == 2);
                 Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePushVersion), description.Scopes[0].AllowedAction);
@@ -1838,6 +1876,45 @@ namespace NuGetGallery.Authentication
                 Assert.NotNull(description.AuthUI);
                 Assert.Equal(msftAuther.GetUI().AccountNoun, description.AuthUI.AccountNoun);
                 Assert.Equal(hasExpired, description.HasExpired);
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevokedByType.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevokedByType.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevokedByType.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevokedByType.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, CredentialRevokedByType.GitHub)]
+            public void GivenRevokedCredential_ItDescribesItCorrectly(string apiKeyType, CredentialRevokedByType revokedByType)
+            {
+                // Arrange
+                var cred = new Credential(apiKeyType, "TestApiKeyValue");
+                cred.RevokedBy = revokedByType;
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                var description = authService.DescribeCredential(cred);
+
+                // Assert
+                Assert.Equal(Enum.GetName(typeof(CredentialRevokedByType), revokedByType), description.RevokedBy);
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V3)]
+            [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1)]
+            public void GivenNotRevokedCredential_ItDescribesItCorrectly(string apiKeyType)
+            {
+                // Arrange
+                var cred = new Credential(apiKeyType, "TestApiKeyValue");
+                var authService = Get<AuthenticationService>();
+
+                // Act
+                var description = authService.DescribeCredential(cred);
+
+                // Assert
+                Assert.Null(description.RevokedBy);
             }
         }
 
