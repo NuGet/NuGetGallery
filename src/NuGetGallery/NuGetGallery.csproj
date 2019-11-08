@@ -272,6 +272,9 @@
     <Compile Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs" />
     <Compile Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.designer.cs">
       <DependentUpon>201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
+    <Compile Include="Migrations\201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs" />
+    <Compile Include="Migrations\201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.Designer.cs">
+      <DependentUpon>201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
@@ -1637,6 +1640,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.resx">
       <DependentUpon>201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.resx">
+      <DependentUpon>201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

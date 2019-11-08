@@ -65,15 +65,19 @@ namespace GitHubVulnerabilities2Db.Facts
             }
 
             [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task IngestsAdvisory(bool withdrawn)
+            [InlineData(false, false)]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            [InlineData(true, true)]
+            public async Task IngestsAdvisory(bool withdrawn, bool vulnerabilityHasFirstPatchedVersion)
             {
                 // Arrange
                 var securityVulnerability = new SecurityVulnerability
                 {
                     Package = new SecurityVulnerabilityPackage { Name = "crested.gecko" },
-                    VulnerableVersionRange = "homeOnTheRange"
+                    VulnerableVersionRange = "homeOnTheRange",
+                    FirstPatchedVersion = vulnerabilityHasFirstPatchedVersion 
+                        ? new SecurityVulnerabilityPackageVersion { Identifier = "1.2.3" } : null
                 };
 
                 var advisory = new SecurityAdvisory
@@ -110,9 +114,10 @@ namespace GitHubVulnerabilities2Db.Facts
                         Assert.Equal(PackageVulnerabilitySeverity.Critical, vulnerability.Severity);
                         Assert.Equal(advisory.References.Single().Url, vulnerability.ReferenceUrl);
 
-                        var packageVulnerability = vulnerability.AffectedRanges.Single();
-                        Assert.Equal(securityVulnerability.Package.Name, packageVulnerability.PackageId);
-                        Assert.Equal(versionRange.ToNormalizedString(), packageVulnerability.PackageVersionRange);
+                        var range = vulnerability.AffectedRanges.Single();
+                        Assert.Equal(securityVulnerability.Package.Name, range.PackageId);
+                        Assert.Equal(versionRange.ToNormalizedString(), range.PackageVersionRange);
+                        Assert.Equal(securityVulnerability.FirstPatchedVersion?.Identifier, range.FirstPatchedPackageVersion);
                     })
                     .Returns(Task.CompletedTask)
                     .Verifiable();
