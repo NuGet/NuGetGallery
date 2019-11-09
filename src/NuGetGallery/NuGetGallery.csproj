@@ -241,6 +241,8 @@
     <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
     <Compile Include="Infrastructure\HijackSearchServiceFactory.cs" />
+    <Compile Include="Infrastructure\ODataCachedEndpoint.cs" />
+    <Compile Include="Infrastructure\ODataCacheOutputAttribute.cs" />
     <Compile Include="Infrastructure\UserDeletedErrorFilter.cs" />
     <Compile Include="Infrastructure\SearchServiceFactory.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />
@@ -1819,6 +1821,8 @@
     <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
     <Content Include="Areas\Admin\Views\SiteAdmins\Index.cshtml" />
     <Content Include="Areas\Admin\Views\ApiKeys\Index.cshtml" />
+    <Content Include="App_Data\Files\Content\OData-Cache-Configuration.json" />
+    <Content Include="App_Data\Files\Content\GitHubUsage.v1.json" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\gallery\autocomplete.js" />
