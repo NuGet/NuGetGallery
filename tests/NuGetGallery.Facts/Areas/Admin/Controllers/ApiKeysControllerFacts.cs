@@ -252,23 +252,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal("Invalid empty input!", jsonResult.Data);
             }
 
-            [Fact]
-            public void GivenVerifyQueryWithExceedMaxLength_ItReturnsWarning()
-            {
-                // Arrange
-                var verifyQuery = new string('a', ApiKeysController.MaxAllowedVerifyQueryLength + 1);
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
-                TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
-
-                // Act
-                var result = apiKeysController.Verify(verifyQuery);
-
-                // Assert
-                var jsonResult = Assert.IsType<JsonResult>(result);
-                Assert.Equal((int)HttpStatusCode.BadRequest, apiKeysController.Response.StatusCode);
-                Assert.Equal($"Invalid input! Exceed the max allowed length: {ApiKeysController.MaxAllowedVerifyQueryLength}.", jsonResult.Data);
-            }
-
             [Theory]
             [InlineData("testQuery", "testQuery")]
             [InlineData("{\"ApiKey\":\"apiKey1\"}",
@@ -411,7 +394,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 // Act
                 apiKeysController.Revoke(GetRevokeApiKeysRequest());
-                Assert.Equal($"Failed to revoke the API key: apiKey1, apiKey2." +
+                Assert.Equal($"Failed to revoke the API key(s): apiKey1, apiKey2." +
                     $"Please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Exactly(2));
             }
@@ -430,7 +413,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 // Act
                 apiKeysController.Revoke(GetRevokeApiKeysRequest());
-                Assert.Equal($"Failed to revoke the API key: apiKey1, apiKey2." +
+                Assert.Equal($"Failed to revoke the API key(s): apiKey1, apiKey2." +
                     $"Please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Exactly(2));
             }
@@ -442,7 +425,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     Enum.GetName(typeof(CredentialRevokedByType), CredentialRevokedByType.GitHub), true);
                 var apiKeyRevokeViewModel2 = new ApiKeyRevokeViewModel(null, "apiKey2", "https://leakedUrl2",
                     Enum.GetName(typeof(CredentialRevokedByType), CredentialRevokedByType.GitHub), true);
-                revokeApiKeysRequest.SelectedApiKeyRevokeViewModelsInJSON = new List<string> {
+                revokeApiKeysRequest.SelectedApiKeys = new List<string> {
                     JsonConvert.SerializeObject(apiKeyRevokeViewModel1),
                     JsonConvert.SerializeObject(apiKeyRevokeViewModel2) };
 

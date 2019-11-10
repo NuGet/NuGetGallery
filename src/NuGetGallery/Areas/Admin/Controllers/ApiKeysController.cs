@@ -42,11 +42,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "Invalid empty input!");
             }
 
-            if (verifyQuery.Length > MaxAllowedVerifyQueryLength)
-            {
-                return Json(HttpStatusCode.BadRequest, $"Invalid input! Exceed the max allowed length: {MaxAllowedVerifyQueryLength}.");
-            }
-
             var queries = verifyQuery.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(q => q.Trim()).ToList();
 
             var results = new List<ApiKeyRevokeViewModel>();
@@ -55,7 +50,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 try
                 {
-                    var queryObject = JsonConvert.DeserializeObject<ApiKeyAndLeakedUrl>(query);
+                    var queryObject = JsonConvert.DeserializeObject<LeakedApiKeyInfo>(query);
 
                     var apiKey = queryObject.ApiKey;
                     if (!verifiedApiKey.Add(apiKey))
@@ -78,11 +73,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         continue;
                     }
 
-                    var supportedRevokedByType = Enum.GetNames(typeof(CredentialRevokedByType));
-                    if (!supportedRevokedByType.Contains(revokedBy))
+                    if (!Enum.TryParse(revokedBy, out CredentialRevokedByType revokedByType))
                     {
                         return Json(HttpStatusCode.BadRequest, $"Invalid input! {query} is not using the supported revokedBy types: " +
-                            $"{string.Join(",", supportedRevokedByType.ToArray())}.");
+                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevokedByType)).ToArray())}.");
                     }
 
                     results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl, revokedBy, isRevocable: true));
@@ -107,9 +101,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             var failedApiKeys = new List<string>();
-            foreach (var selectedApiKeyRevokeViewModel in revokeApiKeysRequest.SelectedApiKeyRevokeViewModelsInJSON)
+            foreach (var selectedApiKey in revokeApiKeysRequest.SelectedApiKeys)
             {
-                var apiKeyInfo = JsonConvert.DeserializeObject<ApiKeyRevokeViewModel>(selectedApiKeyRevokeViewModel);
+                var apiKeyInfo = JsonConvert.DeserializeObject<ApiKeyRevokeViewModel>(selectedApiKey);
                 try
                 {
                     var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
@@ -125,7 +119,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             if (failedApiKeys.Any())
             {
-                TempData["ErrorMessage"] = $"Failed to revoke the API key: { string.Join(", ", failedApiKeys.ToArray()) }." +
+                TempData["ErrorMessage"] = $"Failed to revoke the API key(s): { string.Join(", ", failedApiKeys.ToArray()) }." +
                     $"Please check the telemetry for details.";
             }
             else
@@ -158,7 +152,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return true;
         }
 
-        private class ApiKeyAndLeakedUrl
+        private class LeakedApiKeyInfo
         {
             [JsonProperty("ApiKey", Required = Required.Always)]
             public string ApiKey { get; set; }
