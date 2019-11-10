@@ -50,15 +50,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 try
                 {
-                    var queryObject = JsonConvert.DeserializeObject<LeakedApiKeyInfo>(query);
+                    var leakedApiKeyInfo = JsonConvert.DeserializeObject<LeakedApiKeyInfo>(query);
 
-                    var apiKey = queryObject.ApiKey;
+                    var apiKey = leakedApiKeyInfo.ApiKey;
                     if (!verifiedApiKey.Add(apiKey))
                     {
                         continue;
                     }
-                    var leakedUrl = queryObject.LeakedUrl;
-                    var revokedBy = queryObject.RevokedBy;
+                    var leakedUrl = leakedApiKeyInfo.LeakedUrl;
+                    var revokedBy = leakedApiKeyInfo.RevokedBy;
 
                     var credential = _authenticationService.GetApiKeyCredential(apiKey);
                     var apiKeyViewModel = credential == null ? null : new ApiKeyViewModel(_authenticationService.DescribeCredential(credential));
@@ -76,7 +76,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     if (!Enum.TryParse(revokedBy, out CredentialRevokedByType revokedByType))
                     {
                         return Json(HttpStatusCode.BadRequest, $"Invalid input! {query} is not using the supported revokedBy types: " +
-                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevokedByType)).ToArray())}.");
+                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevokedByType)))}.");
                     }
 
                     results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl, revokedBy, isRevocable: true));

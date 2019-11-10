@@ -313,7 +313,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var jsonResult = Assert.IsType<JsonResult>(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, apiKeysController.Response.StatusCode);
                 Assert.Equal($"Invalid input! {verifyQuery} is not using the supported revokedBy types: " +
-                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevokedByType)).ToArray())}.", jsonResult.Data);
+                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevokedByType)))}.", jsonResult.Data);
             }
 
             [Fact]
