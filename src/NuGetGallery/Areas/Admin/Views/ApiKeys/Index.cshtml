@@ -34,7 +34,7 @@
             <tbody data-bind="foreach: verifiedResults">
                 <tr>
                     <td class="col-sm-1" style="vertical-align: middle">
-                        <input type="checkbox" name="SelectedApiKeyRevokeViewModelsInJSON" data-bind="visible: IsRevocable, checked: Selected, value: ko.toJSON($data)" />
+                        <input type="checkbox" name="SelectedApiKeys" data-bind="visible: IsRevocable, checked: Selected, value: ko.toJSON($data)" />
                     </td>
                     <td class="col-sm-5" style="vertical-align: middle">
                         <span data-bind="text: ApiKey"></span>
