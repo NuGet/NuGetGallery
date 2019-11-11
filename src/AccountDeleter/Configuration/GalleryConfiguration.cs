@@ -87,7 +87,6 @@ namespace NuGetGallery.AccountDeleter
         public bool RejectSignedPackagesWithNoRegisteredCertificate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool RejectPackagesWithTooManyPackageEntries { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool BlockSearchEngineIndexing { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string[] RedirectedCuratedFeeds { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool AsynchronousEmailServiceEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool RejectPackagesWithLicense { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool BlockLegacyLicenseUrl { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

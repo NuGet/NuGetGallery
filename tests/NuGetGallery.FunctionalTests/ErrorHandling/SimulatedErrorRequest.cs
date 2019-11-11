@@ -32,7 +32,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
                     path = "/api/simulate-error";
                     break;
                 case EndpointType.OData:
-                    path = "/api/v2/curated-feed/microsoftdotnet/SimulateError()";
+                    path = "/api/v1/SimulateError()";
                     break;
                 default:
                     throw new NotImplementedException("The endpoint type is not supported.");

@@ -125,7 +125,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionName.cs" />
-    <Compile Include="App_Start\NuGetODataV2CuratedFeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />
@@ -308,7 +307,6 @@
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Controllers\OrganizationsController.cs" />
     <Compile Include="Controllers\ODataV1FeedController.cs" />
-    <Compile Include="Controllers\ODataV2CuratedFeedController.cs" />
     <Compile Include="Controllers\ODataV2FeedController.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
