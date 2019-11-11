@@ -20,7 +20,6 @@ $(function () {
         modalTitle: ko.observable(''),
         message: ko.observable(''),
         feedbackText: ko.observable(''),
-        getFeedback: ko.observable(false),
         showEnable2FADialog: ko.observable(false),
 
         sendFeedback: function () {
@@ -59,43 +58,16 @@ $(function () {
             .fail(failHandler);
         },
 
-        enable2FA: function () {
-            viewModel.message("");
-
-            var obj = {
-                enableMultiFactor: true
-            };
-
-            window.nuget.addAjaxAntiForgeryToken(obj);
-
-            $.ajax({
-                url: changeMultiFactorAuthenticationUrl,
-                dataType: 'html',
-                type: 'POST',
-                data: obj,
-                success: function (data, response, location) {
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else {
-                        viewModel.message(data.message);
-                    }
-                }
-            })
-            .fail(failHandler);
-        },
-
         closeModal: function (showFeedback) {
             if (showFeedback) {
                 // Send telemetry for 2FA dialog closed.
                 viewModel.resetViewModel();
                 viewModel.setupFeedbackView();
-                viewModel.getFeedback();
             }
             else {
                 $("#popUp2FAModal").modal('hide');
             }
         },
-
 
         setupFeedbackView: function () {
             viewModel.modalTitle('We would like to hear your feedback!');
@@ -111,7 +83,6 @@ $(function () {
             viewModel.message('');
             viewModel.modalTitle('');
             viewModel.feedbackText('');
-            viewModel.getFeedback(false);
             viewModel.setupEnable2FAView();
         }
     };
