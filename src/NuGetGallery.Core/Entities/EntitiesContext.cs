@@ -468,6 +468,9 @@ namespace NuGetGallery
                 .WithMany(p => p.Vulnerabilities);
 
             modelBuilder.Entity<VulnerablePackageVersionRange>()
+                .HasIndex(pv => pv.PackageId);
+
+            modelBuilder.Entity<VulnerablePackageVersionRange>()
                 .HasIndex(pv => new { pv.VulnerabilityKey, pv.PackageId, pv.PackageVersionRange })
                 .IsUnique();
         }
