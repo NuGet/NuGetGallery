@@ -411,6 +411,24 @@ namespace NuGetGallery
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> SendFeedback(string feedback)
+        {
+            try
+            {
+                // sanitize input
+                // get user, send feedback as email
+                //await _messageService.SendMessageAsync(feedback);
+                await Task.Yield();
+                return Json(new { success = true });
+            }
+            catch (ArgumentException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         [ActionName("Authenticate")]
         [HttpGet]
         public virtual ActionResult AuthenticateGet(string returnUrl, string provider)

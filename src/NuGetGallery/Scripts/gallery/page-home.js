@@ -1,6 +1,10 @@
 $(function () {
     'use strict';
 
+    var failHandler = function (jqXHR, textStatus, errorThrown) {
+        viewModel.message(window.nuget.formatString(errorThrown));
+    };
+
     function updateStat(observable, unparsedValue) {
         var parsedValue = parseInt(unparsedValue);
         if (!isNaN(parsedValue)) {
@@ -8,17 +12,115 @@ $(function () {
         }
     }
 
-    var stats = {
+    var viewModel = {
         packageDownloads: ko.observable(0),
         packageVersions: ko.observable(0),
-        uniquePackages: ko.observable(0)
+        uniquePackages: ko.observable(0),
+
+        modalTitle: ko.observable(''),
+        message: ko.observable(''),
+        feedbackText: ko.observable(''),
+        getFeedback: ko.observable(false),
+        showEnable2FADialog: ko.observable(false),
+
+        sendFeedback: function () {
+            viewModel.message("");
+
+            var feedbackText = viewModel.feedbackText();
+            if (!feedbackText) {
+                viewModel.message("Please enter feedback.");
+                return;
+            }
+
+            if (feedbackText.length > 1000) {
+                viewModel.message("Please limit the feedback to 1000 charachters.");
+                return;
+            }
+
+            var obj = {
+                feedback: feedbackText
+            };
+
+            window.nuget.addAjaxAntiForgeryToken(obj);
+
+            $.ajax({
+                url: feedbackUrl,
+                dataType: 'json',
+                type: 'POST',
+                data: obj,
+                success: function (data) {
+                    if (data.success) {
+                        viewModel.closeModal(false);
+                    } else {
+                        viewModel.message(data.message);
+                    }
+                }
+            })
+            .fail(failHandler);
+        },
+
+        enable2FA: function () {
+            viewModel.message("");
+
+            var obj = {
+                enableMultiFactor: true
+            };
+
+            window.nuget.addAjaxAntiForgeryToken(obj);
+
+            $.ajax({
+                url: changeMultiFactorAuthenticationUrl,
+                dataType: 'html',
+                type: 'POST',
+                data: obj,
+                success: function (data, response, location) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        viewModel.message(data.message);
+                    }
+                }
+            })
+            .fail(failHandler);
+        },
+
+        closeModal: function (showFeedback) {
+            if (showFeedback) {
+                // Send telemetry for 2FA dialog closed.
+                viewModel.resetViewModel();
+                viewModel.setupFeedbackView();
+                viewModel.getFeedback();
+            }
+            else {
+                $("#popUp2FAModal").modal('hide');
+            }
+        },
+
+
+        setupFeedbackView: function () {
+            viewModel.modalTitle('We would like to hear your feedback!');
+            viewModel.showEnable2FADialog(false);
+        },
+
+        setupEnable2FAView: function () {
+            viewModel.modalTitle('Enable Two-factor authentication (2FA)');
+            viewModel.showEnable2FADialog(true);
+        },
+
+        resetViewModel: function () {
+            viewModel.message('');
+            viewModel.modalTitle('');
+            viewModel.feedbackText('');
+            viewModel.getFeedback(false);
+            viewModel.setupEnable2FAView();
+        }
     };
 
-    stats.label = ko.computed(function () {
+    viewModel.label = ko.computed(function () {
         return 'NuGet.org has ' +
-            stats.packageDownloads() + ' package download' + (stats.packageDownloads() != 1 ? 's' : '') + ', ' +
-            stats.packageVersions() + ' package version' + (stats.packageVersions() != 1 ? 's' : '') + ', and ' +
-            stats.uniquePackages() + ' unique package' + (stats.uniquePackages() != 1 ? 's' : '') + '.';
+            viewModel.packageDownloads() + ' package download' + (viewModel.packageDownloads() != 1 ? 's' : '') + ', ' +
+            viewModel.packageVersions() + ' package version' + (viewModel.packageVersions() != 1 ? 's' : '') + ', and ' +
+            viewModel.uniquePackages() + ' unique package' + (viewModel.uniquePackages() != 1 ? 's' : '') + '.';
     });
 
     function showModal() {
@@ -26,21 +128,22 @@ $(function () {
             show: true,
             focus: true
         });
-    };
+    }
 
     function show2FAModal() {
+        viewModel.setupEnable2FAView();
         $("#popUp2FAModal").modal({
             show: true,
             focus: true
         });
-    };
+    }
 
     function updateStats() {
         $.get('/stats/totals')
             .done(function (data) {
-                updateStat(stats.packageDownloads, data['Downloads']);
-                updateStat(stats.packageVersions, data['TotalPackages']);
-                updateStat(stats.uniquePackages, data['UniquePackages']);
+                updateStat(viewModel.packageDownloads, data['Downloads']);
+                updateStat(viewModel.packageVersions, data['TotalPackages']);
+                updateStat(viewModel.uniquePackages, data['UniquePackages']);
             })
             .fail(function () {
                 // Fail silently.
@@ -75,8 +178,9 @@ $(function () {
         $('.circuit-board').hide();
     }
 
-    ko.applyBindings(stats);
+    ko.applyBindings(viewModel);
     updateStats();
+
     if (window.showModal) {
         showModal();
     }

@@ -30,9 +30,9 @@ else if (Model.ShowEnable2FAModal)
     <script type="text/javascript">
         window.show2FAModal = true;
     </script>
-    <div id="popUp2FAModal" role="dialog" class="modal fade modal-container" data-backdrop="static" tabindex="-1">
+    <div id="popUp2FAModal" class="modal fade modal-container" data-backdrop="static">
         @Html.Partial("_Enable2FA", Model)
-    </div>
+    </div> 
 }
 
 <section role="main" class="page-home">
@@ -121,5 +121,9 @@ else if (Model.ShowEnable2FAModal)
 </section>
 
 @section BottomScripts {
+    <script type="text/javascript">
+        var feedbackUrl = "@Url.SendFeedback()";
+        var changeMultiFactorAuthenticationUrl = "@Url.ChangeMultiFactorAuthentication()";
+    </script>
     @Scripts.Render("~/Scripts/gallery/page-home.min.js")
 }

@@ -1162,6 +1162,16 @@ namespace NuGetGallery
             return GetRouteLink(url, RouteName.SigninAssistance, relativeUrl);
         }
 
+        public static string SendFeedback(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetRouteLink(url, RouteName.SendFeedback, relativeUrl);
+        }
+
+        public static string ChangeMultiFactorAuthentication(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetRouteLink(url, RouteName.ChangeMultiFactorAuthentication, relativeUrl);
+        }
+
         public static RouteUrlTemplate<OwnerRequestsListItemViewModel> ConfirmPendingOwnershipRequestTemplate(
             this UrlHelper url,
             bool relativeUrl = true)

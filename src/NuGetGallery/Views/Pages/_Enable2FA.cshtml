@@ -1,35 +1,51 @@
-﻿@model GalleryHomeViewModel
-@{ 
-    var title = "Enable 2FA for NuGet.org";
-}
-
-<div class="modal-dialog modal-box">
+﻿<div class="modal-dialog modal-box">
     <div class="modal-title">
-        <span class="title-text">@title</span>
-        <button type="button" class="dismiss-button" data-dismiss="modal" aria-label="Close">
+        <span class="title-text" data-bind="text: modalTitle()"></span>
+        <button type="button" class="dismiss-button" data-bind="click: closeModal(showEnable2FADialog())" aria-label="Close">
             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
         </button>
     </div>
     <div class="modal-body">
-        <div class="tag-node">
+        <div class="tag-node" data-bind="visible: showEnable2FADialog()">
             <span class="title-text">
-                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                Enable 2FA <a class="title-text" target="_blank" href="https://aka.ms/nuget-enable-2fa">Learn more.</a>
+                We <b>strongly</b> urge you to enable 2FA for the safety of your NuGet.org account!
             </span>
         </div>
-        <div class="transform-text">
-            <span>We noticed you are not using 2FA for authentication. For securing your NuGet.org it is recommended that you use multi-factor authentication when logging into NuGet.org. Please authenticate with 2FA for your Microsoft account to enable 2FA for your NuGet profile.</span>
-            <br /><br />
-            <b>Note:</b> No changes will be made to your account except for the authentication mechanism.
-        </div>
-        <div class="action-node">
-            <!--Modify the link below to set 2FA login for current MSA login session-->
-            <button type="button" class="btn btn-default btn-block action-button"  onclick="window.location.href = '@Url.AuthenticateExternal("/")'">
-                <img height="24" width="24" alt="" aria-hidden="true"
-                        src="@Href("~/Content/gallery/img/microsoft-account.svg")"
-                        @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />
-                <span>Login with 2FA</span>
-            </button>
+        <div>
+            <div id="2fa-page" class="action-node-2fa" data-bind="visible: showEnable2FADialog()">
+                @using (Html.BeginForm("ChangeMultiFactorAuthentication", "Users", FormMethod.Post, new { aria_label = "Enable multi-factor authentication setting" }))
+                {
+                    @Html.AntiForgeryToken()
+
+                    @Html.Hidden("enableMultiFactor", true);
+                    <br /><br />
+                    <button type="submit" class="btn btn-primary btn-block action-button">
+                        <span>Enable 2FA for NuGet.org</span>
+                    </button>
+                    <br /><br />
+                    <span style="text-align: left">Two-factor authentication adds an additional layer of security to your account by requiring more than just a password login. <a class="title-text" target="_blank" href="https://aka.ms/nuget-enable-2fa">Learn more.</a></span>
+                }
+            </div>
+            <div id="feedback-page" class="text-label" data-bind="visible: !showEnable2FADialog()">
+                @ViewHelpers.AjaxAntiForgeryToken(Html)
+                @using (Html.BeginForm())
+                {
+                    <div id="feedback-form">
+                        <div class="form-group">
+                            <span class="feedback-label">Why did you choose to <i>not</i> enable 2FA?</span>
+                            <textarea class="text-area" id="feedback-text" name="feebackText" data-bind="value: feedbackText" rows="5" aria-required="true"></textarea>
+                            <div class="text-danger form-error-message" data-bind="text: message"></div>
+                        </div>
+                        <div class="feedback-submit">
+                            <button type="submit" class="btn btn-primary btn-block action-button" data-bind="click: sendFeedback">
+                                <span>Submit</span>
+                            </button>
+                        </div>
+                    </div>
+                    <br />
+                    <div><a target="_blank" href="https://aka.ms/msft-privacy-statement">Microsoft Privacy Statement</a></div>
+                }
+            </div>
         </div>
     </div>
 </div>

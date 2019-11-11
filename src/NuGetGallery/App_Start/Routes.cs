@@ -320,6 +320,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
+                RouteName.SendFeedback,
+                "account/sendfeedback",
+                new { controller = "Authentication", action = "SendFeedback" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.LegacyRegister,
                 "account/register",
                 new { controller = "Authentication", action = "RegisterLegacy" },

@@ -118,9 +118,11 @@ namespace NuGetGallery
                 .ShouldUserTransformIntoOrganization(user);
             var externalIdentityList = ClaimsExtensions.GetExternalCredentialIdentityList(identity);
 
-            // Show enable 2fa modal dialog for accounts which do not have multi-factor authentication enabled
+            // Show enable 2fa modal dialog for logged in accounts which do not have multi-factor authentication enabled
             // and which have authenticated with personal MSA and also did not use multifactor authentication.
-            var showEnable2FAModal = !user.EnableMultiFactorAuthentication && User.WasMicrosoftAccountUsedForSignin() && !User.WasMultiFactorAuthenticated();
+            var showEnable2FAModal = user == null 
+                ? false 
+                : !user.EnableMultiFactorAuthentication && User.WasMicrosoftAccountUsedForSignin() && !User.WasMultiFactorAuthenticated();
 
             return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, showEnable2FAModal, externalIdentityList));
         }
