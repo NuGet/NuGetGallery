@@ -48,9 +48,9 @@ namespace NuGetGallery.Configuration.SecretReader
             {
                 var clientId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(ClientIdConfigurationKey));
                 var certificateThumbprint = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(CertificateThumbprintConfigurationKey));
-                var storeName = GetOptionalKeyVaultKeyVaultEnumSettingValue(CertificateStoreName, StoreName.My);
-                var storeLocation = GetOptionalKeyVaultKeyVaultEnumSettingValue(CertificateStoreLocation, StoreLocation.LocalMachine);
-                var certificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, true);
+                var storeName = GetOptionalKeyVaultEnumSettingValue(CertificateStoreName, StoreName.My);
+                var storeLocation = GetOptionalKeyVaultEnumSettingValue(CertificateStoreLocation, StoreLocation.LocalMachine);
+                var certificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, validationRequired: true);
 
                 var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificate);
 
@@ -64,7 +64,7 @@ namespace NuGetGallery.Configuration.SecretReader
             return new CachingSecretReader(secretReader);
         }
 
-        private TEnum GetOptionalKeyVaultKeyVaultEnumSettingValue<TEnum>(string settingName, TEnum defaultValue)
+        private TEnum GetOptionalKeyVaultEnumSettingValue<TEnum>(string settingName, TEnum defaultValue)
             where TEnum: struct
         {
             var storeNameStr = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(settingName));
