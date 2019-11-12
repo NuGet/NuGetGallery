@@ -14,6 +14,8 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string VaultNameConfigurationKey = "VaultName";
         internal const string ClientIdConfigurationKey = "ClientId";
         internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
+        internal const string CertificateStoreLocation = "StoreLocation";
+        internal const string CertificateStoreName = "StoreName";
         private IGalleryConfigurationService _configurationService;
 
         public SecretReaderFactory(IGalleryConfigurationService configurationService)
@@ -46,7 +48,9 @@ namespace NuGetGallery.Configuration.SecretReader
             {
                 var clientId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(ClientIdConfigurationKey));
                 var certificateThumbprint = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(CertificateThumbprintConfigurationKey));
-                var certificate = CertificateUtility.FindCertificateByThumbprint(StoreName.My, StoreLocation.LocalMachine, certificateThumbprint, true);
+                var storeName = GetOptionalKeyVaultKeyVaultEnumSettingValue(CertificateStoreName, StoreName.My);
+                var storeLocation = GetOptionalKeyVaultKeyVaultEnumSettingValue(CertificateStoreLocation, StoreLocation.LocalMachine);
+                var certificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, true);
 
                 var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificate);
 
@@ -58,6 +62,18 @@ namespace NuGetGallery.Configuration.SecretReader
             }
 
             return new CachingSecretReader(secretReader);
+        }
+
+        private TEnum GetOptionalKeyVaultKeyVaultEnumSettingValue<TEnum>(string settingName, TEnum defaultValue)
+            where TEnum: struct
+        {
+            var storeNameStr = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(settingName));
+            if (!Enum.TryParse<TEnum>(storeNameStr, out var storeName))
+            {
+                return defaultValue;
+            }
+
+            return storeName;
         }
     }
 }
