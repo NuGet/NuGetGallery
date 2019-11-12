@@ -16,6 +16,7 @@ namespace NuGetGallery
             Username = user.Username;
             EmailAddress = user.EmailAddress;
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
+            HasEnabledMultiFactorAuthentication = user.EnableMultiFactorAuthentication;
             AllPackages = allPackages;
             TotalPackages = allPackages.Count;
             PackagePage = pageIndex;
@@ -41,6 +42,7 @@ namespace NuGetGallery
         public string Username { get; private set; }
         public string EmailAddress { get; private set; }
         public string UnconfirmedEmailAddress { get; set; }
+        public bool HasEnabledMultiFactorAuthentication { get; set; }
         public ICollection<ListPackageItemViewModel> AllPackages { get; private set; }
         public ICollection<ListPackageItemViewModel> PagedPackages { get; private set; }
         public long TotalPackageDownloadCount { get; private set; }
