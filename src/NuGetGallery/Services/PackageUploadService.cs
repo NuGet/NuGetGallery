@@ -13,13 +13,11 @@ using System.Xml.Linq;
 using NuGet.Packaging;
 using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
-using NuGet.Services.Validation;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
-using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -72,6 +70,7 @@ namespace NuGetGallery
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly IDiagnosticsSource _trace;
         private readonly IFeatureFlagService _featureFlagService;
+        private readonly IPackageVulnerabilityService _vulnerabilityService;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -84,7 +83,8 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             ICoreLicenseFileService coreLicenseFileService,
             IDiagnosticsService diagnosticsService,
-            IFeatureFlagService featureFlagService)
+            IFeatureFlagService featureFlagService,
+            IPackageVulnerabilityService vulnerabilityService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -101,6 +101,7 @@ namespace NuGetGallery
             }
             _trace = diagnosticsService.GetSource(nameof(PackageUploadService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _vulnerabilityService = vulnerabilityService ?? throw new ArgumentNullException(nameof(vulnerabilityService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(
@@ -793,6 +794,8 @@ namespace NuGetGallery
                         package.PackageRegistration);
                 }
             }
+
+            _vulnerabilityService.ApplyExistingVulnerabilitiesToPackage(package);
 
             return package;
         }

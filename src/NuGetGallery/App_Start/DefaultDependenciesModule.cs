@@ -423,6 +423,10 @@ namespace NuGetGallery
                 .As<IIconUrlTemplateProcessor>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageVulnerabilityService>()
+                .As<IPackageVulnerabilityService>()
+                .InstancePerLifetimeScope();
+
             services.AddHttpClient();
             services.AddScoped<IGravatarProxyService, GravatarProxyService>();
 
