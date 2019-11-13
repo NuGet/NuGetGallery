@@ -272,6 +272,7 @@
     <Compile Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs" />
     <Compile Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.designer.cs">
       <DependentUpon>201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs" />
     <Compile Include="Migrations\201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.Designer.cs">
       <DependentUpon>201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
