@@ -19,7 +19,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
     {
         private readonly IAuthenticationService _authenticationService;
         private readonly ITelemetryService _telemetryService;
-        internal const int MaxAllowedVerifyQueryLength = 3000;
 
         public ApiKeysController(IAuthenticationService authenticationService, ITelemetryService telemetryService)
         {
