@@ -1641,6 +1641,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.resx">
       <DependentUpon>201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.resx">
       <DependentUpon>201911080105220_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
     </EmbeddedResource>
