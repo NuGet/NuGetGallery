@@ -1543,7 +1543,7 @@ namespace NgTests
                 Uri packageDetailsUri = GetPackageDetailsUri(packageOperation.CommitTimeStampDateTime, packageOperation);
 
                 Assert.True(_catalogStorage.Content.TryGetValue(packageDetailsUri, out var storage));
-                Assert.IsType<StringStorageContent>(storage);
+                Assert.IsAssignableFrom<StringStorageContent>(storage);
 
                 var packageDetails = JObject.Parse(((StringStorageContent)storage).Content);
                 Assert.NotNull(packageDetails);
