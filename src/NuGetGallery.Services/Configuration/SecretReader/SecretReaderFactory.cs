@@ -67,13 +67,13 @@ namespace NuGetGallery.Configuration.SecretReader
         private TEnum GetOptionalKeyVaultEnumSettingValue<TEnum>(string settingName, TEnum defaultValue)
             where TEnum: struct
         {
-            var storeNameStr = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(settingName));
-            if (!Enum.TryParse<TEnum>(storeNameStr, out var storeName))
+            var settingValueStr = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(settingName));
+            if (!Enum.TryParse<TEnum>(settingValueStr, out var settingValue))
             {
                 return defaultValue;
             }
 
-            return storeName;
+            return settingValue;
         }
     }
 }
