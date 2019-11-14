@@ -8,8 +8,8 @@
     <h2>Verify API Keys</h2>
     <p class="text-muted">
         Please follow the format as below: <br />
-        {"ApiKey":"oy2apikey1","LeakedUrl":"https://leakedUrl1","RevokedBy":"GitHub"} <br />
-        {"ApiKey":"oy2apikey2","LeakedUrl":"https://leakedUrl2","RevokedBy":"GitHub"}
+        {"ApiKey":"oy2apikey1","LeakedUrl":"https://leakedUrl1","RevocationSource":"GitHub"} <br />
+        {"ApiKey":"oy2apikey2","LeakedUrl":"https://leakedUrl2","RevocationSource":"GitHub"}
     </p>
     <form>
         <textarea class="form-control" placeholder="Verify API keys to revoke" autocomplete="off" autofocus rows="5" data-bind="value: verifyQuery"></textarea><br />
@@ -65,10 +65,10 @@
                             <code>Description:</code> <span data-bind="text: ApiKeyViewModel.Description"></span><br />
                         </span>
                         <!-- ko if: LeakedUrl -->
-                        <code>Leaked Url:</code> <a data-bind="text: LeakedUrl, attr: {href: LeakedUrl}"></a><br />
+                        <code>Leaked Url:</code> <span><a data-bind="text: LeakedUrl, attr: {href: LeakedUrl}"></a></span><br />
                         <!-- /ko -->
-                        <!-- ko if: !IsRevocable && RevokedBy  -->
-                        <code>Revoked By:</code> <span data-bind="text: RevokedBy"></span><br />
+                        <!-- ko if: !IsRevocable && RevocationSource  -->
+                        <code>Revocation Source:</code> <span data-bind="text: RevocationSource"></span><br />
                         <!-- /ko -->
                         <!-- /ko -->
                         <!-- ko ifnot: ApiKeyViewModel -->

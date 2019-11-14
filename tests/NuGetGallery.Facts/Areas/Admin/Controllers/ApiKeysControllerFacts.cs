@@ -4,7 +4,6 @@
 using System;
 using System.Net;
 using System.Web;
-using System.Linq;
 using System.Web.Mvc;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -37,8 +36,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public void GivenNotExistedApiKey_ItReturnsResultWithNullApiKeyViewModel()
             {
                 // Arrange
-                var revokedBy = Enum.GetName(typeof(CredentialRevokedByType), CredentialRevokedByType.GitHub);
-                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevokedBy\":\"" + revokedBy + "\"}";
+                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevocationSource\":\"AnyRevocationSource\"}";
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(() => null);
 
@@ -56,41 +54,35 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal(1, apiKeyRevokeViewModels.Count);
                 var apiKeyRevokeViewModel = Assert.IsType<ApiKeyRevokeViewModel>(apiKeyRevokeViewModels[0]);
                 Assert.Null(apiKeyRevokeViewModel.ApiKeyViewModel);
-                Assert.Null(apiKeyRevokeViewModel.RevokedBy);
+                Assert.Null(apiKeyRevokeViewModel.RevocationSource);
                 Assert.Null(apiKeyRevokeViewModel.LeakedUrl);
                 Assert.Equal("apiKey1", apiKeyRevokeViewModel.ApiKey);
                 Assert.False(apiKeyRevokeViewModel.IsRevocable);
 
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
                 _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Never);
+                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Never);
             }
 
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1, true, null)]
-            [InlineData(CredentialTypes.ApiKey.V2, true, null)]
-            [InlineData(CredentialTypes.ApiKey.V3, true, null)]
-            [InlineData(CredentialTypes.ApiKey.V4, true, null)]
-            [InlineData(CredentialTypes.ApiKey.V1, false, "TestRevokedByType")]
-            [InlineData(CredentialTypes.ApiKey.V2, false, "TestRevokedByType")]
-            [InlineData(CredentialTypes.ApiKey.V3, false, "TestRevokedByType")]
-            [InlineData(CredentialTypes.ApiKey.V4, false, "TestRevokedByType")]
-            [InlineData(CredentialTypes.ApiKey.V1, true, "TestRevokedByType")]
-            [InlineData(CredentialTypes.ApiKey.V2, true, "TestRevokedByType")]
-            [InlineData(CredentialTypes.ApiKey.V3, true, "TestRevokedByType")]
-            [InlineData(CredentialTypes.ApiKey.V4, true, "TestRevokedByType")]
-            [InlineData(CredentialTypes.External.MicrosoftAccount, false, null)]
-            [InlineData(CredentialTypes.External.AzureActiveDirectoryAccount, false, null)]
-            [InlineData(CredentialTypes.Password.Sha1, false, null)]
-            [InlineData(CredentialTypes.Password.Pbkdf2, false, null)]
-            [InlineData(CredentialTypes.Password.V3, false, null)]
-            public void GivenNotRevocableApiKey_ItReturnsResultWithApiKeyViewModel(string apiKeyType, bool hasExpired, string revokedBy)
+            [InlineData(CredentialTypes.ApiKey.V1, null)]
+            [InlineData(CredentialTypes.ApiKey.V2, null)]
+            [InlineData(CredentialTypes.ApiKey.V3, null)]
+            [InlineData(CredentialTypes.ApiKey.V4, null)]
+            [InlineData(CredentialTypes.ApiKey.V1, "TestRevocationSource")]
+            [InlineData(CredentialTypes.ApiKey.V2, "TestRevocationSource")]
+            [InlineData(CredentialTypes.ApiKey.V3, "TestRevocationSource")]
+            [InlineData(CredentialTypes.ApiKey.V4, "TestRevocationSource")]
+            public void GivenNotRevocableApiKey_ItReturnsResultWithApiKeyViewModel(string apiKeyType, string revocationSource)
             {
                 // Arrange
-                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevokedBy\":\"AnyRevokedByType\"}";
+                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevocationSource\":\"AnyRevocationSource\"}";
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(() => new Credential());
                 _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
-                    .Returns(() => GetCredentialViewModel(apiKeyType, hasExpired, revokedBy));
+                    .Returns(GetApiKeyCredentialViewModel(apiKeyType, revocationSource));
+                _authenticationService.Setup(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()))
+                    .Returns(false);
 
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
@@ -107,34 +99,36 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var apiKeyRevokeViewModel = Assert.IsType<ApiKeyRevokeViewModel>(apiKeyRevokeViewModels[0]);
 
                 Assert.Equal(apiKeyType, apiKeyRevokeViewModel.ApiKeyViewModel.Type);
-                Assert.Equal(hasExpired, apiKeyRevokeViewModel.ApiKeyViewModel.HasExpired);
                 Assert.Equal("apiKey1", apiKeyRevokeViewModel.ApiKey);
-                Assert.Equal(revokedBy, apiKeyRevokeViewModel.RevokedBy);
+                Assert.Equal(revocationSource, apiKeyRevokeViewModel.RevocationSource);
                 Assert.Null(apiKeyRevokeViewModel.LeakedUrl);
                 Assert.False(apiKeyRevokeViewModel.IsRevocable);
 
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
                 _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Once);
+                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Once);
             }
 
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevokedByType.GitHub, "https://leakedUrl1")]
-            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevokedByType.GitHub, "https://leakedUrl1")]
-            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevokedByType.GitHub, "https://leakedUrl1")]
-            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevokedByType.GitHub, "https://leakedUrl1")]
-            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevokedByType.GitHub, "https://leakedUrl2")]
-            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevokedByType.GitHub, "https://leakedUrl2")]
-            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevokedByType.GitHub, "https://leakedUrl2")]
-            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevokedByType.GitHub, "https://leakedUrl2")]
-            public void GivenRevocableApiKey_ItReturnsResultWithApiKeyViewModel(string apiKeyType, CredentialRevokedByType revokedByType, string leakedUrl)
+            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevocationSource.GitHub, "https://leakedUrl1")]
+            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevocationSource.GitHub, "https://leakedUrl1")]
+            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevocationSource.GitHub, "https://leakedUrl1")]
+            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevocationSource.GitHub, "https://leakedUrl1")]
+            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevocationSource.GitHub, "https://leakedUrl2")]
+            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevocationSource.GitHub, "https://leakedUrl2")]
+            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevocationSource.GitHub, "https://leakedUrl2")]
+            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevocationSource.GitHub, "https://leakedUrl2")]
+            public void GivenRevocableApiKey_ItReturnsResultWithApiKeyViewModel(string apiKeyType, CredentialRevocationSource revocationSourceKey, string leakedUrl)
             {
                 // Arrange
-                var revokedBy = Enum.GetName(typeof(CredentialRevokedByType), revokedByType);
-                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"" + leakedUrl + "\",\"RevokedBy\":\"" + revokedBy + "\"}";
+                var revocationSource = Enum.GetName(typeof(CredentialRevocationSource), revocationSourceKey);
+                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"" + leakedUrl + "\",\"RevocationSource\":\"" + revocationSource + "\"}";
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(() => new Credential());
                 _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
-                    .Returns(() => GetCredentialViewModel(apiKeyType, false, null));
+                    .Returns(GetApiKeyCredentialViewModel(apiKeyType, null));
+                _authenticationService.Setup(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()))
+                    .Returns(true);
 
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
@@ -151,14 +145,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var apiKeyRevokeViewModel = Assert.IsType<ApiKeyRevokeViewModel>(apiKeyRevokeViewModels[0]);
 
                 Assert.Equal(apiKeyType, apiKeyRevokeViewModel.ApiKeyViewModel.Type);
-                Assert.False(apiKeyRevokeViewModel.ApiKeyViewModel.HasExpired);
                 Assert.Equal("apiKey1", apiKeyRevokeViewModel.ApiKey);
-                Assert.Equal(revokedBy, apiKeyRevokeViewModel.RevokedBy);
+                Assert.Equal(revocationSource, apiKeyRevokeViewModel.RevocationSource);
                 Assert.Equal(leakedUrl, apiKeyRevokeViewModel.LeakedUrl);
                 Assert.True(apiKeyRevokeViewModel.IsRevocable);
 
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
                 _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Once);
+                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Once);
             }
 
             [Theory]
@@ -169,7 +163,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(() => new Credential());
                 _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
-                    .Returns(() => GetCredentialViewModel(CredentialTypes.ApiKey.V4, false, null));
+                    .Returns(GetApiKeyCredentialViewModel(CredentialTypes.ApiKey.V4, null));
+                _authenticationService.Setup(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()))
+                    .Returns(true);
 
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
@@ -187,44 +183,35 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 {
                     Assert.Equal(expectedApiKeys[i], apiKeyRevokeViewModels[i].ApiKey);
                     Assert.Equal(expectedLeakedUrls[i], apiKeyRevokeViewModels[i].LeakedUrl);
-                    Assert.Equal(true, apiKeyRevokeViewModels[i].IsRevocable);
+                    Assert.Equal("GitHub", apiKeyRevokeViewModels[i].RevocationSource);
+                    Assert.True(apiKeyRevokeViewModels[i].IsRevocable);
                 }
 
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Exactly(expectedApiKeys.Count));
                 _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Exactly(expectedApiKeys.Count));
+                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Exactly(expectedApiKeys.Count));
             }
 
             public static IEnumerable<object[]> VerifyQueriesAndExpectedResults
             {
                 get
                 {
-                    yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl2\"} \n" +
-                                            "{\"ApiKey\":\"apiKey3\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl3\"} \n",
+                    yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"RevocationSource\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"apiKey2\",\"RevocationSource\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl2\"} \n" +
+                                            "{\"ApiKey\":\"apiKey3\",\"RevocationSource\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl3\"} \n",
                                             new List<string>{"apiKey1", "apiKey2", "apiKey3" },
                                             new List<string>{ "https://leakedUrl1", "https://leakedUrl2", "https://leakedUrl3"} };
-                    yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl2\"} \n",
+                    yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"RevocationSource\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"apiKey1\",\"RevocationSource\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"apiKey2\",\"RevocationSource\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl2\"} \n",
                                             new List<string>{"apiKey1", "apiKey2" },
                                             new List<string>{ "https://leakedUrl1", "https://leakedUrl2" } };
-                    yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"APIKEY1\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                                            "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl2\"} \n",
+                    yield return new object[] { "{\"ApiKey\":\"apiKey1\",\"RevocationSource\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"APIKEY1\",\"RevocationSource\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                                            "{\"ApiKey\":\"apiKey2\",\"RevocationSource\":\"GitHub\",\"LeakedUrl\":\"https://leakedUrl2\"} \n",
                                             new List<string>{"apiKey1", "apiKey2" },
                                             new List<string>{ "https://leakedUrl1", "https://leakedUrl2" } };
                 }
-            }
-
-            private CredentialViewModel GetCredentialViewModel(string apiKeyType, bool hasExpired, string revokedBy)
-            {
-                var credentialViewModel = new CredentialViewModel();
-                credentialViewModel.Type = apiKeyType;
-                credentialViewModel.HasExpired = hasExpired;
-                credentialViewModel.RevokedBy = revokedBy;
-                credentialViewModel.Scopes = new List<ScopeViewModel>();
-
-                return credentialViewModel;
             }
 
             [Theory]
@@ -258,25 +245,25 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         "{\"ApiKey\":\"apiKey1\"}")]
             [InlineData("{\"LeakedUrl\":\"https://leakedUrl1\"}",
                         "{\"LeakedUrl\":\"https://leakedUrl1\"}")]
-            [InlineData("{\"RevokedBy\":\"AnyRevokedByType\"}",
-                        "{\"RevokedBy\":\"AnyRevokedByType\"}")]
-            [InlineData("{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"AnyRevokedByType\"}",
-                        "{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"AnyRevokedByType\"}")]
+            [InlineData("{\"RevocationSource\":\"AnyRevocationSource\"}",
+                        "{\"RevocationSource\":\"AnyRevocationSource\"}")]
+            [InlineData("{\"ApiKey\":\"apiKey1\",\"RevocationSource\":\"AnyRevocationSource\"}",
+                        "{\"ApiKey\":\"apiKey1\",\"RevocationSource\":\"AnyRevocationSource\"}")]
             [InlineData("{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\"}",
                         "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\"}")]
-            [InlineData("{\"RevokedBy\":\"AnyRevokedByType\",\"LeakedUrl\":\"https://leakedUrl1\"}",
-                        "{\"RevokedBy\":\"AnyRevokedByType\",\"LeakedUrl\":\"https://leakedUrl1\"}")]
-            [InlineData("{\"Api\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevokedBy\":\"AnyRevokedByType\"}",
-                        "{\"Api\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevokedBy\":\"AnyRevokedByType\"}")]
-            [InlineData("{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevokedBy\":\"AnyRevokedByType\"",
-                        "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevokedBy\":\"AnyRevokedByType\"")]
-            [InlineData("{\"ApiKey\":\"apiKey1\",\"RevokedBy\":\"AnyRevokedByType\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
-                        "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"AnyRevokedByType\"",
-                        "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"AnyRevokedByType\"")]
-            [InlineData("{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevokedBy\":\"AnyRevokedByType\"} \n" +
-                        "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"AnyRevokedByType\" \n" +
-                        "{\"ApiKey\":\"apiKey3\",\"RevokedBy\":\"AnyRevokedByType\"",
-                        "{\"ApiKey\":\"apiKey2\",\"RevokedBy\":\"AnyRevokedByType\"")]
+            [InlineData("{\"RevocationSource\":\"AnyRevocationSource\",\"LeakedUrl\":\"https://leakedUrl1\"}",
+                        "{\"RevocationSource\":\"AnyRevocationSource\",\"LeakedUrl\":\"https://leakedUrl1\"}")]
+            [InlineData("{\"Api\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevocationSource\":\"AnyRevocationSource\"}",
+                        "{\"Api\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevocationSource\":\"AnyRevocationSource\"}")]
+            [InlineData("{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevocationSource\":\"AnyRevocationSource\"",
+                        "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevocationSource\":\"AnyRevocationSource\"")]
+            [InlineData("{\"ApiKey\":\"apiKey1\",\"RevocationSource\":\"AnyRevocationSource\",\"LeakedUrl\":\"https://leakedUrl1\"} \n" +
+                        "{\"ApiKey\":\"apiKey2\",\"RevocationSource\":\"AnyRevocationSource\"",
+                        "{\"ApiKey\":\"apiKey2\",\"RevocationSource\":\"AnyRevocationSource\"")]
+            [InlineData("{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevocationSource\":\"AnyRevocationSource\"} \n" +
+                        "{\"ApiKey\":\"apiKey2\",\"RevocationSource\":\"AnyRevocationSource\" \n" +
+                        "{\"ApiKey\":\"apiKey3\",\"RevocationSource\":\"AnyRevocationSource\"",
+                        "{\"ApiKey\":\"apiKey2\",\"RevocationSource\":\"AnyRevocationSource\"")]
             public void GivenInvalidVerifyQuery_ItReturnsWarning(string verifyQuery, string expectedMessageQuery)
             {
                 // Arrange
@@ -293,15 +280,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
-            public void GivenVerifyQueryWithNotSupportedRevokedByType_ItReturnsWarning()
+            public void GivenVerifyQueryWithNotSupportedRevocationSource_ItReturnsWarning()
             {
                 // Arrange
-                var revokedBy = "AnyOtherRevokedByType";
-                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevokedBy\":\"" + revokedBy + "\"}";
+                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevocationSource\":\"AnyOtherRevocationSource\"}";
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(() => new Credential());
                 _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
-                    .Returns(() => GetCredentialViewModel(CredentialTypes.ApiKey.V4, false, null));
+                    .Returns(GetApiKeyCredentialViewModel(CredentialTypes.ApiKey.V4, null));
+                _authenticationService.Setup(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()))
+                    .Returns(true);
 
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
@@ -312,15 +300,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 var jsonResult = Assert.IsType<JsonResult>(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, apiKeysController.Response.StatusCode);
-                Assert.Equal($"Invalid input! {verifyQuery} is not using the supported revokedBy types: " +
-                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevokedByType)))}.", jsonResult.Data);
+                Assert.Equal($"Invalid input! {verifyQuery} is not using the supported Revocation Source: " +
+                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevocationSource)))}.", jsonResult.Data);
+
+                _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
+                _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Once);
+                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Once);
             }
 
             [Fact]
             public void GivenVerifyQuery_ItThrowsExceptionFromDependencies()
             {
                 // Arrange
-                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevokedBy\":\"AnyRevokedByType\"}";
+                var verifyQuery = "{\"ApiKey\":\"apiKey1\",\"LeakedUrl\":\"https://leakedUrl1\",\"RevocationSource\":\"AnyRevocationSource\"}";
                 var exceptionMessage = "Some exceptions!";
 
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
@@ -332,6 +324,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Act and Assert
                 var exception = Assert.Throws<Exception>(() => apiKeysController.Verify(verifyQuery));
                 Assert.Equal(exceptionMessage, exception.Message);
+            }
+
+            private CredentialViewModel GetApiKeyCredentialViewModel(string apiKeyType, string revocationSource)
+            {
+                var credentialViewModel = new CredentialViewModel();
+                credentialViewModel.Type = apiKeyType;
+                credentialViewModel.RevocationSource = revocationSource;
+                credentialViewModel.Scopes = new List<ScopeViewModel>();
+
+                return credentialViewModel;
             }
         }
 
@@ -349,82 +351,165 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
-            public void GivenValidRequest_ItRevokesAPIKeys()
+            public async Task GivenValidRequest_ItRevokesApiKey()
             {
                 // Arrange
-                _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>())).Returns(new Credential()).Verifiable();
-                _authenticationService.Setup(x => x.RevokeCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevokedByType>()))
-                    .Returns(Task.FromResult(0)).Verifiable();
+                _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
+                    .Returns(new Credential());
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(0));
 
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
-                apiKeysController.Revoke(GetRevokeApiKeysRequest());
+                await apiKeysController.Revoke(GetRevokeApiKeyRequest());
 
                 // Assert
-                _authenticationService.VerifyAll();
                 Assert.Equal("Successfully revoke the selected API keys.", apiKeysController.TempData["Message"]);
+                _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
             }
 
             [Fact]
-            public void GivenNullRequest_ItReturnsErrorMessage()
+            public async Task GivenNullRequest_ItReturnsErrorMessage()
             {
                 // Arrange
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
-                apiKeysController.Revoke(null);
+                await apiKeysController.Revoke(null);
 
                 // Assert
                 Assert.Equal("The API keys revoking request can not be null.", apiKeysController.TempData["ErrorMessage"]);
             }
 
             [Fact]
-            public void ThrowExceptionsFromGetApiKeyCredential_ItReturnsErrorMessage()
+            public async Task GivenRequestWithNullSelectedApiKeys_ItReturnsErrorMessage()
             {
                 // Arrange
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
-                var exception = new Exception("Some exceptions!");
-                _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>())).Throws(exception);
-                _telemetryService.Setup(x => x.TraceException(exception));
-
                 // Act
-                apiKeysController.Revoke(GetRevokeApiKeysRequest());
-                Assert.Equal($"Failed to revoke the API key(s): apiKey1, apiKey2." +
-                    $"Please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
-                _telemetryService.Verify(x => x.TraceException(exception), Times.Exactly(2));
+                await apiKeysController.Revoke(new RevokeApiKeysRequest());
+
+                // Assert
+                Assert.Equal("The API keys revoking request contains null selected API keys.", apiKeysController.TempData["ErrorMessage"]);
             }
 
             [Fact]
-            public void ThrowExceptionsFromRevokeCredential_ItReturnsErrorMessage()
+            public async Task ThrowExceptionsFromGetApiKeyCredential_ItReturnsErrorMessage()
             {
                 // Arrange
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 var exception = new Exception("Some exceptions!");
-                _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>())).Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevokedByType>())).Throws(exception);
-                _telemetryService.Setup(x => x.TraceException(exception));
+                _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
+                    .Throws(exception);
+                _telemetryService.Setup(x => x.TrackException(exception, It.IsAny<Action<Dictionary<string, string>>>()));
 
                 // Act
-                apiKeysController.Revoke(GetRevokeApiKeysRequest());
-                Assert.Equal($"Failed to revoke the API key(s): apiKey1, apiKey2." +
+                await apiKeysController.Revoke(GetRevokeApiKeyRequest());
+
+                // Assert
+                Assert.Equal($"Failed to revoke the API key(s): apiKey1." +
                     $"Please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
-                _telemetryService.Verify(x => x.TraceException(exception), Times.Exactly(2));
+                _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Never);
+                _telemetryService.Verify(x => x.TrackException(exception, It.IsAny<Action<Dictionary<string, string>>>()), Times.Once);
             }
 
-            private RevokeApiKeysRequest GetRevokeApiKeysRequest()
+            [Fact]
+            public async Task ThrowExceptionsFromRevokeApiKeyCredential_ItReturnsErrorMessage()
+            {
+                // Arrange
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+                TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+
+                var exception = new Exception("Some exceptions!");
+                _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
+                    .Returns(new Credential());
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                    .ThrowsAsync(exception);
+                _telemetryService.Setup(x => x.TrackException(exception, It.IsAny<Action<Dictionary<string, string>>>()));
+
+                // Act
+                await apiKeysController.Revoke(GetRevokeApiKeyRequest());
+
+                // Assert
+                Assert.Equal($"Failed to revoke the API key(s): apiKey1." +
+                    $"Please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
+                _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
+                _telemetryService.Verify(x => x.TrackException(exception, It.IsAny<Action<Dictionary<string, string>>>()), Times.Once);
+            }
+
+            private RevokeApiKeysRequest GetRevokeApiKeyRequest()
+            {
+                var revokeApiKeysRequest = new RevokeApiKeysRequest();
+                var apiKeyRevokeViewModel = new ApiKeyRevokeViewModel(null, "apiKey1", "https://leakedUrl1",
+                    Enum.GetName(typeof(CredentialRevocationSource), CredentialRevocationSource.GitHub), true);
+                revokeApiKeysRequest.SelectedApiKeys = new List<string> { JsonConvert.SerializeObject(apiKeyRevokeViewModel) };
+
+                return revokeApiKeysRequest;
+            }
+
+            [Fact]
+            public async Task GivenValidRequestWithMultipleApiKeys_ItRevokesMultipleApiKeys()
+            {
+                // Arrange
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+                TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+
+                _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
+                    .Returns(new Credential());
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(0));
+
+                // Act
+                await apiKeysController.Revoke(GetRevokeMultipleApiKeysRequest());
+
+                // Assert
+                Assert.Equal("Successfully revoke the selected API keys.", apiKeysController.TempData["Message"]);
+                _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Exactly(2));
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Exactly(2));
+            }
+
+            [Fact]
+            public async Task GivenValidRequestWithMultipleApiKeys_ThrowExceptionsFromRevokeCredential_ItReturnsErrorMessageWithMultipleApiKeys()
+            {
+                // Arrange
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
+                TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+
+                var exception = new Exception("Some exceptions!");
+                _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
+                    .Returns(new Credential());
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                    .ThrowsAsync(exception);
+                _telemetryService.Setup(x => x.TrackException(exception, It.IsAny<Action<Dictionary<string, string>>>()));
+
+                // Act
+                await apiKeysController.Revoke(GetRevokeMultipleApiKeysRequest());
+
+                // Assert
+                Assert.Equal($"Failed to revoke the API key(s): apiKey1, apiKey2." +
+                    $"Please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
+                _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Exactly(2));
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Exactly(2));
+                _telemetryService.Verify(x => x.TrackException(exception, It.IsAny<Action<Dictionary<string, string>>>()), Times.Once);
+            }
+
+            private RevokeApiKeysRequest GetRevokeMultipleApiKeysRequest()
             {
                 var revokeApiKeysRequest = new RevokeApiKeysRequest();
                 var apiKeyRevokeViewModel1 = new ApiKeyRevokeViewModel(null, "apiKey1", "https://leakedUrl1",
-                    Enum.GetName(typeof(CredentialRevokedByType), CredentialRevokedByType.GitHub), true);
+                    Enum.GetName(typeof(CredentialRevocationSource), CredentialRevocationSource.GitHub), true);
                 var apiKeyRevokeViewModel2 = new ApiKeyRevokeViewModel(null, "apiKey2", "https://leakedUrl2",
-                    Enum.GetName(typeof(CredentialRevokedByType), CredentialRevokedByType.GitHub), true);
+                    Enum.GetName(typeof(CredentialRevocationSource), CredentialRevocationSource.GitHub), true);
                 revokeApiKeysRequest.SelectedApiKeys = new List<string> {
                     JsonConvert.SerializeObject(apiKeyRevokeViewModel1),
                     JsonConvert.SerializeObject(apiKeyRevokeViewModel2) };

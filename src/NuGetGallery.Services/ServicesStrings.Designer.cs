@@ -1769,6 +1769,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The API key credential with Key &apos;{0}&apos; is not revocable..
+        /// </summary>
+        public static string RevokeCredential_UnrevocableApiKeyCredential {
+            get {
+                return ResourceManager.GetString("RevokeCredential_UnrevocableApiKeyCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to All.
         /// </summary>
         public static string ScopeDescription_All {

@@ -82,7 +82,7 @@ namespace NuGet.Services.Entities
 
         public DateTime? LastUsed { get; set; }
 
-        public CredentialRevokedByType? RevokedBy { get; set; }
+        public CredentialRevocationSource? RevocationSourceKey { get; set; }
 
         public virtual User User { get; set; }
 

@@ -4,12 +4,12 @@
 namespace NuGet.Services.Entities
 {
     /// <summary>
-    /// Specify the type about where the ApiKey is leaked
+    /// Specify the source about where the credential is leaked
     /// </summary>
-    public enum CredentialRevokedByType
+    public enum CredentialRevocationSource
     {
         /// <summary>
-        /// Indicate the ApiKey is revoked because of the leaking from GitHub.
+        /// Indicate the credential is leaked and revoked by GitHub.
         /// </summary>
         GitHub = 0,
     }

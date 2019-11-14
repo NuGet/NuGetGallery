@@ -30,9 +30,18 @@ namespace NuGetGallery.Authentication
         Credential GetApiKeyCredential(string apiKey);
 
         /// <summary>
-        /// Revoke the credential
+        /// Revoke the API key credential
         /// </summary>
-        /// <returns>Revoke and expire the credential.</returns>
-        Task RevokeCredential(Credential credential, CredentialRevokedByType credentialRevokedBy);
+        /// <param name="credential">Credential to remove</param>
+        /// <param name="revocationSourceKey">Source of the credential revocation</param>
+        /// <param name="commitChanges">Default true. Commits changes immediately if true.</param>
+        /// <returns>Returns a task that will revoke and expire the API key credential.</returns>
+        Task RevokeApiKeyCredential(Credential credential, CredentialRevocationSource revocationSourceKey, bool commitChanges = true);
+
+        /// <summary>
+        /// Check whether the API key credential is revocable or not
+        /// </summary>
+        /// <returns>Returns whether the API key credential is revocable or not</returns>
+        bool IsRevocableApiKeyCredential(CredentialViewModel credentialViewModel);
     }
 }

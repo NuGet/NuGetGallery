@@ -220,6 +220,9 @@ namespace NuGetGallery
         public const string TestBucket = "TestBucket";
         public const string TestPercentage = "TestPercentage";
 
+        // Revoke API keys properties
+        public const string ApiKey = "ApiKey";
+
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
             if (diagnosticsService == null)

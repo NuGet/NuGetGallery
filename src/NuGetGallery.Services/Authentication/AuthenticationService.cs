@@ -164,16 +164,57 @@ namespace NuGetGallery.Authentication
             return FindMatchingApiKey(credential);
         }
 
-        public async Task RevokeCredential(Credential credential, CredentialRevokedByType revokedBy)
+        public async Task RevokeApiKeyCredential(Credential apiKeyCredential, CredentialRevocationSource revocationSourceKey, bool commitChanges = true)
         {
-            if (credential == null)
+            if (apiKeyCredential == null)
             {
-                throw new ArgumentNullException(nameof(credential));
+                throw new ArgumentNullException(nameof(apiKeyCredential));
             }
 
+            var apiKeyCredentialViewModel = DescribeCredential(apiKeyCredential);
+            if (!IsRevocableApiKeyCredential(apiKeyCredentialViewModel))
+            {
+                // Revoking unrevocable API key credential is not allowed.
+                throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    ServicesStrings.RevokeCredential_UnrevocableApiKeyCredential,
+                    apiKeyCredentialViewModel.Key));
+            }
+
+            await RevokeCredential(apiKeyCredential, revocationSourceKey, commitChanges);
+        }
+
+        public bool IsRevocableApiKeyCredential(CredentialViewModel credentialViewModel)
+        {
+            if (credentialViewModel == null)
+            {
+                return false;
+            }
+            if (!CredentialTypes.IsApiKey(credentialViewModel.Type))
+            {
+                return false;
+            }
+            if (credentialViewModel.HasExpired)
+            {
+                return false;
+            }
+            if (credentialViewModel.RevocationSource != null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task RevokeCredential(Credential credential, CredentialRevocationSource revocationSourceKey, bool commitChanges)
+        {
             credential.Expires = _dateTimeProvider.UtcNow;
-            credential.RevokedBy = revokedBy;
-            await Entities.SaveChangesAsync();
+            credential.RevocationSourceKey = revocationSourceKey;
+
+            if (commitChanges)
+            {
+                await Entities.SaveChangesAsync();
+            }
         }
 
         public virtual async Task<AuthenticatedUser> Authenticate(Credential credential)
@@ -606,7 +647,7 @@ namespace NuGetGallery.Authentication
                         NuGetScopes.Describe(s.AllowedAction)))
                     .ToList(),
                 ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null,
-                RevokedBy = credential.RevokedBy != null ? Enum.GetName(typeof(CredentialRevokedByType), credential.RevokedBy) : null
+                RevocationSource = credential.RevocationSourceKey != null ? Enum.GetName(typeof(CredentialRevocationSource), credential.RevocationSourceKey) : null,
             };
 
             credentialViewModel.HasExpired = credential.HasExpired ||

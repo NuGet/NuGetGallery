@@ -341,7 +341,7 @@ namespace NuGetGallery.Authentication
             [InlineData("5db11250-7204-458c-a2b8-3fb577b84d2f")]
             public void GivenInvalidApiKey_ItReturnsNull(string apiKeyType)
             {
-                // Act
+                // Arrange and Act
                 var result = _authenticationService.GetApiKeyCredential(apiKeyType);
 
                 // Assert
@@ -349,39 +349,201 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheRevokeCredentialMethod : TestContainer
+        public class TheRevokeApiKeyCredentialMethod : TestContainer
         {
             private Fakes _fakes;
             private AuthenticationService _authenticationService;
 
-            public TheRevokeCredentialMethod()
+            public TheRevokeApiKeyCredentialMethod()
             {
                 _fakes = Get<Fakes>();
                 _authenticationService = Get<AuthenticationService>();
             }
 
             [Fact]
-            public async Task GivenValidCredential_RevokeCredential()
+            public async Task GivenNullApiKeyCredential_ThrowExceptions()
             {
+                // Arrange, Act and Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(async ()
-                    => await _authenticationService.RevokeCredential(null, It.IsAny<CredentialRevokedByType>()));
+                    => await _authenticationService.RevokeApiKeyCredential(null, It.IsAny<CredentialRevocationSource>()));
             }
 
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevokedByType.GitHub)]
-            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevokedByType.GitHub)]
-            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevokedByType.GitHub)]
-            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevokedByType.GitHub)]
-            [InlineData(CredentialTypes.ApiKey.VerifyV1, CredentialRevokedByType.GitHub)]
-            public async Task GivenValidCredential_RevokeCredential(string apiKeyType, CredentialRevokedByType revokedByType)
+            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevocationSource.GitHub, true)]
+            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevocationSource.GitHub, true)]
+            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevocationSource.GitHub, true)]
+            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevocationSource.GitHub, true)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, CredentialRevocationSource.GitHub, true)]
+            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevocationSource.GitHub, false)]
+            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevocationSource.GitHub, false)]
+            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevocationSource.GitHub, false)]
+            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevocationSource.GitHub, false)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, CredentialRevocationSource.GitHub, false)]
+            public async Task GivenRevocableApiKeyCredential_RevokeCredential(string apiKeyType,
+                CredentialRevocationSource revocationSourceKey,
+                bool commitChanges)
             {
+                // Arrange
                 var cred = _fakes.User.Credentials.Single(
                     c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
-                await _authenticationService.RevokeCredential(cred, revokedByType);
 
+                // Act
+                await _authenticationService.RevokeApiKeyCredential(cred, revocationSourceKey);
+
+                // Assert
                 Assert.True(cred.HasExpired);
-                Assert.Equal(revokedByType, cred.RevokedBy);
-                _authenticationService.Entities.VerifyCommitChanges();
+                Assert.Equal(revocationSourceKey, cred.RevocationSourceKey);
+
+                if (commitChanges)
+                {
+                    _authenticationService.Entities.VerifyCommitChanges();
+                }
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V3)]
+            [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1)]
+            public async Task GivenExpiredApiKeyCredential_ThrowExceptions(string apiKeyType)
+            {
+                // Arrange
+                var cred = _fakes.User.Credentials.Single(
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
+                cred.Key = 10;
+                cred.Expires = DateTime.UtcNow.AddDays(-1);
+
+                // Act and Assert
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                    async () => await _authenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.GitHub));
+                Assert.Equal($"The API key credential with Key '{cred.Key}' is not revocable.", exception.Message);
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V3)]
+            [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1)]
+            public async Task GivenRevokedApiKeyCredential_ThrowExceptions(string apiKeyType)
+            {
+                // Arrange
+                var cred = _fakes.User.Credentials.Single(
+                    c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
+                cred.Key = 10;
+                cred.RevocationSourceKey = CredentialRevocationSource.GitHub;
+
+                // Act and Assert
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                    async () => await _authenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.GitHub));
+                Assert.Equal($"The API key credential with Key '{cred.Key}' is not revocable.", exception.Message);
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.External.MicrosoftAccount)]
+            [InlineData(CredentialTypes.External.AzureActiveDirectoryAccount)]
+            [InlineData(CredentialTypes.Password.V3)]
+            [InlineData(CredentialTypes.Password.Sha1)]
+            [InlineData(CredentialTypes.Password.Pbkdf2)]
+            public async Task GivenNotApiKeyCredential_ThrowExceptions(string credentialType)
+            {
+                // Arrange
+                Credential cred;
+                if (credentialType == CredentialTypes.Password.Sha1)
+                {
+                    cred = _fakes.ShaUser.Credentials.Single(
+                    c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase));
+                }
+                else if (credentialType == CredentialTypes.Password.Pbkdf2)
+                {
+                    cred = _fakes.Pbkdf2User.Credentials.Single(
+                    c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    cred = _fakes.User.Credentials.Single(
+                    c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase));
+                }
+                cred.Key = 10;
+
+                // Act and Assert
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                    async () => await _authenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.GitHub));
+                Assert.Equal($"The API key credential with Key '{cred.Key}' is not revocable.", exception.Message);
+            }
+        }
+
+        public class TheIsRevocableApiKeyCredentialMethod : TestContainer
+        {
+            private CredentialViewModel _credentialViewModel;
+            private AuthenticationService _authenticationService;
+
+            public TheIsRevocableApiKeyCredentialMethod()
+            {
+                _credentialViewModel = new CredentialViewModel();
+                _credentialViewModel.Type = CredentialTypes.ApiKey.V4;
+                _credentialViewModel.HasExpired = false;
+                _credentialViewModel.RevocationSource = null;
+
+                _authenticationService = Get<AuthenticationService>();
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V3)]
+            [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1)]
+            public void GivenValidApiKeyCredentialViewModel_ReturnsTrue(string apiKeyType)
+            {
+                // Arrange
+                _credentialViewModel.Type = apiKeyType;
+
+                // Act and Assert
+                Assert.True(_authenticationService.IsRevocableApiKeyCredential(_credentialViewModel));
+            }
+
+            [Fact]
+            public void GivenNullApiKeyCredentialViewModel_ReturnsFalse()
+            {
+                // Arrange, Act and Assert
+                Assert.False(_authenticationService.IsRevocableApiKeyCredential(null));
+            }
+
+            [Theory]
+            [InlineData(CredentialTypes.External.MicrosoftAccount)]
+            [InlineData(CredentialTypes.External.AzureActiveDirectoryAccount)]
+            [InlineData(CredentialTypes.Password.V3)]
+            [InlineData(CredentialTypes.Password.Sha1)]
+            [InlineData(CredentialTypes.Password.Pbkdf2)]
+            public void GivenNotApiKeyCredentialViewModel_ReturnsFalse(string credentialType)
+            {
+                // Arrange
+                _credentialViewModel.Type = credentialType;
+
+                // Act and Assert
+                Assert.False(_authenticationService.IsRevocableApiKeyCredential(_credentialViewModel));
+            }
+
+            [Fact]
+            public void GivenExpiredApiKeyCredentialViewModel_ReturnsFalse()
+            {
+                // Arrange
+                _credentialViewModel.HasExpired = true;
+
+                // Act and Assert
+                Assert.False(_authenticationService.IsRevocableApiKeyCredential(_credentialViewModel));
+            }
+
+            [Fact]
+            public void GivenRevokedApiKeyCredentialViewModel_ReturnsFalse()
+            {
+                // Arrange
+                _credentialViewModel.RevocationSource = "GitHub";
+
+                // Act and Assert
+                Assert.False(_authenticationService.IsRevocableApiKeyCredential(_credentialViewModel));
             }
         }
 
@@ -1810,7 +1972,7 @@ namespace NuGetGallery.Authentication
                 Assert.Null(description.AuthUI);
                 Assert.Equal(Strings.NonScopedApiKeyDescription, description.Description);
                 Assert.Equal(expectedHasExpired, description.HasExpired);
-                Assert.Null(description.RevokedBy);
+                Assert.Null(description.RevocationSource);
             }
 
             [InlineData(false)]
@@ -1843,7 +2005,7 @@ namespace NuGetGallery.Authentication
                 Assert.Null(description.AuthUI);
                 Assert.Equal(cred.Description, description.Description);
                 Assert.Equal(hasExpired, description.HasExpired);
-                Assert.Null(description.RevokedBy);
+                Assert.Null(description.RevocationSource);
 
                 Assert.True(description.Scopes.Count == 2);
                 Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePushVersion), description.Scopes[0].AllowedAction);
@@ -1879,23 +2041,23 @@ namespace NuGetGallery.Authentication
             }
 
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevokedByType.GitHub)]
-            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevokedByType.GitHub)]
-            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevokedByType.GitHub)]
-            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevokedByType.GitHub)]
-            [InlineData(CredentialTypes.ApiKey.VerifyV1, CredentialRevokedByType.GitHub)]
-            public void GivenRevokedCredential_ItDescribesItCorrectly(string apiKeyType, CredentialRevokedByType revokedByType)
+            [InlineData(CredentialTypes.ApiKey.V1, CredentialRevocationSource.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.V2, CredentialRevocationSource.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.V3, CredentialRevocationSource.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.V4, CredentialRevocationSource.GitHub)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1, CredentialRevocationSource.GitHub)]
+            public void GivenRevokedCredential_ItDescribesItCorrectly(string apiKeyType, CredentialRevocationSource revocationSourceKey)
             {
                 // Arrange
                 var cred = new Credential(apiKeyType, "TestApiKeyValue");
-                cred.RevokedBy = revokedByType;
+                cred.RevocationSourceKey = revocationSourceKey;
                 var authService = Get<AuthenticationService>();
 
                 // Act
                 var description = authService.DescribeCredential(cred);
 
                 // Assert
-                Assert.Equal(Enum.GetName(typeof(CredentialRevokedByType), revokedByType), description.RevokedBy);
+                Assert.Equal(Enum.GetName(typeof(CredentialRevocationSource), revocationSourceKey), description.RevocationSource);
             }
 
             [Theory]
@@ -1914,7 +2076,7 @@ namespace NuGetGallery.Authentication
                 var description = authService.DescribeCredential(cred);
 
                 // Assert
-                Assert.Null(description.RevokedBy);
+                Assert.Null(description.RevocationSource);
             }
         }
 

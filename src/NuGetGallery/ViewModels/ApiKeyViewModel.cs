@@ -60,7 +60,7 @@ namespace NuGetGallery
             Expires = cred.Expires?.ToString("O");
             HasExpired = cred.HasExpired;
             IsNonScopedApiKey = cred.IsNonScopedApiKey;
-            RevokedBy = cred.RevokedBy;
+            RevocationSource = cred.RevocationSource;
             Owner = owner;
             Scopes = scopes;
             Packages = packages;
@@ -78,6 +78,6 @@ namespace NuGetGallery
         public string Type { get; set; }
         public int Key { get; set; }
         public string Description { get; set; }
-        public string RevokedBy { get; set; }
+        public string RevocationSource { get; set; }
     }
 }

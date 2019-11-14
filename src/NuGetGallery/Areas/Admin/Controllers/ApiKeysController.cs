@@ -57,28 +57,29 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         continue;
                     }
                     var leakedUrl = leakedApiKeyInfo.LeakedUrl;
-                    var revokedBy = leakedApiKeyInfo.RevokedBy;
+                    var revocationSource = leakedApiKeyInfo.RevocationSource;
 
                     var credential = _authenticationService.GetApiKeyCredential(apiKey);
-                    var apiKeyViewModel = credential == null ? null : new ApiKeyViewModel(_authenticationService.DescribeCredential(credential));
-                    if (apiKeyViewModel == null)
+                    if (credential == null)
                     {
-                        results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl: null, revokedBy: null, isRevocable: false));
-                        continue;
-                    }
-                    if (!IsRevocable(apiKeyViewModel))
-                    {
-                        results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl: null, revokedBy: apiKeyViewModel.RevokedBy, isRevocable: false));
+                        results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel: null, apiKey, leakedUrl: null, revocationSource: null, isRevocable: false));
                         continue;
                     }
 
-                    if (!Enum.TryParse(revokedBy, out CredentialRevokedByType revokedByType))
+                    var credentialViewModel = _authenticationService.DescribeCredential(credential);
+                    var apiKeyViewModel = new ApiKeyViewModel(credentialViewModel);
+                    if (!_authenticationService.IsRevocableApiKeyCredential(credentialViewModel))
                     {
-                        return Json(HttpStatusCode.BadRequest, $"Invalid input! {query} is not using the supported revokedBy types: " +
-                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevokedByType)))}.");
+                        results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl: null, revocationSource: apiKeyViewModel.RevocationSource, isRevocable: false));
+                        continue;
+                    }
+                    if (!Enum.TryParse(revocationSource, out CredentialRevocationSource revocationSourceKey))
+                    {
+                        return Json(HttpStatusCode.BadRequest, $"Invalid input! {query} is not using the supported Revocation Source: " +
+                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevocationSource)))}.");
                     }
 
-                    results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl, revokedBy, isRevocable: true));
+                    results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl, revocationSource, isRevocable: true));
                 }
                 catch (JsonException)
                 {
@@ -98,6 +99,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 TempData["ErrorMessage"] = "The API keys revoking request can not be null.";
                 return View(nameof(Index));
             }
+            if (revokeApiKeysRequest.SelectedApiKeys == null)
+            {
+                TempData["ErrorMessage"] = "The API keys revoking request contains null selected API keys.";
+                return View(nameof(Index));
+            }
 
             var failedApiKeys = new List<string>();
             foreach (var selectedApiKey in revokeApiKeysRequest.SelectedApiKeys)
@@ -106,13 +112,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 try
                 {
                     var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
-                    var credentialRevokedByType = (CredentialRevokedByType) Enum.Parse(typeof(CredentialRevokedByType), apiKeyInfo.RevokedBy);
-                    await _authenticationService.RevokeCredential(apiKeyCredential, credentialRevokedByType);
+                    var revocationSourceKey = (CredentialRevocationSource) Enum.Parse(typeof(CredentialRevocationSource), apiKeyInfo.RevocationSource);
+                    await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey);
                 }
                 catch(Exception e)
                 {
                     failedApiKeys.Add($"{apiKeyInfo.ApiKey}");
-                    _telemetryService.TraceException(e);
+                    _telemetryService.TrackException(e, properties =>
+                    {
+                        properties.Add(TelemetryService.ApiKey, apiKeyInfo.ApiKey);
+                    });
                 }
             }
 
@@ -129,28 +138,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return RedirectToAction("Index");
         }
 
-        private bool IsRevocable(ApiKeyViewModel apiKeyViewModel)
-        {
-            if (apiKeyViewModel == null)
-            {
-                return false;
-            }
-            if (!CredentialTypes.IsApiKey(apiKeyViewModel.Type))
-            {
-                return false;
-            }
-            if (apiKeyViewModel.HasExpired)
-            {
-                return false;
-            }
-            if (apiKeyViewModel.RevokedBy != null)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         private class LeakedApiKeyInfo
         {
             [JsonProperty("ApiKey", Required = Required.Always)]
@@ -159,8 +146,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             [JsonProperty("LeakedUrl", Required = Required.Always)]
             public string LeakedUrl { get; set; }
 
-            [JsonProperty("RevokedBy", Required = Required.Always)]
-            public string RevokedBy { get; set; }
+            [JsonProperty("RevocationSource", Required = Required.Always)]
+            public string RevocationSource { get; set; }
         }
     }
 }
