@@ -500,7 +500,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     $"Please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Exactly(2));
                 _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Exactly(2));
-                _telemetryService.Verify(x => x.TrackException(exception, It.IsAny<Action<Dictionary<string, string>>>()), Times.Once);
+                _telemetryService.Verify(x => x.TrackException(exception, It.IsAny<Action<Dictionary<string, string>>>()), Times.Exactly(2));
             }
 
             private RevokeApiKeysRequest GetRevokeMultipleApiKeysRequest()
