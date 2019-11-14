@@ -62,7 +62,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     var credential = _authenticationService.GetApiKeyCredential(apiKey);
                     if (credential == null)
                     {
-                        results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel: null, apiKey, leakedUrl: null, revocationSource: null, isRevocable: false));
+                        results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel: null, apiKey: apiKey, leakedUrl: null, revocationSource: null, isRevocable: false));
                         continue;
                     }
 
