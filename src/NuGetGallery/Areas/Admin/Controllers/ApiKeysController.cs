@@ -66,9 +66,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         continue;
                     }
 
-                    var credentialViewModel = _authenticationService.DescribeCredential(credential);
-                    var apiKeyViewModel = new ApiKeyViewModel(credentialViewModel);
-                    if (!_authenticationService.IsRevocableApiKeyCredential(credentialViewModel))
+                    var apiKeyViewModel = new ApiKeyViewModel(_authenticationService.DescribeCredential(credential));
+                    if (!_authenticationService.IsActiveApiKeyCredential(credential))
                     {
                         results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl: null, revocationSource: apiKeyViewModel.RevocationSource, isRevocable: false));
                         continue;

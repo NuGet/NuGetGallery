@@ -474,17 +474,18 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheIsRevocableApiKeyCredentialMethod : TestContainer
+        public class TheIsActiveApiKeyCredentialMethod : TestContainer
         {
-            private CredentialViewModel _credentialViewModel;
+            private Credential _credential;
             private AuthenticationService _authenticationService;
 
-            public TheIsRevocableApiKeyCredentialMethod()
+            public TheIsActiveApiKeyCredentialMethod()
             {
-                _credentialViewModel = new CredentialViewModel();
-                _credentialViewModel.Type = CredentialTypes.ApiKey.V4;
-                _credentialViewModel.HasExpired = false;
-                _credentialViewModel.RevocationSource = null;
+                _credential = new Credential();
+                _credential.Type = CredentialTypes.ApiKey.V4;
+                _credential.Expires = DateTime.UtcNow.AddDays(1);
+                _credential.Scopes = new[] { new Scope("123", NuGetScopes.PackagePushVersion) };
+                _credential.RevocationSourceKey = null;
 
                 _authenticationService = Get<AuthenticationService>();
             }
@@ -495,20 +496,20 @@ namespace NuGetGallery.Authentication
             [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
             [InlineData(CredentialTypes.ApiKey.VerifyV1)]
-            public void GivenValidApiKeyCredentialViewModel_ReturnsTrue(string apiKeyType)
+            public void GivenValidApiKeyCredential_ReturnsTrue(string apiKeyType)
             {
                 // Arrange
-                _credentialViewModel.Type = apiKeyType;
+                _credential.Type = apiKeyType;
 
                 // Act and Assert
-                Assert.True(_authenticationService.IsRevocableApiKeyCredential(_credentialViewModel));
+                Assert.True(_authenticationService.IsActiveApiKeyCredential(_credential));
             }
 
             [Fact]
-            public void GivenNullApiKeyCredentialViewModel_ReturnsFalse()
+            public void GivenNullApiKeyCredential_ReturnsFalse()
             {
                 // Arrange, Act and Assert
-                Assert.False(_authenticationService.IsRevocableApiKeyCredential(null));
+                Assert.False(_authenticationService.IsActiveApiKeyCredential(null));
             }
 
             [Theory]
@@ -517,33 +518,50 @@ namespace NuGetGallery.Authentication
             [InlineData(CredentialTypes.Password.V3)]
             [InlineData(CredentialTypes.Password.Sha1)]
             [InlineData(CredentialTypes.Password.Pbkdf2)]
-            public void GivenNotApiKeyCredentialViewModel_ReturnsFalse(string credentialType)
+            public void GivenNotApiKeyCredential_ReturnsFalse(string credentialType)
             {
                 // Arrange
-                _credentialViewModel.Type = credentialType;
+                _credential.Type = credentialType;
 
                 // Act and Assert
-                Assert.False(_authenticationService.IsRevocableApiKeyCredential(_credentialViewModel));
+                Assert.False(_authenticationService.IsActiveApiKeyCredential(_credential));
             }
 
             [Fact]
-            public void GivenExpiredApiKeyCredentialViewModel_ReturnsFalse()
+            public void GivenExpiredApiKeyCredential_ReturnsFalse()
             {
                 // Arrange
-                _credentialViewModel.HasExpired = true;
+                _credential.Expires = DateTime.UtcNow.AddDays(-1);
 
                 // Act and Assert
-                Assert.False(_authenticationService.IsRevocableApiKeyCredential(_credentialViewModel));
+                Assert.False(_authenticationService.IsActiveApiKeyCredential(_credential));
             }
 
             [Fact]
-            public void GivenRevokedApiKeyCredentialViewModel_ReturnsFalse()
+            public void GivenNonScopedNotUsedInLastDaysApiKeyCredential_ReturnsFalse()
             {
                 // Arrange
-                _credentialViewModel.RevocationSource = "GitHub";
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ExpirationInDaysForApiKeyV1 = 10;
+
+                _credential.Type = CredentialTypes.ApiKey.V3;
+                _credential.Expires = null;
+                _credential.Scopes = null;
+                // credential was last used < allowed last used
+                _credential.LastUsed = DateTime.UtcNow.AddDays(-20);
 
                 // Act and Assert
-                Assert.False(_authenticationService.IsRevocableApiKeyCredential(_credentialViewModel));
+                Assert.False(_authenticationService.IsActiveApiKeyCredential(_credential));
+            }
+
+            [Fact]
+            public void GivenRevokedApiKeyCredential_ReturnsFalse()
+            {
+                // Arrange
+                _credential.RevocationSourceKey = CredentialRevocationSource.GitHub;
+
+                // Act and Assert
+                Assert.False(_authenticationService.IsActiveApiKeyCredential(_credential));
             }
         }
 

@@ -39,9 +39,9 @@ namespace NuGetGallery.Authentication
         Task RevokeApiKeyCredential(Credential credential, CredentialRevocationSource revocationSourceKey, bool commitChanges = true);
 
         /// <summary>
-        /// Check whether the API key credential is revocable or not
+        /// Check whether the API key credential is active or not
         /// </summary>
-        /// <returns>Returns whether the API key credential is revocable or not</returns>
-        bool IsRevocableApiKeyCredential(CredentialViewModel credentialViewModel);
+        /// <returns>Returns whether the API key credential is active or not</returns>
+        bool IsActiveApiKeyCredential(Credential credential);
     }
 }

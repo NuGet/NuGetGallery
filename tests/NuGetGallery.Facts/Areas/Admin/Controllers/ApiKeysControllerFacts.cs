@@ -61,7 +61,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
                 _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Never);
-                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Never);
+                _authenticationService.Verify(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()), Times.Never);
             }
 
             [Theory]
@@ -81,7 +81,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .Returns(() => new Credential());
                 _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
                     .Returns(GetApiKeyCredentialViewModel(apiKeyType, revocationSource));
-                _authenticationService.Setup(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()))
+                _authenticationService.Setup(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()))
                     .Returns(false);
 
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
@@ -106,7 +106,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
                 _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Once);
-                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Once);
+                _authenticationService.Verify(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()), Times.Once);
             }
 
             [Theory]
@@ -127,7 +127,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .Returns(() => new Credential());
                 _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
                     .Returns(GetApiKeyCredentialViewModel(apiKeyType, null));
-                _authenticationService.Setup(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()))
+                _authenticationService.Setup(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()))
                     .Returns(true);
 
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
@@ -152,7 +152,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
                 _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Once);
-                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Once);
+                _authenticationService.Verify(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()), Times.Once);
             }
 
             [Theory]
@@ -164,7 +164,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .Returns(() => new Credential());
                 _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
                     .Returns(GetApiKeyCredentialViewModel(CredentialTypes.ApiKey.V4, null));
-                _authenticationService.Setup(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()))
+                _authenticationService.Setup(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()))
                     .Returns(true);
 
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
@@ -189,7 +189,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Exactly(expectedApiKeys.Count));
                 _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Exactly(expectedApiKeys.Count));
-                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Exactly(expectedApiKeys.Count));
+                _authenticationService.Verify(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()), Times.Exactly(expectedApiKeys.Count));
             }
 
             public static IEnumerable<object[]> VerifyQueriesAndExpectedResults
@@ -288,7 +288,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .Returns(() => new Credential());
                 _authenticationService.Setup(x => x.DescribeCredential(It.IsAny<Credential>()))
                     .Returns(GetApiKeyCredentialViewModel(CredentialTypes.ApiKey.V4, null));
-                _authenticationService.Setup(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()))
+                _authenticationService.Setup(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()))
                     .Returns(true);
 
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object);
@@ -305,7 +305,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
                 _authenticationService.Verify(x => x.DescribeCredential(It.IsAny<Credential>()), Times.Once);
-                _authenticationService.Verify(x => x.IsRevocableApiKeyCredential(It.IsAny<CredentialViewModel>()), Times.Once);
+                _authenticationService.Verify(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()), Times.Once);
             }
 
             [Fact]

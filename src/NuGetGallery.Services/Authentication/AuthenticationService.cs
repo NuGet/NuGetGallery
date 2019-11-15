@@ -171,34 +171,33 @@ namespace NuGetGallery.Authentication
                 throw new ArgumentNullException(nameof(apiKeyCredential));
             }
 
-            var apiKeyCredentialViewModel = DescribeCredential(apiKeyCredential);
-            if (!IsRevocableApiKeyCredential(apiKeyCredentialViewModel))
+            if (!IsActiveApiKeyCredential(apiKeyCredential))
             {
                 // Revoking unrevocable API key credential is not allowed.
                 throw new InvalidOperationException(string.Format(
                     CultureInfo.CurrentCulture,
                     ServicesStrings.RevokeCredential_UnrevocableApiKeyCredential,
-                    apiKeyCredentialViewModel.Key));
+                    apiKeyCredential.Key));
             }
 
             await RevokeCredential(apiKeyCredential, revocationSourceKey, commitChanges);
         }
 
-        public bool IsRevocableApiKeyCredential(CredentialViewModel credentialViewModel)
+        public bool IsActiveApiKeyCredential(Credential credential)
         {
-            if (credentialViewModel == null)
+            if (credential == null)
             {
                 return false;
             }
-            if (!CredentialTypes.IsApiKey(credentialViewModel.Type))
+            if (!CredentialTypes.IsApiKey(credential.Type))
             {
                 return false;
             }
-            if (credentialViewModel.HasExpired)
+            if (IsCredentialExpiredOrNonScopedApiKeyNotUsedInLastDays(credential))
             {
                 return false;
             }
-            if (credentialViewModel.RevocationSource != null)
+            if (credential.RevocationSourceKey != null)
             {
                 return false;
             }
@@ -650,14 +649,18 @@ namespace NuGetGallery.Authentication
                 RevocationSource = credential.RevocationSourceKey != null ? Enum.GetName(typeof(CredentialRevocationSource), credential.RevocationSourceKey) : null,
             };
 
-            credentialViewModel.HasExpired = credential.HasExpired ||
-                                             (credentialViewModel.IsNonScopedApiKey &&
-                                              !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
+            credentialViewModel.HasExpired = IsCredentialExpiredOrNonScopedApiKeyNotUsedInLastDays(credential);
 
             credentialViewModel.Description = credentialViewModel.IsNonScopedApiKey
                 ? ServicesStrings.NonScopedApiKeyDescription : credentialViewModel.Description;
 
             return credentialViewModel;
+        }
+
+        private bool IsCredentialExpiredOrNonScopedApiKeyNotUsedInLastDays(Credential credential)
+        {
+            return credential.HasExpired || (credential.IsApiKey() && !credential.IsScopedApiKey()
+                && !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
         }
 
         public virtual async Task RemoveCredential(User user, Credential cred, bool commitChanges = true)
