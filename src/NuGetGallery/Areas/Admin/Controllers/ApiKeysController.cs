@@ -19,11 +19,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
     {
         private readonly IAuthenticationService _authenticationService;
         private readonly ITelemetryService _telemetryService;
+        private readonly IEntitiesContext _entitiesContext;
 
-        public ApiKeysController(IAuthenticationService authenticationService, ITelemetryService telemetryService)
+        public ApiKeysController(IAuthenticationService authenticationService, ITelemetryService telemetryService, IEntitiesContext entitiesContext)
         {
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
         [HttpGet]
@@ -104,36 +106,27 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return View(nameof(Index));
             }
 
-            var failedApiKeys = new List<string>();
-            foreach (var selectedApiKey in revokeApiKeysRequest.SelectedApiKeys)
+            try
             {
-                var apiKeyInfo = JsonConvert.DeserializeObject<ApiKeyRevokeViewModel>(selectedApiKey);
-                try
+                foreach (var selectedApiKey in revokeApiKeysRequest.SelectedApiKeys)
                 {
+                    var apiKeyInfo = JsonConvert.DeserializeObject<ApiKeyRevokeViewModel>(selectedApiKey);
+
                     var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
-                    var revocationSourceKey = (CredentialRevocationSource) Enum.Parse(typeof(CredentialRevocationSource), apiKeyInfo.RevocationSource);
-                    await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey);
+                    var revocationSourceKey = (CredentialRevocationSource)Enum.Parse(typeof(CredentialRevocationSource), apiKeyInfo.RevocationSource);
+                    await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, false);
                 }
-                catch(Exception e)
-                {
-                    failedApiKeys.Add($"{apiKeyInfo.ApiKey}");
-                    _telemetryService.TrackException(e, properties =>
-                    {
-                        properties.Add(TelemetryService.ApiKey, apiKeyInfo.ApiKey);
-                    });
-                }
+
+                await _entitiesContext.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                _telemetryService.TraceException(e);
+                TempData["ErrorMessage"] = "Failed to revoke the API keys, and please check the telemetry for details.";
+                return RedirectToAction("Index");
             }
 
-            if (failedApiKeys.Any())
-            {
-                TempData["ErrorMessage"] = $"Failed to revoke the API key(s): { string.Join(", ", failedApiKeys.ToArray()) }." +
-                    $"Please check the telemetry for details.";
-            }
-            else
-            {
-                TempData["Message"] = "Successfully revoke the selected API keys.";
-            }
-
+            TempData["Message"] = "Successfully revoke the selected API keys.";
             return RedirectToAction("Index");
         }
 
