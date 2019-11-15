@@ -30,6 +30,7 @@ namespace NuGetGallery
         private const string PreviewHijackFeatureName = GalleryPrefix + "PreviewHijack";
         private const string GravatarProxyFeatureName = GalleryPrefix + "GravatarProxy";
         private const string GravatarProxyEnSubdomainFeatureName = GalleryPrefix + "GravatarProxyEnSubdomain";
+        private const string ODataCacheDurationsFeatureName = GalleryPrefix + "ODataCacheDurations";
 
         private readonly IFeatureFlagClient _client;
 
@@ -137,6 +138,11 @@ namespace NuGetGallery
         public bool ProxyGravatarEnSubdomain()
         {
             return _client.IsEnabled(GravatarProxyEnSubdomainFeatureName, defaultValue: false);
+        }
+
+        public bool AreDynamicODataCacheDurationsEnabled()
+        {
+            return _client.IsEnabled(ODataCacheDurationsFeatureName, defaultValue: false);
         }
     }
 }

@@ -1,0 +1,6 @@
+{
+  "FindPackagesByIdCacheTimeInSeconds": 60,
+  "FindPackagesByIdCountCacheTimeInSeconds": 0,
+  "GetSpecificPackageCacheTimeInSeconds": 60,
+  "SearchCacheTimeInSeconds": 45
+}

@@ -47,7 +47,7 @@ namespace NuGetGallery.Controllers
                 MemberDataHelper.Combine(
                     Enumerable
                         .Repeat(
-                            MemberDataHelper.BooleanDataSet(), 4)
+                            MemberDataHelper.BooleanDataSet(), 5)
                         .ToArray());
 
             [Theory]
@@ -56,11 +56,12 @@ namespace NuGetGallery.Controllers
                 bool isLegacy,
                 bool hasCriticalBugs,
                 bool isOther,
+                bool multipleVersions,
                 bool success)
             {
                 // Arrange
                 var id = "Crested.Gecko";
-                var versions = new[] { "1.0.0", "2.0.0" };
+                var versions = multipleVersions ? new[] { "1.0.0", "2.0.0" } : new[] { "1.0.0" };
                 var alternateId = "alt.Id";
                 var alternateVersion = "3.0.0";
                 var customMessage = "custom";
@@ -105,34 +106,44 @@ namespace NuGetGallery.Controllers
                 // Assert
                 if (success)
                 {
-                    AssertSuccessResponse(controller);
+                    AssertResponseStatusCode(controller, HttpStatusCode.OK);
+                    string expectedString;
+                    if (isLegacy || hasCriticalBugs || isOther)
+                    {
+                        if (multipleVersions)
+                        {
+                            expectedString = "Your packages have been deprecated.";
+                        }
+                        else
+                        {
+                            expectedString = "Your package has been deprecated.";
+                        }
+                    }
+                    else
+                    {
+                        if (multipleVersions)
+                        {
+                            expectedString = "Your packages have been undeprecated.";
+                        }
+                        else
+                        {
+                            expectedString = "Your package has been undeprecated.";
+                        }
+                    }
+
+                    Assert.StartsWith(expectedString, controller.TempData["Message"] as string);
                 }
                 else
                 {
-                    AssertErrorResponse(controller, result, errorStatus, errorMessage);
+                    AssertResponseStatusCode(controller, errorStatus);
+
+                    // Using JObject to get the property from the result easily.
+                    // Alternatively we could use reflection, but this is easier, and makes sense as the response is intended to be JSON anyway.
+                    var jObject = JObject.FromObject(result.Data);
+                    Assert.Equal(errorMessage, jObject["error"].Value<string>());
                 }
 
                 deprecationService.Verify();
-            }
-
-            private static void AssertErrorResponse(
-                ManageDeprecationJsonApiController controller,
-                JsonResult result,
-                HttpStatusCode code,
-                string error)
-            {
-                AssertResponseStatusCode(controller, code);
-
-                // Using JObject to get the property from the result easily.
-                // Alternatively we could use reflection, but this is easier, and makes sense as the response is intended to be JSON anyway.
-                var jObject = JObject.FromObject(result.Data);
-                Assert.Equal(error, jObject["error"].Value<string>());
-            }
-
-            private static void AssertSuccessResponse(
-                ManageDeprecationJsonApiController controller)
-            {
-                AssertResponseStatusCode(controller, HttpStatusCode.OK);
             }
 
             private static void AssertResponseStatusCode(

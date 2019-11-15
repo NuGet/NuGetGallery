@@ -100,5 +100,10 @@ namespace NuGetGallery
         /// This is ignored if <see cref="IsGravatarProxyEnabled"/> is <see langword="false"/>.
         /// </summary>
         bool ProxyGravatarEnSubdomain();
+
+        /// <summary>
+        /// Whether or not to check the content object service for OData cache durations.
+        /// </summary>
+        bool AreDynamicODataCacheDurationsEnabled();
     }
 }

@@ -3519,6 +3519,29 @@ namespace NuGetGallery
 
         public class TheUpdateListedMethod : TestContainer
         {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task Returns404IfNotFound(bool listed)
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns((Package)null);
+                // Note: this Mock must be strict because it guarantees that MarkPackageListedAsync is not called!
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.UpdateListed("Foo", "1.0", listed);
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
             public static IEnumerable<object[]> NotOwner_Data
             {
                 get
@@ -3562,7 +3585,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", false);
 
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
@@ -3627,15 +3650,17 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService);
                 controller.SetCurrentUser(currentUser);
-                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+                TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", false);
 
                 // Assert
                 packageService.Verify();
                 Assert.IsType<RedirectResult>(result);
-                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+                Assert.Equal(
+                    "The package has been unlisted. It may take several hours for this change to propagate through our system.",
+                    controller.TempData["Message"]);
             }
 
             [Theory]
@@ -3647,6 +3672,7 @@ namespace NuGetGallery
                 {
                     PackageRegistration = new PackageRegistration { Id = "Foo" },
                     Version = "1.0",
+                    NormalizedVersion = "1.0.0",
                     Listed = true
                 };
                 package.PackageRegistration.Owners.Add(owner);
@@ -3664,15 +3690,17 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService);
                 controller.SetCurrentUser(currentUser);
-                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+                TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: true, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", true);
 
                 // Assert
                 packageService.Verify();
                 Assert.IsType<RedirectResult>(result);
-                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+                Assert.Equal(
+                    "The package has been listed. It may take several hours for this change to propagate through our system.",
+                    controller.TempData["Message"]);
             }
 
             [Fact]
@@ -3701,7 +3729,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: true, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", true);
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.Forbidden);
@@ -3834,7 +3862,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.UpdateListed("Foo", "1.0", false);
 
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);

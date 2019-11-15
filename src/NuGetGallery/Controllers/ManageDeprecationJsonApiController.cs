@@ -53,6 +53,13 @@ namespace NuGetGallery
                 return Json(error.Status, new { error = error.Message });
             }
 
+            var packagePluralString = request.Versions.Count() > 1 ? "packages have" : "package has";
+            var deprecatedString = request.IsLegacy || request.HasCriticalBugs || request.IsOther
+                ? "deprecated" : "undeprecated";
+            TempData["Message"] = 
+                $"Your {packagePluralString} been {deprecatedString}. " +
+                $"It may take several hours for this change to propagate through our system.";
+
             return Json(HttpStatusCode.OK);
         }
     }

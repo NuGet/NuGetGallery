@@ -59,7 +59,8 @@ namespace GitHubVulnerabilities2Db.Ingest
             {
                 Vulnerability = vulnerability,
                 PackageId = securityVulnerability.Package.Name,
-                PackageVersionRange = _gitHubVersionRangeParser.ToNuGetVersionRange(securityVulnerability.VulnerableVersionRange).ToNormalizedString()
+                PackageVersionRange = _gitHubVersionRangeParser.ToNuGetVersionRange(securityVulnerability.VulnerableVersionRange).ToNormalizedString(),
+                FirstPatchedPackageVersion = securityVulnerability.FirstPatchedVersion?.Identifier
             };
         }
     }
