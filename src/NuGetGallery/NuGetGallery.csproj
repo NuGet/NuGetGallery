@@ -2144,7 +2144,7 @@
       <Version>1.2.2</Version>
     </PackageReference>
     <PackageReference Include="EntityFramework">
-      <Version>6.2.0</Version>
+      <Version>6.4.0-preview3-19553-01</Version>
     </PackageReference>
     <PackageReference Include="Knockout.Mapping">
       <Version>2.4.0</Version>
