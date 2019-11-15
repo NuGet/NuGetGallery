@@ -121,7 +121,7 @@ namespace NuGetGallery.App_Start
                     return new ConnectionStringSettings(ConnectionStringStub, ConnectionStringStub);
                 }
 
-                protected override string GetCloudSetting(string settingName)
+                protected override string GetCloudServiceSetting(string settingName)
                 {
                     return CloudSettingStub;
                 }
