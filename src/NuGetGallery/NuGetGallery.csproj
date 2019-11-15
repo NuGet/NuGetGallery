@@ -273,6 +273,10 @@
     <Compile Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.designer.cs">
       <DependentUpon>201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs" />
+    <Compile Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.designer.cs">
+      <DependentUpon>201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\GravatarProxyResult.cs" />
@@ -1638,6 +1642,9 @@
     <EmbeddedResource Include="Migrations\201911072143480_AddVulnerablePackageVersionRangeIdIndex.resx">
       <DependentUpon>201911072143480_AddVulnerablePackageVersionRangeIdIndex.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.resx">
+      <DependentUpon>201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -2137,7 +2144,7 @@
       <Version>1.2.2</Version>
     </PackageReference>
     <PackageReference Include="EntityFramework">
-      <Version>6.2.0</Version>
+      <Version>6.4.0-preview3-19553-01</Version>
     </PackageReference>
     <PackageReference Include="Knockout.Mapping">
       <Version>2.4.0</Version>
