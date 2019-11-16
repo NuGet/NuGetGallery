@@ -100,9 +100,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 TempData["ErrorMessage"] = "The API keys revoking request can not be null.";
                 return View(nameof(Index));
             }
-            if (revokeApiKeysRequest.SelectedApiKeys == null)
+            if (revokeApiKeysRequest.SelectedApiKeys == null || revokeApiKeysRequest.SelectedApiKeys.Count == 0)
             {
-                TempData["ErrorMessage"] = "The API keys revoking request contains null selected API keys.";
+                TempData["ErrorMessage"] = "The API keys revoking request contains null or empty selected API keys.";
                 return View(nameof(Index));
             }
 
@@ -114,7 +114,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                     var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
                     var revocationSourceKey = (CredentialRevocationSource)Enum.Parse(typeof(CredentialRevocationSource), apiKeyInfo.RevocationSource);
-                    await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, false);
+                    await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, commitChanges: false);
                 }
 
                 await _entitiesContext.SaveChangesAsync();

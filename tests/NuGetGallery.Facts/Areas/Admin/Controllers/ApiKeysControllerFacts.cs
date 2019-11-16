@@ -402,7 +402,23 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 await apiKeysController.Revoke(new RevokeApiKeysRequest());
 
                 // Assert
-                Assert.Equal("The API keys revoking request contains null selected API keys.", apiKeysController.TempData["ErrorMessage"]);
+                Assert.Equal("The API keys revoking request contains null or empty selected API keys.", apiKeysController.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
+            public async Task GivenRequestWithEmptySelectedApiKeys_ItReturnsErrorMessage()
+            {
+                // Arrange
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+
+                // Act
+                var revokeApiKeysRequest = new RevokeApiKeysRequest();
+                revokeApiKeysRequest.SelectedApiKeys = new List<string>();
+                await apiKeysController.Revoke(revokeApiKeysRequest);
+
+                // Assert
+                Assert.Equal("The API keys revoking request contains null or empty selected API keys.", apiKeysController.TempData["ErrorMessage"]);
             }
 
             [Fact]
