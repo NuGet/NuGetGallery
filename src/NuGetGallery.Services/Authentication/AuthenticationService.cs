@@ -173,7 +173,7 @@ namespace NuGetGallery.Authentication
 
             if (!IsActiveApiKeyCredential(apiKeyCredential))
             {
-                // Revoking unrevocable API key credential is not allowed.
+                // Revoking not active API key credential is not allowed.
                 throw new InvalidOperationException(string.Format(
                     CultureInfo.CurrentCulture,
                     ServicesStrings.RevokeCredential_UnrevocableApiKeyCredential,
