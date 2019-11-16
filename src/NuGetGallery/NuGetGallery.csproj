@@ -278,9 +278,9 @@
     <Compile Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.designer.cs">
       <DependentUpon>201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201911140515471_AddCredentialRevocationSourceKeyColumn.cs" />
-    <Compile Include="Migrations\201911140515471_AddCredentialRevocationSourceKeyColumn.designer.cs">
-      <DependentUpon>201911140515471_AddCredentialRevocationSourceKeyColumn.cs</DependentUpon>
+    <Compile Include="Migrations\201911160032363_AddCredentialRevocationSourceKeyColumn.cs" />
+    <Compile Include="Migrations\201911160032363_AddCredentialRevocationSourceKeyColumn.designer.cs">
+      <DependentUpon>201911160032363_AddCredentialRevocationSourceKeyColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
@@ -1650,8 +1650,8 @@
     <EmbeddedResource Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.resx">
       <DependentUpon>201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201911140515471_AddCredentialRevocationSourceKeyColumn.resx">
-      <DependentUpon>201911140515471_AddCredentialRevocationSourceKeyColumn.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201911160032363_AddCredentialRevocationSourceKeyColumn.resx">
+      <DependentUpon>201911160032363_AddCredentialRevocationSourceKeyColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

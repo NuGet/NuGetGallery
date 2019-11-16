@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201911140515471_AddCredentialRevocationSourceKeyColumn"; }
+            get { return "201911160032363_AddCredentialRevocationSourceKeyColumn"; }
         }
         
         string IMigrationMetadata.Source
