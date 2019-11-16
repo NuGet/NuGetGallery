@@ -23,6 +23,7 @@ namespace NuGetGallery
         public bool HasExpired { get; set; }
         public string Value { get; set; }
         public TimeSpan? ExpirationDuration { get; set; }
+        public string RevocationSource { get; set; }
 
         public bool IsNonScopedApiKey
         {
