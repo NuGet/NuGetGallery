@@ -87,6 +87,7 @@
                 this.Description(data.Description || null);
                 this.Expires(data.Expires || null);
                 this.HasExpired(data.HasExpired || false);
+                this.RevocationSource(data.RevocationSource || null);
                 this.IsNonScopedApiKey(data.IsNonScopedApiKey || false);
                 this.Owner(data.Owner || null);
                 this.Scopes(data.Scopes || []);
@@ -116,6 +117,7 @@
             this.Description = ko.observable();
             this.Expires = ko.observable();
             this.HasExpired = ko.observable();
+            this.RevocationSource = ko.observable();
             this.IsNonScopedApiKey = ko.observable();
             this.Owner = ko.observable();
             this.Scopes = ko.observableArray();
@@ -628,7 +630,21 @@
                 var descriptions = [];
                 for (var i in apiKeys) {
                     if (apiKeys[i].HasExpired()) {
-                        descriptions.push(apiKeys[i].Description());
+                        if (!apiKeys[i].RevocationSource()) {
+                            descriptions.push(apiKeys[i].Description());
+                        }
+                    }
+                }
+                return descriptions;
+            }, this);
+            this.RevocationDescriptions = ko.pureComputed(function () {
+                var apiKeys = this.ApiKeys();
+                var descriptions = [];
+                for (var i in apiKeys) {
+                    if (apiKeys[i].HasExpired()) {
+                        if (apiKeys[i].RevocationSource()) {
+                            descriptions.push(apiKeys[i].Description());
+                        }
                     }
                 }
                 return descriptions;

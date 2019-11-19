@@ -45,7 +45,7 @@
                             <code>Type:</code> <span data-bind="text: ApiKeyViewModel.Type"></span><br />
                         </span>
                         <span data-bind="visible: ApiKeyViewModel.Owner">
-                            <code>Owner:</code> <a data-bind="text: ApiKeyViewModel.Owner, attr: { href: $parent.generateProfileUrl(ApiKeyViewModel.Owner)}"></a><br />
+                            <code>Owner:</code> <a data-bind="text: ApiKeyViewModel.Owner, attr: { href: $parent.generateProfileUrl(ApiKeyViewModel.Owner) }"></a><br />
                         </span>
                         <span>
                             <code>Status:</code>
@@ -65,7 +65,7 @@
                             <code>Description:</code> <span data-bind="text: ApiKeyViewModel.Description"></span><br />
                         </span>
                         <!-- ko if: LeakedUrl -->
-                        <code>Leaked Url:</code> <span><a data-bind="text: LeakedUrl, attr: {href: LeakedUrl}"></a></span><br />
+                        <code>Leaked Url:</code> <a data-bind="attr: { href: LeakedUrl }">Link</a><br />
                         <!-- /ko -->
                         <!-- ko if: !IsRevocable && RevocationSource  -->
                         <code>Revocation Source:</code> <span data-bind="text: RevocationSource"></span><br />
