@@ -774,7 +774,7 @@ img.reserved-indicator-icon {
   border-top: 1px solid #dbdbdb;
 }
 .page-api-keys .revoke-api-key {
-  color: red;
+  color: #df001e;
 }
 .page-blog {
   margin-top: 33px;
