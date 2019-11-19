@@ -102,6 +102,11 @@ namespace NuGetGallery
         bool ProxyGravatarEnSubdomain();
 
         /// <summary>
+        /// Whether or not to check the content object service for OData cache durations.
+        /// </summary>
+        bool AreDynamicODataCacheDurationsEnabled();
+
+        /// <summary>
         /// Whether the qualified users should be shown the dialog box to enable multi-factor authentication
         /// </summary>
         bool IsShowEnable2FADialogEnabled();

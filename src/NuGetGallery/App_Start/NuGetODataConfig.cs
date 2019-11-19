@@ -12,9 +12,6 @@ namespace NuGetGallery
 {
     public static class NuGetODataConfig
     {
-        public const int GetByIdAndVersionCacheTimeInSeconds = 60;
-        public const int SearchCacheTimeInSeconds = 45;
-
         public static void Register(HttpConfiguration config)
         {
             // Add OData formatters (application/atom+xml)
@@ -43,7 +40,6 @@ namespace NuGetGallery
             
             // Register feeds
             NuGetODataV1FeedConfig.Register(config);
-            NuGetODataV2CuratedFeedConfig.Register(config);
             NuGetODataV2FeedConfig.Register(config);
 
             config.EnsureInitialized();

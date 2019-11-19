@@ -2,22 +2,30 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class ApiKeysController : AdminControllerBase
     {
         private readonly IAuthenticationService _authenticationService;
+        private readonly ITelemetryService _telemetryService;
+        private readonly IEntitiesContext _entitiesContext;
 
-        public ApiKeysController(IAuthenticationService authenticationService)
+        public ApiKeysController(IAuthenticationService authenticationService, ITelemetryService telemetryService, IEntitiesContext entitiesContext)
         {
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
         [HttpGet]
@@ -35,7 +43,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "Invalid empty input!");
             }
 
-            var queries = verifyQuery.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var queries = verifyQuery.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(q => q.Trim()).ToList();
 
             var results = new List<ApiKeyRevokeViewModel>();
             var verifiedApiKey = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -43,19 +51,36 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 try
                 {
-                    var queryObject = JsonConvert.DeserializeObject<ApiKeyAndLeakedUrl>(query);
+                    var leakedApiKeyInfo = JsonConvert.DeserializeObject<LeakedApiKeyInfo>(query);
 
-                    var apiKey = queryObject.ApiKey;
+                    var apiKey = leakedApiKeyInfo.ApiKey;
                     if (!verifiedApiKey.Add(apiKey))
                     {
                         continue;
                     }
-                    var leakedUrl = queryObject.LeakedUrl;
+                    var leakedUrl = leakedApiKeyInfo.LeakedUrl;
+                    var revocationSource = leakedApiKeyInfo.RevocationSource;
 
                     var credential = _authenticationService.GetApiKeyCredential(apiKey);
-                    var apiKeyViewModel = credential == null ? null : new ApiKeyViewModel(_authenticationService.DescribeCredential(credential));
+                    if (credential == null)
+                    {
+                        results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel: null, apiKey: apiKey, leakedUrl: null, revocationSource: null, isRevocable: false));
+                        continue;
+                    }
 
-                    results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl, isRevocable: IsRevocable(apiKeyViewModel)));
+                    var apiKeyViewModel = new ApiKeyViewModel(_authenticationService.DescribeCredential(credential));
+                    if (!_authenticationService.IsActiveApiKeyCredential(credential))
+                    {
+                        results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl: null, revocationSource: apiKeyViewModel.RevocationSource, isRevocable: false));
+                        continue;
+                    }
+                    if (!Enum.TryParse(revocationSource, out CredentialRevocationSource revocationSourceKey))
+                    {
+                        return Json(HttpStatusCode.BadRequest, $"Invalid input! {query} is not using the supported Revocation Source: " +
+                            $"{string.Join(",", Enum.GetNames(typeof(CredentialRevocationSource)))}.");
+                    }
+
+                    results.Add(new ApiKeyRevokeViewModel(apiKeyViewModel, apiKey, leakedUrl, revocationSource, isRevocable: true));
                 }
                 catch (JsonException)
                 {
@@ -66,31 +91,55 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return Json(HttpStatusCode.OK, results);
         }
 
-        private bool IsRevocable(ApiKeyViewModel apiKeyViewModel)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Revoke(RevokeApiKeysRequest revokeApiKeysRequest)
         {
-            if (apiKeyViewModel == null)
+            if (revokeApiKeysRequest == null)
             {
-                return false;
+                TempData["ErrorMessage"] = "The API keys revoking request can not be null.";
+                return View(nameof(Index));
             }
-            if (apiKeyViewModel.HasExpired)
+            if (revokeApiKeysRequest.SelectedApiKeys == null || revokeApiKeysRequest.SelectedApiKeys.Count == 0)
             {
-                return false;
-            }
-            if (!CredentialTypes.IsApiKey(apiKeyViewModel.Type))
-            {
-                return false;
+                TempData["ErrorMessage"] = "The API keys revoking request contains null or empty selected API keys.";
+                return View(nameof(Index));
             }
 
-            return true;
+            try
+            {
+                foreach (var selectedApiKey in revokeApiKeysRequest.SelectedApiKeys)
+                {
+                    var apiKeyInfo = JsonConvert.DeserializeObject<ApiKeyRevokeViewModel>(selectedApiKey);
+
+                    var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
+                    var revocationSourceKey = (CredentialRevocationSource)Enum.Parse(typeof(CredentialRevocationSource), apiKeyInfo.RevocationSource);
+                    await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, commitChanges: false);
+                }
+
+                await _entitiesContext.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                _telemetryService.TraceException(e);
+                TempData["ErrorMessage"] = "Failed to revoke the API keys, and please check the telemetry for details.";
+                return RedirectToAction("Index");
+            }
+
+            TempData["Message"] = "Successfully revoke the selected API keys.";
+            return RedirectToAction("Index");
         }
 
-        private class ApiKeyAndLeakedUrl
+        private class LeakedApiKeyInfo
         {
-            [JsonProperty("ApiKey")]
+            [JsonProperty("ApiKey", Required = Required.Always)]
             public string ApiKey { get; set; }
 
-            [JsonProperty("LeakedUrl")]
+            [JsonProperty("LeakedUrl", Required = Required.Always)]
             public string LeakedUrl { get; set; }
+
+            [JsonProperty("RevocationSource", Required = Required.Always)]
+            public string RevocationSource { get; set; }
         }
     }
 }

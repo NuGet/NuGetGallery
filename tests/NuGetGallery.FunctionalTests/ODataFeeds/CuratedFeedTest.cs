@@ -62,9 +62,9 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     responseText = await response.Content.ReadAsStringAsync();
                 }
 
-                // Make sure that 40 entries are returned.  This means that if we split on the <entry> tag, we'd have 41 strings.
+                // Make sure that 100 entries are returned.  This means that if we split on the <entry> tag, we'd have 101 strings.
                 int length = responseText.Split(new[] { "<entry>" }, StringSplitOptions.RemoveEmptyEntries).Length;
-                Assert.True(length == 41, "An unexpected number of entries was found.  Actual number was " + (length - 1));
+                Assert.True(length == 101, "An unexpected number of entries was found.  Actual number was " + (length - 1));
 
                 // Get the link to the next page.
                 string link = responseText.Split(new[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];

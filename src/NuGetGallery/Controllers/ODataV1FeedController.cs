@@ -4,6 +4,7 @@
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
@@ -12,6 +13,7 @@ using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
+using NuGetGallery.Services;
 using NuGetGallery.WebApi;
 using WebApi.OutputCache.V2;
 
@@ -76,7 +78,11 @@ namespace NuGetGallery.Controllers
 
         // /api/v1/Packages(Id=,Version=)
         [HttpGet]
-        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        [ODataCacheOutput(
+            ODataCachedEndpoint.GetSpecificPackage,
+            serverTimeSpan: ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds,
+            Private = true,
+            ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V1FeedPackage> options, string id, string version)
         {
             var result = await GetCore(options, id, version, return404NotFoundWhenNoResults: true);
@@ -86,7 +92,11 @@ namespace NuGetGallery.Controllers
         // /api/v1/FindPackagesById()?id=
         [HttpGet]
         [HttpPost]
-        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        [ODataCacheOutput(
+            ODataCachedEndpoint.FindPackagesById,
+            serverTimeSpan: ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds,
+            Private = true,
+            ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V1FeedPackage> options, [FromODataUri]string id)
         {
             return await GetCore(options, id, version: null, return404NotFoundWhenNoResults: false);
@@ -94,7 +104,10 @@ namespace NuGetGallery.Controllers
 
         // /api/v1/FindPackagesById()/$count?id=
         [HttpGet]
-        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        [ODataCacheOutput(
+            ODataCachedEndpoint.FindPackagesByIdCount,
+            serverTimeSpan: ODataCacheConfiguration.DefaultFindPackagesByIdCountCacheTimeInSeconds,
+            NoCache = true)]
         public async Task<IHttpActionResult> FindPackagesByIdCount(ODataQueryOptions<V1FeedPackage> options, [FromODataUri]string id)
         {
             var result = await FindPackagesById(options, id);
@@ -196,7 +209,10 @@ namespace NuGetGallery.Controllers
         // /api/v1/Search()?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
         [HttpPost]
-        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        [ODataCacheOutput(
+            ODataCachedEndpoint.Search,
+            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
+            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Search(
             ODataQueryOptions<V1FeedPackage> options,
             [FromODataUri]string searchTerm = "",
@@ -280,7 +296,10 @@ namespace NuGetGallery.Controllers
 
         // /api/v1/Search()/$count?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
-        [CacheOutput(ServerTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds, ClientTimeSpan = NuGetODataConfig.SearchCacheTimeInSeconds)]
+        [ODataCacheOutput(
+            ODataCachedEndpoint.Search,
+            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
+            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> SearchCount(
             ODataQueryOptions<V1FeedPackage> options,
             [FromODataUri]string searchTerm = "",
@@ -288,6 +307,18 @@ namespace NuGetGallery.Controllers
         {
             var searchResults = await Search(options, searchTerm, targetFramework);
             return searchResults.FormattedAsCountResult<V1FeedPackage>();
+        }
+
+        [HttpGet]
+        [CacheOutput(NoCache = true)]
+        public virtual HttpResponseMessage SimulateError([FromUri] string type = "Exception")
+        {
+            if (!Enum.TryParse<SimulatedErrorType>(type, out var parsedType))
+            {
+                parsedType = SimulatedErrorType.Exception;
+            }
+
+            return parsedType.MapToWebApiResult();
         }
 
         internal IQueryable<Package> GetAll()

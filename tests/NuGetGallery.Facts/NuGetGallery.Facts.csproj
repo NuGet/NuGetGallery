@@ -78,6 +78,7 @@
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
+    <Compile Include="Infrastructure\ODataCacheOutputAttributeFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQueryFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQueryFacts.cs" />
     <Compile Include="Queries\AutocompleteServiceQueryFacts.cs" />
@@ -131,7 +132,6 @@
     <Compile Include="Controllers\ControllerTests.cs" />
     <Compile Include="Controllers\JsonApiControllerFacts.cs" />
     <Compile Include="Controllers\ODataFeedControllerFactsBase.cs" />
-    <Compile Include="Controllers\ODataV2CuratedFeedControllerFacts.cs" />
     <Compile Include="Controllers\ODataV2FeedControllerFacts.cs" />
     <Compile Include="Controllers\ODataV1FeedControllerFacts.cs" />
     <Compile Include="Controllers\PackagesControllerFacts.cs" />

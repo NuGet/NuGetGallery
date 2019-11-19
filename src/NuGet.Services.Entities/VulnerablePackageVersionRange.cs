@@ -42,6 +42,9 @@ namespace NuGet.Services.Entities
         [Required]
         public string PackageVersionRange { get; set; }
 
+        [StringLength(Constants.MaxPackageVersionLength)]
+        public string FirstPatchedPackageVersion { get; set; }
+
         /// <summary>
         /// The set of packages that is vulnerable.
         /// </summary>

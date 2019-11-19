@@ -361,10 +361,6 @@ namespace NuGetGallery.Configuration
 
         public bool BlockSearchEngineIndexing { get; set; }
 
-        [DefaultValue(null)]
-        [TypeConverter(typeof(StringArrayConverter))]
-        public string[] RedirectedCuratedFeeds { get; set; }
-
         public bool AsynchronousEmailServiceEnabled { get; set; }
 
         public bool AsynchronousDeleteAccountServiceEnabled { get; set; }

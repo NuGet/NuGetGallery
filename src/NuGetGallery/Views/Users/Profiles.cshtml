@@ -39,6 +39,8 @@
                             <dt>Unconfirmed Email Address:</dt>
                             <dd>@Model.UnconfirmedEmailAddress</dd>
                         }
+                        <dt>Multi-factor Authentication:</dt>
+                        <dd>@(Model.HasEnabledMultiFactorAuthentication ? "Enabled" : "Disabled")</dd>
                     </dl>
                 </div>
             }

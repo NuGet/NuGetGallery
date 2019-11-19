@@ -33,7 +33,8 @@ namespace NuGetGallery
             Mock<IPackageService> packageService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
             Mock<IValidationService> validationService = null,
-            Mock<IAppConfiguration> config = null)
+            Mock<IAppConfiguration> config = null,
+            Mock<IPackageVulnerabilityService> vulnerabilityService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
 
@@ -63,6 +64,11 @@ namespace NuGetGallery
                     .Returns(new ReservedNamespace[0]);
             }
 
+            if (vulnerabilityService == null)
+            {
+                vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+            }
+
             validationService = validationService ?? new Mock<IValidationService>();
             config = config ?? new Mock<IAppConfiguration>();
             var diagnosticsService = new Mock<IDiagnosticsService>();
@@ -81,7 +87,8 @@ namespace NuGetGallery
                 Mock.Of<ITelemetryService>(),
                 Mock.Of<ICoreLicenseFileService>(),
                 diagnosticsService.Object,
-                Mock.Of<IFeatureFlagService>());
+                Mock.Of<IFeatureFlagService>(),
+                vulnerabilityService.Object);
 
             return packageUploadService.Object;
         }
@@ -94,16 +101,30 @@ namespace NuGetGallery
                 var key = 0;
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                var vulnerabilityService = new Mock<IPackageVulnerabilityService>();
 
                 var id = "Microsoft.Aspnet.Mvc";
-                var packageUploadService = CreateService(packageService);
+                var packageUploadService = CreateService(packageService, vulnerabilityService: vulnerabilityService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
                 var owner = new User { Key = key++, Username = "owner" };
                 var currentUser = new User { Key = key++, Username = "user" };
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), owner, currentUser);
+                var package = await packageUploadService.GeneratePackageAsync(
+                    id, nugetPackage.Object, new PackageStreamMetadata(), owner, currentUser);
 
-                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), owner, currentUser, false), Times.Once);
+                packageService.Verify(
+                    x => x.CreatePackageAsync(
+                        It.IsAny<PackageArchiveReader>(), 
+                        It.IsAny<PackageStreamMetadata>(), 
+                        owner, 
+                        currentUser, 
+                        false), 
+                    Times.Once);
+
+                vulnerabilityService.Verify(
+                    x => x.ApplyExistingVulnerabilitiesToPackage(package),
+                    Times.Once);
+
                 Assert.False(package.PackageRegistration.IsVerified);
             }
 
@@ -135,10 +156,18 @@ namespace NuGetGallery
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
                     .Returns(testNamespaces.ToList().AsReadOnly());
 
-                var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
+                var vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+
+                var packageUploadService = CreateService(
+                    reservedNamespaceService: reservedNamespaceService, 
+                    vulnerabilityService: vulnerabilityService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
                 var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser, firstUser);
+
+                vulnerabilityService.Verify(
+                    x => x.ApplyExistingVulnerabilitiesToPackage(package),
+                    Times.Once);
 
                 Assert.Equal(shouldMarkIdVerified, package.PackageRegistration.IsVerified);
             }
@@ -169,10 +198,18 @@ namespace NuGetGallery
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
                     .Returns(testNamespaces.ToList().AsReadOnly());
 
-                var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
+                var vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+
+                var packageUploadService = CreateService(
+                    reservedNamespaceService: reservedNamespaceService,
+                    vulnerabilityService: vulnerabilityService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
                 var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser, lastUser);
+
+                vulnerabilityService.Verify(
+                    x => x.ApplyExistingVulnerabilitiesToPackage(package),
+                    Times.Once);
 
                 Assert.False(package.PackageRegistration.IsVerified);
             }
@@ -2202,6 +2239,7 @@ namespace NuGetGallery
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ICoreLicenseFileService> _licenseFileService;
             protected readonly Mock<IDiagnosticsService> _diagnosticsService;
+            protected readonly Mock<IPackageVulnerabilityService> _vulnerabilityService;
             protected Package _package;
             protected Stream _packageFile;
             protected ArgumentException _unexpectedException;
@@ -2249,6 +2287,8 @@ namespace NuGetGallery
                     .Setup(ffs => ffs.AreEmbeddedIconsEnabled(It.IsAny<User>()))
                     .Returns(false);
 
+                _vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+
                 _target = new PackageUploadService(
                     _packageService.Object,
                     _packageFileService.Object,
@@ -2260,7 +2300,8 @@ namespace NuGetGallery
                     _telemetryService.Object,
                     _licenseFileService.Object,
                     _diagnosticsService.Object,
-                    _featureFlagService.Object);
+                    _featureFlagService.Object,
+                    _vulnerabilityService.Object);
             }
 
             protected static Mock<TestPackageReader> GeneratePackage(

@@ -58,6 +58,9 @@ namespace GitHubVulnerabilities2Db.Collector
             package {
               name
             }
+            firstPatchedVersion {
+                identifier
+            }
             vulnerableVersionRange
             updatedAt
           }
