@@ -38,6 +38,9 @@ Function Run-Tests {
         & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
         $TestCount++
     }
+
+    Write-Host "Ensuring the EntityFramework version can be discovered."
+    . (Join-Path $PSScriptRoot "tools\Update-Databases.ps1") -MigrationTargets @("FakeMigrationTarget")
 }
     
 Write-Host ("`r`n" * 3)
