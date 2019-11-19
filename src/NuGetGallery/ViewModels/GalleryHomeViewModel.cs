@@ -13,13 +13,16 @@ namespace NuGetGallery
 
         public bool ShowEnable2FAModal { get; set; }
 
-        public GalleryHomeViewModel() : this(showTransformModal: false, transformIntoOrganization: false, showEnable2FAModal: false, identity: null) { }
+        public bool GetFeedbackOnModalDismiss { get; set; }
 
-        public GalleryHomeViewModel(bool showTransformModal, bool transformIntoOrganization, bool showEnable2FAModal, string identity = null)
+        public GalleryHomeViewModel() : this(showTransformModal: false, transformIntoOrganization: false, showEnable2FAModal: false, getFeedbackOnModalDismiss: false, identity: null) { }
+
+        public GalleryHomeViewModel(bool showTransformModal, bool transformIntoOrganization, bool showEnable2FAModal, bool getFeedbackOnModalDismiss, string identity = null)
         {
             ShowTransformModal = showTransformModal;
             TransformIntoOrganization = transformIntoOrganization;
             ShowEnable2FAModal = showEnable2FAModal;
+            GetFeedbackOnModalDismiss = getFeedbackOnModalDismiss;
             Identity = identity;
         }
     }

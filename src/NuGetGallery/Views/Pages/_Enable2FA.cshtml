@@ -1,7 +1,13 @@
-﻿<div class="modal-dialog modal-box">
+﻿@model GalleryHomeViewModel
+@{
+    ViewBag.Title = "Enable Two-factor Authentication";
+    var shouldGetFeedback = @Model.GetFeedbackOnModalDismiss ? "true" : "false";
+}
+
+<div class="modal-dialog modal-box">
     <div class="modal-title">
         <span class="title-text" data-bind="text: modalTitle()"></span>
-        <button type="button" class="dismiss-button" data-bind="click: closeModal(showEnable2FADialog())" aria-label="Close">
+        <button type="button" class="dismiss-button" data-bind="click: dismissModalOrGetFeedback(showEnable2FADialog() && @shouldGetFeedback)" aria-label="Close">
             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
         </button>
     </div>
@@ -18,12 +24,16 @@
                     @Html.AntiForgeryToken()
 
                     @Html.Hidden("enableMultiFactor", true);
+                    <br />
+                    <span style="text-align: left">Two-factor authentication adds an additional layer of security to your account by requiring more than just a password login. <a class="title-text" target="_blank" href="https://aka.ms/nuget-enable-2fa">Learn more.</a></span>
                     <br /><br />
                     <button type="submit" class="btn btn-primary btn-block action-button">
                         <span>Enable 2FA for NuGet.org</span>
                     </button>
-                    <br /><br />
-                    <span style="text-align: left">Two-factor authentication adds an additional layer of security to your account by requiring more than just a password login. <a class="title-text" target="_blank" href="https://aka.ms/nuget-enable-2fa">Learn more.</a></span>
+                    <br />
+                    <div class="feedback-block">
+                        If you chose not to enable two-factor authentication, <span class="btn-link pointer-cursor" data-bind="click: dismissModalOrGetFeedback(true)">please tell us why?</span>
+                    </div>
                 }
             </div>
             <div id="feedback-page" class="text-label" data-bind="visible: !showEnable2FADialog()">
@@ -32,12 +42,15 @@
                 {
                     <div id="feedback-form">
                         <div class="form-group">
-                            <span class="feedback-label">Why did you choose to <i>not</i> enable 2FA?</span>
+                            <span class="feedback-label">Why did you choose <i>not</i> to enable 2FA?</span>
                             <textarea class="text-area" id="feedback-text" name="feebackText" data-bind="value: feedbackText" rows="5" aria-required="true"></textarea>
                             <div class="text-danger form-error-message" data-bind="text: message"></div>
                         </div>
                         <div class="feedback-submit">
-                            <button type="submit" class="btn btn-primary btn-block action-button" data-bind="click: sendFeedback">
+                            <button type="submit" class="btn btn-default feedback-btn action-button" data-bind="click: show2FAModal">
+                                <span>Back</span>
+                            </button>
+                            <button type="submit" class="btn btn-primary feedback-btn action-button" data-bind="click: sendFeedback">
                                 <span>Submit</span>
                             </button>
                         </div>

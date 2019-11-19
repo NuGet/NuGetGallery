@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly IMessageService _messageService;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IMessageServiceConfiguration _messageServiceConfiguration;
+        private readonly IFeatureFlagService _featureFlagService;
 
         protected PagesController() { }
         public PagesController(
@@ -31,13 +32,15 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             IMessageService messageService,
             ISupportRequestService supportRequestService,
-            IMessageServiceConfiguration messageServiceConfiguration)
+            IMessageServiceConfiguration messageServiceConfiguration,
+            IFeatureFlagService featureFlagService)
         {
             _contentService = contentService ?? throw new ArgumentNullException(nameof(contentService));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
             _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         // This will let you add 'static' cshtml pages to the site under View/Pages or Branding/Views/Pages
@@ -118,13 +121,24 @@ namespace NuGetGallery
                 .ShouldUserTransformIntoOrganization(user);
             var externalIdentityList = ClaimsExtensions.GetExternalCredentialIdentityList(identity);
 
-            // Show enable 2fa modal dialog for logged in accounts which do not have multi-factor authentication enabled
-            // and which have authenticated with personal MSA and also did not use multifactor authentication.
-            var showEnable2FAModal = user == null 
-                ? false 
-                : !user.EnableMultiFactorAuthentication && User.WasMicrosoftAccountUsedForSignin() && !User.WasMultiFactorAuthenticated();
+            var showEnable2FAModal = false;
+            if (user != null)
+            {
+                // Show enable 2fa modal dialog for logged in accounts for which
+                // 1. The feature flag is enabled for showing dialog
+                // 2. And, do not have multi-factor authentication enabled
+                // 3. And, which have authenticated with personal MSA
+                // 4. And, did not use multifactor authentication.
+                var isFeatureEnabled = _featureFlagService.IsShowEnable2FADialogEnabled();
+                showEnable2FAModal = isFeatureEnabled
+                && !user.EnableMultiFactorAuthentication
+                && User.WasMicrosoftAccountUsedForSignin()
+                && !User.WasMultiFactorAuthenticated();
+            }
 
-            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, showEnable2FAModal, externalIdentityList));
+            var getFeedbackOnModalDismiss = _featureFlagService.IsGet2FADismissFeedbackEnabled();
+
+            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, showEnable2FAModal, getFeedbackOnModalDismiss, externalIdentityList));
         }
 
         [HttpGet]

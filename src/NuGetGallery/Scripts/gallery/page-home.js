@@ -49,7 +49,7 @@ $(function () {
                 data: obj,
                 success: function (data) {
                     if (data.success) {
-                        viewModel.closeModal(false);
+                        viewModel.dismissModalOrGetFeedback(false);
                     } else {
                         viewModel.message(data.message);
                     }
@@ -58,7 +58,7 @@ $(function () {
             .fail(failHandler);
         },
 
-        closeModal: function (showFeedback) {
+        dismissModalOrGetFeedback: function (showFeedback) {
             if (showFeedback) {
                 // Send telemetry for 2FA dialog closed.
                 viewModel.resetViewModel();
@@ -67,6 +67,11 @@ $(function () {
             else {
                 $("#popUp2FAModal").modal('hide');
             }
+        },
+
+        show2FAModal: function () {
+            viewModel.resetViewModel();
+            viewModel.setupEnable2FAView();
         },
 
         setupFeedbackView: function () {
