@@ -68,6 +68,35 @@
 </script>
 
 <script type="text/html" id="manage-api-keys">
+    <!-- ko if: RevocationDescriptions().length > 0 -->
+    @ViewHelpers.AlertWarning(
+        @<text>
+        Your API
+        <!-- ko if: RevocationDescriptions().length === 1 -->
+        key
+        <!-- /ko -->
+        <!-- ko ifnot: RevocationDescriptions().length === 1 -->
+        keys
+        <!-- /ko -->
+        <!-- ko text: window.nuget.commaJoin(RevocationDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
+        <!-- ko if: RevocationDescriptions().length === 1 -->
+        has
+        <!-- /ko -->
+        <!-- ko ifnot: RevocationDescriptions().length === 1 -->
+        have
+        <!-- /ko -->
+        been revoked.<br />
+        Please check the email from @Config.Current.GalleryOwner.Address for details, and regenerate or create
+        <!-- ko if: RevocationDescriptions().length === 1 -->
+        a new API key
+        <!-- /ko -->
+        <!-- ko ifnot: RevocationDescriptions().length === 1 -->
+        new API keys
+        <!-- /ko -->
+        to use.
+        </text>,
+        isAlertRole: true)
+    <!-- /ko -->
     <!-- ko if: ExpiredDescriptions().length > 0 -->
     @ViewHelpers.AlertWarning(
         @<text>
@@ -126,6 +155,11 @@
                 <h3 data-bind="text: Description"></h3>
                 <ul class="list-inline icon-details" role="presentation">
                     <li>
+                        <!-- ko if: RevocationSource -->
+                        <i class="ms-Icon ms-Icon--Blocked2 revoke-api-key" aria-hidden="true"></i>
+                        <text class="revoke-api-key">Revoked</text>
+                        <!-- /ko -->
+                        <!-- ko ifnot: RevocationSource -->
                         <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
                         <!-- ko if: HasExpired -->
                         Expired
@@ -144,6 +178,7 @@
                             day@(Config.Current.ExpirationInDaysForApiKeyV1 != 1 ? "s" : string.Empty)</a>)
                             </text>
                         }
+                        <!-- /ko -->
                         <!-- /ko -->
                         <!-- /ko -->
                     </li>

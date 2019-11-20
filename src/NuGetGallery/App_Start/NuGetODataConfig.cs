@@ -40,7 +40,6 @@ namespace NuGetGallery
             
             // Register feeds
             NuGetODataV1FeedConfig.Register(config);
-            NuGetODataV2CuratedFeedConfig.Register(config);
             NuGetODataV2FeedConfig.Register(config);
 
             config.EnsureInitialized();

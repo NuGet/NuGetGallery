@@ -773,6 +773,9 @@ img.reserved-indicator-icon {
 .page-api-keys .api-key-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;
 }
+.page-api-keys .revoke-api-key {
+  color: #df001e;
+}
 .page-blog {
   margin-top: 33px;
 }
