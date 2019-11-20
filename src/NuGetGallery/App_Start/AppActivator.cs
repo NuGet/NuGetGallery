@@ -47,18 +47,6 @@ namespace NuGetGallery
 
             ViewEngines.Engines.Clear();
             ViewEngines.Engines.Add(CreateViewEngine());
-
-            try
-            {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    CloudPreStart();
-                }
-            }
-            catch
-            {
-                // Azure SDK not available!
-            }
         }
 
         public static void PostStart()
@@ -108,11 +96,6 @@ namespace NuGetGallery
             };
 
             return ret;
-        }
-
-        private static void CloudPreStart()
-        {
-            Trace.Listeners.Add(new DiagnosticMonitorTraceListener());
         }
 
         private static void BundlingPostStart()
