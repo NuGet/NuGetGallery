@@ -56,8 +56,6 @@ namespace NuGetGallery.Infrastructure.Search
         private async Task<SearchResults> SearchCore(SearchFilter filter, bool raw)
         {
             // Query!
-            var sw = new Stopwatch();
-            sw.Start();
             var result = await _searchClient.Search(
                 filter.SearchTerm,
                 projectTypeFilter: null,
@@ -71,7 +69,6 @@ namespace NuGetGallery.Infrastructure.Search
                 getAllVersions: filter.IncludeAllVersions,
                 supportedFramework: filter.SupportedFramework,
                 semVerLevel: filter.SemVerLevel);
-            sw.Stop();
 
             SearchResults results = null;
             if (result.IsSuccessStatusCode)
@@ -102,19 +99,6 @@ namespace NuGetGallery.Infrastructure.Search
 
                 results = new SearchResults(0, null, Enumerable.Empty<Package>().AsQueryable(), responseMessage: result.HttpResponse);
             }
-
-            Trace.PerfEvent(
-                SearchRoundtripTimePerfCounter,
-                sw.Elapsed,
-                new Dictionary<string, object>() {
-                    {"Term", filter.SearchTerm},
-                    {"Context", filter.Context},
-                    {"Raw", raw},
-                    {"Hits", results == null ? -1 : results.Hits},
-                    {"StatusCode", (int)result.StatusCode},
-                    {"SortOrder", filter.SortOrder.ToString()},
-                    {"Url", TryGetUrl()}
-                });
 
             return results;
         }

@@ -219,11 +219,6 @@ namespace NuGetGallery.Configuration
         public string GoogleAnalyticsPropertyId { get; set; }
 
         /// <summary>
-        /// Gets a boolean indicating if perf logs should be collected
-        /// </summary>
-        public bool CollectPerfLogs { get; set; }
-
-        /// <summary>
         /// Gets a boolean indicating if the search index should be updated automatically in the background
         /// </summary>
         [DefaultValue(true)]
