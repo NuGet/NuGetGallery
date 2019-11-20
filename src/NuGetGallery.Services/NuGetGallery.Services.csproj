@@ -127,8 +127,6 @@
     <Compile Include="Configuration\TyposquattingConfiguration.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
-    <Compile Include="Diagnostics\PerfEvent.cs" />
-    <Compile Include="Diagnostics\ProcessPerfEvents.cs" />
     <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
     <Compile Include="Extensions\Base32Encoder.cs" />
