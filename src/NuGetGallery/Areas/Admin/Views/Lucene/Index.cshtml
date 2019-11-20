@@ -48,19 +48,4 @@
     {
         <p>The Lucene Index is located on an external service and cannot be rebuilt.</p>
     }
-
-    <h3>Query Statistics</h3>
-    @if (Model.QueryStats != null)
-    {
-        <p>
-            Average Round Trip Time: @Model.QueryStats.Average.ToString("0.00")ms<br />
-            Maximum Round Trip Time: @Model.QueryStats.Max.ToString("0.00")ms<br />
-            Minimum Round Trip Time: @Model.QueryStats.Min.ToString("0.00")ms<br />
-            Based on the most recent @Model.QueryStats.Samples samples<br />
-        </p>
-    }
-    else
-    {
-        <p>Query statistics are not available or no queries have been made since the last server restart</p>
-    }
 </section>
