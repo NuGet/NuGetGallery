@@ -239,6 +239,7 @@
     <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
     <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
     <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\TwoFactorFeedbackMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
     <Compile Include="Infrastructure\HijackSearchServiceFactory.cs" />
     <Compile Include="Infrastructure\ODataCachedEndpoint.cs" />

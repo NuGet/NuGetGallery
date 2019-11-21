@@ -1162,9 +1162,9 @@ namespace NuGetGallery
             return GetRouteLink(url, RouteName.SigninAssistance, relativeUrl);
         }
 
-        public static string SendFeedback(this UrlHelper url, bool relativeUrl = true)
+        public static string Send2FAFeedback(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetRouteLink(url, RouteName.SendFeedback, relativeUrl);
+            return GetRouteLink(url, RouteName.Send2FAFeedback, relativeUrl);
         }
 
         public static string ChangeMultiFactorAuthentication(this UrlHelper url, bool relativeUrl = true)

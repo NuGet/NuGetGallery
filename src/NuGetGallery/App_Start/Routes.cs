@@ -320,12 +320,6 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
-                RouteName.SendFeedback,
-                "account/sendfeedback",
-                new { controller = "Authentication", action = "SendFeedback" },
-                new { httpMethod = new HttpMethodConstraint("POST") });
-
-            routes.MapRoute(
                 RouteName.LegacyRegister,
                 "account/register",
                 new { controller = "Authentication", action = "RegisterLegacy" },
@@ -377,6 +371,12 @@ namespace NuGetGallery
                 "account/certificates",
                 new { controller = "Users", action = "AddCertificate" },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.Send2FAFeedback,
+                "account/sendfeedback",
+                new { controller = "Users", action = "Send2FAFeedback" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 RouteName.RemovePassword,
