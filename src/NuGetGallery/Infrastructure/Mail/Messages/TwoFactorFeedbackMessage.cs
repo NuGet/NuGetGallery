@@ -38,20 +38,19 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 replyTo: replyTo);
         }
 
-        public override string GetSubject() => $"[{_configuration.GalleryOwner.DisplayName}] Two-factor Authentication not enabled Feedback";
+        public override string GetSubject() => $"[{_configuration.GalleryOwner.DisplayName}] 2FA not enabled feedback";
 
         protected override string GetMarkdownBody()
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                @"**NuGet User:** {0} ({1})
+                @"**User:** {0}
 
 This user chose **not** to enable the two-factor authentication!
 
 **Feedback:**
-{2}",
+{1}",
                 _feedbackProvider.Username,
-                GetUserCommunicationEmailAddress(),
                 _feedbackText);
         }
 
