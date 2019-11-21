@@ -40,6 +40,11 @@
     <Compile Include="Registration\RegistrationClientFacts.cs" />
     <Compile Include="Registration\RegistrationUrlBuilderFacts.cs" />
     <Compile Include="Support\Cursor.cs" />
+    <Compile Include="Support\InMemoryCatalogClient.cs" />
+    <Compile Include="Support\InMemoryCloudBlob.cs" />
+    <Compile Include="Support\InMemoryCloudBlobClient.cs" />
+    <Compile Include="Support\InMemoryCloudBlobContainer.cs" />
+    <Compile Include="Support\InMemoryRegistrationClient.cs" />
     <Compile Include="Support\V3Data.cs" />
     <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\IterTools.cs" />

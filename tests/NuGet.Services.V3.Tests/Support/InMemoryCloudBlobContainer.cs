@@ -9,13 +9,13 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery;
 
-namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
+namespace NuGet.Services
 {
     public class InMemoryCloudBlobContainer : ICloudBlobContainer
     {
         private readonly object _lock = new object();
 
-        public Dictionary<string, InMemoryCloudBlob> Blobs { get; } = new Dictionary<string, InMemoryCloudBlob>();
+        public SortedDictionary<string, InMemoryCloudBlob> Blobs { get; } = new SortedDictionary<string, InMemoryCloudBlob>();
 
         public Task CreateAsync()
         {
@@ -52,7 +52,15 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             }
         }
 
-        public Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(string prefix, bool useFlatBlobListing, BlobListingDetails blobListingDetails, int? maxResults, BlobContinuationToken blobContinuationToken, BlobRequestOptions options, OperationContext operationContext, CancellationToken cancellationToken)
+        public Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
+            string prefix,
+            bool useFlatBlobListing,
+            BlobListingDetails blobListingDetails,
+            int? maxResults,
+            BlobContinuationToken blobContinuationToken,
+            BlobRequestOptions options,
+            OperationContext operationContext,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

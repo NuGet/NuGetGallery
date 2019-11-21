@@ -18,7 +18,8 @@ namespace NuGet.Services
         public const string FlatContainerContainerName = "v3-flatcontainer";
         public const string PackageId = "WindowsAzure.Storage";
         public const string FullVersion = "7.1.2-alpha+git";
-        public static readonly string NormalizedVersion = NuGetVersion.Parse(FullVersion).ToNormalizedString();
+        public static readonly NuGetVersion ParsedVersion = NuGetVersion.Parse(FullVersion);
+        public static readonly string NormalizedVersion = ParsedVersion.ToNormalizedString();
         public static readonly string LowerPackageId = PackageId.ToLowerInvariant();
         public static readonly string LowerNormalizedVersion = NormalizedVersion.ToLowerInvariant();
         public static readonly string GalleryLicenseUrl = $"{GalleryBaseUrl}packages/{PackageId}/{NormalizedVersion}/license";

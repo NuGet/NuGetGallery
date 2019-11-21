@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using NuGet.Protocol.Registration;
 
-namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
+namespace NuGet.Services
 {
     public class InMemoryRegistrationClient : IRegistrationClient
     {
