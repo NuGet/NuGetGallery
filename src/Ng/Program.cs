@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -95,6 +96,12 @@ namespace Ng
             catch (ArgumentException ae)
             {
                 _logger?.LogError("A required argument was not found or was malformed/invalid: {Exception}", ae);
+
+                Console.WriteLine(job != null ? job.GetUsage() : NgJob.GetUsageBase());
+            }
+            catch (KeyNotFoundException knfe)
+            {
+                _logger?.LogError("An expected key was not found. One possible cause of this is required argument has not been provided: {Exception}", knfe);
 
                 Console.WriteLine(job != null ? job.GetUsage() : NgJob.GetUsageBase());
             }
