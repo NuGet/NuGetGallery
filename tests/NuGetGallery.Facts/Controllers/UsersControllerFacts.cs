@@ -1517,7 +1517,7 @@ namespace NuGetGallery
 
                 var userServiceMock = GetMock<IUserService>();
                 userServiceMock
-                    .Setup(x => x.ChangeMultiFactorAuthentication(user, enable2FA))
+                    .Setup(x => x.ChangeMultiFactorAuthentication(user, enable2FA, null))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -1525,7 +1525,7 @@ namespace NuGetGallery
                 var result = await controller.ChangeMultiFactorAuthentication(enable2FA);
 
                 // Assert
-                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(user, enable2FA));
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(user, enable2FA, null));
                 Assert.NotNull(controller.TempData["Message"]);
                 var identity = controller.OwinContext.Authentication.User.Identity as ClaimsIdentity;
                 Assert.NotNull(identity);

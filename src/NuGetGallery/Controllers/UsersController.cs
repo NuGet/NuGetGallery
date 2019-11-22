@@ -770,8 +770,8 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(bool enableMultiFactor)
         {
             var user = GetCurrentUser();
-
-            await UserService.ChangeMultiFactorAuthentication(user, enableMultiFactor);
+            var referalUri = new Uri(OwinContext.Request.Headers.Get("Referer"));
+            await UserService.ChangeMultiFactorAuthentication(user, enableMultiFactor, referalUri.AbsolutePath);
 
             TempData["Message"] = string.Format(
                 enableMultiFactor ? Strings.MultiFactorAuth_Enabled : Strings.MultiFactorAuth_Disabled,

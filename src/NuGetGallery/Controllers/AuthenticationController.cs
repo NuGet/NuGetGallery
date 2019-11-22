@@ -597,7 +597,7 @@ namespace NuGetGallery
                     && !result.Authentication.User.EnableMultiFactorAuthentication
                     && CredentialTypes.IsExternal(result.Credential))
                 {
-                    await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true);
+                    await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true, referer: "Authentication");
                     OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
                     if (CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
                     {
@@ -607,12 +607,10 @@ namespace NuGetGallery
 
                 // Ask the user to enable multifactor authentication, if the user
                 // 1. Does not have 2FA enabled, and
-                // 2. Signed in with MSA account, and
-                // 3. Did not use multi-factor auth for the current session.
+                // 2. Signed in with MSA account.
                 var currentUser = result.Authentication.User;
                 if (!currentUser.EnableMultiFactorAuthentication
-                    && User.WasMicrosoftAccountUsedForSignin()
-                    && !User.WasMultiFactorAuthenticated())
+                    && CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
                 {
                     TempData["AskUserToEnable2FA"] = true;
                 }

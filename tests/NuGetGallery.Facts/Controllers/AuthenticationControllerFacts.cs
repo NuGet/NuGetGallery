@@ -1664,7 +1664,7 @@ namespace NuGetGallery.Controllers
                     .Returns(Task.CompletedTask);
 
                 userServiceMock
-                    .Setup(x => x.ChangeMultiFactorAuthentication(authUser.User, true))
+                    .Setup(x => x.ChangeMultiFactorAuthentication(authUser.User, true, null))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -1675,7 +1675,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 authServiceMock.VerifyAll();
-                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(authUser.User, true), Times.Once());
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(authUser.User, true, null), Times.Once());
                 if (showMessage)
                 {
                     Assert.Equal(Strings.MultiFactorAuth_LoginUpdate, controller.TempData["Message"]);

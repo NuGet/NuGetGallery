@@ -49,6 +49,7 @@ $(function () {
                 data: obj,
                 success: function (data) {
                     if (data.success) {
+                        emitAIMetric("Enable2FAModalProvidedFeedback");
                         viewModel.dismissModalOrGetFeedback(false);
                     } else {
                         viewModel.message(data.message);
@@ -60,11 +61,11 @@ $(function () {
 
         dismissModalOrGetFeedback: function (showFeedback) {
             if (showFeedback) {
-                // Send telemetry for 2FA dialog closed.
                 viewModel.resetViewModel();
                 viewModel.setupFeedbackView();
             }
             else {
+                emitAIMetric('Enable2FAModalDismissed');
                 $("#popUp2FAModal").modal('hide');
             }
         },
@@ -108,10 +109,15 @@ $(function () {
 
     function show2FAModal() {
         viewModel.setupEnable2FAView();
+        emitAIMetric("Enable2FAModalShown");
         $("#popUp2FAModal").modal({
             show: true,
             focus: true
         });
+    }
+
+    function emitAIMetric(metricName) {
+        window.nuget.sendAiMetric(metricName, 1, {});
     }
 
     function updateStats() {

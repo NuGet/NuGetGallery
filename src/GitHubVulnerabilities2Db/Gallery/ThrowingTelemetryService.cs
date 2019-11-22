@@ -326,7 +326,7 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth)
+        public void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth, string referer)
         {
             throw new NotImplementedException();
         }
