@@ -143,6 +143,7 @@ namespace NuGetGallery.Configuration
             }
             else if (string.IsNullOrEmpty(value))
             {
+                // TODO: consider undoing the change and configure connection strings through app template.
                 var appSetting = GetAppSetting(settingName);
                 value = appSetting ?? GetConnectionString(settingName)?.ConnectionString;
             }
