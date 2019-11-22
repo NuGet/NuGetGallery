@@ -122,9 +122,6 @@ namespace NuGetGallery.Configuration
 
             if (!string.IsNullOrEmpty(value))
             {
-                // TODO: REMOVE!!!
-                Trace.TraceInformation($"Read raw value for {settingName}: {value}");
-                
                 value = await SecretInjector.InjectAsync(value);
             }
 
