@@ -15,7 +15,6 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
-using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGetGallery;
 using NuGetGallery.Configuration;
@@ -47,18 +46,6 @@ namespace NuGetGallery
 
             ViewEngines.Engines.Clear();
             ViewEngines.Engines.Add(CreateViewEngine());
-
-            try
-            {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    CloudPreStart();
-                }
-            }
-            catch
-            {
-                // Azure SDK not available!
-            }
         }
 
         public static void PostStart()
@@ -108,11 +95,6 @@ namespace NuGetGallery
             };
 
             return ret;
-        }
-
-        private static void CloudPreStart()
-        {
-            Trace.Listeners.Add(new DiagnosticMonitorTraceListener());
         }
 
         private static void BundlingPostStart()
