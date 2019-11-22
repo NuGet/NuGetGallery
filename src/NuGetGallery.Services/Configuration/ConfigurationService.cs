@@ -143,8 +143,8 @@ namespace NuGetGallery.Configuration
             }
             else if (string.IsNullOrEmpty(value))
             {
-                var cstr = GetConnectionString(settingName);
-                value = cstr != null ? cstr.ConnectionString : GetAppSetting(settingName);
+                var appSetting = GetAppSetting(settingName);
+                value = appSetting ?? GetConnectionString(settingName)?.ConnectionString;
             }
 
             return value;
