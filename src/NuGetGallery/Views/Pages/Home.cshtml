@@ -4,6 +4,9 @@
     ViewBag.ShowSearchInNavbar = false;
     ViewBag.AutofocusSearch = true;
     ViewBag.HasJumbotron = true;
+    var AskUserToEnable2FA = TempData.ContainsKey("AskUserToEnable2FA")
+        && Convert.ToBoolean(TempData["AskUserToEnable2FA"].ToString())
+        && Model.ShowEnable2FAModalFeatureEnabled;
 }
 
 @section SocialMeta {
@@ -25,7 +28,7 @@
         @Html.Partial("_TransformOrLink", Model)
     </div>
 }
-else if (Model.ShowEnable2FAModal)
+else if (AskUserToEnable2FA)
 {
     <script type="text/javascript">
         window.show2FAModal = true;

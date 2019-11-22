@@ -590,15 +590,31 @@ namespace NuGetGallery
                     result.Authentication,
                     wasMultiFactorAuthenticated: result?.LoginDetails?.WasMultiFactorAuthenticated ?? false);
 
-                // Update the 2FA if used during login but user does not have it set on their account. Only for personal microsoft accounts.
+                // Update the 2FA if used during login but user does not have it set on their account. Enforced for only personal microsoft accounts
+                // record it in the DB for the AAD accounts.
                 if (result?.LoginDetails != null
                     && result.LoginDetails.WasMultiFactorAuthenticated
                     && !result.Authentication.User.EnableMultiFactorAuthentication
-                    && CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
+                    && CredentialTypes.IsExternal(result.Credential))
                 {
                     await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true);
                     OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
-                    TempData["Message"] = Strings.MultiFactorAuth_LoginUpdate;
+                    if (CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
+                    {
+                        TempData["Message"] = Strings.MultiFactorAuth_LoginUpdate;
+                    }
+                }
+
+                // Ask the user to enable multifactor authentication, if the user
+                // 1. Does not have 2FA enabled, and
+                // 2. Signed in with MSA account, and
+                // 3. Did not use multi-factor auth for the current session.
+                var currentUser = result.Authentication.User;
+                if (!currentUser.EnableMultiFactorAuthentication
+                    && User.WasMicrosoftAccountUsedForSignin()
+                    && !User.WasMultiFactorAuthenticated())
+                {
+                    TempData["AskUserToEnable2FA"] = true;
                 }
 
                 return SafeRedirect(returnUrl);

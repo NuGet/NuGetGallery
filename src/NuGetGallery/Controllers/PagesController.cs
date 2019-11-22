@@ -120,22 +120,7 @@ namespace NuGetGallery
                 .LoginDiscontinuationConfiguration
                 .ShouldUserTransformIntoOrganization(user);
             var externalIdentityList = ClaimsExtensions.GetExternalCredentialIdentityList(identity);
-
-            var showEnable2FAModal = false;
-            if (user != null)
-            {
-                // Show enable 2fa modal dialog for logged in accounts for which
-                // 1. The feature flag is enabled for showing dialog
-                // 2. And, do not have multi-factor authentication enabled
-                // 3. And, which have authenticated with personal MSA
-                // 4. And, did not use multifactor authentication.
-                var isFeatureEnabled = _featureFlagService.IsShowEnable2FADialogEnabled();
-                showEnable2FAModal = isFeatureEnabled
-                && !user.EnableMultiFactorAuthentication
-                && User.WasMicrosoftAccountUsedForSignin()
-                && !User.WasMultiFactorAuthenticated();
-            }
-
+            var showEnable2FAModal = _featureFlagService.IsShowEnable2FADialogEnabled();
             var getFeedbackOnModalDismiss = _featureFlagService.IsGet2FADismissFeedbackEnabled();
 
             return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, showEnable2FAModal, getFeedbackOnModalDismiss, externalIdentityList));

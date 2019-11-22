@@ -1,7 +1,7 @@
 ﻿@model GalleryHomeViewModel
 @{
     ViewBag.Title = "Enable Two-factor Authentication";
-    var shouldGetFeedback = @Model.GetFeedbackOnModalDismiss ? "true" : "false";
+    var shouldGetFeedback = @Model.GetFeedbackOnModalDismissFeatureEnabled ? "true" : "false";
 }
 
 <div class="modal-dialog modal-box">
