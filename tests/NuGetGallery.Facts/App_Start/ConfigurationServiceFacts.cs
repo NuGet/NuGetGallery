@@ -167,7 +167,7 @@ namespace NuGetGallery.App_Start
                 string result = await configurationService.ReadSettingAsync("any");
 
                 // Assert
-                Assert.Equal(configurationService.AppSettingStub, result);
+                Assert.Equal(configurationService.ConnectionStringStub, result);
             }
 
             [Fact]
