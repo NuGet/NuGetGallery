@@ -1636,7 +1636,7 @@ namespace NuGetGallery.Controllers
             [Theory]
             [InlineData("MicrosoftAccount", true)]
             [InlineData("AzureActiveDirectory", false)]
-            public async Task ShouldUpdateMultiFactorSettingForMicrosoftAccounts(string credType, bool enabled2FA)
+            public async Task ShouldUpdateMultiFactorSettingForMicrosoftAccounts(string credType, bool showMessage)
             {
                 // Arrange
                 var email = "test@email.com";
@@ -1675,8 +1675,8 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 authServiceMock.VerifyAll();
-                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(authUser.User, true), enabled2FA ? Times.Once() : Times.Never());
-                if (enabled2FA)
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(authUser.User, true), Times.Once());
+                if (showMessage)
                 {
                     Assert.Equal(Strings.MultiFactorAuth_LoginUpdate, controller.TempData["Message"]);
                 }
