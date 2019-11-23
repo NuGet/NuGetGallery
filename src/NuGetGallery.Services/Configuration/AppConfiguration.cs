@@ -403,5 +403,8 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue("")]
         public string EmbeddedIconUrlTemplate { get; set; }
+
+        [DefaultValue(null)]
+        public string DeploymentLabel { get; set; }
     }
 }
