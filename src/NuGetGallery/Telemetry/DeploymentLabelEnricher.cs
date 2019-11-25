@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -15,6 +16,11 @@ namespace NuGetGallery
 
         public DeploymentLabelEnricher(IAppConfiguration appConfiguration)
         {
+            if (appConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(appConfiguration));
+            }
+            
             _deploymentLabel = appConfiguration.DeploymentLabel;
         }
 
