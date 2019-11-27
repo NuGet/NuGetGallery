@@ -296,10 +296,10 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.58.0</Version>
+      <Version>2.59.0-agr-logging-dl-3279317</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.58.0</Version>
+      <Version>2.59.0-agr-logging-dl-3279317</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.WebBackgrounder">
       <Version>0.2.0</Version>

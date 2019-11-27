@@ -67,7 +67,7 @@
       <Version>4.3.0-dev-3159955</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.58.0</Version>
+      <Version>2.59.0-agr-logging-dl-3279317</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

@@ -96,7 +96,10 @@ namespace NuGetGallery
 
                 // Add enrichers
                 TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentIdTelemetryEnricher());
-                TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentLabelEnricher(config.Current));
+                if (config.Current.DeploymentLabel != null)
+                {
+                    TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentLabelEnricher(config.Current.DeploymentLabel));
+                }
                 TelemetryConfiguration.Active.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
 
                 var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
