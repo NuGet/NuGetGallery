@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationInsights.cs" />
+    <Compile Include="ApplicationInsightsConfiguration.cs" />
     <Compile Include="DurationMetric.cs" />
     <Compile Include="ExceptionTelemetryProcessor.cs" />
     <Compile Include="LoggingSetup.cs" />

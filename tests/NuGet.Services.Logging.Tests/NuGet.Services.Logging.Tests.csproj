@@ -53,6 +53,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplicationInsightsTests.cs" />
     <Compile Include="ExceptionTelemetryProcessorTests.cs" />
     <Compile Include="LoggingSetupTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
