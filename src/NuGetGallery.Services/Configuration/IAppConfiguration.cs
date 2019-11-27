@@ -444,5 +444,10 @@ namespace NuGetGallery.Configuration
         /// '{version-lower}' will be replaced with the normalized package version in lowercase.
         /// </summary>
         string EmbeddedIconUrlTemplate { get; set; }
+
+        /// <summary>
+        /// Deployment label to log with telemetry.
+        /// </summary>
+        string DeploymentLabel { get; set; }
     }
 }
