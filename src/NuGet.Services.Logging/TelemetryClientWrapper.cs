@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace NuGet.Services.Logging
 {
@@ -39,6 +40,37 @@ namespace NuGet.Services.Logging
             try
             {
                 _telemetryClient.TrackMetric(metricName, value, properties);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
+
+        public void TrackMetric(
+            DateTimeOffset timestamp,
+            string metricName,
+            double value,
+            IDictionary<string, string> properties = null)
+        {
+            try
+            {
+                var metricTelemetry = new MetricTelemetry
+                {
+                    Timestamp = timestamp,
+                    Name = metricName,
+                    Value = value
+                };
+
+                if (properties != null)
+                {
+                    foreach (var key in properties.Keys)
+                    {
+                        metricTelemetry.Properties.Add(key, properties[key]);
+                    }
+                }
+
+                _telemetryClient.TrackMetric(metricTelemetry);
             }
             catch
             {
