@@ -98,7 +98,7 @@ namespace NuGetGallery
                 TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentIdTelemetryEnricher());
                 if (config.Current.DeploymentLabel != null)
                 {
-                    TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentLabelEnricher(config.Current));
+                    TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentLabelEnricher(config.Current.DeploymentLabel));
                 }
                 TelemetryConfiguration.Active.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
 
