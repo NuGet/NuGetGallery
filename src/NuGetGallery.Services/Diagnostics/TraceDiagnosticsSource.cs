@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
@@ -58,15 +57,6 @@ namespace NuGetGallery.Diagnostics
             }
 
             _telemetryClient.TrackTrace(FormatMessage(message, member, file, line), logLevel, eventId);
-        }
-
-        public void PerfEvent(string name, TimeSpan time, IEnumerable<KeyValuePair<string, object>> payload)
-        {
-            // For now, hard-code the number of samples we track to 1000.
-            PerfCounters.AddSample(name, sampleSize: 1000, value: time.TotalMilliseconds);
-
-            // Send the event to the queue
-            MessageQueue.Enqueue(_name, new PerfEvent(name, DateTime.UtcNow, time, payload));
         }
 
         private static string FormatMessage(string message, string member, string file, int line)

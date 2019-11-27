@@ -119,6 +119,6 @@ Invoke-Netsh http add sslcert hostnameport="$(Get-SiteHttpsHost)" certhash="$($s
 Write-Host "[DONE] Setting SSL Certificate" -ForegroundColor Cyan
 Write-Host "[BEGIN] Running Migrations" -ForegroundColor Cyan
 
-& "$ScriptRoot\Update-Databases.ps1" -MigrationTargets NugetGallery,NugetGallerySupportRequest -NugetGallerySitePath $SitePhysicalPath
+& "$ScriptRoot\Update-Databases.ps1" -MigrationTargets NuGetGallery,NuGetGallerySupportRequest -NuGetGallerySitePath $SitePhysicalPath
 
 Write-Host "[DONE] Running Migrations" -ForegroundColor Cyan

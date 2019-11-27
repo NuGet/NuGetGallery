@@ -15,7 +15,6 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
-using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGetGallery;
 using NuGetGallery.Configuration;
