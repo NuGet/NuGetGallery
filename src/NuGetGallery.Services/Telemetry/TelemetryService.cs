@@ -406,7 +406,7 @@ namespace NuGetGallery
             TrackMetricForAccountActivity(enabledMultiFactorAuth ? Events.UserMultiFactorAuthenticationEnabled : Events.UserMultiFactorAuthenticationDisabled,
                 user,
                 credential: null,
-                addProperties => {
+                addProperties: addProperties => {
                     addProperties.Add("Referer", referer);
                 });
         }
