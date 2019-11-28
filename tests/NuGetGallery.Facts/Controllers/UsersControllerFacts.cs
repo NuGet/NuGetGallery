@@ -1525,7 +1525,7 @@ namespace NuGetGallery
                 var result = await controller.ChangeMultiFactorAuthentication(enable2FA);
 
                 // Assert
-                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(user, enable2FA, null));
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(user, enable2FA, It.IsAny<string>()));
                 Assert.NotNull(controller.TempData["Message"]);
                 var identity = controller.OwinContext.Authentication.User.Identity as ClaimsIdentity;
                 Assert.NotNull(identity);

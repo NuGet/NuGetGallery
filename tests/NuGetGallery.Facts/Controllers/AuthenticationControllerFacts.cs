@@ -1527,7 +1527,8 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(new AuthenticateExternalLoginResult()
                     {
                         ExternalIdentity = new ClaimsIdentity(),
-                        Authentication = authUser
+                        Authentication = authUser,
+                        Credential = cred
                     });
 
                 GetMock<AuthenticationService>()
@@ -1565,7 +1566,8 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(new AuthenticateExternalLoginResult()
                     {
                         ExternalIdentity = new ClaimsIdentity(),
-                        Authentication = authUser
+                        Authentication = authUser,
+                        Credential = cred
                     });
 
                 GetMock<AuthenticationService>()
@@ -1675,7 +1677,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 authServiceMock.VerifyAll();
-                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(authUser.User, true, null), Times.Once());
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(authUser.User, true, It.IsAny<string>()), Times.Once());
                 if (showMessage)
                 {
                     Assert.Equal(Strings.MultiFactorAuth_LoginUpdate, controller.TempData["Message"]);
@@ -1711,7 +1713,8 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(new AuthenticateExternalLoginResult()
                     {
                         ExternalIdentity = new ClaimsIdentity(),
-                        Authentication = authUser
+                        Authentication = authUser,
+                        Credential = cred
                     });
 
                 GetMock<AuthenticationService>()
@@ -1761,7 +1764,8 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(new AuthenticateExternalLoginResult()
                     {
                         ExternalIdentity = new ClaimsIdentity(),
-                        Authentication = authUser
+                        Authentication = authUser,
+                        Credential = cred
                     });
 
                 if (shouldChallenge)
