@@ -90,14 +90,14 @@ namespace StatusAggregator.Tests.Collector
 
         public class TheFetchSinceMethodAtMinValue : TheFetchSinceMethod
         {
-            public override DateTime Cursor => DateTime.MinValue;
+            public override DateTime Cursor => DateTime.MinValue.ToUniversalTime();
 
             [Fact]
             public async Task DoesNotFilterByCursor()
             {
                 var change = new ManualStatusChangeEntity()
                 {
-                    Timestamp = DateTime.MinValue
+                    Timestamp = DateTimeOffset.MinValue
                 };
                 
                 Table.SetupQuery(change);
@@ -117,7 +117,7 @@ namespace StatusAggregator.Tests.Collector
 
         public class TheFetchSinceMethodAtPresent : TheFetchSinceMethod
         {
-            public override DateTime Cursor => new DateTime(2018, 9, 12);
+            public override DateTime Cursor => new DateTime(2018, 9, 12, 0, 0, 0, DateTimeKind.Utc);
         }
 
         public class ManualStatusChangeCollectorTest
