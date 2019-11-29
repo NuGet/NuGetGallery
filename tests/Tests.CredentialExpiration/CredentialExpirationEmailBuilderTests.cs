@@ -24,8 +24,8 @@ namespace Tests.CredentialExpiration
                         null, 
                         new MailAddress("sender@s.com"), 
                         "a", 
-                        CreateValidList(), 
-                        DateTime.MinValue, 
+                        CreateValidList(),
+                        DateTimeOffset.MinValue, 
                         false));
             }
 
@@ -38,7 +38,7 @@ namespace Tests.CredentialExpiration
                         null,
                         "a",
                         CreateValidList(),
-                        DateTime.MinValue,
+                        DateTimeOffset.MinValue,
                         false));
             }
 
@@ -51,7 +51,7 @@ namespace Tests.CredentialExpiration
                         new MailAddress("sender@s.com"),
                         null,
                         CreateValidList(),
-                        DateTime.MinValue,
+                        DateTimeOffset.MinValue,
                         false));
             }
 
@@ -64,7 +64,7 @@ namespace Tests.CredentialExpiration
                         new MailAddress("sender@s.com"),
                         "a",
                         null,
-                        DateTime.MinValue,
+                        DateTimeOffset.MinValue,
                         false));
             }
 
@@ -77,7 +77,7 @@ namespace Tests.CredentialExpiration
                         new MailAddress("sender@s.com"),
                         "a",
                         new List<ExpiredCredentialData>(),
-                        DateTime.MinValue,
+                        DateTimeOffset.MinValue,
                         false));
             }
 
@@ -90,7 +90,7 @@ namespace Tests.CredentialExpiration
                         new MailAddress("sender@s.com"),
                         "a",
                         new List<ExpiredCredentialData> { new ExpiredCredentialData { EmailAddress = null } },
-                        DateTime.MinValue,
+                        DateTimeOffset.MinValue,
                         false));
             }
 
