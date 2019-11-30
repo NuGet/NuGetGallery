@@ -365,7 +365,7 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange, Act and Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(async ()
-                    => await _authenticationService.RevokeApiKeyCredential(null, It.IsAny<CredentialRevocationSource>()));
+                    => await _authenticationService.RevokeApiKeyCredential(null, It.IsAny<CredentialRevocationSource>(), _fakes.Admin));
             }
 
             [Theory]
@@ -388,7 +388,7 @@ namespace NuGetGallery.Authentication
                     c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
                 // Act
-                await _authenticationService.RevokeApiKeyCredential(cred, revocationSourceKey);
+                await _authenticationService.RevokeApiKeyCredential(cred, revocationSourceKey, _fakes.Admin);
 
                 // Assert
                 Assert.True(cred.HasExpired);
@@ -416,7 +416,7 @@ namespace NuGetGallery.Authentication
 
                 // Act and Assert
                 var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                    async () => await _authenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.GitHub));
+                    async () => await _authenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.GitHub, _fakes.Admin));
                 Assert.Equal($"The API key credential with Key '{cred.Key}' is not revocable.", exception.Message);
             }
 
@@ -436,7 +436,7 @@ namespace NuGetGallery.Authentication
 
                 // Act and Assert
                 var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                    async () => await _authenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.GitHub));
+                    async () => await _authenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.GitHub, _fakes.Admin));
                 Assert.Equal($"The API key credential with Key '{cred.Key}' is not revocable.", exception.Message);
             }
 
@@ -469,7 +469,7 @@ namespace NuGetGallery.Authentication
 
                 // Act and Assert
                 var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                    async () => await _authenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.GitHub));
+                    async () => await _authenticationService.RevokeApiKeyCredential(cred, CredentialRevocationSource.GitHub, _fakes.Admin));
                 Assert.Equal($"The API key credential with Key '{cred.Key}' is not revocable.", exception.Message);
             }
         }

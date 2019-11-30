@@ -106,6 +106,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return View(nameof(Index));
             }
 
+            var admin = GetCurrentUser();
             try
             {
                 foreach (var selectedApiKey in revokeApiKeysRequest.SelectedApiKeys)
@@ -114,7 +115,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                     var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
                     var revocationSourceKey = (CredentialRevocationSource)Enum.Parse(typeof(CredentialRevocationSource), apiKeyInfo.RevocationSource);
-                    await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, commitChanges: false);
+                    await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, requestingUser: admin, commitChanges: false);
                 }
 
                 await _entitiesContext.SaveChangesAsync();

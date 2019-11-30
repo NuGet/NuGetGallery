@@ -360,7 +360,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Arrange
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _entitiesContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(0));
 
@@ -373,7 +373,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Successfully revoke the selected API keys.", apiKeysController.TempData["Message"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
             }
 
@@ -439,7 +439,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Failed to revoke the API keys, and please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Never);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Never);
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
             }
@@ -454,7 +454,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
                     .ThrowsAsync(exception);
                 _entitiesContext.Setup(x => x.SaveChangesAsync());
                 _telemetryService.Setup(x => x.TraceException(exception));
@@ -465,7 +465,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Failed to revoke the API keys, and please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
             }
@@ -480,7 +480,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _entitiesContext.Setup(x => x.SaveChangesAsync()).ThrowsAsync(exception);
                 _telemetryService.Setup(x => x.TraceException(exception));
@@ -491,7 +491,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Failed to revoke the API keys, and please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
             }
@@ -515,7 +515,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _entitiesContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(0));
 
@@ -525,7 +525,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Successfully revoke the selected API keys.", apiKeysController.TempData["Message"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Exactly(2));
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Exactly(2));
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Exactly(2));
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
             }
 
@@ -539,7 +539,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
                     .ThrowsAsync(exception);
                 _entitiesContext.Setup(x => x.SaveChangesAsync());
                 _telemetryService.Setup(x => x.TraceException(exception));
@@ -550,7 +550,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Failed to revoke the API keys, and please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Exactly(1));
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Exactly(1));
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Exactly(1));
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
             }
