@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Moq;
 using Xunit;
+using Newtonsoft.Json;
+using NuGetGallery.Auditing;
+using NuGetGallery.Framework;
 using NuGet.Services.Entities;
-using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Areas.Admin.Models;
-using Newtonsoft.Json;
+using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -25,6 +27,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             private readonly Mock<HttpContextBase> _httpContextBase;
             private readonly Mock<ITelemetryService> _telemetryService;
             private readonly Mock<IEntitiesContext> _entitiesContext;
+            private readonly Mock<IAuditingService> _auditingService;
 
             public TheVerifyMethod()
             {
@@ -32,6 +35,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _httpContextBase = new Mock<HttpContextBase>();
                 _telemetryService = new Mock<ITelemetryService>();
                 _entitiesContext = new Mock<IEntitiesContext>();
+                _auditingService = new Mock<IAuditingService>();
             }
 
             [Fact]
@@ -42,7 +46,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Returns(() => null);
 
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -86,7 +90,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _authenticationService.Setup(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()))
                     .Returns(false);
 
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -132,7 +136,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _authenticationService.Setup(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()))
                     .Returns(true);
 
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -169,7 +173,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _authenticationService.Setup(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()))
                     .Returns(true);
 
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -229,7 +233,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public void GivenEmptyVerifyQuery_ItReturnsWarning(string verifyQuery)
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -269,7 +273,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public void GivenInvalidVerifyQuery_ItReturnsWarning(string verifyQuery, string expectedMessageQuery)
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -293,7 +297,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _authenticationService.Setup(x => x.IsActiveApiKeyCredential(It.IsAny<Credential>()))
                     .Returns(true);
 
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -320,7 +324,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
                     .Throws(new Exception(exceptionMessage));
 
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act and Assert
@@ -345,6 +349,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             private readonly Mock<HttpContextBase> _httpContextBase;
             private readonly Mock<ITelemetryService> _telemetryService;
             private readonly Mock<IEntitiesContext> _entitiesContext;
+            private readonly Mock<IAuditingService> _auditingService;
 
             public TheRevokeMethod()
             {
@@ -352,20 +357,26 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 _httpContextBase = new Mock<HttpContextBase>();
                 _telemetryService = new Mock<ITelemetryService>();
                 _entitiesContext = new Mock<IEntitiesContext>();
+                _auditingService = new Mock<IAuditingService>();
             }
 
             [Fact]
             public async Task GivenValidRequest_ItRevokesApiKey()
             {
                 // Arrange
+                var credential = new Credential();
+                credential.User = new User("TestUsername");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(credential);
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _entitiesContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(0));
+                _auditingService.Setup(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>())).Returns(Task.FromResult(0));
 
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+                apiKeysController.SetOwinContextOverride(Fakes.CreateOwinContext());
+                apiKeysController.SetCurrentUser(TestUtility.FakeAdminUser);
 
                 // Act
                 await apiKeysController.Revoke(GetRevokeApiKeyRequest());
@@ -373,15 +384,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Successfully revoke the selected API keys.", apiKeysController.TempData["Message"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
+                _auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>()), Times.Once);
             }
 
             [Fact]
             public async Task GivenNullRequest_ItReturnsErrorMessage()
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -395,7 +407,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task GivenRequestWithNullSelectedApiKeys_ItReturnsErrorMessage()
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -409,7 +421,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task GivenRequestWithEmptySelectedApiKeys_ItReturnsErrorMessage()
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 // Act
@@ -425,8 +437,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task ThrowExceptionsFromGetApiKeyCredential_ItReturnsErrorMessage()
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+                apiKeysController.SetOwinContextOverride(Fakes.CreateOwinContext());
+                apiKeysController.SetCurrentUser(TestUtility.FakeAdminUser);
 
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>())).Throws(exception);
@@ -439,25 +453,63 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Failed to revoke the API keys, and please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Never);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Never);
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
+            }
+
+            [Fact]
+            public async Task ThrowExceptionsFromSaveAuditRecordAsync_ItReturnsErrorMessage()
+            {
+                // Arrange
+                var credential = new Credential();
+                credential.User = new User("TestUsername");
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
+                TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+                apiKeysController.SetOwinContextOverride(Fakes.CreateOwinContext());
+                apiKeysController.SetCurrentUser(TestUtility.FakeAdminUser);
+
+                var exception = new Exception("Some exceptions!");
+                _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
+                    .Returns(credential);
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(0));
+                _entitiesContext.Setup(x => x.SaveChangesAsync());
+                _telemetryService.Setup(x => x.TraceException(exception));
+                _auditingService.Setup(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>()))
+                    .ThrowsAsync(exception);
+
+                // Act
+                await apiKeysController.Revoke(GetRevokeApiKeyRequest());
+
+                // Assert
+                Assert.Equal("Failed to revoke the API keys, and please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
+                _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Never);
+                _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
+                _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
+                _auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>()), Times.Once);
             }
 
             [Fact]
             public async Task ThrowExceptionsFromRevokeApiKeyCredential_ItReturnsErrorMessage()
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var credential = new Credential();
+                credential.User = new User("TestUsername");
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+                apiKeysController.SetOwinContextOverride(Fakes.CreateOwinContext());
+                apiKeysController.SetCurrentUser(TestUtility.FakeAdminUser);
 
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(credential);
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .ThrowsAsync(exception);
                 _entitiesContext.Setup(x => x.SaveChangesAsync());
                 _telemetryService.Setup(x => x.TraceException(exception));
+                _auditingService.Setup(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>())).Returns(Task.FromResult(0));
 
                 // Act
                 await apiKeysController.Revoke(GetRevokeApiKeyRequest());
@@ -465,25 +517,31 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Failed to revoke the API keys, and please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
+                _auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>()), Times.Once);
             }
 
             [Fact]
             public async Task ThrowExceptionsFromEntitiesContextSaveChanges_ItReturnsErrorMessage()
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var credential = new Credential();
+                credential.User = new User("TestUsername");
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+                apiKeysController.SetOwinContextOverride(Fakes.CreateOwinContext());
+                apiKeysController.SetCurrentUser(TestUtility.FakeAdminUser);
 
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(credential);
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _entitiesContext.Setup(x => x.SaveChangesAsync()).ThrowsAsync(exception);
                 _telemetryService.Setup(x => x.TraceException(exception));
+                _auditingService.Setup(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>())).Returns(Task.FromResult(0));
 
                 // Act
                 await apiKeysController.Revoke(GetRevokeApiKeyRequest());
@@ -491,9 +549,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Failed to revoke the API keys, and please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Once);
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Once);
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
+                _auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>()), Times.Once);
             }
 
             private RevokeApiKeysRequest GetRevokeApiKeyRequest()
@@ -510,14 +569,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task GivenValidRequestWithMultipleApiKeys_ItRevokesMultipleApiKeys()
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var credential = new Credential();
+                credential.User = new User("TestUsername");
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+                apiKeysController.SetOwinContextOverride(Fakes.CreateOwinContext());
+                apiKeysController.SetCurrentUser(TestUtility.FakeAdminUser);
 
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(credential);
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _entitiesContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(0));
+                _auditingService.Setup(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>())).Returns(Task.FromResult(0));
 
                 // Act
                 await apiKeysController.Revoke(GetRevokeMultipleApiKeysRequest());
@@ -525,24 +589,30 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Successfully revoke the selected API keys.", apiKeysController.TempData["Message"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Exactly(2));
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Exactly(2));
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Exactly(2));
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
+                _auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>()), Times.Exactly(2));
             }
 
             [Fact]
             public async Task GivenValidRequestWithMultipleApiKeys_ThrowExceptionsFromRevokeCredential_ItReturnsErrorMessageWithMultipleApiKeys()
             {
                 // Arrange
-                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
+                var credential = new Credential();
+                credential.User = new User("TestUsername");
+                var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object, _auditingService.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
+                apiKeysController.SetOwinContextOverride(Fakes.CreateOwinContext());
+                apiKeysController.SetCurrentUser(TestUtility.FakeAdminUser);
 
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(new Credential());
-                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Returns(credential);
+                _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .ThrowsAsync(exception);
                 _entitiesContext.Setup(x => x.SaveChangesAsync());
                 _telemetryService.Setup(x => x.TraceException(exception));
+                _auditingService.Setup(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>())).Returns(Task.FromResult(0));
 
                 // Act
                 await apiKeysController.Revoke(GetRevokeMultipleApiKeysRequest());
@@ -550,9 +620,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 // Assert
                 Assert.Equal("Failed to revoke the API keys, and please check the telemetry for details.", apiKeysController.TempData["ErrorMessage"]);
                 _authenticationService.Verify(x => x.GetApiKeyCredential(It.IsAny<string>()), Times.Exactly(1));
-                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Exactly(1));
+                _authenticationService.Verify(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()), Times.Exactly(1));
                 _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
+                _auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<RevokeCredentialAuditRecord>()), Times.Once);
             }
 
             private RevokeApiKeysRequest GetRevokeMultipleApiKeysRequest()

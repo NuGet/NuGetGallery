@@ -8,15 +8,22 @@ namespace NuGetGallery.Auditing
     public class RevokeCredentialAuditRecord : AuditRecord<AuditedRevokeCredentialAction>
     {
         public string Username { get; }
-        public string RequestingUsername { get; }
+        public string RevocationSource { get; }
+        public string LeakedUrl { get; }
         public CredentialAuditRecord Credential { get; }
+        public string RequestingUsername { get; }
 
-        public RevokeCredentialAuditRecord(Credential credential, AuditedRevokeCredentialAction action, string requestingUsername)
-            : base(action)
+        public RevokeCredentialAuditRecord(Credential credential,
+            AuditedRevokeCredentialAction action,
+            string revocationSource,
+            string leakedUrl,
+            string requestingUsername) : base(action)
         {
             Username = credential.User.Username;
-            RequestingUsername = requestingUsername;
+            RevocationSource = revocationSource;
+            LeakedUrl = leakedUrl;
             Credential = new CredentialAuditRecord(credential, removed: false);
+            RequestingUsername = requestingUsername;
         }
 
         public override string GetPath()

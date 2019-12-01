@@ -164,7 +164,7 @@ namespace NuGetGallery.Authentication
             return FindMatchingApiKey(credential);
         }
 
-        public async Task RevokeApiKeyCredential(Credential apiKeyCredential, CredentialRevocationSource revocationSourceKey, User requestingUser, bool commitChanges = true)
+        public async Task RevokeApiKeyCredential(Credential apiKeyCredential, CredentialRevocationSource revocationSourceKey, bool commitChanges = true)
         {
             if (apiKeyCredential == null)
             {
@@ -179,9 +179,6 @@ namespace NuGetGallery.Authentication
                     ServicesStrings.RevokeCredential_UnrevocableApiKeyCredential,
                     apiKeyCredential.Key));
             }
-
-            await Auditing.SaveAuditRecordAsync(
-                new RevokeCredentialAuditRecord(apiKeyCredential, AuditedRevokeCredentialAction.RevokeApiKey, requestingUser.Username));
 
             await RevokeCredential(apiKeyCredential, revocationSourceKey, commitChanges);
         }

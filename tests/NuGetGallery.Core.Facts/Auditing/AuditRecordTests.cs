@@ -22,8 +22,9 @@ namespace NuGetGallery.Auditing
                 "NuGetGallery.Auditing.PackageAuditRecord",
                 "NuGetGallery.Auditing.PackageRegistrationAuditRecord",
                 "NuGetGallery.Auditing.ReservedNamespaceAuditRecord",
+                "NuGetGallery.Auditing.RevokeCredentialAuditRecord",
                 "NuGetGallery.Auditing.UserAuditRecord",
-                "NuGetGallery.Auditing.UserSecurityPolicyAuditRecord"
+                "NuGetGallery.Auditing.UserSecurityPolicyAuditRecord",
             };
 
             var actualAuditRecordTypeNames = typeof(AuditRecord).Assembly.GetTypes()
