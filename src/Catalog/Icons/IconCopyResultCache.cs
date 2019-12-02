@@ -23,13 +23,16 @@ namespace NuGet.Services.Metadata.Catalog.Icons
         private ConcurrentDictionary<Uri, SemaphoreSlim> _uriSemaphores = null;
 
         private readonly IStorage _auxStorage;
+        private readonly TimeSpan _failCacheTime;
         private readonly ILogger<IconCopyResultCache> _logger;
 
         public IconCopyResultCache(
             IStorage auxStorage,
+            TimeSpan failCacheTime,
             ILogger<IconCopyResultCache> logger)
         {
             _auxStorage = auxStorage ?? throw new ArgumentNullException(nameof(auxStorage));
+            _failCacheTime = failCacheTime;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _uriSemaphores = new ConcurrentDictionary<Uri, SemaphoreSlim>();
@@ -73,12 +76,15 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 throw new InvalidOperationException("Object was not initialized");
             }
 
-            if (_externalIconCopyResults.TryGetValue(iconUrl, out var result))
+            if (!_externalIconCopyResults.TryGetValue(iconUrl, out var result))
             {
-                return result;
+                return null;
             }
-
-            return null;
+            if (!result.IsCopySucceeded && (!result.Expiration.HasValue || result.Expiration.Value < DateTimeOffset.UtcNow))
+            {
+                return null;
+            }
+            return result;
         }
 
         public async Task<Uri> SaveExternalIcon(Uri originalIconUrl, Uri storageUrl, IStorage mainDestinationStorage, IStorage cacheStorage, CancellationToken cancellationToken)
@@ -144,7 +150,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 throw new InvalidOperationException("Object was not initialized");
             }
 
-            Set(iconUrl, ExternalIconCopyResult.Fail(iconUrl));
+            Set(iconUrl, ExternalIconCopyResult.Fail(iconUrl, _failCacheTime));
         }
 
         private void Set(Uri iconUrl, ExternalIconCopyResult newItem)

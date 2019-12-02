@@ -244,7 +244,7 @@ namespace CatalogTests.Icons
 
                 IconCopyResultCacheMock
                     .Setup(c => c.Get(It.Is<Uri>(u => u.AbsoluteUri == IconUrlString)))
-                    .Returns(ExternalIconCopyResult.Fail(new Uri(IconUrlString)));
+                    .Returns(ExternalIconCopyResult.Fail(new Uri(IconUrlString), TimeSpan.FromMinutes(1)));
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
@@ -297,7 +297,7 @@ namespace CatalogTests.Icons
 
                 IconCopyResultCacheMock
                     .Setup(c => c.Get(It.Is<Uri>(u => u.AbsoluteUri == IconUrlString)))
-                    .Returns(ExternalIconCopyResult.Fail(new Uri(IconUrlString)));
+                    .Returns(ExternalIconCopyResult.Fail(new Uri(IconUrlString), TimeSpan.FromHours(1)));
 
                 await Target.ProcessPackageDetailsLeafAsync(
                     DestinationStorageMock.Object,
