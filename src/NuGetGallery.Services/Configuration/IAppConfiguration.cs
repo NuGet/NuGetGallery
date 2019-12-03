@@ -231,11 +231,6 @@ namespace NuGetGallery.Configuration
         string GoogleAnalyticsPropertyId { get; set; }
 
         /// <summary>
-        /// Gets a boolean indicating if perf logs should be collected
-        /// </summary>
-        bool CollectPerfLogs { get; set; }
-
-        /// <summary>
         /// Gets a boolean indicating if the search index should be updated automatically in the background
         /// </summary>
         bool AutoUpdateSearchIndex { get; set; }
@@ -373,11 +368,6 @@ namespace NuGetGallery.Configuration
         bool BlockSearchEngineIndexing { get; set; }
 
         /// <summary>
-        /// The name of zero or more curated feeds that are redirected to the main feed.
-        /// </summary>
-        string[] RedirectedCuratedFeeds { get; set; }
-
-        /// <summary>
         /// Gets or sets a flag indicating whether asynchronous email service is enabled.
         /// </summary>
         bool AsynchronousEmailServiceEnabled { get; set; }
@@ -454,5 +444,10 @@ namespace NuGetGallery.Configuration
         /// '{version-lower}' will be replaced with the normalized package version in lowercase.
         /// </summary>
         string EmbeddedIconUrlTemplate { get; set; }
+
+        /// <summary>
+        /// Deployment label to log with telemetry.
+        /// </summary>
+        string DeploymentLabel { get; set; }
     }
 }

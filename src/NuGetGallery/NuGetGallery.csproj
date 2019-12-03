@@ -125,7 +125,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionName.cs" />
-    <Compile Include="App_Start\NuGetODataV2CuratedFeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />
@@ -173,6 +172,7 @@
     </Compile>
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
+    <Compile Include="Areas\Admin\Models\RevokeApiKeysRequest.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
@@ -277,6 +277,10 @@
     <Compile Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.designer.cs">
       <DependentUpon>201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201911160032363_AddCredentialRevocationSourceKeyColumn.cs" />
+    <Compile Include="Migrations\201911160032363_AddCredentialRevocationSourceKeyColumn.designer.cs">
+      <DependentUpon>201911160032363_AddCredentialRevocationSourceKeyColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\GravatarProxyResult.cs" />
@@ -303,7 +307,6 @@
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Controllers\OrganizationsController.cs" />
     <Compile Include="Controllers\ODataV1FeedController.cs" />
-    <Compile Include="Controllers\ODataV2CuratedFeedController.cs" />
     <Compile Include="Controllers\ODataV2FeedController.cs" />
     <Compile Include="App_Start\OwinStartup.cs" />
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
@@ -1645,6 +1648,9 @@
     <EmbeddedResource Include="Migrations\201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.resx">
       <DependentUpon>201911132341290_AddVulnerablePackageVersionRangeFirstPatchedVersion.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201911160032363_AddCredentialRevocationSourceKeyColumn.resx">
+      <DependentUpon>201911160032363_AddCredentialRevocationSourceKeyColumn.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -2104,8 +2110,7 @@
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.58.0</Version>
-      <Version>2.57.0</Version>
+      <Version>2.59.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2287,13 +2292,13 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.58.0</Version>
+      <Version>2.59.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.58.0</Version>
+      <Version>2.59.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.58.0</Version>
+      <Version>2.59.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>

@@ -4,6 +4,7 @@
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
@@ -306,6 +307,18 @@ namespace NuGetGallery.Controllers
         {
             var searchResults = await Search(options, searchTerm, targetFramework);
             return searchResults.FormattedAsCountResult<V1FeedPackage>();
+        }
+
+        [HttpGet]
+        [CacheOutput(NoCache = true)]
+        public virtual HttpResponseMessage SimulateError([FromUri] string type = "Exception")
+        {
+            if (!Enum.TryParse<SimulatedErrorType>(type, out var parsedType))
+            {
+                parsedType = SimulatedErrorType.Exception;
+            }
+
+            return parsedType.MapToWebApiResult();
         }
 
         internal IQueryable<Package> GetAll()

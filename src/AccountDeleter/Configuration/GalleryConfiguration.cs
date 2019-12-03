@@ -87,7 +87,6 @@ namespace NuGetGallery.AccountDeleter
         public bool RejectSignedPackagesWithNoRegisteredCertificate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool RejectPackagesWithTooManyPackageEntries { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool BlockSearchEngineIndexing { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string[] RedirectedCuratedFeeds { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool AsynchronousEmailServiceEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool RejectPackagesWithLicense { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool BlockLegacyLicenseUrl { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -107,5 +106,6 @@ namespace NuGetGallery.AccountDeleter
         public bool AsynchronousDeleteAccountServiceEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string EmbeddedIconUrlTemplate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool SelfServiceAccountDeleteEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string DeploymentLabel { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

@@ -25,8 +25,6 @@ namespace NuGetGallery.FunctionalTests
         [JsonProperty]
         public string EmailServerHost { get; private set; }
         [JsonProperty]
-        public IEnumerable<string> TrustedHttpsCertificates { get; private set; }
-        [JsonProperty]
         public bool DefaultSecurityPoliciesEnforced { get; private set; }
         [JsonProperty]
         public bool TestPackageLock { get; private set; }

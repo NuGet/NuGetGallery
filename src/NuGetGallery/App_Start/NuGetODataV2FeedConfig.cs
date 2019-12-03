@@ -38,7 +38,11 @@ namespace NuGetGallery
                     .ToList();
 
             // Add OData routes
-            config.Routes.MapODataServiceRoute("api-v2-odata", "api/v2", model, new CountODataPathHandler(), conventions,
+            config.Routes.MapODataServiceRoute("api-v2-odata", "api/v2", model,
+                new CountODataPathHandler(), conventions,
+                new ODataServiceVersionHeaderPropagatingBatchHandler(GlobalConfiguration.DefaultServer));
+            config.Routes.MapODataServiceRoute("api-v2curated-odata", "api/v2/curated-feeds/{curatedFeedName}", model,
+                new CountODataPathHandler(), conventions,
                 new ODataServiceVersionHeaderPropagatingBatchHandler(GlobalConfiguration.DefaultServer));
         }
 

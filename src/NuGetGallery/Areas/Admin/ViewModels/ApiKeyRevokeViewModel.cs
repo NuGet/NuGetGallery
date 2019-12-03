@@ -10,14 +10,16 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public ApiKeyViewModel ApiKeyViewModel { get; }
         public string ApiKey { get; }
         public string LeakedUrl { get; }
+        public string RevocationSource { get; }
         public bool IsRevocable { get; }
 
-        public ApiKeyRevokeViewModel(ApiKeyViewModel apiKeyViewModel, string apiKey, string leakedUrl, bool isRevocable)
+        public ApiKeyRevokeViewModel(ApiKeyViewModel apiKeyViewModel, string apiKey, string leakedUrl, string revocationSource, bool isRevocable)
         {
             ApiKeyViewModel = apiKeyViewModel;
             IsRevocable = isRevocable;
+            RevocationSource = revocationSource;
+            LeakedUrl = leakedUrl;
             ApiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKeyViewModel));
-            LeakedUrl = leakedUrl ?? throw new ArgumentNullException(nameof(leakedUrl));
         }
     }
 }

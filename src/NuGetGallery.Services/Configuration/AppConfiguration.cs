@@ -219,11 +219,6 @@ namespace NuGetGallery.Configuration
         public string GoogleAnalyticsPropertyId { get; set; }
 
         /// <summary>
-        /// Gets a boolean indicating if perf logs should be collected
-        /// </summary>
-        public bool CollectPerfLogs { get; set; }
-
-        /// <summary>
         /// Gets a boolean indicating if the search index should be updated automatically in the background
         /// </summary>
         [DefaultValue(true)]
@@ -361,10 +356,6 @@ namespace NuGetGallery.Configuration
 
         public bool BlockSearchEngineIndexing { get; set; }
 
-        [DefaultValue(null)]
-        [TypeConverter(typeof(StringArrayConverter))]
-        public string[] RedirectedCuratedFeeds { get; set; }
-
         public bool AsynchronousEmailServiceEnabled { get; set; }
 
         public bool AsynchronousDeleteAccountServiceEnabled { get; set; }
@@ -407,5 +398,8 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue("")]
         public string EmbeddedIconUrlTemplate { get; set; }
+
+        [DefaultValue(null)]
+        public string DeploymentLabel { get; set; }
     }
 }

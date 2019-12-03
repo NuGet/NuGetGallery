@@ -15,7 +15,6 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
-using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGetGallery;
 using NuGetGallery.Configuration;
@@ -47,18 +46,6 @@ namespace NuGetGallery
 
             ViewEngines.Engines.Clear();
             ViewEngines.Engines.Add(CreateViewEngine());
-
-            try
-            {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    CloudPreStart();
-                }
-            }
-            catch
-            {
-                // Azure SDK not available!
-            }
         }
 
         public static void PostStart()
@@ -108,11 +95,6 @@ namespace NuGetGallery
             };
 
             return ret;
-        }
-
-        private static void CloudPreStart()
-        {
-            Trace.Listeners.Add(new DiagnosticMonitorTraceListener());
         }
 
         private static void BundlingPostStart()
@@ -267,11 +249,6 @@ namespace NuGetGallery
                 indexingJobFactory.RegisterBackgroundJobs(jobs, configuration);
             }
 
-            if (configuration.CollectPerfLogs)
-            {
-                jobs.Add(CreateLogFlushJob());
-            }
-
             if (configuration.StorageType == StorageType.AzureStorage)
             {
                 var cloudDownloadCountService = DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
@@ -293,31 +270,6 @@ namespace NuGetGallery
                 _jobManager.Fail(e => ErrorLog.GetDefault(null).Log(new Error(e)));
                 _jobManager.Start();
             }
-        }
-
-        private static ProcessPerfEvents CreateLogFlushJob()
-        {
-            var logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data", "Logs");
-            try
-            {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    var resource = RoleEnvironment.GetLocalResource("Logs");
-                    if (resource != null)
-                    {
-                        logDirectory = Path.Combine(resource.RootPath);
-                    }
-                }
-            }
-            catch
-            {
-                // Meh, so Azure isn't available...
-            }
-            return new ProcessPerfEvents(
-                TimeSpan.FromSeconds(10),
-                logDirectory,
-                new[] { "ExternalSearchService" },
-                timeout: TimeSpan.FromSeconds(10));
         }
 
         private static void BackgroundJobsStop()

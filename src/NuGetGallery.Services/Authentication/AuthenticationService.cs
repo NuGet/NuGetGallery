@@ -164,6 +164,58 @@ namespace NuGetGallery.Authentication
             return FindMatchingApiKey(credential);
         }
 
+        public async Task RevokeApiKeyCredential(Credential apiKeyCredential, CredentialRevocationSource revocationSourceKey, bool commitChanges = true)
+        {
+            if (apiKeyCredential == null)
+            {
+                throw new ArgumentNullException(nameof(apiKeyCredential));
+            }
+
+            if (!IsActiveApiKeyCredential(apiKeyCredential))
+            {
+                // Revoking not active API key credential is not allowed.
+                throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    ServicesStrings.RevokeCredential_UnrevocableApiKeyCredential,
+                    apiKeyCredential.Key));
+            }
+
+            await RevokeCredential(apiKeyCredential, revocationSourceKey, commitChanges);
+        }
+
+        public bool IsActiveApiKeyCredential(Credential credential)
+        {
+            if (credential == null)
+            {
+                return false;
+            }
+            if (!CredentialTypes.IsApiKey(credential.Type))
+            {
+                return false;
+            }
+            if (IsCredentialExpiredOrNonScopedApiKeyNotUsedInLastDays(credential))
+            {
+                return false;
+            }
+            if (credential.RevocationSourceKey != null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task RevokeCredential(Credential credential, CredentialRevocationSource revocationSourceKey, bool commitChanges)
+        {
+            credential.Expires = _dateTimeProvider.UtcNow;
+            credential.RevocationSourceKey = revocationSourceKey;
+
+            if (commitChanges)
+            {
+                await Entities.SaveChangesAsync();
+            }
+        }
+
         public virtual async Task<AuthenticatedUser> Authenticate(Credential credential)
         {
             return await AuthenticateInternal(FindMatchingCredential, credential);
@@ -593,17 +645,22 @@ namespace NuGetGallery.Authentication
                         s.Subject,
                         NuGetScopes.Describe(s.AllowedAction)))
                     .ToList(),
-                ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null
+                ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null,
+                RevocationSource = credential.RevocationSourceKey != null ? Enum.GetName(typeof(CredentialRevocationSource), credential.RevocationSourceKey) : null,
             };
 
-            credentialViewModel.HasExpired = credential.HasExpired ||
-                                             (credentialViewModel.IsNonScopedApiKey &&
-                                              !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
+            credentialViewModel.HasExpired = IsCredentialExpiredOrNonScopedApiKeyNotUsedInLastDays(credential);
 
             credentialViewModel.Description = credentialViewModel.IsNonScopedApiKey
                 ? ServicesStrings.NonScopedApiKeyDescription : credentialViewModel.Description;
 
             return credentialViewModel;
+        }
+
+        private bool IsCredentialExpiredOrNonScopedApiKeyNotUsedInLastDays(Credential credential)
+        {
+            return credential.HasExpired || (credential.IsApiKey() && !credential.IsScopedApiKey()
+                && !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
         }
 
         public virtual async Task RemoveCredential(User user, Credential cred, bool commitChanges = true)

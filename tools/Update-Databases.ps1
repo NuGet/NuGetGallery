@@ -1,65 +1,76 @@
 param(
     [parameter(Mandatory=$true)]
     [string[]] $MigrationTargets,
-    [string] $NugetGallerySitePath)
+    [string] $NuGetGallerySitePath)
 
-function Initialize-MigrateExe() {
+function Initialize-EF6Exe() {
     [string] $migrateDirectory = [System.IO.Path]::Combine($PSScriptRoot, '__temp_migrate_directory_' + [guid]::NewGuid().ToString("N") )
-    [string] $efDirectory = "$env:userprofile\.nuget\packages\EntityFramework\6.1.3"
-    [string] $migrate = ([System.IO.Path]::Combine($migrateDirectory, 'migrate.exe'))
+    [string] $efDirectory = $null
+    [string] $ef6 = ([System.IO.Path]::Combine($migrateDirectory, 'ef6.exe'))
 
     if (-not (New-Item -ItemType Directory -Path $migrateDirectory -Force).Exists) {
         throw 'migrate directory could not be created.'
     }
 
+    if (!$efDirectory) {
+        # Read the current version of EntityFramework from NuGetGallery.csproj so that we can find the tools.
+        $csprojPath = Join-Path $PSScriptRoot "..\src\NuGetGallery\NuGetGallery.csproj"
+        [xml]$csproj = Get-Content $csprojPath
+        $efPackageReference = Select-Xml -Xml $csproj -XPath "//*[local-name()='PackageReference']" `
+            | Where-Object { $_.Node.Attributes["Include"].Value -eq "EntityFramework" }
+        $efVersion = $efPackageReference.Node.Version
+        Write-Host "Using EntityFramework version $efVersion."
+        $efDirectory = "$env:userprofile\.nuget\packages\EntityFramework\$efVersion"
+    }
+
     Copy-Item `
         -Path `
-            ([System.IO.Path]::Combine($efDirectory, 'tools\migrate.exe')), `
+            ([System.IO.Path]::Combine($efDirectory, 'tools\net45\win-x86\ef6.exe')), `
             ([System.IO.Path]::Combine($efDirectory, 'lib\net45\*.dll')) `
         -Destination $migrateDirectory `
         -Force
     
-    if (-not (Test-Path -Path $migrate)) {
-        throw 'migrate.exe could not be provisioned.'
+    if (-not (Test-Path -Path $ef6)) {
+        throw 'ef6.exe could not be provisioned.'
     }
 
     return $migrateDirectory
 }
 
-function Update-NugetDatabases([string] $MigrateExePath, [string] $NugetGallerySitePath, [string[]] $MigrationTargets) {
-    [string] $binariesPath = [System.IO.Path]::Combine($NugetGallerySitePath, 'bin')
-    [string] $webConfigPath = [System.IO.Path]::Combine($NugetGallerySitePath, 'web.config')
-    if ($MigrationTargets.Contains('NugetGallery')) {
-        Write-Host 'Updating Nuget Gallery database...'
-        & $MigrateExePath "NuGetGallery.dll" MigrationsConfiguration "NuGetGallery.Core.dll" "/startUpDirectory:$binariesPath" "/startUpConfigurationFile:$webConfigPath"
+function Update-NuGetDatabases([string] $EF6ExePath, [string] $NuGetGallerySitePath, [string[]] $MigrationTargets) {
+    [string] $binariesPath = [System.IO.Path]::Combine($NuGetGallerySitePath, 'bin')
+    [string] $webConfigPath = [System.IO.Path]::Combine($NuGetGallerySitePath, 'web.config')
+    if ($MigrationTargets.Contains('NuGetGallery')) {
+        Write-Host 'Updating NuGet Gallery database...'
+        & $EF6ExePath database update --assembly (Join-Path $binariesPath "NuGetGallery.dll") --migrations-config MigrationsConfiguration --config $webConfigPath
     }
     
-    if ($MigrationTargets.Contains('NugetGallerySupportRequest')) {
-        Write-Host 'Updating Nuget Gallery Support request database...'
-        & $MigrateExePath "NuGetGallery.dll" SupportRequestMigrationsConfiguration "NuGetGallery.dll" "/startUpDirectory:$binariesPath" "/startUpConfigurationFile:$webConfigPath"
+    if ($MigrationTargets.Contains('NuGetGallerySupportRequest')) {
+        Write-Host 'Updating NuGet Gallery Support request database...'
+        & $EF6ExePath database update --assembly (Join-Path $binariesPath "NuGetGallery.dll") --migrations-config SupportRequestMigrationsConfiguration --config $webConfigPath
     }
 
     Write-Host 'Update Complete!'
 }
 
-[string] $migrateExeDirectory = $null
+[string] $ef6ExeDirectory = $null
 try {
-    if ([string]::IsNullOrWhiteSpace($NugetGallerySitePath)) {
-        $NugetGallerySitePath = [System.IO.Path]::Combine($Script:PSScriptRoot, '..', 'src\NugetGallery')
-        Write-Host 'NugetGallerySitePath was not provided.'
-        Write-Host "We will attempt to use $NugetGallerySitePath"
+    if ([string]::IsNullOrWhiteSpace($NuGetGallerySitePath)) {
+        $NuGetGallerySitePath = [System.IO.Path]::Combine($Script:PSScriptRoot, '..', 'src\NuGetGallery')
+        Write-Host 'NuGetGallerySitePath was not provided.'
+        Write-Host "We will attempt to use $NuGetGallerySitePath"
     }
 
-    $migrateExeDirectory = Initialize-MigrateExe
+    $ef6ExeDirectory = Initialize-EF6Exe
 
-    Update-NugetDatabases `
-        -MigrateExePath ([System.IO.Path]::Combine($migrateExeDirectory, 'migrate.exe')) `
-        -NugetGallerySitePath $NugetGallerySitePath `
+    Update-NuGetDatabases `
+        -EF6ExePath ([System.IO.Path]::Combine($ef6ExeDirectory, 'ef6.exe')) `
+        -NuGetGallerySitePath $NuGetGallerySitePath `
         -MigrationTargets $MigrationTargets
 }
 finally {
-    if ($migrateExeDirectory -ne $null -and (Test-Path -Path $migrateExeDirectory -PathType Container)) {
-        Remove-Item -Path $migrateExeDirectory -Recurse -Force
+    if ($ef6ExeDirectory -ne $null -and (Test-Path -Path $ef6ExeDirectory -PathType Container)) {
+        Remove-Item -Path $ef6ExeDirectory -Recurse -Force
     }
 }
 
