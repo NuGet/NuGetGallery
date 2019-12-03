@@ -107,6 +107,8 @@ namespace NuGetGallery.Auditing
             var record = new UserAuditRecord(user, AuditedUserAction.RevokeCredential, new Credential(type: "b", value: "c"), testRevocationSource);
             Assert.Single(record.AffectedCredential);
             Assert.Equal(testRevocationSource, record.AffectedCredential[0].RevocationSource);
+            Assert.Equal("b", record.AffectedCredential[0].Type);
+            Assert.Equal("c", record.AffectedCredential[0].Value);
         }
 
         [Fact]

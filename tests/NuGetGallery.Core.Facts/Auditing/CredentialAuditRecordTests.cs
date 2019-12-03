@@ -13,7 +13,7 @@ namespace NuGetGallery.Auditing
         [Fact]
         public void Constructor_ThrowsForNullCredential()
         {
-            Assert.Throws<ArgumentNullException>(() => new CredentialAuditRecord(credential: null, removed: true));
+            Assert.Throws<ArgumentNullException>(() => new CredentialAuditRecord(credential: null, removedOrRevoked: true));
         }
 
         [Fact]
@@ -21,14 +21,14 @@ namespace NuGetGallery.Auditing
         {
             var credential = new Credential();
 
-            Assert.Throws<ArgumentNullException>(() => new CredentialAuditRecord(credential, removed: true));
+            Assert.Throws<ArgumentNullException>(() => new CredentialAuditRecord(credential, removedOrRevoked: true));
         }
 
         [Fact]
         public void Constructor_RemovalOfNonPasswordSetsValue()
         {
             var credential = new Credential(type: "a", value: "b");
-            var record = new CredentialAuditRecord(credential, removed: true);
+            var record = new CredentialAuditRecord(credential, removedOrRevoked: true);
 
             Assert.Equal("b", record.Value);
         }
@@ -37,7 +37,7 @@ namespace NuGetGallery.Auditing
         public void Constructor_RemovalOfPasswordDoesNotSetValue()
         {
             var credential = new Credential(type: CredentialTypes.Password.V3, value: "a");
-            var record = new CredentialAuditRecord(credential, removed: true);
+            var record = new CredentialAuditRecord(credential, removedOrRevoked: true);
 
             Assert.Null(record.Value);
         }
@@ -46,7 +46,7 @@ namespace NuGetGallery.Auditing
         public void Constructor_NonRemovalOfNonPasswordDoesNotSetsValue()
         {
             var credential = new Credential(type: "a", value: "b");
-            var record = new CredentialAuditRecord(credential, removed: false);
+            var record = new CredentialAuditRecord(credential, removedOrRevoked: false);
 
             Assert.Null(record.Value);
         }
@@ -57,7 +57,7 @@ namespace NuGetGallery.Auditing
         public void Constructor_ExternalCredentialSetsValue(string externalType)
         {
             var credential = new Credential(type: externalType, value: "b");
-            var record = new CredentialAuditRecord(credential, removed: false);
+            var record = new CredentialAuditRecord(credential, removedOrRevoked: false);
 
             Assert.Equal("b", record.Value);
         }
@@ -66,7 +66,7 @@ namespace NuGetGallery.Auditing
         public void Constructor_NonRemovalOfPasswordDoesNotSetValue()
         {
             var credential = new Credential(type: CredentialTypes.Password.V3, value: "a");
-            var record = new CredentialAuditRecord(credential, removed: false);
+            var record = new CredentialAuditRecord(credential, removedOrRevoked: false);
 
             Assert.Null(record.Value);
         }
@@ -90,7 +90,7 @@ namespace NuGetGallery.Auditing
                 Type = "e",
                 Value = "f"
             };
-            var record = new CredentialAuditRecord(credential, removed: true);
+            var record = new CredentialAuditRecord(credential, removedOrRevoked: true);
 
             Assert.Equal(created, record.Created);
             Assert.Equal("a", record.Description);
@@ -112,9 +112,11 @@ namespace NuGetGallery.Auditing
         {
             var testRevocationSource = "TestRevocationSource";
             var credential = new Credential(type: "a", value: "b");
-            var record = new CredentialAuditRecord(credential, removed: false, revocationSource: testRevocationSource);
+            var record = new CredentialAuditRecord(credential, removedOrRevoked: true, revocationSource: testRevocationSource);
 
             Assert.Equal(testRevocationSource, record.RevocationSource);
+            Assert.Equal("a", record.Type);
+            Assert.Equal("b", record.Value);
         }
     }
 }

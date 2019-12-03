@@ -21,7 +21,7 @@ namespace NuGetGallery.Auditing
         public string TenantId { get; }
         public string RevocationSource { get; }
 
-        public CredentialAuditRecord(Credential credential, bool removed)
+        public CredentialAuditRecord(Credential credential, bool removedOrRevoked)
         {
             if (credential == null)
             {
@@ -39,7 +39,7 @@ namespace NuGetGallery.Auditing
             {
                 Value = credential.Value;
             }
-            else if (removed)
+            else if (removedOrRevoked)
             {
                 if (Type == null)
                 {
@@ -65,8 +65,8 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        public CredentialAuditRecord(Credential credential, bool removed, string revocationSource)
-                : this(credential, removed)
+        public CredentialAuditRecord(Credential credential, bool removedOrRevoked, string revocationSource)
+                : this(credential, removedOrRevoked)
         {
             RevocationSource = revocationSource;
         }
