@@ -5,13 +5,13 @@ using System;
 using System.Collections.Generic;
 using NuGetGallery;
 
-namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
+namespace NuGet.Services
 {
     public class InMemoryCloudBlobClient : ICloudBlobClient
     {
         private readonly object _lock = new object();
 
-        public Dictionary<string, InMemoryCloudBlobContainer> Containers { get; } = new Dictionary<string, InMemoryCloudBlobContainer>();
+        public SortedDictionary<string, InMemoryCloudBlobContainer> Containers { get; } = new SortedDictionary<string, InMemoryCloudBlobContainer>();
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
         {

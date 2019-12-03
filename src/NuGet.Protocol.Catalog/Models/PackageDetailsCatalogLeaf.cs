@@ -24,6 +24,9 @@ namespace NuGet.Protocol.Catalog
         [JsonProperty("dependencyGroups")]
         public List<PackageDependencyGroup> DependencyGroups { get; set; }
 
+        [JsonProperty("deprecation")]
+        public PackageDeprecation Deprecation { get; set; }
+
         [JsonProperty("description")]
         public string Description { get; set; }
 

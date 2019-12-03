@@ -37,7 +37,13 @@ Function Run-Tests {
     $TestCount = 0
     
     foreach ($Test in $TestAssemblies) {
-        & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
+        $TestResultFile = "Results.$TestCount.xml"
+        & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml $TestResultFile
+        if (-not (Test-Path $TestResultFile))
+        {
+            Write-Error "The test run failed to produce a result file";
+            exit 1;
+        }
         $TestCount++
     }
 }

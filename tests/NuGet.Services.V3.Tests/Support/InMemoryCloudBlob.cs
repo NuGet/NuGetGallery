@@ -12,7 +12,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery;
 
-namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
+namespace NuGet.Services
 {
     public class InMemoryCloudBlob : ISimpleCloudBlob
     {
@@ -56,7 +56,12 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
         public Task DeleteIfExistsAsync()
         {
-            throw new NotImplementedException();
+            lock (_lock)
+            {
+                Exists = false;
+            }
+
+            return Task.CompletedTask;
         }
 
         public Task DownloadToStreamAsync(Stream target)
@@ -71,7 +76,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
         public Task<bool> ExistsAsync()
         {
-            throw new NotImplementedException();
+            lock (_lock)
+            {
+                return Task.FromResult(Exists);
+            }
         }
 
         public Task FetchAttributesAsync()
@@ -152,11 +160,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
         public async Task UploadFromStreamAsync(Stream source, AccessCondition accessCondition)
         {
-            if (accessCondition.IfMatchETag == null && accessCondition.IfNoneMatchETag == null)
-            {
-                throw new ArgumentException($"Either {nameof(accessCondition.IfMatchETag)} or {nameof(accessCondition.IfNoneMatchETag)} must be set.");
-            }
-
             if (accessCondition.IfMatchETag != null && accessCondition.IfNoneMatchETag != null)
             {
                 throw new ArgumentException($"Exactly one of {nameof(accessCondition.IfMatchETag)} or {nameof(accessCondition.IfNoneMatchETag)} must be set, not both.");
@@ -176,18 +179,23 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
             lock (_lock)
             {
-                if (!Exists)
+                if (Exists)
                 {
-                    if (accessCondition.IfMatchETag != null)
+                    if (accessCondition.IfMatchETag != null && accessCondition.IfMatchETag != ETag)
                     {
-                        throw new InvalidOperationException("The If-Match condition failed because the file does not exist.");
+                        throw new InvalidOperationException("The If-Match condition failed because it does not match the current etag.");
+                    }
+
+                    if (accessCondition.IfNoneMatchETag == "*")
+                    {
+                        throw new InvalidOperationException("The If-None-Match condition failed because the blob exists.");
                     }
                 }
                 else
                 {
-                    if (accessCondition.IfMatchETag != ETag)
+                    if (accessCondition.IfMatchETag != null)
                     {
-                        throw new InvalidOperationException("The If-Match condition failed because it does not match the current etag.");
+                        throw new InvalidOperationException("The If-Match condition failed because the file does not exist.");
                     }
                 }
 

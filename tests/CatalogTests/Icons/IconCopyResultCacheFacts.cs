@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog.Icons;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
@@ -180,6 +181,82 @@ namespace CatalogTests.Icons
             Assert.Contains("https://sourcey", savedContent);
         }
 
+        [Fact]
+        public async Task IgnoresFailuresWithoutExpiration()
+        {
+            const string iconUrl = "https://icon.test/url";
+            Data = $"{{ \"{iconUrl}\": {{ \"SourceUrl\": \"{iconUrl}\", \"StorageUrl\": null }} }}";
+            await Target.InitializeAsync(CancellationToken.None);
+
+            var result = Target.Get(new Uri(iconUrl));
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task IgnoresFailuresWithNullExpiration()
+        {
+            const string iconUrl = "https://icon.test/url";
+            Data = $"{{ \"{iconUrl}\": {{ \"SourceUrl\": \"{iconUrl}\", \"StorageUrl\": null, \"Expiration\": null }} }}";
+            await Target.InitializeAsync(CancellationToken.None);
+
+            var result = Target.Get(new Uri(iconUrl));
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task SavesFailureExpiration()
+        {
+            Data = "{}";
+
+            await Target.InitializeAsync(CancellationToken.None);
+            var time = DateTimeOffset.UtcNow;
+            const string failedUrl = "https://icon.test/fail";
+            Target.SaveExternalCopyFailure(new Uri(failedUrl));
+
+            string savedContent = null;
+
+            StorageMock
+                .Setup(s => s.SaveAsync(new Uri("https://cache.test/blob"), It.IsAny<StringStorageContent>(), CancellationToken.None))
+                .Callback<Uri, StorageContent, CancellationToken>((_1, sc, _2) => savedContent = ((StringStorageContent)sc).Content)
+                .Returns(Task.CompletedTask);
+
+            await Target.SaveAsync(CancellationToken.None);
+
+            var savedDictionary = JsonConvert.DeserializeObject<Dictionary<Uri, ExternalIconCopyResult>>(savedContent);
+            var item = Assert.Single(savedDictionary, e => e.Key.AbsoluteUri == failedUrl);
+            Assert.NotNull(item.Value.Expiration);
+            Assert.True(item.Value.Expiration - time < TimeSpan.FromSeconds(2));
+        }
+
+        [Fact]
+        public async Task IgnoresExpiredFailures()
+        {
+            const string iconUrl = "https://icon.test/url";
+            var expiration = DateTimeOffset.UtcNow.AddDays(-1).ToString("O");
+            Data = $"{{ \"{iconUrl}\": {{ \"SourceUrl\": \"{iconUrl}\", \"StorageUrl\": null, \"Expiration\": \"{expiration}\" }} }}";
+            await Target.InitializeAsync(CancellationToken.None);
+
+            var result = Target.Get(new Uri(iconUrl));
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task UsesUnexpiredFailures()
+        {
+            const string iconUrl = "https://icon.test/url";
+            var expiration = DateTimeOffset.UtcNow.AddDays(1).ToString("O");
+            Data = $"{{ \"{iconUrl}\": {{ \"SourceUrl\": \"{iconUrl}\", \"StorageUrl\": null, \"Expiration\": \"{expiration}\" }} }}";
+            await Target.InitializeAsync(CancellationToken.None);
+
+            var result = Target.Get(new Uri(iconUrl));
+
+            Assert.NotNull(result);
+            Assert.False(result.IsCopySucceeded);
+        }
+
         public IconCopyResultCacheFacts()
         {
             StorageMock = new Mock<IStorage>();
@@ -206,6 +283,7 @@ namespace CatalogTests.Icons
 
             Target = new IconCopyResultCache(
                 StorageMock.Object,
+                TimeSpan.FromMilliseconds(750),
                 Mock.Of<ILogger<IconCopyResultCache>>());
         }
 

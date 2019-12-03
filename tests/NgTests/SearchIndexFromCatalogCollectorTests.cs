@@ -127,63 +127,6 @@ namespace NgTests
             }
         }
 
-        [Fact]
-        public async Task ThrowsIfCommitTimesOut()
-        {
-            // Arrange
-            var storage = new MemoryStorage();
-            var storageFactory = new TestStorageFactory(name => storage.WithName(name));
-
-            MockServerHttpClientHandler mockServer;
-            mockServer = new MockServerHttpClientHandler();
-            mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
-
-            var catalogStorage = Catalogs.CreateTestCatalogWithOnePackage();
-            await mockServer.AddStorageAsync(catalogStorage);
-
-            ReadWriteCursor front = new DurableCursor(
-                storage.ResolveUri("cursor.json"),
-                storage,
-                MemoryCursor.MinValue);
-            ReadCursor back = MemoryCursor.CreateMax();
-
-            var commitTimeout = TimeSpan.FromSeconds(1);
-            var stuckDuration = TimeSpan.FromMinutes(1);
-
-            var telemetryService = new Mock<ITelemetryService>();
-            var indexCommitDurationMetric = new Mock<IDisposable>();
-            telemetryService.Setup(t => t.TrackIndexCommitDuration()).Returns(indexCommitDurationMetric.Object);
-
-            using (var testDirectory = TestDirectory.Create())
-            {
-                var luceneDirectory = new SimpleFSDirectory(new DirectoryInfo(testDirectory));
-                using (var indexWriter = Catalog2LuceneJob.CreateIndexWriter(luceneDirectory))
-                using (var stuckIndexWriter = StuckIndexWriter.FromIndexWriter(indexWriter, stuckDuration))
-                {
-                    var target = new SearchIndexFromCatalogCollector(
-                        new Uri("http://tempuri.org/index.json"),
-                        stuckIndexWriter,
-                        commitEachBatch: true,
-                        commitTimeout: commitTimeout,
-                        baseAddress: null,
-                        galleryBaseAddress: null,
-                        flatContainerBaseAddress: new Uri("https://test"),
-                        flatContainerContainerName: "fc",
-                        telemetryService: telemetryService.Object,
-                        logger: new TestLogger(_testOutputHelper),
-                        handlerFunc: () => mockServer,
-                        httpRetryStrategy: new NoRetryStrategy());
-
-                    // Act & Assert
-                    await Assert.ThrowsAsync<OperationCanceledException>(() => target.RunAsync(front, back, CancellationToken.None));
-
-                    telemetryService.Verify(t => t.TrackIndexCommitDuration(), Times.Once);
-                    telemetryService.Verify(t => t.TrackIndexCommitTimeout(), Times.Once);
-                    indexCommitDurationMetric.Verify(m => m.Dispose(), Times.Never);
-                }
-            }
-        }
-
         private void FailFirstRequest(MockServerHttpClientHandler mockServer, string relativeUri)
         {
             var originalAction = mockServer.Actions[relativeUri];

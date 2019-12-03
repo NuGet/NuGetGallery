@@ -19,6 +19,7 @@ namespace Ng.Jobs
     public class Catalog2IconJob : LoopingNgJob
     {
         private const int DegreeOfParallelism = 120;
+        private const string FailCacheTime = "failCacheTime";
         private IconsCollector _collector;
         private DurableCursor _front;
 
@@ -33,6 +34,7 @@ namespace Ng.Jobs
 
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             var packageStorageBase = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
+            var failCacheTime = arguments.GetOrDefault(FailCacheTime, TimeSpan.FromHours(1));
             var auxStorageFactory = CreateAuxStorageFactory(arguments, verbose);
             var targetStorageFactory = CreateTargetStorageFactory(arguments, verbose);
             var packageStorage = new AzureStorage(
@@ -52,7 +54,7 @@ namespace Ng.Jobs
             var catalogClient = new CatalogClient(simpleHttpClient, LoggerFactory.CreateLogger<CatalogClient>());
             var httpResponseProvider = new HttpClientWrapper(httpClient);
             var externalIconProvider = new ExternalIconContentProvider(httpResponseProvider, LoggerFactory.CreateLogger<ExternalIconContentProvider>());
-            var iconCopyResultCache = new IconCopyResultCache(auxStorageFactory.Create(), LoggerFactory.CreateLogger<IconCopyResultCache>());
+            var iconCopyResultCache = new IconCopyResultCache(auxStorageFactory.Create(), failCacheTime, LoggerFactory.CreateLogger<IconCopyResultCache>());
 
             var leafProcessor = new CatalogLeafDataProcessor(
                 packageStorage,
