@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$Config = "Release",
-    [Parameter(Mandatory)][string]$TestCategory
+    [Parameter(Mandatory)][string]$TestCategory,
+    [string]$ExcludeTraits
 )
 
 # Move working directory one level up
@@ -29,7 +30,19 @@ $fullTestCategory = "$($testCategory)Tests"
 $exitCode = 0
 
 $functionalTestsDirectory = "$rootName\NuGetGallery.FunctionalTests\bin\$Config"
-& $xunit "$functionalTestsDirectory\NuGetGallery.FunctionalTests.dll" "-trait" "Category=$fullTestCategory" "-xml" $functionalTestsResults
+$arguments = @(
+    "$functionalTestsDirectory\NuGetGallery.FunctionalTests.dll",
+    "-trait", "Category=$fullTestCategory",
+    "-xml", $functionalTestsResults
+);
+if (-not [string]::IsNullOrWhiteSpace($ExcludeTraits))
+{
+    $excludeTraitsArray = $ExcludeTraits.Split(";")
+    Write-Host "Excluding traits: $($excludeTraitsArray -join ", ")"
+    $extraArgs = $excludeTraitsArray | ForEach-Object { "-notrait"; $_ }
+    $arguments += $extraArgs
+}
+& $xunit $arguments
 if ($LastExitCode) {
     $exitCode = 1
 }
