@@ -1,7 +1,6 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][string]$TestCategories,
-    [string]$ExcludeTraits
+    [Parameter(Mandatory)][string]$TestCategories
 )
 
 $dividerSymbol = "~"
@@ -56,18 +55,17 @@ try {
             Start-Job -Name $_ -ScriptBlock {
                 param(
                     [string]$testCategory,
-                    [string]$scriptRoot,
-                    [string]$excludedTraits
+                    [string]$scriptRoot
                 )
 
                 Set-Location -Path $scriptRoot | Out-Host
                 $script = "$scriptRoot\RunTests.ps1"
                 Write-Host "Running $script with test category $testCategory"
-                & $script -TestCategory $testCategory -ExcludeTraits $excludedTraits | Out-Host
+                & $script -TestCategory $testCategory | Out-Host
                 if ($LastExitCode) {
                     throw "$script with test category $testCategory failed!"
                 }
-            } -ArgumentList ($_, $PSScriptRoot, $ExcludeTraits)
+            } -ArgumentList ($_, $PSScriptRoot)
 
             Write-Host "Started testing $_"
         } | Out-Null
