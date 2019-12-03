@@ -180,6 +180,12 @@ namespace NuGetGallery.Authentication
                     apiKeyCredential.Key));
             }
 
+            await Auditing.SaveAuditRecordAsync(
+                new UserAuditRecord(user: apiKeyCredential.User,
+                action: AuditedUserAction.RevokeCredential,
+                affected: apiKeyCredential,
+                revocationSource: Enum.GetName(typeof(CredentialRevocationSource), revocationSourceKey)));
+
             await RevokeCredential(apiKeyCredential, revocationSourceKey, commitChanges);
         }
 

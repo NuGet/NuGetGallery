@@ -59,7 +59,6 @@
     <Compile Include="Auditing\AuditedPackageActionTests.cs" />
     <Compile Include="Auditing\AuditedPackageFacts.cs" />
     <Compile Include="Auditing\AuditedPackageRegistrationActionTests.cs" />
-    <Compile Include="Auditing\AuditedRevokeCredentialActionTests.cs" />
     <Compile Include="Auditing\AuditedUserActionTests.cs" />
     <Compile Include="Auditing\AuditEntryTests.cs" />
     <Compile Include="Auditing\AuditingServiceTests.cs" />
@@ -72,7 +71,6 @@
     <Compile Include="Auditing\ObfuscatorFacts.cs" />
     <Compile Include="Auditing\ObfuscatorJsonConverterTests.cs" />
     <Compile Include="Auditing\ReservedNamespaceAuditRecordTests.cs" />
-    <Compile Include="Auditing\RevokeCredentialAuditRecordTests.cs" />
     <Compile Include="Auditing\UserSecurityPolicyAuditRecordFacts.cs" />
     <Compile Include="Auditing\FileSystemAuditingServiceTests.cs" />
     <Compile Include="Auditing\PackageAuditRecordTests.cs" />

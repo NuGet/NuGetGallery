@@ -106,5 +106,15 @@ namespace NuGetGallery.Auditing
             Assert.Equal("e", record.Type);
             Assert.Equal("f", record.Value);
         }
+
+        [Fact]
+        public void Constructor_WithRevocationSource_Properties()
+        {
+            var testRevocationSource = "TestRevocationSource";
+            var credential = new Credential(type: "a", value: "b");
+            var record = new CredentialAuditRecord(credential, removed: false, revocationSource: testRevocationSource);
+
+            Assert.Equal(testRevocationSource, record.RevocationSource);
+        }
     }
 }

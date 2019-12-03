@@ -12,7 +12,6 @@ using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Areas.Admin.Models;
-using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -21,17 +20,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IAuthenticationService _authenticationService;
         private readonly ITelemetryService _telemetryService;
         private readonly IEntitiesContext _entitiesContext;
-        private readonly IAuditingService _auditingService;
 
         public ApiKeysController(IAuthenticationService authenticationService,
             ITelemetryService telemetryService,
-            IEntitiesContext entitiesContext,
-            IAuditingService auditingService)
+            IEntitiesContext entitiesContext)
         {
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
-            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         [HttpGet]
@@ -112,7 +108,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return View(nameof(Index));
             }
 
-            var admin = GetCurrentUser();
             try
             {
                 foreach (var selectedApiKey in revokeApiKeysRequest.SelectedApiKeys)
@@ -121,13 +116,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                     var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
                     var revocationSourceKey = (CredentialRevocationSource)Enum.Parse(typeof(CredentialRevocationSource), apiKeyInfo.RevocationSource);
-
-                    await _auditingService.SaveAuditRecordAsync(
-                        new RevokeCredentialAuditRecord(credential: apiKeyCredential,
-                        action: AuditedRevokeCredentialAction.RevokeApiKey,
-                        revocationSource: apiKeyInfo.RevocationSource,
-                        leakedUrl: apiKeyInfo.LeakedUrl,
-                        requestingUsername: admin.Username));
 
                     await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, commitChanges: false);
                 }

@@ -62,6 +62,17 @@ namespace NuGetGallery.Auditing
             AffectedPolicies = new AuditedUserSecurityPolicy[0];
         }
 
+        public UserAuditRecord(User user, AuditedUserAction action, Credential affected, string revocationSource)
+            : this(user, action, new[] { affected }, revocationSource)
+        {
+        }
+
+        public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<Credential> affected, string revocationSource)
+            : this(user, action)
+        {
+            AffectedCredential = affected.Select(c => new CredentialAuditRecord(c, action == AuditedUserAction.RemoveCredential, revocationSource)).ToArray();
+        }
+
         public UserAuditRecord(User user, AuditedUserAction action, Credential affected)
             : this(user, action, new[] { affected })
         {

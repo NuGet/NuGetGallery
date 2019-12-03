@@ -19,6 +19,7 @@ namespace NuGetGallery.Auditing
         public DateTime? Expires { get; }
         public DateTime? LastUsed { get; }
         public string TenantId { get; }
+        public string RevocationSource { get; }
 
         public CredentialAuditRecord(Credential credential, bool removed)
         {
@@ -62,6 +63,12 @@ namespace NuGetGallery.Auditing
                 var ownerScope = scope.Owner?.Username;
                 Scopes.Add(new ScopeAuditRecord(ownerScope, scope.Subject, scope.AllowedAction));
             }
+        }
+
+        public CredentialAuditRecord(Credential credential, bool removed, string revocationSource)
+                : this(credential, removed)
+        {
+            RevocationSource = revocationSource;
         }
     }
 }
