@@ -71,7 +71,7 @@ namespace NuGetGallery.Auditing
             : this(user, action)
         {
             AffectedCredential = affected.Select(c => new CredentialAuditRecord(c,
-                removedOrRevoked: action == AuditedUserAction.RemoveCredential || action == AuditedUserAction.RevokeCredential, revocationSource)).ToArray();
+                removedOrRevoked: action == AuditedUserAction.RemoveCredential || action == AuditedUserAction.RevokeCredential, revocationSource: revocationSource)).ToArray();
         }
 
         public UserAuditRecord(User user, AuditedUserAction action, Credential affected)
