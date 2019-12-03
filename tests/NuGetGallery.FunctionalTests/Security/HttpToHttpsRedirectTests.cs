@@ -95,7 +95,7 @@ namespace NuGetGallery.FunctionalTests.Security
         }
 
         public static IEnumerable<object[]> RemainingUrlsAndMethodsForAppService =>
-                from url in UrlsToTest.Concat(UrlsExcludedFromRedirect)
+                from url in UrlsToTest.Concat(UrlsExcludedFromRedirect).SelectMany(x => x)
                 from method in new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Post, HttpMethod.Put, HttpMethod.Delete, HttpMethod.Trace }
                 select new object[] { method, url };
 
