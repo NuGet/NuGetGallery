@@ -43,7 +43,7 @@ namespace NuGetGallery.FunctionalTests.Security
         [Theory]
         [MemberData(nameof(GetForAllUrls))]
         [Priority(0)]
-        [Category("CloudTests")]
+        [Category("CloudServiceTests")]
         public async Task HttpToHttpsRedirectHappensForSupportedMethods(HttpMethod method, string url)
         {
             // Ideally, we should test both GET and HEAD methods for all the URLs, 
@@ -60,7 +60,7 @@ namespace NuGetGallery.FunctionalTests.Security
         [Theory]
         [MemberData(nameof(NonHeadAndGetForAllUrls))]
         [Priority(0)]
-        [Category("CloudTests")]
+        [Category("CloudServiceTests")]
         public async Task HttpRequestsFailureResponseForUnsupportedMethods(HttpMethod method, string url)
         {
             Uri uri = ForceHttp(url);
@@ -82,7 +82,7 @@ namespace NuGetGallery.FunctionalTests.Security
         [Theory]
         [MemberData(nameof(UrlsExcludedFromRedirect))]
         [Priority(0)]
-        [Category("CloudTests")]
+        [Category("CloudServiceTests")]
         public async Task ExcludedUrlsDontRedirect(string url)
         {
             Uri uri = ForceHttp(url);
@@ -104,7 +104,7 @@ namespace NuGetGallery.FunctionalTests.Security
         [Theory]
         [MemberData(nameof(RemainingUrlsAndMethodsForAppService))]
         [Priority(0)]
-        [Category("AppTests")]
+        [Category("AppServiceTests")]
         public async Task AllUrlsRedirect(HttpMethod method, string url)
         {
             Uri uri = ForceHttp(url);
