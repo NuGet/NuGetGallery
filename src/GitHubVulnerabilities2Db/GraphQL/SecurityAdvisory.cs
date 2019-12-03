@@ -13,6 +13,11 @@ namespace GitHubVulnerabilities2Db.GraphQL
     {
         public int DatabaseId { get; set; }
         public string GhsaId { get; set; }
+        
+        /// <summary>
+        /// A list of references for this advisory.
+        /// At least 1 reference is required.
+        /// </summary>
         public IEnumerable<SecurityAdvisoryReference> References { get; set; }
         public string Severity { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
@@ -25,6 +30,10 @@ namespace GitHubVulnerabilities2Db.GraphQL
     /// </summary>
     public class SecurityAdvisoryReference
     {
+        /// <summary>
+        /// A publicly accessible reference for a GitHub Security Advisory.
+        /// Required.
+        /// </summary>
         public string Url { get; set; }
     }
 }
