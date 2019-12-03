@@ -116,7 +116,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                     var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
                     var revocationSourceKey = (CredentialRevocationSource)Enum.Parse(typeof(CredentialRevocationSource), apiKeyInfo.RevocationSource);
-
                     await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, commitChanges: false);
                 }
 
