@@ -28,6 +28,13 @@ namespace GitHubVulnerabilities2Db.Ingest
         {
             foreach (var advisory in advisories)
             {
+                if (!advisory.References.Any())
+                {
+                    // This should not happen, but we should guard against it anyway to avoid data integrity issues.
+                    // Ignore advisories that don't have any reference.
+                    continue;
+                }
+
                 var vulnerabilityTuple = FromAdvisory(advisory);
                 var vulnerability = vulnerabilityTuple.Item1;
                 var wasWithdrawn = vulnerabilityTuple.Item2;
