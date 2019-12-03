@@ -7,7 +7,7 @@
 <div class="modal-dialog modal-box">
     <div class="modal-title">
         <span class="title-text" data-bind="text: modalTitle()"></span>
-        <button type="button" class="dismiss-button" data-bind="click: dismissModalOrGetFeedback(showEnable2FADialog() && @shouldGetFeedback)" aria-label="Close">
+        <button type="button" class="dismiss-button" data-bind="click: dismissModalOrGetFeedback.bind($data, showEnable2FADialog() && @shouldGetFeedback)" aria-label="Close">
             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
         </button>
     </div>
