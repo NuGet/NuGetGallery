@@ -23,6 +23,7 @@ namespace NuGetGallery
             CertificatesConfiguration = new CertificatesConfiguration();
             SymbolsConfiguration = new SymbolsConfiguration();
             TyposquattingConfiguration = new TyposquattingConfiguration();
+            GitHubUsageConfiguration = new GitHubUsageConfiguration(Array.Empty<RepositoryInformation>());
             ABTestConfiguration = new ABTestConfiguration();
             ODataCacheConfiguration = new ODataCacheConfiguration();
         }
@@ -56,7 +57,6 @@ namespace NuGetGallery
             var reposCache = 
                 await Refresh<IReadOnlyCollection<RepositoryInformation>>(ServicesConstants.ContentNames.NuGetPackagesGitHubDependencies) ??
                 Array.Empty<RepositoryInformation>();
-
             GitHubUsageConfiguration = new GitHubUsageConfiguration(reposCache);
 
             ABTestConfiguration =
