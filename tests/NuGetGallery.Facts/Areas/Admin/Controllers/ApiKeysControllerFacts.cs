@@ -358,10 +358,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task GivenValidRequest_ItRevokesApiKey()
             {
                 // Arrange
-                var credential = new Credential();
-                credential.User = new User("TestUsername");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(credential);
+                    .Returns(new Credential());
                 _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _entitiesContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(0));
@@ -450,14 +448,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task ThrowExceptionsFromRevokeApiKeyCredential_ItReturnsErrorMessage()
             {
                 // Arrange
-                var credential = new Credential();
-                credential.User = new User("TestUsername");
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(credential);
+                    .Returns(new Credential());
                 _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .ThrowsAsync(exception);
                 _entitiesContext.Setup(x => x.SaveChangesAsync());
@@ -478,14 +474,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task ThrowExceptionsFromEntitiesContextSaveChanges_ItReturnsErrorMessage()
             {
                 // Arrange
-                var credential = new Credential();
-                credential.User = new User("TestUsername");
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(credential);
+                    .Returns(new Credential());
                 _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _entitiesContext.Setup(x => x.SaveChangesAsync()).ThrowsAsync(exception);
@@ -516,13 +510,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task GivenValidRequestWithMultipleApiKeys_ItRevokesMultipleApiKeys()
             {
                 // Arrange
-                var credential = new Credential();
-                credential.User = new User("TestUsername");
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(credential);
+                    .Returns(new Credential());
                 _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult(0));
                 _entitiesContext.Setup(x => x.SaveChangesAsync()).Returns(Task.FromResult(0));
@@ -541,14 +533,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task GivenValidRequestWithMultipleApiKeys_ThrowExceptionsFromRevokeCredential_ItReturnsErrorMessageWithMultipleApiKeys()
             {
                 // Arrange
-                var credential = new Credential();
-                credential.User = new User("TestUsername");
                 var apiKeysController = new ApiKeysController(_authenticationService.Object, _telemetryService.Object, _entitiesContext.Object);
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, apiKeysController);
 
                 var exception = new Exception("Some exceptions!");
                 _authenticationService.Setup(x => x.GetApiKeyCredential(It.IsAny<string>()))
-                    .Returns(credential);
+                    .Returns(new Credential());
                 _authenticationService.Setup(x => x.RevokeApiKeyCredential(It.IsAny<Credential>(), It.IsAny<CredentialRevocationSource>(), It.IsAny<bool>()))
                     .ThrowsAsync(exception);
                 _entitiesContext.Setup(x => x.SaveChangesAsync());
