@@ -29,7 +29,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            MailAddress[] replyTo = new[] { new MailAddress(GetUserCommunicationEmailAddress().Trim()) };
+            var replyTo = new[] { new MailAddress(GetUserCommunicationEmailAddress().Trim()) };
 
             return new EmailRecipients(
                 new[] { _configuration.GalleryOwner },

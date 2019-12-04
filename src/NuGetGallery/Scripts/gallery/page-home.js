@@ -32,7 +32,7 @@ $(function () {
             }
 
             if (feedbackText.length > 1000) {
-                viewModel.message("Please limit the feedback to 1000 charachters.");
+                viewModel.message("Please limit the feedback to 1000 characters.");
                 return;
             }
 

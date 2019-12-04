@@ -2274,6 +2274,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There was an unexpected error when submitting feedback. Please contact NuGet support..
+        /// </summary>
+        public static string TwoFAFeedback_Error {
+            get {
+                return ResourceManager.GetString("TwoFAFeedback_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The uploaded package&apos;s id is too similar to the already existing packages: {0} .
         /// </summary>
         public static string TyposquattingCheckFails {

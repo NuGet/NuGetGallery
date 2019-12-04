@@ -809,10 +809,11 @@ namespace NuGetGallery
             }
             catch (ArgumentException ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                ex.Log();
+
+                return Json(new { success = false, message = Strings.TwoFAFeedback_Error });
             }
         }
-
 
         [HttpPost]
         [UIAuthorize]

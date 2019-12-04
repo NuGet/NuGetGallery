@@ -1153,4 +1153,7 @@ The {1} Team</value>
   <data name="UploadPackage_IconUrlDeprecated" xml:space="preserve">
     <value>The &lt;iconUrl&gt; element is deprecated. Consider using the &lt;icon&gt; element instead.</value>
   </data>
+  <data name="TwoFAFeedback_Error" xml:space="preserve">
+    <value>There was an unexpected error when submitting feedback. Please contact NuGet support.</value>
+  </data>
 </root>
