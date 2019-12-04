@@ -100,6 +100,12 @@ Invoke-BuildStep 'Building solution' {
     } `
     -ev +BuildErrors
 
+Invoke-BuildStep 'Building functional test solution' { 
+        $SolutionPath = Join-Path $PSScriptRoot "tests\NuGetServicesMetadata.FunctionalTests.sln"
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore `
+    } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Signing the binaries' {
         Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
     } `
