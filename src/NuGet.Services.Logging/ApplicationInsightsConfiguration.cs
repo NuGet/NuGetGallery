@@ -8,6 +8,7 @@ using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
 namespace NuGet.Services.Logging
 {
     public sealed class ApplicationInsightsConfiguration
+        : IDisposable
     {
         internal ApplicationInsightsConfiguration(
             TelemetryConfiguration telemetryConfiguration,
@@ -32,5 +33,11 @@ namespace NuGet.Services.Logging
         /// Allows tweaking Application Insights heartbeat telemetry.
         /// </summary>
         public DiagnosticsTelemetryModule DiagnosticsTelemetryModule { get; }
+
+        public void Dispose()
+        {
+            DiagnosticsTelemetryModule.Dispose();
+            TelemetryConfiguration.Dispose();
+        }
     }
 }
