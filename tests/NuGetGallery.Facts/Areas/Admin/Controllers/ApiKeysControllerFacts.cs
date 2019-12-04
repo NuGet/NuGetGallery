@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Moq;
 using Xunit;
+using Newtonsoft.Json;
 using NuGet.Services.Entities;
-using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Areas.Admin.Models;
-using Newtonsoft.Json;
+using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

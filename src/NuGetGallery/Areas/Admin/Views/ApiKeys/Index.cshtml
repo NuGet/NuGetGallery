@@ -79,11 +79,6 @@
             </tbody>
         </table>
         <div class="form-group" style="display: none" data-bind="visible: AreAnyRevocableApiKeysSelected">
-            <div class="form-group @Html.HasErrorFor(m => m.Signature)">
-                @Html.ShowLabelFor(m => m.Signature)
-                @Html.ShowTextBoxFor(m => m.Signature)
-                @Html.ShowValidationMessagesFor(m => m.Signature)
-            </div>
             <hr />
             <p>
                 This will expire and revoke the selected API keys, and send the emails to notify customers!

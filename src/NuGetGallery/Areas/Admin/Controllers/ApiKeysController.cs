@@ -21,7 +21,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly ITelemetryService _telemetryService;
         private readonly IEntitiesContext _entitiesContext;
 
-        public ApiKeysController(IAuthenticationService authenticationService, ITelemetryService telemetryService, IEntitiesContext entitiesContext)
+        public ApiKeysController(IAuthenticationService authenticationService,
+            ITelemetryService telemetryService,
+            IEntitiesContext entitiesContext)
         {
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));

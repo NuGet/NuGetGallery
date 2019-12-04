@@ -9,6 +9,7 @@ namespace NuGetGallery.Auditing
         AddCredential,
         RemoveCredential,
         ExpireCredential,
+        RevokeCredential,
         EditCredential,
         RequestPasswordReset,
         ChangeEmail,
