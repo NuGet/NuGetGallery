@@ -71,7 +71,7 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor, string referer)
+        public Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor, string referrer)
         {
             throw new NotImplementedException();
         }

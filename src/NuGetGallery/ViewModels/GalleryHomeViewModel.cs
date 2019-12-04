@@ -15,14 +15,16 @@ namespace NuGetGallery
 
         public bool GetFeedbackOnModalDismissFeatureEnabled { get; set; }
 
-        public GalleryHomeViewModel() : this(showTransformModal: false,
+        public GalleryHomeViewModel() : this(
+            showTransformModal: false,
             transformIntoOrganization: false,
             showEnable2FAModalFeatureEnabled: false,
             getFeedbackOnModalDismiss: false,
             identity: null)
         { }
 
-        public GalleryHomeViewModel(bool showTransformModal,
+        public GalleryHomeViewModel(
+            bool showTransformModal,
             bool transformIntoOrganization,
             bool showEnable2FAModalFeatureEnabled,
             bool getFeedbackOnModalDismiss,

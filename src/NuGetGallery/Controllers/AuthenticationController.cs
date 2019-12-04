@@ -597,7 +597,7 @@ namespace NuGetGallery
                     && !result.Authentication.User.EnableMultiFactorAuthentication
                     && CredentialTypes.IsExternal(result.Credential))
                 {
-                    await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true, referer: "Authentication");
+                    await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true, referrer: "Authentication");
                     OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
                     if (CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
                     {

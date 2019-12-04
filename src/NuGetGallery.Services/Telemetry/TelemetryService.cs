@@ -401,13 +401,13 @@ namespace NuGetGallery
             TrackMetricForAccountActivity(Events.NewUserRegistration, user, credential);
         }
 
-        public void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth, string referer = null)
+        public void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth, string referrer = null)
         {
             TrackMetricForAccountActivity(enabledMultiFactorAuth ? Events.UserMultiFactorAuthenticationEnabled : Events.UserMultiFactorAuthenticationDisabled,
                 user,
                 credential: null,
                 addProperties: addProperties => {
-                    addProperties.Add("Referer", referer);
+                    addProperties.Add("Referrer", referrer);
                 });
         }
 
