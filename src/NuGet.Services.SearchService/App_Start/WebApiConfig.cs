@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Http;
+using System.Web.Http.Cors;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Integration.WebApi;
@@ -43,6 +44,15 @@ namespace NuGet.Services.SearchService
 
             var dependencyResolver = GetDependencyResolver(config);
             config.DependencyResolver = dependencyResolver;
+
+            config.EnableCors(new EnableCorsAttribute(
+                origins: "*",
+                headers: "Content-Type,If-Match,If-Modified-Since,If-None-Match,If-Unmodified-Since,Accept-Encoding",
+                methods: "GET,HEAD,OPTIONS",
+                exposedHeaders: "Content-Type,Content-Length,Last-Modified,Transfer-Encoding,ETag,Date,Vary,Server,X-Hit,X-CorrelationId")
+            {
+                PreflightMaxAge = 3600
+            });
 
             config.MapHttpAttributeRoutes();
 
