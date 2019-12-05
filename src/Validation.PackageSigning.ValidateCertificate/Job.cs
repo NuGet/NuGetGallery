@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Autofac;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -44,7 +43,6 @@ namespace Validation.PackageSigning.ValidateCertificate
             services.AddTransient<ICertificateValidationService, CertificateValidationService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
-            services.AddSingleton(new TelemetryClient());
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)

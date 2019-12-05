@@ -32,6 +32,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private string[] _dataContainerNames;
         private int _sqlCommandTimeoutSeconds = DefaultSqlCommandTimeoutSeconds;
         private int _perPackageReportDegreeOfParallelism = DefaultPerPackageReportDegreeOfParallelism;
+        private ApplicationInsightsHelper _applicationInsightsHelper;
 
         private static readonly IDictionary<string, string> _storedProcedures = new Dictionary<string, string>
         {
@@ -83,6 +84,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
 
             _dataContainerNames = containerNames;
+            _applicationInsightsHelper = new ApplicationInsightsHelper(ApplicationInsightsConfiguration.TelemetryConfiguration);
         }
 
         private bool ShouldGenerateReport(string reportName, string reportNameConfig)
@@ -107,8 +109,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
             stopwatch.Stop();
 
             var reportMetricName = reportName + " report";
-            ApplicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-            ApplicationInsightsHelper.TrackReportProcessed(reportMetricName);
+            _applicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+            _applicationInsightsHelper.TrackReportProcessed(reportMetricName);
         }
 
         public override async Task Run()
@@ -174,8 +176,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
                 stopwatch.Stop();
                 var reportMetricName = ReportNames.DownloadCount + ReportNames.Extension;
-                ApplicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-                ApplicationInsightsHelper.TrackReportProcessed(reportMetricName);
+                _applicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                _applicationInsightsHelper.TrackReportProcessed(reportMetricName);
             }
 
             // build stats-totals.json
@@ -194,8 +196,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
                 stopwatch.Stop();
                 var reportMetricName = ReportNames.GalleryTotals + ReportNames.Extension;
-                ApplicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-                ApplicationInsightsHelper.TrackReportProcessed(reportMetricName);
+                _applicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                _applicationInsightsHelper.TrackReportProcessed(reportMetricName);
             }
 
             // build tools.v1.json
@@ -214,8 +216,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
                 stopwatch.Stop();
                 var reportMetricName = ReportNames.DownloadsPerToolVersion + ReportNames.Extension;
-                ApplicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
-                ApplicationInsightsHelper.TrackReportProcessed(reportMetricName);
+                _applicationInsightsHelper.TrackMetric(reportMetricName + " Generation Time (ms)", stopwatch.ElapsedMilliseconds);
+                _applicationInsightsHelper.TrackReportProcessed(reportMetricName);
             }
         }
 
@@ -264,7 +266,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     "recentpopularity/" + _recentPopularityDetailByPackageReportBaseName + packageId);
 
                 ProcessReport(LoggerFactory, destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
-                ApplicationInsightsHelper.TrackReportProcessed(reportBuilder.ReportName + " report", packageId);
+                _applicationInsightsHelper.TrackReportProcessed(reportBuilder.ReportName + " report", packageId);
             });
 
             // once top 100 is processed, continue with the rest
@@ -296,7 +298,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                         {
                             ProcessReport(LoggerFactory, destinationContainer, reportGenerator.Key, reportGenerator.Value,
                                 reportGenerationTime, Tuple.Create("@PackageId", 128, dirtyPackageId.PackageId)).Wait();
-                            ApplicationInsightsHelper.TrackReportProcessed(reportGenerator.Key.ReportName + " report",
+                            _applicationInsightsHelper.TrackReportProcessed(reportGenerator.Key.ReportName + " report",
                                 dirtyPackageId.PackageId.ToLowerInvariant());
                         }
                     });

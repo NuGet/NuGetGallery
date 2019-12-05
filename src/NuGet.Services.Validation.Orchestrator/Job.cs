@@ -280,7 +280,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
-            services.AddSingleton(new TelemetryClient());
+            services.AddSingleton(new TelemetryClient(ApplicationInsightsConfiguration.TelemetryConfiguration));
             services.AddTransient<IValidationOutcomeProcessor<Package>, ValidationOutcomeProcessor<Package>>();
             services.AddSingleton(p =>
             {

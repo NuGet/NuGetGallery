@@ -1,22 +1,29 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
-using NuGet.Services.Logging;
+using Microsoft.ApplicationInsights.Extensibility;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
-    internal static class ApplicationInsightsHelper
+    internal sealed class ApplicationInsightsHelper
     {
-        public static void TrackReportProcessed(string reportName, string packageId = null)
+        private readonly TelemetryClient _telemetryClient;
+
+        public ApplicationInsightsHelper(TelemetryConfiguration telemetryConfiguration)
         {
-            if (!ApplicationInsights.Initialized)
+            if (telemetryConfiguration == null)
             {
-                return;
+                throw new ArgumentNullException(nameof(telemetryConfiguration));
             }
 
-            var telemetryClient = new TelemetryClient();
+            _telemetryClient = new TelemetryClient(telemetryConfiguration);
+        }
+
+        public void TrackReportProcessed(string reportName, string packageId = null)
+        {
             var telemetry = new MetricTelemetry(reportName, 1);
 
             if (!string.IsNullOrWhiteSpace(packageId))
@@ -24,18 +31,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 telemetry.Properties.Add("Package Id", packageId);
             }
 
-            telemetryClient.TrackMetric(telemetry);
-            telemetryClient.Flush();
+            _telemetryClient.TrackMetric(telemetry);
+            _telemetryClient.Flush();
         }
 
-        public static void TrackMetric(string metricName, double value, string logFileName = null)
+        public void TrackMetric(string metricName, double value, string logFileName = null)
         {
-            if (!ApplicationInsights.Initialized)
-            {
-                return;
-            }
-
-            var telemetryClient = new TelemetryClient();
             var telemetry = new MetricTelemetry(metricName, value);
 
             if (!string.IsNullOrWhiteSpace(logFileName))
@@ -43,8 +44,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 telemetry.Properties.Add("LogFile", logFileName);
             }
 
-            telemetryClient.TrackMetric(telemetry);
-            telemetryClient.Flush();
+            _telemetryClient.TrackMetric(telemetry);
+            _telemetryClient.Flush();
         }
     }
 }

@@ -19,6 +19,7 @@ namespace NuGet.Jobs
         public static IServiceContainer ServiceContainer;
 
         private static ILogger _logger;
+        private static ApplicationInsightsConfiguration _applicationInsightsConfiguration;
 
         private const string HeartbeatProperty_JobLoopExitCode = "JobLoopExitCode";
         private const string JobSucceeded = "Job Succeeded";
@@ -82,30 +83,8 @@ namespace NuGet.Jobs
                     loggerFactory.CreateLogger(typeof(JobConfigurationManager)),
                     commandLineArgs);
 
-                // Determine job and instance name, for logging.
-                var jobName = job.GetType().Assembly.GetName().Name;
-                var instanceName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstanceName) ?? jobName;
-                TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobNameTelemetryInitializer(jobName, instanceName));
-
                 // Setup logging
-                if (!ApplicationInsights.Initialized)
-                {
-                    var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
-                    var heartbeatIntervalSeconds = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.HeartbeatIntervalSeconds);
-                    if (!string.IsNullOrWhiteSpace(instrumentationKey))
-                    {
-                        if (heartbeatIntervalSeconds.HasValue)
-                        {
-                            ApplicationInsights.Initialize(
-                                instrumentationKey,
-                                TimeSpan.FromSeconds(heartbeatIntervalSeconds.Value));
-                        }
-                        else
-                        {
-                            ApplicationInsights.Initialize(instrumentationKey);
-                        }
-                    }
-                }
+                _applicationInsightsConfiguration = ConfigureApplicationInsights(job, jobArgsDictionary);
 
                 // Configure our logging again with Application Insights initialized.
                 loggerFactory = ConfigureLogging(job);
@@ -175,9 +154,44 @@ namespace NuGet.Jobs
             }
 
             Trace.Close();
-            TelemetryConfiguration.Active.TelemetryChannel.Flush();
+            _applicationInsightsConfiguration.TelemetryConfiguration.TelemetryChannel.Flush();
+            _applicationInsightsConfiguration.Dispose();
 
             return exitCode;
+        }
+
+        private static ApplicationInsightsConfiguration ConfigureApplicationInsights(JobBase job, IDictionary<string, string> jobArgsDictionary)
+        {
+            ApplicationInsightsConfiguration applicationInsightsConfiguration;
+
+            var instrumentationKey = JobConfigurationManager.TryGetArgument(
+                jobArgsDictionary,
+                JobArgumentNames.InstrumentationKey);
+
+            var heartbeatIntervalSeconds = JobConfigurationManager.TryGetIntArgument(
+                jobArgsDictionary,
+                JobArgumentNames.HeartbeatIntervalSeconds);
+
+            if (heartbeatIntervalSeconds.HasValue)
+            {
+                applicationInsightsConfiguration = ApplicationInsights.Initialize(
+                    instrumentationKey,
+                    TimeSpan.FromSeconds(heartbeatIntervalSeconds.Value));
+            }
+            else
+            {
+                applicationInsightsConfiguration = ApplicationInsights.Initialize(instrumentationKey);
+            }
+
+            // Determine job and instance name, for logging.
+            var jobName = job.GetType().Assembly.GetName().Name;
+            var instanceName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstanceName) ?? jobName;
+            applicationInsightsConfiguration.TelemetryConfiguration.TelemetryInitializers.Add(
+                new JobNameTelemetryInitializer(jobName, instanceName));
+
+            job.SetApplicationInsightsConfiguration(applicationInsightsConfiguration);
+
+            return applicationInsightsConfiguration;
         }
 
         private static ILoggerFactory ConfigureLogging(JobBase job)
@@ -215,7 +229,7 @@ namespace NuGet.Jobs
             // This tells Application Insights that, even though a heartbeat is reported, 
             // the state of the application is unhealthy when the exitcode is different from zero.
             // The heartbeat metadata is enriched with the job loop exit code.
-            ApplicationInsights.HeartbeatManager?.AddHeartbeatProperty(
+            _applicationInsightsConfiguration.DiagnosticsTelemetryModule?.AddHeartbeatProperty(
                 HeartbeatProperty_JobLoopExitCode,
                 exitCode.ToString(),
                 isHealthy: exitCode == 0);
@@ -255,7 +269,7 @@ namespace NuGet.Jobs
                     stopWatch.Stop();
                     _logger.LogInformation("Job run took {RunDuration}", PrettyPrintTime(stopWatch.ElapsedMilliseconds));
 
-                    ApplicationInsights.HeartbeatManager?.SetHeartbeatProperty(
+                    _applicationInsightsConfiguration.DiagnosticsTelemetryModule?.SetHeartbeatProperty(
                         HeartbeatProperty_JobLoopExitCode,
                         exitCode.ToString(),
                         isHealthy: exitCode == 0);

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.KeyVault;
+using NuGet.Services.Logging;
 using NuGet.Services.Sql;
 
 namespace NuGet.Jobs
@@ -36,6 +37,8 @@ namespace NuGet.Jobs
         protected ILoggerFactory LoggerFactory { get; private set; }
 
         protected ILogger Logger { get; private set; }
+
+        protected ApplicationInsightsConfiguration ApplicationInsightsConfiguration { get; private set; }
 
         private Dictionary<string, ICoreSqlConnectionFactory> SqlConnectionFactories { get; }
 
@@ -224,6 +227,11 @@ namespace NuGet.Jobs
             }
 
             return GetSqlConnectionFactory(connectionStringArgName).OpenAsync();
+        }
+
+        internal void SetApplicationInsightsConfiguration(ApplicationInsightsConfiguration applicationInsightsConfiguration)
+        {
+            ApplicationInsightsConfiguration = applicationInsightsConfiguration ?? throw new ArgumentNullException(nameof(applicationInsightsConfiguration));
         }
     }
 }

@@ -118,7 +118,7 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             services.AddSingleton(p => new HttpClient(p.GetService<HttpClientHandler>()));
             services.AddSingleton<IHttpClientWrapper>(p => new HttpClientWrapper(p.GetService<HttpClient>()));
             services.AddTransient<IPackageLagTelemetryService, PackageLagTelemetryService>();
-            services.AddSingleton(new TelemetryClient());
+            services.AddSingleton(new TelemetryClient(ApplicationInsightsConfiguration.TelemetryConfiguration));
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
             services.AddTransient<IAzureManagementAPIWrapperConfiguration>(p => p.GetService<IOptionsSnapshot<AzureManagementAPIWrapperConfiguration>>().Value);
             services.AddTransient<PackageLagMonitorConfiguration>(p => p.GetService<IOptionsSnapshot<PackageLagMonitorConfiguration>>().Value);

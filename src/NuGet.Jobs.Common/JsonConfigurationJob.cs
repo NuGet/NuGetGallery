@@ -120,7 +120,7 @@ namespace NuGet.Jobs
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
             services.Configure<ValidationStorageConfiguration>(configurationRoot.GetSection(ValidationStorageConfigurationSectionName));
 
-            services.AddSingleton(new TelemetryClient());
+            services.AddSingleton(new TelemetryClient(ApplicationInsightsConfiguration.TelemetryConfiguration));
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
 
             AddScopedSqlConnectionFactory<GalleryDbConfiguration>(services);
