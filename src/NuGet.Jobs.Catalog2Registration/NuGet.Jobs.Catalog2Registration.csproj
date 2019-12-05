@@ -46,7 +46,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Catalog2RegistrationConfiguration.cs" />
+    <Compile Include="Hives\Bookkeeping\LeafInfo.cs" />
+    <Compile Include="Hives\Bookkeeping\IndexInfo.cs" />
+    <Compile Include="Hives\Bookkeeping\PageInfo.cs" />
+    <Compile Include="Hives\HiveMerger.cs" />
+    <Compile Include="Hives\HiveMergeResult.cs" />
     <Compile Include="Hives\HiveType.cs" />
+    <Compile Include="Hives\IHiveMerger.cs" />
+    <Compile Include="Hives\IHiveStorage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
