@@ -71,22 +71,18 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq">
-      <Version>4.7.145</Version>
-    </PackageReference>
-    <PackageReference Include="Portable.BouncyCastle">
-      <Version>1.8.1.3</Version>
-    </PackageReference>
-    <PackageReference Include="System.ValueTuple">
-      <Version>4.4.0</Version>
+      <Version>4.13.1</Version>
     </PackageReference>
     <PackageReference Include="Test.Utility">
       <Version>4.8.0-preview4.5289</Version>
     </PackageReference>
     <PackageReference Include="xunit">
-      <Version>2.3.1</Version>
+      <Version>2.4.1</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>2.3.1</Version>
+      <Version>2.4.1</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
