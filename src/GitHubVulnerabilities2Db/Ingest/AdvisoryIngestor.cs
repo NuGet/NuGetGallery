@@ -28,13 +28,6 @@ namespace GitHubVulnerabilities2Db.Ingest
         {
             foreach (var advisory in advisories)
             {
-                if (!advisory.References.Any())
-                {
-                    // This should not happen, but we should guard against it anyway to avoid data integrity issues.
-                    // Ignore advisories that don't have any reference.
-                    continue;
-                }
-
                 var vulnerabilityTuple = FromAdvisory(advisory);
                 var vulnerability = vulnerabilityTuple.Item1;
                 var wasWithdrawn = vulnerabilityTuple.Item2;
@@ -48,7 +41,7 @@ namespace GitHubVulnerabilities2Db.Ingest
             {
                 GitHubDatabaseKey = advisory.DatabaseId,
                 Severity = (PackageVulnerabilitySeverity)Enum.Parse(typeof(PackageVulnerabilitySeverity), advisory.Severity, ignoreCase: true),
-                ReferenceUrl = advisory.References.First().Url
+                AdvisoryUrl = advisory.GetPermalink()
             };
 
             foreach (var securityVulnerability in advisory.Vulnerabilities?.Edges?.Select(e => e.Node) ?? Enumerable.Empty<SecurityVulnerability>())

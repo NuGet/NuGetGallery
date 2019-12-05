@@ -463,7 +463,7 @@ namespace NuGetGallery
                 .IsUnique();
 
             modelBuilder.Entity<PackageVulnerability>()
-                .Property(pv => pv.ReferenceUrl)
+                .Property(pv => pv.AdvisoryUrl)
                 .IsRequired();
 
             modelBuilder.Entity<VulnerablePackageVersionRange>()
