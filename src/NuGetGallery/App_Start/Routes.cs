@@ -373,6 +373,12 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
+                RouteName.Send2FAFeedback,
+                "account/sendfeedback",
+                new { controller = "Users", action = "Send2FAFeedback" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.RemovePassword,
                 "account/RemoveCredential/password",
                 new { controller = "Users", action = "RemovePassword" });

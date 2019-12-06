@@ -239,6 +239,7 @@
     <Compile Include="Infrastructure\Lucene\Models\SearchResults.cs" />
     <Compile Include="Infrastructure\Lucene\Models\SortOrder.cs" />
     <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\TwoFactorFeedbackMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
     <Compile Include="Infrastructure\HijackSearchServiceFactory.cs" />
     <Compile Include="Infrastructure\ODataCachedEndpoint.cs" />
@@ -1915,6 +1916,7 @@
     <Content Include="Views\Packages\_DisplayPackageDeprecation.cshtml" />
     <Content Include="Views\Experiments\SearchSideBySide.cshtml" />
     <Content Include="Views\Api\HealthProbeApi.cshtml" />
+    <Content Include="Views\Pages\_Enable2FA.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

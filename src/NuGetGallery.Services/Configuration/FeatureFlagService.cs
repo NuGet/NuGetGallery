@@ -31,6 +31,8 @@ namespace NuGetGallery
         private const string GravatarProxyFeatureName = GalleryPrefix + "GravatarProxy";
         private const string GravatarProxyEnSubdomainFeatureName = GalleryPrefix + "GravatarProxyEnSubdomain";
         private const string ODataCacheDurationsFeatureName = GalleryPrefix + "ODataCacheDurations";
+        private const string ShowEnable2FADialog = GalleryPrefix + "ShowEnable2FADialog";
+        private const string Get2FADismissFeedback = GalleryPrefix + "Get2FADismissFeedback";
 
         private readonly IFeatureFlagClient _client;
 
@@ -143,6 +145,16 @@ namespace NuGetGallery
         public bool AreDynamicODataCacheDurationsEnabled()
         {
             return _client.IsEnabled(ODataCacheDurationsFeatureName, defaultValue: false);
+        }
+
+        public bool IsShowEnable2FADialogEnabled()
+        {
+            return _client.IsEnabled(ShowEnable2FADialog, defaultValue: false);
+        }
+
+        public bool IsGet2FADismissFeedbackEnabled()
+        {
+            return _client.IsEnabled(Get2FADismissFeedback, defaultValue: false);
         }
     }
 }
