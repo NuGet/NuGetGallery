@@ -15,11 +15,6 @@ namespace NuGetGallery.Diagnostics
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
 
-        // Test constructor
-        internal DiagnosticsService() : this(TelemetryClientWrapper.Instance)
-        {
-        }
-
         public IDiagnosticsSource GetSource(string name)
         {
             if (string.IsNullOrEmpty(name))

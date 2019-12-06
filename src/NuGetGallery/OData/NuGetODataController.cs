@@ -8,6 +8,7 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using NuGetGallery.Configuration;
+using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.WebApi;
 
 namespace NuGetGallery.OData
@@ -27,7 +28,11 @@ namespace NuGetGallery.OData
         {
             _configurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+
+            ODataQueryVerifier = ODataQueryVerifier.Build(telemetryService);
         }
+
+        internal ODataQueryVerifier ODataQueryVerifier { get; }
 
         protected virtual HttpContextBase GetTraditionalHttpContext()
         {

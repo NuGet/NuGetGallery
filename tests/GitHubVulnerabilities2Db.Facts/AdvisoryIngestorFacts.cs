@@ -43,7 +43,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     GhsaId = "ghsa",
                     Severity = "MODERATE",
                     References = new[] { new SecurityAdvisoryReference { Url = "https://vulnerable" } },
-                    WithdrawnAt = withdrawn ? new DateTime() : (DateTime?)null
+                    WithdrawnAt = withdrawn ? new DateTimeOffset() : (DateTimeOffset?)null
                 };
 
                 PackageVulnerabilityServiceMock
@@ -86,7 +86,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     GhsaId = "ghsa",
                     Severity = "CRITICAL",
                     References = new[] { new SecurityAdvisoryReference { Url = "https://vulnerable" } },
-                    WithdrawnAt = withdrawn ? new DateTime() : (DateTime?)null,
+                    WithdrawnAt = withdrawn ? new DateTimeOffset() : (DateTimeOffset?)null,
                     Vulnerabilities = new ConnectionResponseData<SecurityVulnerability>
                     {
                         Edges = new[]
