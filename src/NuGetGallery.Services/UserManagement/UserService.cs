@@ -420,7 +420,7 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
         }
 
-        public virtual async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor, string referrer)
+        public virtual async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor, string referrer = null)
         {
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, enableMultiFactor ? AuditedUserAction.EnabledMultiFactorAuthentication : AuditedUserAction.DisabledMultiFactorAuthentication));
 

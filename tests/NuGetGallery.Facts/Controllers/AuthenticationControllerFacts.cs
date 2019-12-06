@@ -1638,7 +1638,7 @@ namespace NuGetGallery.Controllers
             [Theory]
             [InlineData("MicrosoftAccount", true)]
             [InlineData("AzureActiveDirectory", false)]
-            public async Task ShouldUpdateMultiFactorSettingForMicrosoftAccounts(string credType, bool showMessage)
+            public async Task ShouldUpdateMultiFactorSettingForExternalAccounts(string credType, bool showMessage)
             {
                 // Arrange
                 var email = "test@email.com";
@@ -1681,6 +1681,57 @@ namespace NuGetGallery.Controllers
                 if (showMessage)
                 {
                     Assert.Equal(Strings.MultiFactorAuth_LoginUpdate, controller.TempData["Message"]);
+                }
+
+                ResultAssert.IsSafeRedirectTo(result, returnUrl);
+            }
+
+            [Theory]
+            [InlineData("MicrosoftAccount", true)]
+            [InlineData("AzureActiveDirectory", false)]
+            public async Task ShouldAskToEnableMultiFactorSettingForMicrosoftAccounts(string credType, bool shouldAskToEnable2FA)
+            {
+                // Arrange
+                var email = "test@email.com";
+                var cred = new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog");
+                var user = Get<Fakes>().CreateUser("test", cred);
+                user.EnableMultiFactorAuthentication = false;
+                var authServiceMock = GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var userServiceMock = GetMock<IUserService>();
+                var authUser = new AuthenticatedUser(user, cred);
+
+                authServiceMock
+                    .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Credential = cred,
+                        Authentication = authUser,
+                        Authenticator = new AzureActiveDirectoryV2Authenticator(),
+                        LoginDetails = new ExternalLoginSessionDetails(email, usedMultiFactorAuthentication: false)
+                    });
+
+                authServiceMock
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask);
+
+                userServiceMock
+                    .Setup(x => x.ChangeMultiFactorAuthentication(authUser.User, true, null))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                var returnUrl = "theReturnUrl";
+
+                // Act
+                var result = await controller.LinkExternalAccount(returnUrl);
+
+                // Assert
+                authServiceMock.VerifyAll();
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(authUser.User, true, It.IsAny<string>()), Times.Never());
+                if (shouldAskToEnable2FA)
+                {
+                    Assert.Equal(true, controller.TempData["AskUserToEnable2FA"]);
                 }
 
                 ResultAssert.IsSafeRedirectTo(result, returnUrl);

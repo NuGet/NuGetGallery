@@ -29,7 +29,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            var replyTo = new[] { new MailAddress(GetUserCommunicationEmailAddress().Trim()) };
+            var replyTo = new[] { _feedbackProvider.ToMailAddress() };
 
             return new EmailRecipients(
                 new[] { _configuration.GalleryOwner },
@@ -52,13 +52,6 @@ This user chose **not** to enable the two-factor authentication!
 {1}",
                 _feedbackProvider.Username,
                 _feedbackText);
-        }
-
-        private string GetUserCommunicationEmailAddress()
-        {
-            return !string.IsNullOrEmpty(_feedbackProvider.EmailAddress) 
-                ? _feedbackProvider.EmailAddress 
-                : _feedbackProvider.UnconfirmedEmailAddress;
         }
     }
 }
