@@ -52,7 +52,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
 This is your friendly NuGet security bot! It appears that an API key {1}linked with your account, was posted at {2}. As a precautionary measure, we have revoked this key to protect your account and packages.
 
-Your key was found here: {3}
+Your key was found here: <{3}>
 
 In the future, please be mindful of accidentally posting your API keys publicly!
 
