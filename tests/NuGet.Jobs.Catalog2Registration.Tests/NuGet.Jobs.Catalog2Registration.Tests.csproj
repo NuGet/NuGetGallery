@@ -57,6 +57,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Hives\HiveMergerFacts.Support.cs" />
+    <Compile Include="Hives\HiveMergerFacts.FullEnumeration.cs" />
+    <Compile Include="Hives\HiveMergerFacts.MergeAsync.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +83,9 @@
       <Project>{ccb4d5ef-ac84-449d-ac6e-0a0ad295483a}</Project>
       <Name>NuGet.Services.V3.Tests</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
