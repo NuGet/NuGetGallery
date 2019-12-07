@@ -13,6 +13,52 @@ Write-Host $fullDivider
 
 $failedTests = New-Object System.Collections.ArrayList
 
+Function Wait-ForServiceStart($MaxWaitSeconds) {
+    $configurationFile = $env:ConfigurationFilePath
+    if ($null -eq $configurationFile) {
+        Write-Error "Configuration file path environment variable is not specified"
+        return $false;
+    }
+    if (-not (Test-Path $configurationFile)) {
+        Write-Error "Missing configuration file: $configurationFile"
+        return $false
+    }
+    $configuration = Get-Content $configurationFile | ConvertFrom-Json;
+    if ($null -eq $configuration.Slot) {
+        Write-Error "`"Slot`" property was not found in the test configuration object: $configurationFile"
+        return $false
+    }
+    $baseUrlPropertyName = if ($configuration.Slot -eq "staging") { "StagingBaseUrl" } else { "ProductionBaseUrl" }
+    if ($null -eq $configuration.$baseUrlPropertyName) {
+        Write-Error "`"$($baseUrlPropertyName)`" property was not found in the test configuration object: $configurationFile"
+        return $false
+    }
+
+    $galleryUrl = $configuration.$baseUrlPropertyName
+    $response = $null
+    Write-Host "Waiting until service ($galleryUrl) responds with non-502"
+    $start = Get-Date
+    $maxWait = New-TimeSpan -Seconds $MaxWaitSeconds
+    do
+    {
+        if ($null -ne $response) {
+            Start-Sleep -Seconds 5
+        }
+        $response = try { Invoke-WebRequest -Uri $galleryUrl -Method Get } catch [System.Net.WebException] {$_.Exception.Response}
+        if ($response.StatusCode -eq 502) {
+            $elapsed = (Get-Date) - $start
+            if ($elapsed -ge $maxWait) {
+                Write-Error "Service start timeout expired"
+                return $false
+            } else {
+                Write-Host "Still waiting for the service to stop responding with 502 after $elapsed"
+            }
+        }
+    } while($response.StatusCode -eq 502)
+
+    return $true;
+}
+
 Function Output-Job {
     [CmdletBinding()]
     param(
@@ -39,6 +85,11 @@ Function Output-Job {
         }
     }
     Remove-Job $job | Out-Host
+}
+
+$serviceAvailable = Wait-ForServiceStart -MaxWaitSeconds 300
+if (-not $serviceAvailable) {
+    exit 1;
 }
 
 $finished = $false
