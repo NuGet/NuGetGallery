@@ -44,7 +44,7 @@ Function Wait-ForServiceStart($MaxWaitSeconds) {
         if ($null -ne $response) {
             Start-Sleep -Seconds 5
         }
-        $response = try { Invoke-WebRequest -Uri $galleryUrl -Method Get } catch [System.Net.WebException] {$_.Exception.Response}
+        $response = try { Invoke-WebRequest -Uri $galleryUrl -Method Get -UseBasicParsing } catch [System.Net.WebException] {$_.Exception.Response}
         if ($response.StatusCode -eq 502) {
             $elapsed = (Get-Date) - $start
             if ($elapsed -ge $maxWait) {
