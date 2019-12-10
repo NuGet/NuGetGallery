@@ -59,7 +59,7 @@ namespace NuGet.Services.Logging
                 {
                     Timestamp = timestamp,
                     Name = metricName,
-                    Value = value
+                    Sum = value
                 };
 
                 if (properties != null)
