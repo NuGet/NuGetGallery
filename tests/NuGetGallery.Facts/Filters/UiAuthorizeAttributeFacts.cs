@@ -126,11 +126,17 @@ namespace NuGetGallery.Filters
                 Assert.Contains(new KeyValuePair<string, object>("action", "Home"), redirectResult.RouteValues);
             }
 
-            [Fact]
-            public void RedirectsToHomepageForAuthenticatedUserWithNon2FAMarker()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void RedirectsToHomepageOnlyWith2FAMarker(bool shouldEnable2FA)
             {
                 var tempData = new TempDataDictionary();
-                tempData.Add(GalleryConstants.AskUserToEnable2FA, true);
+                if (shouldEnable2FA)
+                {
+                    tempData.Add(GalleryConstants.AskUserToEnable2FA, true);
+                }
+
                 var context = BuildAuthorizationContext(
                     BuildClaimsIdentity(
                         AuthenticationTypes.External,
@@ -144,9 +150,16 @@ namespace NuGetGallery.Filters
 
                 // Assert
                 var redirectResult = context.Result as RedirectToRouteResult;
-                Assert.NotNull(redirectResult);
-                Assert.Contains(new KeyValuePair<string, object>("controller", "Pages"), redirectResult.RouteValues);
-                Assert.Contains(new KeyValuePair<string, object>("action", "Home"), redirectResult.RouteValues);
+                if (shouldEnable2FA)
+                {
+                    Assert.NotNull(redirectResult);
+                    Assert.Contains(new KeyValuePair<string, object>("controller", "Pages"), redirectResult.RouteValues);
+                    Assert.Contains(new KeyValuePair<string, object>("action", "Home"), redirectResult.RouteValues);
+                }
+                else
+                {
+                    Assert.Null(redirectResult);
+                }
             }
 
             private static Mock<ClaimsIdentity> BuildClaimsIdentity(string authType, bool authenticated, bool hasDiscontinuedLoginClaim)
