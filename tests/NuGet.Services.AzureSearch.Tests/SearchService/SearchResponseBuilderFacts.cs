@@ -565,6 +565,57 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Fact]
+            public void AllowsNullPackageTypes()
+            {
+                var docResult = _searchResult.Results[0];
+                docResult.Document.FilterablePackageTypes = null;
+                docResult.Document.PackageTypes = null;
+
+                var response = Target.V3FromSearch(
+                    _v3Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Null(response.Data[0].PackageTypes);
+            }
+
+            [Fact]
+            public void AllowsEmptyPackageTypes()
+            {
+                var docResult = _searchResult.Results[0];
+                docResult.Document.FilterablePackageTypes = new string[0];
+                docResult.Document.PackageTypes = new string[0];
+
+                var response = Target.V3FromSearch(
+                    _v3Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Null(response.Data[0].PackageTypes);
+            }
+
+            [Fact]
+            public void UsesOnlyTheDisplayPackageTypes()
+            {
+                var docResult = _searchResult.Results[0];
+                docResult.Document.FilterablePackageTypes = new[] { "dependency", "dotnettool" };
+                docResult.Document.PackageTypes = null;
+
+                var response = Target.V3FromSearch(
+                    _v3Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Null(response.Data[0].PackageTypes);
+            }
+
+            [Fact]
             public void CanIncludeDebugInformation()
             {
                 _v3Request.ShowDebug = true;
@@ -622,6 +673,10 @@ namespace NuGet.Services.AzureSearch.SearchService
             [Fact]
             public void ProducesExpectedResponse()
             {
+                var docResult = _searchResult.Results[0];
+                docResult.Document.FilterablePackageTypes = new[] { "dependency", "dotnettool" };
+                docResult.Document.PackageTypes = new[] { "Dependency", "DotnetTool" };
+
                 var response = Target.V3FromSearch(
                     _v3Request,
                     _text,
@@ -665,6 +720,14 @@ namespace NuGet.Services.AzureSearch.SearchService
       ],
       ""totalDownloads"": 1001,
       ""verified"": true,
+      ""packageTypes"": [
+        {
+          ""name"": ""Dependency""
+        },
+        {
+          ""name"": ""DotnetTool""
+        }
+      ],
       ""versions"": [
         {
           ""version"": ""1.0.0"",
@@ -820,6 +883,11 @@ namespace NuGet.Services.AzureSearch.SearchService
       ],
       ""totalDownloads"": 1001,
       ""verified"": true,
+      ""packageTypes"": [
+        {
+          ""name"": ""Dependency""
+        }
+      ],
       ""versions"": [
         {
           ""version"": ""1.0.0"",

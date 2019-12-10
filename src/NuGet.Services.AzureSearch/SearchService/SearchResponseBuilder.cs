@@ -367,6 +367,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Authors = new[] { result.Authors ?? string.Empty },
                 TotalDownloads = AuxiliaryData.GetTotalDownloadCount(result.PackageId),
                 Verified = AuxiliaryData.IsVerified(result.PackageId),
+                PackageTypes = GetV3SearchPackageTypes(result),
                 Versions = result
                     .Versions
                     .Select(x =>
@@ -382,6 +383,22 @@ namespace NuGet.Services.AzureSearch.SearchService
                     })
                     .ToList(),
             };
+        }
+
+        private List<V3SearchPackageType> GetV3SearchPackageTypes(SearchDocument.UpdateLatest document)
+        {
+            if (document.PackageTypes == null || document.PackageTypes.Length == 0)
+            {
+                return null;
+            }
+
+            var packageTypes = new List<V3SearchPackageType>(document.PackageTypes.Length);
+            foreach (var packageType in document.PackageTypes)
+            {
+                packageTypes.Add(new V3SearchPackageType { Name = packageType });
+            }
+
+            return packageTypes;
         }
 
         private string GetIconUrl(IBaseMetadataDocument document)

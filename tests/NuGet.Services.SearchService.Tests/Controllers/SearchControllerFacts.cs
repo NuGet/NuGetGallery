@@ -292,6 +292,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.False(lastRequest.IncludePrerelease);
                 Assert.False(lastRequest.IncludeSemVer2);
                 Assert.Null(lastRequest.Query);
+                Assert.Null(lastRequest.PackageType);
                 Assert.False(lastRequest.ShowDebug);
             }
 
@@ -310,6 +311,7 @@ namespace NuGet.Services.SearchService.Controllers
                     prerelease: null,
                     semVerLevel: null,
                     q: null,
+                    packageType: null,
                     debug: null);
 
                 _searchService.Verify(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()), Times.Once);
@@ -319,6 +321,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.False(lastRequest.IncludePrerelease);
                 Assert.False(lastRequest.IncludeSemVer2);
                 Assert.Null(lastRequest.Query);
+                Assert.Null(lastRequest.PackageType);
                 Assert.False(lastRequest.ShowDebug);
             }
 
@@ -337,6 +340,7 @@ namespace NuGet.Services.SearchService.Controllers
                     prerelease: true,
                     semVerLevel: "2.0.0",
                     q: "windows azure storage",
+                    packageType: "DotnetTool",
                     debug: true);
 
                 _searchService.Verify(x => x.V3SearchAsync(It.IsAny<V3SearchRequest>()), Times.Once);
@@ -346,6 +350,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.True(lastRequest.IncludePrerelease);
                 Assert.True(lastRequest.IncludeSemVer2);
                 Assert.Equal("windows azure storage", lastRequest.Query);
+                Assert.Equal("DotnetTool", lastRequest.PackageType);
                 Assert.True(lastRequest.ShowDebug);
             }
 

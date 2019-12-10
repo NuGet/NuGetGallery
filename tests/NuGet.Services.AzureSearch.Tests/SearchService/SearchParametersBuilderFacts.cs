@@ -238,6 +238,38 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal("searchFilters eq 'Default' and (isExcludedByDefault eq false or isExcludedByDefault eq null)", output.Filter);
             }
 
+            [Theory]
+            [InlineData("Dependency")]
+            [InlineData("DotnetTool")]
+            [InlineData("Template")]
+            [InlineData("PackageType.With.Dots")]
+            [InlineData("PackageType-With-Hyphens")]
+            [InlineData("PackageType_With_Underscores")]
+            public void PackageTypeFiltering(string packageType)
+            {
+                var request = new V3SearchRequest
+                {
+                    PackageType = packageType,
+                };
+
+                var output = _target.V3Search(request, It.IsAny<bool>());
+
+                Assert.Equal($"searchFilters eq 'Default' and filterablePackageTypes/any(p: p eq '{packageType.ToLowerInvariant()}')", output.Filter);
+            }
+
+            [Fact]
+            public void InvalidPackageType()
+            {
+                var request = new V3SearchRequest
+                {
+                    PackageType = "something's-weird",
+                };
+
+                var output = _target.V3Search(request, It.IsAny<bool>());
+
+                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+            }
+
             [Fact]
             public void Paging()
             {

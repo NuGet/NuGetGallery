@@ -108,6 +108,7 @@ namespace NuGet.Services.SearchService.Controllers
             bool? prerelease = false,
             string semVerLevel = null,
             string q = null,
+            string packageType = null,
             bool? debug = false)
         {
             await EnsureInitializedAsync();
@@ -119,6 +120,7 @@ namespace NuGet.Services.SearchService.Controllers
                 IncludePrerelease = prerelease ?? false,
                 IncludeSemVer2 = GetIncludeSemVer2(semVerLevel),
                 Query = q,
+                PackageType = packageType,
                 ShowDebug = debug ?? false,
             };
 
