@@ -36,7 +36,7 @@ Function Wait-ForServiceStart($MaxWaitSeconds) {
 
     $galleryUrl = $configuration.$baseUrlPropertyName
     $response = $null
-    Write-Host "Waiting until service ($galleryUrl) responds with non-502"
+    Write-Host "$(Get-Date -Format s) Waiting until service ($galleryUrl) responds with non-502"
     $start = Get-Date
     $maxWait = New-TimeSpan -Seconds $MaxWaitSeconds
     do
@@ -48,11 +48,13 @@ Function Wait-ForServiceStart($MaxWaitSeconds) {
         if ($response.StatusCode -eq 502) {
             $elapsed = (Get-Date) - $start
             if ($elapsed -ge $maxWait) {
-                Write-Error "Service start timeout expired"
+                Write-Error "$(Get-Date -Format s) Service start timeout expired"
                 return $false
             } else {
-                Write-Host "Still waiting for the service to stop responding with 502 after $elapsed"
+                Write-Host "$(Get-Date -Format s) Still waiting for the service to stop responding with 502 after $elapsed"
             }
+        } else {
+            Write-Host "$(Get-Date -Format s) Got a $($response.StatusCode) response";
         }
     } while($response.StatusCode -eq 502)
 
