@@ -19,9 +19,12 @@ namespace NuGetGallery.Filters
 
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
-            // If the user has a discontinued login claim, redirect them to the homepage
+            // If the user has a discontinued login claim or should enable 2FA, redirect them to the homepage
             var identity = filterContext.HttpContext.User.Identity as ClaimsIdentity;
-            if (!AllowDiscontinuedLogins && ClaimsExtensions.HasDiscontinuedLoginClaims(identity))
+            var askUserToEnable2FA = filterContext.Controller?.TempData?.ContainsKey(GalleryConstants.AskUserToEnable2FA);
+
+            if ((!AllowDiscontinuedLogins && ClaimsExtensions.HasDiscontinuedLoginClaims(identity))
+                || (askUserToEnable2FA.HasValue && askUserToEnable2FA.Value))
             {
                 filterContext.Result = new RedirectToRouteResult(
                     new RouteValueDictionary(
