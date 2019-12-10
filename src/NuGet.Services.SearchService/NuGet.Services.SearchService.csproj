@@ -93,6 +93,9 @@
     <PackageReference Include="Microsoft.AspNet.WebApi">
       <Version>5.2.7</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Cors">
+      <Version>5.2.7</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
