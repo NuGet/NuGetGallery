@@ -1731,7 +1731,7 @@ namespace NuGetGallery.Controllers
                 userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(authUser.User, true, It.IsAny<string>()), Times.Never());
                 if (shouldAskToEnable2FA)
                 {
-                    Assert.Equal(true, controller.TempData["AskUserToEnable2FA"]);
+                    Assert.Equal(true, controller.TempData[GalleryConstants.AskUserToEnable2FA]);
                 }
 
                 ResultAssert.IsSafeRedirectTo(result, returnUrl);

@@ -612,7 +612,7 @@ namespace NuGetGallery
                 if (!currentUser.EnableMultiFactorAuthentication
                     && CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
                 {
-                    TempData["AskUserToEnable2FA"] = true;
+                    TempData[GalleryConstants.AskUserToEnable2FA] = true;
                 }
 
                 return SafeRedirect(returnUrl);
