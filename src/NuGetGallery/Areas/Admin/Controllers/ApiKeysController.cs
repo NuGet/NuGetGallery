@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
-using NuGetGallery.Configuration;
 using NuGetGallery.Authentication;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Areas.Admin.Models;
@@ -24,21 +23,18 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly ITelemetryService _telemetryService;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IMessageService _messageService;
-        private readonly IGalleryConfigurationService _galleryConfigurationService;
         private readonly IMessageServiceConfiguration _messageServiceConfiguration;
 
         public ApiKeysController(IAuthenticationService authenticationService,
             ITelemetryService telemetryService,
             IEntitiesContext entitiesContext,
             IMessageService messageService,
-            IGalleryConfigurationService galleryConfigurationService,
             IMessageServiceConfiguration messageServiceConfiguration)
         {
             _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
-            _galleryConfigurationService = galleryConfigurationService ?? throw new ArgumentNullException(nameof(galleryConfigurationService));
             _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
         }
 
@@ -129,13 +125,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     var apiKeyCredential = _authenticationService.GetApiKeyCredential(apiKeyInfo.ApiKey);
                     var revocationSourceKey = (CredentialRevocationSource)Enum.Parse(typeof(CredentialRevocationSource), apiKeyInfo.RevocationSource);
 
-                    var siteRoot = _galleryConfigurationService.GetSiteRoot(useHttps: true).TrimEnd('/') + "/";
                     var credentialRevokedMessage = new CredentialRevokedMessage(
                         _messageServiceConfiguration,
                         credential: apiKeyCredential,
                         leakedUrl: apiKeyInfo.LeakedUrl,
                         revocationSource: apiKeyInfo.RevocationSource,
-                        siteRoot: siteRoot);
+                        manageApiKeyUrl: Url.ManageMyApiKeys(relativeUrl: false),
+                        contactUrl: Url.Contact(relativeUrl: false));
                     await _messageService.SendMessageAsync(credentialRevokedMessage);
 
                     await _authenticationService.RevokeApiKeyCredential(apiKeyCredential, revocationSourceKey, commitChanges: false);
