@@ -36,6 +36,8 @@ Function Wait-ForServiceStart($MaxWaitSeconds) {
 
     $galleryUrl = $configuration.$baseUrlPropertyName
     $response = $null
+    Write-Host "$(Get-Date -Format s) Sleeping before querying the service";
+    Start-Sleep -Seconds 120
     Write-Host "$(Get-Date -Format s) Waiting until service ($galleryUrl) responds with non-502"
     $start = Get-Date
     $maxWait = New-TimeSpan -Seconds $MaxWaitSeconds
