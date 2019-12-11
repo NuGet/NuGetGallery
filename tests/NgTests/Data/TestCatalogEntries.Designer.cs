@@ -19,7 +19,7 @@ namespace NgTests.Data {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class TestCatalogEntries {
@@ -128,19 +128,19 @@ namespace NgTests.Data {
         
         /// <summary>
         ///   Looks up a localized string similar to {
-        ///	&quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.16.49.48/mypackage.3.0.0.json&quot;,
-        ///	&quot;@type&quot;: [&quot;PackageDetails&quot;,
-        ///	&quot;catalog:Permalink&quot;],
-        ///	&quot;authors&quot;: &quot;NuGet&quot;,
-        ///	&quot;catalog:commitId&quot;: &quot;51ca9169-a861-4e00-8243-7de49c625da6&quot;,
-        ///	&quot;catalog:commitTimeStamp&quot;: &quot;2017-02-08T16:49:48.2383888Z&quot;,
-        ///	&quot;created&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
-        ///	&quot;description&quot;: &quot;My package&quot;,
-        ///	&quot;id&quot;: &quot;mypackage&quot;,
-        ///	&quot;isPrerelease&quot;: false,
-        ///	&quot;lastEdited&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
-        ///	&quot;listed&quot;: false,
-        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvG [rest of string was truncated]&quot;;.
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.16.49.48/mypackage.3.0.0.json&quot;,
+        ///  &quot;@type&quot;: [&quot;PackageDetails&quot;,
+        ///  &quot;catalog:Permalink&quot;],
+        ///  &quot;authors&quot;: &quot;NuGet&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;51ca9169-a861-4e00-8243-7de49c625da6&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2017-02-08T16:49:48.2383888Z&quot;,
+        ///  &quot;created&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///  &quot;description&quot;: &quot;My package&quot;,
+        ///  &quot;id&quot;: &quot;mypackage&quot;,
+        ///  &quot;isPrerelease&quot;: false,
+        ///  &quot;lastEdited&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///  &quot;listed&quot;: false,
+        ///  &quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtP [rest of string was truncated]&quot;;.
         /// </summary>
         public static string TestCatalogStorageMyPackageCreated {
             get {
@@ -150,19 +150,19 @@ namespace NgTests.Data {
         
         /// <summary>
         ///   Looks up a localized string similar to {
-        ///	&quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.17.16.18/mypackage.3.0.0.json&quot;,
-        ///	&quot;@type&quot;: [&quot;PackageDetails&quot;,
-        ///	&quot;catalog:Permalink&quot;],
-        ///	&quot;authors&quot;: &quot;NuGet&quot;,
-        ///	&quot;catalog:commitId&quot;: &quot;0d1d02f5-4800-4c69-96e1-2daaf560edc4&quot;,
-        ///	&quot;catalog:commitTimeStamp&quot;: &quot;2017-02-08T17:16:18.5448099Z&quot;,
-        ///	&quot;created&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
-        ///	&quot;description&quot;: &quot;My package&quot;,
-        ///	&quot;id&quot;: &quot;mypackage&quot;,
-        ///	&quot;isPrerelease&quot;: false,
-        ///	&quot;lastEdited&quot;: &quot;2017-02-08T17:15:40.4Z&quot;,
-        ///	&quot;listed&quot;: true,
-        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvGT1Q [rest of string was truncated]&quot;;.
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.17.16.18/mypackage.3.0.0.json&quot;,
+        ///  &quot;@type&quot;: [&quot;PackageDetails&quot;,
+        ///  &quot;catalog:Permalink&quot;],
+        ///  &quot;authors&quot;: &quot;NuGet&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;0d1d02f5-4800-4c69-96e1-2daaf560edc4&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2017-02-08T17:16:18.5448099Z&quot;,
+        ///  &quot;created&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///  &quot;description&quot;: &quot;My package&quot;,
+        ///  &quot;id&quot;: &quot;mypackage&quot;,
+        ///  &quot;isPrerelease&quot;: false,
+        ///  &quot;lastEdited&quot;: &quot;2017-02-08T17:15:40.4Z&quot;,
+        ///  &quot;listed&quot;: true,
+        ///  &quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6 [rest of string was truncated]&quot;;.
         /// </summary>
         public static string TestCatalogStorageMyPackageListed {
             get {
@@ -172,19 +172,19 @@ namespace NgTests.Data {
         
         /// <summary>
         ///   Looks up a localized string similar to {
-        ///	&quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.16.49.59/mypackage.3.0.0.json&quot;,
-        ///	&quot;@type&quot;: [&quot;PackageDetails&quot;,
-        ///	&quot;catalog:Permalink&quot;],
-        ///	&quot;authors&quot;: &quot;NuGet&quot;,
-        ///	&quot;catalog:commitId&quot;: &quot;d6f4acc0-73c4-4c34-9c92-e1484e749314&quot;,
-        ///	&quot;catalog:commitTimeStamp&quot;: &quot;2017-02-08T16:49:59.6916605Z&quot;,
-        ///	&quot;created&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
-        ///	&quot;description&quot;: &quot;My package&quot;,
-        ///	&quot;id&quot;: &quot;mypackage&quot;,
-        ///	&quot;isPrerelease&quot;: false,
-        ///	&quot;lastEdited&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
-        ///	&quot;listed&quot;: false,
-        ///	&quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtPpZ6mUsTLT7fvG [rest of string was truncated]&quot;;.
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/data/2017.02.08.16.49.59/mypackage.3.0.0.json&quot;,
+        ///  &quot;@type&quot;: [&quot;PackageDetails&quot;,
+        ///  &quot;catalog:Permalink&quot;],
+        ///  &quot;authors&quot;: &quot;NuGet&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;d6f4acc0-73c4-4c34-9c92-e1484e749314&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2017-02-08T16:49:59.6916605Z&quot;,
+        ///  &quot;created&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///  &quot;description&quot;: &quot;My package&quot;,
+        ///  &quot;id&quot;: &quot;mypackage&quot;,
+        ///  &quot;isPrerelease&quot;: false,
+        ///  &quot;lastEdited&quot;: &quot;2017-02-08T16:48:56.567Z&quot;,
+        ///  &quot;listed&quot;: false,
+        ///  &quot;packageHash&quot;: &quot;iGbp+M2f6KbJruB1Y3rUtP [rest of string was truncated]&quot;;.
         /// </summary>
         public static string TestCatalogStorageMyPackageUnlisted {
             get {

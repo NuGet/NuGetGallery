@@ -18,7 +18,7 @@
   </xsl:template>
 
   <xsl:template match="/nuget:package/nuget:metadata">
-    
+
     <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
       <ng:PackageDetails>
@@ -34,21 +34,27 @@
             <xsl:value-of select="@minClientVersion" />
           </ng:minClientVersion>
         </xsl:if>
-          
+
         <xsl:for-each select="*">
           <xsl:choose>
+            <xsl:when test="self::nuget:packageTypes">
+              <xsl:apply-templates select="nuget:packageType">
+                <xsl:with-param name="path" select="$path" />
+                <xsl:with-param name="parent_fragment" select="'#packageTypes'" />
+              </xsl:apply-templates>
+            </xsl:when>
 
             <xsl:when test="self::nuget:dependencies">
-                  
+
               <xsl:choose>
-                  
+
                 <xsl:when test="nuget:group">
                   <xsl:apply-templates select="nuget:group">
                     <xsl:with-param name="path" select="$path" />
                     <xsl:with-param name="parent_fragment" select="'#dependencyGroup'" />
                   </xsl:apply-templates>
                 </xsl:when>
-                    
+
                 <xsl:otherwise>
                   <ng:dependencyGroup>
                     <ng:PackageDependencyGroup>
@@ -62,9 +68,9 @@
                     </ng:PackageDependencyGroup>
                   </ng:dependencyGroup>
                 </xsl:otherwise>
-                  
+
               </xsl:choose>
-                  
+
             </xsl:when>
 
             <xsl:when test="self::nuget:references">
@@ -110,7 +116,7 @@
 
             <xsl:when test="self::nuget:owners">
             </xsl:when>
-            
+
             <xsl:when test="self::nuget:license">
               <xsl:choose>
                 <xsl:when test="@type='file'">
@@ -164,13 +170,13 @@
                 <xsl:value-of select="obj:IsPrerelease(.)"/>
               </ng:isPrerelease>
             </xsl:when>
-            
+
             <xsl:when test="self::nuget:frameworkAssemblies">
               <xsl:apply-templates select=".">
                 <xsl:with-param name="path" select="$path" />
               </xsl:apply-templates>
             </xsl:when>
-            
+
             <xsl:otherwise>
               <xsl:element name="{concat('ng:', local-name())}">
                 <xsl:value-of select="."/>
@@ -234,6 +240,43 @@
     </ng:dependencyGroup>
   </xsl:template>
 
+  <xsl:template match="nuget:packageType">
+    <xsl:param name="position" />
+    <xsl:param name="path" />
+    <xsl:param name="parent_fragment" />
+    <ng:packageType>
+      <ng:PackageType>
+
+        <xsl:choose>
+          <xsl:when test="@version">
+            <xsl:variable name="fragment" select="concat(normalize-space(@name), '/', normalize-space(@version))" />
+            <xsl:attribute name="rdf:about">
+              <xsl:value-of select="concat(obj:LowerCase(concat($base, $path, $extension, $parent_fragment, '/')), $fragment)" />
+            </xsl:attribute>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:attribute name="rdf:about">
+              <xsl:value-of select="concat(obj:LowerCase(concat($base, $path, $extension, $parent_fragment, '/')), normalize-space(@name))" />
+            </xsl:attribute>
+          </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:if test="@name">
+          <ng:name>
+            <xsl:value-of select="normalize-space(@name)"/>
+          </ng:name>
+        </xsl:if>
+
+        <xsl:if test="@version">
+          <ng:version>
+            <xsl:value-of select="normalize-space(@version)" />
+          </ng:version>
+        </xsl:if>
+
+      </ng:PackageType>
+    </ng:packageType>
+  </xsl:template>
+
   <xsl:template match="nuget:dependency">
     <xsl:param name="path" />
     <xsl:param name="parent_fragment" />
@@ -246,9 +289,9 @@
           <xsl:attribute name="rdf:about">
             <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))" />
           </xsl:attribute>
-        
+
           <ng:id>
-            <xsl:value-of select="@id"/>        
+            <xsl:value-of select="@id"/>
           </ng:id>
 
           <ng:range>
@@ -290,39 +333,39 @@
   <xsl:template match="nuget:frameworkAssembly">
     <xsl:param name="path" />
 
-      <xsl:choose>
-        <xsl:when test="string-length(@targetFramework) &gt; 0">
-          <xsl:variable name="assemblyName" select="@assemblyName" />
-          <xsl:for-each select="obj:Split(@targetFramework)//item">
-            <ng:frameworkAssemblyGroup>
-              <rdf:Description>
-                <xsl:attribute name="rdf:about">
-                  <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#frameworkAssemblyGroup/', .))"/>
-                </xsl:attribute>
-                <ng:assembly>
-                  <xsl:value-of select="$assemblyName" />
-                </ng:assembly>
-                <ng:targetFramework>
-                  <xsl:value-of select="." />
-                </ng:targetFramework>
-              </rdf:Description>
-            </ng:frameworkAssemblyGroup>
-          </xsl:for-each>
-        </xsl:when>
-        <xsl:otherwise>
+    <xsl:choose>
+      <xsl:when test="string-length(@targetFramework) &gt; 0">
+        <xsl:variable name="assemblyName" select="@assemblyName" />
+        <xsl:for-each select="obj:Split(@targetFramework)//item">
           <ng:frameworkAssemblyGroup>
             <rdf:Description>
               <xsl:attribute name="rdf:about">
-                <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#frameworkAssemblyGroup'))"/>
+                <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#frameworkAssemblyGroup/', .))"/>
               </xsl:attribute>
               <ng:assembly>
-                <xsl:value-of select="@assemblyName" />
+                <xsl:value-of select="$assemblyName" />
               </ng:assembly>
+              <ng:targetFramework>
+                <xsl:value-of select="." />
+              </ng:targetFramework>
             </rdf:Description>
           </ng:frameworkAssemblyGroup>
-        </xsl:otherwise>
-      </xsl:choose>
-          
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+        <ng:frameworkAssemblyGroup>
+          <rdf:Description>
+            <xsl:attribute name="rdf:about">
+              <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#frameworkAssemblyGroup'))"/>
+            </xsl:attribute>
+            <ng:assembly>
+              <xsl:value-of select="@assemblyName" />
+            </ng:assembly>
+          </rdf:Description>
+        </ng:frameworkAssemblyGroup>
+      </xsl:otherwise>
+    </xsl:choose>
+
   </xsl:template>
-  
+
 </xsl:stylesheet>

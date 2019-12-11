@@ -27,6 +27,16 @@ namespace CatalogTests.Helpers
         [InlineData("InvalidDependencyVersionRange.0.1.0")] //A dependency with a version range that is invalid
         [InlineData("MissingDependencyVersionRange.0.1.0")] // A dependency with no version range attribute
         [InlineData("WhitespaceDependencyVersionRange.0.1.0")] // A dependency with a version range that is whitespace
+        [InlineData("PackageTypeCollapseDuplicate")]
+        [InlineData("PackageTypeMultiple")]
+        [InlineData("PackageTypeMultipleTypesNodes")]
+        [InlineData("PackageTypeSingle")]
+        [InlineData("PackageTypeSingleWithVersion")]
+        [InlineData("PackageTypeSameTypeDifferentCase")]
+        [InlineData("PackageTypeSameTypeDifferentVersionType")]
+        [InlineData("PackageTypeSameTypeTwoVersion")]
+        [InlineData("PackageTypeWhiteSpace")]
+        [InlineData("PackageTypeWhiteSpaceVersion")]
         public void CreateContent_ProducesExpectedJson(string packageName)
         {
             // Arrange
