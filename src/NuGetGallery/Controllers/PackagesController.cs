@@ -51,6 +51,11 @@ namespace NuGetGallery
         /// </remarks>
         internal const int MaxAllowedLicenseLengthForDisplaying = 1024 * 1024; // 1 MB
 
+        /// <summary>
+        /// Only perform the "is indexed" check for a short time after the package was lasted edited or created.
+        /// </summary>
+        private static readonly TimeSpan IsIndexedCheckUntil = TimeSpan.FromDays(1);
+
         private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
         {
             ReportPackageReason.ViolatesALicenseIOwn,
@@ -856,42 +861,55 @@ namespace NuGetGallery
             var externalSearchService = searchService as ExternalSearchService;
             if (searchService.ContainsAllVersions && externalSearchService != null)
             {
-                var isIndexedCacheKey = $"IsIndexed_{package.PackageRegistration.Id}_{package.Version}";
-                var isIndexed = HttpContext.Cache.Get(isIndexedCacheKey) as bool?;
-                if (!isIndexed.HasValue)
+                // A package can be re-indexed when it is created or edited. Determine the latest of these times.
+                var sinceLatestUpsert = package.Created;
+                if (package.LastEdited.HasValue && package.LastEdited > sinceLatestUpsert)
                 {
-                    var normalizedRegistrationId = package.PackageRegistration.Id
-                        .Normalize(NormalizationForm.FormC);
-
-                    var searchFilter = SearchAdaptor.GetSearchFilter(
-                            q: "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
-                        page: 1,
-                        includePrerelease: true,
-                        sortOrder: null,
-                        context: SearchFilter.ODataSearchContext,
-                        semVerLevel: SemVerLevelKey.SemVerLevel2);
-
-                    searchFilter.IncludeAllVersions = true;
-
-                    var results = await externalSearchService.RawSearch(searchFilter);
-
-                    isIndexed = results.Hits > 0;
-
-                    var expiration = Cache.NoAbsoluteExpiration;
-                    if (!isIndexed.Value)
-                    {
-                        expiration = DateTime.UtcNow.Add(TimeSpan.FromSeconds(30));
-                    }
-
-                    HttpContext.Cache.Add(isIndexedCacheKey,
-                        isIndexed,
-                        null,
-                        expiration,
-                        Cache.NoSlidingExpiration,
-                        CacheItemPriority.Default, null);
+                    sinceLatestUpsert = package.LastEdited.Value;
                 }
 
-                model.IsIndexed = isIndexed;
+                // If a package has not been created or edited in quite a while, save the cache memory and search
+                // service load by not checking the indexed status.
+                var isIndexedCheckUntil = sinceLatestUpsert + IsIndexedCheckUntil;
+                if (DateTime.UtcNow < isIndexedCheckUntil)
+                {
+                    var isIndexedCacheKey = $"IsIndexed_{package.PackageRegistration.Id}_{package.Version}";
+                    var isIndexed = HttpContext.Cache.Get(isIndexedCacheKey) as bool?;
+                    if (!isIndexed.HasValue)
+                    {
+                        var normalizedRegistrationId = package.PackageRegistration.Id
+                            .Normalize(NormalizationForm.FormC);
+
+                        var searchFilter = SearchAdaptor.GetSearchFilter(
+                                q: "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
+                            page: 1,
+                            includePrerelease: true,
+                            sortOrder: null,
+                            context: SearchFilter.ODataSearchContext,
+                            semVerLevel: SemVerLevelKey.SemVerLevel2);
+
+                        searchFilter.IncludeAllVersions = true;
+
+                        var results = await externalSearchService.RawSearch(searchFilter);
+
+                        isIndexed = results.Hits > 0;
+
+                        var expiration = isIndexedCheckUntil;
+                        if (!isIndexed.Value)
+                        {
+                            expiration = DateTime.UtcNow.Add(TimeSpan.FromSeconds(30));
+                        }
+
+                        HttpContext.Cache.Add(isIndexedCacheKey,
+                            isIndexed,
+                            null,
+                            expiration,
+                            Cache.NoSlidingExpiration,
+                            CacheItemPriority.Default, null);
+                    }
+
+                    model.IsIndexed = isIndexed;
+                }
             }
 
             ViewBag.FacebookAppID = _config.FacebookAppId;

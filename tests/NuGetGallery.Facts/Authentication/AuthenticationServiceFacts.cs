@@ -394,6 +394,12 @@ namespace NuGetGallery.Authentication
                 Assert.True(cred.HasExpired);
                 Assert.Equal(revocationSourceKey, cred.RevocationSourceKey);
 
+                _authenticationService.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == AuditedUserAction.RevokeCredential &&
+                    ar.Username == _fakes.User.Username &&
+                    ar.AffectedCredential.Length == 1 &&
+                    ar.AffectedCredential[0].RevocationSource == Enum.GetName(typeof(CredentialRevocationSource), revocationSourceKey));
+
                 if (commitChanges)
                 {
                     _authenticationService.Entities.VerifyCommitChanges();

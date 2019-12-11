@@ -401,11 +401,14 @@ namespace NuGetGallery
             TrackMetricForAccountActivity(Events.NewUserRegistration, user, credential);
         }
 
-        public void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth)
+        public void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth, string referrer = null)
         {
             TrackMetricForAccountActivity(enabledMultiFactorAuth ? Events.UserMultiFactorAuthenticationEnabled : Events.UserMultiFactorAuthenticationDisabled,
                 user,
-                credential: null);
+                credential: null,
+                addProperties: addProperties => {
+                    addProperties.Add("Referrer", referrer);
+                });
         }
 
         public void TrackNewCredentialCreated(User user, Credential credential)
@@ -415,7 +418,9 @@ namespace NuGetGallery
 
         public void TrackUserLogin(User user, Credential credential, bool wasMultiFactorAuthenticated)
         {
-            TrackMetricForAccountActivity(Events.CredentialUsed, user, credential, wasMultiFactorAuthenticated);
+            TrackMetricForAccountActivity(Events.CredentialUsed, user, credential, addProperties => {
+                addProperties.Add(WasMultiFactorAuthenticated, wasMultiFactorAuthenticated.ToString());
+            });
         }
 
         public void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success)
@@ -586,7 +591,10 @@ namespace NuGetGallery
             TrackMetricForSymbolPackage(Events.SymbolPackageRevalidate, packageId, packageVersion);
         }
 
-        private void TrackMetricForAccountActivity(string eventName, User user, Credential credential, bool wasMultiFactorAuthenticated = false)
+        private void TrackMetricForAccountActivity(string eventName,
+            User user,
+            Credential credential,
+            Action<Dictionary<string, string>> addProperties = null)
         {
             if (user == null)
             {
@@ -598,7 +606,7 @@ namespace NuGetGallery
                 properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(RegistrationMethod, GetRegistrationMethod(credential));
-                properties.Add(WasMultiFactorAuthenticated, wasMultiFactorAuthenticated.ToString());
+                addProperties?.Invoke(properties);
             });
         }
 

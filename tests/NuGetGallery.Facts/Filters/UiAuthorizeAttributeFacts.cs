@@ -126,6 +126,42 @@ namespace NuGetGallery.Filters
                 Assert.Contains(new KeyValuePair<string, object>("action", "Home"), redirectResult.RouteValues);
             }
 
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void RedirectsToHomepageOnlyWith2FAMarker(bool shouldEnable2FA)
+            {
+                var tempData = new TempDataDictionary();
+                if (shouldEnable2FA)
+                {
+                    tempData.Add(GalleryConstants.AskUserToEnable2FA, true);
+                }
+
+                var context = BuildAuthorizationContext(
+                    BuildClaimsIdentity(
+                        AuthenticationTypes.External,
+                        authenticated: true,
+                        hasDiscontinuedLoginClaim: false).Object).Object;
+                context.Controller.TempData = tempData;
+                var attribute = new UIAuthorizeAttribute();
+
+                // Act
+                attribute.OnAuthorization(context);
+
+                // Assert
+                var redirectResult = context.Result as RedirectToRouteResult;
+                if (shouldEnable2FA)
+                {
+                    Assert.NotNull(redirectResult);
+                    Assert.Contains(new KeyValuePair<string, object>("controller", "Pages"), redirectResult.RouteValues);
+                    Assert.Contains(new KeyValuePair<string, object>("action", "Home"), redirectResult.RouteValues);
+                }
+                else
+                {
+                    Assert.Null(redirectResult);
+                }
+            }
+
             private static Mock<ClaimsIdentity> BuildClaimsIdentity(string authType, bool authenticated, bool hasDiscontinuedLoginClaim)
             {
                 var mockIdentity = new Mock<ClaimsIdentity>();

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
@@ -769,8 +770,9 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(bool enableMultiFactor)
         {
             var user = GetCurrentUser();
+            var referrer = OwinContext.Request?.Headers?.Get("Referer") ?? "Unknown";
 
-            await UserService.ChangeMultiFactorAuthentication(user, enableMultiFactor);
+            await UserService.ChangeMultiFactorAuthentication(user, enableMultiFactor, referrer);
 
             TempData["Message"] = string.Format(
                 enableMultiFactor ? Strings.MultiFactorAuth_Enabled : Strings.MultiFactorAuth_Disabled,
@@ -788,6 +790,29 @@ namespace NuGetGallery
             }
 
             return RedirectToAction(AccountAction);
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> Send2FAFeedback(string feedback)
+        {
+            try
+            {
+                var user = GetCurrentUser();
+                var sanitizedUserFeedback = HttpUtility.HtmlEncode(feedback);
+
+                var message = new TwoFactorFeedbackMessage(MessageServiceConfiguration, sanitizedUserFeedback, user);
+                await MessageService.SendMessageAsync(message);
+
+                return Json(new { success = true });
+            }
+            catch (ArgumentException ex)
+            {
+                ex.Log();
+
+                return Json(new { success = false, message = Strings.TwoFAFeedback_Error });
+            }
         }
 
         [HttpPost]

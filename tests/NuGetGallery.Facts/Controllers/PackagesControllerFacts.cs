@@ -35,6 +35,7 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
+using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
@@ -372,6 +373,67 @@ namespace NuGetGallery
         public class TheDisplayPackageMethod
             : TestContainer
         {
+            public static IEnumerable<object[]> PackageIsIndexedTestData => new[]
+            {
+                new object[] { DateTime.UtcNow, null, 1 },
+                new object[] { DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1 },
+                new object[] { DateTime.UtcNow, DateTime.UtcNow.AddDays(-1), 1 },
+                new object[] { DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(-1), 0 },
+                new object[] { DateTime.UtcNow.AddDays(-1), null, 0 },
+            };
+
+            [Theory]
+            [MemberData(nameof(PackageIsIndexedTestData))]
+            public async Task IsIndexCheckOnlyHappensForRecentlyChangedPackages(DateTime created, DateTime? lastEdited, int searchTimes)
+            {
+                // Arrange
+                var id = "Test" + Guid.NewGuid().ToString();
+                var packageService = new Mock<IPackageService>();
+                var diagnosticsService = new Mock<IDiagnosticsService>();
+                var searchClient = new Mock<ISearchClient>();
+                var searchService = new Mock<ExternalSearchService>(diagnosticsService.Object, searchClient.Object)
+                {
+                    CallBase = true,
+                };
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.Cache).Returns(new Cache());
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    searchService: searchService.As<ISearchService>(),
+                    httpContext: httpContext);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                searchService
+                    .Setup(x => x.RawSearch(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(() => new SearchResults(0, indexTimestampUtc: null));
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                    },
+                    Created = created,
+                    LastEdited = lastEdited,
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+
+                packageService
+                    .Setup(p => p.FilterExactPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<string>()))
+                    .Returns(package);
+
+                // Act
+                var result = await controller.DisplayPackage(package.Id, package.Version);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal(id, model.Id);
+                searchService.Verify(x => x.RawSearch(It.IsAny<SearchFilter>()), Times.Exactly(searchTimes));
+            }
+
             [Fact]
             public async Task GivenANonNormalizedVersionIt302sToTheNormalizedVersion()
             {

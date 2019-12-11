@@ -115,5 +115,6 @@ namespace NuGetGallery
         public const string PackageReflowAction = "PackageReflowAction";
         public const string PackageRevalidateAction = "PackageRevalidateAction";
         public const string PackageRevalidateSymbolsAction = "PackageRevalidateSymbolsAction";
+        public const string Send2FAFeedback = "Send2FAFeedback";
     }
 }

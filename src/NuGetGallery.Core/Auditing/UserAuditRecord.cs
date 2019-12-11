@@ -56,10 +56,22 @@ namespace NuGetGallery.Auditing
             Roles = user.Roles.Select(r => r.Name).ToArray();
 
             Credentials = user.Credentials.Where(CredentialTypes.IsSupportedCredential)
-                                          .Select(c => new CredentialAuditRecord(c, removed: false)).ToArray();
+                                          .Select(c => new CredentialAuditRecord(c, removedOrRevoked: false)).ToArray();
 
             AffectedCredential = new CredentialAuditRecord[0];
             AffectedPolicies = new AuditedUserSecurityPolicy[0];
+        }
+
+        public UserAuditRecord(User user, AuditedUserAction action, Credential affected, string revocationSource)
+            : this(user, action, new[] { affected }, revocationSource)
+        {
+        }
+
+        public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<Credential> affected, string revocationSource)
+            : this(user, action)
+        {
+            AffectedCredential = affected.Select(c => new CredentialAuditRecord(c,
+                removedOrRevoked: action == AuditedUserAction.RemoveCredential || action == AuditedUserAction.RevokeCredential, revocationSource: revocationSource)).ToArray();
         }
 
         public UserAuditRecord(User user, AuditedUserAction action, Credential affected)
@@ -70,7 +82,8 @@ namespace NuGetGallery.Auditing
         public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<Credential> affected)
             : this(user, action)
         {
-            AffectedCredential = affected.Select(c => new CredentialAuditRecord(c, action == AuditedUserAction.RemoveCredential)).ToArray();
+            AffectedCredential = affected.Select(c => new CredentialAuditRecord(c,
+                removedOrRevoked: action == AuditedUserAction.RemoveCredential || action == AuditedUserAction.RevokeCredential)).ToArray();
         }
 
         public UserAuditRecord(User user, AuditedUserAction action, string affectedEmailAddress)
