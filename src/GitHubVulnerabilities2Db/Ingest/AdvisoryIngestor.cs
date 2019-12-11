@@ -41,7 +41,7 @@ namespace GitHubVulnerabilities2Db.Ingest
             {
                 GitHubDatabaseKey = advisory.DatabaseId,
                 Severity = (PackageVulnerabilitySeverity)Enum.Parse(typeof(PackageVulnerabilitySeverity), advisory.Severity, ignoreCase: true),
-                ReferenceUrl = advisory.References.FirstOrDefault()?.Url
+                AdvisoryUrl = advisory.GetPermalink()
             };
 
             foreach (var securityVulnerability in advisory.Vulnerabilities?.Edges?.Select(e => e.Node) ?? Enumerable.Empty<SecurityVulnerability>())
