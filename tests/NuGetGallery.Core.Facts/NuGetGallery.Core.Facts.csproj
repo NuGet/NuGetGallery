@@ -84,6 +84,7 @@
     <Compile Include="GitHub\GitHubUsageConfigurationFacts.cs" />
     <Compile Include="Infrastructure\ElmahExceptionFacts.cs" />
     <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialRevokedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageAddedMessageFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageValidationFailedMessageFacts.cs" />
