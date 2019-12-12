@@ -131,6 +131,9 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                    type: "MS Authentication",
                    isApiKey: false,
                    description: "Microsoft Account");
+
+            public static readonly Credential ApiKeyCredential
+                = new Credential("TestCredentialType", "TestCredentialValue");
         }
     }
 }
