@@ -449,5 +449,11 @@ namespace NuGetGallery.Configuration
         /// Deployment label to log with telemetry.
         /// </summary>
         string DeploymentLabel { get; set; }
+
+        /// <summary>
+        /// The Usabilla feedback button ID embedded in the JavaScript snippet obtained from Usabilla. The ID can found
+        /// in your button's JavaScript code. Look for "//w.usabilla.com/{button ID}.js".
+        /// </summary>
+        string UsabillaFeedbackButtonId { get; set; }
     }
 }

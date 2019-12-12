@@ -107,5 +107,6 @@ namespace NuGetGallery.AccountDeleter
         public string EmbeddedIconUrlTemplate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool SelfServiceAccountDeleteEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string DeploymentLabel { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string UsabillaFeedbackButtonId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

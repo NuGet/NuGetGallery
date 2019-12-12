@@ -1274,6 +1274,8 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="Content\admin\SupportRequestStyles.css" />
     <Content Include="Content\fabric.css" />
+    <Content Include="Content\gallery\img\feedback-40x130.png" />
+    <Content Include="Content\gallery\img\feedback.svg" />
     <Content Include="Content\gallery\img\logo-og-600x600.png" />
     <Content Include="Content\gallery\img\rss-24x24.png" />
     <Content Include="Content\Images\icons\apiKey.png" />
