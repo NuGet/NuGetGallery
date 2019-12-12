@@ -46,6 +46,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             => $"[{_configuration.GalleryOwner.DisplayName}] API key " +
             (_credential.Description != null ? "'" + _credential.Description + "' " : string.Empty) +
             "revoked due to a potential leak";
+
         protected override string GetMarkdownBody()
         {
             var body = @"Hi {0},
