@@ -66,7 +66,7 @@ Here are the recommended ways to manage API keys:
 
 Need help? Reply to this email or [contact support]({5}).
 
-Thanks,
+Thanks,  
 The {6} Team";
 
             return string.Format(

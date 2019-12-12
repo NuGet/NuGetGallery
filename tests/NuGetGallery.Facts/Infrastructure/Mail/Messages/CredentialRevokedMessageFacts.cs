@@ -194,7 +194,7 @@ Here are the recommended ways to manage API keys:
 
 Need help? Reply to this email or [contact support](TestContactUrl).
 
-Thanks,
+Thanks,  
 The NuGetGallery Team";
 
         private const string _expectedPlainTextBodyWithCredentialDescription =
@@ -216,7 +216,7 @@ Here are the recommended ways to manage API keys:
 
 Need help? Reply to this email or contact support (TestContactUrl).
 
-Thanks,
+Thanks,  
 The NuGetGallery Team";
 
         private const string _expectedHtmlBodyWithCredentialDescription =
@@ -232,7 +232,7 @@ The NuGetGallery Team";
 "<li>Use <a href=\"https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets\">GitHub encrypted secrets</a> to store and access API keys.</li>\n" +
 "</ul>\n" +
 "<p>Need help? Reply to this email or <a href=\"TestContactUrl\">contact support</a>.</p>\n" +
-"<p>Thanks,\n" +
+"<p>Thanks,<br />\n" +
 "The NuGetGallery Team</p>\n";
 
         private const string _expectedMarkdownBodyWithNullCredentialDescription =
@@ -253,7 +253,7 @@ Here are the recommended ways to manage API keys:
 
 Need help? Reply to this email or [contact support](TestContactUrl).
 
-Thanks,
+Thanks,  
 The NuGetGallery Team";
 
         private const string _expectedPlainTextBodyWithNullCredentialDescription =
@@ -275,7 +275,7 @@ Here are the recommended ways to manage API keys:
 
 Need help? Reply to this email or contact support (TestContactUrl).
 
-Thanks,
+Thanks,  
 The NuGetGallery Team";
 
         private const string _expectedHtmlBodyWithNullCredentialDescription =
@@ -291,7 +291,7 @@ The NuGetGallery Team";
 "<li>Use <a href=\"https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets\">GitHub encrypted secrets</a> to store and access API keys.</li>\n" +
 "</ul>\n" +
 "<p>Need help? Reply to this email or <a href=\"TestContactUrl\">contact support</a>.</p>\n" +
-"<p>Thanks,\n" +
+"<p>Thanks,<br />\n" +
 "The NuGetGallery Team</p>\n";
     }
 }
