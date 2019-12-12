@@ -39,7 +39,8 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipients(
-                to: new[] { _credential.User.ToMailAddress() });
+                to: new[] { _credential.User.ToMailAddress() },
+                cc: new[] { Sender });
         }
 
         public override string GetSubject()

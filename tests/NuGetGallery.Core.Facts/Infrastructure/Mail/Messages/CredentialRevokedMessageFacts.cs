@@ -72,12 +72,13 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             }
 
             [Fact]
-            public void HasEmptyCCList()
+            public void AddsGalleryOwnerMailAddressToCCList()
             {
                 var message = CreateMessage(_credential);
                 var recipients = message.GetRecipients();
 
-                Assert.Empty(recipients.CC);
+                Assert.Equal(1, recipients.CC.Count);
+                Assert.Equal(Configuration.GalleryOwner, recipients.CC[0]);
             }
 
             [Fact]

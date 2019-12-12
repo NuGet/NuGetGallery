@@ -78,7 +78,6 @@
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\CredentialRevokedMessageFacts.cs" />
     <Compile Include="Infrastructure\ODataCacheOutputAttributeFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQueryFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQueryFacts.cs" />
