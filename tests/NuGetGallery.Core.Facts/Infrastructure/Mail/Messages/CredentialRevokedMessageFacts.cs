@@ -67,8 +67,8 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage(_credential);
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.To.Count);
-                Assert.Contains(Fakes.RequestingUser.ToMailAddress(), recipients.To);
+                Assert.Single(recipients.To);
+                Assert.Equal(Fakes.RequestingUser.ToMailAddress(), recipients.To[0]);
             }
 
             [Fact]
@@ -77,7 +77,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 var message = CreateMessage(_credential);
                 var recipients = message.GetRecipients();
 
-                Assert.Equal(1, recipients.CC.Count);
+                Assert.Single(recipients.CC);
                 Assert.Equal(Configuration.GalleryOwner, recipients.CC[0]);
             }
 
