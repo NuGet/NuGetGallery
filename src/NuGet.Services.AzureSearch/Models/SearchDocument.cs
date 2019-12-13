@@ -43,8 +43,13 @@ namespace NuGet.Services.AzureSearch
             [IsFilterable]
             public string SearchFilters { get; set; }
 
+            [IsFilterable]
+            [Analyzer(ExactMatchCustomAnalyzer.Name)]
+            public string[] FilterablePackageTypes { get; set; }
+
             public string FullVersion { get; set; }
             public string[] Versions { get; set; }
+            public string[] PackageTypes { get; set; }
             public bool? IsLatestStable { get; set; }
             public bool? IsLatest { get; set; }
         }
