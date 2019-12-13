@@ -1637,6 +1637,10 @@ namespace NgTests
                     new JObject(
                         new JProperty(CatalogConstants.IdKeyword, CatalogConstants.PackageEntryUncapitalized),
                         new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))),
+                new JProperty(CatalogConstants.PackageTypes,
+                    new JObject(
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.PackageTypeUncapitalized),
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))),
                 new JProperty(CatalogConstants.SupportedFrameworks,
                     new JObject(
                         new JProperty(CatalogConstants.IdKeyword, CatalogConstants.SupportedFramework),

@@ -633,6 +633,10 @@ namespace CatalogTests
       ""@id"": ""packageEntry"",
       ""@container"": ""@set""
     }},
+    ""packageTypes"": {{
+      ""@id"": ""packageType"",
+      ""@container"": ""@set""
+    }},
     ""supportedFrameworks"": {{
       ""@id"": ""supportedFramework"",
       ""@container"": ""@set""

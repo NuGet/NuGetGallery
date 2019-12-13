@@ -69,6 +69,9 @@ namespace NgTests
         public const string PackageContent = "packageContent";
         public const string PackageDelete = "PackageDelete";
         public const string PackageDetails = "PackageDetails";
+        public const string PackageTypes = "packageTypes";
+        public const string PackageType = "PackageType";
+        public const string PackageTypeUncapitalized = "packageType";
         public const string PackageEntries = "packageEntries";
         public const string PackageEntry = "PackageEntry";
         public const string PackageEntryUncapitalized = "packageEntry";

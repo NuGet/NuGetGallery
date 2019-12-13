@@ -6,6 +6,7 @@
         "dependencies" : { "@id" : "dependency", "@container" : "@set" },
         "dependencyGroups" : { "@id" : "dependencyGroup", "@container" : "@set" },
         "packageEntries": { "@id": "packageEntry", "@container": "@set" },
+        "packageTypes": { "@id": "packageType", "@container": "@set" },
         "supportedFrameworks": { "@id": "supportedFramework", "@container": "@set" },
         "tags": { "@id": "tag", "@container": "@set" },
         "published": { "@type": "xsd:dateTime" },

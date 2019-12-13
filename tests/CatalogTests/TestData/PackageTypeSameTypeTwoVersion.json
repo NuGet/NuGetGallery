@@ -1,0 +1,91 @@
+{
+  "@id": "http://example/data/2017.01.04.08.15.00/packagetypesametypetwoversion.0.1.0.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "PackageTypeSameTypeTwoVersion",
+  "catalog:commitId": "4aee0ef4-a039-4460-bd5f-98f944e33289",
+  "catalog:commitTimeStamp": "2017-01-04T08:15:00Z",
+  "created": "2017-01-01T08:15:00Z",
+  "description": "PackageTypeSameTypeTwoVersion",
+  "id": "PackageTypeSameTypeTwoVersion",
+  "isPrerelease": false,
+  "lastEdited": "2017-01-02T08:15:00Z",
+  "listed": true,
+  "packageHash": "H2QAIBh5LPHHEjI/ihxo0tKgXW8qRBGwp9T4zIzIB4wU3eIbV+PsQAfws4eSiksipQOzN0mhCCT1Sei9lF4HEg==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 415,
+  "published": "2017-01-03T08:15:00Z",
+  "title": "PackageTypeSameTypeTwoVersion",
+  "verbatimVersion": "0.1.0",
+  "version": "0.1.0",
+  "packageEntries": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/packagetypesametypetwoversion.0.1.0.json#PackageTypeSameTypeTwoVersion.nuspec",
+      "@type": "PackageEntry",
+      "compressedLength": 245,
+      "fullName": "PackageTypeSameTypeTwoVersion.nuspec",
+      "length": 561,
+      "name": "PackageTypeSameTypeTwoVersion.nuspec"
+    }
+  ],
+  "packageTypes": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/packagetypesametypetwoversion.0.1.0.json#packagetypes/type1/1.0.0",
+      "@type": "PackageType",
+      "name": "type1",
+      "version": "1.0.0"
+    },
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/packagetypesametypetwoversion.0.1.0.json#packagetypes/type1/2.0.0",
+      "@type": "PackageType",
+      "name": "type1",
+      "version": "2.0.0"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "packageTypes": {
+      "@id": "packageType",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    },
+    "reasons": {
+      "@container": "@set"
+    }
+  }
+}
