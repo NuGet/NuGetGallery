@@ -153,6 +153,7 @@ WHERE u.[EmailAllowed] = 1
   AND cr.[Expires] &lt;= CONVERT(datetime, @MaxNotificationDate)
   AND cr.[Expires] &gt;= CONVERT(datetime, @MinNotificationDate)
   AND (cr.[Type] = 'apikey.v3' or cr.[Type] = 'apikey.v4')
+  AND cr.[RevocationSourceKey] IS NULL
 ORDER BY u.[Username]</value>
   </data>
   <data name="ExpiredEmailSubject" xml:space="preserve">
