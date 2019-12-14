@@ -44,7 +44,6 @@ namespace NuGet.Services.AzureSearch
             public string SearchFilters { get; set; }
 
             [IsFilterable]
-            [Analyzer(ExactMatchCustomAnalyzer.Name)]
             public string[] FilterablePackageTypes { get; set; }
 
             public string FullVersion { get; set; }
