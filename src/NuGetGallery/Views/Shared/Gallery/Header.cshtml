@@ -186,7 +186,7 @@
 
 @if (TempData.ContainsKey("Message"))
 {
-    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+    <div id ="tempDataMessage" class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
         <div class="container">
             <div class="row">
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
@@ -212,7 +212,7 @@
 
 @if (TempData.ContainsKey("ErrorMessage"))
 {
-    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+    <div id ="tempDataErrorMessage" class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
         <div class="container">
             <div class="row">
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">

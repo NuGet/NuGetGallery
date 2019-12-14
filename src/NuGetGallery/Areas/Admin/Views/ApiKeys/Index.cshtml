@@ -15,7 +15,7 @@
         <textarea class="form-control" placeholder="Verify API keys to revoke" autocomplete="off" autofocus rows="5" data-bind="value: verifyQuery"></textarea><br />
         <input type="button" value="Verify" data-bind="click: verify" /><br />
     </form>
-    <div style="display: none" data-bind="visible: Error">
+    <div class="break-word" style="display: none" data-bind="visible: Error">
         @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
     </div>
     @using (Html.BeginForm("Revoke", "ApiKeys", new { area = "Admin" }, FormMethod.Post))
@@ -101,6 +101,13 @@
                 this.Error = ko.observable(null);
 
                 this.verify = function () {
+                    if (document.getElementById("tempDataMessage")) {
+                        document.getElementById("tempDataMessage").style.display = 'none';
+                    }
+                    if (document.getElementById("tempDataErrorMessage")) {
+                        document.getElementById("tempDataErrorMessage").style.display = 'none';
+                    }
+
                     $self.verifiedResults.removeAll();
                     $self.selectAllRevocableApiKeys(false);
                     $self.Error(null);
