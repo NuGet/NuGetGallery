@@ -73,33 +73,6 @@
     @Alert(htmlContent, "danger", "ErrorBadge", isAlertRole)
 }
 
-@helper AlertIsSemVer2Package(bool hasSemVer2Version, bool hasSemVer2Dependency)
-{
-    string warningHeader = null;
-    if (hasSemVer2Version)
-    {
-        warningHeader = "This package has a SemVer 2.0.0 package version.";
-    }
-    else if (hasSemVer2Dependency)
-    {
-        warningHeader = "This package is considered a SemVer 2.0.0 package as it has a package dependency on SemVer 2.0.0 package(s).";
-    }
-
-    if (warningHeader != null)
-    {
-        @AlertWarning(
-            @<text>
-                @warningHeader<br />
-                <em>
-                    This package will only be available to download with SemVer 2.0.0 compatible NuGet clients, such as Visual
-                    Studio 2017 (version 15.3) and above or NuGet client 4.3.0 and above.
-                    <a href="https://go.microsoft.com/fwlink/?linkid=852248" alt="Read more">Read more</a><br />
-                </em>
-            </text>
-        )
-    }
-}
-
 @helper AlertPasswordDeprecation()
 {
     @AlertWarning(
