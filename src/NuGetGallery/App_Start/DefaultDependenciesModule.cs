@@ -20,7 +20,6 @@ using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using Elmah;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -94,16 +93,30 @@ namespace NuGetGallery
 
             configuration.SecretInjector = secretInjector;
 
-            // Register the ILoggerFactory and configure AppInsights.
-            var applicationInsightsConfiguration = ConfigureApplicationInsights(
-                configuration.Current,
-                out ITelemetryClient telemetryClient);
+            // Register the ILoggerFactory and configure it to use AppInsights if an instrumentation key is provided.
+            var instrumentationKey = configuration.Current.AppInsightsInstrumentationKey;
+            if (!string.IsNullOrEmpty(instrumentationKey))
+            {
+                var heartbeatIntervalSeconds = configuration.Current.AppInsightsHeartbeatIntervalSeconds;
+
+                if (heartbeatIntervalSeconds > 0)
+                {
+                    // Configure instrumentation key, heartbeat interval, 
+                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
+                    ApplicationInsights.Initialize(instrumentationKey, TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+                }
+                else
+                {
+                    // Configure instrumentation key,
+                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
+                    ApplicationInsights.Initialize(instrumentationKey);
+                }
+            }
 
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
-            var loggerFactory = LoggingSetup.CreateLoggerFactory(
-                loggerConfiguration,
-                telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
 
+            var telemetryClient = TelemetryClientWrapper.Instance;
             builder.RegisterInstance(telemetryClient)
                 .AsSelf()
                 .As<ITelemetryClient>()
@@ -136,10 +149,7 @@ namespace NuGetGallery
             builder.Register(c => configuration.PackageDelete)
                 .As<IPackageDeleteConfiguration>();
 
-            var telemetryService = new TelemetryService(
-                new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
-                telemetryClient);
-
+            var telemetryService = new TelemetryService(diagnosticsService, telemetryClient);
             builder.RegisterInstance(telemetryService)
                 .AsSelf()
                 .As<ITelemetryService>()
@@ -470,75 +480,6 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
-        }
-
-        private static ApplicationInsightsConfiguration ConfigureApplicationInsights(
-            IAppConfiguration configuration,
-            out ITelemetryClient telemetryClient)
-        {
-            var instrumentationKey = configuration.AppInsightsInstrumentationKey;
-            var heartbeatIntervalSeconds = configuration.AppInsightsHeartbeatIntervalSeconds;
-
-            ApplicationInsightsConfiguration applicationInsightsConfiguration;
-
-            if (heartbeatIntervalSeconds > 0)
-            {
-                applicationInsightsConfiguration = ApplicationInsights.Initialize(
-                    instrumentationKey,
-                    TimeSpan.FromSeconds(heartbeatIntervalSeconds));
-            }
-            else
-            {
-                applicationInsightsConfiguration = ApplicationInsights.Initialize(instrumentationKey);
-            }
-
-            var telemetryConfiguration = applicationInsightsConfiguration.TelemetryConfiguration;
-
-            // Add enrichers
-            telemetryConfiguration.TelemetryInitializers.Add(new DeploymentIdTelemetryEnricher());
-
-            if (configuration.DeploymentLabel != null)
-            {
-                telemetryConfiguration.TelemetryInitializers.Add(new DeploymentLabelEnricher(configuration.DeploymentLabel));
-            }
-
-            telemetryConfiguration.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
-
-            // Add processors
-            telemetryConfiguration.TelemetryProcessorChainBuilder.Use(next =>
-            {
-                var processor = new RequestTelemetryProcessor(next);
-
-                processor.SuccessfulResponseCodes.Add(400);
-                processor.SuccessfulResponseCodes.Add(404);
-                processor.SuccessfulResponseCodes.Add(405);
-
-                return processor;
-            });
-
-            telemetryConfiguration.TelemetryProcessorChainBuilder.Use(next => new ClientTelemetryPIIProcessor(next));
-
-            var telemetryClientWrapper = TelemetryClientWrapper.UseTelemetryConfiguration(applicationInsightsConfiguration.TelemetryConfiguration);
-
-            telemetryConfiguration.TelemetryProcessorChainBuilder.Use(
-                next => new ExceptionTelemetryProcessor(next, telemetryClientWrapper.UnderlyingClient));
-
-            // Note: sampling rate must be a factor 100/N where N is a whole number
-            // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
-            // https://azure.microsoft.com/en-us/documentation/articles/app-insights-sampling/
-            var instrumentationSamplingPercentage = configuration.AppInsightsSamplingPercentage;
-            if (instrumentationSamplingPercentage > 0 && instrumentationSamplingPercentage < 100)
-            {
-                telemetryConfiguration.TelemetryProcessorChainBuilder.UseSampling(instrumentationSamplingPercentage);
-            }
-
-            telemetryConfiguration.TelemetryProcessorChainBuilder.Build();
-
-            QuietLog.UseTelemetryClient(telemetryClientWrapper);
-
-            telemetryClient = telemetryClientWrapper;
-
-            return applicationInsightsConfiguration;
         }
 
         private void RegisterABTestServices(ContainerBuilder builder)

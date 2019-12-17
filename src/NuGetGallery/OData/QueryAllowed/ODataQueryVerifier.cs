@@ -3,40 +3,29 @@
 
 using System;
 using System.Web.Http.OData.Query;
-using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.OData.QueryFilter
 {
-    public sealed class ODataQueryVerifier
+    public static class ODataQueryVerifier
     {
         private static Lazy<ODataQueryFilter> _v2GetUpdates =
             new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv2getupdates.json"); }, isThreadSafe: true);
         private static Lazy<ODataQueryFilter> _v2Packages =
-            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv2packages.json"); }, isThreadSafe: true);
+            new Lazy<ODataQueryFilter>(() =>{ return new ODataQueryFilter("apiv2packages.json"); }, isThreadSafe: true);
         private static Lazy<ODataQueryFilter> _v2Search =
-            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv2search.json"); }, isThreadSafe: true);
+            new Lazy<ODataQueryFilter>(() =>{ return new ODataQueryFilter("apiv2search.json"); }, isThreadSafe: true);
         private static Lazy<ODataQueryFilter> _v1Packages =
             new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1packages.json"); }, isThreadSafe: true);
         private static Lazy<ODataQueryFilter> _v1Search =
-            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1search.json"); }, isThreadSafe: true);
+            new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv1search.json");}, isThreadSafe: true);
 
-        private readonly ITelemetryService _telemetryService;
-
-        private ODataQueryVerifier(ITelemetryService telemetryService)
-        {
-            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-        }
-
-        public static ODataQueryVerifier Build(ITelemetryService telemetryService)
-        {
-            return new ODataQueryVerifier(telemetryService);
-        }
+        private static ITelemetryService _telemetryService = new TelemetryService();
 
         #region Filters for ODataV2FeedController
         /// <summary>
         /// The OData query filter for /api/v2/GetUpdates().
         /// </summary>
-        public ODataQueryFilter V2GetUpdates
+        public static ODataQueryFilter V2GetUpdates
         {
             get
             {
@@ -51,7 +40,7 @@ namespace NuGetGallery.OData.QueryFilter
         /// <summary>
         /// The OData query filter for /api/v2/Packages.
         /// </summary>
-        public ODataQueryFilter V2Packages
+        public static ODataQueryFilter V2Packages
         {
             get
             {
@@ -66,7 +55,7 @@ namespace NuGetGallery.OData.QueryFilter
         /// <summary>
         /// The OData query filter for /api/v2/Search().
         /// </summary>
-        public ODataQueryFilter V2Search
+        public static ODataQueryFilter V2Search
         {
             get
             {
@@ -83,7 +72,7 @@ namespace NuGetGallery.OData.QueryFilter
         /// <summary>
         /// The OData query filter for /api/v1/Packages.
         /// </summary>
-        public ODataQueryFilter V1Packages
+        public static ODataQueryFilter V1Packages
         {
             get
             {
@@ -98,7 +87,7 @@ namespace NuGetGallery.OData.QueryFilter
         /// <summary>
         /// The OData query filter for /api/v1/Search()
         /// </summary>
-        public ODataQueryFilter V1Search
+        public static ODataQueryFilter V1Search
         {
             get
             {
@@ -120,7 +109,7 @@ namespace NuGetGallery.OData.QueryFilter
         /// <param name="isFeatureEnabled">The configuration state for the feature.</param>
         /// <param name="telemetryContext">Information to be used by the telemetry events.</param>
         /// <returns>True if the options are allowed.</returns>
-        public bool AreODataOptionsAllowed<TEntity>(ODataQueryOptions<TEntity> odataOptions,
+        public static bool AreODataOptionsAllowed<TEntity>(ODataQueryOptions<TEntity> odataOptions,
                                                            ODataQueryFilter allowedQueryStructure,
                                                            bool isFeatureEnabled,
                                                            string telemetryContext)
@@ -134,8 +123,7 @@ namespace NuGetGallery.OData.QueryFilter
             }
             catch (Exception ex)
             {
-                _telemetryService.TrackException(ex, properties =>
-                {
+                _telemetryService.TrackException(ex, properties => {
                     properties.Add(TelemetryService.CallContext, $"{telemetryContext}:{nameof(AreODataOptionsAllowed)}");
                     properties.Add(TelemetryService.IsEnabled, $"{isFeatureEnabled}");
                 });
