@@ -61,6 +61,7 @@
     <Compile Include="GraphQL\SecurityAdvisory.cs" />
     <Compile Include="GraphQL\QueryResponse.cs" />
     <Compile Include="GraphQL\QueryService.cs" />
+    <Compile Include="GraphQL\SecurityAdvisoryExtensions.cs" />
     <Compile Include="GraphQL\SecurityVulnerability.cs" />
     <Compile Include="Ingest\AdvisoryIngestor.cs" />
     <Compile Include="Ingest\GitHubVersionRangeParser.cs" />
@@ -88,7 +89,7 @@
       <Version>4.3.0-dev-3159955</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.59.0</Version>
+      <Version>2.58.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

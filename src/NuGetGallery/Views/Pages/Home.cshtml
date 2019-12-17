@@ -4,6 +4,9 @@
     ViewBag.ShowSearchInNavbar = false;
     ViewBag.AutofocusSearch = true;
     ViewBag.HasJumbotron = true;
+    var AskUserToEnable2FA = TempData.ContainsKey("AskUserToEnable2FA")
+        && Convert.ToBoolean(TempData["AskUserToEnable2FA"].ToString())
+        && Model.ShowEnable2FAModalFeatureEnabled;
 }
 
 @section SocialMeta {
@@ -24,6 +27,15 @@
     <div id="popUpModal" role="dialog" class="modal fade modal-container" data-backdrop="static" tabindex="-1">
         @Html.Partial("_TransformOrLink", Model)
     </div>
+}
+else if (AskUserToEnable2FA)
+{
+    <script type="text/javascript">
+        window.show2FAModal = true;
+    </script>
+    <div id="popUp2FAModal" class="modal fade modal-container" data-backdrop="static">
+        @Html.Partial("_Enable2FA", Model)
+    </div> 
 }
 
 <section role="main" class="page-home">
@@ -112,5 +124,9 @@
 </section>
 
 @section BottomScripts {
+    <script type="text/javascript">
+        var feedbackUrl = "@Url.Send2FAFeedback()";
+        var changeMultiFactorAuthenticationUrl = "@Url.ChangeMultiFactorAuthentication()";
+    </script>
     @Scripts.Render("~/Scripts/gallery/page-home.min.js")
 }

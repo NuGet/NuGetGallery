@@ -1389,12 +1389,12 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 // Act
-                await service.ChangeMultiFactorAuthentication(user, enable2FA);
+                await service.ChangeMultiFactorAuthentication(user, enable2FA, null);
 
                 // Assert
                 Assert.Equal(user.EnableMultiFactorAuthentication, enable2FA);
                 service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
-                service.MockTelemetryService.Verify(x => x.TrackUserChangedMultiFactorAuthentication(user, enable2FA), Times.Once);
+                service.MockTelemetryService.Verify(x => x.TrackUserChangedMultiFactorAuthentication(user, enable2FA, It.IsAny<string>()), Times.Once);
             }
         }
 

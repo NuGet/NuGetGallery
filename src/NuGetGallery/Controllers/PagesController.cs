@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly IMessageService _messageService;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IMessageServiceConfiguration _messageServiceConfiguration;
+        private readonly IFeatureFlagService _featureFlagService;
 
         protected PagesController() { }
         public PagesController(
@@ -31,13 +32,15 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             IMessageService messageService,
             ISupportRequestService supportRequestService,
-            IMessageServiceConfiguration messageServiceConfiguration)
+            IMessageServiceConfiguration messageServiceConfiguration,
+            IFeatureFlagService featureFlagService)
         {
             _contentService = contentService ?? throw new ArgumentNullException(nameof(contentService));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
             _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         // This will let you add 'static' cshtml pages to the site under View/Pages or Branding/Views/Pages
@@ -117,7 +120,10 @@ namespace NuGetGallery
                 .LoginDiscontinuationConfiguration
                 .ShouldUserTransformIntoOrganization(user);
             var externalIdentityList = ClaimsExtensions.GetExternalCredentialIdentityList(identity);
-            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, externalIdentityList));
+            var showEnable2FAModal = _featureFlagService.IsShowEnable2FADialogEnabled();
+            var getFeedbackOnModalDismiss = _featureFlagService.IsGet2FADismissFeedbackEnabled();
+
+            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, showEnable2FAModal, getFeedbackOnModalDismiss, externalIdentityList));
         }
 
         [HttpGet]

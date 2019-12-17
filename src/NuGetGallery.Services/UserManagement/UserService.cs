@@ -420,14 +420,14 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
         }
 
-        public virtual async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor)
+        public virtual async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor, string referrer = null)
         {
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, enableMultiFactor ? AuditedUserAction.EnabledMultiFactorAuthentication : AuditedUserAction.DisabledMultiFactorAuthentication));
 
             user.EnableMultiFactorAuthentication = enableMultiFactor;
             await UserRepository.CommitChangesAsync();
 
-            TelemetryService.TrackUserChangedMultiFactorAuthentication(user, enableMultiFactor);
+            TelemetryService.TrackUserChangedMultiFactorAuthentication(user, enableMultiFactor, referrer);
         }
 
         public async Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys)

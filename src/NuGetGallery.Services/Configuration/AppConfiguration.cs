@@ -401,5 +401,7 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue(null)]
         public string DeploymentLabel { get; set; }
+
+        public string UsabillaFeedbackButtonId { get; set; }
     }
 }

@@ -18,6 +18,7 @@ namespace NuGetGallery.Auditing
                 "ConfirmEmail",
                 "EditCredential",
                 "ExpireCredential",
+                "RevokeCredential",
                 "Login",
                 "Register",
                 "RemoveCredential",

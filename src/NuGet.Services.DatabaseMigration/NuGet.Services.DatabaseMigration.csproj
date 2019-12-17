@@ -79,9 +79,6 @@
     <PackageReference Include="NuGet.Jobs.Common">
       <Version>4.3.0-dev-3159955</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.59.0</Version>
-    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

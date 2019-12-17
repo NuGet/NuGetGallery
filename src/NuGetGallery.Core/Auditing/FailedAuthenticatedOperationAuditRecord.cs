@@ -31,7 +31,7 @@ namespace NuGetGallery.Auditing
 
             if (attemptedCredential != null)
             {
-                AttemptedCredential = new CredentialAuditRecord(attemptedCredential, removed: false);
+                AttemptedCredential = new CredentialAuditRecord(attemptedCredential, removedOrRevoked: false);
             }
         }
 

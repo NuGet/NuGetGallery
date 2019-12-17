@@ -5,7 +5,10 @@
     "NuGetGallery.PreviewHijack": "Enabled",
     "NuGetGallery.GravatarProxy": "Enabled",
     "NuGetGallery.GravatarProxyEnSubdomain": "Enabled",
-    "NuGetGallery.ODataCacheDurations": "Enabled"
+    "NuGetGallery.ODataCacheDurations": "Enabled",
+    "NuGetGallery.ShowEnable2FADialog": "Enabled",
+    "NuGetGallery.Get2FADismissFeedback": "Disabled",
+    "NuGetGallery.UsabillaEveryPage": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

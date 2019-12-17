@@ -590,15 +590,29 @@ namespace NuGetGallery
                     result.Authentication,
                     wasMultiFactorAuthenticated: result?.LoginDetails?.WasMultiFactorAuthenticated ?? false);
 
-                // Update the 2FA if used during login but user does not have it set on their account. Only for personal microsoft accounts.
+                // Update the 2FA if used during login but user does not have it set on their account. Enforced for only personal microsoft accounts
+                // record it in the DB for the AAD accounts.
                 if (result?.LoginDetails != null
                     && result.LoginDetails.WasMultiFactorAuthenticated
                     && !result.Authentication.User.EnableMultiFactorAuthentication
+                    && CredentialTypes.IsExternal(result.Credential))
+                {
+                    await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true, referrer: "Authentication");
+                    OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
+                    if (CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
+                    {
+                        TempData["Message"] = Strings.MultiFactorAuth_LoginUpdate;
+                    }
+                }
+
+                // Ask the user to enable multifactor authentication, if the user
+                // 1. Does not have 2FA enabled, and
+                // 2. Signed in with MSA account.
+                var currentUser = result.Authentication.User;
+                if (!currentUser.EnableMultiFactorAuthentication
                     && CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
                 {
-                    await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true);
-                    OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
-                    TempData["Message"] = Strings.MultiFactorAuth_LoginUpdate;
+                    TempData[GalleryConstants.AskUserToEnable2FA] = true;
                 }
 
                 return SafeRedirect(returnUrl);

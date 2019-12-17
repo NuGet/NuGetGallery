@@ -39,7 +39,7 @@ namespace NuGetGallery
 
         Task CancelChangeEmailAddress(User user);
 
-        Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor);
+        Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor, string referrer = null);
 
         Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys);
 

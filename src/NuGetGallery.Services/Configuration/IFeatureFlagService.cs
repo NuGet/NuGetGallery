@@ -105,5 +105,20 @@ namespace NuGetGallery
         /// Whether or not to check the content object service for OData cache durations.
         /// </summary>
         bool AreDynamicODataCacheDurationsEnabled();
+
+        /// <summary>
+        /// Whether the qualified users should be shown the dialog box to enable multi-factor authentication
+        /// </summary>
+        bool IsShowEnable2FADialogEnabled();
+
+        /// <summary>
+        /// Whether we should get feedback from the users when they dismiss enabling multi-factor authentication
+        /// </summary>
+        bool IsGet2FADismissFeedbackEnabled();
+
+        /// <summary>
+        /// Whether we should enable the Usabilla feedback button on every page.
+        /// </summary>
+        bool IsUsabillaButtonEnabledOnEveryPage();
     }
 }

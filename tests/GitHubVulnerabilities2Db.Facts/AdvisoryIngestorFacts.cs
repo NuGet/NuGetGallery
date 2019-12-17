@@ -42,7 +42,6 @@ namespace GitHubVulnerabilities2Db.Facts
                     DatabaseId = 1,
                     GhsaId = "ghsa",
                     Severity = "MODERATE",
-                    References = new[] { new SecurityAdvisoryReference { Url = "https://vulnerable" } },
                     WithdrawnAt = withdrawn ? new DateTime() : (DateTime?)null
                 };
 
@@ -52,7 +51,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     {
                         Assert.Equal(advisory.DatabaseId, vulnerability.GitHubDatabaseKey);
                         Assert.Equal(PackageVulnerabilitySeverity.Moderate, vulnerability.Severity);
-                        Assert.Equal(advisory.References.Single().Url, vulnerability.ReferenceUrl);
+                        Assert.Equal(advisory.GetPermalink(), vulnerability.AdvisoryUrl);
                     })
                     .Returns(Task.CompletedTask)
                     .Verifiable();
@@ -85,7 +84,6 @@ namespace GitHubVulnerabilities2Db.Facts
                     DatabaseId = 1,
                     GhsaId = "ghsa",
                     Severity = "CRITICAL",
-                    References = new[] { new SecurityAdvisoryReference { Url = "https://vulnerable" } },
                     WithdrawnAt = withdrawn ? new DateTime() : (DateTime?)null,
                     Vulnerabilities = new ConnectionResponseData<SecurityVulnerability>
                     {
@@ -112,7 +110,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     {
                         Assert.Equal(advisory.DatabaseId, vulnerability.GitHubDatabaseKey);
                         Assert.Equal(PackageVulnerabilitySeverity.Critical, vulnerability.Severity);
-                        Assert.Equal(advisory.References.Single().Url, vulnerability.ReferenceUrl);
+                        Assert.Equal(advisory.GetPermalink(), vulnerability.AdvisoryUrl);
 
                         var range = vulnerability.AffectedRanges.Single();
                         Assert.Equal(securityVulnerability.Package.Name, range.PackageId);
