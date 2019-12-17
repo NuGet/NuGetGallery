@@ -27,6 +27,16 @@ namespace NuGet.Services.AzureSearch.SearchService
                 TextBuilder.Verify(x => x.Autocomplete(AutocompleteRequest), Times.Once);
                 ParametersBuilder.Verify(x => x.Autocomplete(AutocompleteRequest, It.IsAny<bool>()), Times.Once);
             }
+
+            [Fact]
+            public void ReturnsEmptyQueryForInvalidPackageType()
+            {
+                AutocompleteRequest.PackageType = "invalid package type";
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Empty, actual.Type);
+            }
         }
 
         public class V3Search : SearchIndexFacts

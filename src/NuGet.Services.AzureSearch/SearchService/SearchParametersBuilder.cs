@@ -94,7 +94,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             var searchParameters = NewSearchParameters();
 
-            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, packageType: null);
+            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType);
 
             switch (request.Type)
             {

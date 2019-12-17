@@ -30,10 +30,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation V3Search(V3SearchRequest request)
         {
-            // Requests with bad parameters yield no results. For the package type case, by specification a package type
-            // valid characters are the same as a package ID.
-            if (request.Skip > MaximumSkip
-                || (request.PackageType != null && !PackageIdValidator.IsValidPackageId(request.PackageType)))
+            if (HasInvalidParameters(request, request.PackageType))
             {
                 return IndexOperation.Empty();
             }
@@ -54,7 +51,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation V2SearchWithSearchIndex(V2SearchRequest request)
         {
-            if (request.Skip > MaximumSkip)
+            if (HasInvalidParameters(request, packageType: null))
             {
                 return IndexOperation.Empty();
             }
@@ -74,7 +71,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation V2SearchWithHijackIndex(V2SearchRequest request)
         {
-            if (request.Skip > MaximumSkip)
+            if (HasInvalidParameters(request, packageType: null))
             {
                 return IndexOperation.Empty();
             }
@@ -94,7 +91,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation Autocomplete(AutocompleteRequest request)
         {
-            if (request.Skip > MaximumSkip)
+            if (HasInvalidParameters(request, request.PackageType))
             {
                 return IndexOperation.Empty();
             }
@@ -179,6 +176,14 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             normalizedVersion = null;
             return false;
+        }
+
+        private static bool HasInvalidParameters(SearchRequest request, string packageType)
+        {
+            // Requests with bad parameters yield no results. For the package type case, by specification a package type
+            // valid characters are the same as a package ID.
+            return request.Skip > MaximumSkip
+                || (packageType != null && !PackageIdValidator.IsValidPackageId(packageType));
         }
 
         private static bool PagedToFirstItem(SearchRequest request)

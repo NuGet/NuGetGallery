@@ -9,5 +9,6 @@ namespace NuGet.Services.AzureSearch.SearchService
     public class AutocompleteRequest : SearchRequest
     {
         public AutocompleteRequestType Type { get; set; }
+        public string PackageType { get; set; }
     }
 }
