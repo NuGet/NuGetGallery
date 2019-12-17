@@ -61,6 +61,9 @@ namespace NuGet.Protocol.Catalog
         [JsonProperty("packageSize")]
         public long PackageSize { get; set; }
 
+        [JsonProperty("packageTypes")]
+        public List<PackageType> PackageTypes { get; set; }
+
         [JsonProperty("projectUrl")]
         public string ProjectUrl { get; set; }
 

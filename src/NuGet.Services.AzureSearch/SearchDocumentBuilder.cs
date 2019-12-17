@@ -168,6 +168,12 @@ namespace NuGet.Services.AzureSearch
         {
             var document = new SearchDocument.UpdateLatest();
 
+            // Determine if we have packageTypes to forward.
+            // Otherwise, we need to let the system know that there were no explicit package types
+            var packageTypes = leaf.PackageTypes != null && leaf.PackageTypes.Count > 0 ?
+                leaf.PackageTypes.Select(pt => pt.Name).ToArray() :
+                null;
+
             PopulateUpdateLatest(
                 document,
                 leaf.PackageId,
@@ -180,7 +186,7 @@ namespace NuGet.Services.AzureSearch
                 isLatest: isLatest,
                 fullVersion: fullVersion,
                 owners: owners,
-                packageTypes: null);
+                packageTypes: packageTypes);
             _baseDocumentBuilder.PopulateMetadata(document, normalizedVersion, leaf);
 
             return document;
