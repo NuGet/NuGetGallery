@@ -42,7 +42,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     DatabaseId = 1,
                     GhsaId = "ghsa",
                     Severity = "MODERATE",
-                    WithdrawnAt = withdrawn ? new DateTimeOffset() : (DateTimeOffset?)null
+                    WithdrawnAt = withdrawn ? new DateTime() : (DateTime?)null
                 };
 
                 PackageVulnerabilityServiceMock
@@ -84,7 +84,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     DatabaseId = 1,
                     GhsaId = "ghsa",
                     Severity = "CRITICAL",
-                    WithdrawnAt = withdrawn ? new DateTimeOffset() : (DateTimeOffset?)null,
+                    WithdrawnAt = withdrawn ? new DateTime() : (DateTime?)null,
                     Vulnerabilities = new ConnectionResponseData<SecurityVulnerability>
                     {
                         Edges = new[]

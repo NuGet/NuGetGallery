@@ -11,11 +11,14 @@ using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Mvc;
 using Elmah;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using NuGet.Services.FeatureFlags;
+using NuGet.Services.Logging;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
@@ -71,6 +74,61 @@ namespace NuGetGallery
                     await Task.Delay(ContentObjectService.RefreshInterval, token);
                 }
             });
+
+            // Setup telemetry
+            var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
+            if (!string.IsNullOrEmpty(instrumentationKey))
+            {
+                var heartbeatIntervalSeconds = config.Current.AppInsightsHeartbeatIntervalSeconds;
+
+                if (heartbeatIntervalSeconds > 0)
+                {
+                    // Configure instrumentation key, heartbeat interval, 
+                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
+                    ApplicationInsights.Initialize(instrumentationKey, TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+                }
+                else
+                {
+                    // Configure instrumentation key,
+                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
+                    ApplicationInsights.Initialize(instrumentationKey);
+                }
+
+                // Add enrichers
+                TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentIdTelemetryEnricher());
+                TelemetryConfiguration.Active.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
+
+                var telemetryProcessorChainBuilder = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
+
+                // Add processors
+                telemetryProcessorChainBuilder.Use(next =>
+                {
+                    var processor = new RequestTelemetryProcessor(next);
+
+                    processor.SuccessfulResponseCodes.Add(400);
+                    processor.SuccessfulResponseCodes.Add(404);
+                    processor.SuccessfulResponseCodes.Add(405);
+
+                    return processor;
+                });
+
+                telemetryProcessorChainBuilder.Use(next => new ClientTelemetryPIIProcessor(next));
+
+                var telemetry = dependencyResolver.GetService<TelemetryClientWrapper>();
+                telemetryProcessorChainBuilder.Use(
+                    next => new ExceptionTelemetryProcessor(next, telemetry.UnderlyingClient));
+
+                // Note: sampling rate must be a factor 100/N where N is a whole number
+                // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
+                // https://azure.microsoft.com/en-us/documentation/articles/app-insights-sampling/
+                var instrumentationSamplingPercentage = config.Current.AppInsightsSamplingPercentage;
+                if (instrumentationSamplingPercentage > 0 && instrumentationSamplingPercentage < 100)
+                {
+                    telemetryProcessorChainBuilder.UseSampling(instrumentationSamplingPercentage);
+                }
+
+                telemetryProcessorChainBuilder.Build();
+            }
 
             // Configure logging
             app.SetLoggerFactory(new DiagnosticsLoggerFactory());
@@ -134,7 +192,7 @@ namespace NuGetGallery
                 // Send to AppInsights
                 try
                 {
-                    var telemetryClient = DependencyResolver.Current.GetService<ITelemetryClient>();
+                    var telemetryClient = new TelemetryClient();
                     telemetryClient.TrackException(exArgs.Exception, new Dictionary<string, string>()
                     {
                         {"ExceptionOrigin", "UnobservedTaskException"}

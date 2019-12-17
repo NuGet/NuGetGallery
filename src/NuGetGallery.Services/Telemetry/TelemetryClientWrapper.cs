@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery
@@ -19,19 +18,19 @@ namespace NuGetGallery
         private const string TelemetryPropertyEventName = "EventName";
 
         private static readonly Lazy<TelemetryClientWrapper> Singleton
-            = new Lazy<TelemetryClientWrapper>(() => new TelemetryClientWrapper(TelemetryConfiguration));
+            = new Lazy<TelemetryClientWrapper>(() => new TelemetryClientWrapper());
 
-        private static TelemetryConfiguration TelemetryConfiguration;
-
-        public static TelemetryClientWrapper UseTelemetryConfiguration(TelemetryConfiguration configuration)
+        public static TelemetryClientWrapper Instance
         {
-            TelemetryConfiguration = configuration;
-            return Singleton.Value;
+            get
+            {
+                return Singleton.Value;
+            }
         }
 
-        private TelemetryClientWrapper(TelemetryConfiguration telemetryConfiguration)
+        private TelemetryClientWrapper()
         {
-            UnderlyingClient = new TelemetryClient(telemetryConfiguration);
+            UnderlyingClient = new TelemetryClient();
         }
 
         public TelemetryClient UnderlyingClient { get; }
