@@ -839,7 +839,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.Equal(
-                    Strings.PasswordCredentialsCannotBeUsedHere + Environment.NewLine + "Parameter name: credential",
+                    Strings.PasswordCredentialsCannotBeUsedHere + Environment.NewLine + $"{TestStrings.Parameter_name}: credential",
                     ex.Message);
                 Assert.Equal("credential", ex.ParamName);
             }

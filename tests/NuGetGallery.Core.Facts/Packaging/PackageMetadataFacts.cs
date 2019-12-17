@@ -177,7 +177,7 @@ namespace NuGetGallery.Packaging
 
             // Act & Assert
             var ex = Assert.Throws<ArgumentException>(() => PackageMetadata.FromNuspecReader(nuspec, strict));
-            Assert.Equal("'bad' is not a valid version string.\r\nParameter name: value", ex.Message);
+            Assert.Equal($"'bad' is not a valid version string.\r\n{TestStrings.Parameter_name}: value", ex.Message);
         }
 
         [Fact]
@@ -223,7 +223,7 @@ namespace NuGetGallery.Packaging
                 nuspec,
                 strict: false));
             Assert.Equal(
-                "An item with the same key has already been added.",
+                TestStrings.An_item_with_the_same_key_has_already_been_added,
                 ex.Message);
         }
 
