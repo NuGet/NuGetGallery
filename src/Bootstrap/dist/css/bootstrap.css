@@ -5580,6 +5580,9 @@ button.close {
 @-ms-viewport {
   width: device-width;
 }
+body {
+  -ms-overflow-style: scrollbar;
+}
 .visible-xs,
 .visible-sm,
 .visible-md,

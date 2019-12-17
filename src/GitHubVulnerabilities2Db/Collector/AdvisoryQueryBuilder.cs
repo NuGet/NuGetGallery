@@ -24,9 +24,6 @@ namespace GitHubVulnerabilities2Db.Collector
         ghsaId
         severity
         updatedAt
-        references {
-          url
-        }
         " + CreateVulnerabilitiesConnectionQuery() + @"
       }
     }
@@ -37,9 +34,6 @@ namespace GitHubVulnerabilities2Db.Collector
             => @"
 {
   securityAdvisory(ghsaId: " + advisory.GhsaId + @") {
-    references {
-      url
-    }
     severity
     updatedAt
     identifiers {

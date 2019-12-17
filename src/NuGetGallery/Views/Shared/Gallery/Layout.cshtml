@@ -43,6 +43,7 @@
     <div id="skippedToContent">
     @RenderBody()
     </div>
+    @ViewHelpers.UsabillaButton(Url)
     @Html.Partial("Gallery/Footer")
     @Scripts.Render("~/Scripts/gallery/site.min.js")
     @RenderSection("BottomScripts", required: false)
@@ -53,5 +54,6 @@
             <script src="@cookieScript"></script>
         }
     }
+    @ViewHelpers.UsabillaScript()
 </body>
 </html>

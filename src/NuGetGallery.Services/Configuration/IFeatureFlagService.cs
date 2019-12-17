@@ -115,5 +115,10 @@ namespace NuGetGallery
         /// Whether we should get feedback from the users when they dismiss enabling multi-factor authentication
         /// </summary>
         bool IsGet2FADismissFeedbackEnabled();
+
+        /// <summary>
+        /// Whether we should enable the Usabilla feedback button on every page.
+        /// </summary>
+        bool IsUsabillaButtonEnabledOnEveryPage();
     }
 }

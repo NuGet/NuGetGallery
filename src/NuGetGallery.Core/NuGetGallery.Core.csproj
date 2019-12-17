@@ -157,6 +157,7 @@
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ElmahException.cs" />
     <Compile Include="Infrastructure\Mail\EmailRecipientsHelper.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialRevokedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageValidationFailedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessage.cs" />

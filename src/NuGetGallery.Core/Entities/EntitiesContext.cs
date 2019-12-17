@@ -462,6 +462,10 @@ namespace NuGetGallery
                 .HasIndex(v => v.GitHubDatabaseKey)
                 .IsUnique();
 
+            modelBuilder.Entity<PackageVulnerability>()
+                .Property(pv => pv.AdvisoryUrl)
+                .IsRequired();
+
             modelBuilder.Entity<VulnerablePackageVersionRange>()
                 .HasKey(pv => pv.Key)
                 .HasMany(pv => pv.Packages)
