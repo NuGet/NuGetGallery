@@ -379,12 +379,18 @@ namespace NuGet.Services.AzureSearch
         ""azure-sdk""
       ],
       ""searchFilters"": """ + expected + @""",
+      ""filterablePackageTypes"": [
+        ""dependency""
+      ],
       ""fullVersion"": ""7.1.2-alpha+git"",
       ""versions"": [
         ""1.0.0"",
         ""2.0.0+git"",
         ""3.0.0-alpha.1"",
         ""7.1.2-alpha+git""
+      ],
+      ""packageTypes"": [
+        ""Dependency""
       ],
       ""isLatestStable"": false,
       ""isLatest"": true,
@@ -677,12 +683,18 @@ namespace NuGet.Services.AzureSearch
         ""azure-sdk""
       ],
       ""searchFilters"": """ + expected + @""",
+      ""filterablePackageTypes"": [
+        ""dependency""
+      ],
       ""fullVersion"": ""7.1.2-alpha+git"",
       ""versions"": [
         ""1.0.0"",
         ""2.0.0+git"",
         ""3.0.0-alpha.1"",
         ""7.1.2-alpha+git""
+      ],
+      ""packageTypes"": [
+        ""Dependency""
       ],
       ""isLatestStable"": false,
       ""isLatest"": true,
@@ -732,6 +744,38 @@ namespace NuGet.Services.AzureSearch
     }
   ]
 }", json);
+            }
+
+            [Theory]
+            [MemberData(nameof(PackageTypesData))]
+            public async Task SetsExpectedPackageTypes(List<PackageType> packageTypes, string expectedFilterable, string expectedDisplay)
+            {
+                var package = Data.PackageEntity;
+                package.PackageTypes = packageTypes;
+
+                var document = _target.FullFromDb(
+                    Data.PackageId,
+                    SearchFilters.Default,
+                    Data.Versions,
+                    isLatestStable: false,
+                    isLatest: true,
+                    fullVersion: Data.FullVersion,
+                    package: package,
+                    owners: Data.Owners,
+                    totalDownloadCount: Data.TotalDownloadCount,
+                    isExcludedByDefault: false);
+
+                SetDocumentLastUpdated(document);
+                var json = await SerializationUtilities.SerializeToJsonAsync(document);
+                Assert.Contains(@"
+      ""filterablePackageTypes"": [
+        " + expectedFilterable + @"
+      ],", json);
+
+                Assert.Contains(@"
+      ""packageTypes"": [
+        " + expectedDisplay + @"
+      ],", json);
             }
 
             [Fact]
@@ -822,6 +866,59 @@ namespace NuGet.Services.AzureSearch
                 new object[] { SearchFilters.IncludePrerelease, "IncludePrerelease" },
                 new object[] { SearchFilters.IncludeSemVer2, "IncludeSemVer2" },
                 new object[] { SearchFilters.IncludePrereleaseAndSemVer2, "IncludePrereleaseAndSemVer2" },
+            };
+
+            public static IEnumerable<object[]> PackageTypesData => new[]
+            {
+                new object[] {
+                    new List<PackageType> {
+                        new PackageType
+                        {
+                            Name = "DotNetCliTool"
+                        }
+                    },
+                    @"""dotnetclitool""",
+                    @"""DotNetCliTool"""
+                },
+
+                new object[] {
+                    null,
+                    @"""dependency""",
+                    @"""Dependency"""
+                },
+
+                new object[] {
+                    new List<PackageType>(),
+                    @"""dependency""",
+                    @"""Dependency"""
+                },
+
+                new object[] {
+                    new List<PackageType> {
+                        new PackageType
+                        {
+                            Name = "DotNetCliTool"
+                        },
+                        new PackageType
+                        {
+                            Name = "Dependency"
+                        }
+                    },
+                    "\"dotnetclitool\",\r\n        \"dependency\"",
+                    "\"DotNetCliTool\",\r\n        \"Dependency\"",
+                },
+
+                new object[] {
+                    new List<PackageType> {
+                        new PackageType
+                        {
+                            Name = "DotNetCliTool",
+                            Version = "1.0.0"
+                        }
+                    },
+                    @"""dotnetclitool""",
+                    @"""DotNetCliTool"""
+                },
             };
 
             [Fact]

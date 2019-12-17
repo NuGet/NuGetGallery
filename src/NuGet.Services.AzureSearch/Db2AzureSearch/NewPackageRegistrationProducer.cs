@@ -148,6 +148,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 var query = context
                     .Set<Package>()
                     .Include(x => x.PackageRegistration)
+                    .Include(x => x.PackageTypes)
                     .Where(p => p.PackageStatusKey == PackageStatus.Available)
                     .Where(p => p.PackageRegistrationKey >= minKey);
 

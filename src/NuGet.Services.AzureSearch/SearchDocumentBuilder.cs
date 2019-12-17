@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 
@@ -9,6 +10,9 @@ namespace NuGet.Services.AzureSearch
 {
     public class SearchDocumentBuilder : ISearchDocumentBuilder
     {
+        private readonly string[] ImpliedDependency = new string[] { "Dependency" };
+        private readonly string[] FilterableImpliedDependency = new string[] { "dependency" };
+
         private readonly IBaseDocumentBuilder _baseDocumentBuilder;
 
         public SearchDocumentBuilder(IBaseDocumentBuilder baseDocumentBuilder)
@@ -175,7 +179,8 @@ namespace NuGet.Services.AzureSearch
                 isLatestStable: isLatestStable,
                 isLatest: isLatest,
                 fullVersion: fullVersion,
-                owners: owners);
+                owners: owners,
+                packageTypes: null);
             _baseDocumentBuilder.PopulateMetadata(document, normalizedVersion, leaf);
 
             return document;
@@ -195,6 +200,12 @@ namespace NuGet.Services.AzureSearch
         {
             var document = new SearchDocument.Full();
 
+            // Determine if we have packageTypes to forward.
+            // Otherwise, we need to let the system know that there were no explicit package types
+            var packageTypes = package.PackageTypes != null && package.PackageTypes.Count > 0 ?
+                package.PackageTypes.Select(pt => pt.Name).ToArray() :
+                null;
+
             PopulateUpdateLatest(
                 document,
                 packageId,
@@ -206,7 +217,8 @@ namespace NuGet.Services.AzureSearch
                 isLatestStable: isLatestStable,
                 isLatest: isLatest,
                 fullVersion: fullVersion,
-                owners: owners);
+                owners: owners,
+                packageTypes: packageTypes);
             _baseDocumentBuilder.PopulateMetadata(document, packageId, package);
             PopulateDownloadCount(document, totalDownloadCount);
             PopulateIsExcludedByDefault(document, isExcludedByDefault);
@@ -252,7 +264,8 @@ namespace NuGet.Services.AzureSearch
             bool isLatestStable,
             bool isLatest,
             string fullVersion,
-            string[] owners)
+            string[] owners,
+            string[] packageTypes)
         {
             PopulateVersions(
                 document,
@@ -266,6 +279,20 @@ namespace NuGet.Services.AzureSearch
                 isLatest);
             document.SearchFilters = DocumentUtilities.GetSearchFilterString(searchFilters);
             document.FullVersion = fullVersion;
+
+            // If the package has explicit types, we will set them here.
+            // Otherwise, we will treat the package as a "Depedency" type and fill in the explicit type.
+            if (packageTypes != null && packageTypes.Length > 0)
+            {
+                document.PackageTypes = packageTypes;
+                document.FilterablePackageTypes = packageTypes.Select(pt => pt.ToLowerInvariant()).ToArray();
+            }
+            else
+            {
+                document.PackageTypes = ImpliedDependency;
+                document.FilterablePackageTypes = FilterableImpliedDependency;
+            }
+
             PopulateOwners(
                 document,
                 owners);
