@@ -144,6 +144,7 @@ namespace Gallery.CredentialExpiration {
         ///  AND cr.[Expires] &lt;= CONVERT(datetime, @MaxNotificationDate)
         ///  AND cr.[Expires] &gt;= CONVERT(datetime, @MinNotificationDate)
         ///  AND (cr.[Type] = &apos;apikey.v3&apos; or cr.[Type] = &apos;apikey.v4&apos;)
+        ///  AND cr.[RevocationSourceKey] IS NULL
         ///ORDER BY u.[Username].
         /// </summary>
         public static string GetExpiredCredentialsQuery {
