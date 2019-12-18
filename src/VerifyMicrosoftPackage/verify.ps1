@@ -115,5 +115,5 @@ Write-Host " "
 if ($LASTEXITCODE -ne 0) {
     Write-Error "The verify tool found some problems."
 } else {
-    Write-Output "The verify tool succeed."
+    Write-Output "The verify tool succeeded."
 }
