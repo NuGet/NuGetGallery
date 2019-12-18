@@ -64,6 +64,7 @@ namespace NuGetGallery
                         ClearSupportedFrameworks(package);
                         ClearAuthors(package);
                         ClearDependencies(package);
+                        ClearPackageTypes(package);
 
                         // 4) Reflow the package
                         var listed = package.Listed;
@@ -124,6 +125,15 @@ namespace NuGetGallery
                 _entitiesContext.Set<PackageDependency>().Remove(packageDependency);
             }
             package.Dependencies.Clear();
+        }
+
+        private void ClearPackageTypes(Package package)
+        {
+            foreach (var packageType in package.PackageTypes.ToList())
+            {
+                _entitiesContext.Set<PackageType>().Remove(packageType);
+            }
+            package.PackageTypes.Clear();
         }
     }
 }
