@@ -18,20 +18,17 @@ namespace NuGetGallery
         private const string TelemetryPropertyEventId = "EventId";
         private const string TelemetryPropertyEventName = "EventName";
 
-        private static readonly Lazy<TelemetryClientWrapper> Singleton
-            = new Lazy<TelemetryClientWrapper>(() => new TelemetryClientWrapper(TelemetryConfiguration));
-
-        private static TelemetryConfiguration TelemetryConfiguration;
-
         public static TelemetryClientWrapper UseTelemetryConfiguration(TelemetryConfiguration configuration)
         {
-            TelemetryConfiguration = configuration;
-            return Singleton.Value;
+            return new TelemetryClientWrapper(configuration);
         }
 
         private TelemetryClientWrapper(TelemetryConfiguration telemetryConfiguration)
         {
-            UnderlyingClient = new TelemetryClient(telemetryConfiguration);
+            UnderlyingClient = new TelemetryClient(telemetryConfiguration)
+            {
+                InstrumentationKey = telemetryConfiguration.InstrumentationKey
+            };
         }
 
         public TelemetryClient UnderlyingClient { get; }

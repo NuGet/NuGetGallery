@@ -472,7 +472,8 @@ namespace NuGetGallery
             builder.Populate(services);
         }
 
-        private static ApplicationInsightsConfiguration ConfigureApplicationInsights(
+        // Internal for testing purposes
+        internal static ApplicationInsightsConfiguration ConfigureApplicationInsights(
             IAppConfiguration configuration,
             out ITelemetryClient telemetryClient)
         {
