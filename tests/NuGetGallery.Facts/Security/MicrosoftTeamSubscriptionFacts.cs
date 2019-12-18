@@ -43,7 +43,7 @@ namespace NuGetGallery.Security
                 "\"authors\":[\"Microsoft\"]," +
                 "\"licUrlReq\":true," +
                 "\"projUrlReq\":true," +
-                "\"error\":\"The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to https://aka.ms/Microsoft-NuGet-Compliance for more information.\\r\\nPolicy violations: {0}\"}", 
+                "\"error\":\"The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to https://aka.ms/Microsoft-NuGet-Compliance for more information."+TestStrings.NewLineInResX+"Policy violations: {0}\"}", 
                 policy.Value);
         }
 

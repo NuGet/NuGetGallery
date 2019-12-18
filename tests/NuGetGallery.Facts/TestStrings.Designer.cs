@@ -79,6 +79,16 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 
+        ///.
+        /// </summary>
+        internal static string NewLineInResX {
+            get {
+                return ResourceManager.GetString("NewLineInResX", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameter name.
         /// </summary>
         internal static string Parameter_name {
