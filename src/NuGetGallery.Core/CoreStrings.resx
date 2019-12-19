@@ -213,4 +213,8 @@
   <data name="CertificateThumbprintHashAlgorithmChanged" xml:space="preserve">
     <value>The thumbprint is expected to be a SHA-256 thumbprint, which is exactly 64 characters in length.  Did the hash algorithm change?</value>
   </data>
+  <data name="Manifest_InvalidPackageTypeName" xml:space="preserve">
+    <value>The package manifest contains an invalid package type name: '{0}'</value>
+    <comment>{0} is the package type name.</comment>
+  </data>
 </root>
