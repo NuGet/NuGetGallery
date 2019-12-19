@@ -53,11 +53,12 @@
     <Compile Include="DeploymentLabelEnricher.cs" />
     <Compile Include="DurationMetric.cs" />
     <Compile Include="ExceptionTelemetryProcessor.cs" />
+    <Compile Include="Extensions\DiagnosticsTelemetryModuleExtensions.cs" />
     <Compile Include="LoggingSetup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="RequestTelemetryProcessor.cs" />
-    <Compile Include="TelemetryClientExtensions.cs" />
+    <Compile Include="Extensions\TelemetryClientExtensions.cs" />
     <Compile Include="TelemetryClientWrapper.cs" />
     <Compile Include="TelemetryContextInitializer.cs" />
   </ItemGroup>
