@@ -64,6 +64,7 @@
     <Compile Include="Models\V3SearchResultEntry.cs" />
     <Compile Include="Models\ServiceEndpoint.cs" />
     <Compile Include="Models\ServiceEndpointsList.cs" />
+    <Compile Include="Models\V3SearchResultPackageType.cs" />
     <Compile Include="TestSupport\RetryHandler.cs" />
     <Compile Include="TestSupport\QueryBuilder.cs" />
     <Compile Include="TestSupport\AutocompleteBuilder.cs" />

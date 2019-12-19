@@ -14,6 +14,8 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
 
         public bool IncludeSemVer2 { get; set; }
 
+        public string PackageType { get; set; }
+
         public V3SearchBuilder() : base("/query?") { }
 
         protected override NameValueCollection GetQueryString()
@@ -35,6 +37,11 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
             if (IncludeSemVer2)
             {
                 queryString["semVerLevel"] = "2.0.0";
+            }
+
+            if (PackageType != null)
+            {
+                queryString["packageType"] = PackageType;
             }
 
             return queryString;

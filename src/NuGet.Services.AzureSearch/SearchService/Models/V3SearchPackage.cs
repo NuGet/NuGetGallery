@@ -56,6 +56,9 @@ namespace NuGet.Services.AzureSearch.SearchService
         [JsonProperty("verified")]
         public bool Verified { get; set; }
 
+        [JsonProperty("packageTypes")]
+        public List<V3SearchPackageType> PackageTypes { get; set; }
+
         [JsonProperty("versions")]
         public List<V3SearchVersion> Versions { get; set; }
 

@@ -173,6 +173,7 @@
     <Compile Include="SearchService\Models\V2SearchRequest.cs" />
     <Compile Include="SearchService\Models\V3SearchContext.cs" />
     <Compile Include="SearchService\Models\V3SearchPackage.cs" />
+    <Compile Include="SearchService\Models\V3SearchPackageType.cs" />
     <Compile Include="SearchService\Models\V3SearchRequest.cs" />
     <Compile Include="SearchService\Models\V3SearchResponse.cs" />
     <Compile Include="SearchService\Models\V3SearchVersion.cs" />

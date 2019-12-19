@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace BasicSearchTests.FunctionalTests.Core.Models
@@ -39,7 +40,8 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
 
         public long TotalDownloads { get; set; }
 
-        public PackageVersion[] Versions { get; set; }
+        public List<V3SearchResultPackageType> PackageTypes { get; set; }
 
+        public PackageVersion[] Versions { get; set; }
     }
 }

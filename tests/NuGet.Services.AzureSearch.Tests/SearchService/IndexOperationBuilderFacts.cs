@@ -27,6 +27,16 @@ namespace NuGet.Services.AzureSearch.SearchService
                 TextBuilder.Verify(x => x.Autocomplete(AutocompleteRequest), Times.Once);
                 ParametersBuilder.Verify(x => x.Autocomplete(AutocompleteRequest, It.IsAny<bool>()), Times.Once);
             }
+
+            [Fact]
+            public void ReturnsEmptyQueryForInvalidPackageType()
+            {
+                AutocompleteRequest.PackageType = "invalid package type";
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Empty, actual.Type);
+            }
         }
 
         public class V3Search : SearchIndexFacts
@@ -56,6 +66,27 @@ namespace NuGet.Services.AzureSearch.SearchService
                 TextBuilder.Verify(x => x.ParseV3Search(V3SearchRequest), Times.Once);
                 TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
                 ParametersBuilder.Verify(x => x.V3Search(V3SearchRequest, It.IsAny<bool>()), Times.Once);
+            }
+
+            [Fact]
+            public void ReturnsEmptyQueryForInvalidPackageType()
+            {
+                V3SearchRequest.PackageType = "invalid package type";
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Empty, actual.Type);
+            }
+
+            [Fact]
+            public void BuildsSearchOperationForSingleValidPackageIdAndPackageType()
+            {
+                V3SearchRequest.PackageType = "Dependency";
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
             }
         }
 

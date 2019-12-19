@@ -18,6 +18,6 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
 
         public string Index { get; set; }
 
-        public IEnumerable<string> Data { get; set; }
+        public List<string> Data { get; set; }
     }
 }

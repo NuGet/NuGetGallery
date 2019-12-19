@@ -53,6 +53,7 @@
     <Compile Include="Analysis\DescriptionCustomAnalyzerFunctionTests.cs" />
     <Compile Include="Analysis\ExactMatchCustomAnalyzerFunctionalTests.cs" />
     <Compile Include="Analysis\PackageIdCustomAnalyzer.cs" />
+    <Compile Include="BasicTests\AutocompleteProtocolTests.cs" />
     <Compile Include="BasicTests\V3SearchProtocolTests.cs" />
     <Compile Include="BasicTests\V2SearchProtocolTests.cs" />
     <Compile Include="BasicTests\SearchAvailabilityTests.cs" />

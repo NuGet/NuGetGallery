@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Azure.Search.Models;
+using NuGet.Packaging;
 using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.SearchService
@@ -73,7 +74,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
             else
             {
-                ApplySearchIndexFilter(searchParameters, request, isDefaultSearch);
+                ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, packageType: null);
             }
 
             return searchParameters;
@@ -84,7 +85,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             var searchParameters = NewSearchParameters();
 
             ApplyPaging(searchParameters, request);
-            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch);
+            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType);
 
             return searchParameters;
         }
@@ -93,7 +94,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             var searchParameters = NewSearchParameters();
 
-            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch);
+            ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType);
 
             switch (request.Type)
             {
@@ -133,11 +134,29 @@ namespace NuGet.Services.AzureSearch.SearchService
             searchParameters.Top = request.Take < 0 || request.Take > MaximumTake ? DefaultTake : request.Take;
         }
 
-        private void ApplySearchIndexFilter(SearchParameters searchParameters, SearchRequest request, bool excludePackagesHiddenByDefault)
+        private void ApplySearchIndexFilter(
+            SearchParameters searchParameters,
+            SearchRequest request,
+            bool excludePackagesHiddenByDefault,
+            string packageType)
         {
             var searchFilters = GetSearchFilters(request);
 
-            searchParameters.Filter = GetFilterString(searchFilters, excludePackagesHiddenByDefault);
+            var filterString = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
+
+            if (excludePackagesHiddenByDefault)
+            {
+                filterString += $" and ({IndexFields.Search.IsExcludedByDefault} eq false or {IndexFields.Search.IsExcludedByDefault} eq null)";
+            }
+
+            // Verify that the package type only has valid package ID characters so we don't need to worry about
+            // escaping quotes and such.
+            if (packageType != null && PackageIdValidator.IsValidPackageId(packageType))
+            {
+                filterString += $" and {IndexFields.Search.FilterablePackageTypes}/any(p: p eq '{packageType.ToLowerInvariant()}')";
+            }
+
+            searchParameters.Filter = filterString;
         }
 
         public SearchFilters GetSearchFilters(SearchRequest request)
@@ -155,18 +174,6 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             return searchFilters;
-        }
-
-        private static string GetFilterString(SearchFilters searchFilters, bool excludePackagesHiddenByDefault)
-        {
-            var filterString = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
-
-            if (excludePackagesHiddenByDefault)
-            {
-                filterString += $" and ({IndexFields.Search.IsExcludedByDefault} eq false or {IndexFields.Search.IsExcludedByDefault} eq null)";
-            }
-
-            return filterString;
         }
 
         private static IList<string> GetOrderBy(V2SortBy sortBy)

@@ -238,6 +238,33 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal("searchFilters eq 'Default' and (isExcludedByDefault eq false or isExcludedByDefault eq null)", output.Filter);
             }
 
+            [Theory]
+            [MemberData(nameof(ValidPackageTypes))]
+            public void PackageTypeFiltering(string packageType)
+            {
+                var request = new V3SearchRequest
+                {
+                    PackageType = packageType,
+                };
+
+                var output = _target.V3Search(request, It.IsAny<bool>());
+
+                Assert.Equal($"searchFilters eq 'Default' and filterablePackageTypes/any(p: p eq '{packageType.ToLowerInvariant()}')", output.Filter);
+            }
+
+            [Fact]
+            public void InvalidPackageType()
+            {
+                var request = new V3SearchRequest
+                {
+                    PackageType = "something's-weird",
+                };
+
+                var output = _target.V3Search(request, It.IsAny<bool>());
+
+                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+            }
+
             [Fact]
             public void Paging()
             {
@@ -436,6 +463,33 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.Equal(filter, output.Filter);
             }
+
+            [Theory]
+            [MemberData(nameof(ValidPackageTypes))]
+            public void PackageTypeFiltering(string packageType)
+            {
+                var request = new AutocompleteRequest
+                {
+                    PackageType = packageType,
+                };
+
+                var output = _target.Autocomplete(request, It.IsAny<bool>());
+
+                Assert.Equal($"searchFilters eq 'Default' and filterablePackageTypes/any(p: p eq '{packageType.ToLowerInvariant()}')", output.Filter);
+            }
+
+            [Fact]
+            public void InvalidPackageType()
+            {
+                var request = new AutocompleteRequest
+                {
+                    PackageType = "something's-weird",
+                };
+
+                var output = _target.Autocomplete(request, It.IsAny<bool>());
+
+                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+            }
         }
 
         public abstract class BaseFacts
@@ -470,6 +524,17 @@ namespace NuGet.Services.AzureSearch.SearchService
                 .GetValues(typeof(V2SortBy))
                 .Cast<V2SortBy>()
                 .Select(x => new object[] { x });
+
+
+            public static IEnumerable<object[]> ValidPackageTypes => new[]
+            {
+                new object[] { "Dependency" },
+                new object[] { "DotnetTool" },
+                new object[] { "Template" },
+                new object[] { "PackageType.With.Dots" },
+                new object[] { "PackageType-With-Hyphens" },
+                new object[] { "PackageType_With_Underscores" },
+            };
 
             public BaseFacts()
             {

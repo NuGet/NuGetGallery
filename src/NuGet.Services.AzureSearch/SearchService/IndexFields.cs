@@ -32,6 +32,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public static class Search
         {
             public static readonly string DownloadScore = Name(nameof(SearchDocument.Full.DownloadScore));
+            public static readonly string FilterablePackageTypes = Name(nameof(SearchDocument.UpdateLatest.FilterablePackageTypes));
             public static readonly string IsExcludedByDefault = Name(nameof(SearchDocument.Full.IsExcludedByDefault));
             public static readonly string Owners = Name(nameof(SearchDocument.Full.Owners));
             public static readonly string SearchFilters = Name(nameof(SearchDocument.UpdateLatest.SearchFilters));

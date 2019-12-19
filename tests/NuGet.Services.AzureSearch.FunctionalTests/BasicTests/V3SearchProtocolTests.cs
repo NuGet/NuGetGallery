@@ -211,6 +211,114 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             Assert.Equal(Constants.TestPackageVersion_SearchFilters_PrerelSemVer2, package.Version);
         }
 
+        [Fact]
+        public async Task ByDefaultReturnsAnyPackageType()
+        {
+            var searchBuilder = new V3SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_PackageType}",
+            };
+
+            var results = await V3SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId_PackageType, package.Id);
+            Assert.Equal(Constants.TestPackageVersion_PackageType, package.Version);
+            Assert.Equal("DotnetTool", Assert.Single(package.PackageTypes).Name);
+        }
+
+        [Fact]
+        public async Task ExcludesPackagesWithMismatchingPackageType()
+        {
+            var searchBuilder = new V3SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_PackageType}",
+                PackageType = "Dependency",
+            };
+
+            var results = await V3SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Theory]
+        [InlineData("DOTnettOoL", "DotnetTool", Constants.TestPackageId_PackageType)]
+        [InlineData("depenDENCY", "Dependency", Constants.TestPackageId)]
+        public async Task TreatsPackageTypeAsCaseInsensitive(string packageTypeQuery, string expected, string id)
+        {
+            var searchBuilder = new V3SearchBuilder
+            {
+                Query = $"packageid:{id}",
+                PackageType = packageTypeQuery,
+            };
+
+            var results = await V3SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(id, package.Id);
+            Assert.Equal(expected, Assert.Single(package.PackageTypes).Name);
+        }
+
+        [Fact]
+        public async Task IncludesPackagesWithMatchingPackageType()
+        {
+            var searchBuilder = new V3SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_PackageType}",
+                PackageType = "DotNetTool",
+            };
+
+            var results = await V3SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId_PackageType, package.Id);
+            Assert.Equal(Constants.TestPackageVersion_PackageType, package.Version);
+            Assert.Equal("DotnetTool", Assert.Single(package.PackageTypes).Name);
+        }
+
+        [Fact]
+        public async Task PackagesWithoutPackageTypesAreAssumedToBeDependency()
+        {
+            var searchBuilder = new V3SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                PackageType = "Dependency",
+            };
+
+            var results = await V3SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId, package.Id);
+            Assert.Equal(Constants.TestPackageVersion, package.Version);
+            Assert.Equal("Dependency", Assert.Single(package.PackageTypes).Name);
+        }
+
+        [Fact]
+        public async Task ReturnsNothingWhenThePackageTypeDoesNotExist()
+        {
+            var searchBuilder = new V3SearchBuilder
+            {
+                PackageType = Guid.NewGuid().ToString(),
+            };
+
+            var results = await V3SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task ReturnsNothingWhenThePackageTypeIsInvalid()
+        {
+            var searchBuilder = new V3SearchBuilder
+            {
+                PackageType = "cannot$be:a;package|type",
+            };
+
+            var results = await V3SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
         [Theory]
         [InlineData(false, false, Constants.TestPackageVersion_SearchFilters_Default)]
         [InlineData(true, false, Constants.TestPackageVersion_SearchFilters_Prerel)]

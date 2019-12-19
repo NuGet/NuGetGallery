@@ -103,7 +103,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             return await SearchAsync<V3SearchResult>(searchBuilder);
         }
 
-        private async Task<AutocompleteResult> AutocompleteAsync(AutocompleteBuilder searchBuilder)
+        protected async Task<AutocompleteResult> AutocompleteAsync(AutocompleteBuilder searchBuilder)
         {
             return await SearchAsync<AutocompleteResult>(searchBuilder);
         }
