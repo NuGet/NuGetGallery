@@ -123,7 +123,11 @@
   <data name="An_item_with_the_same_key_has_already_been_added" xml:space="preserve">
     <value>Элемент с тем же ключом уже был добавлен.</value>
   </data>
-  <data name="Parameter_name" xml:space="preserve">
+	<data name="NewLineInResX" xml:space="preserve">
+    <value>
+</value>
+  </data>
+	<data name="Parameter_name" xml:space="preserve">
     <value>Имя параметра</value>
   </data>
 </root>

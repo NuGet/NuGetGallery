@@ -21,7 +21,8 @@ namespace NuGetGallery.Security
             // Act & Assert.
             Assert.Equal(1, subscription.Policies.Count());
             Assert.NotNull(policy);
-            Assert.Equal(
+            var TestStrings_NewLineInResxEscaped = TestStrings.NewLineInResX.Replace("\r","\\r").Replace("\n","\\n");
+            var expectedPolicyValue =
                 "{\"u\":\"Microsoft\"," +
                 "\"copy\":" +
                 "[" +
@@ -43,8 +44,8 @@ namespace NuGetGallery.Security
                 "\"authors\":[\"Microsoft\"]," +
                 "\"licUrlReq\":true," +
                 "\"projUrlReq\":true," +
-                "\"error\":\"The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to https://aka.ms/Microsoft-NuGet-Compliance for more information."+TestStrings.NewLineInResX+"Policy violations: {0}\"}", 
-                policy.Value);
+                "\"error\":\"The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to https://aka.ms/Microsoft-NuGet-Compliance for more information." + TestStrings_NewLineInResxEscaped + "Policy violations: {0}\"}";
+            Assert.Equal(expectedPolicyValue, policy.Value);
         }
 
         private TestSecurityPolicyService CreateSecurityPolicyService()
