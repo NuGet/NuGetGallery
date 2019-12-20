@@ -52,6 +52,7 @@
     <Compile Include="Catalog2RegistrationConfiguration.cs" />
     <Compile Include="Hives\HiveMerger.cs" />
     <Compile Include="Hives\HiveMergeResult.cs" />
+    <Compile Include="Hives\HiveStorage.cs" />
     <Compile Include="Hives\HiveType.cs" />
     <Compile Include="Schema\IEntityBuilder.cs" />
     <Compile Include="Hives\IHiveMerger.cs" />

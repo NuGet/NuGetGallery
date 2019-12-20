@@ -4,11 +4,16 @@
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
 using NuGet.Services;
+using NuGet.Services.V3.Support;
 using NuGet.Versioning;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace NuGet.Jobs.Catalog2Registration
@@ -493,130 +498,264 @@ namespace NuGet.Jobs.Catalog2Registration
 
         public class UpdateIndexUrls : Facts
         {
-            public UpdateIndexUrls()
+            [Theory]
+            [MemberData(nameof(AllHiveTransitionsTestData))]
+            public void ConvertsHive(HiveType from, HiveType to)
             {
-                Page.Items = new List<RegistrationLeafItem> { LeafItem };
-                Index.Items = new List<RegistrationPage> { Page };
-                Target.UpdateLeafItem(LeafItem, Hive, Id, V3Data.Leaf);
-                Target.UpdateInlinedPageItem(Page, Hive, Id, 1, NuGetVersion.Parse(V3Data.FullVersion), NuGetVersion.Parse(V3Data.FullVersion));
-                Target.UpdateIndex(Index, Hive, Id, 1);
+                // ARRANGE
+                // These are JSON paths to properties that contain URLs but the URLs don't point to a registration hive
+                // so they don't need to be converted.
+                var unconvertedUrls = new[]
+                {
+                    "@context.@vocab",
+                    "@context.catalog",
+                    "@context.xsd",
+                    "items[0].items[0].catalogEntry.iconUrl",
+                    "items[0].items[0].catalogEntry.licenseUrl",
+                    "items[0].items[0].catalogEntry.packageContent",
+                    "items[0].items[0].catalogEntry.projectUrl",
+                    "items[0].items[0].packageContent",
+                }.OrderBy(x => x).ToArray();
+
+                // This is metadata about URLs that point to registration hives and therefore must be converted.
+                var convertedUrls = new[]
+                {
+                    new UrlInfo<RegistrationIndex>(
+                        "@id",
+                        x => x.Url,
+                        "windowsazure.storage/index.json"),
+                    new UrlInfo<RegistrationIndex>(
+                        "items[0].@id",
+                        x => x.Items[0].Url,
+                        "windowsazure.storage/index.json#page/7.1.2-alpha/7.1.2-alpha"),
+                    new UrlInfo<RegistrationIndex>(
+                        "items[0].parent",
+                        x => x.Items[0].Parent,
+                        "windowsazure.storage/index.json"),
+                    new UrlInfo<RegistrationIndex>(
+                        "items[0].items[0].@id",
+                        x => x.Items[0].Items[0].Url,
+                        "windowsazure.storage/7.1.2-alpha.json"),
+                    new UrlInfo<RegistrationIndex>(
+                        "items[0].items[0].registration",
+                        x => x.Items[0].Items[0].Registration,
+                        "windowsazure.storage/index.json"),
+                    new UrlInfo<RegistrationIndex>(
+                        "items[0].items[0].catalogEntry.dependencyGroups[0].dependencies[0].registration",
+                        x => x.Items[0].Items[0].CatalogEntry.DependencyGroups[0].Dependencies[0].Registration,
+                        "microsoft.data.odata/index.json"),
+                    new UrlInfo<RegistrationIndex>(
+                        "items[0].items[0].catalogEntry.dependencyGroups[0].dependencies[1].registration",
+                        x => x.Items[0].Items[0].CatalogEntry.DependencyGroups[0].Dependencies[1].Registration,
+                        "newtonsoft.json/index.json"),
+                };
+
+                var index = InitializeData(from);
+
+                // ACT
+                Target.UpdateIndexUrls(index, from, to);
+
+                // ASSERT
+                foreach (var url in convertedUrls)
+                {
+                    Assert.Equal(GetBaseUrl(to) + url.ExpectedPath, url.GetActualValue(index));
+                }
+                var convertedUrlPaths = convertedUrls.Select(x => x.JsonPath).OrderBy(x => x).ToArray();
+                var allUrlPaths = GetJsonPathsForUrlProperties(index);
+                Assert.Equal(convertedUrlPaths, allUrlPaths.Except(unconvertedUrls).ToArray());
+                Assert.Equal(unconvertedUrls, allUrlPaths.Except(convertedUrlPaths).ToArray());
             }
 
             [Theory]
-            [InlineData(1)]
-            [InlineData(2)]
-            [InlineData(3)]
-            public void ConvertsHive(int trips)
+            [MemberData(nameof(AllHiveTransitionsTestData))]
+            public void DoesNotContainUrlToOldHive(HiveType from, HiveType to)
             {
-                Target.UpdateIndexUrls(Index, Hive, HiveType.Gzipped);
-                for (var i = 1; i < trips; i++)
-                {
-                    Target.UpdateIndexUrls(Index, HiveType.Gzipped, Hive);
-                    Target.UpdateIndexUrls(Index, Hive, HiveType.Gzipped);
-                }
+                var index = InitializeData(from);
 
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/index.json", Index.Url);
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/index.json#page/7.1.2-alpha/7.1.2-alpha", Page.Url);
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/index.json", Page.Parent);
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/7.1.2-alpha.json", LeafItem.Url);
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/index.json", LeafItem.Registration);
-                Assert.Single(LeafItem.CatalogEntry.DependencyGroups);
-                Assert.Equal(2, LeafItem.CatalogEntry.DependencyGroups[0].Dependencies.Count);
-                Assert.Equal("https://example/reg-gz/microsoft.data.odata/index.json", LeafItem.CatalogEntry.DependencyGroups[0].Dependencies[0].Registration);
-                Assert.Equal("https://example/reg-gz/newtonsoft.json/index.json", LeafItem.CatalogEntry.DependencyGroups[0].Dependencies[1].Registration);
-            }
-
-            [Fact]
-            public void DoesNotContainUrlToOldHive()
-            {
-                Target.UpdateIndexUrls(Index, Hive, HiveType.Gzipped);
+                Target.UpdateIndexUrls(index, from, to);
 
                 var json = JsonConvert.SerializeObject(Index, SerializerSettings);
-                Assert.DoesNotContain("https://example/reg/", json);
-                Assert.Contains("https://example/reg-gz/", json);
+                Assert.DoesNotContain(GetBaseUrl(from), json);
+                Assert.Contains(GetBaseUrl(to), json);
+            }
+
+            private RegistrationIndex InitializeData(HiveType hive)
+            {
+                Page.Items = new List<RegistrationLeafItem> { LeafItem };
+                Index.Items = new List<RegistrationPage> { Page };
+                Target.UpdateLeafItem(LeafItem, hive, Id, V3Data.Leaf);
+                Target.UpdateInlinedPageItem(Page, hive, Id, 1, NuGetVersion.Parse(V3Data.FullVersion), NuGetVersion.Parse(V3Data.FullVersion));
+                Target.UpdateIndex(Index, hive, Id, 1);
+                return Index;
             }
         }
 
         public class UpdatePageUrls : Facts
         {
-            public UpdatePageUrls()
+            [Theory]
+            [MemberData(nameof(AllHiveTransitionsTestData))]
+            public void ConvertsHive(HiveType from, HiveType to)
             {
-                Page.Items = new List<RegistrationLeafItem> { LeafItem };
-                Target.UpdateLeafItem(LeafItem, Hive, Id, V3Data.Leaf);
-                Target.UpdatePage(Page, Hive, Id, 1, NuGetVersion.Parse(V3Data.FullVersion), NuGetVersion.Parse(V3Data.FullVersion));
+                // ARRANGE
+                // These are JSON paths to properties that contain URLs but the URLs don't point to a registration hive
+                // so they don't need to be converted.
+                var unconvertedUrls = new[]
+                {
+                    "@context.@vocab",
+                    "@context.catalog",
+                    "@context.xsd",
+                    "items[0].catalogEntry.iconUrl",
+                    "items[0].catalogEntry.licenseUrl",
+                    "items[0].catalogEntry.packageContent",
+                    "items[0].catalogEntry.projectUrl",
+                    "items[0].packageContent",
+                }.OrderBy(x => x).ToArray();
+
+                // This is metadata about URLs that point to registration hives and therefore must be converted.
+                var convertedUrls = new[]
+                {
+                    new UrlInfo<RegistrationPage>(
+                        "@id",
+                        x => x.Url,
+                        "windowsazure.storage/page/7.1.2-alpha/7.1.2-alpha.json"),
+                    new UrlInfo<RegistrationPage>(
+                        "parent",
+                        x => x.Parent,
+                        "windowsazure.storage/index.json"),
+                    new UrlInfo<RegistrationPage>(
+                        "items[0].@id",
+                        x => x.Items[0].Url,
+                        "windowsazure.storage/7.1.2-alpha.json"),
+                    new UrlInfo<RegistrationPage>(
+                        "items[0].registration",
+                        x => x.Items[0].Registration,
+                        "windowsazure.storage/index.json"),
+                    new UrlInfo<RegistrationPage>(
+                        "items[0].catalogEntry.dependencyGroups[0].dependencies[0].registration",
+                        x => x.Items[0].CatalogEntry.DependencyGroups[0].Dependencies[0].Registration,
+                        "microsoft.data.odata/index.json"),
+                    new UrlInfo<RegistrationPage>(
+                        "items[0].catalogEntry.dependencyGroups[0].dependencies[1].registration",
+                        x => x.Items[0].CatalogEntry.DependencyGroups[0].Dependencies[1].Registration,
+                        "newtonsoft.json/index.json"),
+                };
+
+                var page = InitializeData(from);
+
+                // ACT
+                Target.UpdatePageUrls(page, from, to);
+
+                // ASSERT
+                foreach (var url in convertedUrls)
+                {
+                    Assert.Equal(GetBaseUrl(to) + url.ExpectedPath, url.GetActualValue(page));
+                }
+                var convertedUrlPaths = convertedUrls.Select(x => x.JsonPath).OrderBy(x => x).ToArray();
+                var allUrlPaths = GetJsonPathsForUrlProperties(page);
+                Assert.Equal(convertedUrlPaths, allUrlPaths.Except(unconvertedUrls).ToArray());
+                Assert.Equal(unconvertedUrls, allUrlPaths.Except(convertedUrlPaths).ToArray());
             }
 
             [Theory]
-            [InlineData(1)]
-            [InlineData(2)]
-            [InlineData(3)]
-            public void ConvertsHive(int trips)
+            [MemberData(nameof(AllHiveTransitionsTestData))]
+            public void DoesNotContainUrlToOldHive(HiveType from, HiveType to)
             {
-                Target.UpdatePageUrls(Page, Hive, HiveType.Gzipped);
-                for (var i = 1; i < trips; i++)
-                {
-                    Target.UpdatePageUrls(Page, HiveType.Gzipped, Hive);
-                    Target.UpdatePageUrls(Page, Hive, HiveType.Gzipped);
-                }
+                var page = InitializeData(from);
 
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/page/7.1.2-alpha/7.1.2-alpha.json", Page.Url);
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/index.json", Page.Parent);
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/7.1.2-alpha.json", LeafItem.Url);
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/index.json", LeafItem.Registration);
-                Assert.Single(LeafItem.CatalogEntry.DependencyGroups);
-                Assert.Equal(2, LeafItem.CatalogEntry.DependencyGroups[0].Dependencies.Count);
-                Assert.Equal("https://example/reg-gz/microsoft.data.odata/index.json", LeafItem.CatalogEntry.DependencyGroups[0].Dependencies[0].Registration);
-                Assert.Equal("https://example/reg-gz/newtonsoft.json/index.json", LeafItem.CatalogEntry.DependencyGroups[0].Dependencies[1].Registration);
+                Target.UpdatePageUrls(page, from, to);
+
+                var json = Serialize(page);
+                Assert.DoesNotContain(GetBaseUrl(from), json);
+                Assert.Contains(GetBaseUrl(to), json);
             }
 
-            [Fact]
-            public void DoesNotContainUrlToOldHive()
+            private RegistrationPage InitializeData(HiveType hive)
             {
-                Target.UpdatePageUrls(Page, Hive, HiveType.Gzipped);
-
-                var json = JsonConvert.SerializeObject(Page, SerializerSettings);
-                Assert.DoesNotContain("https://example/reg/", json);
-                Assert.Contains("https://example/reg-gz/", json);
+                Page.Items = new List<RegistrationLeafItem> { LeafItem };
+                Target.UpdateLeafItem(LeafItem, hive, Id, V3Data.Leaf);
+                Target.UpdatePage(Page, hive, Id, 1, NuGetVersion.Parse(V3Data.FullVersion), NuGetVersion.Parse(V3Data.FullVersion));
+                return Page;
             }
         }
 
         public class UpdateLeafUrls : Facts
         {
-            public UpdateLeafUrls()
+            [Theory]
+            [MemberData(nameof(AllHiveTransitionsTestData))]
+            public void ConvertsHive(HiveType from, HiveType to)
             {
-                Target.UpdateLeafItem(LeafItem, Hive, Id, V3Data.Leaf);
+                // ARRANGE
+                var leaf = InitializeData(from);
+
+                // These are JSON paths to properties that contain URLs but the URLs don't point to a registration hive
+                // so they don't need to be converted.
+                var unconvertedUrls = new[]
+                {
+                    "@context.@vocab",
+                    "@context.xsd",
+                    "@type[1]",
+                    "packageContent",
+                }.OrderBy(x => x).ToArray();
+
+                // This is metadata about URLs that point to registration hives and therefore must be converted.
+                var convertedUrls = new[]
+                {
+                    new UrlInfo<RegistrationLeaf>(
+                        "@id",
+                        x => x.Url,
+                        "windowsazure.storage/7.1.2-alpha.json"),
+                    new UrlInfo<RegistrationLeaf>(
+                        "registration",
+                        x => x.Registration,
+                        "windowsazure.storage/index.json"),
+                };
+
+                // ACT
+                Target.UpdateLeafUrls(leaf, from, to);
+
+                // ASSERT
+                foreach (var url in convertedUrls)
+                {
+                    Assert.Equal(GetBaseUrl(to) + url.ExpectedPath, url.GetActualValue(leaf));
+                }
+                var convertedUrlPaths = convertedUrls.Select(x => x.JsonPath).OrderBy(x => x).ToArray();
+                var allUrlPaths = GetJsonPathsForUrlProperties(leaf);
+                Assert.Equal(convertedUrlPaths, allUrlPaths.Except(unconvertedUrls).ToArray());
+                Assert.Equal(unconvertedUrls, allUrlPaths.Except(convertedUrlPaths).ToArray());
             }
 
             [Theory]
-            [InlineData(1)]
-            [InlineData(2)]
-            [InlineData(3)]
-            public void ConvertsHive(int trips)
+            [MemberData(nameof(AllHiveTransitionsTestData))]
+            public void DoesNotContainUrlToOldHive(HiveType from, HiveType to)
             {
-                var leaf = Target.NewLeaf(LeafItem);
+                var leaf = InitializeData(from);
 
-                Target.UpdateLeafUrls(leaf, Hive, HiveType.Gzipped);
-                for (var i = 1; i < trips; i++)
-                {
-                    Target.UpdateLeafUrls(leaf, HiveType.Gzipped, Hive);
-                    Target.UpdateLeafUrls(leaf, Hive, HiveType.Gzipped);
-                }
+                Target.UpdateLeafUrls(leaf, from, to);
 
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/7.1.2-alpha.json", leaf.Url);
-                Assert.Equal("https://example/reg-gz/windowsazure.storage/index.json", leaf.Registration);
+                var json = Serialize(leaf);
+                Assert.DoesNotContain(GetBaseUrl(from), json);
+                Assert.Contains(GetBaseUrl(to), json);
             }
 
-            [Fact]
-            public void DoesNotContainUrlToOldHive()
+            private RegistrationLeaf InitializeData(HiveType hive)
             {
-                var leaf = Target.NewLeaf(LeafItem);
-
-                Target.UpdateLeafUrls(leaf, Hive, HiveType.Gzipped);
-
-                var json = JsonConvert.SerializeObject(leaf, SerializerSettings);
-                Assert.DoesNotContain("https://example/reg/", json);
-                Assert.Contains("https://example/reg-gz/", json);
+                Target.UpdateLeafItem(LeafItem, hive, Id, V3Data.Leaf);
+                return Target.NewLeaf(LeafItem);
             }
+        }
+
+        public class UrlInfo<T>
+        {
+            public UrlInfo(string jsonPath, Func<T, string> getActualValue, string expectedPath)
+            {
+                JsonPath = jsonPath;
+                GetActualValue = getActualValue;
+                ExpectedPath = expectedPath;
+            }
+
+            public string JsonPath { get; }
+            public Func<T, string> GetActualValue { get; }
+            public string ExpectedPath { get; }
         }
 
         public abstract class Facts
@@ -649,6 +788,21 @@ namespace NuGet.Jobs.Catalog2Registration
                 SerializerSettings.Formatting = Formatting.Indented;
             }
 
+            public string GetBaseUrl(HiveType hive)
+            {
+                switch (hive)
+                {
+                    case HiveType.Legacy:
+                        return Config.LegacyBaseUrl;
+                    case HiveType.Gzipped:
+                        return Config.GzippedBaseUrl;
+                    case HiveType.SemVer2:
+                        return Config.SemVer2BaseUrl;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
             public Mock<IOptionsSnapshot<Catalog2RegistrationConfiguration>> Options { get; }
             public Catalog2RegistrationConfiguration Config { get; }
             public RegistrationUrlBuilder UrlBuilder => new RegistrationUrlBuilder(Options.Object);
@@ -661,6 +815,74 @@ namespace NuGet.Jobs.Catalog2Registration
             public PackageDetailsCatalogLeaf PackageDetails { get; }
             public CatalogCommit Commit { get; }
             public JsonSerializerSettings SerializerSettings { get; }
+
+            private static readonly IReadOnlyList<HiveType> HiveTypes = Enum
+                .GetValues(typeof(HiveType))
+                .Cast<HiveType>()
+                .ToList();
+
+            private static readonly IReadOnlyList<Tuple<HiveType, HiveType>> AllHiveTransitions = IterTools
+                .SubsetsOf(HiveTypes)
+                .Where(x => x.Count() == 2)
+                .SelectMany(x => new[] { x.ToList(), x.Reverse().ToList() })
+                .Select(x => Tuple.Create(x[0], x[1]))
+                .ToList();
+
+            public static IEnumerable<object[]> AllHiveTransitionsTestData => AllHiveTransitions
+                .Select(x => new object[] { x.Item1, x.Item2 });
+
+            /// <summary>
+            /// This is a loose pattern to discover URL strings in a JSON document. It looks for absolute HTTP, HTTPS,
+            /// schemaless, and some relative URLs. This is not meant to be exhaustive of all possible URL shapes, just
+            /// ones produced for registration blobs linking to each other.
+            /// </summary>
+            private static readonly Regex UrlPattern = new Regex("^((https?:)?//|\\.\\.)", RegexOptions.IgnoreCase);
+
+            public string Serialize<T>(T obj)
+            {
+                return JsonConvert.SerializeObject(obj, SerializerSettings);
+            }
+
+            public string[] GetJsonPathsForUrlProperties<T>(T obj)
+            {
+                var unparsedJson = Serialize(obj);
+                var json = JObject.Parse(unparsedJson);
+                return GetJsonPathsByValuePattern(json, UrlPattern);
+            }
+
+            private static string[] GetJsonPathsByValuePattern(JObject json, Regex pattern)
+            {
+                var output = new List<string>();
+                GetJsonPathsByValuePattern(json, pattern, output);
+                return output.OrderBy(x => x).ToArray();
+            }
+
+            private static void GetJsonPathsByValuePattern(JToken json, Regex pattern, List<string> output)
+            {
+                if (json == null)
+                {
+                    return;
+                }
+
+                if (json.Type == JTokenType.String && pattern.IsMatch((string)json))
+                {
+                    output.Add(json.Path);
+                }
+                else if (json.Type == JTokenType.Object)
+                {
+                    foreach (var property in ((JObject)json).Properties())
+                    {
+                        GetJsonPathsByValuePattern(property.Value, pattern, output);
+                    }
+                }
+                else if (json.Type == JTokenType.Array)
+                {
+                    foreach (var item in (JArray)json)
+                    {
+                        GetJsonPathsByValuePattern(item, pattern, output);
+                    }
+                }
+            }
         }
     }
 }
