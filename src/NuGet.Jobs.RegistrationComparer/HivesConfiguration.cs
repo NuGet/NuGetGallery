@@ -3,12 +3,10 @@
 
 namespace NuGet.Jobs.RegistrationComparer
 {
-    class Program
+    public class HivesConfiguration
     {
-        static int Main(string[] args)
-        {
-            var job = new Job();
-            return JobRunner.Run(job, args).GetAwaiter().GetResult();
-        }
+        public string LegacyBaseUrl { get; set; }
+        public string GzippedBaseUrl { get; set; }
+        public string SemVer2BaseUrl { get; set; }
     }
 }
