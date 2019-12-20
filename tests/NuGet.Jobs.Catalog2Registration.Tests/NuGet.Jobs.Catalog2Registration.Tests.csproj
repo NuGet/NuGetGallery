@@ -57,6 +57,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Catalog2RegistrationCommandFacts.cs" />
     <Compile Include="Hives\HiveMergerFacts.Support.cs" />
     <Compile Include="Hives\HiveMergerFacts.FullEnumeration.cs" />
     <Compile Include="Hives\HiveMergerFacts.MergeAsync.cs" />
