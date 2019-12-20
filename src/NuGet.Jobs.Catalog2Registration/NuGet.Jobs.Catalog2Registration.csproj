@@ -52,6 +52,7 @@
     <Compile Include="Hives\Bookkeeping\PageInfo.cs" />
     <Compile Include="Catalog2RegistrationCommand.cs" />
     <Compile Include="Catalog2RegistrationConfiguration.cs" />
+    <Compile Include="DependencyInjectionExtensions.cs" />
     <Compile Include="Hives\HiveMerger.cs" />
     <Compile Include="Hives\HiveMergeResult.cs" />
     <Compile Include="Hives\HiveStorage.cs" />
@@ -61,6 +62,7 @@
     <Compile Include="Hives\IHiveMerger.cs" />
     <Compile Include="Hives\IHiveStorage.cs" />
     <Compile Include="Hives\IHiveUpdater.cs" />
+    <Compile Include="Job.cs" />
     <Compile Include="Schema\JsonLdConstants.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
