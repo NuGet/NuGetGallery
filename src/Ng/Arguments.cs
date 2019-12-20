@@ -212,6 +212,7 @@ namespace Ng
         public const string BatchSize = "batchSize";
         public const string IndexFile = "indexFile";
         public const string CursorFile = "cursorFile";
+        public const string Driver = "driver";
         #endregion
     }
 }

@@ -123,6 +123,10 @@
       <Project>{ddb34145-870f-42c3-9663-a9390cee1e35}</Project>
       <Name>NuGet.Indexing</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGet.Jobs.Catalog2Registration\NuGet.Jobs.Catalog2Registration.csproj">
+      <Project>{5ABE8807-2209-4948-9FC5-1980A507C47A}</Project>
+      <Name>NuGet.Jobs.Catalog2Registration</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
       <Project>{d44c2e89-2d98-44bd-8712-8ccbe4e67c9c}</Project>
       <Name>NuGet.Protocol.Catalog</Name>
@@ -130,6 +134,10 @@
     <ProjectReference Include="..\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj">
       <Project>{1745a383-d0be-484b-81eb-27b20f6ac6c5}</Project>
       <Name>NuGet.Services.Metadata.Catalog.Monitoring</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.V3\NuGet.Services.V3.csproj">
+      <Project>{C3F9A738-9759-4B2B-A50D-6507B28A659B}</Project>
+      <Name>NuGet.Services.V3</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

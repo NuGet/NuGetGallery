@@ -11,7 +11,7 @@ start /w ng.exe lightning ^
     -indexFile "[indexFile]" ^
     -cursorFile "[cursorFile]" ^
     -contentBaseAddress "[contentBaseAddress]" ^
-    -verbose "[verbose]" ^
+    -galleryBaseAddress "[galleryBaseAddress]" ^
     -storageBaseAddress "[storageBaseAddress]" ^
     -storageAccountName "[storageAccountName]" ^
     -storageKeyValue "[storageKeyValue]" ^
