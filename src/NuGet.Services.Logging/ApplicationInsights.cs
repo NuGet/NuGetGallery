@@ -5,6 +5,7 @@ using System;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
 
 namespace NuGet.Services.Logging
@@ -64,6 +65,13 @@ namespace NuGet.Services.Logging
             }
 
             telemetryConfiguration.TelemetryInitializers.Add(new TelemetryContextInitializer());
+
+            // Hook-up the TelemetryModules configured in applicationinsights.config into our own
+            // TelemetryConfiguration instance, as this doesn't happen automatically...
+            foreach (var telemetryModule in TelemetryModules.Instance.Modules)
+            {
+                telemetryModule.Initialize(telemetryConfiguration);
+            }
 
             // Construct a TelemetryClient to emit traces so we can track and debug AI initialization.
             var telemetryClient = new TelemetryClient(telemetryConfiguration);
