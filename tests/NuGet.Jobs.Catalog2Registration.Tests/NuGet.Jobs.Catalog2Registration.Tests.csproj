@@ -63,6 +63,7 @@
     <Compile Include="Hives\HiveStorageFacts.cs" />
     <Compile Include="Hives\HiveUpdaterFacts.cs" />
     <Compile Include="Hives\RegistrationUrlBuilderFacts.cs" />
+    <Compile Include="IntegrationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegistrationCollectorLogicFacts.cs" />
     <Compile Include="RegistrationUpdaterFacts.cs" />

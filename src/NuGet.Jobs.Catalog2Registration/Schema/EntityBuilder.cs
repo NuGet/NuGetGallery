@@ -249,7 +249,11 @@ namespace NuGet.Jobs.Catalog2Registration
         public void UpdatePageUrls(RegistrationPage page, HiveType fromHive, HiveType toHive)
         {
             page.Url = _urlBuilder.ConvertHive(fromHive, toHive, page.Url);
-            page.Parent = _urlBuilder.ConvertHive(fromHive, toHive, page.Parent);
+
+            if (page.Parent != null)
+            {
+                page.Parent = _urlBuilder.ConvertHive(fromHive, toHive, page.Parent);
+            }
 
             if (page.Items != null)
             {
