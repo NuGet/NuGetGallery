@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RegistrationUpdater.cs" />
     <Compile Include="Hives\CatalogCommit.cs" />
     <Compile Include="Hives\Bookkeeping\LeafInfo.cs" />
     <Compile Include="Hives\Bookkeeping\IndexInfo.cs" />
@@ -54,6 +55,7 @@
     <Compile Include="Hives\HiveMergeResult.cs" />
     <Compile Include="Hives\HiveStorage.cs" />
     <Compile Include="Hives\HiveType.cs" />
+    <Compile Include="IRegistrationUpdater.cs" />
     <Compile Include="Schema\IEntityBuilder.cs" />
     <Compile Include="Hives\IHiveMerger.cs" />
     <Compile Include="Hives\IHiveStorage.cs" />
