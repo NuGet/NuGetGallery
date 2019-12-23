@@ -86,7 +86,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.3.0-dev-aitraces-3341370</Version>
+      <Version>4.3.0-dev-3341672</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
       <Version>2.63.0</Version>
