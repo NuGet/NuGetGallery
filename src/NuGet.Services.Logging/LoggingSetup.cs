@@ -23,7 +23,7 @@ namespace NuGet.Services.Logging
 
             if (withConsoleLogger)
             {
-                loggerConfiguration = loggerConfiguration.WriteTo.ColoredConsole();
+                loggerConfiguration = loggerConfiguration.WriteTo.Console();
             }
 
             return loggerConfiguration;
@@ -40,19 +40,13 @@ namespace NuGet.Services.Logging
                 loggerConfiguration = CreateDefaultLoggerConfiguration();
             }
 
-            if (telemetryConfiguration != null 
+            if (telemetryConfiguration != null
                 && !string.IsNullOrEmpty(telemetryConfiguration.InstrumentationKey))
             {
-                // Even though this method call is marked [Obsolete],
-                // there's currently no other way to pass in the active TelemetryConfiguration as configured in DI.
-                // These SeriLog APIs are very likely to change to support passing in the TelemetryConfiguration again.
-                // See also https://github.com/serilog/serilog-sinks-applicationinsights/issues/121.
-
-#pragma warning disable CS0618 // Type or member is obsolete
                 loggerConfiguration = loggerConfiguration.WriteTo.ApplicationInsights(
-                    telemetryConfiguration, 
+                    telemetryConfiguration,
+                    TelemetryConverter.Traces,
                     applicationInsightsMinimumLogEventLevel);
-#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             Log.Logger = loggerConfiguration.CreateLogger();
