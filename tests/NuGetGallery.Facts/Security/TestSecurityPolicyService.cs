@@ -72,7 +72,11 @@ namespace NuGetGallery.Security
 
             Configuration = configuration ?? new AppConfiguration();
 
-            Diagnostics = new DiagnosticsService().GetSource(nameof(TestSecurityPolicyService));
+            var telemetryClient = new Mock<ITelemetryClient>().Object;
+
+            Diagnostics = new TraceDiagnosticsSource(
+                nameof(TestSecurityPolicyService),
+                telemetryClient);
         }
     }
 }
