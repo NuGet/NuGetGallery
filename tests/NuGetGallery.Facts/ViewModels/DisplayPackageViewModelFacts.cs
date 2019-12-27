@@ -732,11 +732,8 @@ namespace NuGetGallery.ViewModels
             [MemberData(nameof(Data))]
             public void ReturnsExpectedUser(Package package, User currentUser, string expected)
             {
-                var packages = (IReadOnlyCollection<Package>)package.PackageRegistration.Packages;
-
                 var model = CreateDisplayPackageViewModel(
                     package,
-                    packages,
                     currentUser,
                     deprecation: null,
                     readmeHtml: null);
