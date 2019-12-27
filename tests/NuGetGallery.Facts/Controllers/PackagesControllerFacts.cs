@@ -422,6 +422,10 @@ namespace NuGetGallery
                 };
 
                 packageService
+                    .Setup(p => p.FindPackagesById(id, It.IsAny<PackageDeprecationFieldsToInclude>()))
+                    .Returns(new List<Package> { package });
+
+                packageService
                     .Setup(p => p.FilterExactPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<string>()))
                     .Returns(package);
 

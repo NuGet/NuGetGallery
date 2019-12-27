@@ -20,6 +20,7 @@ namespace NuGetGallery
 
         public DisplayPackageViewModel Create(
             Package package,
+            IReadOnlyCollection<Package> packageRegistration,
             User currentUser,
             PackageDeprecation deprecation,
             RenderedReadMeResult readmeResult)
@@ -28,6 +29,7 @@ namespace NuGetGallery
             return Setup(
                 viewModel,
                 package,
+                packageRegistration,
                 currentUser,
                 deprecation,
                 readmeResult);
@@ -36,18 +38,20 @@ namespace NuGetGallery
         public DisplayPackageViewModel Setup(
             DisplayPackageViewModel viewModel,
             Package package,
+            IReadOnlyCollection<Package> packageRegistration,
             User currentUser,
             PackageDeprecation deprecation,
             RenderedReadMeResult readmeResult)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
             SetupCommon(viewModel, package, pushedBy: null);
-            return SetupInternal(viewModel, package, currentUser, deprecation, readmeResult);
+            return SetupInternal(viewModel, package, packageRegistration, currentUser, deprecation, readmeResult);
         }
 
         private DisplayPackageViewModel SetupInternal(
             DisplayPackageViewModel viewModel,
             Package package,
+            IReadOnlyCollection<Package> packageRegistration,
             User currentUser,
             PackageDeprecation deprecation,
             RenderedReadMeResult readmeResult)
@@ -60,9 +64,7 @@ namespace NuGetGallery
 
             viewModel.Dependencies = new DependencySetsViewModel(package.Dependencies);
 
-            var packageHistory = package
-                .PackageRegistration
-                .Packages
+            var packageHistory = packageRegistration
                 .OrderByDescending(p => new NuGetVersion(p.Version))
                 .ToList();
             var pushedByCache = new Dictionary<User, string>();

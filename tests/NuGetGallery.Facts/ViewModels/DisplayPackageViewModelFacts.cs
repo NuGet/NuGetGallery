@@ -732,7 +732,14 @@ namespace NuGetGallery.ViewModels
             [MemberData(nameof(Data))]
             public void ReturnsExpectedUser(Package package, User currentUser, string expected)
             {
-                var model = CreateDisplayPackageViewModel(package, currentUser, deprecation: null, readmeHtml: null);
+                var packages = (IReadOnlyCollection<Package>)package.PackageRegistration.Packages;
+
+                var model = CreateDisplayPackageViewModel(
+                    package,
+                    packages,
+                    currentUser,
+                    deprecation: null,
+                    readmeHtml: null);
 
                 Assert.Equal(expected, model.PushedBy);
             }
@@ -825,10 +832,17 @@ namespace NuGetGallery.ViewModels
             Assert.Null(versionModel.CustomMessage);
         }
 
-        private static DisplayPackageViewModel CreateDisplayPackageViewModel(Package package, User currentUser = null, PackageDeprecation deprecation = null, string readmeHtml = null)
+        private static DisplayPackageViewModel CreateDisplayPackageViewModel(
+            Package package,
+            User currentUser = null,
+            PackageDeprecation deprecation = null,
+            string readmeHtml = null)
         {
+            var packages = (IReadOnlyCollection<Package>)package.PackageRegistration.Packages;
+
             return new DisplayPackageViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(
                 package,
+                packages,
                 currentUser: currentUser,
                 deprecation: deprecation,
                 readmeResult: new RenderedReadMeResult { Content = readmeHtml });

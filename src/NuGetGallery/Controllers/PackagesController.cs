@@ -827,8 +827,9 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            var readme = await _readMeService.GetReadMeHtmlAsync(package);
             var deprecation = _deprecationService.GetDeprecationByPackage(package);
-            var model = _displayPackageViewModelFactory.Create(package, currentUser, deprecation, await _readMeService.GetReadMeHtmlAsync(package));
+            var model = _displayPackageViewModelFactory.Create(package, packages, currentUser, deprecation, readme);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -1637,7 +1638,7 @@ namespace NuGetGallery
                 return HttpForbidden();
             }
 
-            var model = _deletePackageViewModelFactory.Create(package, currentUser, DeleteReasons);
+            var model = _deletePackageViewModelFactory.Create(package, packages, currentUser, DeleteReasons);
 
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages
