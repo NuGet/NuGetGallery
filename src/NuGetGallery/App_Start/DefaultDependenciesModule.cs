@@ -22,10 +22,12 @@ using Autofac.Extensions.DependencyInjection;
 using Elmah;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using Microsoft.AspNet.TelemetryCorrelation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGet.Services.KeyVault;
@@ -520,12 +522,8 @@ namespace NuGetGallery
 
             telemetryConfiguration.TelemetryProcessorChainBuilder.Use(next => new ClientTelemetryPIIProcessor(next));
 
-            // Hook-up the TelemetryModules configured in applicationinsights.config into our own
-            // TelemetryConfiguration instance, as this doesn't happen automatically...
-            foreach (var telemetryModule in TelemetryModules.Instance.Modules)
-            {
-                telemetryModule.Initialize(telemetryConfiguration);
-            }
+            // Hook-up TelemetryModules manually...
+            RegisterApplicationInsightsTelemetryModules(telemetryConfiguration);
 
             var telemetryClientWrapper = TelemetryClientWrapper.UseTelemetryConfiguration(applicationInsightsConfiguration.TelemetryConfiguration);
 
@@ -548,6 +546,82 @@ namespace NuGetGallery
             telemetryClient = telemetryClientWrapper;
 
             return applicationInsightsConfiguration;
+        }
+
+        private static void RegisterApplicationInsightsTelemetryModules(TelemetryConfiguration configuration)
+        {
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.AppServicesHeartbeatTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.AzureInstanceMetadataTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.DeveloperModeWithDebuggerAttachedTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.UnhandledExceptionTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.UnobservedExceptionTelemetryModule(),
+                configuration);
+
+            var requestTrackingModule = new Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule();
+            requestTrackingModule.Handlers.Add("Microsoft.VisualStudio.Web.PageInspector.Runtime.Tracing.RequestDataHttpHandler");
+            requestTrackingModule.Handlers.Add("System.Web.StaticFileHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Handlers.AssemblyResourceLoader");
+            requestTrackingModule.Handlers.Add("System.Web.Optimization.BundleHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Script.Services.ScriptHandlerFactory");
+            requestTrackingModule.Handlers.Add("System.Web.Handlers.TraceHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Services.Discovery.DiscoveryRequestHandler");
+            requestTrackingModule.Handlers.Add("System.Web.HttpDebugHandler");
+            RegisterApplicationInsightsTelemetryModule(
+                requestTrackingModule,
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.Web.ExceptionTrackingTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.Web.AspNetDiagnosticTelemetryModule(),
+                configuration);
+
+            var dependencyTrackingModule = new Microsoft.ApplicationInsights.DependencyCollector.DependencyTrackingTelemetryModule();
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.windows.net");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.chinacloudapi.cn");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.cloudapi.de");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.usgovcloudapi.net");
+            dependencyTrackingModule.IncludeDiagnosticSourceActivities.Add("Microsoft.Azure.EventHubs");
+            dependencyTrackingModule.IncludeDiagnosticSourceActivities.Add("Microsoft.Azure.ServiceBus");
+            RegisterApplicationInsightsTelemetryModule(
+                dependencyTrackingModule,
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.PerformanceCollectorModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse.QuickPulseTelemetryModule(),
+                configuration);
+        }
+
+        private static void RegisterApplicationInsightsTelemetryModule(ITelemetryModule telemetryModule, TelemetryConfiguration configuration)
+        {
+            var existingModule = TelemetryModules.Instance.Modules.SingleOrDefault(m => m.GetType().Equals(telemetryModule.GetType()));
+            if (existingModule != null)
+            {
+                TelemetryModules.Instance.Modules.Remove(existingModule);
+            }
+
+            telemetryModule.Initialize(configuration);
+
+            TelemetryModules.Instance.Modules.Add(telemetryModule);
         }
 
         private void RegisterABTestServices(ContainerBuilder builder)
