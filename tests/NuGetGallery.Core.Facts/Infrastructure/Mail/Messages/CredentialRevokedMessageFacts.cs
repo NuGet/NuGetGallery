@@ -180,7 +180,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         private const string _expectedMarkdownBodyWithCredentialDescription =
            @"Hi requestingUser,
 
-This is your friendly NuGet security bot! It appears that an API key 'TestApiKey' assoicated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
+This is your friendly NuGet security bot! It appears that an API key 'TestApiKey' associated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
 
 Your key was found here: <TestLeakedUrl>
 
@@ -201,7 +201,7 @@ The NuGetGallery Team";
         private const string _expectedPlainTextBodyWithCredentialDescription =
             @"Hi requestingUser,
 
-This is your friendly NuGet security bot! It appears that an API key 'TestApiKey' assoicated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
+This is your friendly NuGet security bot! It appears that an API key 'TestApiKey' associated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
 
 Your key was found here: <TestLeakedUrl>
 
@@ -222,7 +222,7 @@ The NuGetGallery Team";
 
         private const string _expectedHtmlBodyWithCredentialDescription =
             "<p>Hi requestingUser,</p>\n" +
-"<p>This is your friendly NuGet security bot! It appears that an API key 'TestApiKey' assoicated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.</p>\n" +
+"<p>This is your friendly NuGet security bot! It appears that an API key 'TestApiKey' associated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.</p>\n" +
 "<p>Your key was found here: <TestLeakedUrl></p>\n" +
 "<p>In the future, please be mindful of accidentally posting your API keys publicly!</p>\n" +
 "<p>You can regenerate this key or create a new one on the <a href=\"TestManageApiKeyUrl\">Manage API Keys</a> page.</p>\n" +
@@ -239,7 +239,7 @@ The NuGetGallery Team";
         private const string _expectedMarkdownBodyWithNullCredentialDescription =
             @"Hi requestingUser,
 
-This is your friendly NuGet security bot! It appears that an API key assoicated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
+This is your friendly NuGet security bot! It appears that an API key associated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
 
 Your key was found here: <TestLeakedUrl>
 
@@ -260,7 +260,7 @@ The NuGetGallery Team";
         private const string _expectedPlainTextBodyWithNullCredentialDescription =
             @"Hi requestingUser,
 
-This is your friendly NuGet security bot! It appears that an API key assoicated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
+This is your friendly NuGet security bot! It appears that an API key associated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
 
 Your key was found here: <TestLeakedUrl>
 
@@ -281,7 +281,7 @@ The NuGetGallery Team";
 
         private const string _expectedHtmlBodyWithNullCredentialDescription =
             "<p>Hi requestingUser,</p>\n" +
-"<p>This is your friendly NuGet security bot! It appears that an API key assoicated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.</p>\n" +
+"<p>This is your friendly NuGet security bot! It appears that an API key associated with your account was posted at TestRevocationSource. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.</p>\n" +
 "<p>Your key was found here: <TestLeakedUrl></p>\n" +
 "<p>In the future, please be mindful of accidentally posting your API keys publicly!</p>\n" +
 "<p>You can regenerate this key or create a new one on the <a href=\"TestManageApiKeyUrl\">Manage API Keys</a> page.</p>\n" +
