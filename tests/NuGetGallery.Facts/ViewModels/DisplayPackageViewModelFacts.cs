@@ -831,11 +831,11 @@ namespace NuGetGallery.ViewModels
             PackageDeprecation deprecation = null,
             string readmeHtml = null)
         {
-            var packages = (IReadOnlyCollection<Package>)package.PackageRegistration.Packages;
+            var allVersions = (IReadOnlyCollection<Package>)package.PackageRegistration.Packages;
 
             return new DisplayPackageViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(
                 package,
-                packages,
+                allVersions,
                 currentUser: currentUser,
                 deprecation: deprecation,
                 readmeResult: new RenderedReadMeResult { Content = readmeHtml });
