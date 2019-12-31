@@ -18,12 +18,12 @@ namespace NuGetGallery
 
         public DeletePackageViewModel Create(
             Package package,
-            IReadOnlyCollection<Package> packageRegistration,
+            IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons)
         {
             var viewModel = new DeletePackageViewModel();
-            return Setup(viewModel, package, packageRegistration, currentUser, reasons);
+            return Setup(viewModel, package, allVersions, currentUser, reasons);
         }
 
         public DeletePackageViewModel Setup(
