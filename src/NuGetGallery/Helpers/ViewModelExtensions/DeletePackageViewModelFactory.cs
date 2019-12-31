@@ -29,11 +29,11 @@ namespace NuGetGallery
         public DeletePackageViewModel Setup(
             DeletePackageViewModel viewModel,
             Package package,
-            IReadOnlyCollection<Package> packageRegistration,
+            IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons)
         {
-            _displayPackageViewModelFactory.Setup(viewModel, package, packageRegistration, currentUser, deprecation: null, readmeResult: null);
+            _displayPackageViewModelFactory.Setup(viewModel, package, allVersions, currentUser, deprecation: null, readmeResult: null);
             return SetupInternal(viewModel, package, reasons);
         }
 
