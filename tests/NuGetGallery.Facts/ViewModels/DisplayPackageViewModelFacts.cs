@@ -732,11 +732,7 @@ namespace NuGetGallery.ViewModels
             [MemberData(nameof(Data))]
             public void ReturnsExpectedUser(Package package, User currentUser, string expected)
             {
-                var model = CreateDisplayPackageViewModel(
-                    package,
-                    currentUser,
-                    deprecation: null,
-                    readmeHtml: null);
+                var model = CreateDisplayPackageViewModel(package, currentUser, deprecation: null, readmeHtml: null);
 
                 Assert.Equal(expected, model.PushedBy);
             }
