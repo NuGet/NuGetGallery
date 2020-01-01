@@ -35,7 +35,7 @@ namespace NuGetGallery
 
         private const string UserGravatarUrl = "https://en.gravatar.com/avatar/9394f8a07bb4df241de4660b315f8a90?s=100&r=g&d=retro";
         private const string UserGravatarUrlSize512 = "https://en.gravatar.com/avatar/9394f8a07bb4df241de4660b315f8a90?s=512&r=g&d=retro";
-        private const string UnconfirmedUserGravatarUrl = "https://en.gravatar.com/avatar/9394f8a07bb4df241de4660b315f8a90?s=100&r=g&d=retro";
+        private const string UnconfirmedUserGravatarUrl = "https://en.gravatar.com/avatar/ae8a9f21ae0da3be811aa63266e8e2f8?s=100&r=g&d=retro";
 
         private const string UserLegacyGravatarUrl = "https://secure.gravatar.com/avatar/9394f8a07bb4df241de4660b315f8a90?s=100&r=g&d=retro";
 
@@ -209,6 +209,7 @@ namespace NuGetGallery
             }
         }
 
+        [Fact]
         public async Task FallsbackToUnconfirmedEmailAddress()
         {
             using (var validGravatarResponse = ValidGravatarResponse)
@@ -216,6 +217,9 @@ namespace NuGetGallery
                 // Arrange
                 _features
                     .Setup(f => f.IsGravatarProxyEnabled())
+                    .Returns(true);
+                _features
+                    .Setup(f => f.ProxyGravatarEnSubdomain())
                     .Returns(true);
 
                 _messageHandler.AddHandler(UnconfirmedUserGravatarUrl, message => ValidGravatarResponse);
