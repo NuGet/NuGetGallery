@@ -236,7 +236,7 @@ namespace NuGet.Jobs.RegistrationComparer
             return path == name || path.EndsWith("." + name);
         }
 
-        private Normalizers(
+        public Normalizers(
             IReadOnlyList<ValueNormalizer> scalarNormalizers,
             IReadOnlyList<ShouldNormalizeByPath> unsortedObjects,
             IReadOnlyList<ArrayNormalizer> unsortedArrays)
