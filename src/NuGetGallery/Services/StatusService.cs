@@ -27,7 +27,7 @@ namespace NuGetGallery
         private const string Available = "Available";
         private const string Unavailable = "Unavailable";
         private const string Unconfigured = "Unconfigured";
-        private const string StatusMessageFormat = "NuGet Gallery instance {3} is {0}. SQL is {1}. Storage is {2}.";
+        private const string StatusMessageFormat = "NuGet Gallery instance {3} is {0}. SQL is {1}. Storage is {2}. {4}";
 
         private const string TestSqlQuery = "SELECT TOP(1) [Key] FROM GallerySettings WITH (NOLOCK)";
 
@@ -56,7 +56,25 @@ namespace NuGetGallery
                     AvailabilityMessage(galleryServiceAvailable),
                     AvailabilityMessage(sqlAzureAvailable),
                     AvailabilityMessage(storageAvailable),
-                    HostMachine.Name));
+                    HostMachine.Name,
+                    GetIpString()));
+        }
+
+        private string GetIpString()
+        {
+            var addresses = Dns.GetHostAddresses(Environment.MachineName);
+            foreach (var addr in addresses)
+            {
+                if (addr.ToString() == "127.0.0.1")
+                {
+                    continue;
+                }
+                else if (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return addr.ToString();
+                }
+            }
+            return "Failed to determine";
         }
 
         private bool IsSqlAzureAvailable()
