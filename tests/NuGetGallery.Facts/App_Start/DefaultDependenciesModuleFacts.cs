@@ -94,7 +94,7 @@ namespace NuGetGallery.App_Start
             {
                 // Arrange
                 _appConfiguration.DeploymentLabel = deploymentLabel;
-                var elementInspectors = GetTelemetryInitializerInspectors(deploymentLabel);
+                var elementInspectors = GetTelemetryInitializerInspectors(deploymentLabel, deploymentId: null);
 
                 // Act
                 var aiConfiguration = DefaultDependenciesModule.ConfigureApplicationInsights(
@@ -146,12 +146,11 @@ namespace NuGetGallery.App_Start
                     i => i.GetType().Equals(typeof(AutocollectedMetricsExtractor)));
             }
 
-            private Action<ITelemetryInitializer>[] GetTelemetryInitializerInspectors(string deploymentLabel)
+            private Action<ITelemetryInitializer>[] GetTelemetryInitializerInspectors(string deploymentLabel, string deploymentId)
             {
                 var elementInspectors = new List<Action<ITelemetryInitializer>>
                 {
                     // Registered by DefaultDependenciesModule in NuGetGallery
-                    ti => ti.GetType().Equals(typeof(DeploymentIdTelemetryEnricher)),
                     ti => ti.GetType().Equals(typeof(ClientInformationTelemetryEnricher)),
 
                     // Registered by applicationinsights.config
@@ -178,6 +177,10 @@ namespace NuGetGallery.App_Start
                 if (deploymentLabel != null)
                 {
                     elementInspectors.Add(ti => ti.GetType().Equals(typeof(DeploymentLabelEnricher)));
+                }
+                if (deploymentId != null)
+                {
+                    elementInspectors.Add(ti => ti.GetType().Equals(typeof(DeploymentIdTelemetryEnricher)));
                 }
 
                 return elementInspectors.ToArray();
