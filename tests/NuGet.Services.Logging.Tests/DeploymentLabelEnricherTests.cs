@@ -21,7 +21,7 @@ namespace NuGet.Services.Logging.Tests
         public void ConstructorThrowsWhenDeploymentLabelNull()
         {
             var ex = Assert.Throws<ArgumentNullException>(() => new DeploymentLabelEnricher(deploymentLabel: null));
-            Assert.Equal("deploymentLabel", ex.ParamName);
+            Assert.Equal("propertyValue", ex.ParamName);
         }
 
         [Fact]

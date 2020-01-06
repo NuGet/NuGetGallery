@@ -8,15 +8,17 @@ using Microsoft.ApplicationInsights.Extensibility;
 
 namespace NuGet.Services.Logging
 {
-    public class DeploymentLabelEnricher : ITelemetryInitializer
+    public abstract class SupportPropertiesTelemetryInitializer
+        : ITelemetryInitializer
     {
-        private const string DeploymentLabel = "DeploymentLabel";
-        private readonly string _deploymentLabel;
-
-        public DeploymentLabelEnricher(string deploymentLabel)
+        protected SupportPropertiesTelemetryInitializer(string propertyName, string propertyValue)
         {
-            _deploymentLabel = deploymentLabel ?? throw new ArgumentNullException(nameof(deploymentLabel));
+            PropertyName = propertyName ?? throw new ArgumentNullException(nameof(propertyName));
+            PropertyValue = propertyValue ?? throw new ArgumentNullException(nameof(propertyValue));
         }
+
+        public string PropertyName { get; }
+        public string PropertyValue { get; }
 
         public void Initialize(ITelemetry telemetry)
         {
@@ -25,12 +27,12 @@ namespace NuGet.Services.Logging
                 return;
             }
 
-            if (itemTelemetry.Properties.ContainsKey(DeploymentLabel))
+            if (itemTelemetry.Properties.ContainsKey(PropertyName))
             {
                 return;
             }
 
-            itemTelemetry.Properties.Add(DeploymentLabel, _deploymentLabel);
+            itemTelemetry.Properties.Add(PropertyName, PropertyValue);
         }
     }
 }
