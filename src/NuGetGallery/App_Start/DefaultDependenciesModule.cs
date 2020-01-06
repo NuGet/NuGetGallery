@@ -499,7 +499,18 @@ namespace NuGetGallery
             var telemetryConfiguration = applicationInsightsConfiguration.TelemetryConfiguration;
 
             // Add enrichers
-            telemetryConfiguration.TelemetryInitializers.Add(new DeploymentIdTelemetryEnricher());
+            try
+            {
+                if (RoleEnvironment.IsAvailable)
+                {
+                    telemetryConfiguration.TelemetryInitializers.Add(
+                        new DeploymentIdTelemetryEnricher(RoleEnvironment.DeploymentId));
+                }
+            }
+            catch
+            {
+                // This likely means the cloud service runtime is not available.
+            }
 
             if (configuration.DeploymentLabel != null)
             {

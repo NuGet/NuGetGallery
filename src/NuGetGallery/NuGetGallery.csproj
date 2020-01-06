@@ -583,7 +583,6 @@
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
-    <Compile Include="Telemetry\DeploymentIdTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\PasswordValidationAttribute.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.cs" />
@@ -2121,7 +2120,7 @@
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.63.0</Version>
+      <Version>2.64.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2300,13 +2299,13 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.63.0</Version>
+      <Version>2.64.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.63.0</Version>
+      <Version>2.64.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.63.0</Version>
+      <Version>2.64.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
