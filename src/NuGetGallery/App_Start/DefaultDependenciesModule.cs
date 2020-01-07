@@ -20,10 +20,14 @@ using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using Elmah;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using Microsoft.AspNet.TelemetryCorrelation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGet.Services.KeyVault;
@@ -93,30 +97,16 @@ namespace NuGetGallery
 
             configuration.SecretInjector = secretInjector;
 
-            // Register the ILoggerFactory and configure it to use AppInsights if an instrumentation key is provided.
-            var instrumentationKey = configuration.Current.AppInsightsInstrumentationKey;
-            if (!string.IsNullOrEmpty(instrumentationKey))
-            {
-                var heartbeatIntervalSeconds = configuration.Current.AppInsightsHeartbeatIntervalSeconds;
-
-                if (heartbeatIntervalSeconds > 0)
-                {
-                    // Configure instrumentation key, heartbeat interval, 
-                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
-                    ApplicationInsights.Initialize(instrumentationKey, TimeSpan.FromSeconds(heartbeatIntervalSeconds));
-                }
-                else
-                {
-                    // Configure instrumentation key,
-                    // and register NuGet.Services.Logging.TelemetryContextInitializer.
-                    ApplicationInsights.Initialize(instrumentationKey);
-                }
-            }
+            // Register the ILoggerFactory and configure AppInsights.
+            var applicationInsightsConfiguration = ConfigureApplicationInsights(
+                configuration.Current,
+                out ITelemetryClient telemetryClient);
 
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
-            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(
+                loggerConfiguration,
+                telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
 
-            var telemetryClient = TelemetryClientWrapper.Instance;
             builder.RegisterInstance(telemetryClient)
                 .AsSelf()
                 .As<ITelemetryClient>()
@@ -149,7 +139,10 @@ namespace NuGetGallery
             builder.Register(c => configuration.PackageDelete)
                 .As<IPackageDeleteConfiguration>();
 
-            var telemetryService = new TelemetryService(diagnosticsService, telemetryClient);
+            var telemetryService = new TelemetryService(
+                new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
+                telemetryClient);
+
             builder.RegisterInstance(telemetryService)
                 .AsSelf()
                 .As<ITelemetryService>()
@@ -480,6 +473,166 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
+        }
+
+        // Internal for testing purposes
+        internal static ApplicationInsightsConfiguration ConfigureApplicationInsights(
+            IAppConfiguration configuration,
+            out ITelemetryClient telemetryClient)
+        {
+            var instrumentationKey = configuration.AppInsightsInstrumentationKey;
+            var heartbeatIntervalSeconds = configuration.AppInsightsHeartbeatIntervalSeconds;
+
+            ApplicationInsightsConfiguration applicationInsightsConfiguration;
+
+            if (heartbeatIntervalSeconds > 0)
+            {
+                applicationInsightsConfiguration = ApplicationInsights.Initialize(
+                    instrumentationKey,
+                    TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+            }
+            else
+            {
+                applicationInsightsConfiguration = ApplicationInsights.Initialize(instrumentationKey);
+            }
+
+            var telemetryConfiguration = applicationInsightsConfiguration.TelemetryConfiguration;
+
+            // Add enrichers
+            try
+            {
+                if (RoleEnvironment.IsAvailable)
+                {
+                    telemetryConfiguration.TelemetryInitializers.Add(
+                        new DeploymentIdTelemetryEnricher(RoleEnvironment.DeploymentId));
+                }
+            }
+            catch
+            {
+                // This likely means the cloud service runtime is not available.
+            }
+
+            if (configuration.DeploymentLabel != null)
+            {
+                telemetryConfiguration.TelemetryInitializers.Add(new DeploymentLabelEnricher(configuration.DeploymentLabel));
+            }
+
+            telemetryConfiguration.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
+
+            // Add processors
+            telemetryConfiguration.TelemetryProcessorChainBuilder.Use(next =>
+            {
+                var processor = new RequestTelemetryProcessor(next);
+
+                processor.SuccessfulResponseCodes.Add(400);
+                processor.SuccessfulResponseCodes.Add(404);
+                processor.SuccessfulResponseCodes.Add(405);
+
+                return processor;
+            });
+
+            telemetryConfiguration.TelemetryProcessorChainBuilder.Use(next => new ClientTelemetryPIIProcessor(next));
+
+            // Hook-up TelemetryModules manually...
+            RegisterApplicationInsightsTelemetryModules(telemetryConfiguration);
+
+            var telemetryClientWrapper = TelemetryClientWrapper.UseTelemetryConfiguration(applicationInsightsConfiguration.TelemetryConfiguration);
+
+            telemetryConfiguration.TelemetryProcessorChainBuilder.Use(
+                next => new ExceptionTelemetryProcessor(next, telemetryClientWrapper.UnderlyingClient));
+
+            // Note: sampling rate must be a factor 100/N where N is a whole number
+            // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
+            // https://azure.microsoft.com/en-us/documentation/articles/app-insights-sampling/
+            var instrumentationSamplingPercentage = configuration.AppInsightsSamplingPercentage;
+            if (instrumentationSamplingPercentage > 0 && instrumentationSamplingPercentage < 100)
+            {
+                telemetryConfiguration.TelemetryProcessorChainBuilder.UseSampling(instrumentationSamplingPercentage);
+            }
+
+            telemetryConfiguration.TelemetryProcessorChainBuilder.Build();
+
+            QuietLog.UseTelemetryClient(telemetryClientWrapper);
+
+            telemetryClient = telemetryClientWrapper;
+
+            return applicationInsightsConfiguration;
+        }
+
+        private static void RegisterApplicationInsightsTelemetryModules(TelemetryConfiguration configuration)
+        {
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.AppServicesHeartbeatTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.AzureInstanceMetadataTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.DeveloperModeWithDebuggerAttachedTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.UnhandledExceptionTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.WindowsServer.UnobservedExceptionTelemetryModule(),
+                configuration);
+
+            var requestTrackingModule = new Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule();
+            requestTrackingModule.Handlers.Add("Microsoft.VisualStudio.Web.PageInspector.Runtime.Tracing.RequestDataHttpHandler");
+            requestTrackingModule.Handlers.Add("System.Web.StaticFileHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Handlers.AssemblyResourceLoader");
+            requestTrackingModule.Handlers.Add("System.Web.Optimization.BundleHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Script.Services.ScriptHandlerFactory");
+            requestTrackingModule.Handlers.Add("System.Web.Handlers.TraceHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Services.Discovery.DiscoveryRequestHandler");
+            requestTrackingModule.Handlers.Add("System.Web.HttpDebugHandler");
+            RegisterApplicationInsightsTelemetryModule(
+                requestTrackingModule,
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.Web.ExceptionTrackingTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.Web.AspNetDiagnosticTelemetryModule(),
+                configuration);
+
+            var dependencyTrackingModule = new Microsoft.ApplicationInsights.DependencyCollector.DependencyTrackingTelemetryModule();
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.windows.net");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.chinacloudapi.cn");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.cloudapi.de");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.usgovcloudapi.net");
+            dependencyTrackingModule.IncludeDiagnosticSourceActivities.Add("Microsoft.Azure.EventHubs");
+            dependencyTrackingModule.IncludeDiagnosticSourceActivities.Add("Microsoft.Azure.ServiceBus");
+            RegisterApplicationInsightsTelemetryModule(
+                dependencyTrackingModule,
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.PerformanceCollectorModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse.QuickPulseTelemetryModule(),
+                configuration);
+        }
+
+        private static void RegisterApplicationInsightsTelemetryModule(ITelemetryModule telemetryModule, TelemetryConfiguration configuration)
+        {
+            var existingModule = TelemetryModules.Instance.Modules.SingleOrDefault(m => m.GetType().Equals(telemetryModule.GetType()));
+            if (existingModule != null)
+            {
+                TelemetryModules.Instance.Modules.Remove(existingModule);
+            }
+
+            telemetryModule.Initialize(configuration);
+
+            TelemetryModules.Instance.Modules.Add(telemetryModule);
         }
 
         private void RegisterABTestServices(ContainerBuilder builder)
