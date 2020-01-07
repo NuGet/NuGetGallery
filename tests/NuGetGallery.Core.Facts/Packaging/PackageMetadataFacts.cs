@@ -91,6 +91,44 @@ namespace NuGetGallery.Packaging
         }
 
         [Theory]
+        [InlineData("Bad package type")]
+        [InlineData("Bad--packageType")]
+        [InlineData("Bad..packageType")]
+        [InlineData("Bad!!packageType")]
+        public void RejectsInvalidPackageTypeName(string name)
+        {
+            // Arrange
+            var packageStream = CreateTestPackageStreamWithPackageTypes("Dependency", name);
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act & Assert
+            var ex = Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(nuspec, strict: false));
+            Assert.Equal($"The package manifest contains an invalid package type name: '{name}'", ex.Message);
+        }
+
+        [Theory]
+        [InlineData("goodpackagetype")]
+        [InlineData("GoodPackageType")]
+        [InlineData("    GoodPackageType    ")]
+        [InlineData("good__packageType")]
+        public void RejectsValidPackageTypeName(string name)
+        {
+            // Arrange
+            var packageStream = CreateTestPackageStreamWithPackageTypes(name);
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act
+            var metadata = PackageMetadata.FromNuspecReader(nuspec, strict: false);
+
+            // Assert
+            var packageType = Assert.Single(metadata.GetPackageTypes());
+            Assert.Equal(name.Trim(), packageType.Name);
+            Assert.Equal(new Version(0, 0), packageType.Version);
+        }
+
+        [Theory]
         [MemberData(nameof(RestrictedNameAndValueData))]
         public void RejectsRestrictedElementNames(string name, string value)
         {
@@ -425,6 +463,24 @@ namespace NuGetGallery.Packaging
                         <foo>2</foo>
                         <releaseNotes></releaseNotes>
                         <releaseNotes></releaseNotes>
+                      </metadata>
+                    </package>");
+        }
+
+        private static Stream CreateTestPackageStreamWithPackageTypes(params string[] packageTypes)
+        {
+            var packageTypeElements = packageTypes
+                .Select(x => $"<packageType name=\"{x}\" />")
+                .ToList();
+
+            return CreateTestPackageStream($@"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>TestPackage</id>
+                        <version>0.0.0.1</version>
+                        <packageTypes>
+                          {string.Join(string.Empty, packageTypeElements)}
+                        </packageTypes>
                       </metadata>
                     </package>");
         }

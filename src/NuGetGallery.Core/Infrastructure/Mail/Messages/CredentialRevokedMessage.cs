@@ -52,7 +52,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         {
             var body = @"Hi {0},
 
-This is your friendly NuGet security bot! It appears that an API key {1}assoicated with your account was posted at {2}. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
+This is your friendly NuGet security bot! It appears that an API key {1}associated with your account was posted at {2}. As a precautionary measure, we have revoked this key to protect your account and packages. Please review your packages for any unauthorized activity.
 
 Your key was found here: <{3}>
 

@@ -255,6 +255,17 @@ namespace NuGetGallery.Packaging
                 }
             }
 
+            // Reject invalid package types.
+            foreach (var packageType in nuspecReader.GetPackageTypes())
+            {
+                if (!NuGet.Packaging.PackageIdValidator.IsValidPackageId(packageType.Name))
+                {
+                    throw new PackagingException(string.Format(
+                        CoreStrings.Manifest_InvalidPackageTypeName,
+                        packageType.Name));
+                }
+            }
+
             return new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
@@ -119,10 +120,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task RemovesOriginalFrameworks_Authors_Dependencies()
+            public async Task RemovesOriginalChildEntities()
             {
                 // Arrange
                 var package = PackageServiceUtility.CreateTestPackage();
+                package.PackageTypes = new List<PackageType> { new PackageType { Name = "Dependency", Version = "0.0" } };
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -391,6 +393,10 @@ namespace NuGetGallery
 
             entitiesContext
                 .Setup(s => s.Set<PackageDependency>().Remove(It.IsAny<PackageDependency>()))
+                .Verifiable();
+
+            entitiesContext
+                .Setup(s => s.Set<PackageType>().Remove(It.IsAny<PackageType>()))
                 .Verifiable();
 
             return entitiesContext;
