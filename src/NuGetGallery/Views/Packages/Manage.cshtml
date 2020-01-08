@@ -93,12 +93,12 @@
             // Set up documentation section
             var readMeModel = {
                 "Versions": @Html.Raw(JsonConvert.SerializeObject(Model.VersionReadMeStateDictionary)),
-                "Edit": @Html.Raw(JsonConvert.SerializeObject(Model.ReadMe))
+                "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
             };
 
             var readMeModelVersion = readMeModel.Versions['@Model.Version'];
             if (readMeModelVersion) {
-                readMeModelVersion.readMe = @Html.Raw(JsonConvert.SerializeObject(Model.ReadMe));
+                readMeModelVersion.readMe = @Html.Raw(Json.Encode(Model.ReadMe));
             }
 
             EditReadMeManager.init(
