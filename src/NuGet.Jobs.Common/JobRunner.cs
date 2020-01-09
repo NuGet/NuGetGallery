@@ -187,7 +187,7 @@ namespace NuGet.Jobs
             var jobName = job.GetType().Assembly.GetName().Name;
             var instanceName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstanceName) ?? jobName;
             applicationInsightsConfiguration.TelemetryConfiguration.TelemetryInitializers.Add(
-                new JobNameTelemetryInitializer(jobName, instanceName));
+                new JobPropertiesTelemetryInitializer(jobName, instanceName, job.GlobalTelemetryDimensions));
 
             job.SetApplicationInsightsConfiguration(applicationInsightsConfiguration);
 

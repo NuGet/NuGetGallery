@@ -32,6 +32,7 @@ namespace NuGet.Jobs
         {
             _jobEventSource = jobEventSource;
             SqlConnectionFactories = new Dictionary<string, ICoreSqlConnectionFactory>();
+            GlobalTelemetryDimensions = new Dictionary<string, string>();
         }
 
         protected ILoggerFactory LoggerFactory { get; private set; }
@@ -39,6 +40,11 @@ namespace NuGet.Jobs
         protected ILogger Logger { get; private set; }
 
         protected ApplicationInsightsConfiguration ApplicationInsightsConfiguration { get; private set; }
+
+        /// <summary>
+        /// Enables a job to define global dimensions to be tracked as part of telemetry.
+        /// </summary>
+        public IDictionary<string, string> GlobalTelemetryDimensions { get; private set; }
 
         private Dictionary<string, ICoreSqlConnectionFactory> SqlConnectionFactories { get; }
 
