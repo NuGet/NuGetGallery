@@ -24,7 +24,7 @@ namespace NuGetGallery.FunctionalTests.Security
             new object[] { UrlHelper.VerifyUploadPageUrl },
         };
 
-        public static IEnumerable<object[]> UrlsExcludedFromRedirect => new[]
+        public static IEnumerable<object[]> UrlsExcludedFromRedirectInCloudService => new[]
         {
             new object[] { UrlHelper.ApiGalleryHealthProbeUrl },
             new object[] { UrlHelper.ApiStatusPageUrl }
@@ -43,7 +43,7 @@ namespace NuGetGallery.FunctionalTests.Security
         [Theory]
         [MemberData(nameof(GetForAllUrls))]
         [Priority(0)]
-        [Category("P0Tests")]
+        [Category("CloudServiceTests")]
         public async Task HttpToHttpsRedirectHappensForSupportedMethods(HttpMethod method, string url)
         {
             // Ideally, we should test both GET and HEAD methods for all the URLs, 
@@ -60,7 +60,7 @@ namespace NuGetGallery.FunctionalTests.Security
         [Theory]
         [MemberData(nameof(NonHeadAndGetForAllUrls))]
         [Priority(0)]
-        [Category("P0Tests")]
+        [Category("CloudServiceTests")]
         public async Task HttpRequestsFailureResponseForUnsupportedMethods(HttpMethod method, string url)
         {
             Uri uri = ForceHttp(url);
@@ -80,15 +80,39 @@ namespace NuGetGallery.FunctionalTests.Security
         }
 
         [Theory]
-        [MemberData(nameof(UrlsExcludedFromRedirect))]
+        [MemberData(nameof(UrlsExcludedFromRedirectInCloudService))]
         [Priority(0)]
-        [Category("P0Tests")]
+        [Category("CloudServiceTests")]
         public async Task ExcludedUrlsDontRedirect(string url)
         {
             Uri uri = ForceHttp(url);
             await VerifyHttpResponseStatus(
                 r => Assert.Equal(HttpStatusCode.OK, r.StatusCode),
                 HttpMethod.Get, uri);
+        }
+
+        public static IEnumerable<object[]> RemainingUrlsAndMethodsForAppService =>
+                from url in UrlsToTest.Concat(UrlsExcludedFromRedirectInCloudService).SelectMany(x => x)
+                from method in new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Post, HttpMethod.Put, HttpMethod.Delete, HttpMethod.Trace }
+                select new object[] { method, url };
+
+        /// <summary>
+        /// This test is the app service counterpart of <see cref="HttpToHttpsRedirectHappensForSupportedMethods"/>:
+        /// HTTP to HTTPS redirection there happens at the service level, so all HTTP requests are expected
+        /// to respond with <see cref="HttpStatusCode.MovedPermanently"/>.
+        /// </summary>
+        [Theory]
+        [MemberData(nameof(RemainingUrlsAndMethodsForAppService))]
+        [Priority(0)]
+        [Category("AppServiceTests")]
+        public async Task AllUrlsRedirect(HttpMethod method, string url)
+        {
+            Uri uri = ForceHttp(url);
+            await VerifyHttpResponseStatus(r =>
+            {
+                Assert.Equal(HttpStatusCode.MovedPermanently, r.StatusCode);
+                Assert.Equal(Uri.UriSchemeHttps, r.Headers.Location.Scheme);
+            }, method, uri);
         }
 
         private static async Task VerifyHttpResponseStatus(Action<HttpResponseMessage> verifyAction, HttpMethod method, Uri url)
