@@ -24,7 +24,7 @@ namespace NuGetGallery.FunctionalTests.Security
             new object[] { UrlHelper.VerifyUploadPageUrl },
         };
 
-        public static IEnumerable<object[]> UrlsExcludedFromRedirect => new[]
+        public static IEnumerable<object[]> UrlsExcludedFromRedirectInCloudService => new[]
         {
             new object[] { UrlHelper.ApiGalleryHealthProbeUrl },
             new object[] { UrlHelper.ApiStatusPageUrl }
@@ -80,7 +80,7 @@ namespace NuGetGallery.FunctionalTests.Security
         }
 
         [Theory]
-        [MemberData(nameof(UrlsExcludedFromRedirect))]
+        [MemberData(nameof(UrlsExcludedFromRedirectInCloudService))]
         [Priority(0)]
         [Category("CloudServiceTests")]
         public async Task ExcludedUrlsDontRedirect(string url)
@@ -92,7 +92,7 @@ namespace NuGetGallery.FunctionalTests.Security
         }
 
         public static IEnumerable<object[]> RemainingUrlsAndMethodsForAppService =>
-                from url in UrlsToTest.Concat(UrlsExcludedFromRedirect).SelectMany(x => x)
+                from url in UrlsToTest.Concat(UrlsExcludedFromRedirectInCloudService).SelectMany(x => x)
                 from method in new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Post, HttpMethod.Put, HttpMethod.Delete, HttpMethod.Trace }
                 select new object[] { method, url };
 
