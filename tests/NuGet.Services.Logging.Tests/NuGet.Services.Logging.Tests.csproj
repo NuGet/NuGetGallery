@@ -54,13 +54,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationInsightsTests.cs" />
-    <Compile Include="DeploymentLabelEnricherTests.cs" />
+    <Compile Include="TelemetryInitializers\DeploymentLabelEnricherTests.cs" />
     <Compile Include="Extensions\DiagnosticsTelemetryModuleExtensionsTests.cs" />
     <Compile Include="ExceptionTelemetryProcessorTests.cs" />
     <Compile Include="LoggingSetupTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestTelemetryProcessorTests.cs" />
     <Compile Include="Extensions\TelemetryClientExtensionsTests.cs" />
+    <Compile Include="TelemetryInitializers\JobPropertiesTelemetryInitializerTests.cs" />
+    <Compile Include="TestableTelemetry.cs" />
     <Compile Include="TelemetryProcessorTest.cs" />
   </ItemGroup>
   <ItemGroup>

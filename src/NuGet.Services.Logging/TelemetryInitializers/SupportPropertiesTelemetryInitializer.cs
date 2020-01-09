@@ -22,11 +22,15 @@ namespace NuGet.Services.Logging
 
         public void Initialize(ITelemetry telemetry)
         {
+            // We need to cast to ISupportProperties to avoid using the deprecated telemetry.Context.Properties API.
+            // https://github.com/Microsoft/ApplicationInsights-Home/issues/300
             if (!(telemetry is ISupportProperties itemTelemetry))
             {
                 return;
             }
 
+            // Note that telemetry initializers can be called multiple times for the same telemetry item.
+            // https://github.com/microsoft/ApplicationInsights-dotnet-server/issues/977
             if (itemTelemetry.Properties.ContainsKey(PropertyName))
             {
                 return;
