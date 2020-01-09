@@ -11,7 +11,12 @@ namespace NuGetGallery
 {
     public static class QuietLog
     {
-        public static ITelemetryClient Telemetry = TelemetryClientWrapper.Instance;
+        private static ITelemetryClient Telemetry;
+
+        public static void UseTelemetryClient(ITelemetryClient telemetryClient)
+        {
+            Telemetry = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+        }
 
         public static void LogHandledException(Exception e)
         {
