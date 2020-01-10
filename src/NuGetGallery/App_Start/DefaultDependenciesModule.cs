@@ -47,6 +47,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
+using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
@@ -1362,15 +1363,7 @@ namespace NuGetGallery
 
         private static IAuditingService GetAuditingServiceForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
-            string instanceId;
-            try
-            {
-                instanceId = RoleEnvironment.CurrentRoleInstance.Id;
-            }
-            catch
-            {
-                instanceId = Environment.MachineName;
-            }
+            string instanceId = HostMachine.Name;
 
             var localIp = AuditActor.GetLocalIpAddressAsync().Result;
 
