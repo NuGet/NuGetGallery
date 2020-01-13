@@ -54,6 +54,7 @@
     <Compile Include="TelemetryInitializers\DeploymentLabelEnricher.cs" />
     <Compile Include="DurationMetric.cs" />
     <Compile Include="TelemetryInitializers\JobPropertiesTelemetryInitializer.cs" />
+    <Compile Include="TelemetryInitializers\MachineNameTelemetryInitializer.cs" />
     <Compile Include="TelemetryProcessors\ExceptionTelemetryProcessor.cs" />
     <Compile Include="Extensions\DiagnosticsTelemetryModuleExtensions.cs" />
     <Compile Include="LoggingSetup.cs" />
