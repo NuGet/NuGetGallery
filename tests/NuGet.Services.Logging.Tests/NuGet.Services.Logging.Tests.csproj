@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationInsightsTests.cs" />
+    <Compile Include="TelemetryInitializers\AzureWebAppTelemetryInitializerFacts.cs" />
     <Compile Include="TelemetryInitializers\DeploymentLabelEnricherTests.cs" />
     <Compile Include="Extensions\DiagnosticsTelemetryModuleExtensionsTests.cs" />
     <Compile Include="ExceptionTelemetryProcessorTests.cs" />

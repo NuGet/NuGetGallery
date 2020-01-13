@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="ApplicationInsights.cs" />
     <Compile Include="ApplicationInsightsConfiguration.cs" />
+    <Compile Include="TelemetryInitializers\AzureWebAppTelemetryInitializer.cs" />
     <Compile Include="TelemetryInitializers\DeploymentIdTelemetryEnricher.cs" />
     <Compile Include="TelemetryInitializers\DeploymentLabelEnricher.cs" />
     <Compile Include="DurationMetric.cs" />
