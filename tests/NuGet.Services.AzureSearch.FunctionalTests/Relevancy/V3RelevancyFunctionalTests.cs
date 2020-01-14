@@ -39,6 +39,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             yield return new object[] { "newtonsoft", new[] { "newtonsoft.json" } };
             yield return new object[] { "json.net", new[] { "json.net" } };
             yield return new object[] { "json", new[] { "newtonsoft.json" } };
+            yield return new object[] { "n", new[] { "newtonsoft.json" } };
 
             yield return new object[] { "tags:\"aws-sdk-v3\"", new[] { "awssdk.core", "awssdk.s3" } };
 
