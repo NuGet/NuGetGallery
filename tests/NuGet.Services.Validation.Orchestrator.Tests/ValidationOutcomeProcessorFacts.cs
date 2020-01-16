@@ -176,9 +176,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
             }
 
-            TelemetryServiceMock.ResetCalls();
-            MessageServiceMock.ResetCalls();
-            ValidationEnqueuerMock.ResetCalls();
+            TelemetryServiceMock.Invocations.Clear();
+            MessageServiceMock.Invocations.Clear();
+            ValidationEnqueuerMock.Invocations.Clear();
 
             // Process the outcome again - the "too long to validate" message should NOT be sent.
             await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats, ScheduleNextCheck);
