@@ -81,7 +81,9 @@ namespace NuGetGallery.TestUtils
             UserRepository = new EntityRepository<User>(FakeEntitiesContext);
             RoleRepository = new EntityRepository<Role>(FakeEntitiesContext);
             Auditing = new TestAuditingService();
-            TelemetryService = new TelemetryService();
+            TelemetryService = new TelemetryService(
+                new Mock<IDiagnosticsSource>().Object,
+                new Mock<ITelemetryClient>().Object);
         }
     }
 

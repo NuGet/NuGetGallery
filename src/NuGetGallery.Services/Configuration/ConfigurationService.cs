@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Configuration;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace NuGetGallery.Configuration
         protected const string ServiceBusPrefix = "AzureServiceBus.";
         protected const string PackageDeletePrefix = "PackageDelete.";
 
-        private bool _notInCloud;
+        private bool _notInCloudService;
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
         private readonly Lazy<IAppConfiguration> _lazyAppConfiguration;
@@ -131,7 +132,7 @@ namespace NuGetGallery.Configuration
         {
             string value;
 
-            value = GetCloudSetting(settingName);
+            value = GetCloudServiceSetting(settingName);
 
             if (value == "null")
             {
@@ -171,10 +172,10 @@ namespace NuGetGallery.Configuration
             return await ResolveConfigObject(new PackageDeleteConfiguration(), PackageDeletePrefix);
         }
 
-        protected virtual string GetCloudSetting(string settingName)
+        protected virtual string GetCloudServiceSetting(string settingName)
         {
             // Short-circuit if we've already determined we're not in the cloud
-            if (_notInCloud)
+            if (_notInCloudService)
             {
                 return null;
             }
@@ -188,13 +189,13 @@ namespace NuGetGallery.Configuration
                 }
                 else
                 {
-                    _notInCloud = true;
+                    _notInCloudService = true;
                 }
             }
             catch (TypeInitializationException)
             {
                 // Not in the role environment...
-                _notInCloud = true; // Skip future checks to save perf
+                _notInCloudService = true; // Skip future checks to save perf
             }
             catch (Exception)
             {
