@@ -272,19 +272,19 @@
       <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Owin.Host.SystemWeb">
-      <Version>3.0.1</Version>
+      <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Owin.Security">
-      <Version>3.0.1</Version>
+      <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Owin.Security.Cookies">
-      <Version>3.0.1</Version>
+      <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Owin.Security.MicrosoftAccount">
-      <Version>3.0.1</Version>
+      <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Owin.Security.OpenIdConnect">
-      <Version>3.0.1</Version>
+      <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
       <Version>5.0.0-preview1.5665</Version>
