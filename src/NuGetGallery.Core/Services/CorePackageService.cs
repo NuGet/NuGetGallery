@@ -289,24 +289,82 @@ namespace NuGetGallery
             string id, 
             PackageDeprecationFieldsToInclude deprecationFields = PackageDeprecationFieldsToInclude.None)
         {
+            bool includeDeprecation;
+            bool includeDeprecationRelationships;
+
+            switch (deprecationFields)
+            {
+                case PackageDeprecationFieldsToInclude.None:
+                    includeDeprecation = false;
+                    includeDeprecationRelationships = false;
+                    break;
+
+                case PackageDeprecationFieldsToInclude.Deprecation:
+                    includeDeprecation = true;
+                    includeDeprecationRelationships = false;
+                    break;
+
+                case PackageDeprecationFieldsToInclude.DeprecationAndRelationships:
+                    includeDeprecation = true;
+                    includeDeprecationRelationships = true;
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Unknown deprecation fields '{deprecationFields}'");
+            }
+
+            return GetPackagesByIdQueryable(
+                id,
+                includeLicenseReports: true,
+                includePackageRegistration: true,
+                includeUser: true,
+                includeSymbolPackages: true,
+                includeDeprecation: includeDeprecation,
+                includeDeprecationRelationships: includeDeprecationRelationships);
+        }
+
+        protected IQueryable<Package> GetPackagesByIdQueryable(
+            string id,
+            bool includeLicenseReports,
+            bool includePackageRegistration,
+            bool includeUser,
+            bool includeSymbolPackages,
+            bool includeDeprecation,
+            bool includeDeprecationRelationships)
+        {
             var packages = _packageRepository
                 .GetAll()
-                .Include(p => p.LicenseReports)
-                .Include(p => p.PackageRegistration)
-                .Include(p => p.User)
-                .Include(p => p.SymbolPackages)
                 .Where(p => p.PackageRegistration.Id == id);
 
-            if (deprecationFields == PackageDeprecationFieldsToInclude.Deprecation)
+            if (includeLicenseReports)
             {
-                packages = packages
-                    .Include(p => p.Deprecations);
+                packages = packages.Include(p => p.LicenseReports);
             }
-            else if (deprecationFields == PackageDeprecationFieldsToInclude.DeprecationAndRelationships)
+
+            if (includePackageRegistration)
+            {
+                packages = packages.Include(p => p.PackageRegistration);
+            }
+
+            if (includeUser)
+            {
+                packages = packages.Include(p => p.User);
+            }
+
+            if (includeSymbolPackages)
+            {
+                packages = packages.Include(p => p.SymbolPackages);
+            }
+
+            if (includeDeprecationRelationships)
             {
                 packages = packages
                     .Include(p => p.Deprecations.Select(d => d.AlternatePackage.PackageRegistration))
                     .Include(p => p.Deprecations.Select(d => d.AlternatePackageRegistration));
+            }
+            else if (includeDeprecation)
+            {
+                packages = packages.Include(p => p.Deprecations);
             }
 
             return packages;

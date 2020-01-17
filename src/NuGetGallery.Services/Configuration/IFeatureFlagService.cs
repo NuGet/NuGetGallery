@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Services.Entities;
+using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -42,9 +43,13 @@ namespace NuGetGallery
 
         /// <summary>
         /// Whether or not the user can manage their package's deprecation state.
-        /// If disabled, 
         /// </summary>
         bool IsManageDeprecationEnabled(User user, PackageRegistration registration);
+
+        /// <summary>
+        /// Whether or not the user can manage their package's deprecation state.
+        /// </summary>
+        bool IsManageDeprecationEnabled(User user, IEnumerable<Package> allVersions);
 
         /// <summary>
         /// Whether or not the user can manage their package's deprecation state through the API.

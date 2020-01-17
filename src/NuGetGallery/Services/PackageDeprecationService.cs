@@ -126,12 +126,13 @@ namespace NuGetGallery
             }
         }
 
-        public PackageDeprecation GetDeprecationByPackage(Package package)
+        public IReadOnlyList<PackageDeprecation> GetDeprecationsById(string id)
         {
             return _entitiesContext.Deprecations
                 .Include(d => d.AlternatePackage.PackageRegistration)
                 .Include(d => d.AlternatePackageRegistration)
-                .SingleOrDefault(d => d.PackageKey == package.Key);
+                .Where(d => d.Package.PackageRegistration.Id == id)
+                .ToList();
         }
     }
 }
