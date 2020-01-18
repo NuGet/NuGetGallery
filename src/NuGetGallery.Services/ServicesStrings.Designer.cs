@@ -1247,6 +1247,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A nuget package may not contain multiple dependency groups for the same target framework..
+        /// </summary>
+        public static string NuGetPackageDuplicateDependencyGroup {
+            get {
+                return ResourceManager.GetString("NuGetPackageDuplicateDependencyGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s ID and version properties combined may not be more than {0} characters long..
         /// </summary>
         public static string NuGetPackageIdVersionCombinedTooLong {
