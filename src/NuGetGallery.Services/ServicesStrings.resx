@@ -1131,6 +1131,6 @@ The {1} Team</value>
     <value>The API key credential with Key '{0}' is not revocable.</value>
   </data>
   <data name="NuGetPackageDuplicateDependencyGroup" xml:space="preserve">
-    <value>A nuget package may not contain multiple dependency groups for the same target framework.</value>
+    <value>A nuget package may not contain multiple dependency groups with the same target framework.</value>
   </data>
 </root>

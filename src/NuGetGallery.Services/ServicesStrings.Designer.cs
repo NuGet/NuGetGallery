@@ -1247,7 +1247,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A nuget package may not contain multiple dependency groups for the same target framework..
+        ///   Looks up a localized string similar to A nuget package may not contain multiple dependency groups with the same target framework..
         /// </summary>
         public static string NuGetPackageDuplicateDependencyGroup {
             get {
