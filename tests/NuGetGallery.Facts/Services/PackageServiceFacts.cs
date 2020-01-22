@@ -652,6 +652,41 @@ namespace NuGetGallery
             }
 
             [Fact]
+            private async Task WillThrowIfThePackageContainsDuplicateDependencyGroups()
+            {
+                var service = CreateService();
+
+                var duplicateDependencyGroup = new PackageDependencyGroup(
+                        new NuGetFramework("net40"),
+                        new[]
+                        {
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "dependency",
+                                VersionRange.Parse("[1.0.0, 2.0.0)")),
+                        });
+
+                var packageDependencyGroups = new[]
+                {
+                    duplicateDependencyGroup,
+                    new PackageDependencyGroup(
+                        new NuGetFramework("net35"),
+                        new[]
+                        {
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "dependency",
+                                VersionRange.Parse("[1.0]"))
+                        }),
+                    duplicateDependencyGroup
+                };
+
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(packageDependencyGroups: packageDependencyGroups);
+
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
+
+                Assert.Equal(ServicesStrings.NuGetPackageDuplicateDependencyGroup, ex.Message);
+            }
+
+            [Fact]
             private async Task WillThrowIfThePackageDependencyVersionSpecIsLongerThan256()
             {
                 var service = CreateService();
