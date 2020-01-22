@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
+    <Compile Include="App_Start\DefaultDependenciesModuleFacts.cs" />
     <Compile Include="App_Start\StorageDependentFacts.cs" />
     <Compile Include="App_Start\RuntimeServiceProviderTests.cs" />
     <Compile Include="Areas\Admin\Controllers\ApiKeysControllerFacts.cs" />

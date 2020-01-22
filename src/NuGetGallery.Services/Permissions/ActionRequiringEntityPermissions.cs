@@ -76,6 +76,9 @@ namespace NuGetGallery
 
             if (currentUser != null)
             {
+                // Lazily load the current user's organizations from the database.
+                // TODO: Entity Framework performs n+1 SQL queries, where n is the number of organizations the user is in.
+                // See: https://github.com/NuGet/NuGetGallery/issues/7794
                 possibleAccountsOnBehalfOf.AddRange(currentUser.Organizations.Select(o => o.Organization));
             }
 

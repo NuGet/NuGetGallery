@@ -18,20 +18,29 @@ namespace NuGetGallery
 
         public DeletePackageViewModel Create(
             Package package,
+            IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons)
         {
             var viewModel = new DeletePackageViewModel();
-            return Setup(viewModel, package, currentUser, reasons);
+            return Setup(viewModel, package, allVersions, currentUser, reasons);
         }
 
         public DeletePackageViewModel Setup(
             DeletePackageViewModel viewModel,
             Package package,
+            IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyList<ReportPackageReason> reasons)
         {
-            _displayPackageViewModelFactory.Setup(viewModel, package, currentUser, deprecation: null, readmeResult: null);
+            _displayPackageViewModelFactory.Setup(
+                viewModel,
+                package,
+                allVersions,
+                currentUser,
+                packageKeyToDeprecation: null,
+                readmeResult: null);
+
             return SetupInternal(viewModel, package, reasons);
         }
 

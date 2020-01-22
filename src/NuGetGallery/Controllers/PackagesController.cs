@@ -795,26 +795,27 @@ namespace NuGetGallery
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
 
-            Package package = null;
             // Load all packages with the ID.
-            var packages = _packageService.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation);
+            Package package = null;
+            var allVersions = _packageService.FindPackagesById(id, includePackageRegistration: true);
+
             if (version != null)
             {
                 if (version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
                 {
                     // The user is looking for the absolute latest version and not an exact version.
-                    package = packages.FirstOrDefault(p => p.IsLatestSemVer2);
+                    package = allVersions.FirstOrDefault(p => p.IsLatestSemVer2);
                 }
                 else
                 {
-                    package = _packageService.FilterExactPackage(packages, version);
+                    package = _packageService.FilterExactPackage(allVersions, version);
                 }
             }
 
             if (package == null)
             {
                 // If we cannot find the exact version or no version was provided, fall back to the latest version.
-                package = _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+                package = _packageService.FilterLatestPackage(allVersions, SemVerLevelKey.SemVer2, allowPrerelease: true);
             }
 
             // Validating packages should be hidden to everyone but the owners and admins.
@@ -827,15 +828,25 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var deprecation = _deprecationService.GetDeprecationByPackage(package);
-            var model = _displayPackageViewModelFactory.Create(package, currentUser, deprecation, await _readMeService.GetReadMeHtmlAsync(package));
+            var readme = await _readMeService.GetReadMeHtmlAsync(package);
+            var deprecations = _deprecationService.GetDeprecationsById(id);
+            var packageKeyToDeprecation = deprecations
+                .GroupBy(d => d.PackageKey)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var model = _displayPackageViewModelFactory.Create(
+                package,
+                allVersions,
+                currentUser,
+                packageKeyToDeprecation,
+                readme);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
-            model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration);
+            model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
 
             if(model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
@@ -1637,7 +1648,7 @@ namespace NuGetGallery
                 return HttpForbidden();
             }
 
-            var model = _deletePackageViewModelFactory.Create(package, currentUser, DeleteReasons);
+            var model = _deletePackageViewModelFactory.Create(package, packages, currentUser, DeleteReasons);
 
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages

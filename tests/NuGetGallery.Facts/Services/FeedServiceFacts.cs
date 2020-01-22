@@ -450,13 +450,18 @@ namespace NuGetGallery
                 [Fact]
                 public async Task ODataQueryFilterV2Search()
                 {
-                    ODataQueryVerifier.V1Search = GetQueryFilter<V1FeedPackage>(false);
+                    // Arrange
                     var v1Service = GetService("https://localhost:8081/");
+                    v1Service.ODataQueryVerifier.V1Search = GetQueryFilter<V1FeedPackage>(false);
+
+                    // Act
                     var result = (await v1Service.Search(
                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(
                            NuGetODataV1FeedConfig.GetEdmModel(),
                            typeof(V1FeedPackage)),
                            v1Service.Request)));
+
+                    // Assert
                     var badRequest = result as BadRequestErrorMessageResult;
                     Assert.NotNull(badRequest);
                 }
@@ -464,13 +469,18 @@ namespace NuGetGallery
                 [Fact]
                 public void ODataQueryFilterV1Packages()
                 {
-                    ODataQueryVerifier.V1Packages = GetQueryFilter<V1FeedPackage>(false);
+                    // Arrange
                     var service = GetService("https://localhost:8081/");
+                    service.ODataQueryVerifier.V1Packages = GetQueryFilter<V1FeedPackage>(false);
+
+                    // Act
                     var result = service.Get(
                        new ODataQueryOptions<V1FeedPackage>(new ODataQueryContext(
                            NuGetODataV1FeedConfig.GetEdmModel(),
                            typeof(V1FeedPackage)),
                            service.Request));
+
+                    // Assert
                     var badRequest = result as BadRequestErrorMessageResult;
                     Assert.NotNull(badRequest);
                 }
@@ -1996,14 +2006,19 @@ namespace NuGetGallery
                 [Fact]
                 public void ODataQueryFilterV2FeedGetUpdates()
                 {
-                    ODataQueryVerifier.V2GetUpdates = GetQueryFilter<V2FeedPackage>(false);
+                    // Arrange
                     var v2Service = GetService("https://localhost:8081/");
-                    var result = (v2Service.GetUpdates(
+                    v2Service.ODataQueryVerifier.V2GetUpdates = GetQueryFilter<V2FeedPackage>(false);
+
+                    // Act
+                    var result = v2Service.GetUpdates(
                        new ODataQueryOptions<V2FeedPackage>(
                            new ODataQueryContext(NuGetODataV2FeedConfig.GetEdmModel(),
                            typeof(V2FeedPackage)),
                            v2Service.Request),
-                       "Pid", "Version", false, false));
+                       "Pid", "Version", false, false);
+
+                    // Assert
                     var badRequest = result as BadRequestErrorMessageResult;
                     Assert.NotNull(badRequest);
                 }
@@ -2011,13 +2026,18 @@ namespace NuGetGallery
                 [Fact]
                 public async Task ODataQueryFilterV2Search()
                 {
-                    ODataQueryVerifier.V2Search = GetQueryFilter<V2FeedPackage>(false);
+                    // Arrange
                     var v2Service = GetService("https://localhost:8081/");
-                    var result = (await v2Service.Search(
+                    v2Service.ODataQueryVerifier.V2Search = GetQueryFilter<V2FeedPackage>(false);
+
+                    // Act
+                    var result = await v2Service.Search(
                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(
                            NuGetODataV2FeedConfig.GetEdmModel(),
                            typeof(V2FeedPackage)),
-                           v2Service.Request)));
+                           v2Service.Request));
+
+                    // Assert
                     var badRequest = result as BadRequestErrorMessageResult;
                     Assert.NotNull(badRequest);
                 }
@@ -2025,13 +2045,18 @@ namespace NuGetGallery
                 [Fact]
                 public async Task ODataQueryFilterV2Packages()
                 {
-                    ODataQueryVerifier.V2Packages = GetQueryFilter<V2FeedPackage>(false);
+                    // Arrange
                     var v2Service = GetService("https://localhost:8081/");
-                    var result = (await v2Service.Get(
+                    v2Service.ODataQueryVerifier.V2Packages = GetQueryFilter<V2FeedPackage>(false);
+
+                    // Act
+                    var result = await v2Service.Get(
                        new ODataQueryOptions<V2FeedPackage>(new ODataQueryContext(
                            NuGetODataV2FeedConfig.GetEdmModel(),
                            typeof(V2FeedPackage)),
-                           v2Service.Request)));
+                           v2Service.Request));
+
+                    // Assert
                     var badRequest = result as BadRequestErrorMessageResult;
                     Assert.NotNull(badRequest);
                 }

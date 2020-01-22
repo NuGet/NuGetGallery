@@ -583,7 +583,6 @@
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
-    <Compile Include="Telemetry\DeploymentIdTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\PasswordValidationAttribute.cs" />
     <Compile Include="Migrations\201602181939424_RemovePackageStatistics.cs" />
@@ -2121,7 +2120,7 @@
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.58.0</Version>
+      <Version>2.66.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
@@ -2179,14 +2178,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.ApplicationInsights">
-      <Version>2.10.0</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.TraceListener">
       <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights.Web">
-      <Version>2.10.0</Version>
+      <Version>2.12.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.DynamicData.EFProvider">
       <Version>6.0.0</Version>
@@ -2303,13 +2299,13 @@
       <Version>5.0.0-preview1.5665</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.58.0</Version>
+      <Version>2.66.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.58.0</Version>
+      <Version>2.66.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.58.0</Version>
+      <Version>2.66.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
@@ -2370,6 +2366,7 @@
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <Import Project="$(NuGetBuildExtensions)" Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">

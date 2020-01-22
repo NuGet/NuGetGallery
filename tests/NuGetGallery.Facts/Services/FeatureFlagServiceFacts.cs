@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -54,7 +55,21 @@ namespace NuGetGallery
 
                 // Act & Assert
                 Assert.Throws<ArgumentNullException>(
-                    () => service.IsManageDeprecationEnabled(user, null));
+                    () => service.IsManageDeprecationEnabled(user, registration: null));
+            }
+
+            [Fact]
+            public void WhenAllVersionsNull_ThrowsArgumentNullException()
+            {
+                // Arrange
+                var user = new User();
+
+                var clientMock = new Mock<IFeatureFlagClient>(MockBehavior.Strict);
+                var service = new FeatureFlagService(clientMock.Object);
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(
+                    () => service.IsManageDeprecationEnabled(user, allVersions: null));
             }
 
             [Fact]
@@ -63,6 +78,7 @@ namespace NuGetGallery
                 // Arrange
                 var user = new User();
                 var registration = new PackageRegistration();
+                var allVersions = new List<Package>();
 
                 var clientMock = new Mock<IFeatureFlagClient>();
                 clientMock
@@ -71,11 +87,9 @@ namespace NuGetGallery
 
                 var service = new FeatureFlagService(clientMock.Object);
 
-                // Act
-                var result = service.IsManageDeprecationEnabled(user, registration);
-
-                // Assert
-                Assert.True(result);
+                // Act & Assert
+                Assert.True(service.IsManageDeprecationEnabled(user, registration));
+                Assert.True(service.IsManageDeprecationEnabled(user, allVersions));
             }
 
             [Theory]
@@ -86,11 +100,15 @@ namespace NuGetGallery
             {
                 // Arrange
                 var user = new User();
+                var allVersions = new List<Package>();
                 var registration = new PackageRegistration();
+
                 for (var i = 0; i < 1000; i++)
                 {
-                    registration.Packages.Add(new Package { Key = i });
+                    allVersions.Add(new Package { Key = i });
                 }
+
+                registration.Packages = allVersions;
 
                 var clientMock = new Mock<IFeatureFlagClient>();
                 clientMock
@@ -103,11 +121,9 @@ namespace NuGetGallery
 
                 var service = new FeatureFlagService(clientMock.Object);
 
-                // Act
-                var result = service.IsManageDeprecationEnabled(user, registration);
-
-                // Assert
-                Assert.Equal(isManyVersionsEnabled, result);
+                // Act & Assert
+                Assert.Equal(isManyVersionsEnabled, service.IsManageDeprecationEnabled(user, registration));
+                Assert.Equal(isManyVersionsEnabled, service.IsManageDeprecationEnabled(user, allVersions));
             }
         }
     }

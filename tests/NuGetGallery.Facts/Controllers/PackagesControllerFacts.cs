@@ -389,6 +389,7 @@ namespace NuGetGallery
                 // Arrange
                 var id = "Test" + Guid.NewGuid().ToString();
                 var packageService = new Mock<IPackageService>();
+                var deprecationService = new Mock<IPackageDeprecationService>();
                 var diagnosticsService = new Mock<IDiagnosticsService>();
                 var searchClient = new Mock<ISearchClient>();
                 var searchService = new Mock<ExternalSearchService>(diagnosticsService.Object, searchClient.Object)
@@ -400,9 +401,15 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
+                    deprecationService: deprecationService,
                     searchService: searchService.As<ISearchService>(),
                     httpContext: httpContext);
                 controller.SetCurrentUser(TestUtility.FakeUser);
+
+                deprecationService
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
+                    .Verifiable();
 
                 searchService
                     .Setup(x => x.RawSearch(It.IsAny<SearchFilter>()))
@@ -421,6 +428,10 @@ namespace NuGetGallery
                     NormalizedVersion = "2.0.0",
                 };
 
+                var packages = new List<Package> { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
                 packageService
                     .Setup(p => p.FilterExactPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<string>()))
                     .Returns(package);
@@ -611,23 +622,25 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
                     .Setup(p => p.FilterExactPackage(packages, version))
                     .Returns(package);
 
-                var getDeprecationByPackageSetup = deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(package));
+                var getDeprecationsByIdSetup = deprecationService
+                    .Setup(x => x.GetDeprecationsById(id));
 
                 if (expectSuccess)
                 {
-                    getDeprecationByPackageSetup.Verifiable();
+                    getDeprecationsByIdSetup
+                        .Returns(new List<PackageDeprecation>())
+                        .Verifiable();
                 }
                 else
                 {
-                    getDeprecationByPackageSetup.Throws(new InvalidOperationException());
+                    getDeprecationsByIdSetup.Throws(new InvalidOperationException());
                 }
 
                 // Act
@@ -738,7 +751,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -746,7 +759,8 @@ namespace NuGetGallery
                     .Returns(package);
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(package))
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -817,11 +831,12 @@ namespace NuGetGallery
                 };
 
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(new[] { notLatestPackage, latestPackage, latestButNotPackage });
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(latestPackage))
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -869,7 +884,7 @@ namespace NuGetGallery
 
                 var packages = new[] { notLatestPackage };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -877,7 +892,8 @@ namespace NuGetGallery
                     .Returns(notLatestPackage);
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(notLatestPackage))
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -923,7 +939,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById("Foo", PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -931,7 +947,8 @@ namespace NuGetGallery
                     .Returns(package);
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(package))
+                    .Setup(x => x.GetDeprecationsById("Foo"))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -1030,7 +1047,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1038,7 +1055,8 @@ namespace NuGetGallery
                     .Returns(package);
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(package))
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -1087,14 +1105,15 @@ namespace NuGetGallery
                 };
 
                 var packages = new[] { package };
-                packageService.Setup(p => p.FindPackagesById("Foo", PackageDeprecationFieldsToInclude.Deprecation))
+                packageService.Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(package))
+                    .Setup(x => x.GetDeprecationsById("Foo"))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -1149,7 +1168,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1161,7 +1180,8 @@ namespace NuGetGallery
                     .Returns(isAtomFeedEnabled);
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(package))
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 // Arrange and Act
@@ -1203,7 +1223,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1211,11 +1231,12 @@ namespace NuGetGallery
                     .Returns(package);
 
                 featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(It.IsAny<User>(), package.PackageRegistration))
+                    .Setup(x => x.IsManageDeprecationEnabled(It.IsAny<User>(), packages))
                     .Returns(isDeprecationEnabled);
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(package))
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 // Arrange and Act
@@ -1258,7 +1279,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1266,11 +1287,12 @@ namespace NuGetGallery
                     .Returns(package);
 
                 featureFlagService
-                    .Setup(x => x.IsManageDeprecationEnabled(TestUtility.FakeUser, package.PackageRegistration))
+                    .Setup(x => x.IsManageDeprecationEnabled(TestUtility.FakeUser, packages))
                     .Returns(isDeprecationEnabled);
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(package))
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 // Arrange and Act
@@ -1279,6 +1301,79 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
+
+                deprecationService.Verify();
+            }
+
+            [Fact]
+            public async Task ShowsFirstDeprecationPerPackage()
+            {
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var deprecationService = new Mock<IPackageDeprecationService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    deprecationService: deprecationService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var id = "Foo";
+                var package = new Package()
+                {
+                    Key = 123,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!"
+                };
+
+                var deprecation1 = new PackageDeprecation
+                {
+                    PackageKey = 456,
+                    CustomMessage = "BAD"
+                };
+                var deprecation2 = new PackageDeprecation
+                {
+                    PackageKey = 123,
+                    CustomMessage = "Hello"
+                };
+                var deprecation3 = new PackageDeprecation
+                {
+                    PackageKey = 123,
+                    CustomMessage = "World"
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(TestUtility.FakeUser, packages))
+                    .Returns(true);
+
+                var deprecations = new List<PackageDeprecation> { deprecation1, deprecation2, deprecation3 };
+                deprecationService
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(deprecations)
+                    .Verifiable();
+
+                // Arrange and Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+
+                Assert.Equal("Hello", model.CustomMessage);
 
                 deprecationService.Verify();
             }
@@ -1313,7 +1408,7 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
@@ -1321,7 +1416,8 @@ namespace NuGetGallery
                     .Returns(package);
 
                 deprecationService
-                    .Setup(x => x.GetDeprecationByPackage(package))
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
@@ -1355,11 +1451,13 @@ namespace NuGetGallery
                     .Setup(iup => iup.GetIconUrlString(It.IsAny<Package>()))
                     .Returns(iconUrl);
                 var packageService = new Mock<IPackageService>();
+                var deprecationService = new Mock<IPackageDeprecationService>();
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    iconUrlProvider: iconUrlProvider);
+                    iconUrlProvider: iconUrlProvider,
+                    deprecationService: deprecationService);
 
                 var id = "Foo";
                 var package = new Package()
@@ -1376,12 +1474,17 @@ namespace NuGetGallery
 
                 var packages = new[] { package };
                 packageService
-                    .Setup(p => p.FindPackagesById(id, PackageDeprecationFieldsToInclude.Deprecation))
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
                 packageService
                     .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
+
+                deprecationService
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>())
+                    .Verifiable();
 
                 var result = await controller.DisplayPackage(id, version: null);
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
