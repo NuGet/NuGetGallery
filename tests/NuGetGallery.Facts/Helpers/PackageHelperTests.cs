@@ -169,49 +169,6 @@ namespace NuGetGallery.Helpers
                 var ex = Assert.Throws<EntityException>(() => PackageHelper.ValidateNuGetPackageMetadata(metadata));
                 Assert.Contains("ID and version", ex.Message);
             }
-
-            [Fact]
-            public void ChecksDupliacteDependencyGroups()
-            {
-                var duplicateDependencyGroup = new PackageDependencyGroup(
-                        new NuGetFramework("net40"),
-                        new[]
-                        {
-                            new NuGet.Packaging.Core.PackageDependency(
-                                "dependency",
-                                VersionRange.Parse("[1.0.0, 2.0.0)")),
-                        });
-
-                var packageDependencyGroups = new[]
-                {
-                    duplicateDependencyGroup,
-                    new PackageDependencyGroup(
-                        new NuGetFramework("net35"),
-                        new[]
-                        {
-                            new NuGet.Packaging.Core.PackageDependency(
-                                "dependency",
-                                VersionRange.Parse("[1.0]"))
-                        }),
-                    duplicateDependencyGroup
-                };
-
-                var metadata = new PackageMetadata(
-                    new Dictionary<string, string>
-                    {
-                        { "id", "someid" },
-                        { "version", "1.2.3" },
-                        { "description", "test description" }
-                    },
-                    packageDependencyGroups,
-                    Enumerable.Empty<FrameworkSpecificGroup>(),
-                    Enumerable.Empty<NuGet.Packaging.Core.PackageType>(),
-                    minClientVersion: null,
-                    repositoryMetadata: null);
-
-                var ex = Assert.Throws<EntityException>(() => PackageHelper.ValidateNuGetPackageMetadata(metadata));
-                Assert.Equal(ServicesStrings.NuGetPackageDuplicateDependencyGroup, ex.Message);
-            }
         }
     }
 }
