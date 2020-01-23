@@ -21,7 +21,7 @@ namespace NuGet.Services.Sql
     /// </summary>
     public class AzureSqlConnectionStringBuilder : DbConnectionStringBuilder
     {
-        private const string AadAuthorityTemplate = "https://login.microsoftonline.com/{0}/v2.0";
+        private const string AadAuthorityTemplate = "https://login.microsoftonline.com/{0}";
 
         public string AadAuthority { get; }
 
