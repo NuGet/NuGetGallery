@@ -159,7 +159,7 @@ namespace NuGet.Jobs.RegistrationComparer
                     }
                     catch (InvalidOperationException ex)
                     {
-                        ResultWriter.WriteWarning(ex.Message);
+                        _logger.LogWarning(ex, "A comparison warning was found.");
                         continue;
                     }
 

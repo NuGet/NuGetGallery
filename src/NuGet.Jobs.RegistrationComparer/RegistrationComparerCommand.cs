@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
@@ -48,10 +49,11 @@ namespace NuGet.Jobs.RegistrationComparer
             _logger.LogInformation("Using cursor: {CursurUrl}", frontCursorPair.Key);
             var frontCursor = frontCursorPair.Value;
 
-            await _storageAccount
+            var container = _storageAccount
                 .CreateCloudBlobClient()
-                .GetContainerReference(_options.Value.StorageContainer)
-                .CreateIfNotExistsAsync();
+                .GetContainerReference(_options.Value.StorageContainer);
+            await container.CreateIfNotExistsAsync();
+            await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
             await frontCursor.LoadAsync(token);
             await backCursor.LoadAsync(token);

@@ -88,7 +88,6 @@ namespace NuGet.Jobs.RegistrationComparer
                         catch (Exception ex)
                         {
                             Interlocked.Increment(ref failures);
-                            ResultWriter.WriteError(ex.Message.ToString());
                             _logger.LogError(ex, "The comparison failed.");
                         }
                     });
