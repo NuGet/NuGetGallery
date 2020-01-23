@@ -307,61 +307,43 @@ namespace NuGetGallery.Services
             public void GetsDeprecationOfPackage()
             {
                 // Arrange
-                var key = 190304;
-                var package = new Package
-                {
-                    Key = key
-                };
-
                 var differentDeprecation = new PackageDeprecation
                 {
-                    PackageKey = 9925
-                };
-
-                var matchingDeprecation = new PackageDeprecation
-                {
-                    PackageKey = key
-                };
-
-                var context = GetFakeContext();
-                context.Deprecations.AddRange(
-                    new[] { differentDeprecation, matchingDeprecation });
-
-                // Act
-                var deprecation = Get<PackageDeprecationService>()
-                    .GetDeprecationByPackage(package);
-
-                // Assert
-                Assert.Equal(matchingDeprecation, deprecation);
-            }
-
-            [Fact]
-            public void ThrowsIfMultipleDeprecationsOfPackage()
-            {
-                // Arrange
-                var key = 190304;
-                var package = new Package
-                {
-                    Key = key
+                    Package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration {  Id = "Bar" }
+                    }
                 };
 
                 var matchingDeprecation1 = new PackageDeprecation
                 {
-                    PackageKey = key
+                    Package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Foo" }
+                    }
                 };
 
                 var matchingDeprecation2 = new PackageDeprecation
                 {
-                    PackageKey = key
+                    Package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Foo" }
+                    }
                 };
 
                 var context = GetFakeContext();
                 context.Deprecations.AddRange(
-                    new[] { matchingDeprecation1, matchingDeprecation2 });
+                    new[] { differentDeprecation, matchingDeprecation1, matchingDeprecation2 });
 
-                // Act / Assert
-                Assert.Throws<InvalidOperationException>(
-                    () => Get<PackageDeprecationService>().GetDeprecationByPackage(package));
+                var target = Get<PackageDeprecationService>();
+
+                // Act
+                var result = target.GetDeprecationsById("Foo");
+
+                // Assert
+                Assert.Equal(2, result.Count);
+                Assert.Equal(matchingDeprecation1, result[0]);
+                Assert.Equal(matchingDeprecation2, result[1]);
             }
         }
     }

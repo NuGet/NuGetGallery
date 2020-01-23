@@ -3,8 +3,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGet.Versioning;
 using NuGetGallery.Packaging;
 using Xunit;
 

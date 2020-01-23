@@ -7,7 +7,7 @@ param (
     [Parameter(Mandatory=$true)][string]$Branch = "master",
     [Parameter(Mandatory=$true)][ValidateSet("production", "staging")][string]$Slot = "production",
     [Parameter(Mandatory=$true)][ValidateSet("Dev", "Int", "Prod")][string]$Environment,
-    [Parameter(Mandatory=$true)][ValidateSet("USNC", "USSC", "USNC-PREVIEW")][string]$Region
+    [Parameter(Mandatory=$true)][ValidateSet("USNC", "USSC", "USNC-PREVIEW", "USSC-PREVIEW")][string]$Region
 )
 
 Write-Host "Importing configuration for Gallery Functional tests on $Environment $Region"
