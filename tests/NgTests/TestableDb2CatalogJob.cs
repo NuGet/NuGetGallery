@@ -2,12 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Ng.Jobs;
 using NgTests.Infrastructure;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit.Abstractions;
@@ -31,7 +33,7 @@ namespace NgTests
             Mock<IGalleryDatabaseQueryService> galleryDatabaseMock,
             PackageContentUriBuilder packageContentUriBuilder,
             ITestOutputHelper testOutputHelper)
-            : base(new MockTelemetryService(), new TestLoggerFactory(testOutputHelper))
+            : base(new TestLoggerFactory(testOutputHelper), new Mock<ITelemetryClient>().Object, new Dictionary<string, string>())
         {
             _handler = handler;
 

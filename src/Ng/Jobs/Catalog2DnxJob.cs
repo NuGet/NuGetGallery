@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Configuration;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -21,8 +22,10 @@ namespace Ng.Jobs
         private ReadCursor _back;
         private Uri _destination;
 
-        public Catalog2DnxJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
-            : base(telemetryService, loggerFactory)
+        public Catalog2DnxJob(ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 

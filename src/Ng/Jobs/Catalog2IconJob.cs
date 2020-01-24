@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Configuration;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Icons;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -23,8 +24,11 @@ namespace Ng.Jobs
         private IconsCollector _collector;
         private DurableCursor _front;
 
-        public Catalog2IconJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
-            : base(telemetryService, loggerFactory)
+        public Catalog2IconJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 

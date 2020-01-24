@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Indexing;
 using NuGet.Services.Configuration;
-using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Logging;
 
 namespace Ng.Jobs
 {
@@ -19,7 +19,11 @@ namespace Ng.Jobs
         private string _source;
         private Uri _catalogIndexUrl;
 
-        public Db2LuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
+        public Db2LuceneJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 
@@ -40,7 +44,7 @@ namespace Ng.Jobs
 
             _catalogIndexUrl = new Uri(_source);
         }
-        
+
         protected override Task RunInternalAsync(CancellationToken cancellationToken)
         {
             Sql2Lucene.Export(_connectionString, _catalogIndexUrl, _path, LoggerFactory);

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,9 +77,11 @@ namespace NuGet.Jobs.Catalog2Registration
                 .Keyed<IStorageFactory>(CursorBindingKey);
         }
 
-        public static IServiceCollection AddCatalog2Registration(this IServiceCollection services)
+        public static IServiceCollection AddCatalog2Registration(
+            this IServiceCollection services,
+            IDictionary<string, string> telemetryGlobalDimensions)
         {
-            services.AddV3();
+            services.AddV3(telemetryGlobalDimensions);
 
             services.AddTransient<ICommitCollectorLogic, RegistrationCollectorLogic>();
             services.AddTransient<IHiveMerger, HiveMerger>();

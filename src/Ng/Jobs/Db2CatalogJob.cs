@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Ng.Helpers;
 using NuGet.Protocol;
 using NuGet.Services.Configuration;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -35,8 +36,11 @@ namespace Ng.Jobs
         protected Uri Destination;
         protected bool SkipCreatedPackagesProcessing;
 
-        public Db2CatalogJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
-            : base(telemetryService, loggerFactory)
+        public Db2CatalogJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 

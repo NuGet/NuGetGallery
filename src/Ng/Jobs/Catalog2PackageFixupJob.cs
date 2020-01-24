@@ -15,20 +15,20 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using NuGet.Packaging.Core;
 using NuGet.Services.Configuration;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs
 {
     public class Catalog2PackageFixupJob : NgJob
     {
-        private const int MaximumPackageProcessingAttempts = 5;
-        private static readonly TimeSpan MaximumPackageProcessingTime = TimeSpan.FromMinutes(10);
-        private static readonly TimeSpan DonePollingInterval = TimeSpan.FromMinutes(1);
-
         private IServiceProvider _serviceProvider;
 
-        public Catalog2PackageFixupJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
-            : base(telemetryService, loggerFactory)
+        public Catalog2PackageFixupJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
             ThreadPool.SetMinThreads(MaxDegreeOfParallelism, 4);
         }
@@ -54,7 +54,7 @@ namespace Ng.Jobs
 
             var services = new ServiceCollection();
 
-            services.AddSingleton(TelemetryService);
+            services.AddSingleton(new TelemetryService(TelemetryClient, GlobalTelemetryDimensions));
             services.AddSingleton(LoggerFactory);
             services.AddLogging();
 
@@ -65,7 +65,7 @@ namespace Ng.Jobs
                 {
                     AllowPipelining = true
                 });
-                
+
                 httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgentUtility.GetUserAgent());
                 httpClient.Timeout = TimeSpan.FromMinutes(10);
 

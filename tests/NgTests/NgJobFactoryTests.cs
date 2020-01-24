@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Ng;
-using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Logging;
 using Xunit;
 
 namespace NgTests
@@ -19,14 +19,14 @@ namespace NgTests
         public void CanActivateJobs(string name, Type type)
         {
             // Arrange
-            var telemetryService = new Mock<ITelemetryService>();
+            var telemetryClient = new Mock<ITelemetryClient>();
             var loggerFactory = new Mock<ILoggerFactory>();
             loggerFactory
                 .Setup(x => x.CreateLogger(It.IsAny<string>()))
                 .Returns(() => new Mock<ILogger>().Object);
 
             // Act
-            var job = NgJobFactory.GetJob(name, telemetryService.Object, loggerFactory.Object);
+            var job = NgJobFactory.GetJob(name, loggerFactory.Object, telemetryClient.Object, new Dictionary<string, string>());
 
             // Assert
             Assert.NotNull(job);

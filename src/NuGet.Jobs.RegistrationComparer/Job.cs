@@ -80,7 +80,7 @@ namespace NuGet.Jobs.RegistrationComparer
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            services.AddV3();
+            services.AddV3(GlobalTelemetryDimensions);
 
             switch (_mode)
             {

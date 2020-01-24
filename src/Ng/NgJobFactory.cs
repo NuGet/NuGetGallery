@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Ng.Jobs;
-using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Logging;
 
 namespace Ng
 {
@@ -30,14 +30,18 @@ namespace Ng
             { "catalog2icon", typeof(Catalog2IconJob) },
         };
 
-        public static NgJob GetJob(string jobName, ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+        public static NgJob GetJob(
+            string jobName,
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
         {
             if (JobMap.ContainsKey(jobName))
             {
                 return
                     (NgJob)
-                    JobMap[jobName].GetConstructor(new[] { typeof(ITelemetryService), typeof(ILoggerFactory) })
-                        .Invoke(new object[] { telemetryService, loggerFactory });
+                    JobMap[jobName].GetConstructor(new[] { typeof(ILoggerFactory), typeof(ITelemetryClient), typeof(IDictionary<string, string>) })
+                        .Invoke(new object[] { loggerFactory, telemetryClient, telemetryGlobalDimensions });
             }
 
             throw new ArgumentException("Missing or invalid job name!");

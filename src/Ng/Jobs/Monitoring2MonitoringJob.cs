@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
-using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Storage;
 
@@ -25,8 +25,11 @@ namespace Ng.Jobs
         private const int DefaultMaxQueueSize = 100;
         private int _maxRequeueQueueSize;
 
-        public Monitoring2MonitoringJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
-            : base(telemetryService, loggerFactory)
+        public Monitoring2MonitoringJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 
@@ -50,7 +53,7 @@ namespace Ng.Jobs
             if (currentMessageCount > _maxRequeueQueueSize)
             {
                 Logger.LogInformation(
-                    "Can't requeue any invalid packages because the queue has too many messages ({CurrentMessageCount} > {MaxRequeueQueueSize})!", 
+                    "Can't requeue any invalid packages because the queue has too many messages ({CurrentMessageCount} > {MaxRequeueQueueSize})!",
                     currentMessageCount, _maxRequeueQueueSize);
                 return;
             }
@@ -61,7 +64,7 @@ namespace Ng.Jobs
             {
                 try
                 {
-                    Logger.LogInformation("Requeuing invalid package {PackageId} {PackageVersion}.", 
+                    Logger.LogInformation("Requeuing invalid package {PackageId} {PackageVersion}.",
                         invalidPackage.Package.Id, invalidPackage.Package.Version);
 
                     return _queue.AddAsync(
@@ -70,7 +73,7 @@ namespace Ng.Jobs
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError("Failed to requeue invalid package {PackageId} {PackageVersion}: {Exception}", 
+                    Logger.LogError("Failed to requeue invalid package {PackageId} {PackageVersion}: {Exception}",
                         invalidPackage.Package.Id, invalidPackage.Package.Version, e);
 
                     return Task.FromResult(0);

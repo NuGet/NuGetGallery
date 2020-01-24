@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
 using Microsoft.Azure.Search;
@@ -32,7 +33,7 @@ namespace NuGet.Services.AzureSearch
         public static ContainerBuilder AddAzureSearch(this ContainerBuilder containerBuilder)
         {
             /// Here, we register services that depend on an interface that there are multiple implementations.
-            
+
             /// There are multiple implementations of <see cref="ISearchServiceClientWrapper"/>.
             RegisterIndexServices(containerBuilder, "SearchIndex", "HijackIndex");
 
@@ -212,9 +213,11 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<ILogger<AuxiliaryFileClient>>()));
         }
 
-        public static IServiceCollection AddAzureSearch(this IServiceCollection services)
+        public static IServiceCollection AddAzureSearch(
+            this IServiceCollection services,
+            IDictionary<string, string> telemetryGlobalDimensions)
         {
-            services.AddV3();
+            services.AddV3(telemetryGlobalDimensions);
 
             services
                 .AddTransient<ISearchServiceClient>(p =>

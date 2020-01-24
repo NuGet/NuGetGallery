@@ -9,12 +9,10 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Ng.Jobs;
 using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
-using NuGet.Services.Metadata.Catalog;
 using Serilog;
 using Serilog.Events;
 
@@ -22,6 +20,8 @@ namespace Ng
 {
     public class Program
     {
+        private const string HeartbeatProperty_JobLoopExitCode = "JobLoopExitCode";
+
         private static Microsoft.Extensions.Logging.ILogger _logger;
 
         public static void Main(string[] args)
@@ -38,6 +38,8 @@ namespace Ng
             }
 
             NgJob job = null;
+            ApplicationInsightsConfiguration applicationInsightsConfiguration = null;
+            int exitCode = 0;
 
             try
             {
@@ -56,62 +58,107 @@ namespace Ng
 
                 var jobName = args[0];
                 var instanceName = arguments.GetOrDefault(Arguments.InstanceName, jobName);
-                TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobNameTelemetryInitializer(jobName, instanceName));
-
-                // Configure ApplicationInsights
                 var instrumentationKey = arguments.GetOrDefault<string>(Arguments.InstrumentationKey);
                 var heartbeatIntervalSeconds = arguments.GetOrDefault<int>(Arguments.HeartbeatIntervalSeconds);
 
-                if (heartbeatIntervalSeconds == 0)
-                {
-                    ApplicationInsights.Initialize(instrumentationKey);
-                }
-                else
-                {
-                    ApplicationInsights.Initialize(
-                        instrumentationKey,
-                        TimeSpan.FromSeconds(heartbeatIntervalSeconds));
-                }
+                applicationInsightsConfiguration = ConfigureApplicationInsights(
+                    instrumentationKey,
+                    heartbeatIntervalSeconds,
+                    jobName,
+                    instanceName,
+                    out var telemetryClient,
+                    out var telemetryGlobalDimensions);
 
-                // Create an ILoggerFactory
-                var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: true);
-                loggerConfiguration.WriteTo.File("Log.txt", retainedFileCountLimit: 3, fileSizeLimitBytes: 1000000, rollOnFileSizeLimit: true);
+                var loggerFactory = ConfigureLoggerFactory(applicationInsightsConfiguration);
 
-                var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration, LogEventLevel.Debug);
+                job = NgJobFactory.GetJob(jobName, loggerFactory, telemetryClient, telemetryGlobalDimensions);
 
-                // Create a logger that is scoped to this class (only)
-                _logger = loggerFactory.CreateLogger<Program>();
+                // This tells Application Insights that, even though a heartbeat is reported, 
+                // the state of the application is unhealthy when the exitcode is different from zero.
+                // The heartbeat metadata is enriched with the job loop exit code.
+                applicationInsightsConfiguration.DiagnosticsTelemetryModule?.AddOrSetHeartbeatProperty(
+                    HeartbeatProperty_JobLoopExitCode,
+                    exitCode.ToString(),
+                    isHealthy: exitCode == 0);
 
                 var cancellationTokenSource = new CancellationTokenSource();
-
-                // Create an ITelemetryService
-                var telemetryService = new TelemetryService(new TelemetryClient());
-
-                // Allow jobs to set global custom dimensions
-                TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobPropertiesTelemetryInitializer(telemetryService));
-
-                job = NgJobFactory.GetJob(jobName, telemetryService, loggerFactory);
                 await job.RunAsync(arguments, cancellationTokenSource.Token);
+                exitCode = 0;
             }
             catch (ArgumentException ae)
             {
+                exitCode = 1;
                 _logger?.LogError("A required argument was not found or was malformed/invalid: {Exception}", ae);
 
                 Console.WriteLine(job != null ? job.GetUsage() : NgJob.GetUsageBase());
             }
             catch (KeyNotFoundException knfe)
             {
+                exitCode = 1;
                 _logger?.LogError("An expected key was not found. One possible cause of this is required argument has not been provided: {Exception}", knfe);
 
                 Console.WriteLine(job != null ? job.GetUsage() : NgJob.GetUsageBase());
             }
             catch (Exception e)
             {
+                exitCode = 1;
                 _logger?.LogCritical("A critical exception occured in ng.exe! {Exception}", e);
             }
 
+            applicationInsightsConfiguration.DiagnosticsTelemetryModule?.SetHeartbeatProperty(
+                HeartbeatProperty_JobLoopExitCode,
+                exitCode.ToString(),
+                isHealthy: exitCode == 0);
+
             Trace.Close();
-            TelemetryConfiguration.Active.TelemetryChannel.Flush();
+            applicationInsightsConfiguration?.TelemetryConfiguration.TelemetryChannel.Flush();
+        }
+
+        private static ILoggerFactory ConfigureLoggerFactory(ApplicationInsightsConfiguration applicationInsightsConfiguration)
+        {
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: true);
+            loggerConfiguration.WriteTo.File("Log.txt", retainedFileCountLimit: 3, fileSizeLimitBytes: 1000000, rollOnFileSizeLimit: true);
+
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(
+                loggerConfiguration,
+                LogEventLevel.Debug,
+                applicationInsightsConfiguration.TelemetryConfiguration);
+
+            // Create a logger that is scoped to this class (only)
+            _logger = loggerFactory.CreateLogger<Program>();
+            return loggerFactory;
+        }
+
+        private static ApplicationInsightsConfiguration ConfigureApplicationInsights(
+            string instrumentationKey,
+            int heartbeatIntervalSeconds,
+            string jobName,
+            string instanceName,
+            out ITelemetryClient telemetryClient,
+            out IDictionary<string, string> telemetryGlobalDimensions)
+        {
+            ApplicationInsightsConfiguration applicationInsightsConfiguration;
+            if (heartbeatIntervalSeconds == 0)
+            {
+                applicationInsightsConfiguration = ApplicationInsights.Initialize(instrumentationKey);
+            }
+            else
+            {
+                applicationInsightsConfiguration = ApplicationInsights.Initialize(
+                    instrumentationKey,
+                    TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+            }
+
+            telemetryClient = new TelemetryClientWrapper(
+                new TelemetryClient(applicationInsightsConfiguration.TelemetryConfiguration));
+
+            telemetryGlobalDimensions = new Dictionary<string, string>();
+
+            // Enrich telemetry with job properties and global custom dimensions                
+            applicationInsightsConfiguration.TelemetryConfiguration.TelemetryInitializers.Add(
+                new JobPropertiesTelemetryInitializer(jobName, instanceName, telemetryGlobalDimensions));
+
+            return applicationInsightsConfiguration;
         }
     }
 }

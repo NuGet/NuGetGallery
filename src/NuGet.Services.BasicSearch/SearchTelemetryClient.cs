@@ -23,9 +23,9 @@ namespace NuGet.Services.BasicSearch
             public const string LuceneCommitTimestamp = "LuceneCommitTimestamp";
         }
 
-        public SearchTelemetryClient()
+        public SearchTelemetryClient(TelemetryConfiguration telemetryConfiguration)
         {
-            TelemetryClient = new TelemetryClient(TelemetryConfiguration.Active);
+            TelemetryClient = new TelemetryClient(telemetryConfiguration);
         }
 
         public void TrackMetric(string name, double value, IDictionary<string, string> properties = null)

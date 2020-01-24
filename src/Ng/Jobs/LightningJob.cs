@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -21,6 +20,7 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol.Catalog;
 using NuGet.Services;
 using NuGet.Services.Configuration;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Registration;
@@ -33,8 +33,11 @@ namespace Ng.Jobs
         private const string GraphDriver = "graph";
         private const string JsonDriver = "json";
 
-        public LightningJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
-            : base(telemetryService, loggerFactory)
+        public LightningJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 
@@ -522,7 +525,7 @@ namespace Ng.Jobs
             services.AddSingleton(LoggerFactory);
             services.AddLogging();
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
-            services.AddSingleton(new TelemetryClient());
+            services.AddSingleton(TelemetryClient);
 
             services.Configure<Catalog2RegistrationConfiguration>(config =>
             {
@@ -567,7 +570,7 @@ namespace Ng.Jobs
                 config.EnsureSingleSnapshot = true;
             });
 
-            services.AddCatalog2Registration();
+            services.AddCatalog2Registration(GlobalTelemetryDimensions);
 
             var containerBuilder = new ContainerBuilder();
             containerBuilder.AddCatalog2Registration();
