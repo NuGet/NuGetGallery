@@ -103,7 +103,7 @@ namespace NuGet.Jobs.RegistrationComparer
                         await work();
                     }
                 },
-                degreeOfParallelism: 32);
+                degreeOfParallelism: _options.Value.MaxConcurrentComparisons);
 
             if (failures > 0)
             {

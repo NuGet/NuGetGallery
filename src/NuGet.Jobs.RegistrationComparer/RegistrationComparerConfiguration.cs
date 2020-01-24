@@ -14,6 +14,8 @@ namespace NuGet.Jobs.RegistrationComparer
         public List<HivesConfiguration> Registrations { get; set; }
         public string Source { get; set; }
         public int MaxConcurrentCatalogLeafDownloads { get; set; } = 64;
+        public int MaxConcurrentComparisons { get; set; } = 32;
+        public int MaxConcurrentPageAndLeafDownloadsPerId { get; set; } = 32;
         public TimeSpan HttpClientTimeout { get; set; } = TimeSpan.FromMinutes(10);
     }
 }

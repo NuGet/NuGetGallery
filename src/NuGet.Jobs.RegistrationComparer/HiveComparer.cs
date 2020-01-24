@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Protocol.Catalog;
@@ -22,15 +23,18 @@ namespace NuGet.Jobs.RegistrationComparer
     {
         private readonly HttpClient _httpClient;
         private readonly JsonComparer _comparer;
+        private readonly IOptionsSnapshot<RegistrationComparerConfiguration> _options;
         private readonly ILogger<HiveComparer> _logger;
 
         public HiveComparer(
             HttpClient httpClient,
             JsonComparer comparer,
+            IOptionsSnapshot<RegistrationComparerConfiguration> options,
             ILogger<HiveComparer> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _comparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -113,7 +117,8 @@ namespace NuGet.Jobs.RegistrationComparer
                         var json = await GetJObjectOrNullAsync(pageUrl);
                         urlToJson.TryAdd(pageUrl, json.Data);
                     }
-                });
+                },
+                _options.Value.MaxConcurrentPageAndLeafDownloadsPerId);
 
             // Compare the pages.
             for (var i = 1; i < baseUrls.Count; i++)
