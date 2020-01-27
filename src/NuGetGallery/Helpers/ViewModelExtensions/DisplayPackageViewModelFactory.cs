@@ -20,49 +20,52 @@ namespace NuGetGallery
 
         public DisplayPackageViewModel Create(
             Package package,
+            IReadOnlyCollection<Package> allVersions,
             User currentUser,
-            PackageDeprecation deprecation,
+            IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
             RenderedReadMeResult readmeResult)
         {
             var viewModel = new DisplayPackageViewModel();
             return Setup(
                 viewModel,
                 package,
+                allVersions,
                 currentUser,
-                deprecation,
+                packageKeyToDeprecation,
                 readmeResult);
         }
 
         public DisplayPackageViewModel Setup(
             DisplayPackageViewModel viewModel,
             Package package,
+            IReadOnlyCollection<Package> allVersions,
             User currentUser,
-            PackageDeprecation deprecation,
+            IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
             RenderedReadMeResult readmeResult)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
-            SetupCommon(viewModel, package, pushedBy: null);
-            return SetupInternal(viewModel, package, currentUser, deprecation, readmeResult);
+            SetupCommon(viewModel, package, pushedBy: null, packageKeyToDeprecation: packageKeyToDeprecation);
+            return SetupInternal(viewModel, package, allVersions, currentUser, packageKeyToDeprecation, readmeResult);
         }
 
         private DisplayPackageViewModel SetupInternal(
             DisplayPackageViewModel viewModel,
             Package package,
+            IReadOnlyCollection<Package> allVersions,
             User currentUser,
-            PackageDeprecation deprecation,
+            IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
             RenderedReadMeResult readmeResult)
         {
+            var dependencies = package.Dependencies.ToList();
+
+            viewModel.Dependencies = new DependencySetsViewModel(dependencies);
             viewModel.HasSemVer2Version = viewModel.NuGetVersion.IsSemVer2;
-            viewModel.HasSemVer2Dependency = package.Dependencies.ToList()
+            viewModel.HasSemVer2Dependency = dependencies
                 .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
                 .Select(pd => VersionRange.Parse(pd.VersionSpec))
                 .Any(p => (p.HasUpperBound && p.MaxVersion.IsSemVer2) || (p.HasLowerBound && p.MinVersion.IsSemVer2));
 
-            viewModel.Dependencies = new DependencySetsViewModel(package.Dependencies);
-
-            var packageHistory = package
-                .PackageRegistration
-                .Packages
+            var packageHistory = allVersions
                 .OrderByDescending(p => new NuGetVersion(p.Version))
                 .ToList();
             var pushedByCache = new Dictionary<User, string>();
@@ -72,7 +75,7 @@ namespace NuGetGallery
                     {
                         var vm = new DisplayPackageViewModel();
                         _listPackageItemViewModelFactory.Setup(vm, p, currentUser);
-                        return SetupCommon(vm, p, GetPushedBy(p, currentUser, pushedByCache));
+                        return SetupCommon(vm, p, GetPushedBy(p, currentUser, pushedByCache), packageKeyToDeprecation);
                     })
                 .ToList();
 
@@ -92,11 +95,13 @@ namespace NuGetGallery
                 viewModel.TotalDaysSinceCreated = Convert.ToInt32(Math.Max(1, Math.Round((DateTime.UtcNow - packageHistory.Min(p => p.Created)).TotalDays)));
                 viewModel.DownloadsPerDay = viewModel.TotalDownloadCount / viewModel.TotalDaysSinceCreated; // for the package
                 viewModel.DownloadsPerDayLabel = viewModel.DownloadsPerDay < 1 ? "<1" : viewModel.DownloadsPerDay.ToNuGetNumberString();
+
+                // Lazily load the package types from the database.
                 viewModel.IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
                 viewModel.IsDotnetNewTemplatePackageType = package.PackageTypes.Any(e => e.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
             }
 
-            if (deprecation != null)
+            if (packageKeyToDeprecation != null && packageKeyToDeprecation.TryGetValue(package.Key, out var deprecation))
             {
                 viewModel.AlternatePackageId = deprecation.AlternatePackageRegistration?.Id;
 
@@ -122,7 +127,8 @@ namespace NuGetGallery
         private DisplayPackageViewModel SetupCommon(
             DisplayPackageViewModel viewModel,
             Package package,
-            string pushedBy)
+            string pushedBy,
+            IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation)
         {
             viewModel.NuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
             viewModel.Copyright = package.Copyright;
@@ -156,8 +162,14 @@ namespace NuGetGallery
                 }
             }
 
-            viewModel.DeprecationStatus = package.Deprecations.SingleOrDefault()?.Status
-                ?? PackageDeprecationStatus.NotDeprecated;
+            if (packageKeyToDeprecation != null && packageKeyToDeprecation.TryGetValue(package.Key, out var deprecation))
+            {
+                viewModel.DeprecationStatus = deprecation.Status;
+            }
+            else
+            {
+                viewModel.DeprecationStatus = PackageDeprecationStatus.NotDeprecated;
+            }
 
             return viewModel;
         }

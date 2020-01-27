@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -79,12 +80,22 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(registration));
             }
 
+            return IsManageDeprecationEnabled(user, registration.Packages);
+        }
+
+        public bool IsManageDeprecationEnabled(User user, IEnumerable<Package> allVersions)
+        {
+            if (allVersions == null)
+            {
+                throw new ArgumentNullException(nameof(allVersions));
+            }
+
             if (!_client.IsEnabled(ManageDeprecationFeatureName, user, defaultValue: false))
             {
                 return false;
             }
 
-            return registration.Packages.Count() < _manageDeprecationForManyVersionsThreshold 
+            return allVersions.Count() < _manageDeprecationForManyVersionsThreshold
                 || _client.IsEnabled(ManageDeprecationForManyVersionsFeatureName, user, defaultValue: true);
         }
 

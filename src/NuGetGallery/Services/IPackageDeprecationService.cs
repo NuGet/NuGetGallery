@@ -24,6 +24,6 @@ namespace NuGetGallery
             string customMessage,
             User user);
 
-        PackageDeprecation GetDeprecationByPackage(Package package);
+        IReadOnlyList<PackageDeprecation> GetDeprecationsById(string id);
     }
 }
