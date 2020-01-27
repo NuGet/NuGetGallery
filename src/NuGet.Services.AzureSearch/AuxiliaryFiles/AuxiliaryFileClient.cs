@@ -129,9 +129,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 _jsonReader = jsonReader ?? throw new ArgumentNullException(nameof(jsonReader));
             }
 
-            public DateTime? GetLastUpdateTime(string name) => throw new NotImplementedException();
-            public bool Reload(IndexingConfiguration config) => throw new NotImplementedException();
-
             public JsonReader GetReader(string name)
             {
                 if (name != null)

@@ -12,8 +12,6 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
         [JsonProperty("@context")]
         public AtContext AtContext { get; set; }
 
-        public DateTime? LastReopen { get; set; }
-
         public IList<V3SearchResultEntry> Data { get; set; }
     }
 }

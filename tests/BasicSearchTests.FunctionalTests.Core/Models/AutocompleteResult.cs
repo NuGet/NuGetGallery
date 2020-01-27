@@ -9,14 +9,7 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
 {
     public class AutocompleteResult
     {
-        [JsonProperty("@context")]
-        public AtContext AtContext { get; set; }
-
         public int? TotalHits { get; set; }
-
-        public DateTime? LastReopen { get; set; }
-
-        public string Index { get; set; }
 
         public List<string> Data { get; set; }
     }

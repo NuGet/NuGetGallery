@@ -43,11 +43,6 @@ namespace NuGet.IndexingTests.TestSupport
                 new ScoreDoc(1, (float)0.5)
             };
 
-        public static readonly VersionResult[] VersionResults = {
-                new VersionResult(),
-                new VersionResult()
-            };
-
 
         // These two lists should be used together to create the full matrix of documents
         public static readonly Document[] FullDocMatrix =
@@ -81,7 +76,5 @@ namespace NuGet.IndexingTests.TestSupport
         public static readonly OpenBitSet LatestSemVer2BitSet = new OpenBitSet(10);
 
         public static readonly OpenBitSet LatestStableSemVer2BitSet = new OpenBitSet(10);
-
-        public static readonly OwnersResult EmptyOwnersResult = new OwnersResult(new HashSet<string>(), new Dictionary<string, HashSet<string>>(), new Dictionary<string, IDictionary<string, DynamicDocIdSet>>());
     }
 }

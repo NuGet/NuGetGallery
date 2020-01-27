@@ -1,7 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<TestSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <PackageDirectory>BasicSearchTests\Packages</PackageDirectory>
-  <DataDirectory>BasicSearchTests\Data</DataDirectory>
-  <RegistrationBaseAddress>http://api.nuget.org/v3/registration0/</RegistrationBaseAddress>
-  <ApiIndexUrl>https://api.nuget.org/v3/index.json</ApiIndexUrl>
-</TestSettings>

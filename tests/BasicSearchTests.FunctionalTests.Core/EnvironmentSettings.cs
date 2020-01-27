@@ -11,7 +11,6 @@ namespace BasicSearchTests.FunctionalTests.Core
     public class EnvironmentSettings
     {
         private static string _searchServiceBaseurl;
-        private static string _indexBaseUrl;
 
         /// <summary>
         /// The environment against which the (search service) test has to be run. The value would be picked from env variable.
@@ -27,23 +26,6 @@ namespace BasicSearchTests.FunctionalTests.Core
                 }
 
                 return _searchServiceBaseurl;
-            }
-        }
-
-        /// <summary>
-        /// The index base url to get the service endpoints. The value would be picked from env variable.
-        /// If nothing is specified, int environment's index base url is used as default.
-        /// </summary>
-        public static string IndexBaseUrl
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_indexBaseUrl))
-                {
-                    _indexBaseUrl = GetEnvironmentVariable("IndexBaseUrl", "https://apiint.nugettest.org/v3-index/index.json");
-                }
-
-                return _indexBaseUrl;
             }
         }
 

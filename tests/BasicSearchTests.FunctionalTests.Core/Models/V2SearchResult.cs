@@ -8,8 +8,6 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
 {
     public class V2SearchResult: SearchResult
     {
-        public DateTime? IndexTimestamp { get; set; }
-
         public IList<V2SearchResultEntry> Data { get; set; }
     }
 }
