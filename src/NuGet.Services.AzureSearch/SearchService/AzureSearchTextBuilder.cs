@@ -129,15 +129,17 @@ namespace NuGet.Services.AzureSearch.SearchService
             /// queries like "field:value". Unlike <see cref="AppendScopedTerms"/>, this supports
             /// prefix matching.
             /// </summary>
-            /// <param name="fieldName">The field that these terms should be scoped to.</param>
+            /// <param name="fieldName">The field that should contain this term.</param>
             /// <param name="term">The term to search.</param>
-            /// <param name="required">Whether search results MUST match these terms.</param>
-            /// <param name="prefixSearch">If true, prefix matches are allowed for the terms.</param>
+            /// <param name="required">Whether search results MUST match this term.</param>
+            /// <param name="prefixSearch">Whether prefix matches are allowed.</param>
+            /// <param name="boost">The boost to results that match this term.</param>
             public void AppendScopedTerm(
                 string fieldName,
                 string term,
                 bool required = false,
-                bool prefixSearch = false)
+                bool prefixSearch = false,
+                double boost = 1.0)
             {
                 // We will generate a single clause.
                 ValidateAdditionalClausesOrThrow(1);
@@ -159,6 +161,12 @@ namespace NuGet.Services.AzureSearch.SearchService
                 if (prefixSearch)
                 {
                     _result.Append('*');
+                }
+
+                if (boost > 1)
+                {
+                    _result.Append("^");
+                    _result.Append(boost);
                 }
             }
 

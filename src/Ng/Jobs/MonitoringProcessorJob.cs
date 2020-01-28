@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using Ng.Helpers;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Configuration;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
@@ -37,8 +38,11 @@ namespace Ng.Jobs
         private TimeSpan _queueLoopDuration;
         private TimeSpan _queueDelay;
 
-        public MonitoringProcessorJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
-            : base(telemetryService, loggerFactory)
+        public MonitoringProcessorJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 
@@ -103,12 +107,12 @@ namespace Ng.Jobs
 
             _queueLoopDuration = TimeSpan.FromHours(
                 arguments.GetOrDefault(
-                    Arguments.QueueLoopDurationHours, 
+                    Arguments.QueueLoopDurationHours,
                     DefaultQueueLoopDurationHours));
 
             _queueDelay = TimeSpan.FromSeconds(
                 arguments.GetOrDefault(
-                    Arguments.QueueDelaySeconds, 
+                    Arguments.QueueDelaySeconds,
                     DefaultQueueDelaySeconds));
 
             SetUserAgentString();
@@ -147,7 +151,7 @@ namespace Ng.Jobs
         /// The process will also stop dequeuing new messages because they wouldn't be processed anyway.
         /// </param>
         private async Task ProcessPackagesAsync(
-            CancellationToken queueLoopCancellationToken, 
+            CancellationToken queueLoopCancellationToken,
             CancellationToken queueMessageCancellationToken)
         {
             // We will never listen to cancellation of the queue loop token individually.
@@ -155,7 +159,7 @@ namespace Ng.Jobs
             // We combine the two tokens here so we don't have to call "IsCancellationRequested" multiple times.
             var combinedQueueLoopCancellationToken = CancellationTokenSource
                 .CreateLinkedTokenSource(
-                    queueLoopCancellationToken, 
+                    queueLoopCancellationToken,
                     queueMessageCancellationToken)
                 .Token;
 

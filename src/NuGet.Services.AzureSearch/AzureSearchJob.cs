@@ -39,7 +39,7 @@ namespace NuGet.Services.AzureSearch
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            services.AddAzureSearch();
+            services.AddAzureSearch(GlobalTelemetryDimensions);
         }
     }
 }

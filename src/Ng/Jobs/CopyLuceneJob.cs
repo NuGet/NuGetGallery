@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Lucene.Net.Store.Azure;
-using NuGet.Services.Metadata.Catalog;
+using Microsoft.Extensions.Logging;
+using NuGet.Services.Logging;
 
 namespace Ng.Jobs
 {
@@ -17,7 +17,11 @@ namespace Ng.Jobs
         private Lucene.Net.Store.Directory _srcDirectory;
         private Lucene.Net.Store.Directory _destDirectory;
 
-        public CopyLuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
+        public CopyLuceneJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 
@@ -47,7 +51,7 @@ namespace Ng.Jobs
             _srcDirectory = CommandHelpers.GetCopySrcLuceneDirectory(arguments);
             _destDirectory = CommandHelpers.GetCopyDestLuceneDirectory(arguments);
         }
-        
+
         protected override Task RunInternalAsync(CancellationToken cancellationToken)
         {
             Lucene.Net.Store.Directory.Copy(_srcDirectory, _destDirectory, true);

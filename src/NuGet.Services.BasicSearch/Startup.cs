@@ -5,12 +5,19 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Cors;
 using Lucene.Net.Store;
+using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
+using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
+using Microsoft.ApplicationInsights.Web;
+using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
@@ -51,36 +58,7 @@ namespace NuGet.Services.BasicSearch
             var config = GetConfiguration().Result;
 
             // Configure
-            if (!string.IsNullOrEmpty(config.ApplicationInsightsInstrumentationKey))
-            {
-                Logging.ApplicationInsights.Initialize(
-                    config.ApplicationInsightsInstrumentationKey,
-                    TimeSpan.FromSeconds(config.ApplicationInsightsHeartbeatIntervalSeconds));
-            }
-
-            // Add telemetry initializers
-            TelemetryConfiguration.Active.TelemetryInitializers.Add(new MachineNameTelemetryInitializer());
-            TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentIdTelemetryInitializer());
-
-            // Create telemetry sink
-            _searchTelemetryClient = new SearchTelemetryClient();
-
-            // Add telemetry processors
-            var processorChain = TelemetryConfiguration.Active.TelemetryProcessorChainBuilder;
-
-            processorChain.Use(next =>
-            {
-                var processor = new RequestTelemetryProcessor(next);
-
-                processor.SuccessfulResponseCodes.Add(400);
-                processor.SuccessfulResponseCodes.Add(404);
-
-                return processor;
-            });
-
-            processorChain.Use(next => new ExceptionTelemetryProcessor(next, _searchTelemetryClient.TelemetryClient));
-
-            processorChain.Build();
+            var applicationInsightsConfiguration = InitializeApplicationInsights(config);
 
             // Create an ILoggerFactory
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false)
@@ -91,7 +69,9 @@ namespace NuGet.Services.BasicSearch
                 .Enrich.With<HttpRequestUserAgentEnricher>()
                 .Enrich.With<HttpRequestRawUrlEnricher>();
 
-            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(
+                loggerConfiguration,
+                telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
 
             // Create a logger that is scoped to this class (only)
             _logger = loggerFactory.CreateLogger<Startup>();
@@ -135,10 +115,10 @@ namespace NuGet.Services.BasicSearch
             app.Use(typeof(CorrelationIdMiddleware));
 
             // Add Application Insights
-            app.Use(typeof(RequestTrackingMiddleware));
+            app.Use(typeof(RequestTrackingMiddleware), new[] { applicationInsightsConfiguration.TelemetryConfiguration });
 
             // Set up exception logging
-            app.Use(typeof(ExceptionTrackingMiddleware));
+            app.Use(typeof(ExceptionTrackingMiddleware), new[] { applicationInsightsConfiguration.TelemetryConfiguration });
 
             // Enable HSTS
             app.Use(async (context, next) =>
@@ -197,6 +177,118 @@ namespace NuGet.Services.BasicSearch
 
             app.Run(InvokeAsync);
         }
+
+        private ApplicationInsightsConfiguration InitializeApplicationInsights(BasicSearchConfiguration config)
+        {
+            var applicationInsightsConfiguration = Logging.ApplicationInsights.Initialize(
+                                config.ApplicationInsightsInstrumentationKey,
+                                TimeSpan.FromSeconds(config.ApplicationInsightsHeartbeatIntervalSeconds));
+
+            RegisterApplicationInsightsTelemetryModules(applicationInsightsConfiguration.TelemetryConfiguration);
+
+            // Add telemetry initializers
+            applicationInsightsConfiguration.TelemetryConfiguration.TelemetryInitializers.Add(new MachineNameTelemetryInitializer());
+            applicationInsightsConfiguration.TelemetryConfiguration.TelemetryInitializers.Add(new DeploymentIdTelemetryInitializer());
+
+            // Create telemetry sink
+            _searchTelemetryClient = new SearchTelemetryClient(applicationInsightsConfiguration.TelemetryConfiguration);
+
+            // Add telemetry processors
+            var processorChain = applicationInsightsConfiguration.TelemetryConfiguration.TelemetryProcessorChainBuilder;
+
+            processorChain.Use(next =>
+            {
+                var processor = new RequestTelemetryProcessor(next);
+
+                processor.SuccessfulResponseCodes.Add(400);
+                processor.SuccessfulResponseCodes.Add(404);
+
+                return processor;
+            });
+
+            processorChain.Use(next => new ExceptionTelemetryProcessor(next, _searchTelemetryClient.TelemetryClient));
+
+            processorChain.Build();
+
+            return applicationInsightsConfiguration;
+        }
+
+        private static void RegisterApplicationInsightsTelemetryModules(TelemetryConfiguration configuration)
+        {
+            RegisterApplicationInsightsTelemetryModule(
+                new AppServicesHeartbeatTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new AzureInstanceMetadataTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new DeveloperModeWithDebuggerAttachedTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new UnhandledExceptionTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new UnobservedExceptionTelemetryModule(),
+                configuration);
+
+            var requestTrackingModule = new RequestTrackingTelemetryModule();
+            requestTrackingModule.Handlers.Add("Microsoft.VisualStudio.Web.PageInspector.Runtime.Tracing.RequestDataHttpHandler");
+            requestTrackingModule.Handlers.Add("System.Web.StaticFileHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Handlers.AssemblyResourceLoader");
+            requestTrackingModule.Handlers.Add("System.Web.Optimization.BundleHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Script.Services.ScriptHandlerFactory");
+            requestTrackingModule.Handlers.Add("System.Web.Handlers.TraceHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Services.Discovery.DiscoveryRequestHandler");
+            requestTrackingModule.Handlers.Add("System.Web.HttpDebugHandler");
+            RegisterApplicationInsightsTelemetryModule(
+                requestTrackingModule,
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new ExceptionTrackingTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new AspNetDiagnosticTelemetryModule(),
+                configuration);
+
+            var dependencyTrackingModule = new DependencyTrackingTelemetryModule();
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.windows.net");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.chinacloudapi.cn");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.cloudapi.de");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.usgovcloudapi.net");
+            dependencyTrackingModule.IncludeDiagnosticSourceActivities.Add("Microsoft.Azure.EventHubs");
+            dependencyTrackingModule.IncludeDiagnosticSourceActivities.Add("Microsoft.Azure.ServiceBus");
+            RegisterApplicationInsightsTelemetryModule(
+                dependencyTrackingModule,
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new PerformanceCollectorModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new QuickPulseTelemetryModule(),
+                configuration);
+        }
+
+        private static void RegisterApplicationInsightsTelemetryModule(ITelemetryModule telemetryModule, TelemetryConfiguration configuration)
+        {
+            var existingModule = TelemetryModules.Instance.Modules.SingleOrDefault(m => m.GetType().Equals(telemetryModule.GetType()));
+            if (existingModule != null)
+            {
+                TelemetryModules.Instance.Modules.Remove(existingModule);
+            }
+
+            telemetryModule.Initialize(configuration);
+
+            TelemetryModules.Instance.Modules.Add(telemetryModule);
+        }
+
 
         public void Configuration(IAppBuilder app)
         {

@@ -7,22 +7,31 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs
 {
     public abstract class NgJob
     {
-        protected ITelemetryService TelemetryService;
-        protected ILoggerFactory LoggerFactory;
-        protected ILogger Logger;
+        protected readonly IDictionary<string, string> GlobalTelemetryDimensions;
+        protected readonly ITelemetryClient TelemetryClient;
+        protected readonly ITelemetryService TelemetryService;
+        protected readonly ILoggerFactory LoggerFactory;
+        protected readonly ILogger Logger;
 
         protected int MaxDegreeOfParallelism { get; set; }
 
-        protected NgJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+        protected NgJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
         {
-            TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             LoggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            TelemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+            GlobalTelemetryDimensions = telemetryGlobalDimensions ?? throw new ArgumentNullException(nameof(telemetryGlobalDimensions));
+            TelemetryService = new TelemetryService(telemetryClient, telemetryGlobalDimensions);
+
             // We want to make a logger using the subclass of this job.
             // GetType returns the subclass of this instance which we can then use to create a logger.
             Logger = LoggerFactory.CreateLogger(GetType());

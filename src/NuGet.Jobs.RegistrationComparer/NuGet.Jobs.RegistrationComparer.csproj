@@ -41,6 +41,16 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComparisonContext.cs" />
+    <Compile Include="CursorUtility.cs" />
+    <Compile Include="Normalizers.cs" />
+    <Compile Include="RegistrationComparerCollectorLogic.cs" />
+    <Compile Include="HiveComparer.cs" />
+    <Compile Include="HivesConfiguration.cs" />
+    <Compile Include="Job.cs" />
+    <Compile Include="JsonComparer.cs" />
+    <Compile Include="RegistrationComparerConfiguration.cs" />
+    <Compile Include="RegistrationComparerCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />

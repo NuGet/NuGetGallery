@@ -4,10 +4,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Lucene.Net.Index;
 using Lucene.Net.Analysis.Standard;
-using NuGet.Services.Metadata.Catalog;
+using Lucene.Net.Index;
+using Microsoft.Extensions.Logging;
+using NuGet.Services.Logging;
 
 namespace Ng.Jobs
 {
@@ -15,7 +15,11 @@ namespace Ng.Jobs
     {
         private Lucene.Net.Store.Directory _directory;
 
-        public ClearLuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
+        public ClearLuceneJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 
@@ -34,7 +38,7 @@ namespace Ng.Jobs
         {
             _directory = CommandHelpers.GetLuceneDirectory(arguments);
         }
-        
+
         protected override Task RunInternalAsync(CancellationToken cancellationToken)
         {
             if (IndexReader.IndexExists(_directory))

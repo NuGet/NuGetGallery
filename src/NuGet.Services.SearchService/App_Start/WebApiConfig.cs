@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +15,13 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Integration.WebApi;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
+using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
+using Microsoft.ApplicationInsights.Web;
+using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -129,24 +137,16 @@ namespace NuGet.Services.SearchService
         {
             var configuration = GetConfiguration();
 
-            var instrumentationKey = configuration.Root.GetValue<string>("ApplicationInsights_InstrumentationKey");
-            var heartbeatIntervalSeconds = configuration.Root.GetValue("ApplicationInsights_HeartbeatIntervalSeconds", 60);
-            if (!string.IsNullOrWhiteSpace(instrumentationKey))
-            {
-                ApplicationInsights.Initialize(
-                    instrumentationKey, 
-                    TimeSpan.FromSeconds(heartbeatIntervalSeconds));
-            }
-
-            TelemetryConfiguration.Active.TelemetryInitializers.Add(new AzureWebAppTelemetryInitializer());
+            var globalTelemetryDimensions = new Dictionary<string, string>();
+            var applicationInsightsConfiguration = InitializeApplicationInsights(configuration);
 
             var services = new ServiceCollection();
             services.AddSingleton(configuration.SecretReaderFactory);
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.Configure<AzureSearchConfiguration>(configuration.Root.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(configuration.Root.GetSection(ConfigurationSectionName));
-            services.AddAzureSearch();
-            services.AddSingleton(new TelemetryClient());
+            services.AddAzureSearch(globalTelemetryDimensions);
+            services.AddSingleton(new TelemetryClient(applicationInsightsConfiguration.TelemetryConfiguration));
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
 
             var builder = new ContainerBuilder();
@@ -157,12 +157,107 @@ namespace NuGet.Services.SearchService
             builder.AddAzureSearch();
 
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
-            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(
+                loggerConfiguration,
+                telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
+
             builder.RegisterInstance(loggerFactory).As<ILoggerFactory>();
             builder.RegisterGeneric(typeof(Logger<>)).As(typeof(ILogger<>));
 
             var container = builder.Build();
             return new AutofacWebApiDependencyResolver(container);
+        }
+
+        private static ApplicationInsightsConfiguration InitializeApplicationInsights(RefreshableConfiguration configuration)
+        {
+            var instrumentationKey = configuration.Root.GetValue<string>("ApplicationInsights_InstrumentationKey");
+            var heartbeatIntervalSeconds = configuration.Root.GetValue("ApplicationInsights_HeartbeatIntervalSeconds", 60);
+
+            var applicationInsightsConfiguration = ApplicationInsights.Initialize(
+                    instrumentationKey,
+                    TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+
+            applicationInsightsConfiguration.TelemetryConfiguration.TelemetryInitializers.Add(new AzureWebAppTelemetryInitializer());
+
+            RegisterApplicationInsightsTelemetryModules(applicationInsightsConfiguration.TelemetryConfiguration);
+
+            return applicationInsightsConfiguration;
+        }
+
+        private static void RegisterApplicationInsightsTelemetryModules(TelemetryConfiguration configuration)
+        {
+            RegisterApplicationInsightsTelemetryModule(
+                new AppServicesHeartbeatTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new AzureInstanceMetadataTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new DeveloperModeWithDebuggerAttachedTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new UnhandledExceptionTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new UnobservedExceptionTelemetryModule(),
+                configuration);
+
+            var requestTrackingModule = new RequestTrackingTelemetryModule();
+            requestTrackingModule.Handlers.Add("Microsoft.VisualStudio.Web.PageInspector.Runtime.Tracing.RequestDataHttpHandler");
+            requestTrackingModule.Handlers.Add("System.Web.StaticFileHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Handlers.AssemblyResourceLoader");
+            requestTrackingModule.Handlers.Add("System.Web.Optimization.BundleHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Script.Services.ScriptHandlerFactory");
+            requestTrackingModule.Handlers.Add("System.Web.Handlers.TraceHandler");
+            requestTrackingModule.Handlers.Add("System.Web.Services.Discovery.DiscoveryRequestHandler");
+            requestTrackingModule.Handlers.Add("System.Web.HttpDebugHandler");
+            RegisterApplicationInsightsTelemetryModule(
+                requestTrackingModule,
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new ExceptionTrackingTelemetryModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new AspNetDiagnosticTelemetryModule(),
+                configuration);
+
+            var dependencyTrackingModule = new DependencyTrackingTelemetryModule();
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.windows.net");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.chinacloudapi.cn");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.cloudapi.de");
+            dependencyTrackingModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.usgovcloudapi.net");
+            dependencyTrackingModule.IncludeDiagnosticSourceActivities.Add("Microsoft.Azure.EventHubs");
+            dependencyTrackingModule.IncludeDiagnosticSourceActivities.Add("Microsoft.Azure.ServiceBus");
+            RegisterApplicationInsightsTelemetryModule(
+                dependencyTrackingModule,
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new PerformanceCollectorModule(),
+                configuration);
+
+            RegisterApplicationInsightsTelemetryModule(
+                new QuickPulseTelemetryModule(),
+                configuration);
+        }
+
+        private static void RegisterApplicationInsightsTelemetryModule(ITelemetryModule telemetryModule, TelemetryConfiguration configuration)
+        {
+            var existingModule = TelemetryModules.Instance.Modules.SingleOrDefault(m => m.GetType().Equals(telemetryModule.GetType()));
+            if (existingModule != null)
+            {
+                TelemetryModules.Instance.Modules.Remove(existingModule);
+            }
+
+            telemetryModule.Initialize(configuration);
+
+            TelemetryModules.Instance.Modules.Add(telemetryModule);
         }
 
         private static RefreshableConfiguration GetConfiguration()

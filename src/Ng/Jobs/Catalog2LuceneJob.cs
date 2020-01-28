@@ -11,6 +11,7 @@ using Lucene.Net.Index;
 using Microsoft.Extensions.Logging;
 using NuGet.Indexing;
 using NuGet.Services.Configuration;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs
@@ -30,8 +31,11 @@ namespace Ng.Jobs
         private Func<HttpMessageHandler> _handlerFunc;
         private string _destination;
 
-        public Catalog2LuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
-            : base(telemetryService, loggerFactory)
+        public Catalog2LuceneJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 

@@ -7,7 +7,8 @@ namespace NuGet.Jobs.RegistrationComparer
     {
         static int Main(string[] args)
         {
-            return 0;
+            var job = new Job();
+            return JobRunner.Run(job, args).GetAwaiter().GetResult();
         }
     }
 }

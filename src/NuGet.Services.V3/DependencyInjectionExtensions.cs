@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGetGallery.Diagnostics;
 
@@ -15,7 +17,7 @@ namespace NuGet.Services.V3
 {
     public static class DependencyInjectionExtensions
     {
-        public static IServiceCollection AddV3(this IServiceCollection services)
+        public static IServiceCollection AddV3(this IServiceCollection services, IDictionary<string, string> telemetryGlobalDimensions)
         {
             services
                 .AddTransient(p => new HttpClientHandler
@@ -41,7 +43,9 @@ namespace NuGet.Services.V3
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddTransient<IRegistrationClient, RegistrationClient>();
             services.AddTransient<ISimpleHttpClient, SimpleHttpClient>();
-            services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ITelemetryService, TelemetryService>(p => new TelemetryService(
+                p.GetRequiredService<ITelemetryClient>(),
+                telemetryGlobalDimensions));
             services.AddTransient<IV3TelemetryService, V3TelemetryService>();
 
             return services;

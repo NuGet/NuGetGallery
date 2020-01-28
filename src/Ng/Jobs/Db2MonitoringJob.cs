@@ -22,6 +22,7 @@ using NuGet.Services.Storage;
 using CatalogStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.StorageFactory;
 using CatalogStorage = NuGet.Services.Metadata.Catalog.Persistence.Storage;
 using Constants = NuGet.Services.Metadata.Catalog.Constants;
+using NuGet.Services.Logging;
 
 namespace Ng.Jobs
 {
@@ -53,8 +54,11 @@ namespace Ng.Jobs
 
         private CollectorHttpClient _client;
 
-        public Db2MonitoringJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
-            : base(telemetryService, loggerFactory)
+        public Db2MonitoringJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 
@@ -143,7 +147,7 @@ namespace Ng.Jobs
         }
 
         private async Task<bool> CheckPackages(
-            IReadOnlyCollection<IPackageStatusOutdatedCheckSource> sources, 
+            IReadOnlyCollection<IPackageStatusOutdatedCheckSource> sources,
             CancellationToken cancellationToken)
         {
             Logger.LogInformation("Fetching packages to check status of.");

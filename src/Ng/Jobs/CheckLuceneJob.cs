@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Index;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Logging;
 
 namespace Ng.Jobs
 {
@@ -14,7 +14,11 @@ namespace Ng.Jobs
     {
         private Lucene.Net.Store.Directory _directory;
 
-        public CheckLuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
+        public CheckLuceneJob(
+            ILoggerFactory loggerFactory,
+            ITelemetryClient telemetryClient,
+            IDictionary<string, string> telemetryGlobalDimensions)
+            : base(loggerFactory, telemetryClient, telemetryGlobalDimensions)
         {
         }
 

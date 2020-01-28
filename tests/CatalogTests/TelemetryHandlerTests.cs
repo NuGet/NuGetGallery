@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Moq;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using Xunit;
 
@@ -27,7 +28,7 @@ namespace CatalogTests
 
         public TelemetryHandlerTests()
         {
-            _telemetryService = new Mock<TelemetryService>(new TelemetryClient());
+            _telemetryService = new Mock<TelemetryService>(new TelemetryClientWrapper(new TelemetryClient()), new Dictionary<string, string>());
             _telemetryService.Setup(x => x.TrackDuration(TelemetryConstants.HttpHeaderDurationSeconds, It.IsAny<IDictionary<string, string>>()))
                              .Callback((string name, IDictionary<string, string> properties) => { _properties = properties; }).CallBase();
 

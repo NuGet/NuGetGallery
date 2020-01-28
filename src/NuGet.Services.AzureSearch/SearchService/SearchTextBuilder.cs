@@ -190,6 +190,34 @@ namespace NuGet.Services.AzureSearch.SearchService
                 {
                     builder.AppendBoostIfMatchAllTerms(tokenizedUnscopedTerms.ToList(), _options.Value.MatchAllTermsBoost);
                 }
+
+                // Favor results that prefix match the last unscoped term for an "instant search" experience.
+                if (scopedTerms.Count == 0)
+                {
+                    var lastUnscopedTerm = unscopedTerms.Last();
+                    if (IsIdWithSeparator(lastUnscopedTerm))
+                    {
+                        builder.AppendScopedTerm(
+                            fieldName: IndexFields.PackageId,
+                            term: lastUnscopedTerm,
+                            required: false,
+                            prefixSearch: true,
+                            boost: _options.Value.PrefixMatchBoost);
+                    }
+                    else
+                    {
+                        var boost = lastUnscopedTerm.Length < 4
+                            ? _options.Value.PrefixMatchBoost
+                            : 1;
+
+                        builder.AppendScopedTerm(
+                            fieldName: IndexFields.TokenizedPackageId,
+                            term: lastUnscopedTerm,
+                            required: false,
+                            prefixSearch: true,
+                            boost: boost);
+                    }
+                }
             }
 
             // Handle the exact match case. If the search query is a single unscoped term is also a valid package
@@ -253,8 +281,8 @@ namespace NuGet.Services.AzureSearch.SearchService
         /// 1. Does not split terms on whitespace
         /// 2. Does not split terms on the following characters: ' ; : * # ! ~ + ( ) [ ] { }
         /// </summary>
-        /// <param name="term"></param>
-        /// <returns></returns>
+        /// <param name="term">The input to tokenize</param>
+        /// <returns>The tokens extracted from the inputted term</returns>
         private static IReadOnlyList<string> Tokenize(string term)
         {
             // Don't tokenize phrases. These are multiple terms that were wrapped in quotes.
@@ -268,16 +296,6 @@ namespace NuGet.Services.AzureSearch.SearchService
                 .Where(t => !string.IsNullOrEmpty(t))
                 .Where(t => !IsTokenizationSeparator(t))
                 .ToList();
-        }
-
-        private static bool IsPackageIdSeparator(string input)
-        {
-            if (input.Length != 1)
-            {
-                return false;
-            }
-
-            return PackageIdSeparators.Any(separator => input[0] == separator);
         }
 
         private static bool IsTokenizationSeparator(string input)

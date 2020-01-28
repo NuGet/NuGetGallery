@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ApplicationInsights;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Versioning;
@@ -12,19 +11,14 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class TelemetryService : ITelemetryService
     {
-        private readonly TelemetryClientWrapper _telemetryClient;
+        private readonly ITelemetryClient _telemetryClient;
 
         public IDictionary<string, string> GlobalDimensions { get; }
 
-        public TelemetryService(TelemetryClient telemetryClient)
+        public TelemetryService(ITelemetryClient telemetryClient, IDictionary<string, string> globalDimensions)
         {
-            if (telemetryClient == null)
-            {
-                throw new ArgumentNullException(nameof(telemetryClient));
-            }
-
-            _telemetryClient = new TelemetryClientWrapper(telemetryClient);
-            GlobalDimensions = new Dictionary<string, string>();
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+            GlobalDimensions = globalDimensions ?? throw new ArgumentNullException(nameof(globalDimensions));
         }
 
         public void TrackCatalogIndexReadDuration(TimeSpan duration, Uri uri)
