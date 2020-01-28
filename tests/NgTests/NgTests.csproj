@@ -88,13 +88,11 @@
     <Compile Include="PackageMonitoringStatusServiceTests.cs" />
     <Compile Include="Infrastructure\TestPackage.cs" />
     <Compile Include="PackageMonitoringStatusTestUtility.cs" />
-    <Compile Include="StuckIndexWriter.cs" />
     <Compile Include="Infrastructure\TestLoggerFactory.cs" />
     <Compile Include="Infrastructure\TestLogger.cs" />
     <Compile Include="UriUtilsTests.cs" />
     <Compile Include="PackageTimestampMetadataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SearchIndexFromCatalogCollectorTests.cs" />
     <Compile Include="SortingIdVersionCollectorTests.cs" />
     <Compile Include="StorageFactoryTests.cs" />
     <Compile Include="TestableDb2CatalogJob.cs" />
@@ -192,9 +190,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lucene.Net.Contrib">
-      <Version>3.0.3</Version>
-    </PackageReference>
     <PackageReference Include="Moq">
       <Version>4.10.1</Version>
     </PackageReference>

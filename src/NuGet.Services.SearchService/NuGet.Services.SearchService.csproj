@@ -129,18 +129,6 @@
     <ThirdPartyBinaries Include="HtmlAgilityPack.dll" Visible="false" />
     <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" Visible="false" />
     <ThirdPartyBinaries Include="json-ld.net.StrongName.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Analyzers.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Core.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.FastVectorHighlighter.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Highlighter.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Memory.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Queries.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Regex.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.SimpleFacetedSearch.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Snowball.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.SpellChecker.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Store.Azure.dll" Visible="false" />
     <ThirdPartyBinaries Include="Markdig.dll" Visible="false" />
     <ThirdPartyBinaries Include="MarkdownSharp.dll" Visible="false" />
     <ThirdPartyBinaries Include="Newtonsoft.Json.dll" Visible="false" />

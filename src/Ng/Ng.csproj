@@ -61,19 +61,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arguments.cs" />
-    <Compile Include="Extensions\TaskExtensions.cs" />
     <Compile Include="Helpers\EmptySecretInjector.cs" />
     <Compile Include="Jobs\Catalog2IconJob.cs" />
     <Compile Include="Jobs\Catalog2PackageFixupJob.cs" />
     <Compile Include="Jobs\Db2MonitoringJob.cs" />
     <Compile Include="Jobs\Catalog2DnxJob.cs" />
-    <Compile Include="Jobs\Catalog2LuceneJob.cs" />
     <Compile Include="Jobs\Catalog2MonitoringJob.cs" />
     <Compile Include="Jobs\Catalog2RegistrationJob.cs" />
-    <Compile Include="Jobs\CheckLuceneJob.cs" />
-    <Compile Include="Jobs\ClearLuceneJob.cs" />
-    <Compile Include="Jobs\CopyLuceneJob.cs" />
-    <Compile Include="Jobs\Db2LuceneJob.cs" />
     <Compile Include="Jobs\Db2CatalogJob.cs" />
     <Compile Include="Jobs\LightningJob.cs" />
     <Compile Include="Jobs\LoopingNgJob.cs" />
@@ -82,16 +76,13 @@
     <Compile Include="Jobs\NgJob.cs" />
     <Compile Include="Json\RegistrationBaseUrlRewritingJsonReader.cs" />
     <Compile Include="Json\InterceptingJsonReader.cs" />
-    <Compile Include="Json\JTokenExtensions.cs" />
     <Compile Include="Json\PropertySkippingJsonReader.cs" />
-    <Compile Include="LuceneCursor.cs" />
     <Compile Include="NgJobFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="CommandHelpers.cs" />
     <Compile Include="RegistrationStorageFactories.cs" />
-    <Compile Include="SearchIndexFromCatalogCollector.cs" />
     <Compile Include="SecondaryStorageBaseUrlRewriter.cs" />
     <Compile Include="StorageAccessHandler.cs" />
     <Compile Include="UserAgentUtility.cs" />
@@ -101,7 +92,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Catalog2Dnx.nuspec" />
-    <None Include="Catalog2Lucene.nuspec" />
     <None Include="Catalog2Monitoring.nuspec" />
     <None Include="Catalog2Registration.nuspec" />
     <None Include="Db2Catalog.nuspec" />

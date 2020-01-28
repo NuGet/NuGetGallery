@@ -62,51 +62,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DownloadsByVersion.cs" />
-    <Compile Include="Extraction\MetadataConstants.cs" />
-    <Compile Include="ExpandAcronymsFilter.cs" />
-    <Compile Include="Extraction\CatalogNuspecReader.cs" />
-    <Compile Include="Extraction\CatalogPackageMetadataExtraction.cs" />
-    <Compile Include="Extraction\CatalogPackageReader.cs" />
-    <Compile Include="Extraction\LuceneCommitMetadata.cs" />
-    <Compile Include="Extraction\DocumentCreator.cs" />
-    <Compile Include="Extraction\JTokenExtensions.cs" />
-    <Compile Include="IAcronymExpansionProvider.cs" />
-    <Compile Include="NuGetAcronymExpansionProvider.cs" />
-    <Compile Include="NuGetMergePolicyApplyer.cs" />
     <Compile Include="NuGetQueryParser.cs" />
-    <Compile Include="OwnerAnalyzer.cs" />
     <Compile Include="Downloads.cs" />
-    <Compile Include="IdentifierAutocompleteAnalyzer.cs" />
     <Compile Include="ILoader.cs" />
     <Compile Include="QueryField.cs" />
     <Compile Include="SemVerHelpers.cs" />
-    <Compile Include="Sql2Lucene.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="CamelCaseFilter.cs" />
-    <Compile Include="CustomSimilarity.cs" />
-    <Compile Include="DescriptionAnalyzer.cs" />
-    <Compile Include="DotTokenizer.cs" />
-    <Compile Include="IdentifierAnalyzer.cs" />
-    <Compile Include="IdentifierKeywordAnalyzer.cs" />
-    <Compile Include="PackageAnalyzer.cs" />
-    <Compile Include="SemanticVersionFilter.cs" />
-    <Compile Include="ShingledIdentifierAnalyzer.cs" />
-    <Compile Include="TagsAnalyzer.cs" />
-    <Compile Include="TokenizingHelper.cs" />
     <Compile Include="JsonStringArrayFileParser.cs" />
-    <Compile Include="VersionAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Acronyms.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Lucene.Net.Contrib">
-      <Version>3.0.3</Version>
-    </PackageReference>
-    <PackageReference Include="Lucene.Net.Store.Azure.StrongName">
-      <Version>3.0.6262.31186</Version>
-    </PackageReference>
     <PackageReference Include="MicroBuild.Core">
       <Version>0.3.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

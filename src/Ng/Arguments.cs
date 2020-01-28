@@ -27,12 +27,6 @@ namespace Ng
         public const int DefaultReinitializeIntervalSec = 60 * 60; // 1 hour
         public const string ReinitializeIntervalSec = "ReinitializeIntervalSec";
 
-        public const string LuceneDirectoryType = "luceneDirectoryType";
-        public const string LucenePath = "lucenePath";
-        public const string LuceneStorageAccountName = "luceneStorageAccountName";
-        public const string LuceneStorageContainer = "luceneStorageContainer";
-        public const string LuceneStorageKeyValue = "luceneStorageKeyValue";
-
 
         public const string AzureStorageType = "azure";
         public const string FileStorageType = "file";
@@ -65,13 +59,6 @@ namespace Ng
 
         #endregion
 
-        #region Catalog2Lucene
-        public const string CatalogBaseAddress = "catalogBaseAddress";
-        public const string Registration = "registration";
-        public const string CommitTimeoutInSeconds = "commitTimeoutInSeconds";
-        public const string FlatContainerBaseAddress = "flatContainerBaseAddress";
-        #endregion
-
         #region Catalog2Registration
         public const string CompressedStorageAccountName = "compressedStorageAccountName";
         public const string CompressedStorageBaseAddress = "compressedStorageBaseAddress";
@@ -97,21 +84,6 @@ namespace Ng
 
         #region Catalog2PackageFixup
         public const string Verify = "verify";
-        #endregion
-
-        #region CopyLucene
-        public const string DestDirectoryType = "destDirectoryType";
-        public const string DestPath = "destPath";
-        public const string DestStorageAccountName = "destStorageAccountName";
-        public const string DestStorageContainer = "destStorageContainer";
-        public const string DestStorageKeyValue = "destStorageKeyValue";
-
-        public const string SrcDirectoryType = "srcDirectoryType";
-        public const string SrcPath = "srcPath";
-        public const string SrcStorageAccountName = "srcStorageAccountName";
-        public const string SrcStorageContainer = "srcStorageContainer";
-        public const string SrcStorageKeyValue = "srcStorageKeyValue";
-
         #endregion
 
         #region Db2Catalog

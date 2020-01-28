@@ -4,13 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
-using Lucene.Net.Store;
-using Lucene.Net.Store.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -308,117 +305,6 @@ namespace Ng
                 return CatalogAzureStorage.DefaultMaxExecutionTime;
             }
             return TimeSpan.FromSeconds(seconds);
-        }
-
-        public static Lucene.Net.Store.Directory GetLuceneDirectory(
-            IDictionary<string, string> arguments,
-            bool required = true)
-        {
-            return GetLuceneDirectory(arguments, out var destination, required);
-        }
-
-        public static Lucene.Net.Store.Directory GetLuceneDirectory(
-            IDictionary<string, string> arguments,
-            out string destination,
-            bool required = true)
-        {
-            IDictionary<string, string> names = new Dictionary<string, string>
-            {
-                { Arguments.DirectoryType, Arguments.LuceneDirectoryType },
-                { Arguments.Path, Arguments.LucenePath },
-                { Arguments.StorageAccountName, Arguments.LuceneStorageAccountName },
-                { Arguments.StorageKeyValue, Arguments.LuceneStorageKeyValue },
-                { Arguments.StorageContainer, Arguments.LuceneStorageContainer }
-            };
-
-            return GetLuceneDirectoryImpl(arguments, names, out destination, required);
-        }
-
-        public static Lucene.Net.Store.Directory GetCopySrcLuceneDirectory(IDictionary<string, string> arguments, bool required = true)
-        {
-            IDictionary<string, string> names = new Dictionary<string, string>
-            {
-                { Arguments.DirectoryType, Arguments.SrcDirectoryType },
-                { Arguments.Path, Arguments.SrcPath },
-                { Arguments.StorageAccountName, Arguments.SrcStorageAccountName },
-                { Arguments.StorageKeyValue, Arguments.SrcStorageKeyValue },
-                { Arguments.StorageContainer, Arguments.SrcStorageContainer }
-            };
-
-            return GetLuceneDirectoryImpl(arguments, names, out var destination, required);
-        }
-
-        public static Lucene.Net.Store.Directory GetCopyDestLuceneDirectory(IDictionary<string, string> arguments, bool required = true)
-        {
-            IDictionary<string, string> names = new Dictionary<string, string>
-            {
-                { Arguments.DirectoryType, Arguments.DestDirectoryType },
-                { Arguments.Path, Arguments.DestPath },
-                { Arguments.StorageAccountName, Arguments.DestStorageAccountName },
-                { Arguments.StorageKeyValue, Arguments.DestStorageKeyValue },
-                { Arguments.StorageContainer, Arguments.DestStorageContainer }
-            };
-
-            return GetLuceneDirectoryImpl(arguments, names, out var destination, required);
-        }
-
-        public static Lucene.Net.Store.Directory GetLuceneDirectoryImpl(
-            IDictionary<string, string> arguments,
-            IDictionary<string, string> argumentNameMap,
-            out string destination,
-            bool required = true)
-        {
-            destination = null;
-
-            try
-            {
-                var luceneDirectoryType = arguments.GetOrThrow<string>(argumentNameMap[Arguments.DirectoryType]);
-
-                if (luceneDirectoryType.Equals(Arguments.FileStorageType, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var lucenePath = arguments.GetOrThrow<string>(argumentNameMap[Arguments.Path]);
-
-                    var directoryInfo = new DirectoryInfo(lucenePath);
-
-                    destination = lucenePath;
-
-                    if (directoryInfo.Exists)
-                    {
-                        return new SimpleFSDirectory(directoryInfo);
-                    }
-
-                    directoryInfo.Create();
-                    directoryInfo.Refresh();
-
-                    return new SimpleFSDirectory(directoryInfo);
-                }
-                if (luceneDirectoryType.Equals(Arguments.AzureStorageType, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var luceneStorageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
-
-                    var luceneStorageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
-
-                    var luceneStorageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
-
-                    var credentials = new StorageCredentials(luceneStorageAccountName, luceneStorageKeyValue);
-                    var account = new CloudStorageAccount(credentials, useHttps: true);
-
-                    destination = luceneStorageContainer;
-
-                    return new AzureDirectory(account, luceneStorageContainer);
-                }
-                Trace.TraceError("Unrecognized Lucene Directory Type \"{0}\"", luceneDirectoryType);
-                return null;
-            }
-            catch (ArgumentException)
-            {
-                if (required)
-                {
-                    throw;
-                }
-
-                return null;
-            }
         }
 
         public static Func<HttpMessageHandler> GetHttpMessageHandlerFactory(
