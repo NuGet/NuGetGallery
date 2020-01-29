@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Owin.Security.OpenIdConnect;
 using NuGetGallery.Configuration;
 using Owin;
@@ -38,7 +39,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
                 {
                     RedirectToIdentityProvider = notification =>
                     {
-                        if (notification.ProtocolMessage.RequestType == OpenIdConnectRequestType.LogoutRequest)
+                        if (notification.ProtocolMessage.RequestType == OpenIdConnectRequestType.Logout)
                         {
                             // We never intend to sign out at the federated identity. Suppress the redirect.
                             notification.HandleResponse();
