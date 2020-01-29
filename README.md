@@ -20,13 +20,6 @@ NuGet.Jobs
     
 7. Also, add settings.job file to mark the job as singleton, if the job will be run as a webjob, and it be a continuously running singleton
 
-## Specific instructions
-
-This repository has a lot of jobs used for completely different purposes. For this reason, each should should have its
-own documentation. This specific documentation is far from complete... but you have to start somewhere!
-
-- [Monitoring.RebootSearchInstance](src/Monitoring.RebootSearchInstance/README.md) - check each region for stuck search instances and restart them
-
 Open Source Code of Conduct
 ===================
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
