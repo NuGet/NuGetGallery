@@ -107,10 +107,6 @@
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
-      <Project>{ddb34145-870f-42c3-9663-a9390cee1e35}</Project>
-      <Name>NuGet.Indexing</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGet.Jobs.Catalog2Registration\NuGet.Jobs.Catalog2Registration.csproj">
       <Project>{5ABE8807-2209-4948-9FC5-1980A507C47A}</Project>
       <Name>NuGet.Jobs.Catalog2Registration</Name>

@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace NuGet.Indexing
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public static class JsonStringArrayFileParser
     {
@@ -19,18 +18,15 @@ namespace NuGet.Indexing
         /// <param name="loader">The loader that should be used to fetch the file's content</param>
         /// <param name="logger">The logger</param>
         /// <returns>A case-insensitive set of all the strings in the json array</returns>
-        public static HashSet<string> Load(string fileName, ILoader loader, FrameworkLogger logger)
+        public static HashSet<string> Load(JsonReader reader, ILogger logger)
         {
             try
             {
-                using (var reader = loader.GetReader(fileName))
-                {
-                    return Parse(reader);
-                }
+                return Parse(reader);
             }
             catch (Exception ex)
             {
-                logger.LogError("Unable to load {FileName} as deserialization threw: {Exception}", fileName, ex);
+                logger.LogError(ex, "Unable to load JSON string array.");
 
                 throw;
             }

@@ -10,7 +10,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
     /// Can (and probably should) be replaced with Polly library if the project is updated to target .netfx 4.7.2.
     /// In current state Polly pulls a ton of System.* dependencies which we previously didn't have.
     /// </remarks>
-    /// <seealso cref="NuGet.Indexing.Retry"/>
     public class Retry
     {
         /// <summary>

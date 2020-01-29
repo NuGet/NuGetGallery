@@ -184,10 +184,6 @@
       <Project>{1745a383-d0be-484b-81eb-27b20f6ac6c5}</Project>
       <Name>NuGet.Services.Metadata.Catalog.Monitoring</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NuGet.IndexingTests\NuGet.IndexingTests.csproj">
-      <Project>{43665489-01F0-4F35-8A33-258F2231B2D8}</Project>
-      <Name>NuGet.IndexingTests</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq">

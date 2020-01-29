@@ -11,8 +11,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Protocol;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;

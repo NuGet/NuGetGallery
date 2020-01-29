@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NuGet.Indexing
+namespace NuGet.Services.AzureSearch.SearchService
 {
     public class NuGetQueryParser
     {

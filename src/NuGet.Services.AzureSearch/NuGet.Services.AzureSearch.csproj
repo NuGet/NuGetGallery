@@ -56,6 +56,8 @@
     <Compile Include="AuxiliaryFiles\AuxiliaryDataStorageConfiguration.cs" />
     <Compile Include="AuxiliaryFiles\DownloadDataExtensions.cs" />
     <Compile Include="AuxiliaryFiles\DownloadOverrides.cs" />
+    <Compile Include="AuxiliaryFiles\DownloadsV1Reader.cs" />
+    <Compile Include="AuxiliaryFiles\JsonStringArrayFileParser.cs" />
     <Compile Include="AuxiliaryFiles\SimpleCloudBlobExtensions.cs" />
     <Compile Include="AuxiliaryFiles\DownloadByVersionData.cs" />
     <Compile Include="AuxiliaryFiles\DownloadData.cs" />
@@ -177,6 +179,8 @@
     <Compile Include="SearchService\Models\V3SearchRequest.cs" />
     <Compile Include="SearchService\Models\V3SearchResponse.cs" />
     <Compile Include="SearchService\Models\V3SearchVersion.cs" />
+    <Compile Include="SearchService\NuGetQueryParser.cs" />
+    <Compile Include="SearchService\QueryField.cs" />
     <Compile Include="SearchService\SearchParametersBuilder.cs" />
     <Compile Include="SearchService\Models\V2SortBy.cs" />
     <Compile Include="SearchService\SearchResponseBuilder.cs" />
@@ -242,10 +246,6 @@
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
-      <Project>{DDB34145-870F-42C3-9663-A9390CEE1E35}</Project>
-      <Name>NuGet.Indexing</Name>
     </ProjectReference>
     <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
       <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>

@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-using NuGet.Indexing;
 using Xunit;
 
-namespace NuGet.IndexingTests
+namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class JsonStringArrayFileParserTest
     {

@@ -8,7 +8,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
-using NuGet.Indexing;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Versioning;
 
@@ -16,6 +15,8 @@ namespace NuGet.Services.SearchService.Controllers
 {
     public class SearchController : ApiController
     {
+        private static readonly NuGetVersion SemVer2Level = new NuGetVersion("2.0.0");
+
         private const int DefaultSkip = 0;
         private const int DefaultTake = SearchParametersBuilder.DefaultTake;
 
@@ -192,7 +193,7 @@ namespace NuGet.Services.SearchService.Controllers
             }
             else
             {
-                return SemVerHelpers.ShouldIncludeSemVer2Results(semVerLevelVersion);
+                return semVerLevelVersion >= SemVer2Level;
             }
         }
     }

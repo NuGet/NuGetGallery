@@ -97,10 +97,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
-      <Project>{ddb34145-870f-42c3-9663-a9390cee1e35}</Project>
-      <Name>NuGet.Indexing</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">
       <Project>{1a53fe3d-8041-4773-942f-d73aef5b82b2}</Project>
       <Name>NuGet.Services.AzureSearch</Name>

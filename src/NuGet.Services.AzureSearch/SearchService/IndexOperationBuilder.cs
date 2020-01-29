@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using NuGet.Indexing;
 using NuGet.Packaging;
 using NuGet.Versioning;
 
