@@ -41,8 +41,8 @@ namespace StatusAggregator.Update
 
                 if (endTime != null)
                 {
-                    _logger.LogInformation("Updated mitigation time of active incident to {MitigationTime}.", entity.EndTime);
                     entity.EndTime = endTime;
+                    _logger.LogInformation("Updated mitigation time of active incident to {MitigationTime}.", entity.EndTime);
                     await _table.ReplaceAsync(entity);
                 }
             }

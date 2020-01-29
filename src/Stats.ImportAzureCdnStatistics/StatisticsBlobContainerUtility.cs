@@ -18,6 +18,7 @@ namespace Stats.ImportAzureCdnStatistics
     {
         private readonly CloudBlobContainer _targetContainer;
         private readonly CloudBlobContainer _deadLetterContainer;
+        private readonly ApplicationInsightsHelper _applicationInsightsHelper;
         private readonly ILogger _logger;
         private const ushort _gzipLeadBytes = 0x8b1f;
         private const string _jobErrorMetadataKey = "JobError";
@@ -25,25 +26,17 @@ namespace Stats.ImportAzureCdnStatistics
         internal StatisticsBlobContainerUtility(
             CloudBlobContainer targetContainer,
             CloudBlobContainer deadLetterContainer,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            ApplicationInsightsHelper applicationInsightsHelper)
         {
-            if (targetContainer == null)
-            {
-                throw new ArgumentNullException(nameof(targetContainer));
-            }
-
-            if (deadLetterContainer == null)
-            {
-                throw new ArgumentNullException(nameof(deadLetterContainer));
-            }
-
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _targetContainer = targetContainer;
-            _deadLetterContainer = deadLetterContainer;
+            _targetContainer = targetContainer ?? throw new ArgumentNullException(nameof(targetContainer));
+            _deadLetterContainer = deadLetterContainer ?? throw new ArgumentNullException(nameof(deadLetterContainer));
+            _applicationInsightsHelper = applicationInsightsHelper ?? throw new ArgumentNullException(nameof(applicationInsightsHelper));
             _logger = loggerFactory.CreateLogger<StatisticsBlobContainerUtility>();
         }
 
@@ -72,7 +65,7 @@ namespace Stats.ImportAzureCdnStatistics
                 catch (Exception exception)
                 {
                     _logger.LogError(LogEvents.FailedBlobDelete, exception, "Failed to delete blob {FtpBlobUri}", logFile.Uri);
-                    ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
+                    _applicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                     throw;
                 }
             }
@@ -89,12 +82,12 @@ namespace Stats.ImportAzureCdnStatistics
                 _logger.LogInformation("Finished archive upload for blob {FtpBlobUri}.", logFile.Uri);
 
                 stopwatch.Stop();
-                ApplicationInsightsHelper.TrackMetric("Blob archiving duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
+                _applicationInsightsHelper.TrackMetric("Blob archiving duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
             }
             catch (Exception exception)
             {
                 _logger.LogError(LogEvents.FailedBlobUpload, exception, "Failed archive upload for blob {FtpBlobUri}", logFile.Uri);
-                ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
+                _applicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
                 throw;
             }
         }
@@ -120,7 +113,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                 _logger.LogInformation("Finished opening of compressed blob {FtpBlobUri}.", logFile.Uri);
 
-                ApplicationInsightsHelper.TrackMetric("Open compressed blob duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
+                _applicationInsightsHelper.TrackMetric("Open compressed blob duration (ms)", stopwatch.ElapsedMilliseconds, logFile.Blob.Name);
 
                 // verify if the stream is gzipped or not
                 if (await IsGzipCompressedAsync(memoryStream))
@@ -135,7 +128,7 @@ namespace Stats.ImportAzureCdnStatistics
             catch (Exception exception)
             {
                 _logger.LogError(LogEvents.FailedToDecompressBlob, exception, "Failed to open compressed blob {FtpBlobUri}", logFile.Uri);
-                ApplicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
+                _applicationInsightsHelper.TrackException(exception, logFile.Blob.Name);
 
                 throw;
             }

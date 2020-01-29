@@ -20,7 +20,11 @@ namespace Stats.AzureCdnLogs.Common.Collect
     public class AzureStatsLogSource : ILogSource
     {
         private const ushort GzipLeadBytes = 0x8b1f;
-        private const int CopyBlobLeaseTimeInSeconds = 120;
+
+        /// <summary>
+        ///  Maximum allowed lease time for Azure Blobs is 60 seconds.
+        /// </summary>
+        private const int CopyBlobLeaseTimeInSeconds = 60;
 
         private string _deadletterContainerName = "-deadletter";
         private string _archiveContainerName = "-archive";

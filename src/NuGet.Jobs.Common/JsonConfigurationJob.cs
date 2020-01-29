@@ -120,7 +120,7 @@ namespace NuGet.Jobs
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
             services.Configure<ValidationStorageConfiguration>(configurationRoot.GetSection(ValidationStorageConfigurationSectionName));
 
-            services.AddSingleton(new TelemetryClient());
+            services.AddSingleton(new TelemetryClient(ApplicationInsightsConfiguration.TelemetryConfiguration));
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
 
             AddScopedSqlConnectionFactory<GalleryDbConfiguration>(services);
@@ -168,7 +168,7 @@ namespace NuGet.Jobs
         }
 
         private void RegisterDatabaseIfConfigured<TDbConfiguration>(IServiceProvider serviceProvider, bool testConnection)
-            where TDbConfiguration : IDbConfiguration
+            where TDbConfiguration : class, IDbConfiguration, new()
         {
             var dbConfiguration = serviceProvider.GetRequiredService<IOptionsSnapshot<TDbConfiguration>>();
             if (!string.IsNullOrEmpty(dbConfiguration.Value?.ConnectionString))

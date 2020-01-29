@@ -6,6 +6,7 @@ using System.Data;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Stats.AzureCdnLogs.Common;
@@ -30,6 +31,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             private const string _logFileName = "PackageDownloads.log";
             private readonly ILoggerFactory _loggerFactory;
             private readonly ILeasedLogFile _leasedLogFile;
+            private readonly ApplicationInsightsHelper _applicationInsightsHelper;
 
             public WhenOnlyPackageStatisticsInLogFile(ITestOutputHelper testOutputHelper)
             {
@@ -38,6 +40,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 _loggerFactory = loggerFactory;
 
                 _leasedLogFile = GetLeasedLogFileMock(_logFileName);
+                _applicationInsightsHelper = new ApplicationInsightsHelper(TelemetryConfiguration.CreateDefault());
             }
 
             [Fact]
@@ -72,7 +75,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly: false);
@@ -117,7 +121,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly: true);
@@ -164,7 +169,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly);
@@ -203,6 +209,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             private const string _logFileName = "ToolDownloads.log";
             private readonly ILoggerFactory _loggerFactory;
             private readonly ILeasedLogFile _leasedLogFile;
+            private readonly ApplicationInsightsHelper _applicationInsightsHelper;
 
             public WhenOnlyToolStatisticsInLogFile(ITestOutputHelper testOutputHelper)
             {
@@ -211,6 +218,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 _loggerFactory = loggerFactory;
 
                 _leasedLogFile = GetLeasedLogFileMock(_logFileName);
+                _applicationInsightsHelper = new ApplicationInsightsHelper(TelemetryConfiguration.CreateDefault());
             }
 
             [Fact]
@@ -242,7 +250,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly: false);
@@ -283,7 +292,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly: true);
@@ -330,7 +340,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly);
@@ -369,6 +380,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             private const string _logFileName = "PackageAndToolDownloads.log";
             private readonly ILoggerFactory _loggerFactory;
             private readonly ILeasedLogFile _leasedLogFile;
+            private readonly ApplicationInsightsHelper _applicationInsightsHelper;
 
             public WhenPackageAndToolStatisticsInLogFile(ITestOutputHelper testOutputHelper)
             {
@@ -377,6 +389,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 _loggerFactory = loggerFactory;
 
                 _leasedLogFile = GetLeasedLogFileMock(_logFileName);
+                _applicationInsightsHelper = new ApplicationInsightsHelper(TelemetryConfiguration.CreateDefault());
             }
 
             [Fact]
@@ -417,7 +430,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly: false);
@@ -479,7 +493,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly: false);
@@ -541,7 +556,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly: false);
@@ -599,7 +615,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logFileProcessor = new LogFileProcessor(
                     statisticsBlobContainerUtilityMock.Object,
                     _loggerFactory,
-                    warehouseMock.Object);
+                    warehouseMock.Object,
+                    _applicationInsightsHelper);
 
                 // act
                 await logFileProcessor.ProcessLogFileAsync(_leasedLogFile, _packageStatisticsParser, aggregatesOnly);

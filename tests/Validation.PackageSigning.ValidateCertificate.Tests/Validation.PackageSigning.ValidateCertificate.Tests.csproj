@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Validation.PackageSigning.ValidateCertificate.Tests</RootNamespace>
     <AssemblyName>Validation.PackageSigning.ValidateCertificate.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <NuGetPackageImportStamp>
@@ -82,13 +82,15 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="moq">
-      <Version>4.7.145</Version>
+      <Version>4.13.1</Version>
     </PackageReference>
     <PackageReference Include="xunit">
-      <Version>2.3.1</Version>
+      <Version>2.4.1</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>2.3.1</Version>
+      <Version>2.4.1</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

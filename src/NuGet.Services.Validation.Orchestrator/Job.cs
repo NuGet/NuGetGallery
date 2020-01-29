@@ -182,7 +182,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddLogging();
         }
 
-        private DbConnection CreateDbConnection<T>(IServiceProvider serviceProvider) where T : IDbConfiguration
+        private DbConnection CreateDbConnection<T>(IServiceProvider serviceProvider) where T : class, IDbConfiguration, new()
         {
             var connectionString = serviceProvider.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
             var connectionFactory = new AzureSqlConnectionFactory(connectionString,
@@ -280,7 +280,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
-            services.AddSingleton(new TelemetryClient());
+            services.AddSingleton(new TelemetryClient(ApplicationInsightsConfiguration.TelemetryConfiguration));
             services.AddTransient<IValidationOutcomeProcessor<Package>, ValidationOutcomeProcessor<Package>>();
             services.AddSingleton(p =>
             {

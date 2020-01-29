@@ -21,6 +21,7 @@ namespace Stats.ImportAzureCdnStatistics
         private const int _maxRetryCount = 3;
         private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
         private readonly ILogger _logger;
+        private readonly ApplicationInsightsHelper _applicationInsightsHelper;
         private readonly Func<Task<SqlConnection>> _openStatisticsSqlConnectionAsync;
         private readonly IDictionary<PackageDimension, PackageDimension> _cachedPackageDimensions = new Dictionary<PackageDimension, PackageDimension>();
         private readonly IList<ToolDimension> _cachedToolDimensions = new List<ToolDimension>();
@@ -31,7 +32,10 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly IDictionary<string, int> _cachedIpAddressFacts = new Dictionary<string, int>();
         private IReadOnlyCollection<TimeDimension> _times;
 
-        public Warehouse(ILoggerFactory loggerFactory, Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync)
+        public Warehouse(
+            ILoggerFactory loggerFactory,
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
+            ApplicationInsightsHelper applicationInsightsHelper)
         {
             if (loggerFactory == null)
             {
@@ -42,6 +46,8 @@ namespace Stats.ImportAzureCdnStatistics
 
             _openStatisticsSqlConnectionAsync = openStatisticsSqlConnectionAsync
                 ?? throw new ArgumentNullException(nameof(openStatisticsSqlConnectionAsync));
+            _applicationInsightsHelper = applicationInsightsHelper
+                ?? throw new ArgumentNullException(nameof(applicationInsightsHelper));
         }
 
         public async Task InsertDownloadFactsAsync(DataTable downloadFactsDataTable, string logFileName)
@@ -55,7 +61,7 @@ namespace Stats.ImportAzureCdnStatistics
                     () => RunInsertDownloadFactsQueryAsync(downloadFactsDataTable, logFileName));
 
                 stopwatch.Stop();
-                ApplicationInsightsHelper.TrackMetric("Insert facts duration (ms)", stopwatch.ElapsedMilliseconds, logFileName);
+                _applicationInsightsHelper.TrackMetric("Insert facts duration (ms)", stopwatch.ElapsedMilliseconds, logFileName);
             }
             catch (Exception exception)
             {
@@ -66,7 +72,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                 _logger.LogError("Failed to insert download facts for {LogFile}.", logFileName);
 
-                ApplicationInsightsHelper.TrackException(exception, logFileName);
+                _applicationInsightsHelper.TrackException(exception, logFileName);
 
                 throw;
             }
@@ -159,7 +165,7 @@ namespace Stats.ImportAzureCdnStatistics
                         // This package id and version could not be 100% accurately parsed from the CDN Request URL,
                         // likely due to weird package ID which could be interpreted as a version string.
                         // Track it in Application Insights.
-                        ApplicationInsightsHelper.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key, logFileName);
+                        _applicationInsightsHelper.TrackPackageNotFound(groupedByPackageId.Key, groupedByPackageIdAndVersion.Key, logFileName);
 
                         continue;
                     }
@@ -217,7 +223,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
             stopwatch.Stop();
             _logger.LogDebug("  DONE (" + factsDataTable.Rows.Count + " facts, " + stopwatch.ElapsedMilliseconds + "ms)");
-            ApplicationInsightsHelper.TrackMetric("Blob record count", factsDataTable.Rows.Count, logFileName);
+            _applicationInsightsHelper.TrackMetric("Blob record count", factsDataTable.Rows.Count, logFileName);
 
             return factsDataTable;
         }
@@ -286,7 +292,7 @@ namespace Stats.ImportAzureCdnStatistics
                         if (tool == null)
                         {
                             // Track it in Application Insights.
-                            ApplicationInsightsHelper.TrackToolNotFound(groupedByToolId.Key, toolVersion, fileName, logFileName);
+                            _applicationInsightsHelper.TrackToolNotFound(groupedByToolId.Key, toolVersion, fileName, logFileName);
 
                             continue;
                         }
@@ -356,7 +362,7 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 _logger.LogError("Failed to insert log file aggregates for {LogFile}.", logFileAggregates.LogFileName);
 
-                ApplicationInsightsHelper.TrackException(exception, logFileAggregates.LogFileName);
+                _applicationInsightsHelper.TrackException(exception, logFileAggregates.LogFileName);
 
                 throw;
             }
@@ -408,7 +414,7 @@ namespace Stats.ImportAzureCdnStatistics
                 {
                     _logger.LogError("Failed to retrieve already aggregated log files", exception);
 
-                    ApplicationInsightsHelper.TrackException(exception);
+                    _applicationInsightsHelper.TrackException(exception);
 
                     throw;
                 }
@@ -464,7 +470,7 @@ namespace Stats.ImportAzureCdnStatistics
                     errorEventId.Name + " {LogFileName}...",
                     logFileName);
 
-                ApplicationInsightsHelper.TrackException(exception);
+                _applicationInsightsHelper.TrackException(exception);
 
                 throw;
             }
@@ -494,7 +500,7 @@ namespace Stats.ImportAzureCdnStatistics
                         stopwatch.Stop();
 
                         _logger.LogInformation("Finished retrieving dimension '{Dimension}' ({RetrievedDimensionDuration} ms).", dimension, stopwatch.ElapsedMilliseconds);
-                        ApplicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
+                        _applicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
 
                         return dimensions;
                     }
@@ -509,17 +515,17 @@ namespace Stats.ImportAzureCdnStatistics
                         if (e.Number == 1205)
                         {
                             _logger.LogWarning("SQL Deadlock, retrying...");
-                            ApplicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
+                            _applicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
                         }
                         else if (e.Number == -2)
                         {
                             _logger.LogWarning("SQL Timeout, retrying...");
-                            ApplicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
+                            _applicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
                         }
                         else if (e.Number == 2601)
                         {
                             _logger.LogWarning("SQL Duplicate key, retrying...");
-                            ApplicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
+                            _applicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
                         }
                         else
                         {
@@ -531,7 +537,7 @@ namespace Stats.ImportAzureCdnStatistics
                     catch (Exception exception)
                     {
                         _logger.LogError(LogEvents.FailedDimensionRetrieval, exception, "Failed to retrieve dimension '{Dimension}'.", dimension);
-                        ApplicationInsightsHelper.TrackException(exception, logFileName);
+                        _applicationInsightsHelper.TrackException(exception, logFileName);
 
                         if (stopwatch.IsRunning)
                             stopwatch.Stop();
@@ -566,7 +572,7 @@ namespace Stats.ImportAzureCdnStatistics
                         stopwatch.Stop();
 
                         _logger.LogInformation("Finished retrieving dimension '{Dimension}' ({RetrievedDimensionDuration} ms).", dimension, stopwatch.ElapsedMilliseconds);
-                        ApplicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
+                        _applicationInsightsHelper.TrackRetrieveDimensionDuration(dimension, stopwatch.ElapsedMilliseconds, logFileName);
 
                         return dimensions;
                     }
@@ -581,17 +587,17 @@ namespace Stats.ImportAzureCdnStatistics
                         if (e.Number == 1205)
                         {
                             _logger.LogWarning("SQL Deadlock, retrying...");
-                            ApplicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
+                            _applicationInsightsHelper.TrackSqlException("SQL Deadlock", e, logFileName, dimension);
                         }
                         else if (e.Number == -2)
                         {
                             _logger.LogWarning("SQL Timeout, retrying...");
-                            ApplicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
+                            _applicationInsightsHelper.TrackSqlException("SQL Timeout", e, logFileName, dimension);
                         }
                         else if (e.Number == 2601)
                         {
                             _logger.LogWarning("SQL Duplicate key, retrying...");
-                            ApplicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
+                            _applicationInsightsHelper.TrackSqlException("SQL Duplicate Key", e, logFileName, dimension);
                         }
                         else
                         {
@@ -603,7 +609,7 @@ namespace Stats.ImportAzureCdnStatistics
                     catch (Exception exception)
                     {
                         _logger.LogError(LogEvents.FailedDimensionRetrieval, exception, "Failed to retrieve dimension '{Dimension}'.", dimension);
-                        ApplicationInsightsHelper.TrackException(exception, logFileName);
+                        _applicationInsightsHelper.TrackException(exception, logFileName);
 
                         if (stopwatch.IsRunning)
                             stopwatch.Stop();

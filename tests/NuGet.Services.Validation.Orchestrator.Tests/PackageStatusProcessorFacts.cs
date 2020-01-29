@@ -149,7 +149,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageServiceMock
                     .Setup(x => x.UpdateMetadataAsync(Package, It.IsAny<PackageStreamMetadata>(), false))
                     .Returns(Task.CompletedTask)
-                    .Callback<Package, PackageStreamMetadata, bool>((_, m, __) => actual = m);
+                    .Callback<Package, object, bool>((_, m, __) => actual = m as PackageStreamMetadata);
 
                 await Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available);
 

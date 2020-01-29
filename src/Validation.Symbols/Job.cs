@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Autofac;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -48,7 +47,6 @@ namespace Validation.Symbols
 
                 return new SymbolsFileService(packageStorageService, packageValidationStorageService, c.GetRequiredService<IFileDownloader>());
             });
-            services.AddSingleton(new TelemetryClient());
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)

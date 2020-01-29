@@ -13,22 +13,25 @@ using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
 {
-    public class LogFileProcessor
+    internal class LogFileProcessor
     {
         private readonly IStatisticsBlobContainerUtility _statisticsBlobContainerUtility;
         private readonly ILogger _logger;
         private readonly IStatisticsWarehouse _warehouse;
+        private readonly ApplicationInsightsHelper _applicationInsightsHelper;
 
         public LogFileProcessor(
             IStatisticsBlobContainerUtility statisticsBlobContainerUtility,
             ILoggerFactory loggerFactory,
-            IStatisticsWarehouse warehouse)
+            IStatisticsWarehouse warehouse,
+            ApplicationInsightsHelper applicationInsightsHelper)
         {
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
+            _applicationInsightsHelper = applicationInsightsHelper ?? throw new ArgumentNullException(nameof(applicationInsightsHelper));
             _warehouse = warehouse ?? throw new ArgumentNullException(nameof(warehouse));
             _statisticsBlobContainerUtility = statisticsBlobContainerUtility ?? throw new ArgumentNullException(nameof(statisticsBlobContainerUtility));
             _logger = loggerFactory.CreateLogger<ImportAzureCdnStatisticsJob>();
@@ -213,7 +216,7 @@ namespace Stats.ImportAzureCdnStatistics
                 stopwatch.Stop();
 
                 _logger.LogInformation("Finished parsing blob {FtpBlobUri} ({RecordCount} records).", blobUri, packageStatistics.Count);
-                ApplicationInsightsHelper.TrackMetric("Blob parsing duration (ms)", stopwatch.ElapsedMilliseconds, blobName);
+                _applicationInsightsHelper.TrackMetric("Blob parsing duration (ms)", stopwatch.ElapsedMilliseconds, blobName);
             }
             catch (Exception exception)
             {
@@ -223,7 +226,7 @@ namespace Stats.ImportAzureCdnStatistics
                 }
 
                 _logger.LogError(LogEvents.FailedToParseLogFile, exception, "Failed to parse blob {FtpBlobUri}.", blobUri);
-                ApplicationInsightsHelper.TrackException(exception, blobName);
+                _applicationInsightsHelper.TrackException(exception, blobName);
 
                 throw;
             }

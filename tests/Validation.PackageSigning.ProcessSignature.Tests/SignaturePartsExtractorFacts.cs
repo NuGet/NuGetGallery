@@ -424,7 +424,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.SignedPackageLeaf1);
                 await _target.ExtractAsync(_packageKey, signature, _token);
                 AssignIds();
-                _validationEntitiesContext.ResetCalls();
+                _validationEntitiesContext.Invocations.Clear();
 
                 // Act
                 await _target.ExtractAsync(_packageKey, signature, _token);

@@ -25,6 +25,7 @@ namespace Stats.ImportAzureCdnStatistics
         private AzureCdnPlatform _azureCdnPlatform;
         private CloudBlobClient _cloudBlobClient;
         private LogFileProvider _blobLeaseManager;
+        private ApplicationInsightsHelper _applicationInsightsHelper;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
@@ -41,6 +42,8 @@ namespace Stats.ImportAzureCdnStatistics
             _blobLeaseManager = new LogFileProvider(
                 _cloudBlobClient.GetContainerReference(_configuration.AzureCdnCloudStorageContainerName),
                 LoggerFactory);
+
+            _applicationInsightsHelper = new ApplicationInsightsHelper(ApplicationInsightsConfiguration.TelemetryConfiguration);
         }
 
         public override async Task Run()
@@ -56,13 +59,21 @@ namespace Stats.ImportAzureCdnStatistics
             await deadLetterBlobContainer.CreateIfNotExistsAsync();
 
             // Create a parser
-            var warehouse = new Warehouse(LoggerFactory, OpenSqlConnectionAsync<StatisticsDbConfiguration>);
+            var warehouse = new Warehouse(
+                LoggerFactory,
+                OpenSqlConnectionAsync<StatisticsDbConfiguration>,
+                _applicationInsightsHelper);
             var statisticsBlobContainerUtility = new StatisticsBlobContainerUtility(
                 targetBlobContainer,
                 deadLetterBlobContainer,
-                LoggerFactory);
+                LoggerFactory,
+                _applicationInsightsHelper);
 
-            var logProcessor = new LogFileProcessor(statisticsBlobContainerUtility, LoggerFactory, warehouse);
+            var logProcessor = new LogFileProcessor(
+                statisticsBlobContainerUtility,
+                LoggerFactory,
+                warehouse,
+                _applicationInsightsHelper);
 
             // Get the next to-be-processed raw log file using the cdn raw log file name prefix
             var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_",

@@ -1,27 +1,34 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
-using NuGet.Services.Logging;
+using Microsoft.ApplicationInsights.Extensibility;
 
 namespace Stats.RollUpDownloadFacts
 {
-    internal static class ApplicationInsightsHelper
+    internal sealed class ApplicationInsightsHelper
     {
-        public static void TrackRollUpMetric(string metricName, double value, string packageDimensionId)
+        private readonly TelemetryClient _telemetryClient;
+
+        public ApplicationInsightsHelper(TelemetryConfiguration telemetryConfiguration)
         {
-            if (!ApplicationInsights.Initialized)
+            if (telemetryConfiguration == null)
             {
-                return;
+                throw new ArgumentNullException(nameof(telemetryConfiguration));
             }
 
-            var telemetryClient = new TelemetryClient();
+            _telemetryClient = new TelemetryClient(telemetryConfiguration);
+        }
+
+        public void TrackRollUpMetric(string metricName, double value, string packageDimensionId)
+        {
             var telemetry = new MetricTelemetry(metricName, value);
             telemetry.Properties.Add("PackageDimensionId", packageDimensionId);
 
-            telemetryClient.TrackMetric(telemetry);
-            telemetryClient.Flush();
+            _telemetryClient.TrackMetric(telemetry);
+            _telemetryClient.Flush();
         }
     }
 }

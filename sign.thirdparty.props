@@ -22,7 +22,7 @@
     <ThirdPartyBinaries Include="Serilog.Enrichers.Process.dll" />
     <ThirdPartyBinaries Include="Serilog.Extensions.Logging.dll" />
     <ThirdPartyBinaries Include="Serilog.Sinks.ApplicationInsights.dll" />
-    <ThirdPartyBinaries Include="Serilog.Sinks.ColoredConsole.dll" />
+    <ThirdPartyBinaries Include="Serilog.Sinks.Console.dll" />
     <ThirdPartyBinaries Include="SerilogTraceListener.dll" />
     <ThirdPartyBinaries Include="UAParser.dll" />
   </ItemGroup>

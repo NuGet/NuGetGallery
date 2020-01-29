@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.KeyVault;
+using NuGet.Services.Logging;
 using NuGet.Services.Sql;
 
 namespace NuGet.Jobs
@@ -31,11 +32,19 @@ namespace NuGet.Jobs
         {
             _jobEventSource = jobEventSource;
             SqlConnectionFactories = new Dictionary<string, ICoreSqlConnectionFactory>();
+            GlobalTelemetryDimensions = new Dictionary<string, string>();
         }
 
         protected ILoggerFactory LoggerFactory { get; private set; }
 
         protected ILogger Logger { get; private set; }
+
+        protected ApplicationInsightsConfiguration ApplicationInsightsConfiguration { get; private set; }
+
+        /// <summary>
+        /// Enables a job to define global dimensions to be tracked as part of telemetry.
+        /// </summary>
+        public IDictionary<string, string> GlobalTelemetryDimensions { get; private set; }
 
         private Dictionary<string, ICoreSqlConnectionFactory> SqlConnectionFactories { get; }
 
@@ -98,7 +107,7 @@ namespace NuGet.Jobs
         public SqlConnectionStringBuilder RegisterDatabase<T>(
             IServiceProvider services,
             bool testConnection = true)
-            where T : IDbConfiguration
+            where T : class, IDbConfiguration, new()
         {
             if (services == null)
             {
@@ -224,6 +233,11 @@ namespace NuGet.Jobs
             }
 
             return GetSqlConnectionFactory(connectionStringArgName).OpenAsync();
+        }
+
+        internal void SetApplicationInsightsConfiguration(ApplicationInsightsConfiguration applicationInsightsConfiguration)
+        {
+            ApplicationInsightsConfiguration = applicationInsightsConfiguration ?? throw new ArgumentNullException(nameof(applicationInsightsConfiguration));
         }
     }
 }

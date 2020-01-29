@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Monitoring.PackageLag.Tests</RootNamespace>
     <AssemblyName>Monitoring.PackageLag.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -57,16 +57,16 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq">
-      <Version>4.7.145</Version>
+      <Version>4.13.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol.Catalog">
       <Version>0.5.0-CI-20180510-012541</Version>
     </PackageReference>
     <PackageReference Include="xunit">
-      <Version>2.3.1</Version>
+      <Version>2.4.1</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>2.3.1</Version>
+      <Version>2.4.1</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

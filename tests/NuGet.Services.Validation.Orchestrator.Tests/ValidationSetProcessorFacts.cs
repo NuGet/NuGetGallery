@@ -71,7 +71,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationStorageMock
                 .Setup(vs => vs.MarkValidationStartedAsync(validation, It.Is<ValidationResult>(r => r.Status == startStatus)))
                 .Returns(Task.FromResult(0))
-                .Callback<PackageValidation, ValidationResult>((pv, vr) => pv.ValidationStatus = vr.Status)
+                .Callback<PackageValidation, IValidationResult>((pv, vr) => pv.ValidationStatus = vr.Status)
                 .Verifiable();
 
             var processor = CreateProcessor();

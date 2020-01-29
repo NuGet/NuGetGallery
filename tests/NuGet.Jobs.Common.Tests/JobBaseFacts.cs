@@ -131,7 +131,7 @@ namespace NuGet.Jobs.Common.Tests
                     });
             }
 
-            private Mock<IOptionsSnapshot<TDbConfiguration>> CreateMockOptionsSnapshot<TDbConfiguration>(TDbConfiguration configuration)
+            private Mock<IOptionsSnapshot<TDbConfiguration>> CreateMockOptionsSnapshot<TDbConfiguration>(TDbConfiguration configuration) where TDbConfiguration : class, new()
             {
                 var mockOptionsSnapshot = new Mock<IOptionsSnapshot<TDbConfiguration>>();
 

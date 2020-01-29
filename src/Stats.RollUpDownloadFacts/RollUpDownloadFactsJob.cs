@@ -24,6 +24,7 @@ namespace Stats.RollUpDownloadFacts
         private const int DefaultMinAgeInDays = 43;
 
         private RollUpDownloadFactsConfiguration _configuration;
+        private ApplicationInsightsHelper _applicationInsightsHelper;
         private int _minAgeInDays;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
@@ -34,6 +35,7 @@ namespace Stats.RollUpDownloadFacts
 
             _minAgeInDays = _configuration.MinAgeInDays ?? DefaultMinAgeInDays;
             Logger.LogInformation("Min age in days: {MinAgeInDays}", _minAgeInDays);
+            _applicationInsightsHelper = new ApplicationInsightsHelper(ApplicationInsightsConfiguration.TelemetryConfiguration);
         }
 
         public override async Task Run()
@@ -72,7 +74,7 @@ namespace Stats.RollUpDownloadFacts
                 var value = double.Parse(parts.Last());
                 var packageDimensionId = parts.First().Replace(":", string.Empty);
 
-                ApplicationInsightsHelper.TrackRollUpMetric("Download Facts Deleted", value, packageDimensionId);
+                _applicationInsightsHelper.TrackRollUpMetric("Download Facts Deleted", value, packageDimensionId);
             }
         }
 
