@@ -156,7 +156,7 @@ namespace NuGetGallery.Helpers
         private static IGalleryConfigurationService CreateConfiguration()
         {
             var appConfigurationMock = new Mock<IGalleryConfigurationService>();
-            appConfigurationMock.Setup(c => c.GetSiteRoot(true)).Returns("https://www.nuget.org/");
+            appConfigurationMock.Setup(c => c.GetSiteRoot(true)).Returns("https://www.nuget.org");
             return appConfigurationMock.Object;
         }
     }
