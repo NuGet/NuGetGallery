@@ -58,7 +58,7 @@ namespace NuGetGallery.Helpers
                 .Replace(".", ".<wbr>"));
         }
 
-        public static IHtmlString PreFormattedText(this HtmlHelper self, string text)
+        public static IHtmlString PreFormattedText(this HtmlHelper self, string text, IGalleryConfigurationService configurationService)
         {
             // Encode HTML entities. Important! Security!
             var encodedText = HttpUtility.HtmlEncode(text);
@@ -84,17 +84,12 @@ namespace NuGetGallery.Helpers
                 if (PackageHelper.TryPrepareUrlForRendering(trimmedAnchorValue, out string formattedUri))
                 {
                     string anchorText = formattedUri;
-
-                    var configurationService = self.ViewContext.HttpContext.GetService<ConfigurationService>();
-                    if (configurationService != null)
+                    string siteRoot = configurationService.GetSiteRoot(useHttps: true);
+                    // Format links to NuGet packages
+                    Match packageMatch = RegexEx.MatchWithTimeout(formattedUri, $@"({Regex.Escape(siteRoot)}packages\/(?<name>[^\/]+(\/[0-9a-zA-Z-.]+)?)\/?$)", RegexOptions.IgnoreCase);
+                    if (packageMatch != null && packageMatch.Groups["name"].Success)
                     {
-                        string siteRoot = configurationService.GetSiteRoot(useHttps: true);
-                        // Format links to NuGet packages
-                        Match packageMatch = RegexEx.MatchWithTimeout(formattedUri, $@"({Regex.Escape(siteRoot)}\/packages\/(?<name>[^\/]+(\/[0-9a-zA-Z-.]+)?)\/?$)", RegexOptions.IgnoreCase);
-                        if (packageMatch != null && packageMatch.Groups["name"].Success)
-                        {
-                            anchorText = packageMatch.Groups["name"].Value;
-                        }
+                        anchorText = packageMatch.Groups["name"].Value;
                     }
 
                     return $"<a href=\"{formattedUri}\" rel=\"nofollow\">{anchorText}</a>" + trimmedEntityValue;

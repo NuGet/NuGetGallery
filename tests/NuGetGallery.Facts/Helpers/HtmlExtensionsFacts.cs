@@ -19,11 +19,12 @@ namespace NuGetGallery.Helpers
             public void ConvertsNewLinesToBrTags()
             {
                 // Arrange
+                var config = CreateConfiguration();
                 var htmlHelper = CreateHtmlHelper(new ViewDataDictionary());
                 var input = "first line\nsecond line";
 
                 // Act
-                var output = htmlHelper.PreFormattedText(input);
+                var output = htmlHelper.PreFormattedText(input, config);
 
                 // Assert
                 var html = output.ToHtmlString();
@@ -34,11 +35,12 @@ namespace NuGetGallery.Helpers
             public void ConvertsSpacesToNbsp()
             {
                 // Arrange
+                var config = CreateConfiguration();
                 var htmlHelper = CreateHtmlHelper(new ViewDataDictionary());
                 var input = "Five spaces:     END";
 
                 // Act
-                var output = htmlHelper.PreFormattedText(input);
+                var output = htmlHelper.PreFormattedText(input, config);
 
                 // Assert
                 var html = output.ToHtmlString();
@@ -49,11 +51,12 @@ namespace NuGetGallery.Helpers
             public void EncodesHtml()
             {
                 // Arrange
+                var config = CreateConfiguration();
                 var htmlHelper = CreateHtmlHelper(new ViewDataDictionary());
                 var input = "<script>alert('foo!')</script>";
 
                 // Act
-                var output = htmlHelper.PreFormattedText(input);
+                var output = htmlHelper.PreFormattedText(input, config);
 
                 // Assert
                 var html = output.ToHtmlString();
@@ -85,10 +88,11 @@ namespace NuGetGallery.Helpers
             public void ConvertsUrlsToLinks(string input, string expected)
             {
                 // Arrange
+                var config = CreateConfiguration();
                 var htmlHelper = CreateHtmlHelper(new ViewDataDictionary());
 
                 // Act
-                var output = htmlHelper.PreFormattedText(input);
+                var output = htmlHelper.PreFormattedText(input, config);
 
                 // Assert
                 var html = output.ToHtmlString();
@@ -116,10 +120,11 @@ namespace NuGetGallery.Helpers
             public void ConvertsPackageUrlsToLinksWithShortText(string input, string expected)
             {
                 // Arrange
+                var config = CreateConfiguration();
                 var htmlHelper = CreateHtmlHelper(new ViewDataDictionary());
 
                 // Act
-                var output = htmlHelper.PreFormattedText(input);
+                var output = htmlHelper.PreFormattedText(input, config);
 
                 // Assert
                 var html = output.ToHtmlString();
@@ -132,29 +137,27 @@ namespace NuGetGallery.Helpers
         /// </summary>
         private static HtmlHelper CreateHtmlHelper(ViewDataDictionary vd)
         {
-            var appConfigurationMock = new Mock<ConfigurationService>();
-            appConfigurationMock.Setup(c => c.GetSiteRoot(true)).Returns("https://www.nuget.org");
-
-            var httpContextMock = new Mock<HttpContextBase>();
-            httpContextMock
-                .Setup(c => c.GetService(typeof(ConfigurationService)))
-                .Returns(appConfigurationMock.Object);
-
             var mockViewContext = new Mock<ViewContext>(
                 new ControllerContext(
-                    httpContextMock.Object,
+                    new Mock<HttpContextBase>().Object,
                     new RouteData(),
                     new Mock<ControllerBase>().Object),
                 new Mock<IView>().Object,
                 vd,
                 new TempDataDictionary(),
                 new StringWriter());
-            mockViewContext.Setup(c => c.HttpContext).Returns(httpContextMock.Object);
 
             var mockViewDataContainer = new Mock<IViewDataContainer>();
             mockViewDataContainer.Setup(v => v.ViewData).Returns(vd);
 
             return new HtmlHelper(mockViewContext.Object, mockViewDataContainer.Object);
+        }
+
+        private static IGalleryConfigurationService CreateConfiguration()
+        {
+            var appConfigurationMock = new Mock<IGalleryConfigurationService>();
+            appConfigurationMock.Setup(c => c.GetSiteRoot(true)).Returns("https://www.nuget.org/");
+            return appConfigurationMock.Object;
         }
     }
 }

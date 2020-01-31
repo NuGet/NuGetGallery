@@ -63,7 +63,7 @@ namespace NuGetGallery.Configuration
         /// </summary>
         /// <param name="useHttps">If true, the root will be returned in HTTPS form, otherwise, HTTP.</param>
         /// <returns></returns>
-        public virtual string GetSiteRoot(bool useHttps)
+        public string GetSiteRoot(bool useHttps)
         {
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
         }
