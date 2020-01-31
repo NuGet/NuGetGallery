@@ -93,6 +93,34 @@ namespace NuGetGallery.Helpers
                 var html = output.ToHtmlString();
                 Assert.Equal(expected, html);
             }
+
+            [Theory]
+            [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage\" rel=\"nofollow\">WindowsAzure.Storage</a>.")]
+            [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/!", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>!")]
+            [InlineData("My package is http://www.nuget.org/packages/WindowsAzure.Storage/", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>")]
+            [InlineData("My package is http://www.nuget.org/packages/WindowsAzure.Storage/sub/path/", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/sub/path/\" rel=\"nofollow\">https://www.nuget.org/packages/WindowsAzure.Storage/sub/path/</a>")]
+            [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/packages.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/packages\" rel=\"nofollow\">https://www.nuget.org/packages/WindowsAzure.Storage/packages</a>.")]
+            [InlineData("My package is http://www.nuget.org/packages/WindowsAzure.Storage/?foo&bar=2#a", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/?foo&amp;bar=2#a\" rel=\"nofollow\">https://www.nuget.org/packages/WindowsAzure.Storage/?foo&amp;bar=2#a</a>")]
+            [InlineData("My package is http://www.nuget.org/packages/WindowsAzure.Storage/?foo[]=a", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/?foo\" rel=\"nofollow\">https://www.nuget.org/packages/WindowsAzure.Storage/?foo</a>[]=a")]
+            [InlineData("http://www.nuget.org/packages/WindowsAzure.Storage is my package.", "<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage\" rel=\"nofollow\">WindowsAzure.Storage</a> is my package.")]
+            [InlineData("\"http://www.nuget.org/packages/WindowsAzure.Storage/\" is my package.", "&quot;<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>&quot; is my package.")]
+            [InlineData("\'http://www.nuget.org/packages/WindowsAzure.Storage/\' is my package.", "&#39;<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>&#39; is my package.")]
+            [InlineData("http://www.nuget.org/packages/WindowsAzure.Storage/, is my package.", "<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>, is my package.")]
+            [InlineData("(http://www.nuget.org/packages/WindowsAzure.Storage/) is my package.", "(<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>) is my package.")]
+            [InlineData("http://www.nuget.org/packages/WindowsAzure.Storage/; is my package.", "<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>; is my package.")]
+            [InlineData("http://www.nuget.org/packages/WindowsAzure.Storage/- is my package.", "<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>- is my package.")]
+            public void ConvertsPackageUrlsToLinksWithShortText(string input, string expected)
+            {
+                // Arrange
+                var htmlHelper = CreateHtmlHelper(new ViewDataDictionary());
+
+                // Act
+                var output = htmlHelper.PreFormattedText(input);
+
+                // Assert
+                var html = output.ToHtmlString();
+                Assert.Equal(expected, html);
+            }
         }
 
         /// <summary>

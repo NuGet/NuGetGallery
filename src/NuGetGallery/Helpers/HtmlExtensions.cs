@@ -82,7 +82,16 @@ namespace NuGetGallery.Helpers
 
                 if (PackageHelper.TryPrepareUrlForRendering(trimmedAnchorValue, out string formattedUri))
                 {
-                    return $"<a href=\"{formattedUri}\" rel=\"nofollow\">{formattedUri}</a>" + trimmedEntityValue;
+                    string anchorText = formattedUri;
+
+                    // Format links to NuGet packages
+                    Match packageMatch = RegexEx.MatchWithTimeout(formattedUri, @"((http|https):\/\/www.nuget.org\/packages\/(?<name>[\w.-]+)\/?$)", RegexOptions.IgnoreCase);
+                    if (packageMatch != null && packageMatch.Groups["name"].Success)
+                    {
+                        anchorText = packageMatch.Groups["name"].Value;
+                    }
+
+                    return $"<a href=\"{formattedUri}\" rel=\"nofollow\">{anchorText}</a>" + trimmedEntityValue;
                 }
 
                 return match.Value;
