@@ -7,10 +7,6 @@ namespace Search.GenerateAuxiliaryData
 {
     public class InitializationConfiguration
     {
-        public string AzureCdnCloudStorageAccount { get; set; }
-
-        public string AzureCdnCloudStorageContainerName { get; set; }
-
         public string PrimaryDestination { get; set; }
 
         public string DestinationContainerName { get; set; }
