@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery.Helpers
@@ -111,6 +112,7 @@ namespace NuGetGallery.Helpers
             [InlineData("http://www.nuget.org/packages/WindowsAzure.Storage/- is my package.", "<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>- is my package.")]
             [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1\" rel=\"nofollow\">WindowsAzure.Storage/9.3.1</a>.")]
             [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">WindowsAzure.Storage/9.3.1</a>.")]
+            [InlineData("My package is https://nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">https://nuget.org/packages/WindowsAzure.Storage/9.3.1/</a>.")]
             public void ConvertsPackageUrlsToLinksWithShortText(string input, string expected)
             {
                 // Arrange
@@ -130,15 +132,24 @@ namespace NuGetGallery.Helpers
         /// </summary>
         private static HtmlHelper CreateHtmlHelper(ViewDataDictionary vd)
         {
+            var appConfigurationMock = new Mock<ConfigurationService>();
+            appConfigurationMock.Setup(c => c.GetSiteRoot(true)).Returns("https://www.nuget.org");
+
+            var httpContextMock = new Mock<HttpContextBase>();
+            httpContextMock
+                .Setup(c => c.GetService(typeof(ConfigurationService)))
+                .Returns(appConfigurationMock.Object);
+
             var mockViewContext = new Mock<ViewContext>(
                 new ControllerContext(
-                    new Mock<HttpContextBase>().Object,
+                    httpContextMock.Object,
                     new RouteData(),
                     new Mock<ControllerBase>().Object),
                 new Mock<IView>().Object,
                 vd,
                 new TempDataDictionary(),
                 new StringWriter());
+            mockViewContext.Setup(c => c.HttpContext).Returns(httpContextMock.Object);
 
             var mockViewDataContainer = new Mock<IViewDataContainer>();
             mockViewDataContainer.Setup(v => v.ViewData).Returns(vd);

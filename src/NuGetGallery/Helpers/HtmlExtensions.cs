@@ -10,7 +10,9 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Helpers
 {
@@ -60,7 +62,6 @@ namespace NuGetGallery.Helpers
         {
             // Encode HTML entities. Important! Security!
             var encodedText = HttpUtility.HtmlEncode(text);
-
             // Turn HTTP and HTTPS URLs into links.
             // Source: https://stackoverflow.com/a/4750468
             string anchorEvaluator(Match match)
@@ -84,11 +85,16 @@ namespace NuGetGallery.Helpers
                 {
                     string anchorText = formattedUri;
 
-                    // Format links to NuGet packages
-                    Match packageMatch = RegexEx.MatchWithTimeout(formattedUri, @"((http|https):\/\/www.nuget.org\/packages\/(?<name>[^\/]+(\/[0-9a-zA-Z-.]+)?)\/?$)", RegexOptions.IgnoreCase);
-                    if (packageMatch != null && packageMatch.Groups["name"].Success)
+                    var configurationService = self.ViewContext.HttpContext.GetService<ConfigurationService>();
+                    if (configurationService != null)
                     {
-                        anchorText = packageMatch.Groups["name"].Value;
+                        string siteRoot = configurationService.GetSiteRoot(useHttps: true);
+                        // Format links to NuGet packages
+                        Match packageMatch = RegexEx.MatchWithTimeout(formattedUri, $@"({Regex.Escape(siteRoot)}\/packages\/(?<name>[^\/]+(\/[0-9a-zA-Z-.]+)?)\/?$)", RegexOptions.IgnoreCase);
+                        if (packageMatch != null && packageMatch.Groups["name"].Success)
+                        {
+                            anchorText = packageMatch.Groups["name"].Value;
+                        }
                     }
 
                     return $"<a href=\"{formattedUri}\" rel=\"nofollow\">{anchorText}</a>" + trimmedEntityValue;
