@@ -9,6 +9,15 @@
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 
+    var fugetPackageUrl = "";
+    var search = "nuget";
+    var replace = "fuget";
+    int pos = absolutePackageUrl.IndexOf(search);
+    if (pos >= 0)
+    {
+        fugetPackageUrl = absolutePackageUrl.Substring(0, pos) + replace + absolutePackageUrl.Substring(pos + search.Length);
+    }
+
     var hasSymbolsPackageAvailable = Model.LatestAvailableSymbolsPackage != null;
     var showSymbolsPackageStatus = Model.LatestSymbolsPackage != null && Model.LatestSymbolsPackage.StatusKey != PackageStatus.Available;
 
@@ -872,6 +881,13 @@
                     <li class="no-clickonce">
                         <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
                         <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
+                    </li>
+                }
+                @if (!String.IsNullOrEmpty(fugetPackageUrl))
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Zoom" aria-hidden="true"></i>
+                        <a href="@fugetPackageUrl" title="Explore the nupkg with the FuGet Package Explorer" rel="nofollow">Open in FuGet Package Explorer</a>
                     </li>
                 }
 
