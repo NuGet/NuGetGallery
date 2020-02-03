@@ -219,7 +219,7 @@
 
             @if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
             {
-                <p>@Html.PreFormattedText(Model.Description)</p>
+                <p>@Html.PreFormattedText(Model.Description, Config)</p>
             }
 
             @if (Model.Validating)
@@ -347,7 +347,7 @@
                     @ViewHelpers.AlertWarning(
                         @<text>
                             <strong>The symbols for this package have not been indexed yet.</strong> They are not available
-                            for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete. 
+                            for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
                             Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
 
                         @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
@@ -470,7 +470,7 @@
                 {
                     <h2>Release Notes</h2>
 
-                    <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
+                    <p>@Html.PreFormattedText(Model.ReleaseNotes, Config)</p>
                 }
 
                 if (Model.Dependencies.DependencySets == null)
@@ -582,7 +582,7 @@
                             </tbody>
                         </table>
                         <p>
-                            Read more about the GitHub Usage information on 
+                            Read more about the GitHub Usage information on
 
                             <a href="https://docs.microsoft.com/en-us/nuget/consume-packages/finding-and-choosing-packages#evaluating-packages" title="Read more about the GitHub Usage information">our documentation</a>.
                         </p>
