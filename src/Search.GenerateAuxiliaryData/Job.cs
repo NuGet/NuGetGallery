@@ -23,18 +23,8 @@ namespace Search.GenerateAuxiliaryData
     {
         private const string DefaultContainerName = "ng-search-data";
 
-        private const string ScriptOwners = "SqlScripts.Owners.sql";
-        private const string OutputNameOwners = "owners.json";
-        private const string Col0Owners = "Id";
-        private const string Col1Owners = "UserName";
-
-        private const string ScriptRankingsTotal = "SqlScripts.Rankings.sql";
-        private const string OutputNameRankings = "rankings.v1.json";
-
         private const string ScriptVerifiedPackages = "SqlScripts.VerifiedPackages.sql";
         private const string OutputNameVerifiedPackages = "verifiedPackages.json";
-
-        private const string StatisticsReportName = "downloads.v1.json";
 
         private List<Exporter> _exportersToRun;
 
@@ -52,10 +42,6 @@ namespace Search.GenerateAuxiliaryData
                 .CreateCloudBlobClient()
                 .GetContainerReference(Configuration.DestinationContainerName ?? DefaultContainerName);
 
-            var statisticsContainer = CloudStorageAccount.Parse(Configuration.AzureCdnCloudStorageAccount)
-                .CreateCloudBlobClient()
-                .GetContainerReference(Configuration.AzureCdnCloudStorageContainerName);
-
             _exportersToRun = new List<Exporter> {
                 new VerifiedPackagesExporter(
                     LoggerFactory.CreateLogger<VerifiedPackagesExporter>(),
@@ -64,31 +50,6 @@ namespace Search.GenerateAuxiliaryData
                     ScriptVerifiedPackages,
                     OutputNameVerifiedPackages,
                     Configuration.SqlCommandTimeout),
-
-                new NestedJArrayExporter(
-                    LoggerFactory.CreateLogger<NestedJArrayExporter>(),
-                    OpenSqlConnectionAsync<GalleryDbConfiguration>,
-                    destinationContainer,
-                    ScriptOwners,
-                    OutputNameOwners,
-                    Col0Owners,
-                    Col1Owners,
-                    Configuration.SqlCommandTimeout),
-
-                new RankingsExporter(
-                    LoggerFactory.CreateLogger<RankingsExporter>(),
-                    OpenSqlConnectionAsync<StatisticsDbConfiguration>,
-                    destinationContainer,
-                    ScriptRankingsTotal,
-                    OutputNameRankings,
-                    Configuration.SqlCommandTimeout),
-
-                new BlobStorageExporter(
-                    LoggerFactory.CreateLogger<BlobStorageExporter>(),
-                    statisticsContainer,
-                    StatisticsReportName,
-                    destinationContainer,
-                    StatisticsReportName)
             };
         }
 
