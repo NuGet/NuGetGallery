@@ -115,6 +115,7 @@ namespace NuGetGallery.Helpers
             [InlineData("http://www.nuget.org/packages/WindowsAzure.Storage/; is my package.", "<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>; is my package.")]
             [InlineData("http://www.nuget.org/packages/WindowsAzure.Storage/- is my package.", "<a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>- is my package.")]
             [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1\" rel=\"nofollow\">WindowsAzure.Storage/9.3.1</a>.")]
+            [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1-preview.7", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1-preview.7\" rel=\"nofollow\">WindowsAzure.Storage/9.3.1-preview.7</a>")]
             [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">WindowsAzure.Storage/9.3.1</a>.")]
             [InlineData("My package is https://nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">https://nuget.org/packages/WindowsAzure.Storage/9.3.1/</a>.")]
             public void ConvertsPackageUrlsToLinksWithShortText(string input, string expected)

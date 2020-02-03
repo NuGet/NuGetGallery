@@ -86,7 +86,7 @@ namespace NuGetGallery.Helpers
                     string anchorText = formattedUri;
                     string siteRoot = configurationService.GetSiteRoot(useHttps: true);
                     // Format links to NuGet packages
-                    Match packageMatch = RegexEx.MatchWithTimeout(formattedUri, $@"({Regex.Escape(siteRoot)}\/packages\/(?<name>[^\/]+(\/[0-9a-zA-Z-.]+)?)\/?$)", RegexOptions.IgnoreCase);
+                    Match packageMatch = RegexEx.MatchWithTimeout(formattedUri, $@"({Regex.Escape(siteRoot)}\/packages\/(?<name>\w+([_.-]\w+)*(\/[0-9a-zA-Z-.]+)?)\/?$)", RegexOptions.IgnoreCase);
                     if (packageMatch != null && packageMatch.Groups["name"].Success)
                     {
                         anchorText = packageMatch.Groups["name"].Value;
