@@ -192,6 +192,8 @@
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicy.cs" />
     <Compile Include="Security\RequireOrganizationTenantPolicy.cs" />
     <Compile Include="Security\RequirePackageMetadataCompliancePolicy.cs" />
+    <Compile Include="Security\RequirePackageMetadataComplianceUtility.cs" />
+    <Compile Include="Security\RequirePackageMetadataState.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
     <Compile Include="Security\SecurityPolicyAction.cs" />
     <Compile Include="Security\SecurityPolicyHandler.cs" />
