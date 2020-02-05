@@ -34,7 +34,6 @@ namespace NuGetGallery
             }
 
             viewModel.FullVersion = NuGetVersionFormatter.ToFullString(package.Version);
-            viewModel.IsSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
 
             viewModel.Id = package.PackageRegistration.Id;
             viewModel.Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
@@ -44,9 +43,7 @@ namespace NuGetGallery
             viewModel.Description = package.Description;
             viewModel.ReleaseNotes = package.ReleaseNotes;
             viewModel.IconUrl = _iconUrlProvider.GetIconUrlString(package);
-            viewModel.LatestVersion = package.IsLatest;
             viewModel.LatestVersionSemVer2 = package.IsLatestSemVer2;
-            viewModel.LatestStableVersion = package.IsLatestStable;
             viewModel.LatestStableVersionSemVer2 = package.IsLatestStableSemVer2;
             viewModel.DevelopmentDependency = package.DevelopmentDependency;
             viewModel.LastUpdated = package.Published;
