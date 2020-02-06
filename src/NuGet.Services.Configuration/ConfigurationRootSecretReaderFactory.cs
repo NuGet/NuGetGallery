@@ -11,6 +11,7 @@ namespace NuGet.Services.Configuration
     public class ConfigurationRootSecretReaderFactory : ISecretReaderFactory
     {
         private string _vaultName;
+        private bool _useManagedIdentity;
         private string _clientId;
         private string _certificateThumbprint;
         private string _storeName;
@@ -20,9 +21,26 @@ namespace NuGet.Services.Configuration
 
         public ConfigurationRootSecretReaderFactory(IConfigurationRoot config)
         {
+            if (config == null)
+            {
+                throw new ArgumentNullException($"{nameof(config)}");
+            }
+
             _vaultName = config[Constants.KeyVaultVaultNameKey];
+
+            string useManagedIdentity = config[Constants.KeyVaultUseManagedIdentity];
+            if (!string.IsNullOrEmpty(useManagedIdentity))
+            {
+                _useManagedIdentity = bool.Parse(useManagedIdentity);
+            }
+
             _clientId = config[Constants.KeyVaultClientIdKey];
             _certificateThumbprint = config[Constants.KeyVaultCertificateThumbprintKey];
+            if (_useManagedIdentity && IsCertificateConfigurationProvided())
+            {
+                throw new ArgumentException($"The KeyVault configuration specifies usage of both, the managed identity and certificate for accessing KeyVault resource. Please specify only one configuration to be used.");
+            }
+
             _storeName = config[Constants.KeyVaultStoreNameKey];
             _storeLocation = config[Constants.KeyVaultStoreLocationKey];
             
@@ -46,21 +64,30 @@ namespace NuGet.Services.Configuration
                 return new EmptySecretReader();
             }
 
-            var certificate = CertificateUtility.FindCertificateByThumbprint(
-                !string.IsNullOrEmpty(_storeName)
-                    ? (StoreName)Enum.Parse(typeof(StoreName), _storeName)
-                    : StoreName.My,
-                !string.IsNullOrEmpty(_storeLocation)
-                    ? (StoreLocation)Enum.Parse(typeof(StoreLocation), _storeLocation)
-                    : StoreLocation.LocalMachine,
-                _certificateThumbprint,
-                _validateCertificate);
+            KeyVaultConfiguration keyVaultConfiguration;
 
-            var keyVaultConfiguration = new KeyVaultConfiguration(
-                _vaultName,
-                _clientId,
-                certificate,
-                _sendX5c);
+            if (_useManagedIdentity)
+            {
+                keyVaultConfiguration = new KeyVaultConfiguration(_vaultName);
+            }
+            else
+            {
+                var certificate = CertificateUtility.FindCertificateByThumbprint(
+                    !string.IsNullOrEmpty(_storeName)
+                        ? (StoreName)Enum.Parse(typeof(StoreName), _storeName)
+                        : StoreName.My,
+                    !string.IsNullOrEmpty(_storeLocation)
+                        ? (StoreLocation)Enum.Parse(typeof(StoreLocation), _storeLocation)
+                        : StoreLocation.LocalMachine,
+                    _certificateThumbprint,
+                    _validateCertificate);
+
+                keyVaultConfiguration = new KeyVaultConfiguration(
+                    _vaultName,                
+                    _clientId,
+                    certificate,
+                    _sendX5c);
+            }
 
             return new KeyVaultReader(keyVaultConfiguration);
         }
@@ -68,6 +95,12 @@ namespace NuGet.Services.Configuration
         public ISecretInjector CreateSecretInjector(ISecretReader secretReader)
         {
             return new SecretInjector(secretReader);
+        }
+
+        private bool IsCertificateConfigurationProvided()
+        {
+            return !string.IsNullOrEmpty(_clientId)
+                || !string.IsNullOrEmpty(_certificateThumbprint);
         }
     }
 }

@@ -6,6 +6,7 @@ namespace NuGet.Services.Configuration
     public static class Constants
     {
         public static string KeyVaultVaultNameKey = "KeyVault_VaultName";
+        public static string KeyVaultUseManagedIdentity = "KeyVault_UseManagedIdentity";
         public static string KeyVaultClientIdKey = "KeyVault_ClientId";
         public static string KeyVaultCertificateThumbprintKey = "KeyVault_CertificateThumbprint";
         public static string KeyVaultValidateCertificateKey = "KeyVault_ValidateCertificate";

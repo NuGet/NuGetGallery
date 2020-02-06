@@ -4,13 +4,14 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace NuGet.Services.KeyVault
 {
     /// <summary>
     /// Reads secretes from KeyVault.
-    /// Authentication with KeyVault is done using a certificate in location:LocalMachine store name:My 
+    /// Authentication with KeyVault is done using either a managed identity or a certificate in location:LocalMachine store name:My 
     /// </summary>
     public class KeyVaultReader : ISecretReader
     {
@@ -40,14 +41,21 @@ namespace NuGet.Services.KeyVault
         public async Task<ISecret> GetSecretObjectAsync(string secretName)
         {
             var secret = await _keyVaultClient.Value.GetSecretAsync(_vault, secretName);
-            return new KeyVaultSecret(secretName, secret.Value, secret.Attributes.Expires);                
+            return new KeyVaultSecret(secretName, secret.Value, secret.Attributes.Expires);
         }
 
         private KeyVaultClient InitializeClient()
         {
-            _clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, _configuration.Certificate);
-
-            return new KeyVaultClient(GetTokenAsync);
+            if (_configuration.UseManagedIdentity)
+            {
+                var azureServiceTokenProvider = new AzureServiceTokenProvider();
+                return new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+            }
+            else
+            {
+                _clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, _configuration.Certificate);
+                return new KeyVaultClient(GetTokenAsync);
+            }
         }
 
         private async Task<string> GetTokenAsync(string authority, string resource, string scope)

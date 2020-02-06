@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConfigurationRootSecretReaderFactoryFacts.cs" />
     <Compile Include="ConfigurationAttributeFacts.cs" />
     <Compile Include="ConfigurationBuilderExtensionsFacts.cs" />
     <Compile Include="ConfigurationFactoryFacts.cs" />
