@@ -196,6 +196,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid Dependency Version Range: &apos;{0}&apos;.
+        /// </summary>
+        public static string Manifest_InvalidDependencyVersionRange {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidDependencyVersionRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an invalid ID: &apos;{0}&apos;.
         /// </summary>
         public static string Manifest_InvalidId {
