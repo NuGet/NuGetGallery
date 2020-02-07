@@ -46,9 +46,10 @@ namespace CopyAzureContainer
                    + $"-{ArgumentNames.CopyAzureContainer_BackupDays} <backupDaysToKeepAsIntValue> "
                    + $"-{JobArgumentNames.InstrumentationKey} <intrumentationKey> "
                    + $"-{JobArgumentNames.VaultName} <keyvault name> "
-                   + $"-{JobArgumentNames.ClientId} <keyvault-client-id> "
-                   + $"-{JobArgumentNames.CertificateThumbprint} <keyvault-certificate-thumbprint> "
-                   + $"-{JobArgumentNames.ValidateCertificate} true|false";
+                   + $"-{JobArgumentNames.UseManagedIdentity} <true|false> "
+                   + $"-{JobArgumentNames.ClientId} <keyvault-client-id> Should not be set if UseManagedIdentity is true"
+                   + $"-{JobArgumentNames.CertificateThumbprint} <keyvault-certificate-thumbprint> Should not be set if UseManagedIdentity is true"
+                   + $"-{JobArgumentNames.ValidateCertificate} <true|false>";
         }
 
         public override async Task Run()
