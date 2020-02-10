@@ -47,8 +47,9 @@ namespace Ng.Jobs
         {
             return "Usage: ng [" + string.Join("|", NgJobFactory.JobMap.Keys) + "] "
                    + $"[-{Arguments.VaultName} <keyvault-name> "
-                   + $"-{Arguments.ClientId} <keyvault-client-id> "
-                   + $"-{Arguments.CertificateThumbprint} <keyvault-certificate-thumbprint> "
+                   + $"-{Arguments.UseManagedIdentity} true|false "
+                   + $"-{Arguments.ClientId} <keyvault-client-id> Should not be set if {Arguments.UseManagedIdentity} is true"
+                   + $"-{Arguments.CertificateThumbprint} <keyvault-certificate-thumbprint> Should not be set if {Arguments.UseManagedIdentity} is true"
                    + $"[-{Arguments.ValidateCertificate} true|false]]";
         }
 

@@ -97,10 +97,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Indexing\NuGet.Indexing.csproj">
-      <Project>{ddb34145-870f-42c3-9663-a9390cee1e35}</Project>
-      <Name>NuGet.Indexing</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">
       <Project>{1a53fe3d-8041-4773-942f-d73aef5b82b2}</Project>
       <Name>NuGet.Services.AzureSearch</Name>
@@ -129,18 +125,6 @@
     <ThirdPartyBinaries Include="HtmlAgilityPack.dll" Visible="false" />
     <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" Visible="false" />
     <ThirdPartyBinaries Include="json-ld.net.StrongName.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Analyzers.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Core.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.FastVectorHighlighter.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Highlighter.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Memory.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Queries.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Regex.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.SimpleFacetedSearch.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.Snowball.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Contrib.SpellChecker.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Lucene.Net.Store.Azure.dll" Visible="false" />
     <ThirdPartyBinaries Include="Markdig.dll" Visible="false" />
     <ThirdPartyBinaries Include="MarkdownSharp.dll" Visible="false" />
     <ThirdPartyBinaries Include="Newtonsoft.Json.dll" Visible="false" />

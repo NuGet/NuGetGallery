@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using NuGet.Indexing;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {

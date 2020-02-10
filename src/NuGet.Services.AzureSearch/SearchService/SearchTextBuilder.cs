@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
-using NuGet.Indexing;
 using NuGet.Packaging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;

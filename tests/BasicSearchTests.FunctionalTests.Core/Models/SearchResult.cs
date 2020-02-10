@@ -6,7 +6,5 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
     public class SearchResult
     {
         public int? TotalHits { get; set; }
-
-        public string Index { get; set; }
     }
 }

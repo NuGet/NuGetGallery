@@ -75,7 +75,6 @@ Invoke-BuildStep 'Restoring solution packages' { `
     
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
         $assemblyInfos = `
-            "src\NuGet.Indexing\Properties\AssemblyInfo.g.cs", `
             "src\Catalog\Properties\AssemblyInfo.g.cs", `
             "src\NuGet.ApplicationInsights.Owin\Properties\AssemblyInfo.g.cs", `
             "src\Ng\Properties\AssemblyInfo.g.cs", `
@@ -115,7 +114,6 @@ Invoke-BuildStep 'Signing the binaries' {
 
 Invoke-BuildStep 'Creating artifacts' {
         $csprojPackages = `
-            "src\NuGet.Indexing\NuGet.Indexing.csproj", `
             "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", `
             "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", `
             "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj", `
@@ -129,7 +127,6 @@ Invoke-BuildStep 'Creating artifacts' {
         $nuspecPackages = `
             "src\Ng\Catalog2Dnx.nuspec", `
             "src\Ng\Catalog2icon.nuspec", `
-            "src\Ng\Catalog2Lucene.nuspec", `
             "src\Ng\Catalog2Monitoring.nuspec", `
             "src\Ng\Catalog2Registration.nuspec", `
             "src\Ng\Db2Catalog.nuspec", `
