@@ -9,14 +9,7 @@
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 
-    var fugetPackageUrl = "";
-    var search = "nuget";
-    var replace = "fuget";
-    int pos = absolutePackageUrl.IndexOf(search);
-    if (pos >= 0)
-    {
-        fugetPackageUrl = absolutePackageUrl.Substring(0, pos) + replace + absolutePackageUrl.Substring(pos + search.Length);
-    }
+    var fugetPackageUrl = "https://www.fuget.org/packages/" + Model.Id + "/" + Model.Version;
 
     var hasSymbolsPackageAvailable = Model.LatestAvailableSymbolsPackage != null;
     var showSymbolsPackageStatus = Model.LatestSymbolsPackage != null && Model.LatestSymbolsPackage.StatusKey != PackageStatus.Available;
