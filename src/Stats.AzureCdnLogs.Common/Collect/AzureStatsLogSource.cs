@@ -69,11 +69,20 @@ namespace Stats.AzureCdnLogs.Common.Collect
             {
                 throw new ArgumentOutOfRangeException($"{nameof(maxResults)} needs to be positive.");
             }
+
+            _logger.LogInformation(
+                "Finding up to {MaxResults} unlocked blobs with prefix {Prefix}...",
+                maxResults,
+                prefix);
+
             BlobContinuationToken continuationToken = null;
             var result = new List<Uri>();
             do
             {
-                var resultsInternal = await _container.ListBlobsSegmentedAsync(prefix: prefix,
+                _logger.LogInformation("Finding next blobs segment...");
+
+                var segment = await _container.ListBlobsSegmentedAsync(
+                    prefix: prefix,
                     useFlatBlobListing: true,
                     blobListingDetails: BlobListingDetails.Metadata,
                     maxResults: null,
@@ -82,19 +91,42 @@ namespace Stats.AzureCdnLogs.Common.Collect
                     operationContext: null,
                     cancellationToken: token);
 
-                result.AddRange(resultsInternal.Results.Where((r) =>
+                continuationToken = segment.ContinuationToken;
+
+                _logger.LogInformation("Found next blobs segment, finding blobs with unlocked lease status...");
+
+                foreach (var blobItem in segment.Results)
                 {
-                    var cloudBlob = (CloudBlob)r;
-                    cloudBlob.FetchAttributes();
-                    return cloudBlob.Properties.LeaseStatus == LeaseStatus.Unlocked;
-                }).Select(r => r.Uri));
-                if(result.Count > maxResults)
-                {
-                    break;
+                    if (result.Count >= maxResults)
+                    {
+                        break;
+                    }
+
+                    _logger.LogInformation(
+                        "Found blob {BlobUrl}, determining lease status...",
+                        blobItem.Uri);
+
+                    var blob = (CloudBlob)blobItem;
+                    if (blob.Properties.LeaseStatus != LeaseStatus.Unlocked)
+                    {
+                        _logger.LogInformation(
+                            "Skipping blob {BlobUrl} as its lease status is not unlocked: {LeaseStatus}",
+                            blob.Uri,
+                            blob.Properties.LeaseStatus);
+                        continue;
+                    }
+
+                    result.Add(blob.Uri);
                 }
             }
             while (continuationToken != null);
-            return result.Take(maxResults);
+
+            _logger.LogInformation(
+                "Found {Results} unlocked blobs with prefix {Prefix}",
+                result.Count,
+                prefix);
+
+            return result;
         }
 
         /// <summary>
