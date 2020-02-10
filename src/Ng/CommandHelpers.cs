@@ -69,14 +69,23 @@ namespace Ng
             }
             else
             {
-                var clientId = arguments.GetOrThrow<string>(Arguments.ClientId);
-                var certificateThumbprint = arguments.GetOrThrow<string>(Arguments.CertificateThumbprint);
-                var storeName = arguments.GetOrDefault(Arguments.StoreName, StoreName.My);
-                var storeLocation = arguments.GetOrDefault(Arguments.StoreLocation, StoreLocation.LocalMachine);
-                var shouldValidateCert = arguments.GetOrDefault(Arguments.ValidateCertificate, true);
+                var useManagedIdentity = arguments.GetOrDefault<bool>(Arguments.UseManagedIdentity);
+                KeyVaultConfiguration keyVaultConfig;
+                if (useManagedIdentity)
+                {
+                    keyVaultConfig = new KeyVaultConfiguration(vaultName);
+                }
+                else
+                {
+                    var clientId = arguments.GetOrThrow<string>(Arguments.ClientId);
+                    var certificateThumbprint = arguments.GetOrThrow<string>(Arguments.CertificateThumbprint);
+                    var storeName = arguments.GetOrDefault(Arguments.StoreName, StoreName.My);
+                    var storeLocation = arguments.GetOrDefault(Arguments.StoreLocation, StoreLocation.LocalMachine);
+                    var shouldValidateCert = arguments.GetOrDefault(Arguments.ValidateCertificate, true);
 
-                var keyVaultCertificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, shouldValidateCert);
-                var keyVaultConfig = new KeyVaultConfiguration(vaultName, clientId, keyVaultCertificate);
+                    var keyVaultCertificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, shouldValidateCert);
+                    keyVaultConfig = new KeyVaultConfiguration(vaultName, clientId, keyVaultCertificate);
+                }
 
                 secretReader = new CachingSecretReader(new KeyVaultReader(keyVaultConfig),
                     arguments.GetOrDefault(Arguments.RefreshIntervalSec, CachingSecretReader.DefaultRefreshIntervalSec));

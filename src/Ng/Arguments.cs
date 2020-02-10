@@ -166,6 +166,8 @@ namespace Ng
 
         #region KeyVault
         public const string VaultName = "vaultName";
+        public const string UseManagedIdentity = "useManagedIdentity";
+
         public const string ClientId = "clientId";
 
         public const string StoreName = "storeName";
