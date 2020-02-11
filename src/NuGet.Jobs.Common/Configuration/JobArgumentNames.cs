@@ -103,6 +103,7 @@ namespace NuGet.Jobs
 
         // Key Vault
         public const string VaultName = "VaultName";
+        public const string UseManagedIdentity = "UseManagedIdentity";
         public const string ClientId = "ClientId";
         public const string CertificateThumbprint = "CertificateThumbprint";
         public const string ValidateCertificate = "ValidateCertificate";

@@ -17,20 +17,31 @@ namespace NuGet.Jobs
                 return new EmptySecretReader();
             }
 
-            var storeName = JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.StoreName);
-            var storeLocation = JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.StoreLocation);
+            var useManagedIdentityStringValue = JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.UseManagedIdentity);
+            var useManagedIdentity = !string.IsNullOrWhiteSpace(useManagedIdentityStringValue) ? bool.Parse(useManagedIdentityStringValue) : false;
 
-            var certificate = CertificateUtility.FindCertificateByThumbprint(
-                storeName != null ? (StoreName)Enum.Parse(typeof(StoreName), storeName) : StoreName.My,
-                storeLocation != null ? (StoreLocation)Enum.Parse(typeof(StoreLocation), storeLocation) : StoreLocation.LocalMachine,
-                JobConfigurationManager.GetArgument(settings, JobArgumentNames.CertificateThumbprint),
-                JobConfigurationManager.TryGetBoolArgument(settings, JobArgumentNames.ValidateCertificate, defaultValue: true));
+            KeyVaultConfiguration keyVaultConfiguration;
+            if (useManagedIdentity)
+            {
+                keyVaultConfiguration = new KeyVaultConfiguration(JobConfigurationManager.GetArgument(settings, JobArgumentNames.VaultName));
+            }
+            else
+            {
+                var storeName = JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.StoreName);
+                var storeLocation = JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.StoreLocation);
 
-            var keyVaultConfiguration =
-                new KeyVaultConfiguration(
-                    JobConfigurationManager.GetArgument(settings, JobArgumentNames.VaultName),
-                    JobConfigurationManager.GetArgument(settings, JobArgumentNames.ClientId),
-                    certificate);
+                var certificate = CertificateUtility.FindCertificateByThumbprint(
+                    storeName != null ? (StoreName)Enum.Parse(typeof(StoreName), storeName) : StoreName.My,
+                    storeLocation != null ? (StoreLocation)Enum.Parse(typeof(StoreLocation), storeLocation) : StoreLocation.LocalMachine,
+                    JobConfigurationManager.GetArgument(settings, JobArgumentNames.CertificateThumbprint),
+                    JobConfigurationManager.TryGetBoolArgument(settings, JobArgumentNames.ValidateCertificate, defaultValue: true));
+
+                keyVaultConfiguration =
+                    new KeyVaultConfiguration(
+                        JobConfigurationManager.GetArgument(settings, JobArgumentNames.VaultName),
+                        JobConfigurationManager.GetArgument(settings, JobArgumentNames.ClientId),
+                        certificate);
+            }
 
             var refreshIntervalSec = JobConfigurationManager.TryGetIntArgument(settings,
                 JobArgumentNames.RefreshIntervalSec) ?? CachingSecretReader.DefaultRefreshIntervalSec;
