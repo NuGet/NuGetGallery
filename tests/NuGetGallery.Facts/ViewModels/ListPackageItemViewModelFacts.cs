@@ -168,33 +168,6 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         }
 
         [Fact]
-        public void UseVersionIfLatestAndStableNotSame()
-        {
-            var package = new Package()
-            {
-                Version = "1.0.0",
-                PackageRegistration = new PackageRegistration { Id = "SomeId" },
-                IsLatest = true,
-                IsLatestStable = false
-            };
-
-            var listPackageItemViewModel = CreateListPackageItemViewModel(package);
-            Assert.True(listPackageItemViewModel.UseVersion);
-
-            listPackageItemViewModel.LatestVersion = false;
-            listPackageItemViewModel.LatestStableVersion = true;
-            Assert.True(listPackageItemViewModel.UseVersion);
-
-            listPackageItemViewModel.LatestVersion = false;
-            listPackageItemViewModel.LatestStableVersion = false;
-            Assert.True(listPackageItemViewModel.UseVersion);
-
-            listPackageItemViewModel.LatestVersion = true;
-            listPackageItemViewModel.LatestStableVersion = true;
-            Assert.False(listPackageItemViewModel.UseVersion);
-        }
-
-        [Fact]
         public void UseVersionIfLatestSemVer2AndStableSemVer2NotSame()
         {
             var package = new Package()

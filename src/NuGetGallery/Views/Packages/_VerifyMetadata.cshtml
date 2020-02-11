@@ -253,21 +253,5 @@
             <!-- /ko -->
             <!-- /ko -->
         </div>
-
-        <!-- ko if: $data.IsSemVer2 -->
-        @ViewHelpers.AlertWarning(@<text>
-            <!-- ko if: $data.HasSemVer2Version -->
-            This package has a SemVer 2.0.0 package version.<br />
-            <!-- /ko -->
-            <!-- ko if: !$data.HasSemVer2Version && $data.HasSemVer2Dependency -->
-            This package is considered a SemVer 2.0.0 package as it has a package dependency on SemVer 2.0.0 package(s).<br />
-            <!-- /ko -->
-            <em>
-                This package will only be available to download with SemVer 2.0.0 compatible NuGet clients, such as Visual
-                Studio 2017 (version 15.3) and above or NuGet client 4.3.0 and above.
-                <a href="https://go.microsoft.com/fwlink/?linkid=852248" alt="Read more">Read more</a><br />
-            </em>
-            </text>)
-        <!-- /ko -->
     </div>
 </script>

@@ -86,10 +86,10 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.3.0-dev-3383587</Version>
+      <Version>4.3.0-dev-3453620</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.66.0</Version>
+      <Version>2.68.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

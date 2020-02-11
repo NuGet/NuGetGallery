@@ -30,7 +30,8 @@ Function Run-Tests {
         "tests\NuGet.Services.DatabaseMigration.Facts\bin\$Configuration\NuGet.Services.DatabaseMigration.Facts.dll", `
         "tests\NuGet.Services.Entities.Tests\bin\$Configuration\NuGet.Services.Entities.Tests.dll", `
         "tests\NuGetGallery.Core.Facts\bin\$Configuration\NuGetGallery.Core.Facts.dll", `
-        "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll"
+        "tests\NuGetGallery.Facts\bin\$Configuration\NuGetGallery.Facts.dll", `
+        "tests\VerifyMicrosoftPackage.Facts\bin\$Configuration\NuGet.VerifyMicrosoftPackage.Facts.dll"
     
     $TestCount = 0
     

@@ -11,8 +11,6 @@ namespace NuGetGallery
         public string ReleaseNotes { get; set; }
         public string IconUrl { get; set; }
         public DateTime LastUpdated { get; set; }
-        public bool LatestVersion { get; set; }
-        public bool LatestStableVersion { get; set; }
         public bool LatestVersionSemVer2 { get; set; }
         public bool LatestStableVersionSemVer2 { get; set; }
         public bool DevelopmentDependency { get; set; }
@@ -27,7 +25,6 @@ namespace NuGetGallery
         public string Id { get; set; }
         public string Version { get; set; }
         public string FullVersion { get; set; }
-        public bool IsSemVer2 { get; set; }
         public PackageStatusSummary PackageStatusSummary { get; set; }
 
         public bool IsCurrent(IPackageVersionModel current)

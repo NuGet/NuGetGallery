@@ -10,7 +10,8 @@ param (
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = 'd298565f387e93995a179ef8ae6838f1be37904f'
+    [string]$BuildBranch = 'd298565f387e93995a179ef8ae6838f1be37904f',
+    [string]$VerifyMicrosoftPackageVersion = $null
 )
 
 Set-StrictMode -Version 1.0
@@ -85,7 +86,8 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
         (Join-Path $PSScriptRoot "src\DatabaseMigrationTools\Properties\AssemblyInfo.g.cs"), `
         (Join-Path $PSScriptRoot "src\AccountDeleter\Properties\AssemblyInfo.g.cs"), `
         (Join-Path $PSScriptRoot "src\GitHubVulnerabilities2Db\Properties\AssemblyInfo.g.cs"), `
-        (Join-Path $PSScriptRoot "src\GalleryTools\Properties\AssemblyInfo.g.cs")
+        (Join-Path $PSScriptRoot "src\GalleryTools\Properties\AssemblyInfo.g.cs"), `
+        (Join-Path $PSScriptRoot "src\VerifyMicrosoftPackage\Properties\AssemblyInfo.g.cs")
 
     Foreach ($Path in $Paths) {
         Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -114,6 +116,9 @@ Invoke-BuildStep 'Creating artifacts' { `
     New-Package (Join-Path $PSScriptRoot "src\AccountDeleter\Gallery.AccountDeleter.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
     New-Package (Join-Path $PSScriptRoot "src\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
     New-Package (Join-Path $PSScriptRoot "src\GalleryTools\Gallery.GalleryTools.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
+
+    if (!$VerifyMicrosoftPackageVersion) { $VerifyMicrosoftPackageVersion = $SemanticVersion }
+    New-Package (Join-Path $PSScriptRoot "src\VerifyMicrosoftPackage\VerifyMicrosoftPackage.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $VerifyMicrosoftPackageVersion -Branch $Branch -MSBuildVersion "15"
 } `
 -ev +BuildErrors
 

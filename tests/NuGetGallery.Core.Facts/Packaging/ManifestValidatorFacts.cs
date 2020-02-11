@@ -350,6 +350,20 @@ namespace NuGetGallery.Packaging
                   </metadata>
                 </package>";
 
+        private const string NuspecDependencyWithVersionRangeFormat = @"<?xml version=""1.0""?>
+                <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                  <metadata>
+                    <id>packageA</id>
+                    <version>1.0.1-alpha</version>
+                    <description>package A description.</description>
+                    <dependencies>
+                        <group targetFramework=""net40"">
+                          <dependency id=""SomeDependency"" version=""{0}"" />
+                        </group>
+                    </dependencies>
+                  </metadata>
+                </package>";
+
         [Fact]
         public void ReturnsErrorIfIdNotPresent()
         {
@@ -496,6 +510,22 @@ namespace NuGetGallery.Packaging
             var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsDuplicateDependency);
 
             Assert.Equal(new[] { String.Format(CoreStrings.Manifest_DuplicateDependency, "net40", "SomeDependency") }, GetErrors(nuspecStream));
+        }
+
+        [Theory]
+        [InlineData("*")]
+        [InlineData("1.*")]
+        [InlineData("1.0.*")]
+        [InlineData("1.0.0.*")]
+        [InlineData("1.0.0-beta*")]
+        [InlineData("1.0.0-beta-*")]
+        [InlineData("1.0.0-beta.*")]
+        public void ReturnsErrorIfDependencyHasInvalidVersionRange(string versionRange)
+        {
+            var nuspec = string.Format(NuspecDependencyWithVersionRangeFormat, versionRange);
+            var nuspecStream = CreateNuspecStream(nuspec);
+
+            Assert.Equal(new[] { string.Format(CoreStrings.Manifest_InvalidDependencyVersionRange, versionRange) }, GetErrors(nuspecStream));
         }
 
         [Fact]

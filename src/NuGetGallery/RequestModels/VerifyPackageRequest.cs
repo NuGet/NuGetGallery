@@ -21,10 +21,6 @@ namespace NuGetGallery
             Id = packageMetadata.Id;
             Version = packageMetadata.Version.ToFullStringSafe();
             OriginalVersion = packageMetadata.Version.OriginalVersion;
-            HasSemVer2Version = packageMetadata.Version.IsSemVer2;
-            HasSemVer2Dependency = packageMetadata.GetDependencyGroups().Any(d => d.Packages.Any(
-                                p => (p.VersionRange.HasUpperBound && p.VersionRange.MaxVersion.IsSemVer2)
-                                    || (p.VersionRange.HasLowerBound && p.VersionRange.MinVersion.IsSemVer2)));
             
             // Verifiable fields
             Language = packageMetadata.Language;
@@ -91,10 +87,6 @@ namespace NuGetGallery
         /// The usernames of the <see cref="User"/>s that the current user can upload the package as.
         /// </summary>
         public IReadOnlyCollection<string> PossibleOwners { get; set; }
-
-        public bool IsSemVer2 => HasSemVer2Version || HasSemVer2Dependency;
-        public bool HasSemVer2Version { get; set; }
-        public bool HasSemVer2Dependency { get; set; }
 
         // Editable server-state
         public bool Listed { get; set; }

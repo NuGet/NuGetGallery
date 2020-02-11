@@ -59,11 +59,6 @@ namespace NuGetGallery
             var dependencies = package.Dependencies.ToList();
 
             viewModel.Dependencies = new DependencySetsViewModel(dependencies);
-            viewModel.HasSemVer2Version = viewModel.NuGetVersion.IsSemVer2;
-            viewModel.HasSemVer2Dependency = dependencies
-                .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
-                .Select(pd => VersionRange.Parse(pd.VersionSpec))
-                .Any(p => (p.HasUpperBound && p.MaxVersion.IsSemVer2) || (p.HasLowerBound && p.MinVersion.IsSemVer2));
 
             var packageHistory = allVersions
                 .OrderByDescending(p => new NuGetVersion(p.Version))

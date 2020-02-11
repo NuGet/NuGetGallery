@@ -217,4 +217,8 @@
     <value>The package manifest contains an invalid package type name: '{0}'</value>
     <comment>{0} is the package type name.</comment>
   </data>
+  <data name="Manifest_InvalidDependencyVersionRange" xml:space="preserve">
+    <value>The package manifest contains an invalid Dependency Version Range: '{0}'</value>
+    <comment>{0} is the original dependency version range string.</comment>
+  </data>
 </root>

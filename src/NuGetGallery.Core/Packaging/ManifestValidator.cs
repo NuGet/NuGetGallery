@@ -145,6 +145,14 @@ namespace NuGetGallery.Packaging
                         }
 
                         // Versions
+                        if (dependency.VersionRange.IsFloating)
+                        {
+                            yield return new ValidationResult(String.Format(
+                                CultureInfo.CurrentCulture,
+                                CoreStrings.Manifest_InvalidDependencyVersionRange,
+                                dependency.VersionRange.OriginalString));
+                        }
+
                         if (dependency.VersionRange.MinVersion != null)
                         {
                             var versionRangeValidationResult =
