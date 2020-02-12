@@ -86,7 +86,7 @@ namespace NuGet.Jobs.RegistrationComparer
                     // Each iteration, the writer will come up with a different commit timestamp.
                     var commitTimestamp = (string)value;
                     if (commitTimestamp != null
-                        && Regex.IsMatch(commitTimestamp, @"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,}(Z|\+00:00)"))
+                        && Regex.IsMatch(commitTimestamp, @"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,})?(Z|\+00:00)"))
                     {
                         return DateTimeOffset.MinValue.ToString("o");
                     }
