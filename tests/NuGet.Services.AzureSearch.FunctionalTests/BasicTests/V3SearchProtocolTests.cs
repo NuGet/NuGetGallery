@@ -118,7 +118,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         [Fact]
         public async Task ResultsHonorPreReleaseField()
         {
-            var searchTerm = "json";
+            var searchTerm = "basetestpackage";
 
             var resultsWithPrerelease = await V3SearchAsync(new V3SearchBuilder { Query = searchTerm, Prerelease = true }); ;
             Assert.NotNull(resultsWithPrerelease);
@@ -135,11 +135,13 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
 
             var hasPrereleaseVersions = resultsWithPrerelease
                 .Data
+                .SelectMany(x => x.Versions)
                 .Any(x => TestUtilities.IsPrerelease(x.Version));
             Assert.True(hasPrereleaseVersions, $"The search query did not return any results with the expected prerelease versions.");
 
             hasPrereleaseVersions = resultsWithoutPrerelease
                 .Data
+                .SelectMany(x => x.Versions)
                 .Any(x => TestUtilities.IsPrerelease(x.Version));
             Assert.False(hasPrereleaseVersions, $"The search query returned results with prerelease versions when queried for Prerelease = false");
         }

@@ -140,7 +140,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         [Fact]
         public async Task ResultsHonorPreReleaseField()
         {
-            var searchTerm = "json";
+            var searchTerm = "basetestpackage";
 
             var resultsWithPrerelease = await V2SearchAsync(new V2SearchBuilder { Query = searchTerm, Prerelease = true }); ;
             Assert.NotNull(resultsWithPrerelease);
