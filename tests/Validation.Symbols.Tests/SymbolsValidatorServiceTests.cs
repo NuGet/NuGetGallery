@@ -13,6 +13,7 @@ using NuGet.Services.Validation;
 using NuGet.Jobs.Validation.Symbols.Core;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Validation.Symbols.Tests
 {
@@ -22,8 +23,69 @@ namespace Validation.Symbols.Tests
         private const string PackageNormalizedVersion = "1.2.3";
         private static readonly SymbolsValidatorMessage Message = new SymbolsValidatorMessage(new Guid(), 1, PackageId, PackageNormalizedVersion, "https://dummy.snupkg");
 
+        public sealed class TheValidateSymbolMatchingMethod : FactBase, IDisposable
+        {
+            public TheValidateSymbolMatchingMethod(ITestOutputHelper output) : base(output)
+            {
+                Target = new SymbolsValidatorService(
+                    _symbolsFileService.Object,
+                    _zipService.Object,
+                    _telemetryService.Object,
+                    _logger);
+
+                Directory = TestDirectory.Create();
+            }
+
+            public SymbolsValidatorService Target { get; }
+            public TestDirectory Directory { get; }
+
+            public void Dispose()
+            {
+                Directory.Dispose();
+            }
+
+            [Fact]
+            public void MatchingDllAndPortablePdbPassValidation()
+            {
+                File.WriteAllBytes(Path.Combine(Directory, "testlib.dll"), TestData.BaselineDll);
+                File.WriteAllBytes(Path.Combine(Directory, "testlib.pdb"), TestData.BaselinePdb);
+
+                var result = Target.ValidateSymbolMatching(Directory, "TestLib", "1.0.0");
+
+                Assert.Equal(ValidationStatus.Succeeded, result.Status);
+            }
+
+            [Fact]
+            public void MismatchedDllAndPortablePdbFailValidation()
+            {
+                File.WriteAllBytes(Path.Combine(Directory, "testlib.dll"), TestData.AddClassDll);
+                File.WriteAllBytes(Path.Combine(Directory, "testlib.pdb"), TestData.BaselinePdb);
+
+                var result = Target.ValidateSymbolMatching(Directory, "TestLib", "1.0.0");
+
+                Assert.Equal(ValidationStatus.Failed, result.Status);
+                Assert.Equal(ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound, Assert.Single(result.Issues).IssueCode);
+            }
+
+            [Fact]
+            public void MatchingDllAndWindowsPdbFailValidation()
+            {
+                File.WriteAllBytes(Path.Combine(Directory, "testlib.dll"), TestData.WindowsDll);
+                File.WriteAllBytes(Path.Combine(Directory, "testlib.pdb"), TestData.WindowsPdb);
+
+                var result = Target.ValidateSymbolMatching(Directory, "TestLib", "1.0.0");
+
+                Assert.Equal(ValidationStatus.Failed, result.Status);
+                Assert.Equal(ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable, Assert.Single(result.Issues).IssueCode);
+            }
+        }
+
         public sealed class TheValidateSymbolsAsyncMethod : FactBase
         {
+            public TheValidateSymbolsAsyncMethod(ITestOutputHelper output) : base(output)
+            {
+            }
+
             [Fact]
             public async Task ValidateSymbolsAsyncWillFailIfSnupkgNotFound()
             {
@@ -32,7 +94,7 @@ namespace Validation.Symbols.Tests
                     Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
                     ThrowsAsync(new InvalidOperationException("Snupkg not found"));
 
-                var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
+                var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger);
 
                 // Act 
                 var  result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
@@ -53,7 +115,7 @@ namespace Validation.Symbols.Tests
                     Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
                     ReturnsAsync(new MemoryStream());
 
-                var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
+                var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger);
 
                 // Act 
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
@@ -80,7 +142,7 @@ namespace Validation.Symbols.Tests
                 _zipService.Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), ".pdb")).Returns(new List<string>()
                 { "bar.pdb" });
 
-                var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
+                var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger);
 
                 // Act 
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
@@ -110,7 +172,7 @@ namespace Validation.Symbols.Tests
                 _zipService.Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), ".pdb")).Returns(new List<string>()
                 { "foo.pdb" });
 
-                var service = new TestSymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
+                var service = new TestSymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger);
 
                 // Act 
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
@@ -128,7 +190,7 @@ namespace Validation.Symbols.Tests
                     Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
                     ReturnsAsync(CreateZipSlipStream());
                 var zipService = new ZipArchiveService(new Mock<ILogger<ZipArchiveService>>().Object);
-                var service = new TestSymbolsValidatorService(_symbolsFileService.Object, zipService, _telemetryService.Object, _logger.Object);
+                var service = new TestSymbolsValidatorService(_symbolsFileService.Object, zipService, _telemetryService.Object, _logger);
 
                 // Act 
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
@@ -154,7 +216,7 @@ namespace Validation.Symbols.Tests
 
                 _zipService.Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), It.IsAny<string[]>())).Returns(new List<string>());
 
-                var service = new TestSymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
+                var service = new TestSymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger);
 
                 // Act 
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
@@ -238,7 +300,7 @@ namespace Validation.Symbols.Tests
 
                 // Act + Assert
                 List<string> orphanSymbols;
-                Assert.Throws<ArgumentNullException>(()=>SymbolsValidatorService.SymbolsHaveMatchingPEFiles(null, pes, out orphanSymbols));
+                Assert.Throws<ArgumentNullException>(()=> SymbolsValidatorService.SymbolsHaveMatchingPEFiles(null, pes, out orphanSymbols));
                 Assert.Throws<ArgumentNullException>(() => SymbolsValidatorService.SymbolsHaveMatchingPEFiles(symbols, null, out orphanSymbols));
             }
         }
@@ -282,14 +344,14 @@ namespace Validation.Symbols.Tests
         {
             public Mock<ISymbolsFileService> _symbolsFileService;
             public Mock<ITelemetryService> _telemetryService;
-            public Mock<ILogger<SymbolsValidatorService>> _logger;
+            public ILogger<SymbolsValidatorService> _logger;
             public Mock<IZipArchiveService> _zipService;
 
-            public FactBase()
+            public FactBase(ITestOutputHelper output)
             {
                 _symbolsFileService = new Mock<ISymbolsFileService>();
                 _telemetryService = new Mock<ITelemetryService>();
-                _logger = new Mock<ILogger<SymbolsValidatorService>>();
+                _logger = new LoggerFactory().AddXunit(output).CreateLogger<SymbolsValidatorService>();
                 _zipService = new Mock<IZipArchiveService>();
             }
         }

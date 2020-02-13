@@ -50,6 +50,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SymbolsValidatorMessageHandlerTests.cs" />
     <Compile Include="SymbolsValidatorServiceTests.cs" />
+    <Compile Include="TestData.cs" />
+    <Compile Include="TestDirectory.cs" />
     <Compile Include="ZipArchiveTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -81,6 +83,19 @@
       <Project>{2dd07a73-8c88-4429-bb24-c2813586ef92}</Project>
       <Name>Validation.Symbols.Job</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj">
+      <Project>{b4b7564a-965b-447b-927f-6749e2c08880}</Project>
+      <Name>Validation.PackageSigning.Core.Tests</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="TestData\testlib\0-baseline\testlib.dll" />
+    <EmbeddedResource Include="TestData\testlib\0-baseline\testlib.pdb" />
+    <EmbeddedResource Include="TestData\testlib\1-add-class\testlib.dll" />
+    <EmbeddedResource Include="TestData\testlib\1-add-class\testlib.pdb" />
+    <EmbeddedResource Include="TestData\testlib\2-windows\testlib.dll" />
+    <EmbeddedResource Include="TestData\testlib\2-windows\testlib.pdb" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -247,8 +247,8 @@ namespace Validation.Symbols
                     }
                 }
             }
-            _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_PdbIsNotPortable), assemblyName: Path.GetFileName(peFilePath));
-            validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_PdbIsNotPortable);
+            _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound), assemblyName: Path.GetFileName(peFilePath));
+            validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound);
             return false;
         }
 
