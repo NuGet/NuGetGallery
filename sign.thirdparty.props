@@ -33,6 +33,7 @@
     <ThirdPartyBinaries Include="Microsoft.CookieCompliance.dll" />
     <ThirdPartyBinaries Include="Microsoft.CookieCompliance.NetStd.dll" />
     <ThirdPartyBinaries Include="Newtonsoft.Json.dll" />
+    <ThirdPartyBinaries Include="Owin.dll" />
     <ThirdPartyBinaries Include="Polly.dll" />
     <ThirdPartyBinaries Include="Polly.Extensions.Http.dll" />
     <ThirdPartyBinaries Include="QueryInterceptor.dll" />
