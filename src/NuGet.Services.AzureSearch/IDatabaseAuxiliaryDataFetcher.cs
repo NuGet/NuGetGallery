@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace NuGet.Services.AzureSearch
 {
     /// <summary>
-    /// Fetches the current owner information from the database.
+    /// Fetches auxiliary data from the Gallery database.
     /// </summary>
-    public interface IDatabaseOwnerFetcher
+    public interface IDatabaseAuxiliaryDataFetcher
     {
         /// <summary>
         /// Fetch the owners for a specific package ID. If the package registration does not exist or if there are no
@@ -23,5 +23,10 @@ namespace NuGet.Services.AzureSearch
         /// gallery database.
         /// </summary>
         Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToOwnersAsync();
+
+        /// <summary>
+        /// Fetch the set of all verified package IDs.
+        /// </summary>
+        Task<HashSet<string>> GetVerifiedPackagesAsync();
     }
 }

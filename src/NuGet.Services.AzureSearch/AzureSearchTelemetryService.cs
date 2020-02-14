@@ -393,5 +393,16 @@ namespace NuGet.Services.AzureSearch
                     { "HitCount", hitCount.ToString() },
                 });
         }
+
+        public void TrackReadLatestVerifiedPackagesFromDatabase(int packageIdCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "ReadLatestVerifiedPackagesFromDatabaseSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
     }
 }

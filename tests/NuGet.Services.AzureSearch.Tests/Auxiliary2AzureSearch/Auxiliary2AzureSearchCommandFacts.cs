@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using Castle.Core.Logging;
@@ -371,6 +372,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public Facts(ITestOutputHelper output)
             {
                 AuxiliaryFileClient = new Mock<IAuxiliaryFileClient>();
+                DatabaseAuxiliaryDataFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
                 DownloadDataClient = new Mock<IDownloadDataClient>();
                 VerifiedPackagesDataClient = new Mock<IVerifiedPackagesDataClient>();
                 DownloadSetComparer = new Mock<IDownloadSetComparer>();
@@ -409,7 +411,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Setup(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ReturnsAsync(() => OldVerifiedPackagesResult);
                 NewVerifiedPackagesData = new HashSet<string>();
-                AuxiliaryFileClient.Setup(x => x.LoadVerifiedPackagesAsync()).ReturnsAsync(() => NewVerifiedPackagesData);
+                DatabaseAuxiliaryDataFetcher.Setup(x => x.GetVerifiedPackagesAsync()).ReturnsAsync(() => NewVerifiedPackagesData);
 
                 Changes = new SortedDictionary<string, long>();
                 DownloadSetComparer
@@ -454,6 +456,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 Target = new Auxiliary2AzureSearchCommand(
                     AuxiliaryFileClient.Object,
+                    DatabaseAuxiliaryDataFetcher.Object,
                     DownloadDataClient.Object,
                     VerifiedPackagesDataClient.Object,
                     DownloadSetComparer.Object,
@@ -467,6 +470,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             public Mock<IAuxiliaryFileClient> AuxiliaryFileClient { get; }
+            public Mock<IDatabaseAuxiliaryDataFetcher> DatabaseAuxiliaryDataFetcher { get; }
             public Mock<IDownloadDataClient> DownloadDataClient { get; }
             public Mock<IVerifiedPackagesDataClient> VerifiedPackagesDataClient { get; }
             public Mock<IDownloadSetComparer> DownloadSetComparer { get; }

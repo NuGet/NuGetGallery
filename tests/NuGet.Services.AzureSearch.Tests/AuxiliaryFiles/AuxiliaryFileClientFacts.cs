@@ -61,40 +61,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             }
         }
 
-        public class LoadVerifiedPackagesAsync : BaseFacts
-        {
-            public LoadVerifiedPackagesAsync(ITestOutputHelper output) : base(output)
-            {
-            }
-
-            [Fact]
-            public async Task ReadsContent()
-            {
-                var json = @"
-[
-    ""NuGet.Frameworks"",
-    ""NuGet.Versioning""
-]
-";
-                _blob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
-                    .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
-
-                var actual = await _target.LoadVerifiedPackagesAsync();
-
-                Assert.NotNull(actual);
-                Assert.Contains("NuGet.Frameworks", actual);
-                Assert.Contains("nuget.versioning", actual);
-                Assert.DoesNotContain("something.else", actual);
-                _blobClient.Verify(x => x.GetContainerReference("my-container"), Times.Once);
-                _blobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Once);
-                _container.Verify(x => x.GetBlobReference("my-verified-packages.json"), Times.Once);
-                _container.Verify(x => x.GetBlobReference(It.IsAny<string>()), Times.Once);
-                _blob.Verify(x => x.OpenReadAsync(It.Is<AccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == null)), Times.Once);
-                _blob.Verify(x => x.OpenReadAsync(It.IsAny<AccessCondition>()), Times.Once);
-            }
-        }
-
         public class LoadExcludedPackagesAsync : BaseFacts
         {
             public LoadExcludedPackagesAsync(ITestOutputHelper output) : base(output)
@@ -217,7 +183,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 _configStorage.AuxiliaryDataStorageContainer = "my-container";
                 _configStorage.AuxiliaryDataStorageDownloadsPath = "my-downloads.json";
                 _configStorage.AuxiliaryDataStorageDownloadOverridesPath = "my-download-overrides.json";
-                _configStorage.AuxiliaryDataStorageVerifiedPackagesPath = "my-verified-packages.json";
                 _configStorage.AuxiliaryDataStorageExcludedPackagesPath = "my-excluded-packages.json";
                 _optionsStorage.Setup(x => x.Value).Returns(() => _configStorage);
 

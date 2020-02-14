@@ -37,7 +37,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
             private readonly DownloadData _downloads;
             private readonly Dictionary<string, long> _downloadOverrides;
-            private readonly HashSet<string> _verifiedPackages;
             private HashSet<string> _excludedPackages;
 
             public ProduceWorkAsync(ITestOutputHelper output)
@@ -68,10 +67,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _auxiliaryFileClient
                     .Setup(x => x.LoadDownloadOverridesAsync())
                     .ReturnsAsync(() => _downloadOverrides);
-                _verifiedPackages = new HashSet<string>();
-                _auxiliaryFileClient
-                    .Setup(x => x.LoadVerifiedPackagesAsync())
-                    .ReturnsAsync(() => _verifiedPackages);
 
                 _entitiesContextFactory
                    .Setup(x => x.CreateAsync(It.IsAny<bool>()))
@@ -337,19 +332,20 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         new Package { Version = "1.0.0" },
                         new Package { Version = "2.0.0" },
                     },
+                    IsVerified = true,
                 });
 
                 var output = await _target.ProduceWorkAsync(_work, _token);
 
                 Assert.Same(_downloads, output.Downloads);
                 Assert.Same(_excludedPackages, output.ExcludedPackages);
-                Assert.Same(_verifiedPackages, output.VerifiedPackages);
+                Assert.NotNull(output.VerifiedPackages);
+                Assert.Contains("A", output.VerifiedPackages);
                 Assert.NotNull(output.Owners);
                 Assert.Contains("A", output.Owners.Keys);
                 Assert.Equal(new[] { "OwnerA" }, output.Owners["A"].ToArray());
 
                 _auxiliaryFileClient.Verify(x => x.LoadExcludedPackagesAsync(), Times.Once);
-                _auxiliaryFileClient.Verify(x => x.LoadVerifiedPackagesAsync(), Times.Once);
             }
 
             [Fact]

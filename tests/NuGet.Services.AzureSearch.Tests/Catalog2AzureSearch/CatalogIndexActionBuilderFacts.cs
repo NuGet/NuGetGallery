@@ -666,7 +666,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         {
             protected readonly Mock<IVersionListDataClient> _versionListDataClient;
             protected readonly Mock<ICatalogLeafFetcher> _leafFetcher;
-            protected readonly Mock<IDatabaseOwnerFetcher> _ownerFetcher;
+            protected readonly Mock<IDatabaseAuxiliaryDataFetcher> _ownerFetcher;
             protected readonly Mock<ISearchDocumentBuilder> _search;
             protected readonly Mock<IHijackDocumentBuilder> _hijack;
             protected readonly RecordingLogger<CatalogIndexActionBuilder> _logger;
@@ -685,7 +685,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             {
                 _versionListDataClient = new Mock<IVersionListDataClient>();
                 _leafFetcher = new Mock<ICatalogLeafFetcher>();
-                _ownerFetcher = new Mock<IDatabaseOwnerFetcher>();
+                _ownerFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
                 _search = new Mock<ISearchDocumentBuilder>();
                 _hijack = new Mock<IHijackDocumentBuilder>();
                 _logger = output.GetLogger<CatalogIndexActionBuilder>();

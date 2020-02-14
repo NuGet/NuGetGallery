@@ -240,7 +240,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ICatalogIndexActionBuilder, CatalogIndexActionBuilder>();
             services.AddTransient<ICatalogLeafFetcher, CatalogLeafFetcher>();
             services.AddTransient<ICommitCollectorLogic, AzureSearchCollectorLogic>();
-            services.AddTransient<IDatabaseOwnerFetcher, DatabaseOwnerFetcher>();
+            services.AddTransient<IDatabaseAuxiliaryDataFetcher, DatabaseAuxiliaryDataFetcher>();
             services.AddTransient<IDownloadSetComparer, DownloadSetComparer>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();

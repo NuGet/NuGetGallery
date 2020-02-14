@@ -15,7 +15,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
 {
     public class Owners2AzureSearchCommand : IAzureSearchCommand
     {
-        private readonly IDatabaseOwnerFetcher _databaseOwnerFetcher;
+        private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
         private readonly IOwnerDataClient _ownerDataClient;
         private readonly IOwnerSetComparer _ownerSetComparer;
         private readonly ISearchDocumentBuilder _searchDocumentBuilder;
@@ -26,7 +26,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
         private readonly ILogger<Owners2AzureSearchCommand> _logger;
 
         public Owners2AzureSearchCommand(
-            IDatabaseOwnerFetcher databaseOwnerFetcher,
+            IDatabaseAuxiliaryDataFetcher databaseFetcher,
             IOwnerDataClient ownerDataClient,
             IOwnerSetComparer ownerSetComparer,
             ISearchDocumentBuilder searchDocumentBuilder,
@@ -36,7 +36,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             IAzureSearchTelemetryService telemetryService,
             ILogger<Owners2AzureSearchCommand> logger)
         {
-            _databaseOwnerFetcher = databaseOwnerFetcher ?? throw new ArgumentNullException(nameof(databaseOwnerFetcher));
+            _databaseFetcher = databaseFetcher ?? throw new ArgumentNullException(nameof(databaseFetcher));
             _ownerDataClient = ownerDataClient ?? throw new ArgumentNullException(nameof(ownerDataClient));
             _ownerSetComparer = ownerSetComparer ?? throw new ArgumentNullException(nameof(ownerSetComparer));
             _searchDocumentBuilder = searchDocumentBuilder ?? throw new ArgumentNullException(nameof(searchDocumentBuilder));
@@ -64,7 +64,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                 var storageResult = await _ownerDataClient.ReadLatestIndexedAsync();
 
                 _logger.LogInformation("Fetching new owner data from the database.");
-                var databaseResult = await _databaseOwnerFetcher.GetPackageIdToOwnersAsync();
+                var databaseResult = await _databaseFetcher.GetPackageIdToOwnersAsync();
 
                 _logger.LogInformation("Detecting owner changes.");
                 var changes = _ownerSetComparer.Compare(storageResult.Result, databaseResult);

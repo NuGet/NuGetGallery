@@ -53,7 +53,7 @@
     <Compile Include="Catalog2AzureSearch\CatalogIndexActionBuilderFacts.cs" />
     <Compile Include="Catalog2AzureSearch\CatalogLeafFetcherFacts.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\InMemoryDocumentsOperations.cs" />
-    <Compile Include="DatabaseOwnerFetcherFacts.cs" />
+    <Compile Include="DatabaseAuxiliaryDataFetcherFacts.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommandFacts.cs" />
     <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />

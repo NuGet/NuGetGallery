@@ -167,7 +167,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
         {
             public Facts(ITestOutputHelper output)
             {
-                DatabaseOwnerFetcher = new Mock<IDatabaseOwnerFetcher>();
+                DatabaseOwnerFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
                 OwnerDataClient = new Mock<IOwnerDataClient>();
                 OwnerSetComparer = new Mock<IOwnerSetComparer>();
                 SearchDocumentBuilder = new Mock<ISearchDocumentBuilder>();
@@ -223,7 +223,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                     Logger);
             }
 
-            public Mock<IDatabaseOwnerFetcher> DatabaseOwnerFetcher { get; }
+            public Mock<IDatabaseAuxiliaryDataFetcher> DatabaseOwnerFetcher { get; }
             public Mock<IOwnerDataClient> OwnerDataClient { get; }
             public Mock<IOwnerSetComparer> OwnerSetComparer { get; }
             public Mock<ISearchDocumentBuilder> SearchDocumentBuilder { get; }

@@ -37,7 +37,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         private V3TelemetryService _v3TelemetryService;
         private Mock<IEntitiesContextFactory> _entitiesContextFactory;
         private Mock<IEntitiesContext> _entitiesContext;
-        private DatabaseOwnerFetcher _ownerFetcher;
+        private DatabaseAuxiliaryDataFetcher _ownerFetcher;
         private InMemoryRegistrationClient _registrationClient;
         private InMemoryCatalogClient _catalogClient;
         private CatalogLeafFetcher _leafFetcher;
@@ -89,11 +89,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _entitiesContext = new Mock<IEntitiesContext>();
             _entitiesContextFactory.Setup(x => x.CreateAsync(It.IsAny<bool>())).ReturnsAsync(() => _entitiesContext.Object);
             _entitiesContext.Setup(x => x.PackageRegistrations).Returns(DbSetMockFactory.Create<PackageRegistration>());
-            _ownerFetcher = new DatabaseOwnerFetcher(
+            _ownerFetcher = new DatabaseAuxiliaryDataFetcher(
                 new Mock<ISqlConnectionFactory<GalleryDbConfiguration>>().Object,
                 _entitiesContextFactory.Object,
                 _telemetryService,
-                output.GetLogger<DatabaseOwnerFetcher>());
+                output.GetLogger<DatabaseAuxiliaryDataFetcher>());
 
             _cloudBlobClient = new InMemoryCloudBlobClient();
             _versionListDataClient = new VersionListDataClient(

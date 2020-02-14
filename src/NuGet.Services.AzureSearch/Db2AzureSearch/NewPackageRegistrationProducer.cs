@@ -60,13 +60,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
             var overridenDownloads = downloads.ApplyDownloadOverrides(downloadOverrides, _logger);
 
-            // Fetch the verified packages file. This is not used inside the index but is used at query-time in the
-            // Azure Search service. We want to copy this file to the local region's storage container to improve
-            // availability and start-up of the service.
-            var verifiedPackages = await _auxiliaryFileClient.LoadVerifiedPackagesAsync();
-
-            // Build a list of the owners data as we collect package registrations from the database.
+            // Build a list of the owners data and verified IDs as we collect package registrations from the database.
             var ownersBuilder = new PackageIdToOwnersBuilder(_logger);
+            var verifiedPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             for (var i = 0; i < ranges.Count && !cancellationToken.IsCancellationRequested; i++)
             {
@@ -106,6 +102,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         isExcludedByDefault));
 
                     ownersBuilder.Add(pr.Id, pr.Owners);
+
+                    if (pr.IsVerified)
+                    {
+                        verifiedPackages.Add(pr.Id);
+                    }
                 }
 
                 _logger.LogInformation("Done initializing batch {Number}/{Count}.", i + 1, ranges.Count);
@@ -208,7 +209,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     .Select(pr => new PackageRegistrationInfo(
                         pr.Key,
                         pr.Id,
-                        pr.Owners.Select(x => x.Username).ToArray()))
+                        pr.Owners.Select(x => x.Username).ToArray(),
+                        pr.IsVerified))
                     .ToList();
             }
         }
@@ -311,16 +313,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private class PackageRegistrationInfo
         {
-            public PackageRegistrationInfo(int key, string id, string[] owners)
+            public PackageRegistrationInfo(int key, string id, string[] owners, bool isVerified)
             {
                 Key = key;
                 Id = id;
                 Owners = owners;
+                IsVerified = isVerified;
             }
 
             public int Key { get; }
             public string Id { get; }
             public string[] Owners { get; }
+            public bool IsVerified { get; }
         }
     }
 }

@@ -28,6 +28,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         private static readonly int MaxDocumentsPerId = Enum.GetValues(typeof(SearchFilters)).Length;
 
         private readonly IAuxiliaryFileClient _auxiliaryFileClient;
+        private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
         private readonly IDownloadDataClient _downloadDataClient;
         private readonly IVerifiedPackagesDataClient _verifiedPackagesDataClient;
         private readonly IDownloadSetComparer _downloadSetComparer;
@@ -42,6 +43,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
         public Auxiliary2AzureSearchCommand(
             IAuxiliaryFileClient auxiliaryFileClient,
+            IDatabaseAuxiliaryDataFetcher databaseFetcher,
             IDownloadDataClient downloadDataClient,
             IVerifiedPackagesDataClient verifiedPackagesDataClient,
             IDownloadSetComparer downloadSetComparer,
@@ -53,7 +55,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             IAzureSearchTelemetryService telemetryService,
             ILogger<Auxiliary2AzureSearchCommand> logger)
         {
-            _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentNullException(nameof(auxiliaryFileClient));
+            _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentException(nameof(auxiliaryFileClient));
+            _databaseFetcher = databaseFetcher ?? throw new ArgumentNullException(nameof(databaseFetcher));
             _downloadDataClient = downloadDataClient ?? throw new ArgumentNullException(nameof(downloadDataClient));
             _verifiedPackagesDataClient = verifiedPackagesDataClient ?? throw new ArgumentNullException(nameof(verifiedPackagesDataClient));
             _downloadSetComparer = downloadSetComparer ?? throw new ArgumentNullException(nameof(downloadSetComparer));
@@ -87,7 +90,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             var outcome = JobOutcome.Failure;
             try
             {
-                var hasVerifiedPackagesChanged = await CopyVerifiedPackagesAsync();
+                var hasVerifiedPackagesChanged = await UpdateVerifiedPackagesAsync();
                 var hasIndexChanged = await PushIndexChangesAsync();
                 outcome = hasVerifiedPackagesChanged || hasIndexChanged ? JobOutcome.Success : JobOutcome.NoOp;
             }
@@ -98,7 +101,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
         }
 
-        private async Task<bool> CopyVerifiedPackagesAsync()
+        private async Task<bool> UpdateVerifiedPackagesAsync()
         {
             // The "old" data in this case is the latest file that was copied to the region's storage container by this
             // job (or initialized by Db2AzureSearch).
@@ -106,9 +109,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 AccessConditionWrapper.GenerateEmptyCondition(),
                 _stringCache);
 
-            // The "new" data in this case is from the auxiliary data container that is updated by the
-            // Search.GenerateAuxiliaryData job.
-            var newData = await _auxiliaryFileClient.LoadVerifiedPackagesAsync();
+            // The "new" data in this case is from the database.
+            var newData = await _databaseFetcher.GetVerifiedPackagesAsync();
 
             var changes = new HashSet<string>(oldResult.Data, oldResult.Data.Comparer);
             changes.SymmetricExceptWith(newData);
