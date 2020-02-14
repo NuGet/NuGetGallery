@@ -16,14 +16,12 @@ namespace NuGetGallery.Infrastructure.Search
     public class ResilientSearchHttpClient : IResilientSearchClient
     {
         private readonly IEnumerable<IHttpClientWrapper> _httpClients;
-        private readonly ILogger _logger;
         private readonly ITelemetryService _telemetryService;
 
-        public ResilientSearchHttpClient(IEnumerable<IHttpClientWrapper> searchClients, ILogger<ResilientSearchHttpClient> logger, ITelemetryService telemetryService)
+        public ResilientSearchHttpClient(IEnumerable<IHttpClientWrapper> searchClients, ITelemetryService telemetryService)
         {
-            _httpClients = searchClients ?? throw new ArgumentNullException(nameof(logger));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(logger));
+            _httpClients = searchClients ?? throw new ArgumentNullException(nameof(searchClients));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public async Task<HttpResponseMessage> GetAsync(string path, string queryString)
@@ -33,7 +31,6 @@ namespace NuGetGallery.Infrastructure.Search
             foreach(var client in _httpClients)
             {
                 searchUri = client.BaseAddress.AppendPathToUri(path, queryString);
-                _logger.LogInformation("Sent GetAsync request for {Url}", searchUri.AbsoluteUri);
                 var result = await client.GetAsync(searchUri);
                 if (result.IsSuccessStatusCode)
                 {

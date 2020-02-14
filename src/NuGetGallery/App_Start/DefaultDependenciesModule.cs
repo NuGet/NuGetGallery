@@ -1138,7 +1138,6 @@ namespace NuGetGallery
 
                     return new ResilientSearchHttpClient(
                         httpClientWrappers,
-                        c.Resolve<ILogger<ResilientSearchHttpClient>>(),
                         c.Resolve<ITelemetryService>());
                 });
 
