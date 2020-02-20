@@ -37,7 +37,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Auxiliary2AzureSearch\Auxiliary2AzureSearchCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateVerifiedPackagesCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateDownloadsCommandFacts.cs" />
     <Compile Include="Auxiliary2AzureSearch\DownloadSetComparerFacts.cs" />
     <Compile Include="AuxiliaryFiles\DownloadByVersionDataFacts.cs" />
     <Compile Include="AuxiliaryFiles\DownloadDataClientFacts.cs" />

@@ -404,5 +404,27 @@ namespace NuGet.Services.AzureSearch
                     { "PackageIdCount", packageIdCount.ToString() },
                 });
         }
+
+        public void TrackUpdateVerifiedPackagesCompleted(JobOutcome outcome, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "UpdateVerifiedPackagesCompletedSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "Outcome", outcome.ToString() },
+                });
+        }
+
+        public void TrackUpdateDownloadsCompleted(JobOutcome outcome, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "UpdateDownloadsCompletedSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "Outcome", outcome.ToString() },
+                });
+        }
     }
 }

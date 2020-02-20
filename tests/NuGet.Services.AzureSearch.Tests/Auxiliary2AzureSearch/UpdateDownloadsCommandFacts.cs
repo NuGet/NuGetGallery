@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
-using Castle.Core.Logging;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -21,53 +19,12 @@ using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
-    public class Auxiliary2AzureSearchCommandFacts
+    public class UpdateDownloadsCommandFacts
     {
         public class ExecuteAsync : Facts
         {
             public ExecuteAsync(ITestOutputHelper output) : base(output)
             {
-            }
-
-            [Fact]
-            public async Task PushesAddedVerifiedPackage()
-            {
-                NewVerifiedPackagesData.Add("NuGet.Versioning");
-
-                await Target.ExecuteAsync();
-
-                VerifyCompletedTelemetry(JobOutcome.Success);
-                VerifiedPackagesDataClient.Verify(
-                    x => x.ReplaceLatestAsync(
-                        NewVerifiedPackagesData,
-                        It.Is<IAccessCondition>(a => a.IfMatchETag == OldVerifiedPackagesResult.Metadata.ETag)),
-                    Times.Once);
-            }
-
-            [Fact]
-            public async Task PushesRemovedVerifiedPackage()
-            {
-                OldVerifiedPackagesData.Add("NuGet.Versioning");
-
-                await Target.ExecuteAsync();
-
-                VerifyCompletedTelemetry(JobOutcome.Success);
-                VerifiedPackagesDataClient.Verify(
-                    x => x.ReplaceLatestAsync(
-                        NewVerifiedPackagesData,
-                        It.Is<IAccessCondition>(a => a.IfMatchETag == OldVerifiedPackagesResult.Metadata.ETag)),
-                    Times.Once);
-            }
-
-            [Fact]
-            public async Task DoesNotPushUnchangedVerifiedPackages()
-            {
-                await Target.ExecuteAsync();
-
-                VerifyCompletedTelemetry(JobOutcome.NoOp);
-                VerifiedPackagesDataClient.Verify(
-                    x => x.ReplaceLatestAsync(It.IsAny<HashSet<string>>(), It.IsAny<IAccessCondition>()),
-                    Times.Never);
             }
 
             [Fact]
@@ -372,9 +329,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public Facts(ITestOutputHelper output)
             {
                 AuxiliaryFileClient = new Mock<IAuxiliaryFileClient>();
-                DatabaseAuxiliaryDataFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
                 DownloadDataClient = new Mock<IDownloadDataClient>();
-                VerifiedPackagesDataClient = new Mock<IVerifiedPackagesDataClient>();
                 DownloadSetComparer = new Mock<IDownloadSetComparer>();
                 SearchDocumentBuilder = new Mock<ISearchDocumentBuilder>();
                 IndexActionBuilder = new Mock<ISearchIndexActionBuilder>();
@@ -404,14 +359,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 AuxiliaryFileClient
                     .Setup(x => x.LoadDownloadOverridesAsync())
                     .ReturnsAsync(() => DownloadOverrides);
-
-                OldVerifiedPackagesData = new HashSet<string>();
-                OldVerifiedPackagesResult = Data.GetAuxiliaryFileResult(OldVerifiedPackagesData, "verified-packages-etag");
-                VerifiedPackagesDataClient
-                    .Setup(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
-                    .ReturnsAsync(() => OldVerifiedPackagesResult);
-                NewVerifiedPackagesData = new HashSet<string>();
-                DatabaseAuxiliaryDataFetcher.Setup(x => x.GetVerifiedPackagesAsync()).ReturnsAsync(() => NewVerifiedPackagesData);
 
                 Changes = new SortedDictionary<string, long>();
                 DownloadSetComparer
@@ -454,11 +401,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         CurrentBatch = new ConcurrentBag<IndexActions>();
                     });
 
-                Target = new Auxiliary2AzureSearchCommand(
+                Target = new UpdateDownloadsCommand(
                     AuxiliaryFileClient.Object,
-                    DatabaseAuxiliaryDataFetcher.Object,
                     DownloadDataClient.Object,
-                    VerifiedPackagesDataClient.Object,
                     DownloadSetComparer.Object,
                     SearchDocumentBuilder.Object,
                     IndexActionBuilder.Object,
@@ -470,9 +415,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             public Mock<IAuxiliaryFileClient> AuxiliaryFileClient { get; }
-            public Mock<IDatabaseAuxiliaryDataFetcher> DatabaseAuxiliaryDataFetcher { get; }
             public Mock<IDownloadDataClient> DownloadDataClient { get; }
-            public Mock<IVerifiedPackagesDataClient> VerifiedPackagesDataClient { get; }
             public Mock<IDownloadSetComparer> DownloadSetComparer { get; }
             public Mock<ISearchDocumentBuilder> SearchDocumentBuilder { get; }
             public Mock<ISearchIndexActionBuilder> IndexActionBuilder { get; }
@@ -487,23 +430,20 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public DownloadData NewDownloadData { get; }
             public Dictionary<string, long> DownloadOverrides { get; }
             public SortedDictionary<string, long> Changes { get; }
-            public Auxiliary2AzureSearchCommand Target { get; }
+            public UpdateDownloadsCommand Target { get; }
             public IndexActions IndexActions { get; set; }
             public ConcurrentBag<string> ProcessedIds { get; }
             public ConcurrentBag<string> PushedIds { get; }
             public ConcurrentBag<IndexActions> CurrentBatch { get; set; }
             public ConcurrentBag<List<IndexActions>> FinishedBatches { get; }
-            public HashSet<string> OldVerifiedPackagesData { get; }
-            public AuxiliaryFileResult<HashSet<string>> OldVerifiedPackagesResult { get; }
-            public HashSet<string> NewVerifiedPackagesData { get; }
 
             public void VerifyCompletedTelemetry(JobOutcome outcome)
             {
                 TelemetryService.Verify(
-                    x => x.TrackAuxiliary2AzureSearchCompleted(It.IsAny<JobOutcome>(), It.IsAny<TimeSpan>()),
+                    x => x.TrackUpdateDownloadsCompleted(It.IsAny<JobOutcome>(), It.IsAny<TimeSpan>()),
                     Times.Once);
                 TelemetryService.Verify(
-                    x => x.TrackAuxiliary2AzureSearchCompleted(outcome, It.IsAny<TimeSpan>()),
+                    x => x.TrackUpdateDownloadsCompleted(outcome, It.IsAny<TimeSpan>()),
                     Times.Once);
             }
 

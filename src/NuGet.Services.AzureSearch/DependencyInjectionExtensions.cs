@@ -232,7 +232,13 @@ namespace NuGet.Services.AzureSearch
 
             services.AddSingleton<ISecretRefresher, SecretRefresher>();
 
-            services.AddTransient<Auxiliary2AzureSearchCommand>();
+            services.AddTransient<UpdateVerifiedPackagesCommand>();
+            services.AddTransient<UpdateDownloadsCommand>();
+            services.AddTransient(p => new Auxiliary2AzureSearchCommand(
+                p.GetRequiredService<UpdateVerifiedPackagesCommand>(),
+                p.GetRequiredService<UpdateDownloadsCommand>(),
+                p.GetRequiredService<IAzureSearchTelemetryService>(),
+                p.GetRequiredService<ILogger<Auxiliary2AzureSearchCommand>>()));
             services.AddTransient<Owners2AzureSearchCommand>();
 
             services.AddTransient<IAzureSearchTelemetryService, AzureSearchTelemetryService>();
