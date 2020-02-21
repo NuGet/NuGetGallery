@@ -17,7 +17,6 @@ using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Catalog2AzureSearch;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
-using NuGet.Services.AzureSearch.Owners2AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -236,12 +235,13 @@ namespace NuGet.Services.AzureSearch
 
             services.AddTransient<UpdateVerifiedPackagesCommand>();
             services.AddTransient<UpdateDownloadsCommand>();
+            services.AddTransient<UpdateOwnersCommand>();
             services.AddTransient(p => new Auxiliary2AzureSearchCommand(
                 p.GetRequiredService<UpdateVerifiedPackagesCommand>(),
                 p.GetRequiredService<UpdateDownloadsCommand>(),
+                p.GetRequiredService<UpdateOwnersCommand>(),
                 p.GetRequiredService<IAzureSearchTelemetryService>(),
                 p.GetRequiredService<ILogger<Auxiliary2AzureSearchCommand>>()));
-            services.AddTransient<Owners2AzureSearchCommand>();
 
             services.AddTransient<IAzureSearchTelemetryService, AzureSearchTelemetryService>();
             services.AddTransient<IBaseDocumentBuilder, BaseDocumentBuilder>();

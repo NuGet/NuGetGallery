@@ -84,14 +84,14 @@
     <Compile Include="JobOutcome.cs" />
     <Compile Include="Models\IUpdatedDocument.cs" />
     <Compile Include="Models\UpdatedDocument.cs" />
-    <Compile Include="Owners2AzureSearch\IOwnerSetComparer.cs" />
+    <Compile Include="Auxiliary2AzureSearch\IOwnerSetComparer.cs" />
     <Compile Include="SearchIndexActionBuilder.cs" />
-    <Compile Include="Owners2AzureSearch\OwnerSetComparer.cs" />
+    <Compile Include="Auxiliary2AzureSearch\OwnerSetComparer.cs" />
     <Compile Include="PackageIdToOwnersBuilder.cs" />
     <Compile Include="AuxiliaryFiles\IOwnerDataClient.cs" />
     <Compile Include="AuxiliaryFiles\OwnerDataClient.cs" />
     <Compile Include="ScoringProfiles\DefaultScoringProfile.cs" />
-    <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommand.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateOwnersCommand.cs" />
     <Compile Include="SearchService\AzureSearchTextBuilder.cs" />
     <Compile Include="BlobContainerBuilder.cs" />
     <Compile Include="IBlobContainerBuilder.cs" />

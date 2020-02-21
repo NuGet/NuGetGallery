@@ -17,6 +17,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         public Auxiliary2AzureSearchCommand(
             IAzureSearchCommand updateVerifiedPackagesCommand,
             IAzureSearchCommand updateDownloadsCommand,
+            IAzureSearchCommand updateOwnersCommand,
             IAzureSearchTelemetryService telemetryService,
             ILogger<Auxiliary2AzureSearchCommand> logger)
         {
@@ -24,6 +25,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             {
                 updateVerifiedPackagesCommand ?? throw new ArgumentNullException(nameof(updateVerifiedPackagesCommand)),
                 updateDownloadsCommand ?? throw new ArgumentNullException(nameof(updateDownloadsCommand)),
+                updateOwnersCommand ?? throw new ArgumentNullException(nameof(updateOwnersCommand)),
             };
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

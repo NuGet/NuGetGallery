@@ -13,9 +13,9 @@ using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace NuGet.Services.AzureSearch.Owners2AzureSearch
+namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
-    public class Owners2AzureSearchCommandFacts
+    public class UpdateOwnersCommandFacts
     {
         public class ExecuteAsync : Facts
         {
@@ -175,7 +175,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                 Pusher = new Mock<IBatchPusher>();
                 Options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 TelemetryService = new Mock<IAzureSearchTelemetryService>();
-                Logger = output.GetLogger<Owners2AzureSearchCommand>();
+                Logger = output.GetLogger<UpdateOwnersCommand>();
 
                 Configuration = new AzureSearchJobConfiguration
                 {
@@ -211,7 +211,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                     .Setup(x => x.UpdateAsync(It.IsAny<string>(), It.IsAny<Func<SearchFilters, KeyedDocument>>()))
                     .ReturnsAsync(() => IndexActions);
 
-                Target = new Owners2AzureSearchCommand(
+                Target = new UpdateOwnersCommand(
                     DatabaseOwnerFetcher.Object,
                     OwnerDataClient.Object,
                     OwnerSetComparer.Object,
@@ -231,13 +231,13 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             public Mock<IBatchPusher> Pusher { get; }
             public Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> Options { get; }
             public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
-            public RecordingLogger<Owners2AzureSearchCommand> Logger { get; }
+            public RecordingLogger<UpdateOwnersCommand> Logger { get; }
             public AzureSearchJobConfiguration Configuration { get; }
             public SortedDictionary<string, SortedSet<string>> DatabaseResult { get; }
             public ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>> StorageResult { get; }
             public SortedDictionary<string, string[]> Changes { get; }
             public IndexActions IndexActions { get; }
-            public Owners2AzureSearchCommand Target { get; }
+            public UpdateOwnersCommand Target { get; }
         }
     }
 }

@@ -65,8 +65,8 @@
     <Compile Include="Models\CommittedDocumentFacts.cs" />
     <Compile Include="AuxiliaryFiles\OwnerDataClientFacts.cs" />
     <Compile Include="SearchIndexActionBuilderFacts.cs" />
-    <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommandFacts.cs" />
-    <Compile Include="Owners2AzureSearch\OwnerSetComparerFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateOwnersCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\OwnerSetComparerFacts.cs" />
     <Compile Include="SearchDocumentBuilderFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataCacheFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataFacts.cs" />

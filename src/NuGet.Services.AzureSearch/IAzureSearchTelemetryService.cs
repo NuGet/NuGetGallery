@@ -16,7 +16,7 @@ namespace NuGet.Services.AzureSearch
         void TrackIndexPushFailure(string indexName, int documentCount, TimeSpan elapsed);
         void TrackIndexPushSplit(string indexName, int documentCount);
         void TrackIndexPushSuccess(string indexName, int documentCount, TimeSpan elapsed);
-        void TrackOwners2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed);
+        void TrackUpdateOwnersCompleted(JobOutcome outcome, TimeSpan elapsed);
         void TrackOwnerSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed);
         void TrackReadLatestIndexedOwners(int packageIdCount, TimeSpan elapsed);
         void TrackReadLatestOwnersFromDatabase(int packageIdCount, TimeSpan elapsed);

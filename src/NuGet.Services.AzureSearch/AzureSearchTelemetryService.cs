@@ -78,10 +78,10 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public void TrackOwners2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed)
+        public void TrackUpdateOwnersCompleted(JobOutcome outcome, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
-                Prefix + "Owners2AzureSearchCompletedSeconds",
+                Prefix + "UpdateOwnersCompletedSeconds",
                 elapsed.TotalSeconds,
                 new Dictionary<string, string>
                 {
