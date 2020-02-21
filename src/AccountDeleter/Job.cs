@@ -127,6 +127,7 @@ namespace NuGetGallery.AccountDeleter
 
                 services.AddScoped<IUserService, AccountDeleteUserService>();
                 services.AddScoped<IDiagnosticsService, DiagnosticsService>();
+                services.AddScoped<IDiagnosticsSource>(ds => new TraceDiagnosticsSource(nameof(TelemetryService), ds.GetRequiredService<ITelemetryClient>()));
 
                 services.AddScoped<IPackageService, PackageService>();
                 services.AddScoped<IPackageUpdateService, PackageUpdateService>();
