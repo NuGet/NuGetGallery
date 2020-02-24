@@ -62,11 +62,26 @@ namespace NuGet.Jobs.RegistrationComparer
                 .Registrations
                 .SelectMany(x => new[]
                 {
-                    new { Hive = nameof(x.LegacyBaseUrl), Url = x.LegacyBaseUrl.TrimEnd('/') + '/' },
-                    new { Hive = nameof(x.GzippedBaseUrl), Url = x.GzippedBaseUrl.TrimEnd('/') + '/' },
-                    new { Hive = nameof(x.SemVer2BaseUrl), Url = x.SemVer2BaseUrl.TrimEnd('/') + '/' },
+                    new
+                    {
+                        Hive = nameof(x.Legacy),
+                        BaseUrl = x.Legacy.BaseUrl.TrimEnd('/') + '/',
+                        StorageBaseUrl = x.Legacy.StorageBaseUrl.TrimEnd('/') + '/',
+                    },
+                    new
+                    {
+                        Hive = nameof(x.Gzipped),
+                        BaseUrl = x.Gzipped.BaseUrl.TrimEnd('/') + '/',
+                        StorageBaseUrl = x.Gzipped.StorageBaseUrl.TrimEnd('/') + '/',
+                    },
+                    new
+                    {
+                        Hive = nameof(x.SemVer2),
+                        BaseUrl = x.SemVer2.BaseUrl.TrimEnd('/') + '/',
+                        StorageBaseUrl = x.SemVer2.StorageBaseUrl.TrimEnd('/') + '/'
+                    },
                 })
-                .GroupBy(x => x.Hive, x => x.Url);
+                .GroupBy(x => x.Hive, x => new HiveConfiguration { BaseUrl = x.BaseUrl, StorageBaseUrl = x.StorageBaseUrl });
 
             var allWork = new ConcurrentBag<Func<Task>>();
             var failures = 0;
@@ -74,7 +89,7 @@ namespace NuGet.Jobs.RegistrationComparer
             {
                 foreach (var hiveGroup in hiveGroups)
                 {
-                    var baseUrls = hiveGroup.ToList();
+                    var hives = hiveGroup.ToList();
                     var hive = hiveGroup.Key;
                     var id = group.Id;
                     var versions = group.Versions;
@@ -83,7 +98,7 @@ namespace NuGet.Jobs.RegistrationComparer
                         _logger.LogInformation("Verifying hive {Hive} for {PackageId}.", hive, id);
                         try
                         {
-                            await _comparer.CompareAsync(baseUrls, id, versions);
+                            await _comparer.CompareAsync(hives, id, versions);
                         }
                         catch (Exception ex)
                         {

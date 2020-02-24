@@ -3,10 +3,9 @@
 
 namespace NuGet.Jobs.RegistrationComparer
 {
-    public class HivesConfiguration
+    public class HiveConfiguration
     {
-        public HiveConfiguration Legacy { get; set; }
-        public HiveConfiguration Gzipped { get; set; }
-        public HiveConfiguration SemVer2 { get; set; }
+        public string StorageBaseUrl { get; set; }
+        public string BaseUrl { get; set; }
     }
 }
