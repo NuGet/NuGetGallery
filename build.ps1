@@ -101,7 +101,8 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\StatusAggregator\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.Symbols.Core\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Stats.CDNLogsSanitizer\Properties\AssemblyInfo.g.cs",
-            "$PSScriptRoot\src\NuGet.Jobs.GitHubIndexer\Properties\AssemblyInfo.g.cs"
+            "$PSScriptRoot\src\NuGet.Jobs.GitHubIndexer\Properties\AssemblyInfo.g.cs",
+            "$PSScriptRoot\src\SplitLargeFiles\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -167,7 +168,8 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Validation.Symbols.Core/Validation.Symbols.Core.csproj", `
             "src/Validation.Symbols/Validation.Symbols.Job.csproj", `
             "src/Stats.CDNLogsSanitizer/Stats.CDNLogsSanitizer.csproj", `
-            "src/NuGet.Jobs.GitHubIndexer/NuGet.Jobs.GitHubIndexer.nuspec"
+            "src/NuGet.Jobs.GitHubIndexer/NuGet.Jobs.GitHubIndexer.nuspec", `
+            "src/SplitLargeFiles/SplitLargeFiles.nuspec"
 
         Foreach ($Project in $NuspecProjects) {
             New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion"
