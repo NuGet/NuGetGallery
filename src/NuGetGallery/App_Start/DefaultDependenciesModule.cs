@@ -11,6 +11,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
@@ -22,12 +23,10 @@ using Autofac.Extensions.DependencyInjection;
 using Elmah;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
-using Microsoft.AspNet.TelemetryCorrelation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGet.Services.KeyVault;
@@ -1434,9 +1433,11 @@ namespace NuGetGallery
 
             if (configuration.Current.IsHosted)
             {
-                // Initialize the service on App_Start to avoid any performance degradation during initial requests.
                 var siteName = configuration.GetSiteRoot(true);
-                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
+
+                // We must initialize during app start so that the cookie compliance service is ready when the first
+                // request comes in.
+                service.InitializeAsync(siteName, diagnostics, CancellationToken.None).Wait();
             }
         }
     }
