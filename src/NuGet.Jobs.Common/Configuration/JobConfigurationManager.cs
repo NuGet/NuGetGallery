@@ -64,14 +64,12 @@ namespace NuGet.Jobs
         /// <returns>Returns the argument value as a string</returns>
         public static string TryGetArgument(IDictionary<string, string> jobArgsDictionary, string argName)
         {
-            try
-            {
-                return GetArgument(jobArgsDictionary, argName);
-            }
-            catch
+            if (!jobArgsDictionary.TryGetValue(argName, out var value) || string.IsNullOrEmpty(value))
             {
                 return null;
             }
+
+            return value;
         }
 
         /// <summary>
