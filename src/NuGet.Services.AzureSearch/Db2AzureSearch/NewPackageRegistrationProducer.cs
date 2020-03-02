@@ -43,6 +43,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             var ranges = await GetPackageRegistrationRangesAsync();
 
             // Fetch exclude packages list from auxiliary files.
+            // These packages are excluded from the default search's results.
             var excludedPackages = await _auxiliaryFileClient.LoadExcludedPackagesAsync();
 
             Guard.Assert(
@@ -206,6 +207,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 var packageRegistrations = await query.ToListAsync();
 
                 return packageRegistrations
+                    .Where(pr => !ShouldSkipPackageRegistration(pr))
                     .Select(pr => new PackageRegistrationInfo(
                         pr.Key,
                         pr.Id,
@@ -213,6 +215,24 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         pr.IsVerified))
                     .ToList();
             }
+        }
+
+        private bool ShouldSkipPackageRegistration(PackageRegistration packageRegistration)
+        {
+            if (_options.Value.SkipPackagePrefixes == null)
+            {
+                return false;
+            }
+
+            foreach (var skippedPackagePrefix in _options.Value.SkipPackagePrefixes)
+            {
+                if (packageRegistration.Id.StartsWith(skippedPackagePrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private async Task<IReadOnlyList<PackageRegistrationRange>> GetPackageRegistrationRangesAsync()

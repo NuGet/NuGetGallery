@@ -320,6 +320,50 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             [Fact]
+            public async Task SkipsUnwantedPackages()
+            {
+                _config.SkipPackagePrefixes = new List<string> { "Foo" };
+
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 1,
+                    Id = "FOO.Bar",
+                    Owners = new User[0],
+                    Packages = new[]
+                     {
+                        new Package { Version = "1.0.0" },
+                    },
+                });
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 2,
+                    Id = "foo.Buzz",
+                    Owners = new User[0],
+                    Packages = new[]
+                    {
+                        new Package { Version = "2.0.0" },
+                    },
+                });
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 3,
+                    Id = "Hello.World",
+                    Owners = new User[0],
+                    Packages = new[]
+                    {
+                        new Package { Version = "3.0.0" },
+                    },
+                });
+
+                InitializePackagesFromPackageRegistrations();
+
+                await _target.ProduceWorkAsync(_work, _token);
+
+                var newRegistration = Assert.Single(_work);
+                Assert.Equal("Hello.World", newRegistration.PackageId);
+            }
+
+            [Fact]
             public async Task ReturnsInitialAuxiliaryData()
             {
                 _packageRegistrations.Add(new PackageRegistration

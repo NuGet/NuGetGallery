@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
@@ -16,5 +17,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public string AuxiliaryDataStorageDownloadOverridesPath { get; set; }
         public string AuxiliaryDataStorageExcludedPackagesPath { get; set; }
         public string AuxiliaryDataStorageVerifiedPackagesPath { get; set; }
+
+        /// <summary>
+        /// Db2AzureSearch skips packages whose ID start with these prefixes.
+        /// This is case insensitive.
+        /// </summary>
+        public IReadOnlyList<string> SkipPackagePrefixes { get; set; }
     }
 }
