@@ -187,6 +187,33 @@ namespace NuGetGallery.App_Start
                 // Assert
                 Assert.Equal("somevalueparsed", result);
             }
+
+            [Theory]
+            [InlineData("Gallery.SqlServer")]
+            [InlineData("Gallery.SqlServerReadOnlyReplica")]
+            [InlineData("Gallery.SupportRequestSqlServer")]
+            [InlineData("Gallery.ValidationSqlServer")]
+            [InlineData("Gallery.sqlserver")]
+            [InlineData("Gallery.sqlserverreadonlyreplica")]
+            [InlineData("Gallery.supportrequestsqlserver")]
+            [InlineData("Gallery.validationsqlserver")]
+            public async Task GivenNotInjectedSettingNameSecretInjectorIsNotRan(string settingName)
+            {
+                // Arrange
+                var secretInjectorMock = new Mock<ISecretInjector>();
+                secretInjectorMock.Setup(x => x.InjectAsync(It.IsAny<string>()))
+                    .Returns<string>(s => Task.FromResult(s + "parsed"));
+
+                var configurationService = new TestableConfigurationService(secretInjectorMock.Object);
+                configurationService.CloudSettingStub = "somevalue";
+
+                // Act
+                string result = await configurationService.ReadSettingAsync(settingName);
+
+                // Assert
+                secretInjectorMock.Verify(x => x.InjectAsync(It.IsAny<string>()), Times.Never);
+                Assert.Equal("somevalue", result);
+            }
         }
     }
 }
