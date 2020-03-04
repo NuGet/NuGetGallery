@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.KeyVault
 {
@@ -46,6 +47,11 @@ namespace NuGet.Services.KeyVault
 
         public Task<string> GetSecretAsync(string secretName)
         {
+            return GetSecretAsync(secretName, logger: null);
+        }
+
+        public Task<string> GetSecretAsync(string secretName, ILogger logger)
+        {
             if (TryGetCachedSecretObject(secretName, out var secret))
             {
                 return Task.FromResult(secret.Value);
@@ -55,6 +61,11 @@ namespace NuGet.Services.KeyVault
         }
 
         public Task<ISecret> GetSecretObjectAsync(string secretName)
+        {
+            return GetSecretObjectAsync(secretName, logger: null);
+        }
+
+        public Task<ISecret> GetSecretObjectAsync(string secretName, ILogger logger)
         {
             if (TryGetCachedSecretObject(secretName, out var secret))
             {

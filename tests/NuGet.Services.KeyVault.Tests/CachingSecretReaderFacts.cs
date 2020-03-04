@@ -3,6 +3,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Internal;
 using Moq;
 using Xunit;
 
@@ -15,9 +17,39 @@ namespace NuGet.Services.KeyVault.Tests
         {
             // Arrange
             const string secretName = "secretname";
-            const string secretValue = "testValue";            
-            KeyVaultSecret secret = new KeyVaultSecret(secretName, secretValue, null);            
+            const string secretValue = "testValue";
+            KeyVaultSecret secret = new KeyVaultSecret(secretName, secretValue, null);
 
+            var mockSecretReader = new Mock<ISecretReader>();
+            mockSecretReader
+                .Setup(x => x.GetSecretObjectAsync(It.IsAny<string>()))
+                .Returns(Task.FromResult((ISecret)secret));
+            var mockLogger = new Mock<ILogger>();
+
+            var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, int.MaxValue);
+
+            // Act
+            var value1 = await cachingSecretReader.GetSecretAsync("secretname", mockLogger.Object);
+            var value2 = await cachingSecretReader.GetSecretAsync("secretname", mockLogger.Object);
+
+            // Assert
+            mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Once);
+            mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
+                It.IsAny<EventId>(),
+                It.IsAny<FormattedLogValues>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<object, Exception, string>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task WhenGetSecretIsCalledCacheIsUsedWithoutLogger()
+        {
+            // Arrange
+            const string secretName = "secretname";
+            const string secretValue = "testValue";
+            KeyVaultSecret secret = new KeyVaultSecret(secretName, secretValue, null);
+
+            var mockLogger = new Mock<ILogger>();
             var mockSecretReader = new Mock<ISecretReader>();
             mockSecretReader
                 .Setup(x => x.GetSecretObjectAsync(It.IsAny<string>()))
@@ -31,8 +63,11 @@ namespace NuGet.Services.KeyVault.Tests
 
             // Assert
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Once);
-            Assert.Equal(secretValue, value1);
-            Assert.Equal(value1, value2);
+            mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
+                It.IsAny<EventId>(),
+                It.IsAny<FormattedLogValues>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<object, Exception, string>>()), Times.Never);
         }
 
         [Fact]
@@ -47,20 +82,25 @@ namespace NuGet.Services.KeyVault.Tests
             const int refreshIntervalSec = 1;
 
             var mockSecretReader = new Mock<ISecretReader>();
-
             mockSecretReader
                 .SetupSequence(x => x.GetSecretObjectAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult((ISecret)firstSecret))
                 .Returns(Task.FromResult((ISecret)secondSecret));
+            var mockLogger = new Mock<ILogger>();
 
             var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, refreshIntervalSec);
 
             // Act
-            var firstValue1 = await cachingSecretReader.GetSecretAsync(secretName);
-            var firstValue2 = await cachingSecretReader.GetSecretAsync(secretName);
+            var firstValue1 = await cachingSecretReader.GetSecretAsync(secretName, mockLogger.Object);
+            var firstValue2 = await cachingSecretReader.GetSecretAsync(secretName, mockLogger.Object);
 
             // Assert
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Once);
+            mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
+                It.IsAny<EventId>(),
+                It.IsAny<FormattedLogValues>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<object, Exception, string>>()), Times.Once);
             Assert.Equal(firstSecret.Value, firstValue1);
             Assert.Equal(firstSecret.Value, firstValue2);
 
@@ -69,11 +109,16 @@ namespace NuGet.Services.KeyVault.Tests
             await Task.Delay(TimeSpan.FromSeconds(refreshIntervalSec * 2));
 
             // Act 2
-            var secondValue1 = await cachingSecretReader.GetSecretAsync(secretName);
-            var secondValue2 = await cachingSecretReader.GetSecretAsync(secretName);
+            var secondValue1 = await cachingSecretReader.GetSecretAsync(secretName, mockLogger.Object);
+            var secondValue2 = await cachingSecretReader.GetSecretAsync(secretName, mockLogger.Object);
 
             // Assert 2
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Exactly(2));
+            mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
+                It.IsAny<EventId>(),
+                It.IsAny<FormattedLogValues>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<object, Exception, string>>()), Times.Exactly(2));
             Assert.Equal(secondSecret.Value, secondValue1);
             Assert.Equal(secondSecret.Value, secondValue2);
         }
@@ -97,16 +142,22 @@ namespace NuGet.Services.KeyVault.Tests
                 .SetupSequence(x => x.GetSecretObjectAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult((ISecret)secret1))
                 .Returns(Task.FromResult((ISecret)secret2));
+            var mockLogger = new Mock<ILogger>();
 
             var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, refreshIntervalSec, refreshIntervalBeforeExpirySec);
 
             // Act
-            var secretObject1 = await cachingSecretReader.GetSecretObjectAsync(secretName);
-            var secretObject2 = await cachingSecretReader.GetSecretObjectAsync(secretName);
-            var secretObject3 = await cachingSecretReader.GetSecretObjectAsync(secretName);
+            var secretObject1 = await cachingSecretReader.GetSecretObjectAsync(secretName, mockLogger.Object);
+            var secretObject2 = await cachingSecretReader.GetSecretObjectAsync(secretName, mockLogger.Object);
+            var secretObject3 = await cachingSecretReader.GetSecretObjectAsync(secretName, mockLogger.Object);
 
             // Assert
             mockSecretReader.Verify(x => x.GetSecretObjectAsync(It.IsAny<string>()), Times.Exactly(2));
+            mockLogger.Verify(x => x.Log(It.IsAny<LogLevel>(),
+                It.IsAny<EventId>(),
+                It.IsAny<FormattedLogValues>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<object, Exception, string>>()), Times.Exactly(2));
             Assert.Equal(secretObject1.Value, firstSecretValue);
             Assert.Equal(secretObject1.Expiration, firstSecretExpiration);
             Assert.Equal(secretObject2.Value, secondSecretValue);

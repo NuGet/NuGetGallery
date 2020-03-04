@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.KeyVault
 {
@@ -34,7 +35,12 @@ namespace NuGet.Services.KeyVault
             _secretReader = secretReader;
         }
 
-        public async Task<string> InjectAsync(string input)
+        public Task<string> InjectAsync(string input)
+        {
+            return InjectAsync(input, logger: null);
+        }
+
+        public async Task<string> InjectAsync(string input, ILogger logger)
         {
             if (string.IsNullOrEmpty(input))
             {
@@ -46,7 +52,7 @@ namespace NuGet.Services.KeyVault
 
             foreach (var secretName in secretNames)
             {
-                var secretValue = await _secretReader.GetSecretAsync(secretName);
+                var secretValue = await _secretReader.GetSecretAsync(secretName, logger);
                 output.Replace($"{_frame}{secretName}{_frame}", secretValue);
             }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.KeyVault.Tests
 {
@@ -55,7 +56,8 @@ namespace NuGet.Services.KeyVault.Tests
         public KeyVaultReaderFormatterFacts()
         {
             var mockKeyVault = new Mock<ISecretReader>();
-            mockKeyVault.Setup(x => x.GetSecretAsync(It.IsAny<string>())).Returns((string s) => Task.FromResult(s.ToUpper()));
+            mockKeyVault.Setup(x => x.GetSecretAsync(It.IsAny<string>(), It.IsAny<ILogger>()))
+                .Returns((string s, ILogger logger) => Task.FromResult(s.ToUpper()));
 
             _secretInjector = new SecretInjector(mockKeyVault.Object);
         }

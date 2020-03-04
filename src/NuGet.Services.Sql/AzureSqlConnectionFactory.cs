@@ -4,8 +4,8 @@
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
-using NuGet.Services.KeyVault;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.KeyVault;
 
 namespace NuGet.Services.Sql
 {
@@ -71,12 +71,12 @@ namespace NuGet.Services.Sql
 
         private async Task<SqlConnection> ConnectAsync()
         {
-            var connectionString = await SecretInjector.InjectAsync(ConnectionString.ConnectionString);
+            var connectionString = await SecretInjector.InjectAsync(ConnectionString.ConnectionString, Logger);
             var connection = new SqlConnection(connectionString);
 
             if (!string.IsNullOrWhiteSpace(ConnectionString.AadAuthority))
             {
-                var clientCertificateData = await SecretInjector.InjectAsync(ConnectionString.AadCertificate);
+                var clientCertificateData = await SecretInjector.InjectAsync(ConnectionString.AadCertificate, Logger);
                 if (!string.IsNullOrEmpty(clientCertificateData))
                 {
                     connection.AccessToken = await AcquireAccessTokenAsync(clientCertificateData);

@@ -4,6 +4,7 @@
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Moq;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.KeyVault;
 
 namespace NuGet.Services.Sql.Tests
@@ -43,8 +44,8 @@ namespace NuGet.Services.Sql.Tests
         {
             var mockSecretReader = new Mock<ISecretReader>();
 
-            mockSecretReader.Setup(x => x.GetSecretAsync(It.IsAny<string>()))
-                .Returns<string>(key =>
+            mockSecretReader.Setup(x => x.GetSecretAsync(It.IsAny<string>(), It.IsAny<ILogger>()))
+                .Returns<string, ILogger>((key, logger) =>
                 {
                     return Task.FromResult(key.Replace("$$", string.Empty));
                 })

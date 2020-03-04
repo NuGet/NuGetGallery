@@ -4,9 +4,10 @@
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
-using NuGet.Services.KeyVault;
 using Xunit;
+using NuGet.Services.KeyVault;
 
 namespace NuGet.Services.Sql.Tests
 {
@@ -53,9 +54,9 @@ namespace NuGet.Services.Sql.Tests
                 var connection = await ConnectAsync(factory, shouldOpen);
 
                 // Assert
-                factory.MockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Exactly(2));
-                factory.MockSecretReader.Verify(x => x.GetSecretAsync("user"), Times.Once);
-                factory.MockSecretReader.Verify(x => x.GetSecretAsync("pass"), Times.Once);
+                factory.MockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>(), It.IsAny<ILogger>()), Times.Exactly(2));
+                factory.MockSecretReader.Verify(x => x.GetSecretAsync("user", It.IsAny<ILogger>()), Times.Once);
+                factory.MockSecretReader.Verify(x => x.GetSecretAsync("pass", It.IsAny<ILogger>()), Times.Once);
 
                 Assert.True(connection.ConnectionString.Equals(
                     $"{MockConnectionStrings.BaseConnectionString};User ID=user;Password=pass", StringComparison.InvariantCultureIgnoreCase));
@@ -75,7 +76,7 @@ namespace NuGet.Services.Sql.Tests
                 var connection = await ConnectAsync(factory, shouldOpen);
 
                 // Assert
-                factory.MockSecretReader.Verify(x => x.GetSecretAsync("cert"), Times.Once);
+                factory.MockSecretReader.Verify(x => x.GetSecretAsync("cert", It.IsAny<ILogger>()), Times.Once);
 
                 // Note that AAD keys are extracted for internal use only
                 Assert.True(connection.ConnectionString.Equals(
