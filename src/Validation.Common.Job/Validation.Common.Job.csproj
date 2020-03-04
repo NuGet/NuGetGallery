@@ -76,7 +76,7 @@
     <Compile Include="Storage\SimpleCloudBlobProvider.cs" />
     <Compile Include="Storage\ValidatorStateService.cs" />
     <Compile Include="Storage\ValidatorStatusExtensions.cs" />
-    <Compile Include="SubcriptionProcessorJob.cs" />
+    <Compile Include="SubscriptionProcessorJob.cs" />
     <Compile Include="ValidationJobBase.cs" />
     <Compile Include="Configuration\SubscriptionProcessorConfiguration.cs" />
     <Compile Include="Validation\IValidatorProvider.cs" />

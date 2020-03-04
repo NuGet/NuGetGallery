@@ -16,7 +16,7 @@ using NuGet.Services.Storage;
 
 namespace Validation.PackageSigning.ValidateCertificate
 {
-    public class Job : SubcriptionProcessorJob<CertificateValidationMessage>
+    public class Job : SubscriptionProcessorJob<CertificateValidationMessage>
     {
         private const string CertificateStoreConfigurationSectionName = "CertificateStore";
 

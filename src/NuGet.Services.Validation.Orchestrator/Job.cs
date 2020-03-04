@@ -300,7 +300,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 return client;
             });
 
-            /// See <see cref="SubcriptionProcessorJob{T}.ConfigureDefaultJobServices(IServiceCollection, IConfigurationRoot)"/>
+            /// See <see cref="SubscriptionProcessorJob{T}.ConfigureDefaultJobServices(IServiceCollection, IConfigurationRoot)"/>
             /// for reasoning on why this is registered here.
             services.AddSingleton<IFeatureFlagRefresher, FeatureFlagRefresher>();
 
