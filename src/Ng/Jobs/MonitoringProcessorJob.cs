@@ -29,6 +29,7 @@ namespace Ng.Jobs
     {
         private const int DefaultQueueLoopDurationHours = 24;
         private const int DefaultQueueDelaySeconds = 30;
+        private static readonly TimeSpan MaxShutdownTime = TimeSpan.FromMinutes(1);
 
         private PackageValidator _packageValidator;
         private IStorageQueue<PackageValidatorContext> _queue;
@@ -135,13 +136,44 @@ namespace Ng.Jobs
         {
             // We should stop processing messages if the job runner cancels us.
             var queueMessageCancellationToken = cancellationToken;
-            // We should stop dequeuing more messages if too much time elapses.
-            var queueLoopCancellationToken = new CancellationTokenSource(_queueLoopDuration).Token;
 
-            await ParallelAsync.Repeat(
-                () => ProcessPackagesAsync(queueLoopCancellationToken, queueMessageCancellationToken));
+            // We should stop dequeuing more messages if too much time elapses.
+            Logger.LogInformation("Processing messages for {Duration} before restarting the job loop.", _queueLoopDuration);
+            using (var queueLoopCancellationTokenSource = new CancellationTokenSource(_queueLoopDuration))
+            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
+            {
+                var queueLoopCancellationToken = queueLoopCancellationTokenSource.Token;
+
+                var workerId = 0;
+                var allWorkersTask = ParallelAsync.Repeat(() => ProcessPackagesAsync(
+                    Interlocked.Increment(ref workerId),
+                    queueLoopCancellationToken,
+                    queueMessageCancellationToken));
+
+                // Wait for a specific amount of time past the loop duration. If a worker task is hanging for whatever
+                // reason we don't want to the shutdown to be blocked indefinitely.
+                //
+                // Imagine one worker is stuck and all of the rest of the workers have successfully stopped consuming
+                // messages. This would mean that this process is stuck in a seemingly "healthy" state (no exceptions,
+                // the process is still alive) but it will never terminate and no queue messages will be processed. By
+                // design all jobs must be resilient to unexpected termination (machine shutdown, etc) so not waiting
+                // for a slow worker task to gracefully finish is acceptable.
+                var loopDurationPlusShutdownTask = Task.Delay(_queueLoopDuration.Add(MaxShutdownTime), timeoutCancellationTokenSource.Token);
+
+                var firstTask = await Task.WhenAny(allWorkersTask, loopDurationPlusShutdownTask);
+                if (firstTask == loopDurationPlusShutdownTask)
+                {
+                    Logger.LogWarning("Not all workers shut down gracefully after {Duration}.", MaxShutdownTime);
+                }
+                else
+                {
+                    timeoutCancellationTokenSource.Cancel();
+                    Logger.LogInformation("All workers gracefully shut down.");
+                }
+            }
         }
 
+        /// <param name="workerId">The integer identifier of this worker, for diagnostic purposes.</param>
         /// <param name="queueLoopCancellationToken">
         /// When this token is cancelled, the process will stop dequeuing new messages.
         /// Messages that we already dequeued will continue being processed.
@@ -151,19 +183,22 @@ namespace Ng.Jobs
         /// The process will also stop dequeuing new messages because they wouldn't be processed anyway.
         /// </param>
         private async Task ProcessPackagesAsync(
+            int workerId,
             CancellationToken queueLoopCancellationToken,
             CancellationToken queueMessageCancellationToken)
         {
             // We will never listen to cancellation of the queue loop token individually.
             // If the queue message token is cancelled, we will always want to stop dequeuing new messages.
             // We combine the two tokens here so we don't have to call "IsCancellationRequested" multiple times.
-            var combinedQueueLoopCancellationToken = CancellationTokenSource
+            using (var combinedQueueLoopCancellationTokenSource = CancellationTokenSource
                 .CreateLinkedTokenSource(
                     queueLoopCancellationToken,
-                    queueMessageCancellationToken)
-                .Token;
-
-            await HandleQueueMessagesAsync(combinedQueueLoopCancellationToken, queueMessageCancellationToken);
+                    queueMessageCancellationToken))
+            using (Logger.BeginScope("Worker {WorkerId} is processing messages.", workerId))
+            {
+                var combinedQueueLoopCancellationToken = combinedQueueLoopCancellationTokenSource.Token;
+                await HandleQueueMessagesAsync(combinedQueueLoopCancellationToken, queueMessageCancellationToken);
+            }
         }
 
         private async Task HandleQueueMessagesAsync(
