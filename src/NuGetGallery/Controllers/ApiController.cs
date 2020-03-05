@@ -549,7 +549,21 @@ namespace NuGetGallery
                                 Strings.PackageEntryFromTheFuture,
                                 entryInTheFuture.Name));
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        // This is not very elegant to catch every Exception type here. However, the types of exceptions
+                        // that could be thrown when reading a garbage ZIP is undocumented. We've seen ArgumentOutOfRangeException
+                        // get thrown from HttpInputStream and InvalidDataException thrown from ZipArchive.
+                        ex.Log();
 
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.FailedToReadUploadFile));
+                    }
+
+                    try
+                    {
                         using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
                         {
                             try

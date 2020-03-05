@@ -263,7 +263,7 @@ namespace NuGetGallery
                     fakeNuGetPackage = TestPackage.CreateTestPackageStream("thePackageId", "1.0.0");
                 }
 
-                controller.Setup(x => x.CreatePackage(It.IsAny<Stream>())).Returns(new PackageArchiveReader(fakeNuGetPackage, true));
+                controller.Setup(x => x.CreatePackage(It.IsAny<Stream>())).Returns(() => new PackageArchiveReader(fakeNuGetPackage, true));
             }
 
             return controller.Object;
@@ -5583,6 +5583,26 @@ namespace NuGetGallery
                 Assert.Equal(
                     expectExceptionMessageInResponse ? EnsureValidExceptionMessage : Strings.FailedToReadUploadFile,
                     (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+            }
+
+            [Fact]
+            public async Task WillRejectBrokenZipFiles()
+            {
+                // Arrange
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("file.nupkg");
+                var fakeFileStream = new MemoryStream(TestDataResourceUtility.GetResourceBytes("Zip64Package.Corrupted.1.0.0.nupkg"));
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("Central Directory corrupt.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
             }
 
             [Theory]

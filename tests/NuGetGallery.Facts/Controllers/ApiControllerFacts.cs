@@ -697,6 +697,25 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillRejectBrokenZipFiles()
+            {
+                // Arrange
+                var package = new MemoryStream(TestDataResourceUtility.GetResourceBytes("Zip64Package.Corrupted.1.0.0.nupkg"));
+
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(package);
+
+                // Act
+                ActionResult result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+                Assert.Equal(Strings.FailedToReadUploadFile, (result as HttpStatusCodeWithBodyResult).StatusDescription);
+            }
+
+            [Fact]
             public async Task CreatePackageReturns400IfMinClientVersionIsTooHigh()
             {
                 // Arrange
