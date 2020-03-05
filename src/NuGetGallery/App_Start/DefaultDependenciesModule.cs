@@ -11,7 +11,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
 using System.Security.Principal;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
@@ -23,10 +22,12 @@ using Autofac.Extensions.DependencyInjection;
 using Elmah;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using Microsoft.AspNet.TelemetryCorrelation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGet.Services.KeyVault;
@@ -1389,19 +1390,25 @@ namespace NuGetGallery
             return new AggregateAuditingService(services);
         }
 
-        private static IEnumerable<T> GetAddInServices<T>(ContainerBuilder builder)
+        private static IEnumerable<T> GetAddInServices<T>()
+        {
+            return GetAddInServices<T>(sp => { });
+        }
+
+        private static IEnumerable<T> GetAddInServices<T>(Action<RuntimeServiceProvider> populateProvider)
         {
             var addInsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "add-ins");
 
             using (var serviceProvider = RuntimeServiceProvider.Create(addInsDirectoryPath))
             {
+                populateProvider(serviceProvider);
                 return serviceProvider.GetExportedValues<T>();
             }
         }
 
         private static void RegisterAuditingServices(ContainerBuilder builder, IAuditingService defaultAuditingService)
         {
-            var auditingServices = GetAddInServices<IAuditingService>(builder);
+            var auditingServices = GetAddInServices<IAuditingService>();
             var services = new List<IAuditingService>(auditingServices);
 
             if (defaultAuditingService != null)
@@ -1419,26 +1426,27 @@ namespace NuGetGallery
 
         private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
         {
-            var service = GetAddInServices<ICookieComplianceService>(builder).FirstOrDefault() as CookieComplianceServiceBase;
-
-            if (service == null)
-            {
-                service = new NullCookieComplianceService();
-            }
-
-            builder.RegisterInstance(service)
-                .AsSelf()
-                .As<ICookieComplianceService>()
-                .SingleInstance();
-
+            CookieComplianceServiceBase service = null;
             if (configuration.Current.IsHosted)
             {
                 var siteName = configuration.GetSiteRoot(true);
+                service = GetAddInServices<ICookieComplianceService>(sp =>
+                {
+                    sp.ComposeExportedValue("Domain", siteName);
+                    sp.ComposeExportedValue<IDiagnosticsService>(diagnostics);
+                }).FirstOrDefault() as CookieComplianceServiceBase;
 
-                // We must initialize during app start so that the cookie compliance service is ready when the first
-                // request comes in.
-                service.InitializeAsync(siteName, diagnostics, CancellationToken.None).Wait();
+                if (service != null)
+                {
+                    // Initialize the service on App_Start to avoid any performance degradation during initial requests.
+                    HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
+                }
             }
+
+            builder.RegisterInstance(service ?? new NullCookieComplianceService())
+                .AsSelf()
+                .As<ICookieComplianceService>()
+                .SingleInstance();
         }
     }
 }

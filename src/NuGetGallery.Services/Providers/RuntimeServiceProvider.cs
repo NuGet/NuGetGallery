@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
@@ -39,6 +40,26 @@ namespace NuGetGallery
             var compositionContainer = CreateCompositionContainer(baseDirectoryPath);
 
             return new RuntimeServiceProvider(compositionContainer);
+        }
+
+        public void ComposeExportedValue<T>(string contractName, T exportedValue)
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException(nameof(RuntimeServiceProvider));
+            }
+
+            _compositionContainer.ComposeExportedValue(contractName, exportedValue);
+        }
+
+        public void ComposeExportedValue<T>(T exportedValue)
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException(nameof(RuntimeServiceProvider));
+            }
+
+            _compositionContainer.ComposeExportedValue(exportedValue);
         }
 
         public IEnumerable<T> GetExportedValues<T>()
