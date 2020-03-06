@@ -13,6 +13,7 @@ namespace NuGet.Jobs
     public class Job : AzureSearchJob<Db2AzureSearchCommand>
     {
         private const string ConfigurationSectionName = "Db2AzureSearch";
+        private const string DevelopmentConfigurationSectionName = "Db2AzureSearch:Development";
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
@@ -22,6 +23,10 @@ namespace NuGet.Jobs
             services.Configure<AuxiliaryDataStorageConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchJobConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
+            services.Configure<AzureSearchJobDevelopmentConfiguration>(
+                configurationRoot.GetSection(DevelopmentConfigurationSectionName));
+            services.Configure<Db2AzureSearchDevelopmentConfiguration>(
+                configurationRoot.GetSection(DevelopmentConfigurationSectionName));
         }
     }
 }

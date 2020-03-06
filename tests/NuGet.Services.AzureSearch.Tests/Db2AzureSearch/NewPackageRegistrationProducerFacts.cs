@@ -27,7 +27,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly Mock<IEntitiesContextFactory> _entitiesContextFactory;
             private readonly Mock<IEntitiesContext> _entitiesContext;
             private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
+            private readonly Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>> _developmentOptions;
             private readonly Db2AzureSearchConfiguration _config;
+            private readonly Db2AzureSearchDevelopmentConfiguration _developmentConfig;
             private readonly RecordingLogger<NewPackageRegistrationProducer> _logger;
             private readonly DbSet<PackageRegistration> _packageRegistrations;
             private readonly DbSet<Package> _packages;
@@ -48,6 +50,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 {
                     DatabaseBatchSize = 2,
                 };
+                _developmentOptions = new Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>();
+                _developmentConfig =new Db2AzureSearchDevelopmentConfiguration();
                 _logger = output.GetLogger<NewPackageRegistrationProducer>();
                 _packageRegistrations = DbSetMockFactory.Create<PackageRegistration>();
                 _packages = DbSetMockFactory.Create<Package>();
@@ -80,11 +84,15 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _options
                     .Setup(x => x.Value)
                     .Returns(() => _config);
+                _developmentOptions
+                    .Setup(x => x.Value)
+                    .Returns(() => _developmentConfig);
 
                 _target = new NewPackageRegistrationProducer(
                     _entitiesContextFactory.Object,
-                    _options.Object,
                     _auxiliaryFileClient.Object,
+                    _options.Object,
+                    _developmentOptions.Object,
                     _logger);
             }
 
@@ -322,7 +330,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             [Fact]
             public async Task SkipsUnwantedPackages()
             {
-                _config.SkipPackagePrefixes = new List<string> { "Foo" };
+                _developmentConfig.SkipPackagePrefixes = new List<string> { "Foo" };
 
                 _packageRegistrations.Add(new PackageRegistration
                 {

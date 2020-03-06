@@ -20,18 +20,21 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     public class NewPackageRegistrationProducer : INewPackageRegistrationProducer
     {
         private readonly IEntitiesContextFactory _contextFactory;
-        private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
-        private readonly ILogger<NewPackageRegistrationProducer> _logger;
         private readonly IAuxiliaryFileClient _auxiliaryFileClient;
+        private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
+        private readonly IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> _developmentOptions;
+        private readonly ILogger<NewPackageRegistrationProducer> _logger;
 
         public NewPackageRegistrationProducer(
             IEntitiesContextFactory contextFactory,
-            IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             IAuxiliaryFileClient auxiliaryFileClient,
+            IOptionsSnapshot<Db2AzureSearchConfiguration> options,
+            IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> developmentOptions,
             ILogger<NewPackageRegistrationProducer> logger)
         {
             _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _developmentOptions = developmentOptions ?? throw new ArgumentNullException(nameof(developmentOptions));
             _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentNullException(nameof(auxiliaryFileClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -219,14 +222,16 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private bool ShouldSkipPackageRegistration(PackageRegistration packageRegistration)
         {
-            if (_options.Value.SkipPackagePrefixes == null)
+            // Capture the skip list to avoid reload issues.
+            var skipPrefixes = _developmentOptions.Value.SkipPackagePrefixes;
+            if (skipPrefixes == null)
             {
                 return false;
             }
 
-            foreach (var skippedPackagePrefix in _options.Value.SkipPackagePrefixes)
+            foreach (var skipPrefix in skipPrefixes)
             {
-                if (packageRegistration.Id.StartsWith(skippedPackagePrefix, StringComparison.OrdinalIgnoreCase))
+                if (packageRegistration.Id.StartsWith(skipPrefix, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }

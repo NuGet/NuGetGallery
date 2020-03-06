@@ -31,7 +31,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         private CommitCollectorConfiguration _utilityConfig;
         private Mock<IOptionsSnapshot<CommitCollectorConfiguration>> _utilityOptions;
         private Catalog2AzureSearchConfiguration _config;
+        private AzureSearchJobDevelopmentConfiguration _developmentConfig;
         private Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
+        private Mock<IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration>> _developmentOptions;
         private Mock<ITelemetryClient> _telemetryClient;
         private AzureSearchTelemetryService _telemetryService;
         private V3TelemetryService _v3TelemetryService;
@@ -78,6 +80,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             };
             _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
             _options.Setup(x => x.Value).Returns(() => _config);
+
+            _developmentConfig = new AzureSearchJobDevelopmentConfiguration();
+            _developmentOptions = new Mock<IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration>>();
+            _developmentOptions.Setup(x => x.Value).Returns(() => _developmentConfig);
 
             _telemetryClient = new Mock<ITelemetryClient>();
             _telemetryService = new AzureSearchTelemetryService(_telemetryClient.Object);
@@ -139,6 +145,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     _hijackIndex.Object,
                     _versionListDataClient,
                     _options.Object,
+                    _developmentOptions.Object,
                     _telemetryService,
                     output.GetLogger<BatchPusher>()),
                 _commitCollectorUtility,

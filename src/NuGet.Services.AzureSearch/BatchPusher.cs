@@ -23,6 +23,7 @@ namespace NuGet.Services.AzureSearch
         private readonly ISearchIndexClientWrapper _hijackIndexClient;
         private readonly IVersionListDataClient _versionListDataClient;
         private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
+        private readonly IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration> _developmentOptions;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<BatchPusher> _logger;
         internal readonly Dictionary<string, int> _idReferenceCount;
@@ -35,6 +36,7 @@ namespace NuGet.Services.AzureSearch
             ISearchIndexClientWrapper hijackIndexClient,
             IVersionListDataClient versionListDataClient,
             IOptionsSnapshot<AzureSearchJobConfiguration> options,
+            IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration> developmentOptions,
             IAzureSearchTelemetryService telemetryService,
             ILogger<BatchPusher> logger)
         {
@@ -42,6 +44,7 @@ namespace NuGet.Services.AzureSearch
             _hijackIndexClient = hijackIndexClient ?? throw new ArgumentNullException(nameof(hijackIndexClient));
             _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _developmentOptions = developmentOptions ?? throw new ArgumentNullException(nameof(developmentOptions));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _idReferenceCount = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -133,40 +136,7 @@ namespace NuGet.Services.AzureSearch
 
                 if (allFinished.Any())
                 {
-                    var versionListIdSample = allFinished
-                       .OrderByDescending(x => x.Value.Result.VersionProperties.Count(v => v.Value.Listed))
-                       .Select(x => x.Id)
-                       .Take(5)
-                       .ToArray();
-                    var workerCount = Math.Min(allFinished.Count, _options.Value.MaxConcurrentVersionListWriters);
-                    _logger.LogInformation(
-                        "Updating {VersionListCount} version lists with {WorkerCount} workers, including {IdSample}.",
-                        allFinished.Count,
-                        workerCount,
-                        versionListIdSample);
-
-                    var work = new ConcurrentBag<IdAndValue<ResultAndAccessCondition<VersionListData>>>(allFinished);
-                    using (_telemetryService.TrackVersionListsUpdated(allFinished.Count, workerCount))
-                    {
-                        var tasks = Enumerable
-                            .Range(0, workerCount)
-                            .Select(async x =>
-                            {
-                                await Task.Yield();
-                                while (work.TryTake(out var finished))
-                                {
-                                    // This method can throw a storage exception if the version list has changed.
-                                    await _versionListDataClient.ReplaceAsync(
-                                        finished.Id,
-                                        finished.Value.Result,
-                                        finished.Value.AccessCondition);
-                                }
-                            })
-                            .ToList();
-                        await Task.WhenAll(tasks);
-
-                        _logger.LogInformation("Done updating {VersionListCount} version lists.", allFinished.Count);
-                    }
+                    await UpdateVersionListsAsync(allFinished);
                 }
             }
 
@@ -282,6 +252,52 @@ namespace NuGet.Services.AzureSearch
                         $"Errors were found when indexing a batch. Up to {errorsToLog} errors get logged.",
                         innerException);
                 }
+            }
+        }
+
+        private async Task UpdateVersionListsAsync(List<IdAndValue<ResultAndAccessCondition<VersionListData>>> allFinished)
+        {
+            if (_developmentOptions.Value.DisableVersionListWriters)
+            {
+                _logger.LogWarning(
+                    "Skipped updating {VersionListCount} version lists.",
+                    allFinished.Count);
+                return;
+            }
+
+            var versionListIdSample = allFinished
+                .OrderByDescending(x => x.Value.Result.VersionProperties.Count(v => v.Value.Listed))
+                .Select(x => x.Id)
+                .Take(5)
+                .ToArray();
+            var workerCount = Math.Min(allFinished.Count, _options.Value.MaxConcurrentVersionListWriters);
+            _logger.LogInformation(
+                "Updating {VersionListCount} version lists with {WorkerCount} workers, including {IdSample}.",
+                allFinished.Count,
+                workerCount,
+                versionListIdSample);
+
+            var work = new ConcurrentBag<IdAndValue<ResultAndAccessCondition<VersionListData>>>(allFinished);
+            using (_telemetryService.TrackVersionListsUpdated(allFinished.Count, workerCount))
+            {
+                var tasks = Enumerable
+                    .Range(0, workerCount)
+                    .Select(async x =>
+                    {
+                        await Task.Yield();
+                        while (work.TryTake(out var finished))
+                        {
+                            // This method can throw a storage exception if the version list has changed.
+                            await _versionListDataClient.ReplaceAsync(
+                                finished.Id,
+                                finished.Value.Result,
+                                finished.Value.AccessCondition);
+                        }
+                    })
+                    .ToList();
+                await Task.WhenAll(tasks);
+
+                _logger.LogInformation("Done updating {VersionListCount} version lists.", allFinished.Count);
             }
         }
 

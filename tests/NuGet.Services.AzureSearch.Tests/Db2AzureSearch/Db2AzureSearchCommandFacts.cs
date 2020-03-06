@@ -33,7 +33,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly Mock<IDownloadDataClient> _downloadDataClient;
         private readonly Mock<IVerifiedPackagesDataClient> _verifiedPackagesDataClient;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
+        private readonly Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>> _developmentOptions;
         private readonly Db2AzureSearchConfiguration _config;
+        private readonly Db2AzureSearchDevelopmentConfiguration _developmentConfig;
         private readonly TestCursorStorage _storage;
         private readonly InitialAuxiliaryData _initialAuxiliaryData;
         private readonly RecordingLogger<Db2AzureSearchCommand> _logger;
@@ -52,6 +54,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _downloadDataClient = new Mock<IDownloadDataClient>();
             _verifiedPackagesDataClient = new Mock<IVerifiedPackagesDataClient>();
             _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
+            _developmentOptions = new Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>();
             _logger = output.GetLogger<Db2AzureSearchCommand>();
 
             _config = new Db2AzureSearchConfiguration
@@ -59,6 +62,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 MaxConcurrentBatches = 1,
                 StorageContainer = "container-name",
             };
+            _developmentConfig = new Db2AzureSearchDevelopmentConfiguration();
             _storage = new TestCursorStorage(new Uri("https://example/base/"));
             _initialAuxiliaryData = new InitialAuxiliaryData(
                 owners: new SortedDictionary<string, SortedSet<string>>(),
@@ -69,6 +73,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _options
                 .Setup(x => x.Value)
                 .Returns(() => _config);
+            _developmentOptions
+                .Setup(x => x.Value)
+                .Returns(() => _developmentConfig);
             _producer
                 .Setup(x => x.ProduceWorkAsync(It.IsAny<ConcurrentBag<NewPackageRegistration>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => _initialAuxiliaryData);
@@ -102,6 +109,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _downloadDataClient.Object,
                 _verifiedPackagesDataClient.Object,
                 _options.Object,
+                _developmentOptions.Object,
                 _logger);
         }
 
@@ -123,7 +131,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         [InlineData(true)]
         public async Task ObservesReplaceIndexesAndContainersOption(bool replace)
         {
-            _config.ReplaceContainersAndIndexes = replace;
+            _developmentConfig.ReplaceContainersAndIndexes = replace;
             var replaceTimes = replace ? Times.Once() : Times.Never();
             var retryOnConflict = replace;
 

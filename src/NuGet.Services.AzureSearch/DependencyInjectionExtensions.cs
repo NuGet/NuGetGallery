@@ -70,6 +70,7 @@ namespace NuGet.Services.AzureSearch
                     c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
                     c.Resolve<IVersionListDataClient>(),
                     c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
+                    c.Resolve<IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<BatchPusher>>()));
 
@@ -188,6 +189,7 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<IDownloadDataClient>(),
                     c.Resolve<IVerifiedPackagesDataClient>(),
                     c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>(),
+                    c.Resolve<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>(),
                     c.Resolve<ILogger<Db2AzureSearchCommand>>()));
         }
 

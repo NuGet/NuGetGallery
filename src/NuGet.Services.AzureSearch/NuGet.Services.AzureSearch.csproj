@@ -70,9 +70,11 @@
     <Compile Include="AuxiliaryFiles\StringCache.cs" />
     <Compile Include="AuxiliaryFiles\VerifiedPackagesDataClient.cs" />
     <Compile Include="AzureSearchJob.cs" />
+    <Compile Include="AzureSearchJobDevelopmentConfiguration.cs" />
     <Compile Include="AzureSearchScoringConfiguration.cs" />
     <Compile Include="BaseDocumentBuilder.cs" />
     <Compile Include="DatabaseAuxiliaryDataFetcher.cs" />
+    <Compile Include="Db2AzureSearch\Db2AzureSearchDevelopmentConfiguration.cs" />
     <Compile Include="Db2AzureSearch\InitialAuxiliaryData.cs" />
     <Compile Include="IAzureSearchTelemetryService.cs" />
     <Compile Include="IBaseDocumentBuilder.cs" />

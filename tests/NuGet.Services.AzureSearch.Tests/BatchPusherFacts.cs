@@ -92,6 +92,26 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
+            public async Task SkipsUpdatingVersionListIfDisabled()
+            {
+                _config.AzureSearchBatchSize = 1;
+                _developmentConfig.DisableVersionListWriters = true;
+                _target.EnqueueIndexActions(IdA, _indexActions);
+
+                await _target.FinishAsync();
+
+                Assert.Equal(5, _hijackBatches.Count);
+                Assert.Equal(3, _searchBatches.Count);
+
+                _versionListDataClient.Verify(
+                    x => x.ReplaceAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<VersionListData>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Never);
+            }
+
+            [Fact]
             public async Task PushesPartialBatch()
             {
                 _config.AzureSearchBatchSize = 1000;
@@ -514,7 +534,9 @@ namespace NuGet.Services.AzureSearch
             protected readonly Mock<IDocumentsOperationsWrapper> _hijackDocumentsWrapper;
             protected readonly Mock<IVersionListDataClient> _versionListDataClient;
             protected readonly AzureSearchJobConfiguration _config;
+            protected readonly AzureSearchJobDevelopmentConfiguration _developmentConfig;
             protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
+            protected readonly Mock<IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration>> _developmentOptions;
             protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly IndexActions _indexActions;
             protected readonly BatchPusher _target;
@@ -541,7 +563,9 @@ namespace NuGet.Services.AzureSearch
                 _hijackDocumentsWrapper = new Mock<IDocumentsOperationsWrapper>();
                 _versionListDataClient = new Mock<IVersionListDataClient>();
                 _config = new AzureSearchJobConfiguration();
+                _developmentConfig = new AzureSearchJobDevelopmentConfiguration();
                 _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
+                _developmentOptions = new Mock<IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration>>();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
 
                 _searchIndexClientWrapper.Setup(x => x.IndexName).Returns("search");
@@ -549,6 +573,7 @@ namespace NuGet.Services.AzureSearch
                 _hijackIndexClientWrapper.Setup(x => x.IndexName).Returns("hijack");
                 _hijackIndexClientWrapper.Setup(x => x.Documents).Returns(() => _hijackDocumentsWrapper.Object);
                 _options.Setup(x => x.Value).Returns(() => _config);
+                _developmentOptions.Setup(x => x.Value).Returns(() => _developmentConfig);
 
                 _searchBatches = new List<IndexBatch<KeyedDocument>>();
                 _hijackBatches = new List<IndexBatch<KeyedDocument>>();
@@ -601,6 +626,7 @@ namespace NuGet.Services.AzureSearch
                     _hijackIndexClientWrapper.Object,
                     _versionListDataClient.Object,
                     _options.Object,
+                    _developmentOptions.Object,
                     _telemetryService.Object,
                     _logger);
             }
