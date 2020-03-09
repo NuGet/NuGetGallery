@@ -44,7 +44,7 @@ namespace NuGetGallery
             {
                 BaseAddress = new Uri("https://example")
             }));
-            return new ResilientSearchHttpClient(clients, GetLogger(), mockTelemetryService.Object);
+            return new ResilientSearchHttpClient(clients, mockTelemetryService.Object);
         }
 
         [Fact]

@@ -315,6 +315,7 @@
     <EmbeddedResource Include="TestData\certificate.cer" />
     <EmbeddedResource Include="TestData\icon.png" />
     <EmbeddedResource Include="TestData\icon.jpg" />
+    <EmbeddedResource Include="TestData\Zip64Package.Corrupted.1.0.0.nupkg" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">

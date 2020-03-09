@@ -123,7 +123,7 @@ namespace NuGet.Services.Search.Client
             mockISearchHttpClient2.Setup(x => x.GetAsync(It.IsAny<Uri>())).ReturnsAsync(getAsyncResultMessage2);
 
             List<IHttpClientWrapper> clients = new List<IHttpClientWrapper>() { mockISearchHttpClient1.Object, mockISearchHttpClient2.Object };
-            return new ResilientSearchHttpClient(clients, GetLogger(), mockTelemetryService.Object);
+            return new ResilientSearchHttpClient(clients, mockTelemetryService.Object);
         }
 
         private static HttpResponseMessage GetResponseMessage(Uri uri, HttpStatusCode statusCode)

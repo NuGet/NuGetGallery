@@ -1138,7 +1138,6 @@ namespace NuGetGallery
 
                     return new ResilientSearchHttpClient(
                         httpClientWrappers,
-                        c.Resolve<ILogger<ResilientSearchHttpClient>>(),
                         c.Resolve<ITelemetryService>());
                 });
 
@@ -1391,19 +1390,25 @@ namespace NuGetGallery
             return new AggregateAuditingService(services);
         }
 
-        private static IEnumerable<T> GetAddInServices<T>(ContainerBuilder builder)
+        private static IEnumerable<T> GetAddInServices<T>()
+        {
+            return GetAddInServices<T>(sp => { });
+        }
+
+        private static IEnumerable<T> GetAddInServices<T>(Action<RuntimeServiceProvider> populateProvider)
         {
             var addInsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "add-ins");
 
             using (var serviceProvider = RuntimeServiceProvider.Create(addInsDirectoryPath))
             {
+                populateProvider(serviceProvider);
                 return serviceProvider.GetExportedValues<T>();
             }
         }
 
         private static void RegisterAuditingServices(ContainerBuilder builder, IAuditingService defaultAuditingService)
         {
-            var auditingServices = GetAddInServices<IAuditingService>(builder);
+            var auditingServices = GetAddInServices<IAuditingService>();
             var services = new List<IAuditingService>(auditingServices);
 
             if (defaultAuditingService != null)
@@ -1421,24 +1426,27 @@ namespace NuGetGallery
 
         private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
         {
-            var service = GetAddInServices<ICookieComplianceService>(builder).FirstOrDefault() as CookieComplianceServiceBase;
-
-            if (service == null)
+            CookieComplianceServiceBase service = null;
+            if (configuration.Current.IsHosted)
             {
-                service = new NullCookieComplianceService();
+                var siteName = configuration.GetSiteRoot(true);
+                service = GetAddInServices<ICookieComplianceService>(sp =>
+                {
+                    sp.ComposeExportedValue("Domain", siteName);
+                    sp.ComposeExportedValue<IDiagnosticsService>(diagnostics);
+                }).FirstOrDefault() as CookieComplianceServiceBase;
+
+                if (service != null)
+                {
+                    // Initialize the service on App_Start to avoid any performance degradation during initial requests.
+                    HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
+                }
             }
 
-            builder.RegisterInstance(service)
+            builder.RegisterInstance(service ?? new NullCookieComplianceService())
                 .AsSelf()
                 .As<ICookieComplianceService>()
                 .SingleInstance();
-
-            if (configuration.Current.IsHosted)
-            {
-                // Initialize the service on App_Start to avoid any performance degradation during initial requests.
-                var siteName = configuration.GetSiteRoot(true);
-                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
-            }
         }
     }
 }
