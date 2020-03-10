@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
+using System.Net;
+using Microsoft.Extensions.Configuration;
+using NuGet.Services.Configuration;
 
 namespace NuGetGallery.FunctionalTests
 {
@@ -14,38 +14,43 @@ namespace NuGetGallery.FunctionalTests
 
         public string GalleryBaseUrl => "staging".Equals(Slot, StringComparison.OrdinalIgnoreCase) ? StagingBaseUrl : ProductionBaseUrl;
 
-        [JsonProperty]
-        private string Slot { get; set; }
-        [JsonProperty]
-        private string ProductionBaseUrl { get; set; }
-        [JsonProperty]
-        private string StagingBaseUrl { get; set; }
-        [JsonProperty]
-        public string SearchServiceBaseUrl { get; private set; }
-        [JsonProperty]
-        public string EmailServerHost { get; private set; }
-        [JsonProperty]
-        public bool DefaultSecurityPoliciesEnforced { get; private set; }
-        [JsonProperty]
-        public bool TestPackageLock { get; private set; }
-        [JsonProperty]
-        public AccountConfiguration Account { get; private set; }
-        [JsonProperty]
-        public OrganizationConfiguration AdminOrganization { get; private set; }
-        [JsonProperty]
-        public OrganizationConfiguration CollaboratorOrganization { get; private set; }
-        [JsonProperty]
-        public BrandingConfiguration Branding { get; private set; }
-        [JsonProperty]
-        public bool TyposquattingCheckAndBlockUsers { get; private set; }
+        public string Slot { get; set; }
+        public string ProductionBaseUrl { get; set; }
+        public string StagingBaseUrl { get; set; }
+        public string SearchServiceBaseUrl { get; set; }
+        public string EmailServerHost { get; set; }
+        public bool DefaultSecurityPoliciesEnforced { get; set; }
+        public bool TestPackageLock { get; set; }
+        public AccountConfiguration Account { get; set; }
+        public OrganizationConfiguration AdminOrganization { get; set; }
+        public OrganizationConfiguration CollaboratorOrganization { get; set; }
+        public BrandingConfiguration Branding { get; set; }
+        public bool TyposquattingCheckAndBlockUsers { get; set; }
 
         static GalleryConfiguration()
         {
             try
             {
-                var configurationFilePath = EnvironmentSettings.ConfigurationFilePath;
-                var configurationString = File.ReadAllText(configurationFilePath);
-                Instance = JsonConvert.DeserializeObject<GalleryConfiguration>(configurationString);
+                // This test suite hits the gallery which requires TLS 1.2 (at least in some environments).
+                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
+                // Load the configuration without injection. This allows us to read KeyVault configuration.
+                var uninjectedBuilder = new ConfigurationBuilder()
+                    .AddJsonFile(EnvironmentSettings.ConfigurationFilePath, optional: false);
+                var uninjectedConfiguration = uninjectedBuilder.Build();
+
+                // Initialize KeyVault integration.
+                var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
+                var secretInjector = secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader());
+
+                // Initialize the configuration with KeyVault secrets injected.
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Environment.CurrentDirectory)
+                    .AddInjectedJsonFile(EnvironmentSettings.ConfigurationFilePath, secretInjector);
+                var instance = new GalleryConfiguration();
+                builder.Build().Bind(instance);
+
+                Instance = instance;
             }
             catch (ArgumentException ae)
             {
@@ -65,40 +70,27 @@ namespace NuGetGallery.FunctionalTests
 
         public class AccountConfiguration : OrganizationConfiguration
         {
-            [JsonProperty]
-            public string Email { get; private set; }
-            [JsonProperty]
-            public string Password { get; private set; }
-            [JsonProperty]
-            public string ApiKeyPush { get; private set; }
-            [JsonProperty]
-            public string ApiKeyPushVersion { get; private set; }
-            [JsonProperty]
-            public string ApiKeyUnlist { get; private set; }
+            public string Email { get; set; }
+            public string Password { get; set; }
+            public string ApiKeyPush { get; set; }
+            public string ApiKeyPushVersion { get; set; }
+            public string ApiKeyUnlist { get; set; }
         }
 
         public class OrganizationConfiguration
         {
-            [JsonProperty]
-            public string Name { get; private set; }
-            [JsonProperty]
-            public string ApiKey { get; private set; }
+            public string Name { get; set; }
+            public string ApiKey { get; set; }
         }
 
         public class BrandingConfiguration
         {
-            [JsonProperty]
-            public string Message { get; private set; }
-            [JsonProperty]
-            public string Url { get; private set; }
-            [JsonProperty]
-            public string AboutUrl { get; private set; }
-            [JsonProperty]
-            public string PrivacyPolicyUrl { get; private set; }
-            [JsonProperty]
-            public string TermsOfUseUrl { get; private set; }
-            [JsonProperty]
-            public string TrademarksUrl { get; private set; }
+            public string Message { get; set; }
+            public string Url { get; set; }
+            public string AboutUrl { get; set; }
+            public string PrivacyPolicyUrl { get; set; }
+            public string TermsOfUseUrl { get; set; }
+            public string TrademarksUrl { get; set; }
         }
     }
 }
