@@ -11,11 +11,11 @@ using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.Metadata.Catalog.Helpers;
 
-namespace NuGet.Services.AzureSearch.Owners2AzureSearch
+namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
-    public class Owners2AzureSearchCommand : IAzureSearchCommand
+    public class UpdateOwnersCommand : IAzureSearchCommand
     {
-        private readonly IDatabaseOwnerFetcher _databaseOwnerFetcher;
+        private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
         private readonly IOwnerDataClient _ownerDataClient;
         private readonly IOwnerSetComparer _ownerSetComparer;
         private readonly ISearchDocumentBuilder _searchDocumentBuilder;
@@ -23,10 +23,10 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
-        private readonly ILogger<Owners2AzureSearchCommand> _logger;
+        private readonly ILogger<UpdateOwnersCommand> _logger;
 
-        public Owners2AzureSearchCommand(
-            IDatabaseOwnerFetcher databaseOwnerFetcher,
+        public UpdateOwnersCommand(
+            IDatabaseAuxiliaryDataFetcher databaseFetcher,
             IOwnerDataClient ownerDataClient,
             IOwnerSetComparer ownerSetComparer,
             ISearchDocumentBuilder searchDocumentBuilder,
@@ -34,9 +34,9 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             Func<IBatchPusher> batchPusherFactory,
             IOptionsSnapshot<AzureSearchJobConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
-            ILogger<Owners2AzureSearchCommand> logger)
+            ILogger<UpdateOwnersCommand> logger)
         {
-            _databaseOwnerFetcher = databaseOwnerFetcher ?? throw new ArgumentNullException(nameof(databaseOwnerFetcher));
+            _databaseFetcher = databaseFetcher ?? throw new ArgumentNullException(nameof(databaseFetcher));
             _ownerDataClient = ownerDataClient ?? throw new ArgumentNullException(nameof(ownerDataClient));
             _ownerSetComparer = ownerSetComparer ?? throw new ArgumentNullException(nameof(ownerSetComparer));
             _searchDocumentBuilder = searchDocumentBuilder ?? throw new ArgumentNullException(nameof(searchDocumentBuilder));
@@ -64,7 +64,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
                 var storageResult = await _ownerDataClient.ReadLatestIndexedAsync();
 
                 _logger.LogInformation("Fetching new owner data from the database.");
-                var databaseResult = await _databaseOwnerFetcher.GetPackageIdToOwnersAsync();
+                var databaseResult = await _databaseFetcher.GetPackageIdToOwnersAsync();
 
                 _logger.LogInformation("Detecting owner changes.");
                 var changes = _ownerSetComparer.Compare(storageResult.Result, databaseResult);
@@ -95,7 +95,7 @@ namespace NuGet.Services.AzureSearch.Owners2AzureSearch
             finally
             {
                 stopwatch.Stop();
-                _telemetryService.TrackOwners2AzureSearchCompleted(outcome, stopwatch.Elapsed);
+                _telemetryService.TrackUpdateOwnersCompleted(outcome, stopwatch.Elapsed);
             }
         }
 

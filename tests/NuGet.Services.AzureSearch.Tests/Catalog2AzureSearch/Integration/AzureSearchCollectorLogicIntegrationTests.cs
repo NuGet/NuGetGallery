@@ -31,13 +31,15 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         private CommitCollectorConfiguration _utilityConfig;
         private Mock<IOptionsSnapshot<CommitCollectorConfiguration>> _utilityOptions;
         private Catalog2AzureSearchConfiguration _config;
+        private AzureSearchJobDevelopmentConfiguration _developmentConfig;
         private Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>> _options;
+        private Mock<IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration>> _developmentOptions;
         private Mock<ITelemetryClient> _telemetryClient;
         private AzureSearchTelemetryService _telemetryService;
         private V3TelemetryService _v3TelemetryService;
         private Mock<IEntitiesContextFactory> _entitiesContextFactory;
         private Mock<IEntitiesContext> _entitiesContext;
-        private DatabaseOwnerFetcher _ownerFetcher;
+        private DatabaseAuxiliaryDataFetcher _ownerFetcher;
         private InMemoryRegistrationClient _registrationClient;
         private InMemoryCatalogClient _catalogClient;
         private CatalogLeafFetcher _leafFetcher;
@@ -79,6 +81,10 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _options = new Mock<IOptionsSnapshot<Catalog2AzureSearchConfiguration>>();
             _options.Setup(x => x.Value).Returns(() => _config);
 
+            _developmentConfig = new AzureSearchJobDevelopmentConfiguration();
+            _developmentOptions = new Mock<IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration>>();
+            _developmentOptions.Setup(x => x.Value).Returns(() => _developmentConfig);
+
             _telemetryClient = new Mock<ITelemetryClient>();
             _telemetryService = new AzureSearchTelemetryService(_telemetryClient.Object);
             _v3TelemetryService = new V3TelemetryService(_telemetryClient.Object);
@@ -89,11 +95,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _entitiesContext = new Mock<IEntitiesContext>();
             _entitiesContextFactory.Setup(x => x.CreateAsync(It.IsAny<bool>())).ReturnsAsync(() => _entitiesContext.Object);
             _entitiesContext.Setup(x => x.PackageRegistrations).Returns(DbSetMockFactory.Create<PackageRegistration>());
-            _ownerFetcher = new DatabaseOwnerFetcher(
+            _ownerFetcher = new DatabaseAuxiliaryDataFetcher(
                 new Mock<ISqlConnectionFactory<GalleryDbConfiguration>>().Object,
                 _entitiesContextFactory.Object,
                 _telemetryService,
-                output.GetLogger<DatabaseOwnerFetcher>());
+                output.GetLogger<DatabaseAuxiliaryDataFetcher>());
 
             _cloudBlobClient = new InMemoryCloudBlobClient();
             _versionListDataClient = new VersionListDataClient(
@@ -139,6 +145,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     _hijackIndex.Object,
                     _versionListDataClient,
                     _options.Object,
+                    _developmentOptions.Object,
                     _telemetryService,
                     output.GetLogger<BatchPusher>()),
                 _commitCollectorUtility,

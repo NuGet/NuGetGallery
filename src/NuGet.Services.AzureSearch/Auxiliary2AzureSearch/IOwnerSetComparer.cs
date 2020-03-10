@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace NuGet.Services.AzureSearch.Owners2AzureSearch
+namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
     /// <summary>
     /// Used to compare two sets of owners to determine the changes.

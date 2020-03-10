@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="ComparisonContext.cs" />
     <Compile Include="CursorUtility.cs" />
+    <Compile Include="HiveConfiguration.cs" />
     <Compile Include="Normalizers.cs" />
     <Compile Include="RegistrationComparerCollectorLogic.cs" />
     <Compile Include="HiveComparer.cs" />

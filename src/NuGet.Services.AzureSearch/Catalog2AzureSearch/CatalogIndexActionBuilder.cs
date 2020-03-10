@@ -20,7 +20,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
         private readonly IVersionListDataClient _versionListDataClient;
         private readonly ICatalogLeafFetcher _leafFetcher;
-        private readonly IDatabaseOwnerFetcher _ownerFetcher;
+        private readonly IDatabaseAuxiliaryDataFetcher _ownerFetcher;
         private readonly ISearchDocumentBuilder _search;
         private readonly IHijackDocumentBuilder _hijack;
         private readonly ILogger<CatalogIndexActionBuilder> _logger;
@@ -28,7 +28,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         public CatalogIndexActionBuilder(
             IVersionListDataClient versionListDataClient,
             ICatalogLeafFetcher leafFetcher,
-            IDatabaseOwnerFetcher ownerFetcher,
+            IDatabaseAuxiliaryDataFetcher ownerFetcher,
             ISearchDocumentBuilder search,
             IHijackDocumentBuilder hijack,
             ILogger<CatalogIndexActionBuilder> logger)

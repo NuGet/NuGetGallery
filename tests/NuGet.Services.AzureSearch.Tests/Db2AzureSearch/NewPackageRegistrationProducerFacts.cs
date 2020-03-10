@@ -27,7 +27,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly Mock<IEntitiesContextFactory> _entitiesContextFactory;
             private readonly Mock<IEntitiesContext> _entitiesContext;
             private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
+            private readonly Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>> _developmentOptions;
             private readonly Db2AzureSearchConfiguration _config;
+            private readonly Db2AzureSearchDevelopmentConfiguration _developmentConfig;
             private readonly RecordingLogger<NewPackageRegistrationProducer> _logger;
             private readonly DbSet<PackageRegistration> _packageRegistrations;
             private readonly DbSet<Package> _packages;
@@ -37,7 +39,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
             private readonly DownloadData _downloads;
             private readonly Dictionary<string, long> _downloadOverrides;
-            private readonly HashSet<string> _verifiedPackages;
             private HashSet<string> _excludedPackages;
 
             public ProduceWorkAsync(ITestOutputHelper output)
@@ -49,6 +50,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 {
                     DatabaseBatchSize = 2,
                 };
+                _developmentOptions = new Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>();
+                _developmentConfig =new Db2AzureSearchDevelopmentConfiguration();
                 _logger = output.GetLogger<NewPackageRegistrationProducer>();
                 _packageRegistrations = DbSetMockFactory.Create<PackageRegistration>();
                 _packages = DbSetMockFactory.Create<Package>();
@@ -68,10 +71,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _auxiliaryFileClient
                     .Setup(x => x.LoadDownloadOverridesAsync())
                     .ReturnsAsync(() => _downloadOverrides);
-                _verifiedPackages = new HashSet<string>();
-                _auxiliaryFileClient
-                    .Setup(x => x.LoadVerifiedPackagesAsync())
-                    .ReturnsAsync(() => _verifiedPackages);
 
                 _entitiesContextFactory
                    .Setup(x => x.CreateAsync(It.IsAny<bool>()))
@@ -85,11 +84,15 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _options
                     .Setup(x => x.Value)
                     .Returns(() => _config);
+                _developmentOptions
+                    .Setup(x => x.Value)
+                    .Returns(() => _developmentConfig);
 
                 _target = new NewPackageRegistrationProducer(
                     _entitiesContextFactory.Object,
-                    _options.Object,
                     _auxiliaryFileClient.Object,
+                    _options.Object,
+                    _developmentOptions.Object,
                     _logger);
             }
 
@@ -325,6 +328,50 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             [Fact]
+            public async Task SkipsUnwantedPackages()
+            {
+                _developmentConfig.SkipPackagePrefixes = new List<string> { "Foo" };
+
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 1,
+                    Id = "FOO.Bar",
+                    Owners = new User[0],
+                    Packages = new[]
+                     {
+                        new Package { Version = "1.0.0" },
+                    },
+                });
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 2,
+                    Id = "foo.Buzz",
+                    Owners = new User[0],
+                    Packages = new[]
+                    {
+                        new Package { Version = "2.0.0" },
+                    },
+                });
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 3,
+                    Id = "Hello.World",
+                    Owners = new User[0],
+                    Packages = new[]
+                    {
+                        new Package { Version = "3.0.0" },
+                    },
+                });
+
+                InitializePackagesFromPackageRegistrations();
+
+                await _target.ProduceWorkAsync(_work, _token);
+
+                var newRegistration = Assert.Single(_work);
+                Assert.Equal("Hello.World", newRegistration.PackageId);
+            }
+
+            [Fact]
             public async Task ReturnsInitialAuxiliaryData()
             {
                 _packageRegistrations.Add(new PackageRegistration
@@ -337,19 +384,20 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         new Package { Version = "1.0.0" },
                         new Package { Version = "2.0.0" },
                     },
+                    IsVerified = true,
                 });
 
                 var output = await _target.ProduceWorkAsync(_work, _token);
 
                 Assert.Same(_downloads, output.Downloads);
                 Assert.Same(_excludedPackages, output.ExcludedPackages);
-                Assert.Same(_verifiedPackages, output.VerifiedPackages);
+                Assert.NotNull(output.VerifiedPackages);
+                Assert.Contains("A", output.VerifiedPackages);
                 Assert.NotNull(output.Owners);
                 Assert.Contains("A", output.Owners.Keys);
                 Assert.Equal(new[] { "OwnerA" }, output.Owners["A"].ToArray());
 
                 _auxiliaryFileClient.Verify(x => x.LoadExcludedPackagesAsync(), Times.Once);
-                _auxiliaryFileClient.Verify(x => x.LoadVerifiedPackagesAsync(), Times.Once);
             }
 
             [Fact]

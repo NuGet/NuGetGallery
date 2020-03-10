@@ -8,7 +8,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     public class Db2AzureSearchConfiguration : AzureSearchJobConfiguration, IAuxiliaryDataStorageConfiguration
     {
         public int DatabaseBatchSize { get; set; } = 10000;
-        public bool ReplaceContainersAndIndexes { get; set; }
         public string CatalogIndexUrl { get; set; }
         public string AuxiliaryDataStorageConnectionString { get; set; }
         public string AuxiliaryDataStorageContainer { get; set; }

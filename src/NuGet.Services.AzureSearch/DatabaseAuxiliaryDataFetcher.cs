@@ -13,16 +13,22 @@ using NuGet.Jobs.Configuration;
 
 namespace NuGet.Services.AzureSearch
 {
-    public class DatabaseOwnerFetcher : IDatabaseOwnerFetcher
+    public class DatabaseAuxiliaryDataFetcher : IDatabaseAuxiliaryDataFetcher
     {
         private static readonly string[] EmptyStringArray = new string[0];
 
         private readonly ISqlConnectionFactory<GalleryDbConfiguration> _connectionFactory;
         private readonly IEntitiesContextFactory _entitiesContextFactory;
         private readonly IAzureSearchTelemetryService _telemetryService;
-        private readonly ILogger<DatabaseOwnerFetcher> _logger;
+        private readonly ILogger<DatabaseAuxiliaryDataFetcher> _logger;
 
-        private const string Sql = @"
+        private const string GetVerifiedPackagesSql = @"
+SELECT pr.Id
+FROM PackageRegistrations pr (NOLOCK)
+WHERE pr.IsVerified = 1
+";
+
+        private const string GetPackageIdToOwnersSql = @"
 SELECT
     pr.Id,
     u.Username
@@ -31,11 +37,11 @@ INNER JOIN PackageRegistrationOwners pro (NOLOCK) ON pro.PackageRegistrationKey 
 INNER JOIN Users u (NOLOCK) ON pro.UserKey = u.[Key]
 ";
 
-        public DatabaseOwnerFetcher(
+        public DatabaseAuxiliaryDataFetcher(
             ISqlConnectionFactory<GalleryDbConfiguration> connectionFactory,
             IEntitiesContextFactory entitiesContextFactory,
             IAzureSearchTelemetryService telemetryService,
-            ILogger<DatabaseOwnerFetcher> logger)
+            ILogger<DatabaseAuxiliaryDataFetcher> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _entitiesContextFactory = entitiesContextFactory ?? throw new ArgumentNullException(nameof(entitiesContextFactory));
@@ -79,13 +85,38 @@ INNER JOIN Users u (NOLOCK) ON pro.UserKey = u.[Key]
             }
         }
 
+        public async Task<HashSet<string>> GetVerifiedPackagesAsync()
+        {
+            var stopwatch = Stopwatch.StartNew();
+            using (var connection = await _connectionFactory.OpenAsync())
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = GetVerifiedPackagesSql;
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    var output = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    while (await reader.ReadAsync())
+                    {
+                        var id = reader.GetString(0);
+                        output.Add(id);
+                    }
+
+                    stopwatch.Stop();
+                    _telemetryService.TrackReadLatestVerifiedPackagesFromDatabase(output.Count, stopwatch.Elapsed);
+
+                    return output;
+                }
+            }
+        }
+
         public async Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToOwnersAsync()
         {
             var stopwatch = Stopwatch.StartNew();
             using (var connection = await _connectionFactory.OpenAsync())
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = Sql;
+                command.CommandText = GetPackageIdToOwnersSql;
 
                 using (var reader = await command.ExecuteReaderAsync())
                 {

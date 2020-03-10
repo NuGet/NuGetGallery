@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 
-namespace NuGet.Services.AzureSearch.Owners2AzureSearch
+namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
     public class OwnerSetComparer : IOwnerSetComparer
     {

@@ -31,6 +31,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly IDownloadDataClient _downloadDataClient;
         private readonly IVerifiedPackagesDataClient _verifiedPackagesDataClient;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
+        private readonly IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> _developmentOptions;
         private readonly ILogger<Db2AzureSearchCommand> _logger;
 
         public Db2AzureSearchCommand(
@@ -45,6 +46,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             IDownloadDataClient downloadDataClient,
             IVerifiedPackagesDataClient verifiedPackagesDataClient,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
+            IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> developmentOptions,
             ILogger<Db2AzureSearchCommand> logger)
         {
             _producer = producer ?? throw new ArgumentNullException(nameof(producer));
@@ -58,6 +60,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _downloadDataClient = downloadDataClient ?? throw new ArgumentNullException(nameof(downloadDataClient));
             _verifiedPackagesDataClient = verifiedPackagesDataClient ?? throw new ArgumentNullException(nameof(verifiedPackagesDataClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _developmentOptions = developmentOptions ?? throw new ArgumentNullException(nameof(developmentOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (_options.Value.MaxConcurrentBatches <= 0)
@@ -126,7 +129,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private async Task InitializeAsync()
         {
             var containerDeleted = false;
-            if (_options.Value.ReplaceContainersAndIndexes)
+            if (_developmentOptions.Value.ReplaceContainersAndIndexes)
             {
                 containerDeleted = await _blobContainerBuilder.DeleteIfExistsAsync();
                 await _indexBuilder.DeleteSearchIndexIfExistsAsync();

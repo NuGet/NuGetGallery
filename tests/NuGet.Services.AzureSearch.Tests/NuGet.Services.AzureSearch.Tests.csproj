@@ -37,7 +37,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Auxiliary2AzureSearch\Auxiliary2AzureSearchCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateVerifiedPackagesCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateDownloadsCommandFacts.cs" />
     <Compile Include="Auxiliary2AzureSearch\DownloadSetComparerFacts.cs" />
     <Compile Include="AuxiliaryFiles\DownloadByVersionDataFacts.cs" />
     <Compile Include="AuxiliaryFiles\DownloadDataClientFacts.cs" />
@@ -53,7 +54,7 @@
     <Compile Include="Catalog2AzureSearch\CatalogIndexActionBuilderFacts.cs" />
     <Compile Include="Catalog2AzureSearch\CatalogLeafFetcherFacts.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\InMemoryDocumentsOperations.cs" />
-    <Compile Include="DatabaseOwnerFetcherFacts.cs" />
+    <Compile Include="DatabaseAuxiliaryDataFetcherFacts.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchCommandFacts.cs" />
     <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
@@ -64,8 +65,8 @@
     <Compile Include="Models\CommittedDocumentFacts.cs" />
     <Compile Include="AuxiliaryFiles\OwnerDataClientFacts.cs" />
     <Compile Include="SearchIndexActionBuilderFacts.cs" />
-    <Compile Include="Owners2AzureSearch\Owners2AzureSearchCommandFacts.cs" />
-    <Compile Include="Owners2AzureSearch\OwnerSetComparerFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateOwnersCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\OwnerSetComparerFacts.cs" />
     <Compile Include="SearchDocumentBuilderFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataCacheFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataFacts.cs" />

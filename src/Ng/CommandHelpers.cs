@@ -31,7 +31,7 @@ namespace Ng
     {
         public static IDictionary<string, string> GetArguments(string[] args, int start)
         {
-            var unprocessedArguments = new Dictionary<string, string>();
+            var unprocessedArguments = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             if ((args.Length - 1) % 2 != 0)
             {

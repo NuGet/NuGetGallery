@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch
 {
-    public class DatabaseOwnerFetcherFacts
+    public class DatabaseAuxiliaryDataFetcherFacts
     {
         public class GetOwnersOrEmptyAsync : Facts
         {
@@ -88,7 +88,7 @@ namespace NuGet.Services.AzureSearch
                 EntitiesContextFactory = new Mock<IEntitiesContextFactory>();
                 EntitiesContext = new Mock<IEntitiesContext>();
                 TelemetryService = new Mock<IAzureSearchTelemetryService>();
-                Logger = output.GetLogger<DatabaseOwnerFetcher>();
+                Logger = output.GetLogger<DatabaseAuxiliaryDataFetcher>();
 
                 PackageRegistrations = DbSetMockFactory.Create<PackageRegistration>();
 
@@ -99,7 +99,7 @@ namespace NuGet.Services.AzureSearch
                     .Setup(x => x.PackageRegistrations)
                     .Returns(() => PackageRegistrations);
 
-                Target = new DatabaseOwnerFetcher(
+                Target = new DatabaseAuxiliaryDataFetcher(
                     SqlConnectionFactory.Object,
                     EntitiesContextFactory.Object,
                     TelemetryService.Object,
@@ -110,9 +110,9 @@ namespace NuGet.Services.AzureSearch
             public Mock<IEntitiesContextFactory> EntitiesContextFactory { get; }
             public Mock<IEntitiesContext> EntitiesContext { get; }
             public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
-            public RecordingLogger<DatabaseOwnerFetcher> Logger { get; }
+            public RecordingLogger<DatabaseAuxiliaryDataFetcher> Logger { get; }
             public DbSet<PackageRegistration> PackageRegistrations { get; }
-            public DatabaseOwnerFetcher Target { get; }
+            public DatabaseAuxiliaryDataFetcher Target { get; }
         }
 
         private class DisposableEntitiesContext : IEntitiesContext, IDisposable

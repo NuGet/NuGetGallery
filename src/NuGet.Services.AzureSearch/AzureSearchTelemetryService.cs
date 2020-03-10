@@ -78,10 +78,10 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
-        public void TrackOwners2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed)
+        public void TrackUpdateOwnersCompleted(JobOutcome outcome, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
-                Prefix + "Owners2AzureSearchCompletedSeconds",
+                Prefix + "UpdateOwnersCompletedSeconds",
                 elapsed.TotalSeconds,
                 new Dictionary<string, string>
                 {
@@ -391,6 +391,39 @@ namespace NuGet.Services.AzureSearch
                     { "CharCount", charCount.ToString() },
                     { "RequestCount", requestCount.ToString() },
                     { "HitCount", hitCount.ToString() },
+                });
+        }
+
+        public void TrackReadLatestVerifiedPackagesFromDatabase(int packageIdCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "ReadLatestVerifiedPackagesFromDatabaseSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "PackageIdCount", packageIdCount.ToString() },
+                });
+        }
+
+        public void TrackUpdateVerifiedPackagesCompleted(JobOutcome outcome, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "UpdateVerifiedPackagesCompletedSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "Outcome", outcome.ToString() },
+                });
+        }
+
+        public void TrackUpdateDownloadsCompleted(JobOutcome outcome, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "UpdateDownloadsCompletedSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "Outcome", outcome.ToString() },
                 });
         }
     }

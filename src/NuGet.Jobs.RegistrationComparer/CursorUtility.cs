@@ -19,7 +19,7 @@ namespace NuGet.Jobs.RegistrationComparer
             var hiveCursors = new Dictionary<string, ReadCursor>();
             foreach (var hives in options.Value.Registrations)
             {
-                var cursorUrl = new Uri(hives.LegacyBaseUrl.TrimEnd('/') + "/cursor.json");
+                var cursorUrl = new Uri(hives.Legacy.StorageBaseUrl.TrimEnd('/') + "/cursor.json");
                 hiveCursors.Add(cursorUrl.AbsoluteUri, new HttpReadCursor(cursorUrl, DateTime.MinValue, handlerFunc));
             }
 

@@ -10,6 +10,5 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         public string AuxiliaryDataStorageDownloadsPath { get; set; }
         public string AuxiliaryDataStorageDownloadOverridesPath { get; set; }
         public string AuxiliaryDataStorageExcludedPackagesPath { get; set; }
-        public string AuxiliaryDataStorageVerifiedPackagesPath { get; set; }
     }
 }

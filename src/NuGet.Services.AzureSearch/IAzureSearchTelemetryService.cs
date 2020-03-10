@@ -16,10 +16,11 @@ namespace NuGet.Services.AzureSearch
         void TrackIndexPushFailure(string indexName, int documentCount, TimeSpan elapsed);
         void TrackIndexPushSplit(string indexName, int documentCount);
         void TrackIndexPushSuccess(string indexName, int documentCount, TimeSpan elapsed);
-        void TrackOwners2AzureSearchCompleted(JobOutcome outcome, TimeSpan elapsed);
+        void TrackUpdateOwnersCompleted(JobOutcome outcome, TimeSpan elapsed);
         void TrackOwnerSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed);
         void TrackReadLatestIndexedOwners(int packageIdCount, TimeSpan elapsed);
         void TrackReadLatestOwnersFromDatabase(int packageIdCount, TimeSpan elapsed);
+        void TrackReadLatestVerifiedPackagesFromDatabase(int packageIdCount, TimeSpan elapsed);
         IDisposable TrackReplaceLatestIndexedOwners(int packageIdCount);
         IDisposable TrackUploadOwnerChangeHistory(int packageIdCount);
         IDisposable TrackVersionListsUpdated(int versionListCount, int workerCount);
@@ -48,8 +49,10 @@ namespace NuGet.Services.AzureSearch
         void TrackV3GetDocument(TimeSpan elapsed);
         void TrackV2GetDocumentWithSearchIndex(TimeSpan elapsed);
         void TrackV2GetDocumentWithHijackIndex(TimeSpan elapsed);
+        void TrackUpdateVerifiedPackagesCompleted(JobOutcome outcome, TimeSpan elapsed);
         void TrackReadLatestVerifiedPackages(int? packageIdCount, bool notModified, TimeSpan elapsed);
         IDisposable TrackReplaceLatestVerifiedPackages(int packageIdCount);
         void TrackAuxiliaryFilesStringCache(int stringCount, long charCount, int requestCount, int hitCount);
+        void TrackUpdateDownloadsCompleted(JobOutcome outcome, TimeSpan elapsed);
     }
 }

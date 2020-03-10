@@ -20,18 +20,21 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     public class NewPackageRegistrationProducer : INewPackageRegistrationProducer
     {
         private readonly IEntitiesContextFactory _contextFactory;
-        private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
-        private readonly ILogger<NewPackageRegistrationProducer> _logger;
         private readonly IAuxiliaryFileClient _auxiliaryFileClient;
+        private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
+        private readonly IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> _developmentOptions;
+        private readonly ILogger<NewPackageRegistrationProducer> _logger;
 
         public NewPackageRegistrationProducer(
             IEntitiesContextFactory contextFactory,
-            IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             IAuxiliaryFileClient auxiliaryFileClient,
+            IOptionsSnapshot<Db2AzureSearchConfiguration> options,
+            IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> developmentOptions,
             ILogger<NewPackageRegistrationProducer> logger)
         {
             _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _developmentOptions = developmentOptions ?? throw new ArgumentNullException(nameof(developmentOptions));
             _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentNullException(nameof(auxiliaryFileClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -43,6 +46,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             var ranges = await GetPackageRegistrationRangesAsync();
 
             // Fetch exclude packages list from auxiliary files.
+            // These packages are excluded from the default search's results.
             var excludedPackages = await _auxiliaryFileClient.LoadExcludedPackagesAsync();
 
             Guard.Assert(
@@ -60,13 +64,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
             var overridenDownloads = downloads.ApplyDownloadOverrides(downloadOverrides, _logger);
 
-            // Fetch the verified packages file. This is not used inside the index but is used at query-time in the
-            // Azure Search service. We want to copy this file to the local region's storage container to improve
-            // availability and start-up of the service.
-            var verifiedPackages = await _auxiliaryFileClient.LoadVerifiedPackagesAsync();
-
-            // Build a list of the owners data as we collect package registrations from the database.
+            // Build a list of the owners data and verified IDs as we collect package registrations from the database.
             var ownersBuilder = new PackageIdToOwnersBuilder(_logger);
+            var verifiedPackages = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             for (var i = 0; i < ranges.Count && !cancellationToken.IsCancellationRequested; i++)
             {
@@ -106,6 +106,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         isExcludedByDefault));
 
                     ownersBuilder.Add(pr.Id, pr.Owners);
+
+                    if (pr.IsVerified)
+                    {
+                        verifiedPackages.Add(pr.Id);
+                    }
                 }
 
                 _logger.LogInformation("Done initializing batch {Number}/{Count}.", i + 1, ranges.Count);
@@ -205,12 +210,34 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 var packageRegistrations = await query.ToListAsync();
 
                 return packageRegistrations
+                    .Where(pr => !ShouldSkipPackageRegistration(pr))
                     .Select(pr => new PackageRegistrationInfo(
                         pr.Key,
                         pr.Id,
-                        pr.Owners.Select(x => x.Username).ToArray()))
+                        pr.Owners.Select(x => x.Username).ToArray(),
+                        pr.IsVerified))
                     .ToList();
             }
+        }
+
+        private bool ShouldSkipPackageRegistration(PackageRegistration packageRegistration)
+        {
+            // Capture the skip list to avoid reload issues.
+            var skipPrefixes = _developmentOptions.Value.SkipPackagePrefixes;
+            if (skipPrefixes == null)
+            {
+                return false;
+            }
+
+            foreach (var skipPrefix in skipPrefixes)
+            {
+                if (packageRegistration.Id.StartsWith(skipPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private async Task<IReadOnlyList<PackageRegistrationRange>> GetPackageRegistrationRangesAsync()
@@ -311,16 +338,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private class PackageRegistrationInfo
         {
-            public PackageRegistrationInfo(int key, string id, string[] owners)
+            public PackageRegistrationInfo(int key, string id, string[] owners, bool isVerified)
             {
                 Key = key;
                 Id = id;
                 Owners = owners;
+                IsVerified = isVerified;
             }
 
             public int Key { get; }
             public string Id { get; }
             public string[] Owners { get; }
+            public bool IsVerified { get; }
         }
     }
 }
