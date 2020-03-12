@@ -99,6 +99,20 @@ namespace Stats.AzureCdnLogs.Common
                     return null;
                 }
             }
+            catch (IndexOutOfRangeException e)
+            {
+                // skip this line but log the error
+                if (onErrorAction == null)
+                {
+                    throw;
+                }
+                else
+                {
+                    onErrorAction.Invoke(e, lineNumber);
+
+                    return null;
+                }
+            }
 
             // Try to exclude non-200 level HTTP status codes. If the format is unexpected, process the log entry as
             // usual. We don't want status code format changes to disrupt statistics flowing, even if it means there a
