@@ -13,7 +13,9 @@ namespace Tests.Stats.ImportAzureCdnStatistics
         {
             private const int LineNumber = 42;
             private const string StatusLineFormat = "1507030253 0 - - 0.1.2.3 443 {0} 577 GET http://example/path - 0 653  \"UserAgent\" 56086 \"NuGet-Operation: - NuGet-DependentPackage: - NuGet-ProjectGuids: -\"  ";
-            
+            private const string IncompleteDataLine = "1433257489 27 - 0 127.0.0.1 443 HIT/200 2788 GET http://localhost/packages/packageId/packageVersion/icon - 0 844  userAgent (compatible; ";
+            private const string IncorrectFormatDataLine = "1433257489 incorrectFormat - 0 127.0.0.1 443 HIT/200 2788 GET http://localhost/packages/packageId/packageVersion/icon - 0 844  userAgent (compatible; ";
+
             [Theory]
             [InlineData("TCP_MISS/0")]
             [InlineData("TCP_MISS/199")]
@@ -57,11 +59,73 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(
                     LineNumber,
                     line,
-                    (e, lineNumber) => Assert.False(true, "The error action should not be called."));
+                    FailOnError);
 
                 // Assert
                 Assert.NotNull(logEntry);
                 Assert.Equal(status, logEntry.CacheStatusCode);
+            }
+
+            [Fact]
+            public void IgnoresLinesWithIncorrectFormatDataWithOnErrorCallback()
+            {
+                // Act
+                var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(
+                    LineNumber,
+                    IncorrectFormatDataLine,
+                    FormatExceptionOnError);
+
+                // Assert
+                Assert.Null(logEntry);
+            }
+
+            [Fact]
+            public void ThrowsExceptionForLinesWithIncorrectFormatDataWithoutOnErrorCallback()
+            {
+                // Act/Assert
+                Assert.Throws<FormatException>(() =>
+                {
+                    CdnLogEntryParser.ParseLogEntryFromLine(
+                        LineNumber,
+                        IncorrectFormatDataLine,
+                        null);
+                });
+            }
+
+            [Fact]
+            public void IgnoresLinesWithIncompleteDataWithOnErrorCallback()
+            {
+                // Act
+                var logEntry = CdnLogEntryParser.ParseLogEntryFromLine(
+                    LineNumber,
+                    IncompleteDataLine,
+                    IndexOutOfRangeExceptionOnError);
+
+                // Assert
+                Assert.Null(logEntry);
+            }
+
+            [Fact]
+            public void ThrowsExceptionForLinesWithIncompleteDataWithoutOnErrorCallback()
+            {
+                // Act/Assert
+                Assert.Throws<IndexOutOfRangeException>(() =>
+                {
+                    CdnLogEntryParser.ParseLogEntryFromLine(
+                        LineNumber,
+                        IncompleteDataLine,
+                        null);
+                });
+            }
+            
+            private static void FormatExceptionOnError(Exception e, int lineNumber)
+            {
+                Assert.True(e is FormatException);
+            }
+
+            private static void IndexOutOfRangeExceptionOnError(Exception e, int lineNumber)
+            {
+                Assert.True(e is IndexOutOfRangeException);
             }
 
             private static void FailOnError(Exception e, int lineNumber)
