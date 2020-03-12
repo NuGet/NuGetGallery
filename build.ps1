@@ -152,7 +152,6 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Gallery.CredentialExpiration/Gallery.CredentialExpiration.csproj", `
             "src/Gallery.Maintenance/Gallery.Maintenance.nuspec", `
             "src/ArchivePackages/ArchivePackages.csproj", `
-            "src/Search.GenerateAuxiliaryData/Search.GenerateAuxiliaryData.csproj", `
             "src/Stats.RollUpDownloadFacts/Stats.RollUpDownloadFacts.csproj", `
             "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj", `
             "src/CopyAzureContainer/CopyAzureContainer.csproj", `
