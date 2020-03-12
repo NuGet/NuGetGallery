@@ -2,14 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Stats.AzureCdnLogs.Common
 {
     public static class W3CParseUtils
     {
-        private const int LogLineRecordLength = 17;
-
         public static string[] GetLogLineRecords(string line)
         {
             var records = new List<string>();
@@ -42,13 +39,6 @@ namespace Stats.AzureCdnLogs.Common
                     records.Add(record);
                     startIndex = i + 1;
                 }
-            }
-
-            // In case there are less records than the expected, fill with empty string
-            if (records.Count < LogLineRecordLength)
-            {
-                var recordsToAdd = LogLineRecordLength - records.Count;
-                records.AddRange(Enumerable.Repeat(string.Empty, recordsToAdd));
             }
 
             return records.ToArray();

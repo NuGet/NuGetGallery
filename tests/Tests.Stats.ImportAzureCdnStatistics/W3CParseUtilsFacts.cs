@@ -66,34 +66,6 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 Assert.Equal("61800", records[15]);
                 Assert.Equal("\"NuGet-Operation: -\"", records[16]);
             }
-
-            [Fact]
-            public void CanHandleLinesWithMissingRecords()
-            {
-                // #Fields: timestamp time-taken c-ip filesize s-ip s-port sc-status sc-bytes cs-method cs-uri-stem - rs-duration rs-bytes c-referrer c-user-agent customer-id x-ec_custom-1
-                var line = "1433257489 27 - 0 127.0.0.1 443 HIT/200 2788 GET http://localhost/packages/packageId/packageVersion/icon - 0 844  userAgent (compatible; ";
-
-                var records = W3CParseUtils.GetLogLineRecords(line);
-
-                Assert.Equal(17, records.Count());
-                Assert.Equal("1433257489", records[0]);
-                Assert.Equal("27", records[1]);
-                Assert.Equal("-", records[2]);
-                Assert.Equal("0", records[3]);
-                Assert.Equal("127.0.0.1", records[4]);
-                Assert.Equal("443", records[5]);
-                Assert.Equal("HIT/200", records[6]);
-                Assert.Equal("2788", records[7]);
-                Assert.Equal("GET", records[8]);
-                Assert.Equal("http://localhost/packages/packageId/packageVersion/icon", records[9]);
-                Assert.Equal("-", records[10]);
-                Assert.Equal("0", records[11]);
-                Assert.Equal("844", records[12]);
-                Assert.Equal("", records[13]);
-                Assert.Equal("userAgent", records[14]);
-                Assert.Equal("(compatible; ", records[15]);
-                Assert.Equal("", records[16]);
-            }
         }
 
         public class TheRecordContainsDataMethod
