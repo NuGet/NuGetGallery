@@ -85,21 +85,7 @@ namespace Stats.AzureCdnLogs.Common
                 // x-ec_custom-1
                 TrySetStringProperty(value => entry.CustomField = value, columns[16]);
             }
-            catch (FormatException e)
-            {
-                // skip this line but log the error
-                if (onErrorAction == null)
-                {
-                    throw;
-                }
-                else
-                {
-                    onErrorAction.Invoke(e, lineNumber);
-
-                    return null;
-                }
-            }
-            catch (IndexOutOfRangeException e)
+            catch (Exception e) when (e is FormatException || e is IndexOutOfRangeException)
             {
                 // skip this line but log the error
                 if (onErrorAction == null)
