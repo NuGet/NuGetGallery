@@ -6,18 +6,18 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Configuration;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 
 namespace NuGetGallery.Configuration
 {
-    public class ConfigurationService : IGalleryConfigurationService
+    public class ConfigurationService : IGalleryConfigurationService, IConfigurationFactory
     {
         protected const string SettingPrefix = "Gallery.";
         protected const string FeaturePrefix = "Feature.";
@@ -71,6 +71,21 @@ namespace NuGetGallery.Configuration
         public string GetSiteRoot(bool useHttps)
         {
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
+        }
+
+        public Task<T> Get<T>() where T : NuGet.Services.Configuration.Configuration, new()
+        {
+            // Get the prefix specified by the ConfigurationKeyPrefixAttribute on the class if it exists.
+            var classPrefix = string.Empty;
+            var configNamePrefixProperty = (ConfigurationKeyPrefixAttribute)typeof(T)
+                .GetCustomAttributes(typeof(ConfigurationKeyPrefixAttribute), inherit: true)
+                .FirstOrDefault();
+            if (configNamePrefixProperty != null)
+            {
+                classPrefix = configNamePrefixProperty.Prefix;
+            }
+
+            return ResolveConfigObject(Activator.CreateInstance<T>(), classPrefix);
         }
 
         public async Task<T> ResolveConfigObject<T>(T instance, string prefix)

@@ -223,7 +223,7 @@ namespace NuGetGallery
                 "packages/{id}/{version}",
                 new
                 {
-                    controller = "packages",
+                    controller = "Packages",
                     action = "DisplayPackage",
                     version = UrlParameter.Optional
                 },
