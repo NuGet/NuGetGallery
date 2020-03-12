@@ -94,5 +94,35 @@ namespace NuGet.Services.Configuration.Tests
             secretInjectorMock.Verify(i => i.InjectAsync(uninjectedValue), Times.Once());
             secretInjectorMock.Verify(x => x.InjectAsync(It.IsAny<string>()), Times.Once());
         }
+
+        [Theory]
+        [InlineData("GalleryDb:ConnectionString")]
+        [InlineData("ValidationDb:ConnectionString")]
+        [InlineData("SupportRequestDb:ConnectionString")]
+        [InlineData("StatisticsDb:ConnectionString")]
+        [InlineData("galleryDb:connectionstring")]
+        [InlineData("validationDb:connectionstring")]
+        [InlineData("supportRequestDb:connectionstring")]
+        [InlineData("statisticsDb:connectionstring")]
+        public void NotInjectsSecrets(string key)
+        {
+            var originalProviderMock = new Mock<Microsoft.Extensions.Configuration.IConfigurationProvider>(MockBehavior.Strict);
+            var secretInjectorMock = new Mock<ISecretInjector>();
+
+            const string uninjectedValue = "Value=$$Secret$$";
+
+            var originalOutValue = uninjectedValue;
+            originalProviderMock.Setup(p => p.TryGet(key, out originalOutValue)).Returns(true).Verifiable();
+            secretInjectorMock.Setup(i => i.InjectAsync(It.IsAny<string>()));
+
+            var provider = new KeyVaultInjectingConfigurationProvider(originalProviderMock.Object, secretInjectorMock.Object);
+            var found = provider.TryGet(key, out string value);
+
+            Assert.True(found);
+            Assert.Equal(uninjectedValue, value);
+
+            originalProviderMock.Verify(p => p.TryGet(key, out originalOutValue), Times.Once());
+            secretInjectorMock.Verify(i => i.InjectAsync(It.IsAny<string>()), Times.Never);
+        }
     }
 }

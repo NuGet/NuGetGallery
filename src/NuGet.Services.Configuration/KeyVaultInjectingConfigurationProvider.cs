@@ -22,6 +22,12 @@ namespace NuGet.Services.Configuration
     {
         private readonly Extensions.IConfigurationProvider _originalProvider;
         private readonly ISecretInjector _secretInjector;
+        private static readonly HashSet<string> _notInjectedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+            "GalleryDb:ConnectionString",
+            "ValidationDb:ConnectionString",
+            "SupportRequestDb:ConnectionString",
+            "StatisticsDb:ConnectionString",
+            };
 
         public KeyVaultInjectingConfigurationProvider(Extensions.IConfigurationProvider originalProvider, ISecretInjector secretInjector)
         {
@@ -45,7 +51,11 @@ namespace NuGet.Services.Configuration
         {
             if (_originalProvider.TryGet(key, out value))
             {
-                value = _secretInjector.InjectAsync(value).ConfigureAwait(false).GetAwaiter().GetResult();
+                if (!_notInjectedKeys.Contains(key))
+                {
+                    value = _secretInjector.InjectAsync(value).ConfigureAwait(false).GetAwaiter().GetResult();
+                }
+
                 return true;
             }
 
