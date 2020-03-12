@@ -69,6 +69,7 @@
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="SecretConfigurationReader.cs" />
     <Compile Include="SecretDictionary.cs" />
+    <Compile Include="StringArrayConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core">

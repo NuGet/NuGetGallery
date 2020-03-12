@@ -52,6 +52,7 @@
     <Compile Include="MicrosoftExtensionsConfigurationIntegrationFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecretDictionaryFacts.cs" />
+    <Compile Include="StringArrayConverterFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
