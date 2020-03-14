@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved. 
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. 
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Services.KeyVault;
 
 namespace NuGet.Services.Configuration
@@ -12,21 +14,24 @@ namespace NuGet.Services.Configuration
     {
         private readonly ISecretInjector _secretInjector;
         private readonly IDictionary<string, string> _unprocessedArguments;
+        private readonly HashSet<string> _notInjectedKeys;
+
+        public SecretDictionary(ISecretInjector secretInjector, IDictionary<string, string> unprocessedArguments,
+            HashSet<string> notInjectedKeys) : this(secretInjector, unprocessedArguments)
+        {
+            _notInjectedKeys = notInjectedKeys;
+        }
 
         public SecretDictionary(ISecretInjector secretInjector, IDictionary<string, string> unprocessedArguments)
         {
             _secretInjector = secretInjector;
             _unprocessedArguments = unprocessedArguments;
-        }
-
-        private string Inject(string key)
-        {
-            return _secretInjector.InjectAsync(key).Result;
+            _notInjectedKeys = new HashSet<string>();
         }
 
         public string this[string key]
         {
-            get { return Inject(_unprocessedArguments[key]); }
+            get { return InjectOrSkip(key, _unprocessedArguments[key]); }
             set { _unprocessedArguments[key] = value; }
         }
 
@@ -34,22 +39,22 @@ namespace NuGet.Services.Configuration
         {
             string unprocessedValue;
             var isFound = _unprocessedArguments.TryGetValue(key, out unprocessedValue);
-            value = isFound ? Inject(unprocessedValue) : null;
+            value = isFound ? InjectOrSkip(key, unprocessedValue) : null;
             return isFound;
         }
 
-        public ICollection<string> Values => _unprocessedArguments.Values.Select(Inject).ToList();
+        public ICollection<string> Values => _unprocessedArguments.Select(p => InjectOrSkip(p.Key, p.Value)).ToList();
 
-        public class SecretEnumerator : IEnumerator<KeyValuePair<string, string>>
+        private class SecretEnumerator : IEnumerator<KeyValuePair<string, string>>
         {
-            private readonly ISecretInjector _secretInjector;
+            private readonly Func<string, string, string> _injectOrSkipFunc;
             private readonly IList<KeyValuePair<string, string>> _unprocessedPairs;
 
             private int _position = -1;
 
-            public SecretEnumerator(ISecretInjector secretInjector, IDictionary<string, string> unprocessedArguments)
+            public SecretEnumerator(Func<string, string, string> injectOrSkipFunc, IDictionary<string, string> unprocessedArguments)
             {
-                _secretInjector = secretInjector;
+                _injectOrSkipFunc = injectOrSkipFunc;
                 _unprocessedPairs = unprocessedArguments.ToList();
             }
 
@@ -68,21 +73,21 @@ namespace NuGet.Services.Configuration
                 _position = -1;
             }
 
-            private KeyValuePair<string, string> Inject(KeyValuePair<string, string> pair) => 
-                new KeyValuePair<string, string>(pair.Key, _secretInjector.InjectAsync(pair.Value).Result);
-
             public KeyValuePair<string, string> Current => Inject(_unprocessedPairs[_position]);
+
+            private KeyValuePair<string, string> Inject(KeyValuePair<string, string> pair) =>
+                new KeyValuePair<string, string>(pair.Key, _injectOrSkipFunc(pair.Key, pair.Value));
 
             object IEnumerator.Current => Current;
         }
 
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => new SecretEnumerator(_secretInjector, _unprocessedArguments);
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => new SecretEnumerator(InjectOrSkip, _unprocessedArguments);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public bool Contains(KeyValuePair<string, string> item)
         {
-            return ContainsKey(item.Key) && Inject(_unprocessedArguments[item.Key]) == item.Value;
+            return ContainsKey(item.Key) && InjectOrSkip(item.Key, _unprocessedArguments[item.Key]) == item.Value;
         }
 
         public bool Remove(KeyValuePair<string, string> item)
@@ -113,5 +118,18 @@ namespace NuGet.Services.Configuration
 
         #endregion
 
+        private string InjectOrSkip(string key, string value)
+        {
+            if (!_notInjectedKeys.Contains(key))
+            {
+                return Inject(value).Result;
+            }
+            return value;
+        }
+
+        private Task<string> Inject(string value)
+        {
+            return _secretInjector.InjectAsync(value);
+        }
     }
 }

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.KeyVault;
 using Xunit;
+using System.Collections;
 
 namespace NuGet.Services.Configuration.Tests
 {
@@ -335,6 +336,55 @@ namespace NuGet.Services.Configuration.Tests
             Assert.DoesNotContain(Secret1.InjectedValue, secretDict.Values);
         }
 
+        [Fact]
+        public void NotInjectedKeys()
+        {
+            // Arrange
+            var key = "someKey";
+            var value = "someValue";
+
+            var unprocessedDictionary = new Dictionary<string, string>()
+            {
+                { key, value }
+            };
+            var notInjectedKeys = new HashSet<string> { key };
+
+            var mockSecretInjector = new Mock<ISecretInjector>();
+            mockSecretInjector.Setup(x => x.InjectAsync(It.IsAny<string>()));
+
+            var secretDict = CreatSecretDictionaryWithNotInjectedKeys(mockSecretInjector.Object,
+                unprocessedDictionary,
+                notInjectedKeys);
+
+            // Act and Assert 1
+            var dictValue = secretDict[key];
+            Assert.Equal(value, dictValue);
+
+            // Act and Assert 2
+            Assert.True(secretDict.TryGetValue(key, out var tryget));
+            Assert.Equal(value, tryget);
+
+            // Act and Assert 3
+            var dictValues = secretDict.Values;
+            Assert.Single(dictValues);
+            Assert.Equal(value, dictValues.First());
+
+            // Act and Assert 4
+            Assert.True(secretDict.Contains(new KeyValuePair<string, string>(key, value)));
+
+            // Act and Assert 5
+            foreach (var pair in secretDict)
+            {
+                Assert.Equal(key, pair.Key);
+                Assert.Equal(value, pair.Value);
+            }
+
+            // Act and Assert 6
+            Assert.True(secretDict.Remove(key));
+
+            mockSecretInjector.Verify(x => x.InjectAsync(It.IsAny<string>()), Times.Never);
+        }
+
         /// <summary>
         /// Utility class that allows construction of tests more easily.
         /// </summary>
@@ -368,6 +418,13 @@ namespace NuGet.Services.Configuration.Tests
         private static IDictionary<string, string> CreateSecretDictionary(ISecretInjector secretInjector, IDictionary<string, string> unprocessedArgs)
         {
             return new SecretDictionary(secretInjector, unprocessedArgs);
+        }
+
+        private static IDictionary<string, string> CreatSecretDictionaryWithNotInjectedKeys(ISecretInjector secretInjector,
+            IDictionary<string, string> unprocessedArgs,
+            HashSet<string> notInjectedKeys)
+        {
+            return new SecretDictionary(secretInjector, unprocessedArgs, notInjectedKeys);
         }
 
         private static Mock<ISecretInjector> CreateMappedSecretInjectorMock(IDictionary<string, string> keyToValue)
