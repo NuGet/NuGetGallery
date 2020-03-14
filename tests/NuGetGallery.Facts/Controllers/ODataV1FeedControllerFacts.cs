@@ -9,6 +9,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using Moq;
 using Xunit;
+using System;
 
 namespace NuGetGallery.Controllers
 {
@@ -109,8 +110,8 @@ namespace NuGetGallery.Controllers
                 .Returns(searchService);
 
             var testController = new ODataV1FeedController(
-                packagesRepositoryMock.Object,
-                readWritePackagesRepositoryMock.Object,
+                new Lazy<IReadOnlyEntityRepository<Package>>(() => packagesRepositoryMock.Object),
+                new Lazy<IEntityRepository<Package>>(() => readWritePackagesRepositoryMock.Object),
                 configurationService,
                 searchServiceFactory.Object,
                 telemetryService,
@@ -144,8 +145,8 @@ namespace NuGetGallery.Controllers
                 .Returns(searchService);
 
             return new ODataV1FeedController(
-                packagesRepository,
-                readWritePackagesRepository,
+                new Lazy<IReadOnlyEntityRepository<Package>>(() => packagesRepository),
+                new Lazy<IEntityRepository<Package>>(() => readWritePackagesRepository),
                 configurationService,
                 searchServiceFactory.Object,
                 telemetryService,

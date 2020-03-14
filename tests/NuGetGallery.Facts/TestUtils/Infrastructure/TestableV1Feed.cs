@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Web;
 using Moq;
 using NuGet.Services.Entities;
@@ -16,8 +17,8 @@ namespace NuGetGallery.TestUtils.Infrastructure
           IGalleryConfigurationService configuration,
           ISearchService searchService)
           : base(
-                repo,
-                Mock.Of<IEntityRepository<Package>>(),
+                new Lazy<IReadOnlyEntityRepository<Package>>(() => repo),
+                new Lazy<IEntityRepository<Package>>(() => Mock.Of<IEntityRepository<Package>>()),
                 configuration,
                 GetSearchServiceFactory(searchService),
                 Mock.Of<ITelemetryService>(),
@@ -31,8 +32,8 @@ namespace NuGetGallery.TestUtils.Infrastructure
             ISearchService searchService,
             ITelemetryService telemetryService)
             : base(
-                  repo,
-                  Mock.Of<IEntityRepository<Package>>(),
+                  new Lazy<IReadOnlyEntityRepository<Package>>(() => repo),
+                  new Lazy<IEntityRepository<Package>>(() => Mock.Of<IEntityRepository<Package>>()),
                   configuration,
                   GetSearchServiceFactory(searchService),
                   telemetryService,

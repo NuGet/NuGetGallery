@@ -25,15 +25,15 @@ namespace NuGetGallery.Controllers
     {
         private const int MaxPageSize = SearchAdaptor.MaxPageSize;
 
-        private readonly IReadOnlyEntityRepository<Package> _packagesRepository;
-        private readonly IEntityRepository<Package> _readWritePackagesRepository;
+        private readonly Lazy<IReadOnlyEntityRepository<Package>> _packagesRepository;
+        private readonly Lazy<IEntityRepository<Package>> _readWritePackagesRepository;
         private readonly IGalleryConfigurationService _configurationService;
         private readonly IHijackSearchServiceFactory _searchServiceFactory;
         private readonly IFeatureFlagService _featureFlagService;
 
         public ODataV1FeedController(
-            IReadOnlyEntityRepository<Package> packagesRepository,
-            IEntityRepository<Package> readWritePackagesRepository,
+            Lazy<IReadOnlyEntityRepository<Package>> packagesRepository,
+            Lazy<IEntityRepository<Package>> readWritePackagesRepository,
             IGalleryConfigurationService configurationService,
             IHijackSearchServiceFactory searchServiceFactory,
             ITelemetryService telemetryService,
@@ -325,9 +325,9 @@ namespace NuGetGallery.Controllers
         {
             if (_featureFlagService.IsODataDatabaseReadOnlyEnabled())
             {
-                return _packagesRepository.GetAll();
+                return _packagesRepository.Value.GetAll();
             }
-            return _readWritePackagesRepository.GetAll();
+            return _readWritePackagesRepository.Value.GetAll();
         }
     }
 }
