@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -422,8 +423,8 @@ namespace NuGetGallery.Controllers
                 .Returns(searchService);
 
             var testController = new ODataV2FeedController(
-                packagesRepositoryMock.Object,
-                readWritePackagesRepositoryMock.Object,
+                new Lazy<IReadOnlyEntityRepository<Package>>(() => packagesRepositoryMock.Object),
+                new Lazy<IEntityRepository<Package>>(() => readWritePackagesRepositoryMock.Object),
                 configurationService,
                 searchServiceFactoryMock.Object,
                 telemetryService,
@@ -457,8 +458,8 @@ namespace NuGetGallery.Controllers
                 .Returns(searchService);
 
             return new ODataV2FeedController(
-                packagesRepository,
-                readWritePackagesRepository,
+                new Lazy<IReadOnlyEntityRepository<Package>>(() => packagesRepository),
+                new Lazy<IEntityRepository<Package>>(() => readWritePackagesRepository),
                 configurationService,
                 searchServiceFactory.Object,
                 telemetryService,
