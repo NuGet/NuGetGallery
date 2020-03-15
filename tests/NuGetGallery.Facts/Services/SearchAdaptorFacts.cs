@@ -70,7 +70,7 @@ namespace NuGetGallery
                 var result = await SearchAdaptor.SearchCore(
                     SearchService.Object,
                     Request.Object,
-                    Packages,
+                    () => Packages,
                     SearchTerm,
                     TargetFramework,
                     IncludePrerelease,
@@ -113,7 +113,7 @@ namespace NuGetGallery
                 var result = await SearchAdaptor.FindByIdAndVersionCore(
                     SearchService.Object,
                     Request.Object,
-                    Packages,
+                    () => Packages,
                     Id,
                     Version,
                     SemVerLevel);

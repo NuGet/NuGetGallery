@@ -61,7 +61,7 @@ namespace NuGetGallery.Controllers
             [FromUri]string semVerLevel = null)
         {
             // Setup the search
-            var packages = GetAll()
+            IQueryable<Package> getPackagesFallback() => GetAll()
                             .Where(p => p.PackageStatusKey == PackageStatus.Available)
                             .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                             .WithoutSortOnColumn(Version)
@@ -71,6 +71,7 @@ namespace NuGetGallery.Controllers
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
             bool? customQuery = null;
 
+            IQueryable<Package> packages = null;
             // Try the search service
             try
             {
@@ -80,8 +81,8 @@ namespace NuGetGallery.Controllers
                 {
                     var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                         searchService,
-                        GetTraditionalHttpContext().Request, 
-                        packages,
+                        GetTraditionalHttpContext().Request,
+                        getPackagesFallback,
                         hijackableQueryParameters.Id, 
                         hijackableQueryParameters.Version,
                         semVerLevel: semVerLevel);
@@ -135,6 +136,7 @@ namespace NuGetGallery.Controllers
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
 
+            packages = packages ?? getPackagesFallback();
             var queryable = packages.ToV2FeedPackageQuery(
                 GetSiteRoot(), 
                 _configurationService.Features.FriendlyLicenses, 
@@ -233,26 +235,32 @@ namespace NuGetGallery.Controllers
             string semVerLevel,
             bool return404NotFoundWhenNoResults)
         {
-            var packages = GetAll()
-                .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageStatusKey == PackageStatus.Available
-                            && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
-
-            if (!string.IsNullOrEmpty(version))
+            IQueryable<Package> getPackagesFallback()
             {
-                NuGetVersion nugetVersion;
-                if (NuGetVersion.TryParse(version, out nugetVersion))
+                var result = GetAll()
+                    .Include(p => p.PackageRegistration)
+                    .Where(p => p.PackageStatusKey == PackageStatus.Available
+                                && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
+                    .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
+
+                if (!string.IsNullOrEmpty(version))
                 {
-                    // Our APIs expect to receive normalized version strings.
-                    // We need to compare normalized versions or we can never retrieve SemVer2 package versions.
-                    var normalizedString = nugetVersion.ToNormalizedString();
-                    packages = packages.Where(p => p.NormalizedVersion == normalizedString);
+                    NuGetVersion nugetVersion;
+                    if (NuGetVersion.TryParse(version, out nugetVersion))
+                    {
+                        // Our APIs expect to receive normalized version strings.
+                        // We need to compare normalized versions or we can never retrieve SemVer2 package versions.
+                        var normalizedString = nugetVersion.ToNormalizedString();
+                        result = result.Where(p => p.NormalizedVersion == normalizedString);
+                    }
                 }
+
+                return result;
             }
 
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
             bool? customQuery = null;
+            IQueryable<Package> packages = null;
 
             // try the search service
             try
@@ -260,8 +268,8 @@ namespace NuGetGallery.Controllers
                 var searchService = _searchServiceFactory.GetService();
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                     searchService,
-                    GetTraditionalHttpContext().Request, 
-                    packages, 
+                    GetTraditionalHttpContext().Request,
+                    getPackagesFallback, 
                     id, 
                     version, 
                     semVerLevel: semVerLevel);
@@ -310,6 +318,7 @@ namespace NuGetGallery.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
+            packages = packages ?? getPackagesFallback();
             if (return404NotFoundWhenNoResults && !packages.Any())
             {
                 _telemetryService.TrackODataCustomQuery(customQuery);
@@ -369,7 +378,7 @@ namespace NuGetGallery.Controllers
             }
 
             // Perform actual search
-            var packages = GetAll()
+            IQueryable<Package> getPackagesFallback() => GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed && p.PackageStatusKey == PackageStatus.Available)
@@ -381,8 +390,8 @@ namespace NuGetGallery.Controllers
             var searchService = _searchServiceFactory.GetService();
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
                 searchService,
-                GetTraditionalHttpContext().Request, 
-                packages, 
+                GetTraditionalHttpContext().Request,
+                getPackagesFallback, 
                 searchTerm, 
                 targetFramework, 
                 includePrerelease, 

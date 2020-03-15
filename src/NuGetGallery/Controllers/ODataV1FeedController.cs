@@ -116,19 +116,25 @@ namespace NuGetGallery.Controllers
 
         private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V1FeedPackage> options, string id, string version, bool return404NotFoundWhenNoResults)
         {
-            var packages = GetAll()
+            IQueryable<Package> getPackagesFallback()
+            {
+                var result = GetAll()
                 .Include(p => p.PackageRegistration)
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase)
                             && !p.IsPrerelease
                             && p.PackageStatusKey == PackageStatus.Available)
                 .Where(SemVerLevelKey.IsUnknownPredicate());
 
-            if (!string.IsNullOrEmpty(version))
-            {
-                packages = packages.Where(p => p.Version == version);
+                if (!string.IsNullOrEmpty(version))
+                {
+                    result = result.Where(p => p.Version == version);
+                }
+
+                return result;
             }
 
             bool? customQuery = null;
+            IQueryable<Package> packages = null;
 
             // try the search service
             try
@@ -137,7 +143,7 @@ namespace NuGetGallery.Controllers
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
                     searchService,
                     GetTraditionalHttpContext().Request,
-                    packages,
+                    getPackagesFallback,
                     id,
                     version,
                     semVerLevel: null);
@@ -183,6 +189,7 @@ namespace NuGetGallery.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
+            packages = packages ?? getPackagesFallback();
             if (return404NotFoundWhenNoResults && !packages.Any())
             {
                 _telemetryService.TrackODataCustomQuery(customQuery);
@@ -236,7 +243,7 @@ namespace NuGetGallery.Controllers
             }
 
             // Perform actual search
-            var packages = GetAll()
+            IQueryable<Package> getPackagesFallback() => GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed && !p.IsPrerelease && p.PackageStatusKey == PackageStatus.Available)
@@ -249,7 +256,7 @@ namespace NuGetGallery.Controllers
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
                 searchService,
                 GetTraditionalHttpContext().Request,
-                packages,
+                getPackagesFallback,
                 searchTerm,
                 targetFramework,
                 includePrerelease: false, 

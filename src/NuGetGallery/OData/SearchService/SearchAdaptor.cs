@@ -91,7 +91,7 @@ namespace NuGetGallery.OData
         public static async Task<SearchAdaptorResult> FindByIdAndVersionCore(
                    ISearchService searchService,
                    HttpRequestBase request,
-                   IQueryable<Package> packages,
+                   Func<IQueryable<Package>> getPackagesFallback,
                    string id,
                    string version,
                    string semVerLevel)
@@ -131,13 +131,13 @@ namespace NuGetGallery.OData
                 }
             }
 
-            return new SearchAdaptorResult(false, packages);
+            return new SearchAdaptorResult(false, getPackagesFallback());
         }
 
         public static async Task<SearchAdaptorResult> SearchCore(
             ISearchService searchService,
             HttpRequestBase request,
-            IQueryable<Package> packages, 
+            Func<IQueryable<Package>> getPackagesFallback,
             string searchTerm, 
             string targetFramework, 
             bool includePrerelease,
@@ -166,6 +166,8 @@ namespace NuGetGallery.OData
                     return new SearchAdaptorResult(true, FormatResults(searchFilter, results));
                 }
             }
+
+            var packages = getPackagesFallback();
 
             if (!includePrerelease)
             {
