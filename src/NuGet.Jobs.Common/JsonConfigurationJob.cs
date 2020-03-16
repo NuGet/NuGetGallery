@@ -56,7 +56,7 @@ namespace NuGet.Jobs
         /// <summary>
         /// The maximum time that a KeyVault secret will be cached for.
         /// </summary>
-        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
+        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromHours(6);
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {

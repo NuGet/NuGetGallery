@@ -86,7 +86,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string SymbolsIngesterSectionName = "SymbolsIngester";
         private const string SymbolsIngesterBindingKey = SymbolsIngesterSectionName;
 
-        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
+        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromHours(6);
 
         private bool _validateOnly;
         private IServiceProvider _serviceProvider;
@@ -186,7 +186,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var connectionString = serviceProvider.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
             var connectionFactory = new AzureSqlConnectionFactory(connectionString,
-                serviceProvider.GetRequiredService<ISecretInjector>());
+                serviceProvider.GetRequiredService<ISecretInjector>(), Logger);
 
             return Task.Run(() => connectionFactory.CreateAsync()).Result;
         }
