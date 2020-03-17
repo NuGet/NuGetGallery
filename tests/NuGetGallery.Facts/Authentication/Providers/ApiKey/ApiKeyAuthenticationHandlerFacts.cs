@@ -342,7 +342,8 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             private TestableApiKeyAuthenticationHandler()
             {
                 Logger = (MockLogger = new Mock<ILogger>()).Object;
-                Auth = (MockAuth = new Mock<AuthenticationService>()).Object;
+                MockAuth = new Mock<AuthenticationService>();
+                Auth = new Lazy<AuthenticationService>(() => MockAuth.Object);
                 CredentialBuilder = new CredentialBuilder();
             }
 

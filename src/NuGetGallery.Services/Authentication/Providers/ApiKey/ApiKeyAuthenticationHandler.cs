@@ -19,14 +19,14 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
         private ApiKeyAuthenticationOptions _options;
 
         protected ILogger Logger { get; set; }
-        protected AuthenticationService Auth { get; set; }
+        protected Lazy<AuthenticationService> Auth { get; set; }
         protected ICredentialBuilder CredentialBuilder { get; set; }
 
         private ApiKeyAuthenticationOptions TheOptions { get { return _options ?? Options; } }
 
         internal ApiKeyAuthenticationHandler() { }
 
-        public ApiKeyAuthenticationHandler(ILogger logger, AuthenticationService auth, ICredentialBuilder credentialBuilder)
+        public ApiKeyAuthenticationHandler(ILogger logger, Lazy<AuthenticationService> auth, ICredentialBuilder credentialBuilder)
         {
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             Auth = auth ?? throw new ArgumentNullException(nameof(auth));
@@ -78,7 +78,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             if (!string.IsNullOrEmpty(apiKey))
             {
                 // Get the user
-                var authUser = await Auth.Authenticate(apiKey);
+                var authUser = await Auth.Value.Authenticate(apiKey);
                 if (authUser != null)
                 {
                     var credential = authUser.CredentialUsed;
