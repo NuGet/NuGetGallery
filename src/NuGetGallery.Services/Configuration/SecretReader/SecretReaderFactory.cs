@@ -17,6 +17,8 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
         internal const string CertificateStoreLocation = "StoreLocation";
         internal const string CertificateStoreName = "StoreName";
+
+        private const int SecretCachingRefreshInterval = 60 * 60 * 6; // 6 hours;
         private IGalleryConfigurationService _configurationService;
 
         public SecretReaderFactory(IGalleryConfigurationService configurationService)
@@ -71,7 +73,7 @@ namespace NuGetGallery.Configuration.SecretReader
                 secretReader = new EmptySecretReader();
             }
 
-            return new CachingSecretReader(secretReader);
+            return new CachingSecretReader(secretReader, refreshIntervalSec: SecretCachingRefreshInterval);
         }
 
         private bool GetOptionalKeyVaultBoolSettingValue(string settingName, bool defaultValue)
