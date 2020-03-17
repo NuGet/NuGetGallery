@@ -18,6 +18,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
     {
         private readonly ICatalogIndexActionBuilder _indexActionBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
+        private readonly IDocumentFixUpEvaluator _fixUpEvaluator;
         private readonly CommitCollectorUtility _utility;
         private readonly IOptionsSnapshot<Catalog2AzureSearchConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
@@ -26,6 +27,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         public AzureSearchCollectorLogic(
             ICatalogIndexActionBuilder indexActionBuilder,
             Func<IBatchPusher> batchPusherFactory,
+            IDocumentFixUpEvaluator fixUpEvaluator,
             CommitCollectorUtility utility,
             IOptionsSnapshot<Catalog2AzureSearchConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
@@ -33,6 +35,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
         {
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
+            _fixUpEvaluator = fixUpEvaluator ?? throw new ArgumentNullException(nameof(fixUpEvaluator));
             _utility = utility ?? throw new ArgumentNullException(nameof(utility));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
@@ -53,8 +56,12 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             return Task.FromResult(_utility.CreateSingleBatch(catalogItems));
         }
 
-        public async Task OnProcessBatchAsync(
-            IEnumerable<CatalogCommitItem> items)
+        public async Task OnProcessBatchAsync(IEnumerable<CatalogCommitItem> items)
+        {
+            await ProcessItemsAsync(items, allowFixUp: true);
+        }
+
+        private async Task ProcessItemsAsync(IEnumerable<CatalogCommitItem> items, bool allowFixUp)
         {
             var itemList = items.ToList();
             var latestItems = _utility.GetLatestPerIdentity(items);
@@ -74,7 +81,21 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 {
                     batchPusher.EnqueueIndexActions(indexAction.Id, indexAction.Value);
                 }
-                await batchPusher.FinishAsync();
+
+                try
+                {
+                    await batchPusher.FinishAsync();
+                }
+                catch (InvalidOperationException ex) when (allowFixUp)
+                {
+                    var result = await _fixUpEvaluator.TryFixUpAsync(itemList, allIndexActions, ex);
+                    if (!result.Applicable)
+                    {
+                        throw;
+                    }
+
+                    await ProcessItemsAsync(result.ItemList, allowFixUp: false);
+                }
             }
         }
 

@@ -14,11 +14,6 @@ namespace NuGet.Services.AzureSearch
     /// </summary>
     internal class MutableIndexChanges
     {
-        internal static readonly IReadOnlyList<SearchFilters> AllSearchFilters = Enum
-            .GetValues(typeof(SearchFilters))
-            .Cast<SearchFilters>()
-            .ToList();
-
         /// <summary>
         /// This is a dictionary where the key is the state transition. The value of the dictionary is the resulting
         /// state from that transition. Remember that versions are processed in descending version order so some state
@@ -132,7 +127,7 @@ namespace NuGet.Services.AzureSearch
             }
 
             // Verify that there are not multiple latest versions per search filter.
-            foreach (var searchFilters in AllSearchFilters)
+            foreach (var searchFilters in DocumentUtilities.AllSearchFilters)
             {
                 var latest = HijackDocuments
                     .Where(x => x.Value.GetLatest(searchFilters).GetValueOrDefault(false))

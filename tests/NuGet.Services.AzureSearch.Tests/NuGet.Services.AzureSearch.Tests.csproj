@@ -49,6 +49,7 @@
     <Compile Include="BaseDocumentBuilderFacts.cs" />
     <Compile Include="BatchPusherFacts.cs" />
     <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogicFacts.cs" />
+    <Compile Include="Catalog2AzureSearch\DocumentFixUpEvaluatorFacts.cs" />
     <Compile Include="Catalog2AzureSearch\Integration\AzureSearchCollectorLogicIntegrationTests.cs" />
     <Compile Include="Catalog2AzureSearch\Catalog2AzureSearchCommandFacts.cs" />
     <Compile Include="Catalog2AzureSearch\CatalogIndexActionBuilderFacts.cs" />

@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -10,6 +12,11 @@ namespace NuGet.Services.AzureSearch
 {
     public static class DocumentUtilities
     {
+        public static readonly IReadOnlyList<SearchFilters> AllSearchFilters = Enum
+            .GetValues(typeof(SearchFilters))
+            .Cast<SearchFilters>()
+            .ToList();
+
         public static string GetSearchFilterString(SearchFilters searchFilters)
         {
             return searchFilters.ToString();

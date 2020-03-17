@@ -249,6 +249,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ICatalogLeafFetcher, CatalogLeafFetcher>();
             services.AddTransient<ICommitCollectorLogic, AzureSearchCollectorLogic>();
             services.AddTransient<IDatabaseAuxiliaryDataFetcher, DatabaseAuxiliaryDataFetcher>();
+            services.AddTransient<IDocumentFixUpEvaluator, DocumentFixUpEvaluator>();
             services.AddTransient<IDownloadSetComparer, DownloadSetComparer>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();

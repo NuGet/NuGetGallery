@@ -12,11 +12,6 @@ namespace NuGet.Services.AzureSearch
 {
     public class SearchIndexActionBuilder : ISearchIndexActionBuilder
     {
-        private static readonly IReadOnlyList<SearchFilters> AllSearchFilters = Enum
-            .GetValues(typeof(SearchFilters))
-            .Cast<SearchFilters>()
-            .ToList();
-
         private readonly IVersionListDataClient _versionListDataClient;
         private readonly ILogger<SearchIndexActionBuilder> _logger;
 
@@ -55,7 +50,7 @@ namespace NuGet.Services.AzureSearch
             ///   documents is different.
             var search = new List<IndexAction<KeyedDocument>>();
             var searchFilters = new List<SearchFilters>();
-            foreach (var searchFilter in AllSearchFilters)
+            foreach (var searchFilter in DocumentUtilities.AllSearchFilters)
             {
                 // Determine if there is a document for this ID and search filter.
                 if (versionLists.GetLatestVersionInfoOrNull(searchFilter) == null)

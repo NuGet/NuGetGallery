@@ -4,13 +4,11 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace NuGet.Protocol.Catalog
 {
     public class CatalogClient : ICatalogClient
     {
-        private static readonly JsonSerializer JsonSerializer = NuGetJsonSerialization.Serializer;
         private readonly ISimpleHttpClient _jsonClient;
         private readonly ILogger<CatalogClient> _logger;
 
