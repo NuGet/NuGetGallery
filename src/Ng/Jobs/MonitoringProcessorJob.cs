@@ -62,7 +62,7 @@ namespace Ng.Jobs
             var connectionString = arguments.GetOrThrow<string>(Arguments.ConnectionString);
             var galleryDbConnection = new AzureSqlConnectionFactory(
                 connectionString,
-                new EmptySecretInjector(),
+                SecretInjector,
                 LoggerFactory.CreateLogger<AzureSqlConnectionFactory>());
             var packageContentUriBuilder = new PackageContentUriBuilder(
                 arguments.GetOrThrow<string>(Arguments.PackageContentUrlFormat));

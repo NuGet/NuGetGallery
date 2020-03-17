@@ -164,16 +164,16 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.68.0</Version>
+      <Version>2.71.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.68.0</Version>
+      <Version>2.71.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.68.0</Version>
+      <Version>2.71.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Storage">
-      <Version>2.68.0</Version>
+      <Version>2.71.0</Version>
     </PackageReference>
     <PackageReference Include="Serilog.Sinks.File">
       <Version>4.0.0</Version>

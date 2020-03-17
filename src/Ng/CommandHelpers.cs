@@ -29,13 +29,21 @@ namespace Ng
 {
     public static class CommandHelpers
     {
-        public static IDictionary<string, string> GetArguments(string[] args, int start)
+        private static readonly int DefaultKeyVaultSecretCachingTimeout = 60 * 60 * 6; // 6 hours;
+        private static readonly HashSet<string> NotInjectedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "connectionString",
+        };
+
+        public static IDictionary<string, string> GetArguments(string[] args, int start, out ISecretInjector secretInjector)
         {
             var unprocessedArguments = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             if ((args.Length - 1) % 2 != 0)
             {
                 Trace.TraceError("Unexpected number of arguments");
+                secretInjector = null;
+
                 return null;
             }
 
@@ -48,9 +56,9 @@ namespace Ng
                 unprocessedArguments.Add(argumentName, argumentValue);
             }
 
-            var secretInjector = GetSecretInjector(unprocessedArguments);
+            secretInjector = GetSecretInjector(unprocessedArguments);
 
-            return new SecretDictionary(secretInjector, unprocessedArguments);
+            return new SecretDictionary(secretInjector, unprocessedArguments, NotInjectedKeys);
         }
 
         private static void TraceRequiredArgument(string name)
@@ -88,7 +96,7 @@ namespace Ng
                 }
 
                 secretReader = new CachingSecretReader(new KeyVaultReader(keyVaultConfig),
-                    arguments.GetOrDefault(Arguments.RefreshIntervalSec, CachingSecretReader.DefaultRefreshIntervalSec));
+                    arguments.GetOrDefault(Arguments.RefreshIntervalSec, DefaultKeyVaultSecretCachingTimeout));
             }
 
             return new SecretInjector(secretReader);
