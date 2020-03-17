@@ -96,6 +96,7 @@ namespace NuGet.Jobs
             // Configure as much as possible with Microsoft.Extensions.DependencyInjection.
             var services = new ServiceCollection();
             services.AddSingleton(secretInjector);
+            services.AddSingleton(ApplicationInsightsConfiguration.TelemetryConfiguration);
 
             ConfigureLibraries(services);
             ConfigureDefaultJobServices(services, configurationRoot);
@@ -104,6 +105,7 @@ namespace NuGet.Jobs
             // Configure the rest with Autofac.
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);
+            containerBuilder.RegisterAssemblyModules(GetType().Assembly);
 
             ConfigureDefaultAutofacServices(containerBuilder);
             ConfigureAutofacServices(containerBuilder);
