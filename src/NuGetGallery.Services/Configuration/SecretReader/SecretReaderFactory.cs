@@ -18,7 +18,7 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string CertificateStoreLocation = "StoreLocation";
         internal const string CertificateStoreName = "StoreName";
 
-        private const int SecretCachingRefreshInterval = 60 * 60 * 6; // 6 hours;
+        private const int SecretCachingRefreshInterval = 60 * 60 * 6;
         private IGalleryConfigurationService _configurationService;
 
         public SecretReaderFactory(IGalleryConfigurationService configurationService)
