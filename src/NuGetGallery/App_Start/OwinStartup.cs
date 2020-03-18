@@ -96,7 +96,7 @@ namespace NuGetGallery
                 }
             }
 
-            var tds = new TraceDiagnosticsSource(nameof(TelemetryService), dependencyResolver.GetService<ITelemetryClient>());
+            var tds = new TraceDiagnosticsSource(nameof(OwinStartup), dependencyResolver.GetService<ITelemetryClient>());
             if (config.Current.MaxWorkerThreads.HasValue && config.Current.MaxIoThreads.HasValue)
             {
                 int defaultMaxWorkerThreads, defaultMaxIoThreads;
