@@ -22,12 +22,11 @@ using Autofac.Extensions.DependencyInjection;
 using Elmah;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
-using Microsoft.AspNet.TelemetryCorrelation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
+using NuGet.Services.Configuration;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using NuGet.Services.KeyVault;
@@ -108,6 +107,10 @@ namespace NuGetGallery
                 loggerConfiguration,
                 telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
 
+            builder.RegisterInstance(applicationInsightsConfiguration.TelemetryConfiguration)
+                .AsSelf()
+                .SingleInstance();
+
             builder.RegisterInstance(telemetryClient)
                 .AsSelf()
                 .As<ITelemetryClient>()
@@ -126,6 +129,7 @@ namespace NuGetGallery
 
             builder.RegisterInstance(configuration)
                 .AsSelf()
+                .As<IConfigurationFactory>()
                 .As<IGalleryConfigurationService>();
 
             builder.Register(c => configuration.Current)
@@ -519,6 +523,7 @@ namespace NuGetGallery
             }
 
             telemetryConfiguration.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
+            telemetryConfiguration.TelemetryInitializers.Add(new KnownOperationNameEnricher());
 
             // Add processors
             telemetryConfiguration.TelemetryProcessorChainBuilder.Use(next =>
