@@ -30,7 +30,7 @@ using NuGetGallery.Security;
 
 namespace NuGetGallery.AccountDeleter
 {
-    public class Job : SubcriptionProcessorJob<AccountDeleteMessage>
+    public class Job : SubscriptionProcessorJob<AccountDeleteMessage>
     {
         private const string AccountDeleteConfigurationSectionName = "AccountDeleteSettings";
         private const string DebugArgumentName = "Debug";
