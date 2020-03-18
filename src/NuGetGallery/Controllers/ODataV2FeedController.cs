@@ -13,6 +13,7 @@ using NuGet.Frameworks;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
@@ -35,6 +36,7 @@ namespace NuGetGallery.Controllers
         private readonly IGalleryConfigurationService _configurationService;
         private readonly IHijackSearchServiceFactory _searchServiceFactory;
         private readonly IFeatureFlagService _featureFlagService;
+        private readonly TraceDiagnosticsSource _tds;
 
         public ODataV2FeedController(
             Lazy<IReadOnlyEntityRepository<Package>> packagesRepository,
@@ -42,7 +44,8 @@ namespace NuGetGallery.Controllers
             IGalleryConfigurationService configurationService,
             IHijackSearchServiceFactory searchServiceFactory,
             ITelemetryService telemetryService,
-            IFeatureFlagService featureFlagService)
+            IFeatureFlagService featureFlagService,
+            ITelemetryClient telemetryClient)
             : base(configurationService, telemetryService)
         {
             _packagesRepository = packagesRepository ?? throw new ArgumentNullException(nameof(packagesRepository));
@@ -50,6 +53,7 @@ namespace NuGetGallery.Controllers
             _configurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
             _searchServiceFactory = searchServiceFactory ?? throw new ArgumentNullException(nameof(searchServiceFactory));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _tds = new TraceDiagnosticsSource(nameof(ODataV2FeedController), telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient)));
         }
 
         // /api/v2/Packages?semVerLevel=
@@ -90,6 +94,7 @@ namespace NuGetGallery.Controllers
                     // If intercepted, create a paged queryresult
                     if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                     {
+                        _tds.Information($"Hijacked: {GetTraditionalHttpContext().Request.Url}");
                         customQuery = false;
 
                         // Packages provided by search service
@@ -114,11 +119,13 @@ namespace NuGetGallery.Controllers
                     }
                     else
                     {
+                        _tds.Information($"Non-hijacked: {GetTraditionalHttpContext().Request.Url}");
                         customQuery = true;
                     }
                 }
                 else
                 {
+                    _tds.Information($"Non-hijacked: {GetTraditionalHttpContext().Request.Url}");
                     customQuery = true;
                 }
             }
@@ -277,6 +284,7 @@ namespace NuGetGallery.Controllers
                 // If intercepted, create a paged queryresult
                 if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                 {
+                    _tds.Information($"Hijacked: {GetTraditionalHttpContext().Request.Url}");
                     customQuery = false;
 
                     // Packages provided by search service
@@ -308,6 +316,7 @@ namespace NuGetGallery.Controllers
                 }
                 else
                 {
+                    _tds.Information($"Non-hijacked: {GetTraditionalHttpContext().Request.Url}");
                     customQuery = true;
                 }
             }
@@ -406,6 +415,7 @@ namespace NuGetGallery.Controllers
             // If intercepted, create a paged queryresult
             if (searchAdaptorResult.ResultsAreProvidedBySearchService)
             {
+                _tds.Information($"Hijacked: {GetTraditionalHttpContext().Request.Url}");
                 customQuery = false;
 
                 // Add explicit Take() needed to limit search hijack result set size if $top is specified
@@ -436,6 +446,7 @@ namespace NuGetGallery.Controllers
             }
             else
             {
+                _tds.Information($"Non-hijacked: {GetTraditionalHttpContext().Request.Url}");
                 customQuery = true;
             }
 

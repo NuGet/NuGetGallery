@@ -415,6 +415,7 @@ namespace NuGetGallery.Controllers
             var searchService = Mock.Of<ISearchService>();
             var telemetryService = Mock.Of<ITelemetryService>();
             var featureFlagServiceMock = new Mock<IFeatureFlagService>();
+            var telemetryClient = Mock.Of<ITelemetryClient>();
             featureFlagServiceMock.Setup(ffs => ffs.IsODataDatabaseReadOnlyEnabled()).Returns(readOnly);
 
             var searchServiceFactoryMock = new Mock<IHijackSearchServiceFactory>();
@@ -428,7 +429,8 @@ namespace NuGetGallery.Controllers
                 configurationService,
                 searchServiceFactoryMock.Object,
                 telemetryService,
-                featureFlagServiceMock.Object);
+                featureFlagServiceMock.Object,
+                telemetryClient);
 
             var pacakges = testController.GetAll();
 
@@ -463,7 +465,8 @@ namespace NuGetGallery.Controllers
                 configurationService,
                 searchServiceFactory.Object,
                 telemetryService,
-                featureFlagService);
+                featureFlagService,
+                Mock.Of<ITelemetryClient>());
         }
 
         private void AssertSemVer2PackagesFilteredFromResult(IEnumerable<V2FeedPackage> resultSet)
