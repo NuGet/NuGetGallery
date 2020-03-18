@@ -21,8 +21,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                   new Lazy<IEntityRepository<Package>>(() => Mock.Of<IEntityRepository<Package>>()),
                   configuration, GetSearchServiceFactory(searchService),
                   Mock.Of<ITelemetryService>(),
-                  GetFeatureFlagService(),
-                  Mock.Of<ITelemetryClient>())
+                  GetFeatureFlagService())
         {
         }
 
@@ -37,8 +36,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                   configuration,
                   GetSearchServiceFactory(searchService),
                   telemetryService,
-                  GetFeatureFlagService(),
-                  Mock.Of<ITelemetryClient>())
+                  GetFeatureFlagService())
         {
         }
 
