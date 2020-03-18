@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -28,7 +27,7 @@ namespace NuGetGallery
         private const string Available = "Available";
         private const string Unavailable = "Unavailable";
         private const string Unconfigured = "Unconfigured";
-        private const string StatusMessageFormat = "NuGet Gallery instance {3} is {0}. SQL is {1}. Storage is {2}. Available  threads: {4} worker, {5} io";
+        private const string StatusMessageFormat = "NuGet Gallery instance {3} is {0}. SQL is {1}. Storage is {2}.";
 
         private const string TestSqlQuery = "SELECT TOP(1) [Key] FROM GallerySettings WITH (NOLOCK)";
 
@@ -51,17 +50,13 @@ namespace NuGetGallery
                 sqlAzureAvailable
                 && (!storageAvailable.HasValue || storageAvailable.Value); // null == true for this condition.
 
-            int workerThreads, ioCompletionThreads;
-            ThreadPool.GetAvailableThreads(out workerThreads, out ioCompletionThreads);
-
             return new HttpStatusCodeWithBodyResult(AvailabilityStatusCode(galleryServiceAvailable),
                 String.Format(CultureInfo.InvariantCulture,
                     StatusMessageFormat,
                     AvailabilityMessage(galleryServiceAvailable),
                     AvailabilityMessage(sqlAzureAvailable),
                     AvailabilityMessage(storageAvailable),
-                    HostMachine.Name,
-                    workerThreads, ioCompletionThreads));
+                    HostMachine.Name));
         }
 
         private bool IsSqlAzureAvailable()
