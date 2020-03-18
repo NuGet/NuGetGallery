@@ -89,7 +89,7 @@
       <Version>4.3.0-dev-3453620</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.69.0</Version>
+      <Version>2.70.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
