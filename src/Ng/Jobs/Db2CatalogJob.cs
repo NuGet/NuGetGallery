@@ -135,7 +135,7 @@ namespace Ng.Jobs
             var connectionString = arguments.GetOrThrow<string>(Arguments.ConnectionString);
             GalleryDbConnection = new AzureSqlConnectionFactory(
                 connectionString,
-                new EmptySecretInjector(),
+                SecretInjector,
                 LoggerFactory.CreateLogger<AzureSqlConnectionFactory>());
 
             var timeoutInSeconds = arguments.GetOrDefault(Arguments.SqlCommandTimeoutInSeconds, 300);

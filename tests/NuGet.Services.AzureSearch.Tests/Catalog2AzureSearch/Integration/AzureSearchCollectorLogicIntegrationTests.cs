@@ -53,6 +53,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         private InMemoryDocumentsOperations _searchDocuments;
         private Mock<ISearchIndexClientWrapper> _hijackIndex;
         private InMemoryDocumentsOperations _hijackDocuments;
+        private DocumentFixUpEvaluator _fixUpEvaluator;
         private CommitCollectorUtility _commitCollectorUtility;
         private AzureSearchCollectorLogic _collector;
 
@@ -132,6 +133,11 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _hijackDocuments = new InMemoryDocumentsOperations();
             _hijackIndex.Setup(x => x.Documents).Returns(() => _hijackDocuments);
 
+            _fixUpEvaluator = new DocumentFixUpEvaluator(
+                _versionListDataClient,
+                _leafFetcher,
+                output.GetLogger<DocumentFixUpEvaluator>());
+
             _commitCollectorUtility = new CommitCollectorUtility(
                 _catalogClient,
                 _v3TelemetryService,
@@ -148,6 +154,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                     _developmentOptions.Object,
                     _telemetryService,
                     output.GetLogger<BatchPusher>()),
+                _fixUpEvaluator,
                 _commitCollectorUtility,
                 _options.Object,
                 _telemetryService,

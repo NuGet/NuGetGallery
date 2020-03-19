@@ -44,7 +44,7 @@ namespace Ng
             try
             {
                 // Get arguments
-                var arguments = CommandHelpers.GetArguments(args, 1);
+                var arguments = CommandHelpers.GetArguments(args, 1, out var secretInjector);
 
                 // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
                 ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
@@ -72,6 +72,7 @@ namespace Ng
                 var loggerFactory = ConfigureLoggerFactory(applicationInsightsConfiguration);
 
                 job = NgJobFactory.GetJob(jobName, loggerFactory, telemetryClient, telemetryGlobalDimensions);
+                job.SetSecretInjector(secretInjector);
 
                 // This tells Application Insights that, even though a heartbeat is reported, 
                 // the state of the application is unhealthy when the exitcode is different from zero.

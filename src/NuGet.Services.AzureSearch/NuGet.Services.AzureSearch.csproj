@@ -73,6 +73,9 @@
     <Compile Include="AzureSearchJobDevelopmentConfiguration.cs" />
     <Compile Include="AzureSearchScoringConfiguration.cs" />
     <Compile Include="BaseDocumentBuilder.cs" />
+    <Compile Include="Catalog2AzureSearch\DocumentFixUp.cs" />
+    <Compile Include="Catalog2AzureSearch\DocumentFixUpEvaluator.cs" />
+    <Compile Include="Catalog2AzureSearch\IDocumentFixUpEvaluator.cs" />
     <Compile Include="DatabaseAuxiliaryDataFetcher.cs" />
     <Compile Include="Db2AzureSearch\Db2AzureSearchDevelopmentConfiguration.cs" />
     <Compile Include="Db2AzureSearch\InitialAuxiliaryData.cs" />

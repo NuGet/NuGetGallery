@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 
@@ -14,6 +15,8 @@ namespace Ng.Jobs
 {
     public abstract class NgJob
     {
+        protected ISecretInjector SecretInjector { get; private set; }
+
         protected readonly IDictionary<string, string> GlobalTelemetryDimensions;
         protected readonly ITelemetryClient TelemetryClient;
         protected readonly ITelemetryService TelemetryService;
@@ -56,6 +59,11 @@ namespace Ng.Jobs
         public virtual string GetUsage()
         {
             return GetUsageBase();
+        }
+
+        public void SetSecretInjector(ISecretInjector secretInjector)
+        {
+            SecretInjector = secretInjector;
         }
 
         protected abstract void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken);

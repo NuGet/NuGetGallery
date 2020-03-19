@@ -57,7 +57,7 @@ namespace NuGet.Services.AzureSearch
                         UpdateMetadata != true,
                         "The hijack document has already been set to update metadata.");
                     Delete = true;
-                    foreach (var eachSearchFilters in MutableIndexChanges.AllSearchFilters)
+                    foreach (var eachSearchFilters in DocumentUtilities.AllSearchFilters)
                     {
                         SetLatest(eachSearchFilters, latest: null);
                     }

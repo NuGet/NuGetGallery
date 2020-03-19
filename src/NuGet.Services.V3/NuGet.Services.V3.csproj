@@ -72,7 +72,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.3.0-dev-3453620</Version>
+      <Version>4.3.0-dev-3555917</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
