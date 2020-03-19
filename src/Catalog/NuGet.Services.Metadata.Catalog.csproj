@@ -298,7 +298,7 @@
       <Version>1.0.6</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Azure.Storage.DataMovement">
-      <Version>0.6.0</Version>
+      <Version>0.7.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager">
       <Version>3.1.0</Version>
