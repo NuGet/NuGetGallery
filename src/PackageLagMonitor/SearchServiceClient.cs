@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using NuGet.Services.AzureManagement;
 
 namespace NuGet.Jobs.Monitoring.PackageLag
 {
@@ -24,20 +23,14 @@ namespace NuGet.Jobs.Monitoring.PackageLag
         private const string SearchQueryTemplate = "q=packageid:{0} version:{1}&ignorefilter=true&semverlevel=2.0.0";
         private const string SearchUrlFormat = "{0}?{1}";
 
-        private readonly IAzureManagementAPIWrapper _azureManagementApiWrapper;
         private readonly IHttpClientWrapper _httpClient;
-        private readonly IOptionsSnapshot<SearchServiceConfiguration> _configuration;
         private readonly ILogger<SearchServiceClient> _logger;
 
         public SearchServiceClient(
-            IAzureManagementAPIWrapper azureManagementApiWrapper,
             IHttpClientWrapper httpClient,
-            IOptionsSnapshot<SearchServiceConfiguration> configuration,
             ILogger<SearchServiceClient> logger)
         {
-            _azureManagementApiWrapper = azureManagementApiWrapper;
             _httpClient = httpClient;
-            _configuration = configuration;
             _logger = logger;
         }
 
@@ -89,9 +82,6 @@ namespace NuGet.Jobs.Monitoring.PackageLag
                     SearchDiagnosticResponse response = null;
                     switch (instance.ServiceType)
                     {
-                        case ServiceType.LuceneSearch:
-                            response = JsonConvert.DeserializeObject<SearchDiagnosticResponse>(searchDiagResultRaw);
-                            break;
                         case ServiceType.AzureSearch:
                             var tempResponse = JsonConvert.DeserializeObject<AzureSearchDiagnosticResponse>(searchDiagResultRaw);
                             response = ConvertAzureSearchResponse(tempResponse);
@@ -113,25 +103,10 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             }
         }
 
-        public async Task<IReadOnlyList<Instance>> GetSearchEndpointsAsync(
-            RegionInformation regionInformation,
-            CancellationToken token)
+        public IReadOnlyList<Instance> GetSearchEndpoints(RegionInformation regionInformation)
         {
             switch (regionInformation.ServiceType)
             {
-                case ServiceType.LuceneSearch:
-                    var result = await _azureManagementApiWrapper.GetCloudServicePropertiesAsync(
-                        _configuration.Value.Subscription,
-                        regionInformation.ResourceGroup,
-                        regionInformation.ServiceName,
-                        ProductionSlot,
-                        token);
-
-                    var cloudService = AzureHelper.ParseCloudServiceProperties(result);
-
-                    var instances = GetInstances(cloudService.Uri, cloudService.InstanceCount, regionInformation, ServiceType.LuceneSearch);
-
-                    return instances;
                 case ServiceType.AzureSearch:
                     return GetInstances(new Uri(regionInformation.BaseUrl), instanceCount: 1, regionInformation: regionInformation, serviceType: ServiceType.AzureSearch);
                 default:
@@ -180,17 +155,8 @@ namespace NuGet.Jobs.Monitoring.PackageLag
 
         private List<Instance> GetInstances(Uri endpointUri, int instanceCount, RegionInformation regionInformation, ServiceType serviceType)
         {
-            var instancePortMinimum = _configuration.Value.InstancePortMinimum;
             switch (serviceType)
             {
-                case ServiceType.LuceneSearch:
-                    _logger.LogInformation(
-                        "{ServiceType}: Testing {InstanceCount} instances, starting at port {InstancePortMinimum} for region {Region}.",
-                        ServiceType.LuceneSearch,
-                        instanceCount,
-                        instancePortMinimum,
-                        regionInformation.Region);
-                    break;
                 case ServiceType.AzureSearch:
                     _logger.LogInformation(
                         "{ServiceType}: Testing for region {Region}.",
@@ -206,19 +172,11 @@ namespace NuGet.Jobs.Monitoring.PackageLag
                     var diagUriBuilder = new UriBuilder(endpointUri);
 
                     diagUriBuilder.Scheme = "https";
-                    if (serviceType == ServiceType.LuceneSearch)
-                    {
-                        diagUriBuilder.Port = instancePortMinimum + i;
-                    }
                     diagUriBuilder.Path = "search/diag";
 
                     var queryBaseUriBuilder = new UriBuilder(endpointUri);
 
                     queryBaseUriBuilder.Scheme = "https";
-                    if (serviceType == ServiceType.LuceneSearch)
-                    {
-                        queryBaseUriBuilder.Port = instancePortMinimum + i;
-                    }
                     queryBaseUriBuilder.Path = "search/query";
 
                     return new Instance(

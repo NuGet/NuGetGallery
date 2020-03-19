@@ -16,7 +16,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Monitoring.PackageLag.Telemetry;
 using NuGet.Protocol.Catalog;
-using NuGet.Services.AzureManagement;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
@@ -33,7 +32,6 @@ namespace NuGet.Jobs.Monitoring.PackageLag
 
         private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
 
-        private IAzureManagementAPIWrapper _azureManagementApiWrapper;
         private IPackageLagTelemetryService _telemetryService;
         private IHttpClientWrapper _httpClient;
         private ISearchServiceClient _searchServiceClient;
@@ -47,7 +45,6 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             _serviceProvider = GetServiceProvider(GetConfigurationRoot(configurationFilename));
 
             _configuration = _serviceProvider.GetService<PackageLagMonitorConfiguration>();
-            _azureManagementApiWrapper = _serviceProvider.GetService<IAzureManagementAPIWrapper>();
             _catalogClient = _serviceProvider.GetService<ICatalogClient>();
             _httpClient = _serviceProvider.GetService<IHttpClientWrapper>();
             _searchServiceClient = _serviceProvider.GetService<ISearchServiceClient>();
@@ -96,8 +93,6 @@ namespace NuGet.Jobs.Monitoring.PackageLag
         private void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<PackageLagMonitorConfiguration>(configurationRoot.GetSection(MonitorConfigurationSectionName));
-            services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(MonitorConfigurationSectionName));
-            services.Configure<AzureManagementAPIWrapperConfiguration>(configurationRoot.GetSection(AzureManagementSectionName));
 
             services.AddSingleton(p =>
             {
@@ -120,10 +115,9 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             services.AddTransient<IPackageLagTelemetryService, PackageLagTelemetryService>();
             services.AddSingleton(new TelemetryClient(ApplicationInsightsConfiguration.TelemetryConfiguration));
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
-            services.AddTransient<IAzureManagementAPIWrapperConfiguration>(p => p.GetService<IOptionsSnapshot<AzureManagementAPIWrapperConfiguration>>().Value);
-            services.AddTransient<PackageLagMonitorConfiguration>(p => p.GetService<IOptionsSnapshot<PackageLagMonitorConfiguration>>().Value);
+            services.AddTransient(p => p.GetService<IOptionsSnapshot<PackageLagMonitorConfiguration>>().Value);
+            services.AddSingleton<ISimpleHttpClient, SimpleHttpClient>();
             services.AddSingleton<ICatalogClient, CatalogClient>();
-            services.AddSingleton<IAzureManagementAPIWrapper, AzureManagementAPIWrapper>();
             services.AddTransient<ISearchServiceClient, SearchServiceClient>();
         }
 
@@ -145,7 +139,7 @@ namespace NuGet.Jobs.Monitoring.PackageLag
 
                 foreach (var regionInformation in regionInformations)
                 {
-                    instances.AddRange(await _searchServiceClient.GetSearchEndpointsAsync(regionInformation, token));
+                    instances.AddRange(_searchServiceClient.GetSearchEndpoints(regionInformation));
                 }
 
                 var maxCommit = DateTimeOffset.MinValue;

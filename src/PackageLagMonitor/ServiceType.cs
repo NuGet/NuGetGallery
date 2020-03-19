@@ -5,7 +5,6 @@ namespace NuGet.Jobs.Monitoring.PackageLag
 {
     public enum ServiceType
     {
-        LuceneSearch,
         AzureSearch
     }
 }
