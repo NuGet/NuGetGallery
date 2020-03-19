@@ -14,7 +14,7 @@ using NuGetGallery.Diagnostics;
 
 namespace Validation.Symbols
 {
-    public class Job : SubcriptionProcessorJob<SymbolsValidatorMessage>
+    public class Job : SubscriptionProcessorJob<SymbolsValidatorMessage>
     {
         private const string SymbolsConfigurationSectionName = "SymbolsConfiguration";
 

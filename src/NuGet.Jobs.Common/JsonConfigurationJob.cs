@@ -56,7 +56,7 @@ namespace NuGet.Jobs
         /// <summary>
         /// The maximum time that a KeyVault secret will be cached for.
         /// </summary>
-        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
+        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromHours(6);
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
@@ -96,6 +96,7 @@ namespace NuGet.Jobs
             // Configure as much as possible with Microsoft.Extensions.DependencyInjection.
             var services = new ServiceCollection();
             services.AddSingleton(secretInjector);
+            services.AddSingleton(ApplicationInsightsConfiguration.TelemetryConfiguration);
 
             ConfigureLibraries(services);
             ConfigureDefaultJobServices(services, configurationRoot);
@@ -104,6 +105,7 @@ namespace NuGet.Jobs
             // Configure the rest with Autofac.
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);
+            containerBuilder.RegisterAssemblyModules(GetType().Assembly);
 
             ConfigureDefaultAutofacServices(containerBuilder);
             ConfigureAutofacServices(containerBuilder);

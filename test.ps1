@@ -33,7 +33,6 @@ Function Run-Tests {
         "tests\StatusAggregator\bin\$Configuration\StatusAggregator.dll", `
         "tests\Tests.CredentialExpiration\bin\$Configuration\Tests.CredentialExpiration.dll", `
         "tests\Tests.Gallery.Maintenance\bin\$Configuration\Tests.Gallery.Maintenance.dll", `
-        "tests\Tests.Search.GenerateAuxiliaryData\bin\$Configuration\Tests.Search.GenerateAuxiliaryData.dll", `
         "tests\Tests.Stats.AggregateCdnDownloadsInGallery\bin\$Configuration\Tests.Stats.AggregateCdnDownloadsInGallery.dll", `
         "tests\Tests.Stats.AzureCdnLogs.Common\bin\$Configuration\Tests.Stats.AzureCdnLogs.Common.dll", `
         "tests\Tests.Stats.CDNLogsSanitizer\bin\$Configuration\Tests.Stats.CDNLogsSanitizer.dll", `

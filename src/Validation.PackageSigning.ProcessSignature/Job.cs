@@ -20,7 +20,7 @@ using NuGetGallery;
 
 namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 {
-    public class Job : SubcriptionProcessorJob<SignatureValidationMessage>
+    public class Job : SubscriptionProcessorJob<SignatureValidationMessage>
     {
         private const string CertificateStoreConfigurationSectionName = "CertificateStore";
         private const string ProcessSignatureConfigurationSectionName = "ProcessSignature";

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Logging;
 
@@ -188,6 +189,9 @@ namespace NuGet.Jobs
             var instanceName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstanceName) ?? jobName;
             applicationInsightsConfiguration.TelemetryConfiguration.TelemetryInitializers.Add(
                 new JobPropertiesTelemetryInitializer(jobName, instanceName, job.GlobalTelemetryDimensions));
+
+            applicationInsightsConfiguration.TelemetryConfiguration
+                .ApplicationIdProvider = new ApplicationInsightsApplicationIdProvider();
 
             job.SetApplicationInsightsConfiguration(applicationInsightsConfiguration);
 

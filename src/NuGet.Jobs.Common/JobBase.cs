@@ -116,7 +116,6 @@ namespace NuGet.Jobs
 
             var secretInjector = services.GetRequiredService<ISecretInjector>();
             var connectionString = services.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
-            var connectionFactory = new AzureSqlConnectionFactory(connectionString, secretInjector);
 
             return RegisterDatabase(GetDatabaseKey<T>(), connectionString, testConnection, secretInjector);
         }
