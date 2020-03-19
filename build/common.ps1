@@ -532,6 +532,13 @@ Function Install-DotnetCLI {
         Error-Log "Unable to find dotnet.exe. The CLI install may have failed." -Fatal
     }
 
+    # Delete a project template that is unused and is causing a Component Governance issue.
+    # See https://github.com/dotnet/aspnetcore/issues/20001
+    $templatesToRemove = Get-ChildItem (Join-Path $CLIRoot "sdk\**\Templates\microsoft.dotnet.web.projecttemplate*")
+    Trace-Log "Removing items: "
+    $templatesToRemove
+    $templatesToRemove | Remove-Item -Force -Recurse
+
     # Display build info
     & $DotNetExe --info
 }
