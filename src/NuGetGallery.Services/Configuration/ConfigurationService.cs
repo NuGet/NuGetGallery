@@ -31,7 +31,8 @@ namespace NuGetGallery.Configuration
         private readonly Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
         private readonly Lazy<IServiceBusConfiguration> _lazyServiceBusConfiguration;
         private readonly Lazy<IPackageDeleteConfiguration> _lazyPackageDeleteConfiguration;
-        private readonly HashSet<string> _NotInjectedSettingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+
+        private static readonly HashSet<string> NotInjectedSettingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
             SettingPrefix + "SqlServer",
             SettingPrefix + "SqlServerReadOnlyReplica",
             SettingPrefix + "SupportRequestSqlServer",
@@ -140,7 +141,7 @@ namespace NuGetGallery.Configuration
         {
             var value = ReadRawSetting(settingName);
 
-            if (!string.IsNullOrEmpty(value) && !_NotInjectedSettingNames.Contains(settingName))
+            if (!string.IsNullOrEmpty(value) && !NotInjectedSettingNames.Contains(settingName))
             {
                 value = await SecretInjector.InjectAsync(value);
             }
