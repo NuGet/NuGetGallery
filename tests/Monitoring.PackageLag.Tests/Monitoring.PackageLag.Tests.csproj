@@ -59,9 +59,6 @@
     <PackageReference Include="Moq">
       <Version>4.13.1</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Protocol.Catalog">
-      <Version>0.5.0-CI-20180510-012541</Version>
-    </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.4.1</Version>
     </PackageReference>

@@ -33,8 +33,6 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             Instance instance,
             CancellationToken token);
 
-        Task<IReadOnlyList<Instance>> GetSearchEndpointsAsync(
-            RegionInformation regionInformation,
-            CancellationToken token);
+        IReadOnlyList<Instance> GetSearchEndpoints(RegionInformation regionInformation);
     }
 }

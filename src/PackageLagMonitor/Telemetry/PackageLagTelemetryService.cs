@@ -20,13 +20,10 @@ namespace NuGet.Jobs.Monitoring.PackageLag.Telemetry
 
         private const string CreatedLagName = "PackageCreationLagInSeconds";
         private const string V3LagName = "V3LagInSeconds";
-        
-        private readonly string _subscription;
 
         public PackageLagTelemetryService(ITelemetryClient telemetryClient, PackageLagMonitorConfiguration configuration)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
-            _subscription = configuration.Subscription ?? "";
         }
 
         public void TrackPackageCreationLag(DateTimeOffset eventTime, Instance instance, string packageId, string packageVersion, TimeSpan createdDelay)
@@ -36,7 +33,6 @@ namespace NuGet.Jobs.Monitoring.PackageLag.Telemetry
                 { PackageId, packageId },
                 { PackageVersion, packageVersion },
                 { Region, instance.Region },
-                { Subscription, _subscription },
                 { InstanceIndex, instance.Index.ToString() },
                 { ServiceType, instance.ServiceType.ToString() }
             });
@@ -49,7 +45,6 @@ namespace NuGet.Jobs.Monitoring.PackageLag.Telemetry
                 { PackageId, packageId },
                 { PackageVersion, packageVersion },
                 { Region,  instance.Region },
-                { Subscription, _subscription },
                 { InstanceIndex, instance.Index.ToString() },
                 { ServiceType, instance.ServiceType.ToString() }
             });

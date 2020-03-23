@@ -1,47 +1,31 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Moq;
-using Newtonsoft.Json;
-using NuGet.Jobs.Monitoring.PackageLag;
-using NuGet.Services.AzureManagement;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using Newtonsoft.Json;
+using NuGet.Jobs.Monitoring.PackageLag;
 using Xunit;
 
 namespace NuGet.Monitoring.PackageLag.Tests
 {
     public class SearchServiceClientFacts
     {
-        private Instance _luceneInstance;
         private Instance _azureSearchInstance;
-        private IAzureManagementAPIWrapper _azureApiWrapper;
-        private IOptionsSnapshot<SearchServiceConfiguration> _options;
         private ILogger<SearchServiceClient> _logger;
 
         public SearchServiceClientFacts()
         {
-            _luceneInstance = new Instance("production", 0, "Lucene-DiagUrl", "Lucene-BaseQueryUrl", "USNC", ServiceType.LuceneSearch);
             _azureSearchInstance = new Instance("production", 0, "Azure-DiagUrl", "Azure-BaseQueryUrl", "USNC", ServiceType.AzureSearch);
 
-
-            var azureApiMock = new Mock<IAzureManagementAPIWrapper>();
-            var configMock = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
             var loggerMock = new Mock<ILogger<SearchServiceClient>>();
 
-            configMock.Setup(cm => cm.Value)
-                .Returns(new SearchServiceConfiguration
-                {
-                    InstancePortMinimum = 100
-                });
-
-            _azureApiWrapper = azureApiMock.Object;
-            _options = configMock.Object;
             _logger = loggerMock.Object;
         }
 
@@ -69,17 +53,15 @@ namespace NuGet.Monitoring.PackageLag.Tests
                         LastCommitTimestamp = new DateTimeOffset()
                     }
                 }))));
-            var searchClient = new SearchServiceClient(_azureApiWrapper, httpClientMock.Object, _options, _logger);
+            var searchClient = new SearchServiceClient(httpClientMock.Object, _logger);
 
             var azureStartTimestamp = DateTime.UtcNow;
 
-            var luceneResponse = await searchClient.GetIndexLastReloadTimeAsync(_luceneInstance, token);
             var azureResponse = await searchClient.GetIndexLastReloadTimeAsync(_azureSearchInstance, token);
 
             var azureStopTimestamp = DateTime.UtcNow;
 
             Assert.InRange(azureResponse, azureStartTimestamp, azureStopTimestamp);
-            Assert.Equal(luceneResponse, new DateTimeOffset(luceneExpectedTicks, new TimeSpan(0)));
         }
 
         private class TestHttpResponseMessage : IHttpResponseMessageWrapper
