@@ -6,18 +6,18 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Configuration;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 
 namespace NuGetGallery.Configuration
 {
-    public class ConfigurationService : IGalleryConfigurationService
+    public class ConfigurationService : IGalleryConfigurationService, IConfigurationFactory
     {
         protected const string SettingPrefix = "Gallery.";
         protected const string FeaturePrefix = "Feature.";
@@ -31,7 +31,8 @@ namespace NuGetGallery.Configuration
         private readonly Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
         private readonly Lazy<IServiceBusConfiguration> _lazyServiceBusConfiguration;
         private readonly Lazy<IPackageDeleteConfiguration> _lazyPackageDeleteConfiguration;
-        private readonly HashSet<string> _NotInjectedSettingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+
+        private static readonly HashSet<string> NotInjectedSettingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
             SettingPrefix + "SqlServer",
             SettingPrefix + "SqlServerReadOnlyReplica",
             SettingPrefix + "SupportRequestSqlServer",
@@ -71,6 +72,21 @@ namespace NuGetGallery.Configuration
         public string GetSiteRoot(bool useHttps)
         {
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
+        }
+
+        public Task<T> Get<T>() where T : NuGet.Services.Configuration.Configuration, new()
+        {
+            // Get the prefix specified by the ConfigurationKeyPrefixAttribute on the class if it exists.
+            var classPrefix = string.Empty;
+            var configNamePrefixProperty = (ConfigurationKeyPrefixAttribute)typeof(T)
+                .GetCustomAttributes(typeof(ConfigurationKeyPrefixAttribute), inherit: true)
+                .FirstOrDefault();
+            if (configNamePrefixProperty != null)
+            {
+                classPrefix = configNamePrefixProperty.Prefix;
+            }
+
+            return ResolveConfigObject(Activator.CreateInstance<T>(), classPrefix);
         }
 
         public async Task<T> ResolveConfigObject<T>(T instance, string prefix)
@@ -125,7 +141,7 @@ namespace NuGetGallery.Configuration
         {
             var value = ReadRawSetting(settingName);
 
-            if (!string.IsNullOrEmpty(value) && !_NotInjectedSettingNames.Contains(settingName))
+            if (!string.IsNullOrEmpty(value) && !NotInjectedSettingNames.Contains(settingName))
             {
                 value = await SecretInjector.InjectAsync(value);
             }

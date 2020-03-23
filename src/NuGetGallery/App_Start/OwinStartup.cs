@@ -5,12 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Mvc;
 using Elmah;
+using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -20,8 +22,11 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using Owin;
+
+using ILoggerFactory = Microsoft.Extensions.Logging.ILoggerFactory;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
 
@@ -89,6 +94,24 @@ namespace NuGetGallery
                 {
                     app.UseForceSsl(config.Current.SSLPort, config.Current.ForceSslExclusion);
                 }
+            }
+
+            var tds = new TraceDiagnosticsSource(nameof(OwinStartup), dependencyResolver.GetService<ITelemetryClient>());
+            if (config.Current.MaxWorkerThreads.HasValue && config.Current.MaxIoThreads.HasValue)
+            {
+                int defaultMaxWorkerThreads, defaultMaxIoThreads;
+                ThreadPool.GetMaxThreads(out defaultMaxWorkerThreads, out defaultMaxIoThreads);
+                tds.Information($"Default maxWorkerThreads: {defaultMaxWorkerThreads}, maxIoThreads: {defaultMaxIoThreads}");
+                var success = ThreadPool.SetMaxThreads(config.Current.MaxWorkerThreads.Value, config.Current.MaxIoThreads.Value);
+                tds.Information($"Attempt to update max threads to {config.Current.MaxWorkerThreads.Value}, {config.Current.MaxIoThreads.Value}, success: {success}");
+            }
+            if (config.Current.MinWorkerThreads.HasValue && config.Current.MinIoThreads.HasValue)
+            {
+                int defaultMinWorkerThreads, defaultMinIoThreads;
+                ThreadPool.GetMinThreads(out defaultMinWorkerThreads, out defaultMinIoThreads);
+                tds.Information($"Default minWorkerThreads: {defaultMinWorkerThreads}, minIoThreads: {defaultMinIoThreads}");
+                var success = ThreadPool.SetMinThreads(config.Current.MinWorkerThreads.Value, config.Current.MinIoThreads.Value);
+                tds.Information($"Attempt to update min threads to {config.Current.MinWorkerThreads.Value}, {config.Current.MinIoThreads.Value}, success: {success}");
             }
 
             // Get the local user auth provider, if present and attach it first

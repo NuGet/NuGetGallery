@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Mail;
+using NuGet.Services.Configuration;
 
 namespace NuGetGallery.Configuration
 {
@@ -403,5 +404,14 @@ namespace NuGetGallery.Configuration
         public string DeploymentLabel { get; set; }
 
         public string UsabillaFeedbackButtonId { get; set; }
+
+        [DefaultValue(null)]
+        public int? MinWorkerThreads { get; set; }
+        [DefaultValue(null)]
+        public int? MaxWorkerThreads { get; set; }
+        [DefaultValue(null)]
+        public int? MinIoThreads { get; set; }
+        [DefaultValue(null)]
+        public int? MaxIoThreads { get; set; }
     }
 }

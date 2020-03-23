@@ -455,5 +455,41 @@ namespace NuGetGallery.Configuration
         /// in your button's JavaScript code. Look for "//w.usabilla.com/{button ID}.js".
         /// </summary>
         string UsabillaFeedbackButtonId { get; set; }
+
+        /// <summary>
+        /// Allows to override the default (or externally configured) minWorkerThreads setting. Must be specified with <see cref="MinIoThreads"/>.
+        /// This is a global (not per CPU core) limit.
+        /// See more: 
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.threading.threadpool.setminthreads?view=netframework-4.7.2
+        /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
+        /// </summary>
+        int? MinWorkerThreads { get; set; }
+
+        /// <summary>
+        /// Allows to override the default (or externally configured) maxWorkerThreads setting. Must be specified with <see cref="MaxIoThreads"/>
+        /// This is a global (not per CPU core) limit.
+        /// See more: 
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.threading.threadpool.setmaxthreads?view=netframework-4.7.2
+        /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
+        /// </summary>
+        int? MaxWorkerThreads { get; set; }
+
+        /// <summary>
+        /// Allows to override the default (or externally configured) minIoThreads setting. Must be specified with <see cref="MinWorkerThreads"/>.
+        /// This is a global (not per CPU core) limit.
+        /// See more: 
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.threading.threadpool.setminthreads?view=netframework-4.7.2
+        /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
+        /// </summary>
+        int? MinIoThreads { get; set; }
+
+        /// <summary>
+        /// Allows to override the default (or externally configured) maxIoThreads setting. Must be specified with <see cref="MaxWorkerThreads"/>.
+        /// This is a global (not per CPU core) limit.
+        /// See more: 
+        /// https://docs.microsoft.com/en-us/dotnet/api/system.threading.threadpool.setmaxthreads?view=netframework-4.7.2
+        /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
+        /// </summary>
+        int? MaxIoThreads { get; set; }
     }
 }
