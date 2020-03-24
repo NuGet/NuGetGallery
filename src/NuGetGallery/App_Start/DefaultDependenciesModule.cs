@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -181,7 +182,7 @@ namespace NuGetGallery
                 .As<ISqlConnectionFactory>()
                 .SingleInstance();
 
-            builder.Register(c => new EntitiesContext(CreateDbConnection(galleryDbConnectionFactory), configuration.Current.ReadOnlyMode))
+            builder.Register(c => new EntitiesContext(CreateDbConnection(galleryDbConnectionFactory, c.Resolve<ITelemetryService>()), configuration.Current.ReadOnlyMode))
                 .AsSelf()
                 .As<IEntitiesContext>()
                 .As<DbContext>()
@@ -270,7 +271,7 @@ namespace NuGetGallery
                 configuration.Current.SqlConnectionStringSupportRequest,
                 secretInjector);
 
-            builder.Register(c => new SupportRequestDbContext(CreateDbConnection(supportDbConnectionFactory)))
+            builder.Register(c => new SupportRequestDbContext(CreateDbConnection(supportDbConnectionFactory, c.Resolve<ITelemetryService>())))
                 .AsSelf()
                 .As<ISupportRequestDbContext>()
                 .InstancePerLifetimeScope();
@@ -834,9 +835,12 @@ namespace NuGetGallery
             return new AzureSqlConnectionFactory(connectionString, secretInjector, logger);
         }
 
-        private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
+        private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory, ITelemetryService telemetryService)
         {
-            return Task.Run(() => connectionFactory.CreateAsync()).Result;
+            var stopwatch = Stopwatch.StartNew();
+            var connection = Task.Run(() => connectionFactory.CreateAsync()).Result;
+            telemetryService.TrackDbConnectionCreationTime(stopwatch.Elapsed, connectionFactory.DataSource, connectionFactory.InitialCatalog);
+            return connection;
         }
 
         private static void ConfigureGalleryReadOnlyReplicaEntitiesContext(ContainerBuilder builder,
@@ -850,7 +854,7 @@ namespace NuGetGallery
                 configuration.Current.SqlReadOnlyReplicaConnectionString ?? configuration.Current.SqlConnectionString,
                 secretInjector);
 
-            builder.Register(c => new ReadOnlyEntitiesContext(CreateDbConnection(galleryDbReadOnlyReplicaConnectionFactory)))
+            builder.Register(c => new ReadOnlyEntitiesContext(CreateDbConnection(galleryDbReadOnlyReplicaConnectionFactory, c.Resolve<ITelemetryService>())))
                 .As<IReadOnlyEntitiesContext>()
                 .InstancePerLifetimeScope();
 
@@ -868,7 +872,7 @@ namespace NuGetGallery
                 configuration.Current.SqlConnectionStringValidation,
                 secretInjector);
 
-            builder.Register(c => new ValidationEntitiesContext(CreateDbConnection(validationDbConnectionFactory)))
+            builder.Register(c => new ValidationEntitiesContext(CreateDbConnection(validationDbConnectionFactory, c.Resolve<ITelemetryService>())))
                 .AsSelf()
                 .InstancePerLifetimeScope();
 

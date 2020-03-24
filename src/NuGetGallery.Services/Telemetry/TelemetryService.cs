@@ -86,6 +86,7 @@ namespace NuGetGallery
             public const string SearchSideBySide = "SearchSideBySide";
             public const string ABTestEnrollmentInitialized = "ABTestEnrollmentInitialized";
             public const string ABTestEvaluated = "ABTestEvaluated";
+            public const string DbConnectionCreationTime = "DbConnectionCreationTime";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -219,6 +220,10 @@ namespace NuGetGallery
         public const string IsActive = "IsActive";
         public const string TestBucket = "TestBucket";
         public const string TestPercentage = "TestPercentage";
+
+        // DB properties
+        public const string DataSourceName = "DataSourceName";
+        public const string InitialCatalog = "InitialCatalog";
 
         public TelemetryService(IDiagnosticsSource diagnosticsSource, ITelemetryClient telemetryClient)
         {
@@ -1081,6 +1086,15 @@ namespace NuGetGallery
         private string BuildArrayProperty(IEnumerable<string> list)
         {
             return JsonConvert.SerializeObject(list);
+        }
+
+        public void TrackDbConnectionCreationTime(TimeSpan duration, string dataSource, string initialCatalog)
+        {
+            TrackMetric(Events.DbConnectionCreationTime, duration.TotalMilliseconds, properties =>
+            {
+                properties.Add(DataSourceName, dataSource);
+                properties.Add(InitialCatalog, initialCatalog);
+            });
         }
     }
 }

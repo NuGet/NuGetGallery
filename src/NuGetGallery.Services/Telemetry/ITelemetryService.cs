@@ -380,5 +380,12 @@ namespace NuGetGallery
             bool isAuthenticated,
             int testBucket,
             int testPercentage);
+
+        /// <summary>
+        /// Tracks the real time in milliseconds spent in creating a DB connection.
+        /// </summary>
+        /// <param name="dataSource">Data source name.</param>
+        /// <param name="initialCatalog">Database name.</param>
+        void TrackDbConnectionCreationTime(TimeSpan duration, string dataSource, string initialCatalog);
     }
 }

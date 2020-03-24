@@ -327,6 +327,10 @@ namespace NuGetGallery
                     yield return new object[] { "ABTestEvaluated",
                         (TrackAction)(s => s.TrackABTestEvaluated("SearchPreview", true, true, 0, 20))
                     };
+
+                    yield return new object[] { "DbConnectionCreationTime",
+                        (TrackAction)(s => s.TrackDbConnectionCreationTime(TimeSpan.FromDays(42), "DataSource", "InitialCatalog"))
+                    };
                 }
             }
 

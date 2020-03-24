@@ -56,6 +56,11 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
+        public void TrackDbConnectionCreationTime(TimeSpan duration, string dataSource, string initialCatalog)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount)
         {
             throw new NotImplementedException();
