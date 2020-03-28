@@ -57,7 +57,7 @@ namespace NuGetGallery.Areas.Admin.Services
         }
 
         /// <summary>
-        /// Fetch the list of pending package validation sets.
+        /// Fetch the list of validation sets whose packages are in the "validating" status.
         /// </summary>
         public IReadOnlyList<PackageValidationSet> Pending()
         {

@@ -31,11 +31,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public virtual ActionResult Pending()
         {
             var packageValidationSets = _validationAdminService.Pending();
-            var packageIdentities = packageValidationSets.Select(s => $"{s.PackageId} {s.PackageNormalizedVersion}");
-            var query = string.Join("\r\n", packageIdentities.Distinct());
-            var validatedPackages = new List<ValidatedPackageViewModel>();
-            AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.Package);
-            AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.SymbolPackage);
+            var validatedPackages = ToValidatedPackages(packageValidationSets);
+            var packageIdentities = packageValidationSets
+                .Select(s => $"{s.PackageId} {s.PackageNormalizedVersion}")
+                .Distinct();
+            var query = string.Join("\r\n", packageIdentities);
 
             return View(nameof(Index), new ValidationPageViewModel(query, validatedPackages));
         }
@@ -44,11 +44,18 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public virtual ActionResult Search(string q)
         {
             var packageValidationSets = _validationAdminService.Search(q ?? string.Empty);
+            var validatedPackages = ToValidatedPackages(packageValidationSets);
+
+            return View(nameof(Index), new ValidationPageViewModel(q, validatedPackages));
+        }
+
+        private List<ValidatedPackageViewModel> ToValidatedPackages(IReadOnlyList<PackageValidationSet> packageValidationSets)
+        {
             var validatedPackages = new List<ValidatedPackageViewModel>();
             AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.Package);
             AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.SymbolPackage);
 
-            return View(nameof(Index), new ValidationPageViewModel(q, validatedPackages));
+            return validatedPackages;
         }
 
         private void AppendValidatedPackages(List<ValidatedPackageViewModel> validatedPackages, IEnumerable<PackageValidationSet> validationSets, ValidatingType validatingType)
