@@ -56,6 +56,32 @@ namespace NuGetGallery.Areas.Admin.Services
                 .ToList();
         }
 
+        /// <summary>
+        /// Fetch the list of pending package validation sets.
+        /// </summary>
+        public IReadOnlyList<PackageValidationSet> Pending()
+        {
+            var pendingPackages = _packages
+                .GetAll()
+                .Where(p => p.PackageStatusKey == PackageStatus.Validating)
+                .Select(p => p.Key)
+                .ToList();
+            var pendingSymbolPackages = _symbolPackages
+                .GetAll()
+                .Where(s => s.StatusKey == PackageStatus.Validating)
+                .Select(s => s.Key)
+                .ToList();
+
+            return _validationSets
+                .GetAll()
+                .Where(v =>
+                    (v.ValidatingType == ValidatingType.Package && pendingPackages.Contains(v.PackageKey)) ||
+                    (v.ValidatingType == ValidatingType.SymbolPackage && pendingSymbolPackages.Contains(v.PackageKey)))
+                .Include(v => v.PackageValidations)
+                .ToList();
+        }
+
+
         public PackageDeletedStatus GetDeletedStatus(int key, ValidatingType validatingType)
         {
             switch (validatingType)

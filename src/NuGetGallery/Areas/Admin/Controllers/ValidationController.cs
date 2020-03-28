@@ -28,6 +28,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        public virtual ActionResult Pending()
+        {
+            var packageValidationSets = _validationAdminService.Pending();
+            var packageIdentities = packageValidationSets.Select(s => $"{s.PackageId} {s.PackageNormalizedVersion}");
+            var query = string.Join("\r\n", packageIdentities.Distinct());
+            var validatedPackages = new List<ValidatedPackageViewModel>();
+            AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.Package);
+            AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.SymbolPackage);
+
+            return View(nameof(Index), new ValidationPageViewModel(query, validatedPackages));
+        }
+
+        [HttpGet]
         public virtual ActionResult Search(string q)
         {
             var packageValidationSets = _validationAdminService.Search(q ?? string.Empty);

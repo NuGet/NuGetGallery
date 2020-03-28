@@ -28,7 +28,7 @@
 
     @if (Model.HasQuery && !Model.HasResults)
     {
-        <p>No results found.</p>
+        <p>No results found. Try <a href="@Url.Action(actionName: "Pending")">pending validations</a>.</p>
     }
     else if(!Model.HasQuery)
     {
@@ -38,6 +38,7 @@
             <li>Package ID and version: <code>NuGet.Versioning 4.3.0</code></li>
             <li>Validation set tracking ID: <code>e6db6737-bd77-44cd-af8b-74826e054d36</code></li>
             <li>Validation ID: <code>218d075b-99b6-4151-ba12-121872ffe7fe</code></li>
+            <li><a href="@Url.Action(actionName: "Pending")">Pending validations</a></li>
         </ul>
     }
 
@@ -59,7 +60,17 @@
                         break;
                 }
 
-                <b>@package.ValidatingType Key:</b> @package.PackageKey<br />
+                @switch (package.ValidatingType)
+                {
+                    case ValidatingType.SymbolPackage:
+                        <b>Symbol Package Key:</b> @package.PackageKey<br />
+                        break;
+
+                    default:
+                        <b>@package.ValidatingType Key:</b> @package.PackageKey<br />
+                        break;
+                }
+
                 @if (package.DeletedStatus == PackageDeletedStatus.NotDeleted)
                 {
                     if (package.ValidatingType == ValidatingType.Package)
@@ -98,7 +109,7 @@
 
                 @if (package.DeletedStatus != PackageDeletedStatus.Unknown)
                 {
-                    <a href="@Url.Package(package)">Package Details</a>
+                    <a href="@Url.Package(package)">Package details</a>
                 }
             </p>
 
