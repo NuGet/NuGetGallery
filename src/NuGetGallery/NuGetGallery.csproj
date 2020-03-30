@@ -286,6 +286,10 @@
     <Compile Include="Migrations\201912051135094_PackageVulnerabilityAdvisoryUrlRenameAndRequired.designer.cs">
       <DependentUpon>201912051135094_PackageVulnerabilityAdvisoryUrlRenameAndRequired.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202003300451187_AddPackageRenames.cs" />
+    <Compile Include="Migrations\202003300451187_AddPackageRenames.designer.cs">
+      <DependentUpon>202003300451187_AddPackageRenames.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\GravatarProxyResult.cs" />
@@ -1660,6 +1664,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201912051135094_PackageVulnerabilityAdvisoryUrlRenameAndRequired.resx">
       <DependentUpon>201912051135094_PackageVulnerabilityAdvisoryUrlRenameAndRequired.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202003300451187_AddPackageRenames.resx">
+      <DependentUpon>202003300451187_AddPackageRenames.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

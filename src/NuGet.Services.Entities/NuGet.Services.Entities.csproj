@@ -77,6 +77,7 @@
     <Compile Include="PackageLicenseReport.cs" />
     <Compile Include="PackageOwnerRequest.cs" />
     <Compile Include="PackageRegistration.cs" />
+    <Compile Include="PackageRenames.cs" />
     <Compile Include="PackageStatus.cs" />
     <Compile Include="PackageType.cs" />
     <Compile Include="PackageVulnerability.cs" />

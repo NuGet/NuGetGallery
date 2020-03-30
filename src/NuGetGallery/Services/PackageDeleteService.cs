@@ -33,6 +33,9 @@ namespace NuGetGallery
                 SET AlternatePackageRegistrationKey = NULL
                 WHERE AlternatePackageRegistrationKey = @key
 
+                DELETE r FROM PackageRenames AS r
+                WHERE r.[ToPackageRegistrationKey] = @key
+
                 DELETE pr FROM PackageRegistrations AS pr
                 WHERE pr.[Key] = @key
             END";

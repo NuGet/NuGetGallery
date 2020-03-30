@@ -186,6 +186,18 @@ namespace NuGetGallery
             }
         }
 
+        public DbSet<PackageRenames> PackageRenames
+        {
+            get
+            {
+                return Set<PackageRenames>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;
