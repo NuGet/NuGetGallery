@@ -32,9 +32,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var validationSets = _validationAdminService.GetPending();
             var validatedPackages = ToValidatedPackages(validationSets);
-            var validationSetIds = validationSets
-                .Select(s => s.ValidationTrackingId)
-                .Distinct();
+            var validationSetIds = validatedPackages
+                .SelectMany(p => p.ValidationSets)
+                .Select(s => s.ValidationTrackingId);
             var query = string.Join("\r\n", validationSetIds);
 
             return View(nameof(Index), new ValidationPageViewModel(query, validatedPackages));
