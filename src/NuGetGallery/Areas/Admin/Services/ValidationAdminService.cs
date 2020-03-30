@@ -14,6 +14,8 @@ namespace NuGetGallery.Areas.Admin.Services
 {
     public class ValidationAdminService
     {
+        private const int PendingValidationsBatchSize = 100;
+
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
         private readonly IEntityRepository<PackageValidation> _validations;
         private readonly IEntityRepository<Package> _packages;
@@ -59,8 +61,9 @@ namespace NuGetGallery.Areas.Admin.Services
         /// <summary>
         /// Fetch the list of validation sets whose packages are in the "validating" status.
         /// </summary>
-        public IReadOnlyList<PackageValidationSet> Pending()
+        public IReadOnlyList<PackageValidationSet> GetPending()
         {
+            var pendingValidations = new List<PackageValidationSet>();
             var pendingPackages = _packages
                 .GetAll()
                 .Where(p => p.PackageStatusKey == PackageStatus.Validating)
@@ -72,15 +75,11 @@ namespace NuGetGallery.Areas.Admin.Services
                 .Select(s => s.Key)
                 .ToList();
 
-            return _validationSets
-                .GetAll()
-                .Where(v =>
-                    (v.ValidatingType == ValidatingType.Package && pendingPackages.Contains(v.PackageKey)) ||
-                    (v.ValidatingType == ValidatingType.SymbolPackage && pendingSymbolPackages.Contains(v.PackageKey)))
-                .Include(v => v.PackageValidations)
-                .ToList();
-        }
+            AddPendingValidationSets(pendingValidations, pendingPackages, ValidatingType.Package);
+            AddPendingValidationSets(pendingValidations, pendingSymbolPackages, ValidatingType.SymbolPackage);
 
+            return pendingValidations;
+        }
 
         public PackageDeletedStatus GetDeletedStatus(int key, ValidatingType validatingType)
         {
@@ -224,6 +223,29 @@ namespace NuGetGallery.Areas.Admin.Services
             foreach (var validationSet in matchedSets)
             {
                 validationSets[validationSet.Key] = validationSet;
+            }
+        }
+
+        private void AddPendingValidationSets(
+            List<PackageValidationSet> validationSets,
+            IReadOnlyList<int> packageKeys,
+            ValidatingType type)
+        {
+            foreach (var packageKeyBatch in Batch(packageKeys, PendingValidationsBatchSize))
+            {
+                validationSets.AddRange(
+                    _validationSets
+                        .GetAll()
+                        .Where(v => v.ValidatingType == type)
+                        .Where(v => packageKeys.Contains(v.PackageKey)));
+            }
+        }
+
+        private IEnumerable<IEnumerable<TElement>> Batch<TElement>(IReadOnlyList<TElement> input, int size)
+        {
+            for (var i = 0; i < input.Count; i += size)
+            {
+                yield return input.Skip(i).Take(size);
             }
         }
     }

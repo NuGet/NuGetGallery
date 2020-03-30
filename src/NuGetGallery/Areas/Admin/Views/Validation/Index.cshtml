@@ -17,6 +17,8 @@
 <section role="main" class="container main-container">
     <h2>Package Validations</h2>
 
+    <p>Get <a href="@Url.Action(actionName:"Pending")">pending validations</a>.</p>
+
     <form method="get" action="@Url.Action(actionName: "Search")">
         <p>
             <textarea name="q" placeholder="Search for package validations..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
@@ -30,7 +32,7 @@
     {
         <p>No results found. Try <a href="@Url.Action(actionName: "Pending")">pending validations</a>.</p>
     }
-    else if(!Model.HasQuery)
+    else if (!Model.HasQuery)
     {
         <p>You can search by:</p>
         <ul>
@@ -38,7 +40,6 @@
             <li>Package ID and version: <code>NuGet.Versioning 4.3.0</code></li>
             <li>Validation set tracking ID: <code>e6db6737-bd77-44cd-af8b-74826e054d36</code></li>
             <li>Validation ID: <code>218d075b-99b6-4151-ba12-121872ffe7fe</code></li>
-            <li><a href="@Url.Action(actionName: "Pending")">Pending validations</a></li>
         </ul>
     }
 

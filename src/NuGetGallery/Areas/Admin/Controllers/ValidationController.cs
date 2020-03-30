@@ -30,12 +30,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpGet]
         public virtual ActionResult Pending()
         {
-            var packageValidationSets = _validationAdminService.Pending();
-            var validatedPackages = ToValidatedPackages(packageValidationSets);
-            var packageIdentities = packageValidationSets
-                .Select(s => $"{s.PackageId} {s.PackageNormalizedVersion}")
+            var validationSets = _validationAdminService.GetPending();
+            var validatedPackages = ToValidatedPackages(validationSets);
+            var validationSetIds = validationSets
+                .Select(s => s.ValidationTrackingId)
                 .Distinct();
-            var query = string.Join("\r\n", packageIdentities);
+            var query = string.Join("\r\n", validationSetIds);
 
             return View(nameof(Index), new ValidationPageViewModel(query, validatedPackages));
         }
