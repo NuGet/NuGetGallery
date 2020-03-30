@@ -48,12 +48,12 @@ namespace NuGet.Services.Entities
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
 
         /// <summary>
-        /// Gets and sets the list of package registrations that were renamed.
+        /// Gets or sets the list of package registrations that were renamed.
         /// </summary>
         public ICollection<PackageRenames> FromPackageRenames { get; set; }
 
         /// <summary>
-        /// Gets and sets the list of replacement package registrations.
+        /// Gets or sets the list of replacement package registrations.
         /// </summary>
         public ICollection<PackageRenames> ToPackageRenames { get; set; }
 
