@@ -17,6 +17,8 @@
 <section role="main" class="container main-container">
     <h2>Package Validations</h2>
 
+    <p>Get <a href="@Url.Action(actionName:"Pending")">pending validations</a>.</p>
+
     <form method="get" action="@Url.Action(actionName: "Search")">
         <p>
             <textarea name="q" placeholder="Search for package validations..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
@@ -28,9 +30,9 @@
 
     @if (Model.HasQuery && !Model.HasResults)
     {
-        <p>No results found.</p>
+        <p>No results found. Try <a href="@Url.Action(actionName: "Pending")">pending validations</a>.</p>
     }
-    else if(!Model.HasQuery)
+    else if (!Model.HasQuery)
     {
         <p>You can search by:</p>
         <ul>
@@ -59,7 +61,17 @@
                         break;
                 }
 
-                <b>@package.ValidatingType Key:</b> @package.PackageKey<br />
+                @switch (package.ValidatingType)
+                {
+                    case ValidatingType.SymbolPackage:
+                        <b>Symbol Package Key:</b> @package.PackageKey<br />
+                        break;
+
+                    default:
+                        <b>@package.ValidatingType Key:</b> @package.PackageKey<br />
+                        break;
+                }
+
                 @if (package.DeletedStatus == PackageDeletedStatus.NotDeleted)
                 {
                     if (package.ValidatingType == ValidatingType.Package)
@@ -98,7 +110,7 @@
 
                 @if (package.DeletedStatus != PackageDeletedStatus.Unknown)
                 {
-                    <a href="@Url.Package(package)">Package Details</a>
+                    <a href="@Url.Package(package)">Package details</a>
                 }
             </p>
 
