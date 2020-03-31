@@ -345,7 +345,7 @@ var BindReadMeDataManager = (function () {
             // the message must change AFTER the element becomes visible. When we run all these commands
             // synchronously, it appears that the message content is changed BEFORE the element is finished rendering.
             // Delay it using a timeout so it will show after the message box is visible.
-            setTimeout(() => { $("#readme-error-content").text(errorMsg); }, 100);
+            setTimeout(() => { $("#readme-error-content").text(errorMsg); }, 0);
             
         }
 
