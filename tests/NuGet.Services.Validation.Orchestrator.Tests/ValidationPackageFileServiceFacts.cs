@@ -100,7 +100,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             _packageDownloader
                 .Setup(x => x.DownloadAsync(_testUri, CancellationToken.None))
-                .ReturnsAsync(_packageStream)
+                .ReturnsAsync(() => FileDownloadResult.Ok(_packageStream))
                 .Verifiable();
 
             _fileStorageService
@@ -146,7 +146,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             _packageDownloader
                 .Setup(x => x.DownloadAsync(_testUri, CancellationToken.None))
-                .ReturnsAsync(_packageStream)
+                .ReturnsAsync(() => FileDownloadResult.Ok(_packageStream))
                 .Verifiable();
 
             var validationSet = new PackageValidationSet()

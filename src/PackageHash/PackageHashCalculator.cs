@@ -34,9 +34,9 @@ namespace NuGet.Services.PackageHash
             var version = package.Version.ToNormalizedString().ToLowerInvariant();
             var packageUri = new Uri($"{source.Url.TrimEnd('/')}/{id}.{version}.nupkg");
 
-            using (var packageStream = await _packageDownloader.DownloadAsync(packageUri, token))
+            using (var result = await _packageDownloader.DownloadAsync(packageUri, token))
             {
-                return CryptographyService.GenerateHash(packageStream, hashAlgorithmId);
+                return CryptographyService.GenerateHash(result.GetStreamOrThrow(), hashAlgorithmId);
             }
         }
     }

@@ -13,7 +13,7 @@ namespace Validation.Common.Job.Tests
 {
     public class CommonTelemetryServiceFacts
     {
-        public class TrackPackageDownloaded : BaseFacts
+        public class TrackFileDownloaded : BaseFacts
         {
             [Theory]
             [InlineData("/a/b/?foo=bar", "/a/b/")]
@@ -33,16 +33,16 @@ namespace Validation.Common.Job.Tests
                 var expectedUri = "http://example" + expectedPath;
 
                 // Act
-                _target.TrackPackageDownloaded(uri, _duration, _size);
+                _target.TrackFileDownloaded(uri, _duration, _size);
 
                 // Assert
                 _telemetryClient.Verify(
-                    x => x.TrackMetric("PackageDownloadedSeconds", _duration.TotalSeconds, It.IsAny<IDictionary<string, string>>()),
+                    x => x.TrackMetric("FileDownloadedSeconds", _duration.TotalSeconds, It.IsAny<IDictionary<string, string>>()),
                     Times.Once);
                 Assert.NotNull(_properties);
-                Assert.Equal(new[] { "PackageSize", "PackageUri" }, _properties.Keys.OrderBy(x => x));
-                Assert.Equal("42", _properties["PackageSize"]);
-                Assert.Equal(expectedUri, _properties["PackageUri"]);
+                Assert.Equal(new[] { "FileSize", "FileUri" }, _properties.Keys.OrderBy(x => x));
+                Assert.Equal("42", _properties["FileSize"]);
+                Assert.Equal(expectedUri, _properties["FileUri"]);
             }
         }
 

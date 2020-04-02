@@ -62,7 +62,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 _packageDownloader
                     .Setup(x => x.DownloadAsync(_message.NupkgUri, It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(() => TestResources.GetResourceStream(TestResources.UnsignedPackage));
+                    .ReturnsAsync(() => FileDownloadResult.Ok(TestResources.GetResourceStream(TestResources.UnsignedPackage)));
                 _validatorStateService
                     .Setup(x => x.GetStatusAsync(It.IsAny<Guid>()))
                     .ReturnsAsync(() => _validation);
@@ -136,7 +136,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var stream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
                 _packageDownloader
                     .Setup(x => x.DownloadAsync(_message.NupkgUri, It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(() => stream);
+                    .ReturnsAsync(() => FileDownloadResult.Ok(stream));
 
                 // Act
                 var success = await _target.HandleAsync(_message);

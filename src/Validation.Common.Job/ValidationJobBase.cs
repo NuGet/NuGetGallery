@@ -56,7 +56,7 @@ namespace NuGet.Jobs.Validation
 
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
-            services.AddTransient<IFileDownloader, PackageDownloader>();
+            services.AddTransient<IFileDownloader, FileDownloader>();
             services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
 
             services.AddTransient<ICloudBlobClient>(c =>

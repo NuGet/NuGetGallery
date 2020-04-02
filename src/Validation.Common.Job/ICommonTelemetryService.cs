@@ -7,6 +7,6 @@ namespace NuGet.Jobs.Validation
 {
     public interface ICommonTelemetryService
     {
-        void TrackPackageDownloaded(Uri packageUri, TimeSpan duration, long size);
+        void TrackFileDownloaded(Uri fileUri, TimeSpan duration, long size);
     }
 }

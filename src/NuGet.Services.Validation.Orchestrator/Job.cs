@@ -260,7 +260,7 @@ namespace NuGet.Services.Validation.Orchestrator
             });
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
-            services.AddTransient<IFileDownloader, PackageDownloader>();
+            services.AddTransient<IFileDownloader, FileDownloader>();
             services.AddTransient<IStatusProcessor<Package>, PackageStatusProcessor>();
             services.AddTransient<IValidationSetProvider<Package>, ValidationSetProvider<Package>>();
             services.AddTransient<IValidationSetProcessor, ValidationSetProcessor>();

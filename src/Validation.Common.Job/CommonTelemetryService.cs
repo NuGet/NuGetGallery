@@ -10,10 +10,10 @@ namespace NuGet.Jobs.Validation
 {
     public class CommonTelemetryService : ICommonTelemetryService, IFeatureFlagTelemetryService
     {
-        private const string PackageDownloadedSeconds = "PackageDownloadedSeconds";
-        private const string PackageDownloadSpeed = "PackageDownloadSpeedBytesPerSec";
-        private const string PackageUri = "PackageUri";
-        private const string PackageSize = "PackageSize";
+        private const string FileDownloadedSeconds = "FileDownloadedSeconds";
+        private const string FileDownloadSpeed = "FileDownloadSpeedBytesPerSec";
+        private const string FileUri = "FileUri";
+        private const string FileSize = "FileSize";
         private const double DefaultDownloadSpeed = 1;
 
         private const string FeatureFlagStalenessSeconds = "FeatureFlagStalenessSeconds";
@@ -32,28 +32,28 @@ namespace NuGet.Jobs.Validation
                 staleness.TotalSeconds);
         }
 
-        public void TrackPackageDownloaded(Uri packageUri, TimeSpan duration, long size)
+        public void TrackFileDownloaded(Uri fileUri, TimeSpan duration, long size)
         {
-            // Remove the query string from the package URI, since this could contain a SAS token.
-            var uriBuilder = new UriBuilder(packageUri);
+            // Remove the query string from the file URI, since this could contain a SAS token.
+            var uriBuilder = new UriBuilder(fileUri);
             uriBuilder.Query = null;
             var absoluteUri = uriBuilder.Uri.AbsoluteUri;
 
             _telemetryClient.TrackMetric(
-                PackageDownloadedSeconds,
+                FileDownloadedSeconds,
                 duration.TotalSeconds,
                 new Dictionary<string, string>
                 {
-                    { PackageUri, absoluteUri },
-                    { PackageSize, size.ToString() },
+                    { FileUri, absoluteUri },
+                    { FileSize, size.ToString() },
                 });
             _telemetryClient.TrackMetric(
-                PackageDownloadSpeed,
+                FileDownloadSpeed,
                 duration.TotalSeconds > 0 ? size / duration.TotalSeconds : DefaultDownloadSpeed,
                 new Dictionary<string, string>
                 {
-                    { PackageUri, absoluteUri },
-                    { PackageSize, size.ToString() },
+                    { FileUri, absoluteUri },
+                    { FileSize, size.ToString() },
                 });
         }
     }

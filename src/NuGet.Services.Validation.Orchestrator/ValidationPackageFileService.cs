@@ -98,8 +98,8 @@ namespace NuGet.Services.Validation.Orchestrator
         public async Task<Stream> DownloadPackageFileToDiskAsync(PackageValidationSet validationSet)
         {
             var fileUri = await GetPackageReadUriAsync(validationSet);
-
-            return await _fileDownloader.DownloadAsync(fileUri, CancellationToken.None);
+            var result = await _fileDownloader.DownloadAsync(fileUri, CancellationToken.None);
+            return result.GetStreamOrThrow();
         }
 
         public Task CopyValidationPackageForValidationSetAsync(PackageValidationSet validationSet)
@@ -130,9 +130,9 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet,
                     DateTimeOffset.UtcNow.Add(AccessDuration));
 
-                using (var packageStream = await _fileDownloader.DownloadAsync(packageUri, CancellationToken.None))
+                using (var result = await _fileDownloader.DownloadAsync(packageUri, CancellationToken.None))
                 {
-                    await StorePackageFileInBackupLocationAsync(validationSet, packageStream);
+                    await StorePackageFileInBackupLocationAsync(validationSet, result.GetStreamOrThrow());
                 }
             }
         }

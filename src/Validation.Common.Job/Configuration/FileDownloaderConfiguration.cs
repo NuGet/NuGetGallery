@@ -3,7 +3,7 @@
 
 namespace NuGet.Jobs.Validation
 {
-    public class PackageDownloaderConfiguration
+    public class FileDownloaderConfiguration
     {
         /// <summary>
         /// The size of the buffer used to copy the network stream.

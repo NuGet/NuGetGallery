@@ -114,11 +114,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 }
 
                 // Validate package
-                using (var packageStream = await _packageDownloader.DownloadAsync(message.NupkgUri, cancellationToken))
+                using (var downloadResult = await _packageDownloader.DownloadAsync(message.NupkgUri, cancellationToken))
                 {
                     var result = await _signatureValidator.ValidateAsync(
                         validation.PackageKey,
-                        packageStream,
+                        downloadResult.GetStreamOrThrow(),
                         message,
                         cancellationToken);
 
