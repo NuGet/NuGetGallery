@@ -64,15 +64,15 @@ function MultiSelectDropdown(items, singularItemTitle, pluralItemTitle) {
     this.toggleLabel = ko.pureComputed(function () {
         var chosenItems = self.chosenItems();
         if (chosenItems.length === 0) {
-            return "No " + pluralItemTitle + " selected";
+            return "Select Versions: No " + pluralItemTitle + " selected";
         }
 
         if (chosenItems.length === self.items.length) {
-            return "All " + pluralItemTitle + " selected";
+            return "Select Versions: All " + pluralItemTitle + " selected";
         }
 
         var itemTitle = chosenItems.length > 1 ? pluralItemTitle : singularItemTitle;
-        return "Selected " + itemTitle + " " + chosenItems.join(', ');
+        return "Select Version: Selected " + itemTitle + " " + chosenItems.join(', ');
     }, this);
 
     this.selectAllText = ko.pureComputed(function () {
