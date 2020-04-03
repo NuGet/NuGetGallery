@@ -97,6 +97,7 @@ namespace NuGet.Jobs
             var services = new ServiceCollection();
             services.AddSingleton(secretInjector);
             services.AddSingleton(ApplicationInsightsConfiguration.TelemetryConfiguration);
+            services.AddSingleton<IConfiguration>(configurationRoot);
 
             ConfigureLibraries(services);
             ConfigureDefaultJobServices(services, configurationRoot);
