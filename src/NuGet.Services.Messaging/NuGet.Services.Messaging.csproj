@@ -50,6 +50,7 @@
     <Compile Include="IEmailMessageEnqueuer.cs" />
     <Compile Include="IServiceBusMessageSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="ServiceBusMessageSerializer.cs" />
   </ItemGroup>
   <ItemGroup>

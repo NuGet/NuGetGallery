@@ -63,6 +63,7 @@
     <Compile Include="Internal\PlainTextRenderer.cs" />
     <Compile Include="MarkdownEmailBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj">
