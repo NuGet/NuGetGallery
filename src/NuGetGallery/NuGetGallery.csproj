@@ -286,9 +286,9 @@
     <Compile Include="Migrations\201912051135094_PackageVulnerabilityAdvisoryUrlRenameAndRequired.designer.cs">
       <DependentUpon>201912051135094_PackageVulnerabilityAdvisoryUrlRenameAndRequired.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202003300451187_AddPackageRenames.cs" />
-    <Compile Include="Migrations\202003300451187_AddPackageRenames.designer.cs">
-      <DependentUpon>202003300451187_AddPackageRenames.cs</DependentUpon>
+    <Compile Include="Migrations\202004030548285_AddPackageRename.cs" />
+    <Compile Include="Migrations\202004030548285_AddPackageRename.designer.cs">
+      <DependentUpon>202004030548285_AddPackageRename.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
@@ -1665,8 +1665,8 @@
     <EmbeddedResource Include="Migrations\201912051135094_PackageVulnerabilityAdvisoryUrlRenameAndRequired.resx">
       <DependentUpon>201912051135094_PackageVulnerabilityAdvisoryUrlRenameAndRequired.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202003300451187_AddPackageRenames.resx">
-      <DependentUpon>202003300451187_AddPackageRenames.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202004030548285_AddPackageRename.resx">
+      <DependentUpon>202004030548285_AddPackageRename.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

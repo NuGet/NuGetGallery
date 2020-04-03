@@ -3,7 +3,7 @@
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class AddPackageRenames : DbMigration
+    public partial class AddPackageRename : DbMigration
     {
         public override void Up()
         {
@@ -15,6 +15,7 @@
                         FromPackageRegistrationKey = c.Int(nullable: false),
                         ToPackageRegistrationKey = c.Int(nullable: false),
                         TransferPopularity = c.Boolean(nullable: false),
+                        UpdatedOn = c.DateTime(nullable: false, defaultValueSql: "GETUTCDATE()"),
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.PackageRegistrations", t => t.FromPackageRegistrationKey, cascadeDelete: true)

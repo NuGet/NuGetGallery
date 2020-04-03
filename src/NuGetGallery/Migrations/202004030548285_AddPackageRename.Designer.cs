@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.4.0-preview3-19553-01")]
-    public sealed partial class AddPackageRenames : IMigrationMetadata
+    public sealed partial class AddPackageRename : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddPackageRenames));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddPackageRename));
         
         string IMigrationMetadata.Id
         {
-            get { return "202003300451187_AddPackageRenames"; }
+            get { return "202004030548285_AddPackageRename"; }
         }
         
         string IMigrationMetadata.Source

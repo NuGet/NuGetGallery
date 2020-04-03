@@ -1,9 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace NuGet.Services.Entities
 {
-    public class PackageRenames : IEntity
+    public class PackageRename : IEntity
     {
         /// <summary>
         /// Gets or sets the primary key for the entity.
@@ -31,8 +34,11 @@ namespace NuGet.Services.Entities
         public virtual PackageRegistration ToPackageRegistration { get; set; }
 
         /// <summary>
-        /// Gets or sets whether the renamed package's popularity should be transferred to the replacement package.
+        /// Gets or sets whether the renamed package's popularity should be transferred to the replacement packages.
         /// </summary>
         public bool TransferPopularity { get; set; }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime UpdatedOn { get; set; }
     }
 }

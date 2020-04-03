@@ -186,11 +186,11 @@ namespace NuGetGallery
             }
         }
 
-        public DbSet<PackageRenames> PackageRenames
+        public DbSet<PackageRename> PackageRenames
         {
             get
             {
-                return Set<PackageRenames>();
+                return Set<PackageRename>();
             }
             set
             {
