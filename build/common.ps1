@@ -670,7 +670,8 @@ Function New-Package {
         [string]$MSBuildVersion = $DefaultMSBuildVersion,
         [switch]$Symbols,
         [string]$Branch,
-        [switch]$IncludeReferencedProjects
+        [switch]$IncludeReferencedProjects,
+        [string[]]$NoWarn = @("NU5100", "NU5110", "NU5111", "NU5128")
     )
     Trace-Log "Creating package from @""$TargetFilePath"""
     $opts = , 'pack'
@@ -695,6 +696,9 @@ Function New-Package {
     }
     if ($PackageId) {
         $Properties += ";PackageId=$PackageId"
+    }
+    if ($NoWarn) {
+        $Properties += ";NoWarn=" + ($NoWarn -join ",")
     }
     $opts += '-Properties', $Properties
     
