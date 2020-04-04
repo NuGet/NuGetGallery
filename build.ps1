@@ -85,7 +85,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\NuGet.Services.Validation\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
-            Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA -AssemblyVersion "2.0.0.0"
+            Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA -AssemblyVersion "3.0.0.0"
         }
     } `
     -ev +BuildErrors
