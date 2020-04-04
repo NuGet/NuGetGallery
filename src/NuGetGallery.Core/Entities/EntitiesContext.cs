@@ -494,7 +494,7 @@ namespace NuGetGallery
                 .WillCascadeOnDelete(true);
 
             // Cascade deletion on the reference key "ToPackageRegistrationKey" will cause the multiple cascade path issue.
-            // Package registration deletion will delete the related "PackageRenames" entities whose "ToPackageRegistrationKey" refers it.
+            // Package registration deletion will delete the related "PackageRename" entities whose "ToPackageRegistrationKey" refers it.
             modelBuilder.Entity<PackageRename>()
                 .HasRequired(r => r.ToPackageRegistration)
                 .WithMany()
