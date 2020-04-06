@@ -524,6 +524,7 @@ namespace NuGetGallery
 
             telemetryConfiguration.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
             telemetryConfiguration.TelemetryInitializers.Add(new KnownOperationNameEnricher());
+            telemetryConfiguration.TelemetryInitializers.Add(new AzureWebAppTelemetryInitializer());
 
             // Add processors
             telemetryConfiguration.TelemetryProcessorChainBuilder.Use(next =>

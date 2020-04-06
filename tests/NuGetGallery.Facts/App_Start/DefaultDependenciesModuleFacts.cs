@@ -153,6 +153,7 @@ namespace NuGetGallery.App_Start
                     // Registered by DefaultDependenciesModule in NuGetGallery
                     ti => ti.GetType().Equals(typeof(ClientInformationTelemetryEnricher)),
                     ti => ti.GetType().Equals(typeof(KnownOperationNameEnricher)),
+                    ti => ti.GetType().Equals(typeof(AzureWebAppTelemetryInitializer)),
 
                     // Registered by applicationinsights.config
                     ti => ti.GetType().Equals(typeof(HttpDependenciesParsingTelemetryInitializer)),
