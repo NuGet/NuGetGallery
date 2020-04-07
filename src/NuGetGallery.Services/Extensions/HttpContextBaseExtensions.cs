@@ -11,6 +11,8 @@ namespace NuGetGallery
 {
     public static class HttpContextBaseExtensions
     {
+        public static HttpContextBase GetCurrent() => new HttpContextWrapper(HttpContext.Current);
+
         public static User GetCurrentUser(this HttpContextBase httpContext)
         {
             return httpContext.GetOwinContext().GetCurrentUser();

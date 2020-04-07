@@ -105,6 +105,7 @@
     <Compile Include="Auditing\UserAuditRecord.cs" />
     <Compile Include="Authentication\AuthenticationExtensions.cs" />
     <Compile Include="Authentication\CredentialTypeInfo.cs" />
+    <Compile Include="Authentication\MicrosoftClaims.cs" />
     <Compile Include="Certificates\CertificateFile.cs" />
     <Compile Include="Cookies\CookieComplianceServiceBase.cs" />
     <Compile Include="Cookies\CookieConsentMessage.cs" />
