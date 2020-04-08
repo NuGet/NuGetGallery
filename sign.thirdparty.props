@@ -4,6 +4,7 @@
     <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" />
     <ThirdPartyBinaries Include="Autofac.dll" />
     <ThirdPartyBinaries Include="Autofac.Extensions.DependencyInjection.dll" />
+    <ThirdPartyBinaries Include="Autofac.Integration.WebApi.dll" />
     <ThirdPartyBinaries Include="Dapper.StrongName.dll" />
     <ThirdPartyBinaries Include="dotNetRDF.dll" />
     <ThirdPartyBinaries Include="Elmah.dll" />
