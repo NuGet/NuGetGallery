@@ -72,7 +72,7 @@ function MultiSelectDropdown(items, singularItemTitle, pluralItemTitle) {
         }
 
         var itemTitle = chosenItems.length > 1 ? pluralItemTitle : singularItemTitle;
-        return "Select Version: Selected " + itemTitle + " " + chosenItems.join(', ');
+        return "Select Versions: Selected " + itemTitle + " " + chosenItems.join(', ');
     }, this);
 
     this.selectAllText = ko.pureComputed(function () {
