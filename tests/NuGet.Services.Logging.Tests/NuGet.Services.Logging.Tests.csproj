@@ -60,6 +60,7 @@
     <Compile Include="RequestTelemetryProcessorTests.cs" />
     <Compile Include="Extensions\TelemetryClientExtensionsTests.cs" />
     <Compile Include="TelemetryInitializers\JobPropertiesTelemetryInitializerTests.cs" />
+    <Compile Include="TelemetryInitializers\KnownOperationNameEnricherFacts.cs" />
     <Compile Include="TestableTelemetry.cs" />
     <Compile Include="TelemetryProcessorTest.cs" />
   </ItemGroup>
