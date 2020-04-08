@@ -84,7 +84,7 @@ namespace NuGetGallery.Helpers
                                 height=""{size}""
                                 width=""{size}""
                                 title=""{username}""
-                                alt=""gravatar"" />";
+                                alt=""{username} gravatar"" />";
 
                 return new HtmlString(html);
             }
