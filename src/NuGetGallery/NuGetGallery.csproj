@@ -1854,7 +1854,6 @@
     <Content Include="Areas\Admin\Views\ApiKeys\Index.cshtml" />
     <Content Include="App_Data\Files\Content\OData-Cache-Configuration.json" />
     <Content Include="App_Data\Files\Content\GitHubUsage.v1.json" />
-    <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\gallery\autocomplete.js" />
     <Content Include="Scripts\gallery\bootstrap.js" />
@@ -1934,6 +1933,7 @@
     <Content Include="Views\Experiments\SearchSideBySide.cshtml" />
     <Content Include="Views\Api\HealthProbeApi.cshtml" />
     <Content Include="Views\Pages\_Enable2FA.cshtml" />
+    <Content Include="Views\Pages\SimulateError.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
