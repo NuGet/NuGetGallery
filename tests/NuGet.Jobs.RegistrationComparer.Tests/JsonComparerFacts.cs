@@ -3,11 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
-using ValueNormalizer = System.Collections.Generic.KeyValuePair<NuGet.Jobs.RegistrationComparer.ShouldNormalizeByPath, NuGet.Jobs.RegistrationComparer.NormalizeToken>;
 using ArrayNormalizer = System.Collections.Generic.KeyValuePair<NuGet.Jobs.RegistrationComparer.ShouldNormalizeByArray, System.Comparison<Newtonsoft.Json.Linq.JToken>>;
+using ValueNormalizer = System.Collections.Generic.KeyValuePair<NuGet.Jobs.RegistrationComparer.ShouldNormalizeByPath, NuGet.Jobs.RegistrationComparer.NormalizeToken>;
 
 namespace NuGet.Jobs.RegistrationComparer
 {
@@ -169,6 +173,44 @@ namespace NuGet.Jobs.RegistrationComparer
             Target.Compare(a, b, GetContext(normalizers));
         }
 
+        [Fact]
+        public void AllowsPropertyNameWithAtToBeNormalized()
+        {
+            var normalizers = new Normalizers(
+                scalarNormalizers: new List<ValueNormalizer>(),
+                unsortedObjects: new List<ShouldNormalizeByPath>(),
+                unsortedArrays: new List<ArrayNormalizer>
+                {
+                    new ArrayNormalizer(
+                        array => array.Path == "@type",
+                        (x, y) => StringComparer.Ordinal.Compare((string)x, (string)y)),
+                });
+            var a = Json(new Dictionary<string, object> { { "@type", new[] { "foo", "bar" } } });
+            var b = Json(new Dictionary<string, object> { { "@type", new[] { "bar", "foo" } } });
+
+            Target.Compare(a, b, GetContext(normalizers));
+        }
+
+        [Fact]
+        public async Task NormalizesKnownUrl()
+        {
+            var leftBaseUrl = "https://api.nuget.org/v3/registration4-gz-semver2/";
+            var rightBaseUrl = "https://api.nuget.org/v3/registration5-gz-semver2/";
+            var packageId = "BaseTestPackage.SearchFilters";
+            var relativePath = "/index.json";
+            var context = new ComparisonContext(
+                packageId,
+                leftBaseUrl,
+                rightBaseUrl,
+                $"{leftBaseUrl}{packageId.ToLowerInvariant()}{relativePath}",
+                $"{rightBaseUrl}{packageId.ToLowerInvariant()}{relativePath}",
+                Normalizers.Index);
+            var a = await DownloadAsync(context.LeftUrl);
+            var b = await DownloadAsync(context.RightUrl);
+
+            Target.Compare(a, b, context);
+        }
+
         public JsonComparerFacts()
         {
             Context = GetContext();
@@ -201,6 +243,20 @@ namespace NuGet.Jobs.RegistrationComparer
         private JToken Json<T>(T obj)
         {
             return JsonConvert.DeserializeObject<JToken>(JsonConvert.SerializeObject(obj));
+        }
+
+        private async Task<JToken> DownloadAsync(string url)
+        {
+            using (var httpClientHandler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip })
+            using (var httpClient = new HttpClient(httpClientHandler))
+            using (var stream = await httpClient.GetStreamAsync(url))
+            using (var streamReader = new StreamReader(stream))
+            using (var jsonTextReader = new JsonTextReader(streamReader))
+            {
+                jsonTextReader.DateParseHandling = DateParseHandling.None;
+
+                return await JObject.LoadAsync(jsonTextReader);
+            }
         }
     }
 }
