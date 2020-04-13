@@ -227,6 +227,35 @@ namespace NuGetGallery
                 allowPrerelease);
         }
 
+        /// <inheritdoc />
+        public Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages, string version, bool preRelease)
+        {
+            if (preRelease)
+            {
+                if (string.IsNullOrEmpty(version))
+                    return packages
+                        .Where(package => package.IsPrerelease)
+                        .OrderByDescending(package => package.LastUpdated).FirstOrDefault(); 
+                
+                return packages
+                    .Where(package => package.IsPrerelease && package.Version.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                    .OrderByDescending(d => d.LastUpdated)
+                    .FirstOrDefault(); 
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(version))
+                    return packages
+                        .Where(package => !package.IsPrerelease)
+                        .OrderByDescending(package => package.LastUpdated).FirstOrDefault();
+                
+                return packages
+                    .Where(package => !package.IsPrerelease && package.Version.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                    .OrderByDescending(d => d.LastUpdated)
+                    .FirstOrDefault();
+            }
+        }
+
         private static Package FilterLatestPackageHelper(
             IReadOnlyCollection<Package> packages,
             int? semVerLevelKey,

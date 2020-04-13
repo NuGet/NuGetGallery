@@ -74,6 +74,9 @@ namespace NuGetGallery
             int? semVerLevelKey = SemVerLevelKey.SemVer2,
             bool allowPrerelease = true);
 
+        Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages,
+            string version, bool preRelease);
+
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
         IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);

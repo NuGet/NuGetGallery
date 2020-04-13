@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Web.Mvc;
 using System.Web.Routing;
+using RouteMagic.RouteHandlers;
 using Xunit;
 
 namespace NuGetGallery.Routing
@@ -71,6 +72,39 @@ namespace NuGetGallery.Routing
                 var constraint = new VersionRouteConstraint();
 
                 var result = constraint.Match(null, null, "version", routeValues, RouteDirection.IncomingRequest);
+
+                Assert.True(result);
+            }
+
+            [Fact]
+            public void ReturnsTrueIfVersionIsPrereleaseNoVersion()
+            {
+                var routeValues = new RouteValueDictionary { };
+                var constraint = new VersionRouteConstraint();
+
+                var result = constraint.Match(null, new Route(GalleryConstants.LatestUrlString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
+
+                Assert.True(result);
+            }
+
+            [Fact]
+            public void ReturnsTrueIfVersionIsLatestPrerelease()
+            {
+                var routeValues = new RouteValueDictionary { };
+                var constraint = new VersionRouteConstraint();
+
+                var result = constraint.Match(null, new Route(GalleryConstants.LatestUrlWithPreleaseString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
+
+                Assert.True(result);
+            }
+
+            [Fact]
+            public void ReturnsTrueIfVersionIsLatestPrereleaseWithVersion()
+            {
+                var routeValues = new RouteValueDictionary { };
+                var constraint = new VersionRouteConstraint();
+
+                var result = constraint.Match(null, new Route(GalleryConstants.LatestUrlWithPreleaseAndVersionString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
 
                 Assert.True(result);
             }

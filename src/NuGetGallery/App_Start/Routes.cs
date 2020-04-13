@@ -230,6 +230,28 @@ namespace NuGetGallery
                 new { version = new VersionRouteConstraint() });
 
             routes.MapRoute(
+                RouteName.DisplayReleasePackage,
+                "packages/{id}/latest",
+                new
+                {
+                    controller = "Packages",
+                    action = "DisplayPackage",
+                    version = UrlParameter.Optional
+                },
+                new {version = new VersionRouteConstraint()});
+
+            routes.MapRoute(
+                RouteName.DisplayPrereleasePackage,
+                "packages/{id}/latest/prerelease/{version}",
+                new
+                {
+                    controller = "Packages",
+                    action = "DisplayPackage",
+                    version = UrlParameter.Optional
+                },
+                new {version = new VersionRouteConstraint()});
+
+            routes.MapRoute(
                 RouteName.DisplayPackageFeed,
                 "packages/{id}/atom.xml",
                 new

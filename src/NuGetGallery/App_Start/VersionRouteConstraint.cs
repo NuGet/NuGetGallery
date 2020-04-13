@@ -39,6 +39,11 @@ namespace NuGetGallery
                 return true;
             }
 
+            if (route.Url.Equals(GalleryConstants.LatestUrlString, StringComparison.InvariantCultureIgnoreCase)
+                || route.Url.Equals(GalleryConstants.LatestUrlWithPreleaseString, StringComparison.InvariantCultureIgnoreCase)
+                || route.Url.Equals(GalleryConstants.LatestUrlWithPreleaseAndVersionString, StringComparison.InvariantCultureIgnoreCase))
+                return true;
+
             NuGetVersion ignored;
             return NuGetVersion.TryParse(versionText, out ignored);
         }

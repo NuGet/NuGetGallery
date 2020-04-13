@@ -809,10 +809,18 @@ namespace NuGetGallery
                     // The user is looking for the absolute latest version and not an exact version.
                     package = allVersions.FirstOrDefault(p => p.IsLatestSemVer2);
                 }
+                else if (LatestPackageRouteVerifier.IsLatestRoute(RouteData.Route, out var preRelease))
+                {
+                    package = _packageService.FilterLatestPackageBySuffix(allVersions, version, preRelease);
+                }
                 else
                 {
                     package = _packageService.FilterExactPackage(allVersions, version);
                 }
+            } 
+            else if (LatestPackageRouteVerifier.IsLatestRoute(RouteData.Route, out var preRelease))
+            {
+                package = _packageService.FilterLatestPackageBySuffix(allVersions, version, preRelease);
             }
 
             if (package == null)

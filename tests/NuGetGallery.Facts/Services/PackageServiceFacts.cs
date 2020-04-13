@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Migrations.Model;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Frameworks;
@@ -53,6 +55,54 @@ namespace NuGetGallery
             }
 
             return packageService.Object;
+        }
+        
+        public class TheFindPackageBySuffixMethod
+        {
+            private Package InvokeMethod(IReadOnlyCollection<Package> packages, string version, bool preRelease)
+            {
+                var service = CreateService();
+                return service.FilterLatestPackageBySuffix(packages, version, preRelease);
+            }
+            
+            [Theory]
+            [InlineData("alpha", true, 4)]
+            [InlineData("alpha2-internal", true, 4)]
+            [InlineData("alpha1", true, 2)]
+            [InlineData("alpha2", true, 4)]
+            [InlineData("alpha3", true, -1)]
+            [InlineData("internal", true, 4)]
+            [InlineData("", true, 5)]
+            [InlineData("", false, 1)]
+            public void VerifyAll(string version, bool preRelease, int expectedResultIndex)
+            {
+                var r = new Regex(@"-[^d]");
+                var testData = new[]
+                {
+                    ("1.0.0", 1),
+                    ("1.0.0.23", 2),
+                    ("1.0.23-alpha1", 3),
+                    ("1.0.23-alpha2-internal3", 4),
+                    ("1.0.23-alpha2-internal2", 5),
+                    ("1.0.23-beta", 6),
+                }
+                    .Select(data => new Package() { 
+                        IsPrerelease = r.IsMatch(data.Item1), 
+                        Version = data.Item1, 
+                        LastUpdated = new DateTime(2000, 1, data.Item2)})
+                    .ToArray();
+
+                if (expectedResultIndex >= 0)
+                {
+                    var result = InvokeMethod(testData, version, preRelease);
+                    Assert.Equal(testData[expectedResultIndex], result);
+                }
+                else
+                {
+                    var result = InvokeMethod(testData, version, preRelease);
+                    Assert.Equal(null, result);
+                }
+            }
         }
 
         public class TheAddPackageOwnerMethod
