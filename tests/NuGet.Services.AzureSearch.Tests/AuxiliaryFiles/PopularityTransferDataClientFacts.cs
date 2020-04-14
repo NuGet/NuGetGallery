@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -21,11 +20,11 @@ using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
-    public class OwnerDataClientFacts
+    public class PopularityTransferDataClientFacts
     {
-        public class ReadLatestIndexedAsync : Facts
+        public class ReadLatestIndexed : Facts
         {
-            public ReadLatestIndexedAsync(ITestOutputHelper output) : base(output)
+            public ReadLatestIndexed(ITestOutputHelper output) : base(output)
             {
             }
 
@@ -43,8 +42,8 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
 
                 TelemetryService.Verify(
-                    x => x.TrackReadLatestIndexedOwners(
-                        /* packageIdCount: */ 0,
+                    x => x.TrackReadLatestIndexedPopularityTransfers(
+                        /*outgoingTransfers: */ 0,
                         It.IsAny<TimeSpan>()),
                     Times.Once);
             }
@@ -68,8 +67,8 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 Assert.Equal("*", output.AccessCondition.IfNoneMatchETag);
 
                 TelemetryService.Verify(
-                    x => x.TrackReadLatestIndexedOwners(
-                        /* packageIdCount: */ 0,
+                    x => x.TrackReadLatestIndexedPopularityTransfers(
+                        /*outgoingTransfers: */ 0,
                         It.IsAny<TimeSpan>()),
                     Times.Once);
             }
@@ -81,13 +80,13 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 {
                     new object[]
                     {
-                        "nuget.versioning",
-                        new[] { "nuget", "Microsoft" }
+                        "WindowsAzure.ServiceBus",
+                        new[] { "Azure.Messaging.ServiceBus" }
                     },
                     new object[]
                     {
-                        "EntityFramework",
-                        new[] { "Microsoft", "aspnet", "EntityFramework" }
+                        "WindowsAzure.Storage",
+                        new[] { "Azure.Storage.Blobs", "Azure.Storage.Queues" }
                     }
                 });
                 CloudBlob
@@ -97,34 +96,24 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => Target.ReadLatestIndexedAsync());
                 Assert.Equal("The first token should be the start of an object.", ex.Message);
-
-                TelemetryService.Verify(
-                    x => x.TrackReadLatestIndexedOwners(
-                        It.IsAny<int>(),
-                        It.IsAny<TimeSpan>()),
-                    Times.Never);
             }
 
             [Fact]
-            public async Task ReadsOwners()
+            public async Task ReadsPopularityTransfers()
             {
                 var json = JsonConvert.SerializeObject(new Dictionary<string, string[]>
                 {
                     {
-                        "nuget.versioning",
-                        new[] { "nuget", "Microsoft" }
+                        "windowsazure.servicebus",
+                        new[] { "Azure.Messaging.ServiceBus" }
                     },
                     {
-                        "EntityFramework",
-                        new[] { "Microsoft", "aspnet", "EntityFramework" }
-                    },
-                    {
-                        "NuGet.Core",
-                        new[] { "nuget" }
+                        "WindowsAzure.Storage",
+                        new[] { "Azure.Storage.Blobs", "Azure.Storage.Queues" }
                     },
                     {
                         "ZDuplicate",
-                        new[] { "ownerA", "ownera", "OWNERA", "ownerB" }
+                        new[] { "packageA", "packagea", "PACKAGEA", "packageB" }
                     },
                 });
                 CloudBlob
@@ -133,24 +122,21 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 var output = await Target.ReadLatestIndexedAsync();
 
-                Assert.Equal(4, output.Result.Count);
-                Assert.Equal(new[] { "EntityFramework", "NuGet.Core", "nuget.versioning", "ZDuplicate" }, output.Result.Keys.ToArray());
-                Assert.Equal(new[] { "aspnet", "EntityFramework", "Microsoft" }, output.Result["EntityFramework"].ToArray());
-                Assert.Equal(new[] { "nuget" }, output.Result["NuGet.Core"].ToArray());
-                Assert.Equal(new[] { "Microsoft", "nuget" }, output.Result["nuget.versioning"].ToArray());
-                Assert.Equal(new[] { "ownerA", "ownerB" }, output.Result["ZDuplicate"].ToArray());
+                Assert.Equal(3, output.Result.Count);
+                Assert.Equal(new[] { "windowsazure.servicebus", "WindowsAzure.Storage", "ZDuplicate" }, output.Result.Keys.ToArray());
+                Assert.Equal(new[] { "Azure.Messaging.ServiceBus" }, output.Result["windowsazure.servicebus"].ToArray());
+                Assert.Equal(new[] { "Azure.Storage.Blobs", "Azure.Storage.Queues" }, output.Result["WindowsAzure.Storage"].ToArray());
+                Assert.Equal(new[] { "packageA", "packageB" }, output.Result["ZDuplicate"].ToArray());
                 Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result.Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["EntityFramework"].Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["NuGet.Core"].Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["nuget.versioning"].Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["windowsazure.servicebus"].Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["WindowsAzure.Storage"].Comparer);
                 Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["ZDuplicate"].Comparer);
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
 
-                CloudBlobContainer.Verify(x => x.GetBlobReference("owners/owners.v2.json"), Times.Once);
-
+                CloudBlobContainer.Verify(x => x.GetBlobReference("popularity-transfers/popularity-transfers.v1.json"), Times.Once);
                 TelemetryService.Verify(
-                    x => x.TrackReadLatestIndexedOwners(
-                        /* packageIdCount: */ 4,
+                    x => x.TrackReadLatestIndexedPopularityTransfers(
+                        /*outgoingTransfers: */ 3,
                         It.IsAny<TimeSpan>()),
                     Times.Once);
             }
@@ -161,12 +147,12 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var json = JsonConvert.SerializeObject(new Dictionary<string, string[]>
                 {
                     {
-                        "NoOwners",
+                        "NoTransfers",
                         new string[0]
                     },
                     {
-                        "NuGet.Core",
-                        new[] { "nuget" }
+                        "PackageA",
+                        new[] { "PackageB" }
                     },
                 });
                 CloudBlob
@@ -176,15 +162,15 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var output = await Target.ReadLatestIndexedAsync();
 
                 Assert.Single(output.Result);
-                Assert.Equal(new[] { "NuGet.Core" }, output.Result.Keys.ToArray());
-                Assert.Equal(new[] { "nuget" }, output.Result["NuGet.Core"].ToArray());
+                Assert.Equal(new[] { "PackageA" }, output.Result.Keys.ToArray());
+                Assert.Equal(new[] { "PackageB" }, output.Result["PackageA"].ToArray());
                 Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result.Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["NuGet.Core"].Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["PackageA"].Comparer);
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
 
                 TelemetryService.Verify(
-                    x => x.TrackReadLatestIndexedOwners(
-                        /* packageIdCount: */ 1,
+                    x => x.TrackReadLatestIndexedPopularityTransfers(
+                        /*outgoingTransfers: */ 1,
                         It.IsAny<TimeSpan>()),
                     Times.Once);
             }
@@ -194,10 +180,11 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             {
                 var json = @"
 {
-  ""NuGet.Core"": [ ""nuget"" ],
-  ""NuGet.Core"": [ ""aspnet"" ],
-  ""nuget.core"": [ ""microsoft"" ]
+  ""PackageA"": [ ""packageB"" ],
+  ""PackageA"": [ ""packageC"" ],
+  ""packagea"": [ ""packageD"" ]
 }";
+
                 CloudBlob
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
@@ -205,23 +192,23 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var output = await Target.ReadLatestIndexedAsync();
 
                 Assert.Single(output.Result);
-                Assert.Equal(new[] { "NuGet.Core" }, output.Result.Keys.ToArray());
-                Assert.Equal(new[] { "aspnet", "microsoft", "nuget" }, output.Result["NuGet.Core"].ToArray());
+                Assert.Equal(new[] { "PackageA" }, output.Result.Keys.ToArray());
+                Assert.Equal(new[] { "packageB", "packageC", "packageD" }, output.Result["packageA"].ToArray());
                 Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result.Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["NuGet.Core"].Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["packageA"].Comparer);
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
 
                 TelemetryService.Verify(
-                    x => x.TrackReadLatestIndexedOwners(
-                        /* packageIdCount: */ 1,
+                    x => x.TrackReadLatestIndexedPopularityTransfers(
+                        /*outgoingTransfers: */ 1,
                         It.IsAny<TimeSpan>()),
                     Times.Once);
             }
         }
 
-        public class ReplaceLatestIndexedAsync : Facts
+        public class ReplaceLatestIndexed : Facts
         {
-            public ReplaceLatestIndexedAsync(ITestOutputHelper output) : base(output)
+            public ReplaceLatestIndexed(ITestOutputHelper output) : base(output)
             {
             }
 
@@ -252,8 +239,8 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var newData = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase)
                 {
                     {
-                        "nuget.versioning",
-                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "nuget", "Microsoft" }
+                        "PackageA",
+                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "packageB", "packageC" }
                     }
                 };
 
@@ -269,21 +256,17 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 var newData = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase)
                 {
                     {
-                        "nuget.versioning",
-                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "nuget", "Microsoft" }
+                        "PackageB",
+                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "PackageA", "PackageB" }
                     },
                     {
-                        "ZDuplicate",
-                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "ownerA", "ownera", "OWNERA", "ownerB" }
+                        "PackageA",
+                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "PackageC", "packagec", "packageC", "PackageB" }
                     },
                     {
-                        "EntityFramework",
-                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "Microsoft", "aspnet", "EntityFramework" }
-                    },
-                    {
-                        "NuGet.Core",
-                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "nuget" }
-                    },
+                        "PackageC",
+                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "PackageZ" }
+                    }
                 };
 
                 await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
@@ -293,124 +276,23 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 json = JsonConvert.DeserializeObject<JObject>(json).ToString();
 
                 Assert.Equal(@"{
-  ""EntityFramework"": [
-    ""aspnet"",
-    ""EntityFramework"",
-    ""Microsoft""
+  ""PackageA"": [
+    ""PackageB"",
+    ""PackageC""
   ],
-  ""NuGet.Core"": [
-    ""nuget""
+  ""PackageB"": [
+    ""PackageA"",
+    ""PackageB""
   ],
-  ""nuget.versioning"": [
-    ""Microsoft"",
-    ""nuget""
-  ],
-  ""ZDuplicate"": [
-    ""ownerA"",
-    ""ownerB""
+  ""PackageC"": [
+    ""PackageZ""
   ]
 }", json);
-
                 TelemetryService.Verify(
-                    x => x.TrackReplaceLatestIndexedOwners(
-                        /*packageIdCount: */ 4),
+                    x => x.TrackReplaceLatestIndexedPopularityTransfers(
+                        /*outgoingTransfers: */ 3),
                     Times.Once);
-                ReplaceLatestIndexedOwnersDurationMetric.Verify(x => x.Dispose(), Times.Once);
-            }
-        }
-
-        public class UploadChangeHistoryAsync : Facts
-        {
-            public UploadChangeHistoryAsync(ITestOutputHelper output) : base(output)
-            {
-            }
-
-            [Fact]
-            public async Task RejectsEmptyList()
-            {
-                var ex = await Assert.ThrowsAsync<ArgumentException>(
-                    () => Target.UploadChangeHistoryAsync(new string[0]));
-                Assert.Contains("The list of package IDs must have at least one element.", ex.Message);
-            }
-
-            [Fact]
-            public async Task SerializesWithoutBOM()
-            {
-                await Target.UploadChangeHistoryAsync(new[] { "nuget" });
-
-                var bytes = Assert.Single(SavedBytes);
-                Assert.Equal((byte)'[', bytes[0]);
-            }
-
-            [Fact]
-            public async Task SetsContentType()
-            {
-                await Target.UploadChangeHistoryAsync(new[] { "nuget" });
-
-                Assert.Equal("application/json", CloudBlob.Object.Properties.ContentType);
-            }
-
-            [Fact]
-            public async Task UsesTimestampAsBlobName()
-            {
-                var before = DateTimeOffset.UtcNow;
-                await Target.UploadChangeHistoryAsync(new[] { "nuget" });
-                var after = DateTimeOffset.UtcNow;
-
-                var blobName = Assert.Single(BlobNames);
-                var slashIndex = blobName.LastIndexOf('/');
-                Assert.True(slashIndex >= 0, "The index of the last slash must not be negative.");
-
-                var directoryName = blobName.Substring(0, slashIndex);
-                Assert.Equal("owners/changes", directoryName);
-
-                var fileName = blobName.Substring(slashIndex + 1);
-                Assert.EndsWith(".json", fileName);
-                var timestamp = DateTimeOffset.ParseExact(
-                    fileName,
-                    "yyyy-MM-dd-HH-mm-ss-FFFFFFF\\.\\j\\s\\o\\n",
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeUniversal);
-                Assert.InRange(timestamp, before, after);
-            }
-
-            [Fact]
-            public async Task SerializedWithoutIndentation()
-            {
-                var input = new[] { "nuget", "Microsoft" };
-
-                await Target.UploadChangeHistoryAsync(input);
-
-                var json = Assert.Single(SavedStrings);
-                Assert.DoesNotContain("\n", json);
-            }
-
-            [Fact]
-            public async Task SerializesInProvidedOrder()
-            {
-                var input = new[]
-                {
-                    "ZZZ",
-                    "AAA",
-                    "B",
-                    "B",
-                    "z",
-                    "00"
-                };
-
-                await Target.UploadChangeHistoryAsync(input);
-
-                // Pretty-ify the JSON to make the assertion clearer.
-                var json = Assert.Single(SavedStrings);
-                json = JsonConvert.DeserializeObject<JArray>(json).ToString();
-                Assert.Equal(@"[
-  ""ZZZ"",
-  ""AAA"",
-  ""B"",
-  ""B"",
-  ""z"",
-  ""00""
-]", json);
+                ReplaceLatestIndexedPopularityTransfersDurationMetric.Verify(x => x.Dispose(), Times.Once);
             }
         }
 
@@ -423,7 +305,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 CloudBlob = new Mock<ISimpleCloudBlob>();
                 Options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 TelemetryService = new Mock<IAzureSearchTelemetryService>();
-                Logger = output.GetLogger<OwnerDataClient>();
+                Logger = output.GetLogger<PopularityTransferDataClient>();
                 Config = new AzureSearchJobConfiguration
                 {
                     StorageContainer = "unit-test-container",
@@ -431,7 +313,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 ETag = "\"some-etag\"";
                 AccessCondition = new Mock<IAccessCondition>();
-                ReplaceLatestIndexedOwnersDurationMetric = new Mock<IDisposable>();
+                ReplaceLatestIndexedPopularityTransfersDurationMetric = new Mock<IDisposable>();
 
                 Options
                     .Setup(x => x.Value)
@@ -458,10 +340,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Returns(new CloudBlockBlob(new Uri("https://example/blob")).Properties);
 
                 TelemetryService
-                    .Setup(x => x.TrackReplaceLatestIndexedOwners(It.IsAny<int>()))
-                    .Returns(ReplaceLatestIndexedOwnersDurationMetric.Object);
+                    .Setup(x => x.TrackReplaceLatestIndexedPopularityTransfers(It.IsAny<int>()))
+                    .Returns(ReplaceLatestIndexedPopularityTransfersDurationMetric.Object);
 
-                Target = new OwnerDataClient(
+                Target = new PopularityTransferDataClient(
                     CloudBlobClient.Object,
                     Options.Object,
                     TelemetryService.Object,
@@ -473,12 +355,12 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public Mock<ISimpleCloudBlob> CloudBlob { get; }
             public Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> Options { get; }
             public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
-            public RecordingLogger<OwnerDataClient> Logger { get; }
+            public RecordingLogger<PopularityTransferDataClient> Logger { get; }
             public AzureSearchJobConfiguration Config { get; }
             public string ETag { get; }
             public Mock<IAccessCondition> AccessCondition { get; }
-            public Mock<IDisposable> ReplaceLatestIndexedOwnersDurationMetric { get; }
-            public OwnerDataClient Target { get; }
+            public Mock<IDisposable> ReplaceLatestIndexedPopularityTransfersDurationMetric { get; }
+            public PopularityTransferDataClient Target { get; }
 
             public List<string> BlobNames { get; } = new List<string>();
             public List<byte[]> SavedBytes { get; } = new List<byte[]>();

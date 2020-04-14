@@ -44,6 +44,7 @@
     <Compile Include="AuxiliaryFiles\DownloadDataClientFacts.cs" />
     <Compile Include="AuxiliaryFiles\DownloadDataFacts.cs" />
     <Compile Include="AuxiliaryFiles\JsonStringArrayFileParsingTests.cs" />
+    <Compile Include="AuxiliaryFiles\PopularityTransferDataClientFacts.cs" />
     <Compile Include="AuxiliaryFiles\StringCacheFacts.cs" />
     <Compile Include="AuxiliaryFiles\VerifiedPackagesDataClientFacts.cs" />
     <Compile Include="BaseDocumentBuilderFacts.cs" />

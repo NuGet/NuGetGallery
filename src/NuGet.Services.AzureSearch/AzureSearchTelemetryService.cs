@@ -178,6 +178,27 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
+        public void TrackReadLatestIndexedPopularityTransfers(int outgoingTransfers, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "ReadLatestIndexedPopularityTransfersSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "OutgoingTransfers", outgoingTransfers.ToString() }
+                });
+        }
+
+        public IDisposable TrackReplaceLatestIndexedPopularityTransfers(int outogingTransfers)
+        {
+            return _telemetryClient.TrackDuration(
+                Prefix + "ReplaceLatestIndexedPopularityTransfers",
+                new Dictionary<string, string>
+                {
+                    { "OutgoingTransfers", outogingTransfers.ToString() }
+                });
+        }
+
         public IDisposable TrackCatalog2AzureSearchProcessBatch(int catalogLeafCount, int latestCatalogLeafCount, int packageIdCount)
         {
             return _telemetryClient.TrackDuration(
