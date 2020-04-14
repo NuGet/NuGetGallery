@@ -22,6 +22,7 @@ namespace NuGet.Services.AzureSearch
         void TrackReadLatestOwnersFromDatabase(int packageIdCount, TimeSpan elapsed);
         void TrackPopularityTransfersSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed);
         void TrackReadLatestIndexedPopularityTransfers(int outgoingTransfers, TimeSpan elapsed);
+        void TrackReadLatestPopularityTransfersFromDatabase(int outgoingTransfers, TimeSpan elapsed);
         void TrackReadLatestVerifiedPackagesFromDatabase(int packageIdCount, TimeSpan elapsed);
         IDisposable TrackReplaceLatestIndexedOwners(int packageIdCount);
         IDisposable TrackUploadOwnerChangeHistory(int packageIdCount);

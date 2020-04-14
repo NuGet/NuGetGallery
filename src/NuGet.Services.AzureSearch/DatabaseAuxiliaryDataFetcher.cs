@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
@@ -35,6 +36,20 @@ SELECT
 FROM PackageRegistrations pr (NOLOCK)
 INNER JOIN PackageRegistrationOwners pro (NOLOCK) ON pro.PackageRegistrationKey = pr.[Key]
 INNER JOIN Users u (NOLOCK) ON pro.UserKey = u.[Key]
+";
+
+        private const int GetPopularityTransfersPageSize = 1000;
+        private const string GetPopularityTransfersSkipParameter = "@skip";
+        private const string GetPopularityTransfersTakeParameter = "@take";
+        private const string GetPopularityTransfersSql = @"
+SELECT TOP (@take)
+    fpr.Id AS FromPackageId,
+    tpr.Id AS ToPackageId
+FROM PackageRenames r (NOLOCK)
+INNER JOIN PackageRegistrations fpr (NOLOCK) ON fpr.[Key] = r.[FromPackageRegistrationKey]
+INNER JOIN PackageRegistrations tpr (NOLOCK) ON tpr.[Key] = r.[ToPackageRegistrationKey]
+WHERE r.TransferPopularity != 0 AND r.[Key] >= @skip
+ORDER BY r.[Key] ASC
 ";
 
         public DatabaseAuxiliaryDataFetcher(
@@ -135,6 +150,52 @@ INNER JOIN Users u (NOLOCK) ON pro.UserKey = u.[Key]
 
                     return output;
                 }
+            }
+        }
+
+        public async Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToPopularityTransfersAsync()
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var builder = new PackageIdToPopularityTransfersBuilder(_logger);
+            using (var connection = await _connectionFactory.OpenAsync())
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = GetPopularityTransfersSql;
+                command.Parameters.Add(GetPopularityTransfersSkipParameter, SqlDbType.Int);
+                command.Parameters.AddWithValue(GetPopularityTransfersTakeParameter, GetPopularityTransfersPageSize);
+
+                // Load popularity transfers by paging through the database.
+                // We continue paging until we receive fewer results than the page size.
+                int currentPageResults;
+                int totalResults = 0;
+                do
+                {
+                    command.Parameters[GetPopularityTransfersSkipParameter].Value = totalResults;
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        currentPageResults = 0;
+
+                        while (await reader.ReadAsync())
+                        {
+                            currentPageResults++;
+
+                            var fromId = reader.GetString(0);
+                            var toId = reader.GetString(1);
+
+                            builder.Add(fromId, toId);
+                        }
+                    }
+
+                    totalResults += currentPageResults;
+                }
+                while (currentPageResults == GetPopularityTransfersPageSize);
+
+                var output = builder.GetResult();
+                stopwatch.Stop();
+                _telemetryService.TrackReadLatestPopularityTransfersFromDatabase(output.Count, stopwatch.Elapsed);
+
+                return output;
             }
         }
     }

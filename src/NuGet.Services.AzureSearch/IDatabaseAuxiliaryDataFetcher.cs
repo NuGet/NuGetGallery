@@ -25,6 +25,13 @@ namespace NuGet.Services.AzureSearch
         Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToOwnersAsync();
 
         /// <summary>
+        /// Fetch a mapping of package IDs to set of replacement package IDs for each renamed packages that transfer
+        /// popularity in the gallery database.
+        /// </summary>
+        /// <returns></returns>
+        Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToPopularityTransfersAsync();
+
+        /// <summary>
         /// Fetch the set of all verified package IDs.
         /// </summary>
         Task<HashSet<string>> GetVerifiedPackagesAsync();
