@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace NuGetGallery
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
+        private readonly IEntitiesContext _entitiesContext;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
@@ -31,12 +33,14 @@ namespace NuGetGallery
             IEntityRepository<Certificate> certificateRepository,
             IAuditingService auditingService,
             ITelemetryService telemetryService,
-            ISecurityPolicyService securityPolicyService)
+            ISecurityPolicyService securityPolicyService,
+            IEntitiesContext context)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
+            _entitiesContext = context;
         }
 
         /// <summary>
@@ -136,10 +140,48 @@ namespace NuGetGallery
         }
 
         public virtual IReadOnlyCollection<Package> FindPackagesById(
-            string id, 
+            string id,
             PackageDeprecationFieldsToInclude deprecationFields = PackageDeprecationFieldsToInclude.None)
         {
             return GetPackagesByIdQueryable(id, deprecationFields).ToList();
+        }
+
+        public IReadOnlyCollection<PackageDependent> GetPackageDependents(string id)
+        {
+
+            var conn = _entitiesContext.GetDatabase().Connection;
+            conn.Open();
+            var result = new List<PackageDependent>();
+            using (var comm2 = conn.CreateCommand())
+            {
+                comm2.CommandText = @"SELECT TOP 10 PackageRegistrations.id, PackageRegistrations.DownloadCount FROM PackageDependencies
+
+                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
+
+                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[key]
+
+                WHERE PackageDependencies.id = @id  AND Packages.IsLatest = 1
+                GROUP BY PackageRegistrations.id, PackageRegistrations.DownloadCount
+                ORDER BY PackageRegistrations.DownloadCount DESC";
+
+                var parameter = comm2.CreateParameter();
+                parameter.ParameterName = "@id";
+                parameter.Value = id;
+
+
+                comm2.Parameters.Add(parameter);
+                using (DbDataReader reader = comm2.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var packageDepen = new PackageDependent();
+                        packageDepen.Id = (String)reader["id"];
+                        packageDepen.DownloadCount = (int)reader["DownloadCount"];
+                        result.Add(packageDepen);
+                    }
+                }
+            }
+            return result;
         }
 
         public virtual IReadOnlyCollection<Package> FindPackagesById(

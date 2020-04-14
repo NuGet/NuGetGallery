@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Common;
 using System.Data.Entity;
 using System.IO;
 using System.Reflection;
@@ -17,7 +18,9 @@ namespace NuGetGallery
         {
             _database = database ?? throw new ArgumentNullException(nameof(database));
         }
-        
+
+        public DbConnection Connection => _database.Connection;
+            
         public Task<int> ExecuteSqlCommandAsync(string sql, params object[] parameters)
         {
             return _database.ExecuteSqlCommandAsync(sql, parameters);

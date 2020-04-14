@@ -801,6 +801,7 @@ namespace NuGetGallery
             // Load all packages with the ID.
             Package package = null;
             var allVersions = _packageService.FindPackagesById(id, includePackageRegistration: true);
+            var dependence = _packageService.GetPackageDependents(id);
 
             if (version != null)
             {
@@ -850,6 +851,7 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            model.packageDependents = dependence;
 
             if(model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
