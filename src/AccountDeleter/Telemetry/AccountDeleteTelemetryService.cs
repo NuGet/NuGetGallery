@@ -17,6 +17,7 @@ namespace NuGetGallery.AccountDeleter
         private const string EmailBlockedEventName = TelemetryPrefix + "EmailBlocked";
         private const string UnknownSourceEventName = TelemetryPrefix + "UnknownSource";
         private const string UserNotFoundEventName = TelemetryPrefix + "UserNotFound";
+        private const string UnconfirmedUserEventName = TelemetryPrefix + "UnconfirmedUser";
 
         private const string CallGuidDimensionName = "CallGuid";
         private const string ContactAllowedDimensionName = "ContactAllowed";
@@ -129,6 +130,15 @@ namespace NuGetGallery.AccountDeleter
                     { MessageTypeDimensionName, typeof(TMessage).Name },
                     { CallGuidDimensionName, callGuid.ToString() }
                    });
+        }
+
+        public void TrackUnconfirmedUser(string source)
+        {
+            _telemetryClient.TrackEvent(UnconfirmedUserEventName,
+                new Dictionary<string, string>
+                {
+                    { SourceDimensionName, source }
+                });
         }
     }
 }

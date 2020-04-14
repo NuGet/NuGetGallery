@@ -64,7 +64,6 @@
     <Compile Include="Evaluators\IUserEvaluatorFactory.cs" />
     <Compile Include="Evaluators\UserEvaluatorComparer.cs" />
     <Compile Include="Evaluators\UserEvaluatorFactory.cs" />
-    <Compile Include="Exceptions\EmailContactNotAllowedException.cs" />
     <Compile Include="Exceptions\UnknownEvaluatorException.cs" />
     <Compile Include="Exceptions\UnknownSourceException.cs" />
     <Compile Include="Exceptions\UserNotFoundException.cs" />
