@@ -17,7 +17,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
     {
         private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
         private readonly IOwnerDataClient _ownerDataClient;
-        private readonly IOwnerSetComparer _ownerSetComparer;
+        private readonly IDataSetComparer _ownerSetComparer;
         private readonly ISearchDocumentBuilder _searchDocumentBuilder;
         private readonly ISearchIndexActionBuilder _searchIndexActionBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
@@ -28,7 +28,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         public UpdateOwnersCommand(
             IDatabaseAuxiliaryDataFetcher databaseFetcher,
             IOwnerDataClient ownerDataClient,
-            IOwnerSetComparer ownerSetComparer,
+            IDataSetComparer ownerSetComparer,
             ISearchDocumentBuilder searchDocumentBuilder,
             ISearchIndexActionBuilder indexActionBuilder,
             Func<IBatchPusher> batchPusherFactory,
@@ -67,7 +67,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 var databaseResult = await _databaseFetcher.GetPackageIdToOwnersAsync();
 
                 _logger.LogInformation("Detecting owner changes.");
-                var changes = _ownerSetComparer.Compare(storageResult.Result, databaseResult);
+                var changes = _ownerSetComparer.CompareOwners(storageResult.Result, databaseResult);
                 var changesBag = new ConcurrentBag<IdAndValue<string[]>>(changes.Select(x => new IdAndValue<string[]>(x.Key, x.Value)));
                 _logger.LogInformation("{Count} package IDs have owner changes.", changesBag.Count);
 

@@ -249,6 +249,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ICatalogLeafFetcher, CatalogLeafFetcher>();
             services.AddTransient<ICommitCollectorLogic, AzureSearchCollectorLogic>();
             services.AddTransient<IDatabaseAuxiliaryDataFetcher, DatabaseAuxiliaryDataFetcher>();
+            services.AddTransient<IDataSetComparer, DataSetComparer>();
             services.AddTransient<IDocumentFixUpEvaluator, DocumentFixUpEvaluator>();
             services.AddTransient<IDownloadSetComparer, DownloadSetComparer>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
@@ -256,7 +257,6 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IIndexBuilder, IndexBuilder>();
             services.AddTransient<IIndexOperationBuilder, IndexOperationBuilder>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
-            services.AddTransient<IOwnerSetComparer, OwnerSetComparer>();
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
             services.AddTransient<ISearchDocumentBuilder, SearchDocumentBuilder>();
             services.AddTransient<ISearchIndexActionBuilder, SearchIndexActionBuilder>();

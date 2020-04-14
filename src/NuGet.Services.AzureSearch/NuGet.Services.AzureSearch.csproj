@@ -89,10 +89,10 @@
     <Compile Include="JobOutcome.cs" />
     <Compile Include="Models\IUpdatedDocument.cs" />
     <Compile Include="Models\UpdatedDocument.cs" />
-    <Compile Include="Auxiliary2AzureSearch\IOwnerSetComparer.cs" />
     <Compile Include="PackageIdToPopularityTransfersBuilder.cs" />
+    <Compile Include="Auxiliary2AzureSearch\IDataSetComparer.cs" />
     <Compile Include="SearchIndexActionBuilder.cs" />
-    <Compile Include="Auxiliary2AzureSearch\OwnerSetComparer.cs" />
+    <Compile Include="Auxiliary2AzureSearch\DataSetComparer.cs" />
     <Compile Include="PackageIdToOwnersBuilder.cs" />
     <Compile Include="AuxiliaryFiles\IOwnerDataClient.cs" />
     <Compile Include="AuxiliaryFiles\OwnerDataClient.cs" />

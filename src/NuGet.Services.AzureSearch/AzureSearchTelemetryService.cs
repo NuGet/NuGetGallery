@@ -189,6 +189,19 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
+        public void TrackPopularityTransfersSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "PopularityTransfersSetComparisonSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "OldCount", oldCount.ToString() },
+                    { "NewCount", oldCount.ToString() },
+                    { "ChangeCount", oldCount.ToString() },
+                });
+        }
+
         public IDisposable TrackReplaceLatestIndexedPopularityTransfers(int outogingTransfers)
         {
             return _telemetryClient.TrackDuration(

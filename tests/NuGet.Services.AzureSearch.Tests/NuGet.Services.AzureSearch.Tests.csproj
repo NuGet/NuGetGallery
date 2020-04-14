@@ -68,7 +68,7 @@
     <Compile Include="AuxiliaryFiles\OwnerDataClientFacts.cs" />
     <Compile Include="SearchIndexActionBuilderFacts.cs" />
     <Compile Include="Auxiliary2AzureSearch\UpdateOwnersCommandFacts.cs" />
-    <Compile Include="Auxiliary2AzureSearch\OwnerSetComparerFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\DataSetComparerFacts.cs" />
     <Compile Include="SearchDocumentBuilderFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataCacheFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataFacts.cs" />
