@@ -10,5 +10,15 @@ namespace NuGetGallery
     {
         public String Id { get; set; }
         public int DownloadCount { get; set; }
+
+        public String Description { get; set; }
     }
+
+    public class CreatePackageDependents
+    {
+        public IReadOnlyCollection<PackageDependent> PackageList {get; set;}
+        public int TotalDownloads { get; set; }
+    }
+   
 }
+      

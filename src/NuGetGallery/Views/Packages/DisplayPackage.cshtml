@@ -550,14 +550,14 @@
                    id="show-dependents-groups">
                     <i class="ms-Icon ms-Icon--ChevronRight"
                        aria-hidden="true"></i>
-                    <span>Dependents (Rough) </span>
+                    <span>Dependents (@Model.packageDependents.TotalDownloads.ToKiloFormat()) </span>
                 </a>
             </h2>
-            @if (Model.packageDependents.Count > 0)
+            @if (Model.packageDependents.PackageList.Count> 0)
             {
                 <div class="dependents-groups panel-collapse collapse" aria-expanded="true" id="dependents-groups">
                     <p>
-                        Showing the top @(Model.packageDependents.Count) packages that depend on @(Model.Id):
+                        Showing the top @(Model.packageDependents.PackageList.Count) packages that depend on @(Model.Id): 
                     </p>
                     <table class="table borderless">
                         <thead>
@@ -569,15 +569,23 @@
                         </thead>
 
                         <tbody class="no-border">
-                            @foreach (var item in Model.packageDependents)
+                            @foreach (var item in Model.packageDependents.PackageList)
                             {
                                 <tr>
                                     <td class="gh-repo-column">
-                                        @(item.Id)
+                                        <a  class="text-left gh-link" href="@Url.Package(item.Id)">
+                                            @(item.Id)
+                                        </a>
+                                        
+
+                                        <div class="row gh-desc">
+                                            <span>@(item.Description)</span>
+
+                                        </div>
                                     </td>
-                                    <td class="gh-empty-column"></td>
+                                        <td class="gh-empty-column"></td>
                                     <td>
-                                        <i class="ms-Icon ms-Icon--FavoriteStarFill download" aria-hidden="true"></i> <label class="download-count">@(item.DownloadCount)</label>
+                                            <i class="ms-Icon ms-Icon--FavoriteStarFill download" aria-hidden="true"></i> <label class="download-count">@(item.DownloadCount)</label>
                                     </td>
                                 </tr>
                             }

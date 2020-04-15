@@ -146,23 +146,29 @@ namespace NuGetGallery
             return GetPackagesByIdQueryable(id, deprecationFields).ToList();
         }
 
-        public IReadOnlyCollection<PackageDependent> GetPackageDependents(string id)
+        public CreatePackageDependents GetPackageDependents(string id)
         {
-
+            CreatePackageDependents res = new CreatePackageDependents();
+         
             var conn = _entitiesContext.GetDatabase().Connection;
             conn.Open();
-            var result = new List<PackageDependent>();
+            res.PackageList = GetListOfDependents(id, conn);
+            res.TotalDownloads = showTotalDownloads(id, conn);
+            return res;
+        }
+
+        public IReadOnlyCollection<PackageDependent> GetListOfDependents(String id, DbConnection conn)
+        {
+            var packageDependentsList = new List<PackageDependent>();
             using (var comm2 = conn.CreateCommand())
             {
-                comm2.CommandText = @"SELECT TOP 10 PackageRegistrations.id, PackageRegistrations.DownloadCount FROM PackageDependencies
-
-                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
-
-                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[key]
-
-                WHERE PackageDependencies.id = @id  AND Packages.IsLatest = 1
-                GROUP BY PackageRegistrations.id, PackageRegistrations.DownloadCount
-                ORDER BY PackageRegistrations.DownloadCount DESC";
+                comm2.CommandText = @"SELECT TOP 10 PackageRegistrations.id, PackageRegistrations.DownloadCount, Packages.Description
+	                FROM PackageDependencies 
+	                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
+	                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[key]
+	                WHERE PackageDependencies.id = @id AND Packages.IsLatest = 1
+	                GROUP BY PackageRegistrations.id, PackageRegistrations.DownloadCount, Packages.Description
+                    ORDER BY PackageRegistrations.DownloadCount DESC";
 
                 var parameter = comm2.CreateParameter();
                 parameter.ParameterName = "@id";
@@ -177,8 +183,42 @@ namespace NuGetGallery
                         var packageDepen = new PackageDependent();
                         packageDepen.Id = (String)reader["id"];
                         packageDepen.DownloadCount = (int)reader["DownloadCount"];
-                        result.Add(packageDepen);
+                        packageDepen.Description = (String)reader["Description"];
+                        packageDependentsList.Add(packageDepen);
                     }
+                }
+            }
+            return packageDependentsList;
+        }
+
+        public int showTotalDownloads(String id, DbConnection conn)
+        {
+           
+            int result = 0;
+
+            using (var comm2 = conn.CreateCommand())
+            {
+                comm2.CommandText = @"SELECT COUNT(Distinct PackageRegistrations.id) AS DependentCount
+	                FROM PackageDependencies 
+	                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
+	                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[key]
+	                WHERE PackageDependencies.id = @id AND Packages.IsLatest = 1";
+
+
+                var parameter = comm2.CreateParameter();
+                parameter.ParameterName = "@id";
+                parameter.Value = id;
+
+
+                comm2.Parameters.Add(parameter);
+                using (DbDataReader reader = comm2.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        // result = reader.GetInt32(0); 
+                        result = (int)reader["DependentCount"]; // Go from here
+                    }
+
                 }
             }
             return result;
