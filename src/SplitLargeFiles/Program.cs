@@ -65,11 +65,7 @@ namespace NuGet.Tools.SplitLargeFiles
                 var outputPathFormat = GenerateOutputPathFormat(inputPath, fileIndexFormat, properties.IsGzipped);
 
                 // This is a rough estimate assuming that each line compresses to the same length.
-                var fileCount = properties.Size / desiredFileSize;
-                if (fileCount == 0)
-                {
-                    fileCount = 1;
-                }
+                var fileCount = GetFileCount(properties.Size, desiredFileSize);
                 var linesPerFile = properties.LineCount / fileCount;
 
                 Console.WriteLine();
@@ -110,6 +106,32 @@ namespace NuGet.Tools.SplitLargeFiles
             Console.WriteLine("The file has been split up.");
 
             return 0;
+        }
+
+        public static long GetFileCount(long fileSize, long desiredFileSize)
+        {
+            if (fileSize < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(fileSize));
+            }
+
+            if (desiredFileSize < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(desiredFileSize));
+            }
+
+            if (fileSize < desiredFileSize)
+            {
+                return 1;
+            }
+
+            var fileCount = fileSize / desiredFileSize;
+            if (fileSize % desiredFileSize > 0)
+            {
+                fileCount++;
+            }
+
+            return fileCount;
         }
 
         private static string GenerateOutputPathFormat(string inputPath, string fileIndexFormat, bool isGzipped)

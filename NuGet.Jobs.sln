@@ -143,6 +143,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitLargeFiles", "src\Spli
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ad-Hoc Tools", "Ad-Hoc Tools", "{523E282D-A2FE-49C2-A782-0EEC435E765E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitLargeFiles.Tests", "tests\SplitLargeFiles.Tests\SplitLargeFiles.Tests.csproj", "{DD70035C-1BAB-4EFF-B270-EF45F7473C22}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -379,6 +381,10 @@ Global
 		{AFB33A62-C437-4C32-A965-D6CC5EE50540}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFB33A62-C437-4C32-A965-D6CC5EE50540}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFB33A62-C437-4C32-A965-D6CC5EE50540}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD70035C-1BAB-4EFF-B270-EF45F7473C22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD70035C-1BAB-4EFF-B270-EF45F7473C22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD70035C-1BAB-4EFF-B270-EF45F7473C22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD70035C-1BAB-4EFF-B270-EF45F7473C22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -441,6 +447,7 @@ Global
 		{C3F84BAD-ACFA-4AE3-8286-D12F5A5BBC62} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{4A64FEB4-198C-445B-835F-A5B68EFBFDA7} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{AFB33A62-C437-4C32-A965-D6CC5EE50540} = {523E282D-A2FE-49C2-A782-0EEC435E765E}
+		{DD70035C-1BAB-4EFF-B270-EF45F7473C22} = {6A776396-02B1-475D-A104-26940ADB04AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}
