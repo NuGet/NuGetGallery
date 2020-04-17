@@ -128,6 +128,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="README.md" />
     <None Include="Scripts\Functions.ps1" />
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
