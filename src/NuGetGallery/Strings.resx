@@ -957,6 +957,9 @@ Policy violations: {0}</value>
   <data name="UploadPackage_PackageContainsTooManyEntries" xml:space="preserve">
     <value>The package contains too many files and/or folders.</value>
   </data>
+  <data name="UploadPackage_PackageContainsDuplicatedEntries" xml:space="preserve">
+    <value>The package contains one or more duplicated files in a same folder.</value>
+  </data>
   <data name="TyposquattingCheckFails" xml:space="preserve">
     <value>The uploaded package's id is too similar to the already existing packages: {0} </value>
     <comment>{0} is the existing collision Ids compared with the uploaded package Id.</comment>
