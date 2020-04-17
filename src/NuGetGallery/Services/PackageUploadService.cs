@@ -118,7 +118,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = CheckPackageDuplicatedEntriesAsync(nuGetPackage);
+            result = CheckPackageDuplicatedEntries(nuGetPackage);
 
             if (result != null)
             {
@@ -606,11 +606,12 @@ namespace NuGetGallery
             return null;
         }
 
-        private PackageValidationResult CheckPackageDuplicatedEntriesAsync(PackageArchiveReader nuGetPackage)
+        private PackageValidationResult CheckPackageDuplicatedEntries(PackageArchiveReader nuGetPackage)
         {
-            var packageFiles = nuGetPackage.GetFiles();
+            // Normalize paths and ensures case sensitivity is also considered
+            var packageFiles = nuGetPackage.GetFiles().Select(packageFile => Path.GetFullPath(packageFile.ToLower()));
 
-            if(packageFiles.Count() != packageFiles.Distinct().Count())
+            if (packageFiles.Count() != packageFiles.Distinct().Count())
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_PackageContainsDuplicatedEntries);
             }

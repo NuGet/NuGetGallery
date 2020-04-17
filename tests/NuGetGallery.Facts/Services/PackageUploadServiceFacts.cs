@@ -511,7 +511,8 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("duplicatedFile.txt", "duplicatedFile.txt")]
-            [InlineData("/temp/duplicatedFile.txt", "/temp/duplicatedFile.txt")]
+            [InlineData("./temp/duplicatedFile.txt", "./temp/duplicatedFile.txt")]
+            [InlineData("duplicatedFile.txt", "duplicatedFile.TXT")]
             public async Task WithDuplicatedEntries_ReturnsInvalidPackage(params string[] entryNames)
             {
                 // Arrange
@@ -530,9 +531,9 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("noDuplicatedFile.txt", "/temp/noDuplicatedFile.txt")]
-            [InlineData("/temp1/noDuplicatedFile.txt", "/temp2/noDuplicatedFile.txt")]
-            [InlineData("/temp1/noDuplicatedFile.txt", "/temp1/noDuplicatedFile.css")]
+            [InlineData("noDuplicatedFile.txt", "./temp/noDuplicatedFile.txt")]
+            [InlineData("./temp1/noDuplicatedFile.txt", "./temp2/noDuplicatedFile.txt")]
+            [InlineData("./temp1/noDuplicatedFile.txt", "./temp1/noDuplicatedFile.css")]
             public async Task WithNoDuplicatedEntries_ReturnsAcceptedPackage(params string[] entryNames)
             {
                 // Arrange
