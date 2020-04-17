@@ -192,7 +192,7 @@ namespace NuGetGallery.TestUtils
                         }
                     }
 
-                    if(entryNames != null)
+                    if (entryNames != null)
                     {
                         foreach(var entryName in entryNames)
                         {
