@@ -118,6 +118,13 @@ namespace NuGetGallery
                 return result;
             }
 
+            result = CheckPackageDuplicatedEntriesAsync(nuGetPackage);
+
+            if (result != null)
+            {
+                return result;
+            }
+
             var nuspecFileEntry = nuGetPackage.GetEntry(nuGetPackage.GetNuspecFile());
             using (var nuspecFileStream = await nuGetPackage.GetNuspecAsync(CancellationToken.None))
             {
@@ -594,6 +601,18 @@ namespace NuGetGallery
             else if (packageEntryCount >= maxPackageEntryCount)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_PackageContainsTooManyEntries);
+            }
+
+            return null;
+        }
+
+        private PackageValidationResult CheckPackageDuplicatedEntriesAsync(PackageArchiveReader nuGetPackage)
+        {
+            var packageFiles = nuGetPackage.GetFiles();
+
+            if(packageFiles.Count() != packageFiles.Distinct().Count())
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_PackageContainsDuplicatedEntries);
             }
 
             return null;

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -130,7 +131,8 @@ namespace NuGetGallery.TestUtils
             string licenseFilename = null,
             byte[] licenseFileContents = null,
             string iconFilename = null,
-            byte[] iconFileBinaryContents = null)
+            byte[] iconFileBinaryContents = null,
+            IReadOnlyList<string> entryNames = null)
         {
             if (packageDependencyGroups == null)
             {
@@ -189,13 +191,32 @@ namespace NuGetGallery.TestUtils
                             writer.Write("Fake signature file.");
                         }
                     }
-                }, desiredTotalEntryCount: desiredTotalEntryCount,
+
+                    if(entryNames != null)
+                    {
+                        foreach(var entryName in entryNames)
+                        {
+                            WriteEntry(archive, entryName);
+                        }
+                    }
+                }, 
+                desiredTotalEntryCount: desiredTotalEntryCount,
                 getCustomNuspecNodes: getCustomNuspecNodes,
                 licenseExpression: licenseExpression,
                 licenseFilename: licenseFilename,
                 licenseFileContents: licenseFileContents,
                 iconFilename: iconFilename,
                 iconFileContents: iconFileBinaryContents);
+        }
+
+        private static void WriteEntry(ZipArchive archive, string entryName)
+        {
+            var entry = archive.CreateEntry(entryName);
+            using (var stream = entry.Open())
+            using (var writer = new StreamWriter(stream))
+            {
+                writer.Write(entryName);
+            }
         }
 
         public static PackageArchiveReader CreateArchiveReader(Stream stream)
