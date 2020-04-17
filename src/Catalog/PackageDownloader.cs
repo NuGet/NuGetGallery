@@ -14,7 +14,7 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class PackageDownloader
     {
-        private const int BufferSize = 8192;
+        private const int BufferSize = 80 * 1024;
 
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;

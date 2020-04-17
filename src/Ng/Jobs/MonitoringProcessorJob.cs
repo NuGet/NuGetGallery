@@ -29,6 +29,7 @@ namespace Ng.Jobs
     {
         private const int DefaultQueueLoopDurationHours = 24;
         private const int DefaultQueueDelaySeconds = 30;
+        private const int DefaultWorkerCount = 8;
         private static readonly TimeSpan MaxShutdownTime = TimeSpan.FromMinutes(1);
 
         private PackageValidator _packageValidator;
@@ -38,6 +39,7 @@ namespace Ng.Jobs
         private CollectorHttpClient _client;
         private TimeSpan _queueLoopDuration;
         private TimeSpan _queueDelay;
+        private int _workerCount;
 
         public MonitoringProcessorJob(
             ILoggerFactory loggerFactory,
@@ -116,6 +118,8 @@ namespace Ng.Jobs
                     Arguments.QueueDelaySeconds,
                     DefaultQueueDelaySeconds));
 
+            _workerCount = arguments.GetOrDefault(Arguments.WorkerCount, DefaultWorkerCount);
+
             SetUserAgentString();
         }
 
@@ -145,10 +149,12 @@ namespace Ng.Jobs
                 var queueLoopCancellationToken = queueLoopCancellationTokenSource.Token;
 
                 var workerId = 0;
-                var allWorkersTask = ParallelAsync.Repeat(() => ProcessPackagesAsync(
-                    Interlocked.Increment(ref workerId),
-                    queueLoopCancellationToken,
-                    queueMessageCancellationToken));
+                var allWorkersTask = ParallelAsync.Repeat(
+                    () => ProcessPackagesAsync(
+                        Interlocked.Increment(ref workerId),
+                        queueLoopCancellationToken,
+                        queueMessageCancellationToken),
+                    _workerCount);
 
                 // Wait for a specific amount of time past the loop duration. If a worker task is hanging for whatever
                 // reason we don't want to the shutdown to be blocked indefinitely.

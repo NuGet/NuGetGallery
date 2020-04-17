@@ -162,6 +162,11 @@ namespace Ng
         /// When the queue is empty or processing a message fails, wait this long before polling more.
         /// </summary>
         public const string QueueDelaySeconds = "queueDelaySeconds";
+
+        /// <summary>
+        /// The number of parallel workers for <see cref="Jobs.MonitoringProcessorJob"/>.
+        /// </summary>
+        public const string WorkerCount = "workerCount";
         #endregion
 
         #region KeyVault
