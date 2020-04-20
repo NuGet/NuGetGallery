@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
@@ -43,6 +42,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 BatchPusher.Verify(x => x.PushFullBatchesAsync(), Times.Never);
                 DownloadDataClient.Verify(
                     x => x.ReplaceLatestIndexedAsync(It.IsAny<DownloadData>(), It.IsAny<IAccessCondition>()),
+                    Times.Never);
+                PopularityTransferDataClient.Verify(
+                    x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()),
                     Times.Never);
             }
 
@@ -159,7 +161,72 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             [Fact]
-            public async Task OverridesDownloadCounts()
+            public async Task AppliesTransferChanges()
+            {
+                var downloadChanges = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+                DownloadSetComparer
+                    .Setup(c => c.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
+                    .Returns<DownloadData, DownloadData>((oldData, newData) =>
+                    {
+                        return downloadChanges;
+                    });
+
+                TransferChanges["Package1"] = 100;
+                TransferChanges["Package2"] = 200;
+
+                NewTransfers["Package1"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "Package2"
+                };
+
+                await Target.ExecuteAsync();
+
+                PopularityTransferDataClient
+                    .Verify(
+                        c => c.ReadLatestIndexedAsync(),
+                        Times.Once);
+                DatabaseFetcher
+                    .Verify(
+                        d => d.GetPackageIdToPopularityTransfersAsync(),
+                        Times.Once);
+                AuxiliaryFileClient
+                    .Verify(
+                        a => a.LoadDownloadOverridesAsync(),
+                        Times.Once);
+
+                DownloadTransferrer
+                    .Verify(
+                        x => x.UpdateDownloadTransfers(
+                            NewDownloadData,
+                            downloadChanges,
+                            OldTransfers,
+                            NewTransfers,
+                            DownloadOverrides),
+                        Times.Once);
+
+                // Documents should be updated.
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("Package1", SearchFilters.IncludePrereleaseAndSemVer2, 100),
+                        Times.Once);
+                SearchDocumentBuilder
+                    .Verify(
+                        b => b.UpdateDownloadCount("Package2", SearchFilters.IncludePrereleaseAndSemVer2, 200),
+                        Times.Once);
+
+                // Downloads auxiliary file should not include transfer changes.
+                DownloadDataClient.Verify(
+                    c => c.ReplaceLatestIndexedAsync(
+                        It.Is<DownloadData>(d => d.Count == 0),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+
+                // TODO: Popularity transfers auxiliary file should have new data.
+                // See: https://github.com/NuGet/NuGetGallery/issues/7898
+            }
+
+            [Fact]
+            public async Task TransferChangesOverideDownloadChanges()
             {
                 DownloadSetComparer
                     .Setup(c => c.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
@@ -179,12 +246,17 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 NewDownloadData.SetDownloadCount("C", "5.0.0", 2);
                 NewDownloadData.SetDownloadCount("C", "6.0.0", 3);
 
-                DownloadOverrides["A"] = 55;
-                DownloadOverrides["b"] = 66;
+                TransferChanges["A"] = 55;
+                TransferChanges["b"] = 66;
+
+                NewTransfers["FromPackage"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "ToPackage"
+                };
 
                 await Target.ExecuteAsync();
 
-                // Documents should have new data with overriden downloads.
+                // Documents should have new data with transfer changes.
                 SearchDocumentBuilder
                     .Verify(
                         b => b.UpdateDownloadCount("A", SearchFilters.IncludePrereleaseAndSemVer2, 55),
@@ -198,7 +270,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         b => b.UpdateDownloadCount("C", SearchFilters.IncludePrereleaseAndSemVer2, 5),
                         Times.Once);
 
-                // Downloads auxiliary file should have new data without overriden downloads.
+                // Downloads auxiliary file should not reflect transfer changes.
                 DownloadDataClient.Verify(
                     c => c.ReplaceLatestIndexedAsync(
                         It.Is<DownloadData>(d =>
@@ -215,112 +287,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                             d["C"]["6.0.0"] == 3),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
-            }
 
-            [Fact]
-            public async Task AlwaysAppliesDownloadOverrides()
-            {
-                DownloadSetComparer
-                    .Setup(c => c.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
-                    .Returns<DownloadData, DownloadData>((oldData, newData) =>
-                    {
-                        var config = new Auxiliary2AzureSearchConfiguration();
-                        var telemetry = Mock.Of<IAzureSearchTelemetryService>();
-                        var logger = Mock.Of<ILogger<DownloadSetComparer>>();
-                        var options = new Mock<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>>();
-
-                        options.Setup(o => o.Value).Returns(config);
-
-                        return new DownloadSetComparer(telemetry, options.Object, logger)
-                            .Compare(oldData, newData);
-                    });
-
-                // Download override should be applied even if the package's downloads haven't changed.
-                OldDownloadData.SetDownloadCount("A", "1.0.0", 1);
-                NewDownloadData.SetDownloadCount("A", "1.0.0", 1);
-                DownloadOverrides["A"] = 2;
-
-                await Target.ExecuteAsync();
-
-                // Documents should have new data with overriden downloads.
-                SearchDocumentBuilder
-                    .Verify(
-                        b => b.UpdateDownloadCount("A", SearchFilters.IncludePrereleaseAndSemVer2, 2),
-                        Times.Once);
-
-                // Downloads auxiliary file should have new data without overriden downloads.
-                DownloadDataClient.Verify(
-                    c => c.ReplaceLatestIndexedAsync(
-                        It.Is<DownloadData>(d =>
-                            d["A"].Total == 1 &&
-                            d["A"]["1.0.0"] == 1),
-                        It.IsAny<IAccessCondition>()),
-                    Times.Once);
-            }
-
-            [Fact]
-            public async Task DoesNotOverrideIfDownloadsGreaterOrPackageHasNoDownloads()
-            {
-                DownloadSetComparer
-                    .Setup(c => c.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
-                    .Returns<DownloadData, DownloadData>((oldData, newData) =>
-                    {
-                        return new SortedDictionary<string, long>(
-                            newData.ToDictionary(d => d.Key, d => d.Value.Total),
-                            StringComparer.OrdinalIgnoreCase);
-                    });
-
-                NewDownloadData.SetDownloadCount("A", "1.0.0", 100);
-                NewDownloadData.SetDownloadCount("A", "2.0.0", 200);
-
-                NewDownloadData.SetDownloadCount("B", "3.0.0", 5);
-                NewDownloadData.SetDownloadCount("B", "4.0.0", 4);
-
-                NewDownloadData.SetDownloadCount("C", "5.0.0", 0);
-
-                DownloadOverrides["A"] = 55;
-                DownloadOverrides["C"] = 66;
-                DownloadOverrides["D"] = 77;
-
-                await Target.ExecuteAsync();
-
-                // Documents should have new data with overriden downloads.
-                SearchDocumentBuilder
-                    .Verify(
-                        b => b.UpdateDownloadCount("A", SearchFilters.IncludePrereleaseAndSemVer2, 300),
-                        Times.Once);
-                SearchDocumentBuilder
-                    .Verify(
-                        b => b.UpdateDownloadCount("B", SearchFilters.IncludePrereleaseAndSemVer2, 9),
-                        Times.Once);
-                SearchDocumentBuilder
-                    .Verify(
-                        b => b.UpdateDownloadCount("B", SearchFilters.IncludePrereleaseAndSemVer2, 9),
-                        Times.Once);
-                SearchDocumentBuilder
-                    .Verify(
-                        b => b.UpdateDownloadCount("C", It.IsAny<SearchFilters>(), It.IsAny<long>()),
-                        Times.Never);
-                SearchDocumentBuilder
-                    .Verify(
-                        b => b.UpdateDownloadCount("D", It.IsAny<SearchFilters>(), It.IsAny<long>()),
-                        Times.Never);
-
-                // Downloads auxiliary file should have new data without overriden downloads.
-                DownloadDataClient.Verify(
-                    c => c.ReplaceLatestIndexedAsync(
-                        It.Is<DownloadData>(d =>
-                            d.Keys.Count() == 2 &&
-
-                            d["A"].Total == 300 &&
-                            d["A"]["1.0.0"] == 100 &&
-                            d["A"]["2.0.0"] == 200 &&
-
-                            d["B"].Total == 9 &&
-                            d["B"]["3.0.0"] == 5 &&
-                            d["B"]["4.0.0"] == 4),
-                        It.IsAny<IAccessCondition>()),
-                    Times.Once);
+                // TODO: Popularity transfers auxiliary file should have new data.
+                // See: https://github.com/NuGet/NuGetGallery/issues/7898
             }
         }
 
@@ -329,8 +298,11 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public Facts(ITestOutputHelper output)
             {
                 AuxiliaryFileClient = new Mock<IAuxiliaryFileClient>();
+                DatabaseFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
                 DownloadDataClient = new Mock<IDownloadDataClient>();
                 DownloadSetComparer = new Mock<IDownloadSetComparer>();
+                DownloadTransferrer = new Mock<IDownloadTransferrer>();
+                PopularityTransferDataClient = new Mock<IPopularityTransferDataClient>();
                 SearchDocumentBuilder = new Mock<ISearchDocumentBuilder>();
                 IndexActionBuilder = new Mock<ISearchIndexActionBuilder>();
                 BatchPusher = new Mock<IBatchPusher>();
@@ -355,22 +327,45 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .ReturnsAsync(() => OldDownloadResult);
                 NewDownloadData = new DownloadData();
                 AuxiliaryFileClient.Setup(x => x.LoadDownloadDataAsync()).ReturnsAsync(() => NewDownloadData);
-                DownloadOverrides = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-                AuxiliaryFileClient
-                    .Setup(x => x.LoadDownloadOverridesAsync())
-                    .ReturnsAsync(() => DownloadOverrides);
 
                 Changes = new SortedDictionary<string, long>();
                 DownloadSetComparer
                     .Setup(x => x.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
                     .Returns(() => Changes);
 
+                OldTransfers = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+
+                OldTransferResult = new ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>>(
+                    OldTransfers,
+                    Mock.Of<IAccessCondition>());
+                PopularityTransferDataClient
+                    .Setup(x => x.ReadLatestIndexedAsync())
+                    .ReturnsAsync(OldTransferResult);
+
+                NewTransfers = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+                DatabaseFetcher
+                    .Setup(x => x.GetPackageIdToPopularityTransfersAsync())
+                    .ReturnsAsync(NewTransfers);
+
+                DownloadOverrides = new Dictionary<string, long>();
+                AuxiliaryFileClient.Setup(x => x.LoadDownloadOverridesAsync()).ReturnsAsync(() => DownloadOverrides);
+
+                TransferChanges = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+                DownloadTransferrer
+                    .Setup(x => x.UpdateDownloadTransfers(
+                        It.IsAny<DownloadData>(),
+                        It.IsAny<SortedDictionary<string, long>>(),
+                        It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
+                        It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
+                        It.IsAny<IReadOnlyDictionary<string, long>>()))
+                    .Returns(TransferChanges);
+
                 IndexActions = new IndexActions(
                     new List<IndexAction<KeyedDocument>> { IndexAction.Merge(new KeyedDocument()) },
                     new List<IndexAction<KeyedDocument>>(),
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
-                        new Mock<IAccessCondition>().Object));
+                        Mock.Of<IAccessCondition>()));
                 ProcessedIds = new ConcurrentBag<string>();
                 IndexActionBuilder
                     .Setup(x => x.UpdateAsync(It.IsAny<string>(), It.IsAny<Func<SearchFilters, KeyedDocument>>()))
@@ -403,8 +398,11 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 Target = new UpdateDownloadsCommand(
                     AuxiliaryFileClient.Object,
+                    DatabaseFetcher.Object,
                     DownloadDataClient.Object,
                     DownloadSetComparer.Object,
+                    DownloadTransferrer.Object,
+                    PopularityTransferDataClient.Object,
                     SearchDocumentBuilder.Object,
                     IndexActionBuilder.Object,
                     () => BatchPusher.Object,
@@ -415,8 +413,11 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             public Mock<IAuxiliaryFileClient> AuxiliaryFileClient { get; }
+            public Mock<IDatabaseAuxiliaryDataFetcher> DatabaseFetcher { get; }
             public Mock<IDownloadDataClient> DownloadDataClient { get; }
             public Mock<IDownloadSetComparer> DownloadSetComparer { get; }
+            public Mock<IDownloadTransferrer> DownloadTransferrer { get; }
+            public Mock<IPopularityTransferDataClient> PopularityTransferDataClient { get; }
             public Mock<ISearchDocumentBuilder> SearchDocumentBuilder { get; }
             public Mock<ISearchIndexActionBuilder> IndexActionBuilder { get; }
             public Mock<IBatchPusher> BatchPusher { get; }
@@ -428,8 +429,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public DownloadData OldDownloadData { get; }
             public AuxiliaryFileResult<DownloadData> OldDownloadResult { get; }
             public DownloadData NewDownloadData { get; }
+            public SortedDictionary<string, SortedSet<string>> OldTransfers { get; }
+            public ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>> OldTransferResult { get; }
+            public SortedDictionary<string, SortedSet<string>> NewTransfers { get; }
             public Dictionary<string, long> DownloadOverrides { get; }
             public SortedDictionary<string, long> Changes { get; }
+            public SortedDictionary<string, long> TransferChanges { get; }
             public UpdateDownloadsCommand Target { get; }
             public IndexActions IndexActions { get; set; }
             public ConcurrentBag<string> ProcessedIds { get; }

@@ -62,6 +62,7 @@
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
     <Compile Include="Db2AzureSearch\PackageEntityIndexActionBuilderFacts.cs" />
     <Compile Include="DocumentUtilitiesFacts.cs" />
+    <Compile Include="DownloadTransferrerFacts.cs" />
     <Compile Include="HijackDocumentBuilderFacts.cs" />
     <Compile Include="IndexBuilderFacts.cs" />
     <Compile Include="Models\CommittedDocumentFacts.cs" />

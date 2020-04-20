@@ -21,6 +21,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     {
         private readonly IEntitiesContextFactory _contextFactory;
         private readonly IAuxiliaryFileClient _auxiliaryFileClient;
+        private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
+        private readonly IDownloadTransferrer _downloadTransferrer;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> _developmentOptions;
         private readonly ILogger<NewPackageRegistrationProducer> _logger;
@@ -28,14 +30,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public NewPackageRegistrationProducer(
             IEntitiesContextFactory contextFactory,
             IAuxiliaryFileClient auxiliaryFileClient,
+            IDatabaseAuxiliaryDataFetcher databaseFetcher,
+            IDownloadTransferrer downloadTransferrer,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> developmentOptions,
             ILogger<NewPackageRegistrationProducer> logger)
         {
             _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+            _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentNullException(nameof(auxiliaryFileClient));
+            _databaseFetcher = databaseFetcher ?? throw new ArgumentNullException(nameof(databaseFetcher));
+            _downloadTransferrer = downloadTransferrer ?? throw new ArgumentNullException(nameof(downloadTransferrer));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _developmentOptions = developmentOptions ?? throw new ArgumentNullException(nameof(developmentOptions));
-            _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentNullException(nameof(auxiliaryFileClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -54,15 +60,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 $"Excluded packages HashSet should be using {nameof(StringComparer.OrdinalIgnoreCase)}");
 
             // Fetch the download data from the auxiliary file, since this is what is used for displaying download
-            // counts in the search service. The gallery DB and the downloads data file have different download count
-            // numbers we don't use the gallery DB values.
+            // counts in the search service. We don't use the gallery DB values as they are different from the
+            // auxiliary file.
             var downloads = await _auxiliaryFileClient.LoadDownloadDataAsync();
 
-            // Fetch the download overrides from the auxiliary file. Note that the overriden downloads are kept
-            // separate from downloads data as the original data will be persisted to auxiliary data, whereas the
-            // overriden data will be persisted to Azure Search.
+            var popularityTransfers = await _databaseFetcher.GetPackageIdToPopularityTransfersAsync();
             var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
-            var overridenDownloads = downloads.ApplyDownloadOverrides(downloadOverrides, _logger);
+
+            // Apply changes from popularity transfers and download overrides.
+            var transferredDownloads = GetTransferredDownloads(
+                downloads,
+                popularityTransfers,
+                downloadOverrides);
 
             // Build a list of the owners data and verified IDs as we collect package registrations from the database.
             var ownersBuilder = new PackageIdToOwnersBuilder(_logger);
@@ -91,6 +100,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 foreach (var pr in packageRegistrationInfo)
                 {
+                    if (!transferredDownloads.TryGetValue(pr.Id, out var packageDownloads))
+                    {
+                        packageDownloads = 0;
+                    }
+
                     if (!keyToPackages.TryGetValue(pr.Key, out var packages))
                     {
                         packages = new List<Package>();
@@ -100,7 +114,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                     allWork.Add(new NewPackageRegistration(
                         pr.Id,
-                        overridenDownloads.GetDownloadCount(pr.Id),
+                        packageDownloads,
                         pr.Owners,
                         packages,
                         isExcludedByDefault));
@@ -120,7 +134,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 ownersBuilder.GetResult(),
                 downloads,
                 excludedPackages,
-                verifiedPackages);
+                verifiedPackages,
+                popularityTransfers);
         }
 
         private bool ShouldWait(ConcurrentBag<NewPackageRegistration> allWork, bool log)
@@ -143,6 +158,31 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             return false;
+        }
+
+        private Dictionary<string, long> GetTransferredDownloads(
+            DownloadData downloads,
+            SortedDictionary<string, SortedSet<string>> popularityTransfers,
+            IReadOnlyDictionary<string, long> downloadOverrides)
+        {
+            var transferChanges = _downloadTransferrer.InitializeDownloadTransfers(
+                downloads,
+                popularityTransfers,
+                downloadOverrides);
+
+            var result = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var packageDownload in downloads)
+            {
+                result[packageDownload.Key] = packageDownload.Value.Total;
+            }
+
+            foreach (var transferChange in transferChanges)
+            {
+                result[transferChange.Key] = transferChange.Value;
+            }
+
+            return result;
         }
 
         private async Task<IReadOnlyList<Package>> GetPackagesAsync(PackageRegistrationRange range)

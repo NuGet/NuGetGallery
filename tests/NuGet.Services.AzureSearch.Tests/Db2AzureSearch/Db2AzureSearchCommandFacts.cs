@@ -32,6 +32,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly Mock<IOwnerDataClient> _ownerDataClient;
         private readonly Mock<IDownloadDataClient> _downloadDataClient;
         private readonly Mock<IVerifiedPackagesDataClient> _verifiedPackagesDataClient;
+        private readonly Mock<IPopularityTransferDataClient> _popularityTransferDataClient;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
         private readonly Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>> _developmentOptions;
         private readonly Db2AzureSearchConfiguration _config;
@@ -53,6 +54,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _ownerDataClient = new Mock<IOwnerDataClient>();
             _downloadDataClient = new Mock<IDownloadDataClient>();
             _verifiedPackagesDataClient = new Mock<IVerifiedPackagesDataClient>();
+            _popularityTransferDataClient = new Mock<IPopularityTransferDataClient>();
             _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
             _developmentOptions = new Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>();
             _logger = output.GetLogger<Db2AzureSearchCommand>();
@@ -68,7 +70,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 owners: new SortedDictionary<string, SortedSet<string>>(),
                 downloads: new DownloadData(),
                 excludedPackages: new HashSet<string>(),
-                verifiedPackages: new HashSet<string>());
+                verifiedPackages: new HashSet<string>(),
+                popularityTransfers: new SortedDictionary<string, SortedSet<string>>());
 
             _options
                 .Setup(x => x.Value)
@@ -108,6 +111,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _ownerDataClient.Object,
                 _downloadDataClient.Object,
                 _verifiedPackagesDataClient.Object,
+                _popularityTransferDataClient.Object,
                 _options.Object,
                 _developmentOptions.Object,
                 _logger);

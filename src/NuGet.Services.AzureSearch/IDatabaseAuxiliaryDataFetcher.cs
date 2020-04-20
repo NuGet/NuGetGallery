@@ -28,7 +28,6 @@ namespace NuGet.Services.AzureSearch
         /// Fetch a mapping of package IDs to set of replacement package IDs for each renamed packages that transfer
         /// popularity in the gallery database.
         /// </summary>
-        /// <returns></returns>
         Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToPopularityTransfersAsync();
 
         /// <summary>

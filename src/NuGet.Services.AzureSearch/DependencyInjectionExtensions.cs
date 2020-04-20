@@ -166,6 +166,13 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<ILogger<OwnerDataClient>>()));
 
             containerBuilder
+                .Register<IPopularityTransferDataClient>(c => new PopularityTransferDataClient(
+                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>(),
+                    c.Resolve<IAzureSearchTelemetryService>(),
+                    c.Resolve<ILogger<PopularityTransferDataClient>>()));
+
+            containerBuilder
                 .Register(c => new Catalog2AzureSearchCommand(
                     c.Resolve<ICollector>(),
                     c.ResolveKeyed<IStorageFactory>(key),
@@ -187,6 +194,7 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<IOwnerDataClient>(),
                     c.Resolve<IDownloadDataClient>(),
                     c.Resolve<IVerifiedPackagesDataClient>(),
+                    c.Resolve<IPopularityTransferDataClient>(),
                     c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>(),
                     c.Resolve<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>(),
                     c.Resolve<ILogger<Db2AzureSearchCommand>>()));
@@ -252,6 +260,7 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<IDataSetComparer, DataSetComparer>();
             services.AddTransient<IDocumentFixUpEvaluator, DocumentFixUpEvaluator>();
             services.AddTransient<IDownloadSetComparer, DownloadSetComparer>();
+            services.AddTransient<IDownloadTransferrer, DownloadTransferrer>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
             services.AddTransient<IIndexBuilder, IndexBuilder>();

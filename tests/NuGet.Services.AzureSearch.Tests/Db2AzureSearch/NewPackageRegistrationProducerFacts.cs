@@ -37,8 +37,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly CancellationToken _token;
             private readonly NewPackageRegistrationProducer _target;
             private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
+            private readonly Mock<IDatabaseAuxiliaryDataFetcher> _databaseFetcher;
+            private readonly Mock<IDownloadTransferrer> _downloadTransferrer;
             private readonly DownloadData _downloads;
-            private readonly Dictionary<string, long> _downloadOverrides;
+            private readonly SortedDictionary<string, SortedSet<string>> _popularityTransfers;
+            private readonly SortedDictionary<string, long> _transferChanges;
             private HashSet<string> _excludedPackages;
 
             public ProduceWorkAsync(ITestOutputHelper output)
@@ -67,10 +70,21 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _auxiliaryFileClient
                     .Setup(x => x.LoadDownloadDataAsync())
                     .ReturnsAsync(() => _downloads);
-                _downloadOverrides = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-                _auxiliaryFileClient
-                    .Setup(x => x.LoadDownloadOverridesAsync())
-                    .ReturnsAsync(() => _downloadOverrides);
+
+                _popularityTransfers = new SortedDictionary<string, SortedSet<string>>();
+                _databaseFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
+                _databaseFetcher
+                    .Setup(x => x.GetPackageIdToPopularityTransfersAsync())
+                    .ReturnsAsync(() => _popularityTransfers);
+
+                _downloadTransferrer = new Mock<IDownloadTransferrer>();
+                _transferChanges = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+                _downloadTransferrer
+                    .Setup(x => x.InitializeDownloadTransfers(
+                        It.IsAny<DownloadData>(),
+                        It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
+                        It.IsAny<IReadOnlyDictionary<string, long>>()))
+                    .Returns(_transferChanges);
 
                 _entitiesContextFactory
                    .Setup(x => x.CreateAsync(It.IsAny<bool>()))
@@ -91,6 +105,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _target = new NewPackageRegistrationProducer(
                     _entitiesContextFactory.Object,
                     _auxiliaryFileClient.Object,
+                    _databaseFetcher.Object,
+                    _downloadTransferrer.Object,
                     _options.Object,
                     _developmentOptions.Object,
                     _logger);
@@ -271,6 +287,49 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             [Fact]
+            public async Task DefaultsPackageDownloads()
+            {
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 1,
+                    Id = "HasDownloads",
+                    Packages = new[]
+                    {
+                        new Package { Version = "1.0.0" },
+                    },
+                });
+                _downloads.SetDownloadCount("HasDownloads", "1.0.0", 100);
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 2,
+                    Id = "NoDownloads",
+                    Packages = new[]
+                    {
+                        new Package { Version = "1.0.0" },
+                    },
+                });
+
+                InitializePackagesFromPackageRegistrations();
+
+                var result = await _target.ProduceWorkAsync(_work, _token);
+
+                // Documents should have overriden downloads.
+                var work = _work.Reverse().ToList();
+                Assert.Equal(2, work.Count);
+
+                Assert.Equal("HasDownloads", work[0].PackageId);
+                Assert.Equal("1.0.0", work[0].Packages[0].Version);
+                Assert.Equal(100, work[0].TotalDownloadCount);
+                Assert.Equal("NoDownloads", work[1].PackageId);
+                Assert.Equal("1.0.0", work[1].Packages[0].Version);
+                Assert.Equal(0, work[1].TotalDownloadCount);
+
+                // Downloads auxiliary file should have original downloads.
+                Assert.Equal(100, result.Downloads["HasDownloads"]["1.0.0"]);
+                Assert.False(result.Downloads.ContainsKey("NoDownloads"));
+            }
+
+            [Fact]
             public async Task RetrievesAndUsesExclusionList()
             {
                 _packageRegistrations.Add(new PackageRegistration
@@ -391,6 +450,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 Assert.Same(_downloads, output.Downloads);
                 Assert.Same(_excludedPackages, output.ExcludedPackages);
+                Assert.Same(_popularityTransfers, output.PopularityTransfers);
                 Assert.NotNull(output.VerifiedPackages);
                 Assert.Contains("A", output.VerifiedPackages);
                 Assert.NotNull(output.Owners);
@@ -417,7 +477,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             [Fact]
-            public async Task OverridesDownloadCounts()
+            public async Task AppliesDownloadTransfers()
             {
                 _packageRegistrations.Add(new PackageRegistration
                 {
@@ -458,8 +518,10 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 InitializePackagesFromPackageRegistrations();
 
-                _downloadOverrides["A"] = 55;
-                _downloadOverrides["b"] = 66;
+                // Transfer changes should be applied to the package registrations.
+                _transferChanges["A"] = 55;
+                _transferChanges["b"] = 66;
+                _transferChanges["C"] = 123;
 
                 var result = await _target.ProduceWorkAsync(_work, _token);
 
@@ -480,7 +542,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 Assert.Equal("C", work[2].PackageId);
                 Assert.Equal("5.0.0", work[2].Packages[0].Version);
                 Assert.Equal("6.0.0", work[2].Packages[1].Version);
-                Assert.Equal(5, work[2].TotalDownloadCount);
+                Assert.Equal(123, work[2].TotalDownloadCount);
 
                 // Downloads auxiliary file should have original downloads.
                 Assert.Equal(12, result.Downloads["A"]["1.0.0"]);
@@ -492,7 +554,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             [Fact]
-            public async Task DoesNotOverrideIfDownloadsGreaterOrPackageHasNoDownloads()
+            public async Task IgnoresDownloadTransfersForNonexistentPackages()
             {
                 _packageRegistrations.Add(new PackageRegistration
                 {
@@ -501,67 +563,28 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     Packages = new[]
                     {
                         new Package { Version = "1.0.0" },
-                        new Package { Version = "2.0.0" },
                     },
                 });
                 _downloads.SetDownloadCount("A", "1.0.0", 100);
-                _downloads.SetDownloadCount("A", "2.0.0", 200);
-                _packageRegistrations.Add(new PackageRegistration
-                {
-                    Key = 2,
-                    Id = "B",
-                    Packages = new[]
-                    {
-                        new Package { Version = "3.0.0" },
-                        new Package { Version = "4.0.0" },
-                    },
-                });
-                _downloads.SetDownloadCount("B", "3.0.0", 5);
-                _downloads.SetDownloadCount("B", "4.0.0", 4);
-                _packageRegistrations.Add(new PackageRegistration
-                {
-                    Key = 3,
-                    Id = "C",
-                    Packages = new[]
-                    {
-                        new Package { Version = "5.0.0" },
-                    },
-                });
-                _downloads.SetDownloadCount("C", "5.0.0", 0);
 
                 InitializePackagesFromPackageRegistrations();
 
-                _downloadOverrides["A"] = 55;
-                _downloadOverrides["C"] = 66;
-                _downloadOverrides["D"] = 77;
+                // Transfer changes should be applied to the package registrations.
+                // Transfer changes for packages that do not exist should be ignored.
+                _transferChanges["PackageDoesNotExist"] = 123;
 
                 var result = await _target.ProduceWorkAsync(_work, _token);
 
                 // Documents should have overriden downloads.
-                var work = _work.Reverse().ToList();
-                Assert.Equal(3, work.Count);
+                var work = _work.ToList();
+                Assert.Single(work);
 
                 Assert.Equal("A", work[0].PackageId);
                 Assert.Equal("1.0.0", work[0].Packages[0].Version);
-                Assert.Equal("2.0.0", work[0].Packages[1].Version);
-                Assert.Equal(300, work[0].TotalDownloadCount);
-
-                Assert.Equal("B", work[1].PackageId);
-                Assert.Equal("3.0.0", work[1].Packages[0].Version);
-                Assert.Equal("4.0.0", work[1].Packages[1].Version);
-                Assert.Equal(9, work[1].TotalDownloadCount);
-
-                Assert.Equal("C", work[2].PackageId);
-                Assert.Equal("5.0.0", work[2].Packages[0].Version);
-                Assert.Equal(0, work[2].TotalDownloadCount);
+                Assert.Equal(100, work[0].TotalDownloadCount);
 
                 // Downloads auxiliary file should have original downloads.
                 Assert.Equal(100, result.Downloads["A"]["1.0.0"]);
-                Assert.Equal(200, result.Downloads["A"]["2.0.0"]);
-                Assert.Equal(5, result.Downloads["B"]["3.0.0"]);
-                Assert.Equal(4, result.Downloads["B"]["4.0.0"]);
-                Assert.DoesNotContain("C", result.Downloads.Keys);
-                Assert.DoesNotContain("D", result.Downloads.Keys);
             }
 
             private void InitializePackagesFromPackageRegistrations()

@@ -13,17 +13,20 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             SortedDictionary<string, SortedSet<string>> owners,
             DownloadData downloads,
             HashSet<string> excludedPackages,
-            HashSet<string> verifiedPackages)
+            HashSet<string> verifiedPackages,
+            SortedDictionary<string, SortedSet<string>> popularityTransfers)
         {
             Owners = owners ?? throw new ArgumentNullException(nameof(owners));
             Downloads = downloads ?? throw new ArgumentNullException(nameof(downloads));
             ExcludedPackages = excludedPackages ?? throw new ArgumentNullException(nameof(excludedPackages));
             VerifiedPackages = verifiedPackages ?? throw new ArgumentNullException(nameof(verifiedPackages));
+            PopularityTransfers = popularityTransfers ?? throw new ArgumentNullException(nameof(popularityTransfers));
         }
 
         public SortedDictionary<string, SortedSet<string>> Owners { get; }
         public DownloadData Downloads { get; }
         public HashSet<string> ExcludedPackages { get; }
         public HashSet<string> VerifiedPackages { get; }
+        public SortedDictionary<string, SortedSet<string>> PopularityTransfers { get; }
     }
 }
