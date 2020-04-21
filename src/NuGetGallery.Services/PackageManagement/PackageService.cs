@@ -198,10 +198,9 @@ namespace NuGetGallery
 
             using (var comm2 = conn.CreateCommand())
             {
-                comm2.CommandText = @"SELECT COUNT(Distinct PackageRegistrations.id) AS DependentCount
+                comm2.CommandText = @"SELECT COUNT(Distinct Packages.PackageRegistrationKey) AS DependentCount
 	                FROM PackageDependencies 
 	                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
-	                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[key]
 	                WHERE PackageDependencies.id = @id AND Packages.IsLatest = 1";
 
 
@@ -211,7 +210,7 @@ namespace NuGetGallery
 
 
                 comm2.Parameters.Add(parameter);
-                using (DbDataReader reader = comm2.ExecuteReader())
+                using (DbDataReader reader = comm2.ExecuteReader()) //Check here
                 {
                     if (reader.Read())
                     {

@@ -801,7 +801,7 @@ namespace NuGetGallery
             // Load all packages with the ID.
             Package package = null;
             var allVersions = _packageService.FindPackagesById(id, includePackageRegistration: true);
-            var dependence = _packageService.GetPackageDependents(id);
+            
 
             if (version != null)
             {
@@ -830,6 +830,34 @@ namespace NuGetGallery
                     && ActionsRequiringPermissions.DisplayPrivatePackageMetadata.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed))
             {
                 return HttpNotFound();
+            }
+
+
+          
+            // Caching dependence
+            CreatePackageDependents dependence; // Maybe this type is changed
+            // searchAndListModel correspond to q and page; what is that?
+            var cacheKey = "cache dependents_" + id.ToLowerInvariant();
+
+            var cachedResults = HttpContext.Cache.Get(cacheKey); // What cache key?
+            if (cachedResults == null)
+            {
+                 dependence = _packageService.GetPackageDependents(id);
+
+                // note: this is a per instance cache
+                HttpContext.Cache.Add(
+                    cacheKey,
+                    dependence,
+                    null,
+                    DateTime.UtcNow.AddMinutes(5),
+                    Cache.NoSlidingExpiration,
+                    CacheItemPriority.Default, null);
+            }
+
+            else
+            {
+                // default for /packages view
+                dependence = (CreatePackageDependents)cachedResults;
             }
 
             var readme = await _readMeService.GetReadMeHtmlAsync(package);
