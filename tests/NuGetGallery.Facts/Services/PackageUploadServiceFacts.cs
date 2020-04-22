@@ -512,6 +512,8 @@ namespace NuGetGallery
             [Theory]
             [InlineData("duplicatedFile.txt", "duplicatedFile.txt")]
             [InlineData("./temp/duplicatedFile.txt", "./temp/duplicatedFile.txt")]
+            [InlineData("./temp/duplicatedFile.txt", "./temp\\duplicatedFile.txt")]
+            [InlineData("./temp\\duplicatedFile.txt", "./temp\\duplicatedFile.txt")]
             [InlineData("duplicatedFile.txt", "duplicatedFile.TXT")]
             public async Task WithDuplicatedEntries_ReturnsInvalidPackage(params string[] entryNames)
             {
@@ -526,7 +528,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal("The package contains one or more duplicated files in a same folder.", result.Message.PlainTextMessage);
+                Assert.Equal("The package contains one or more duplicated files in the same folder.", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -534,6 +536,7 @@ namespace NuGetGallery
             [InlineData("noDuplicatedFile.txt", "./temp/noDuplicatedFile.txt")]
             [InlineData("./temp1/noDuplicatedFile.txt", "./temp2/noDuplicatedFile.txt")]
             [InlineData("./temp1/noDuplicatedFile.txt", "./temp1/noDuplicatedFile.css")]
+            [InlineData("./temp1/noDuplicatedFile.txt", "./temp1\\noDuplicatedFile.css")]
             public async Task WithNoDuplicatedEntries_ReturnsAcceptedPackage(params string[] entryNames)
             {
                 // Arrange
