@@ -224,6 +224,7 @@
     <Compile Include="Infrastructure\ABTestEnrollmentState.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />
     <Compile Include="Infrastructure\CookieBasedABTestService.cs" />
+    <Compile Include="Infrastructure\RequestValidationExceptionFilter.cs" />
     <Compile Include="Infrastructure\IABTestEnrollmentFactory.cs" />
     <Compile Include="Infrastructure\IABTestService.cs" />
     <Compile Include="Infrastructure\ILuceneDocumentFactory.cs" />
@@ -1275,6 +1276,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="App_404.aspx" />
+    <Content Include="App_400.aspx" />
+    <Content Include="App_500.aspx" />
     <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="Content\admin\SupportRequestStyles.css" />

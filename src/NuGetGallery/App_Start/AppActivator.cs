@@ -237,6 +237,7 @@ namespace NuGetGallery
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
             GlobalFilters.Filters.Add(new UserDeletedErrorFilter());
+            GlobalFilters.Filters.Add(new RequestValidationExceptionFilter());
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
