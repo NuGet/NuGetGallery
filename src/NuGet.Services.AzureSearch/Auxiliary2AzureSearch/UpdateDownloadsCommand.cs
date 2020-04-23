@@ -164,8 +164,10 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             _logger.LogInformation("Uploading the new download count data to blob storage.");
             await _downloadDataClient.ReplaceLatestIndexedAsync(newData, oldResult.Metadata.GetIfMatchCondition());
 
-            // TODO: Upload the new popularity transfer data to blob storage.
-            // See: https://github.com/NuGet/NuGetGallery/issues/7898
+            _logger.LogInformation("Uploading the new popularity transfer data to blob storage.");
+            await _popularityTransferDataClient.ReplaceLatestIndexedAsync(
+                newTransfers,
+                oldTransfers.AccessCondition);
             return true;
         }
 

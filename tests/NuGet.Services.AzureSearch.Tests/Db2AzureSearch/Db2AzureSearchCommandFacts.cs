@@ -326,5 +326,31 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 x => x.ReplaceLatestAsync(It.IsAny<HashSet<string>>(), It.IsAny<IAccessCondition>()),
                 Times.Once);
         }
+
+        [Fact]
+        public async Task PushesPopularityTransferData()
+        {
+            SortedDictionary<string, SortedSet<string>> data = null;
+            IAccessCondition accessCondition = null;
+            _popularityTransferDataClient
+                .Setup(x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()))
+                .Returns(Task.CompletedTask)
+                .Callback<SortedDictionary<string, SortedSet<string>>, IAccessCondition>((d, a) =>
+                {
+                    data = d;
+                    accessCondition = a;
+                });
+
+            await _target.ExecuteAsync();
+
+            Assert.Same(_initialAuxiliaryData.PopularityTransfers, data);
+
+            Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            Assert.Null(accessCondition.IfMatchETag);
+
+            _popularityTransferDataClient.Verify(
+                x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()),
+                Times.Once);
+        }
     }
 }

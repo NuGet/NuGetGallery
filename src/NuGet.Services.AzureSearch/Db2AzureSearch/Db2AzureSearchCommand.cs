@@ -117,8 +117,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 // Write the verified packages data file.
                 await WriteVerifiedPackagesDataAsync(initialAuxiliaryData.VerifiedPackages);
 
-                // TODO: Write popularity transfers data file.
-                // See: https://github.com/NuGet/NuGetGallery/issues/7898
+                // Write popularity transfers data file.
+                await WritePopularityTransfersDataAsync(initialAuxiliaryData.PopularityTransfers);
 
                 // Write the cursor.
                 _logger.LogInformation("Writing the initial cursor value to be {CursorValue:O}.", initialCursorValue);
@@ -199,6 +199,15 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 verifiedPackages,
                 AccessConditionWrapper.GenerateIfNotExistsCondition());
             _logger.LogInformation("Done uploading the initial verified packages data file.");
+        }
+
+        private async Task WritePopularityTransfersDataAsync(SortedDictionary<string, SortedSet<string>> popularityTransfers)
+        {
+            _logger.LogInformation("Writing the initial popularity transfers data file.");
+            await _popularityTransferDataClient.ReplaceLatestIndexedAsync(
+                popularityTransfers,
+                AccessConditionWrapper.GenerateIfNotExistsCondition());
+            _logger.LogInformation("Done uploading the initial popularity transfers data file.");
         }
 
         private async Task<InitialAuxiliaryData> ProduceWorkAsync(

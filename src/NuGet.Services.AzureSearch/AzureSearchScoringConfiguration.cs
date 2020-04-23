@@ -16,6 +16,12 @@ namespace NuGet.Services.AzureSearch
         public Dictionary<string, double> FieldWeights { get; set; }
 
         /// <summary>
+        /// The percentage of downloads that should be transferred by the popularity transfer feature.
+        /// Values range from 0 to 1.
+        /// </summary>
+        public double PopularityTransfer { get; set; }
+
+        /// <summary>
         /// The <see cref="SearchDocument.Full.DownloadScore"/> magnitude boost.
         /// This boosts packages with many downloads.
         /// </summary>

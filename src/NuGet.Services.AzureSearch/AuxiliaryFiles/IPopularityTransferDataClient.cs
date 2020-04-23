@@ -8,7 +8,7 @@ using NuGetGallery;
 namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     /// <summary>
-    /// The purpose of this interface is allow reading and writing populairty transfer information from storage.
+    /// The purpose of this interface is allow reading and writing popularity transfer information from storage.
     /// The Auxiliary2AzureSearch job does a comparison of latest popularity transfer data from the database with
     /// a snapshot of information stored in Azure Blob Storage. This interface handles the reading and writing of
     /// that snapshot from storage.
