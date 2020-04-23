@@ -72,6 +72,9 @@ namespace NuGetGallery
             [InlineData("alpha2", true, 4)]
             [InlineData("alpha3", true, -1)]
             [InlineData("internal", true, 4)]
+            [InlineData("internal.5", true, 6)]
+            [InlineData("internal.51", true, 7)]
+            [InlineData("internal.6", true, 8)]
             [InlineData("", true, 5)]
             [InlineData("", false, 1)]
             public void VerifyAll(string version, bool preRelease, int expectedResultIndex)
@@ -85,6 +88,9 @@ namespace NuGetGallery
                     ("1.0.23-alpha2-internal3", 4),
                     ("1.0.23-alpha2-internal2", 5),
                     ("1.0.23-beta", 6),
+                    ("1.0.23-internal.5", 2),
+                    ("1.0.23-internal.510", 2),
+                    ("1.0.23-internal.6", 2),
                 }
                     .Select(data => new Package() { 
                         IsPrerelease = r.IsMatch(data.Item1), 
