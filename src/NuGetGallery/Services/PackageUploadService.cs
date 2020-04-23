@@ -609,7 +609,7 @@ namespace NuGetGallery
         private PackageValidationResult CheckPackageDuplicatedEntries(PackageArchiveReader nuGetPackage)
         {
             // Normalize paths and ensures case sensitivity is also considered
-            var packageFiles = nuGetPackage.GetFiles().Select(packageFile => Path.GetFullPath(packageFile.ToLowerInvariant()));
+            var packageFiles = nuGetPackage.GetFiles().Select(packageFile => Path.GetFullPath(packageFile.ToLower()));
 
             if (packageFiles.Count() != packageFiles.Distinct(StringComparer.OrdinalIgnoreCase).Count())
             {
