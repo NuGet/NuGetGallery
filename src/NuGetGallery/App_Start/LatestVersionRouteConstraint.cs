@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -8,15 +9,11 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public class VersionRouteConstraint : IRouteConstraint
+    public class LatestVersionRouteConstraint : IRouteConstraint
     {
+        /// <inheritdoc />
         public bool Match(HttpContextBase httpContext, Route route, string parameterName, RouteValueDictionary values, RouteDirection routeDirection)
         {
-            if (routeDirection == RouteDirection.UrlGeneration)
-            {
-                return true;
-            }
-
             object versionValue;
             if (!values.TryGetValue(parameterName, out versionValue))
             {
@@ -33,6 +30,16 @@ namespace NuGetGallery
             {
                 return true;
             }
+            
+            if (versionText.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
+            }
+
+            if (route.Url.Equals(GalleryConstants.LatestUrlString, StringComparison.InvariantCultureIgnoreCase)
+                || route.Url.Equals(GalleryConstants.LatestUrlWithPreleaseString, StringComparison.InvariantCultureIgnoreCase)
+                || route.Url.Equals(GalleryConstants.LatestUrlWithPreleaseAndVersionString, StringComparison.InvariantCultureIgnoreCase))
+                return true;
 
             NuGetVersion ignored;
             return NuGetVersion.TryParse(versionText, out ignored);

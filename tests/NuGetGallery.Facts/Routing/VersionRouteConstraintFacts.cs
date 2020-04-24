@@ -69,7 +69,7 @@ namespace NuGetGallery.Routing
             public void ReturnsTrueIfVersionIsPrerelease()
             {
                 var routeValues = new RouteValueDictionary { { "version", GalleryConstants.AbsoluteLatestUrlString } };
-                var constraint = new VersionRouteConstraint();
+                var constraint = new LatestVersionRouteConstraint();
 
                 var result = constraint.Match(null, null, "version", routeValues, RouteDirection.IncomingRequest);
 
@@ -80,7 +80,7 @@ namespace NuGetGallery.Routing
             public void ReturnsTrueIfVersionIsPrereleaseNoVersion()
             {
                 var routeValues = new RouteValueDictionary { };
-                var constraint = new VersionRouteConstraint();
+                var constraint = new LatestVersionRouteConstraint();
 
                 var result = constraint.Match(null, new Route(GalleryConstants.LatestUrlString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
 
@@ -91,7 +91,7 @@ namespace NuGetGallery.Routing
             public void ReturnsTrueIfVersionIsLatestPrerelease()
             {
                 var routeValues = new RouteValueDictionary { };
-                var constraint = new VersionRouteConstraint();
+                var constraint = new LatestVersionRouteConstraint();
 
                 var result = constraint.Match(null, new Route(GalleryConstants.LatestUrlWithPreleaseString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
 
@@ -102,7 +102,7 @@ namespace NuGetGallery.Routing
             public void ReturnsTrueIfVersionIsLatestPrereleaseWithVersion()
             {
                 var routeValues = new RouteValueDictionary { };
-                var constraint = new VersionRouteConstraint();
+                var constraint = new LatestVersionRouteConstraint();
 
                 var result = constraint.Match(null, new Route(GalleryConstants.LatestUrlWithPreleaseAndVersionString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
 

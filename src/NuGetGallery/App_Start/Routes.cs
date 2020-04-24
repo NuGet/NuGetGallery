@@ -236,8 +236,7 @@ namespace NuGetGallery
                 {
                     controller = "Packages",
                     action = "DisplayPackage",
-                },
-                new {version = new VersionRouteConstraint()});
+                });
 
             routes.MapRoute(
                 RouteName.DisplayPrereleasePackage,
@@ -248,7 +247,7 @@ namespace NuGetGallery
                     action = "DisplayPackage",
                     version = UrlParameter.Optional
                 },
-                new {version = new VersionRouteConstraint()});
+                new {version = new LatestVersionRouteConstraint()});
 
             routes.MapRoute(
                 RouteName.DisplayPackageFeed,
