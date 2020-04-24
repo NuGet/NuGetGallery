@@ -70,45 +70,39 @@ namespace NuGetGallery
             [InlineData("alpha2-internal", true, 4)]
             [InlineData("alpha1", true, 2)]
             [InlineData("alpha2", true, 4)]
-            [InlineData("alpha3", true, 5)]
-            [InlineData("internal", true, 4)]
-            [InlineData("internal.5", true, 6)]
+            [InlineData("alpha3", true, 7)]
+            [InlineData("internal", true, 7)]
+            [InlineData("internal.5", true, 7)]
             [InlineData("internal.51", true, 7)]
             [InlineData("internal.6", true, 8)]
-            [InlineData("", true, 5)]
+            [InlineData("", true, 7)]
             [InlineData("", false, 1)]
-            [InlineData("noexist", true, 5)]
+            [InlineData("noexist", true, 7)]
             public void VerifyAll(string version, bool preRelease, int expectedResultIndex)
             {
                 var r = new Regex(@"-[^d]");
                 var testData = new[]
                 {
-                    ("1.0.0", 1),
-                    ("1.0.23", 2),
-                    ("1.0.23-alpha1", 3),
-                    ("1.0.23-alpha2-internal3", 4),
-                    ("1.0.23-alpha2-internal2", 5),
-                    ("1.0.23-beta", 6),
-                    ("1.0.23-internal.5", 2),
-                    ("1.0.23-internal.510", 2),
-                    ("1.0.23-internal.6", 2),
+                    ("1.0.0", 1, false, false),
+                    ("1.0.23", 2, true, false),
+                    ("1.0.23-alpha1", 3, false, false),
+                    ("1.0.23-alpha2-internal3", 4, false, false),
+                    ("1.0.23-alpha2-internal2", 5, false, false),
+                    ("1.0.23-beta", 6, false, false),
+                    ("1.0.23-internal.5", 2, false, false),
+                    ("1.0.23-internal.510", 2, false, true),
+                    ("1.0.23-internal.6", 2, false, false),
                 }
                     .Select(data => new Package() { 
                         IsPrerelease = r.IsMatch(data.Item1), 
-                        NormalizedVersion = SemanticVersion.Parse(data.Item1).ToNormalizedString(), 
-                        LastUpdated = new DateTime(2000, 1, data.Item2)})
+                        NormalizedVersion = SemanticVersion.Parse(data.Item1).ToNormalizedString(),
+                        IsLatestStableSemVer2 = data.Item3,
+                        IsLatestSemVer2 = data.Item4
+                    })
                     .ToArray();
 
-                if (expectedResultIndex >= 0)
-                {
-                    var result = InvokeMethod(testData, version, preRelease);
-                    Assert.Equal(testData[expectedResultIndex], result);
-                }
-                else
-                {
-                    var result = InvokeMethod(testData, version, preRelease);
-                    Assert.Equal(null, result);
-                }
+                var result = InvokeMethod(testData, version, preRelease);
+                Assert.Equal(testData[expectedResultIndex].NormalizedVersion, result.NormalizedVersion);
             }
         }
 

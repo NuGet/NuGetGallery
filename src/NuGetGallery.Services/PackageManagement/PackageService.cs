@@ -230,27 +230,41 @@ namespace NuGetGallery
         /// <inheritdoc />
         public Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages, string version, bool preRelease)
         {
+            IOrderedEnumerable<Package> GetOrdered(IEnumerable<Package> localPackages)
+            {
+                if (preRelease)
+                {
+                    return localPackages
+                            .OrderByDescending(d => d.IsLatestSemVer2)
+                            .ThenByDescending(d => d.IsLatest);
+                }
+                else
+                {
+                    return localPackages
+                        .OrderByDescending(d => d.IsLatestStableSemVer2)
+                        .ThenByDescending(d => d.IsLatestStable);
+                }
+            }
+
             Package GetPackage()
             {
                 if (string.IsNullOrEmpty(version))
                 {
-                    return packages
-                        .Where(package => package.IsPrerelease == preRelease)
-                        .OrderByDescending(package => package.LastUpdated).FirstOrDefault();
+                    return GetOrdered(packages
+                        .Where(package => package.IsPrerelease == preRelease))
+                        .FirstOrDefault();
                 }
                 else
                 {
-                    return packages
-                        .Where(package => package.IsPrerelease == preRelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
-                        .OrderByDescending(d => d.LastUpdated)
+                    return GetOrdered(packages
+                        .Where(package => package.IsPrerelease == preRelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0))
                         .FirstOrDefault();
                 }
             }
             
             Package GetDefaultPackage()
             {
-                return packages.Where(package => package.IsPrerelease == preRelease)
-                    .OrderByDescending(package => package.LastUpdated)
+                return GetOrdered(packages.Where(package => package.IsPrerelease == preRelease))
                     .First();
             }
 
