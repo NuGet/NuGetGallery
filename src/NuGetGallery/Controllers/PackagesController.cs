@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -35,6 +35,7 @@ using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.Services.PackageManagement;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
@@ -91,6 +92,7 @@ namespace NuGetGallery
 
         private readonly IAppConfiguration _config;
         private readonly IMessageService _messageService;
+        private readonly IPackageFilter _packageFilter;
         private readonly IPackageService _packageService;
         private readonly IPackageUpdateService _packageUpdateService;
         private readonly IPackageFileService _packageFileService;
@@ -126,6 +128,7 @@ namespace NuGetGallery
         private readonly DeletePackageViewModelFactory _deletePackageViewModelFactory;
 
         public PackagesController(
+            IPackageFilter packageFilter,
             IPackageService packageService,
             IPackageUpdateService packageUpdateService,
             IUploadFileService uploadFileService,
@@ -157,6 +160,7 @@ namespace NuGetGallery
             IABTestService abTestService,
             IIconUrlProvider iconUrlProvider)
         {
+            _packageFilter = packageFilter;
             _packageService = packageService;
             _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
             _uploadFileService = uploadFileService;
@@ -799,35 +803,9 @@ namespace NuGetGallery
             }
 
             // Load all packages with the ID.
-            Package package = null;
             var allVersions = _packageService.FindPackagesById(id, includePackageRegistration: true);
-
-            if (version != null)
-            {
-                if (version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // The user is looking for the absolute latest version and not an exact version.
-                    package = allVersions.FirstOrDefault(p => p.IsLatestSemVer2);
-                }
-                else if (LatestPackageRouteVerifier.IsLatestRoute(RouteData.Route, out var preRelease))
-                {
-                    package = _packageService.FilterLatestPackageBySuffix(allVersions, version, preRelease);
-                }
-                else
-                {
-                    package = _packageService.FilterExactPackage(allVersions, version);
-                }
-            } 
-            else if (LatestPackageRouteVerifier.IsLatestRoute(RouteData.Route, out var preRelease))
-            {
-                package = _packageService.FilterLatestPackageBySuffix(allVersions, version, preRelease);
-            }
-
-            if (package == null)
-            {
-                // If we cannot find the exact version or no version was provided, fall back to the latest version.
-                package = _packageService.FilterLatestPackage(allVersions, SemVerLevelKey.SemVer2, allowPrerelease: true);
-            }
+            var filterContext = new PackageFilterContext(RouteData.Route, version);
+            var package = _packageFilter.GetFiltered(allVersions, filterContext);
 
             // Validating packages should be hidden to everyone but the owners and admins.
             var currentUser = GetCurrentUser();

@@ -70,13 +70,14 @@ namespace NuGetGallery
             [InlineData("alpha2-internal", true, 4)]
             [InlineData("alpha1", true, 2)]
             [InlineData("alpha2", true, 4)]
-            [InlineData("alpha3", true, -1)]
+            [InlineData("alpha3", true, 5)]
             [InlineData("internal", true, 4)]
             [InlineData("internal.5", true, 6)]
             [InlineData("internal.51", true, 7)]
             [InlineData("internal.6", true, 8)]
             [InlineData("", true, 5)]
             [InlineData("", false, 1)]
+            [InlineData("noexist", true, 5)]
             public void VerifyAll(string version, bool preRelease, int expectedResultIndex)
             {
                 var r = new Regex(@"-[^d]");

@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGet.Versioning;
+using NuGetGallery.Services.Helpers;
 
 namespace NuGetGallery
 {
@@ -31,14 +32,14 @@ namespace NuGetGallery
                 return true;
             }
             
-            if (versionText.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            if (versionText.Equals(LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;
             }
 
-            if (route.Url.Equals(GalleryConstants.LatestUrlString, StringComparison.InvariantCultureIgnoreCase)
-                || route.Url.Equals(GalleryConstants.LatestUrlWithPreleaseString, StringComparison.InvariantCultureIgnoreCase)
-                || route.Url.Equals(GalleryConstants.LatestUrlWithPreleaseAndVersionString, StringComparison.InvariantCultureIgnoreCase))
+            if (route.Url.Equals(LatestPackageRouteVerifier.SupportedRoutes.LatestUrlString, StringComparison.InvariantCultureIgnoreCase)
+                || route.Url.Equals(LatestPackageRouteVerifier.SupportedRoutes.LatestUrlWithPreleaseString, StringComparison.InvariantCultureIgnoreCase)
+                || route.Url.Equals(LatestPackageRouteVerifier.SupportedRoutes.LatestUrlWithPreleaseAndVersionString, StringComparison.InvariantCultureIgnoreCase))
                 return true;
 
             NuGetVersion ignored;

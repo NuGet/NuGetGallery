@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System.Web.Mvc;
 using System.Web.Routing;
+using NuGetGallery.Services.Helpers;
 using RouteMagic.RouteHandlers;
 using Xunit;
 
@@ -68,7 +69,7 @@ namespace NuGetGallery.Routing
             [Fact]
             public void ReturnsTrueIfVersionIsPrerelease()
             {
-                var routeValues = new RouteValueDictionary { { "version", GalleryConstants.AbsoluteLatestUrlString } };
+                var routeValues = new RouteValueDictionary { { "version", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString } };
                 var constraint = new LatestVersionRouteConstraint();
 
                 var result = constraint.Match(null, null, "version", routeValues, RouteDirection.IncomingRequest);
@@ -82,7 +83,7 @@ namespace NuGetGallery.Routing
                 var routeValues = new RouteValueDictionary { };
                 var constraint = new LatestVersionRouteConstraint();
 
-                var result = constraint.Match(null, new Route(GalleryConstants.LatestUrlString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
+                var result = constraint.Match(null, new Route(LatestPackageRouteVerifier.SupportedRoutes.LatestUrlString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
 
                 Assert.True(result);
             }
@@ -93,7 +94,7 @@ namespace NuGetGallery.Routing
                 var routeValues = new RouteValueDictionary { };
                 var constraint = new LatestVersionRouteConstraint();
 
-                var result = constraint.Match(null, new Route(GalleryConstants.LatestUrlWithPreleaseString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
+                var result = constraint.Match(null, new Route(LatestPackageRouteVerifier.SupportedRoutes.LatestUrlWithPreleaseString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
 
                 Assert.True(result);
             }
@@ -104,7 +105,7 @@ namespace NuGetGallery.Routing
                 var routeValues = new RouteValueDictionary { };
                 var constraint = new LatestVersionRouteConstraint();
 
-                var result = constraint.Match(null, new Route(GalleryConstants.LatestUrlWithPreleaseAndVersionString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
+                var result = constraint.Match(null, new Route(LatestPackageRouteVerifier.SupportedRoutes.LatestUrlWithPreleaseAndVersionString, new DelegateRouteHandler(d => null)), "version", routeValues, RouteDirection.IncomingRequest);
 
                 Assert.True(result);
             }

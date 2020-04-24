@@ -3,6 +3,7 @@
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery.Controllers;
+using NuGetGallery.Services.Helpers;
 using RouteMagic;
 
 namespace NuGetGallery
@@ -231,7 +232,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.DisplayReleasePackage,
-                GalleryConstants.LatestUrlString,
+                LatestPackageRouteVerifier.SupportedRoutes.LatestUrlString,
                 new
                 {
                     controller = "Packages",
@@ -240,7 +241,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.DisplayPrereleasePackage,
-                GalleryConstants.LatestUrlWithPreleaseAndVersionString,
+                LatestPackageRouteVerifier.SupportedRoutes.LatestUrlWithPreleaseAndVersionString,
                 new
                 {
                     controller = "Packages",
