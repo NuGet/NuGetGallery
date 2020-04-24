@@ -238,7 +238,7 @@ namespace NuGetGallery
                         .OrderByDescending(package => package.LastUpdated).FirstOrDefault(); 
                 
                 return packages
-                    .Where(package => package.IsPrerelease && package.Version.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                    .Where(package => package.IsPrerelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     .OrderByDescending(d => d.LastUpdated)
                     .FirstOrDefault(); 
             }
@@ -250,7 +250,7 @@ namespace NuGetGallery
                         .OrderByDescending(package => package.LastUpdated).FirstOrDefault();
                 
                 return packages
-                    .Where(package => !package.IsPrerelease && package.Version.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                    .Where(package => !package.IsPrerelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
                     .OrderByDescending(d => d.LastUpdated)
                     .FirstOrDefault();
             }

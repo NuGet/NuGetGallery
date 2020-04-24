@@ -10,16 +10,16 @@ namespace NuGetGallery.Helpers
             preRelease = false;
             if (route is Route r)
             {
-                if (r.Url.Equals(GalleryConstants.LatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+                if (r.Url.Equals(GalleryConstants.LatestUrlString, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
-                if (r.Url.Equals(GalleryConstants.LatestUrlWithPreleaseString, StringComparison.InvariantCultureIgnoreCase))
+                if (r.Url.Equals(GalleryConstants.LatestUrlWithPreleaseString, StringComparison.OrdinalIgnoreCase))
                 {
                     preRelease = true;
                     return true;
                 }
-                if (r.Url.Equals(GalleryConstants.LatestUrlWithPreleaseAndVersionString, StringComparison.InvariantCultureIgnoreCase))
+                if (r.Url.Equals(GalleryConstants.LatestUrlWithPreleaseAndVersionString, StringComparison.OrdinalIgnoreCase))
                 {
                     preRelease = true;
                     return true;

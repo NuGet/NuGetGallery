@@ -83,7 +83,7 @@ namespace NuGetGallery
                 var testData = new[]
                 {
                     ("1.0.0", 1),
-                    ("1.0.0.23", 2),
+                    ("1.0.23", 2),
                     ("1.0.23-alpha1", 3),
                     ("1.0.23-alpha2-internal3", 4),
                     ("1.0.23-alpha2-internal2", 5),
@@ -94,7 +94,7 @@ namespace NuGetGallery
                 }
                     .Select(data => new Package() { 
                         IsPrerelease = r.IsMatch(data.Item1), 
-                        Version = data.Item1, 
+                        NormalizedVersion = SemanticVersion.Parse(data.Item1).ToNormalizedString(), 
                         LastUpdated = new DateTime(2000, 1, data.Item2)})
                     .ToArray();
 

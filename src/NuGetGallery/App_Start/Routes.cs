@@ -231,18 +231,17 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.DisplayReleasePackage,
-                "packages/{id}/latest",
+                GalleryConstants.LatestUrlString,
                 new
                 {
                     controller = "Packages",
                     action = "DisplayPackage",
-                    version = UrlParameter.Optional
                 },
                 new {version = new VersionRouteConstraint()});
 
             routes.MapRoute(
                 RouteName.DisplayPrereleasePackage,
-                "packages/{id}/latest/prerelease/{version}",
+                GalleryConstants.LatestUrlWithPreleaseAndVersionString,
                 new
                 {
                     controller = "Packages",
