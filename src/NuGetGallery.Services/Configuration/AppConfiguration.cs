@@ -413,5 +413,6 @@ namespace NuGetGallery.Configuration
         public int? MinIoThreads { get; set; }
         [DefaultValue(null)]
         public int? MaxIoThreads { get; set; }
+        public string InternalMicrosoftTenantKey { get; set; }
     }
 }

@@ -340,6 +340,10 @@
         return typeof window.appInsights === 'object';
     };
 
+    nuget.isInstrumentationAvailable = function () {
+        return typeof window.NuGetInstrumentation === 'object';
+    };
+
     nuget.getDateFormats = function (input) {
         var datetime = moment.utc(input);
 
@@ -444,8 +448,16 @@
         }
     };
 
-    nuget.sendAiMetric = function (name, value, properties) {
-        if (window.nuget.isAiAvailable()) {
+    nuget.sendMetric = function (name, value, properties) {
+        if (window.nuget.isInstrumentationAvailable()) {
+            window.NuGetInstrumentation.trackMetric({
+                name: name,
+                average: value,
+                sampleCount: 1,
+                min: value,
+                max: value
+            }, properties);
+        } else if (window.nuget.isAiAvailable()) {
             window.appInsights.trackMetric(name, value, 1, value, value, properties);
         }
     };

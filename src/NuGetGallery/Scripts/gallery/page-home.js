@@ -49,7 +49,7 @@ $(function () {
                 data: obj,
                 success: function (data) {
                     if (data.success) {
-                        emitAIMetric("Enable2FAModalProvidedFeedback");
+                        emitMetric("Enable2FAModalProvidedFeedback");
                         viewModel.dismissModalOrGetFeedback(false);
                     } else {
                         viewModel.message(data.message);
@@ -65,7 +65,7 @@ $(function () {
                 viewModel.setupFeedbackView();
             }
             else {
-                emitAIMetric('Enable2FAModalDismissed');
+                emitMetric('Enable2FAModalDismissed');
                 $("#popUp2FAModal").modal('hide');
             }
         },
@@ -109,15 +109,15 @@ $(function () {
 
     function show2FAModal() {
         viewModel.setupEnable2FAView();
-        emitAIMetric("Enable2FAModalShown");
+        emitMetric("Enable2FAModalShown");
         $("#popUp2FAModal").modal({
             show: true,
             focus: true
         });
     }
 
-    function emitAIMetric(metricName) {
-        window.nuget.sendAiMetric(metricName, 1, {});
+    function emitMetric(metricName) {
+        window.nuget.sendMetric(metricName, 1, {});
     }
 
     function updateStats() {

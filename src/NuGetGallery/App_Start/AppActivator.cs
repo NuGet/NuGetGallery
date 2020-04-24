@@ -124,6 +124,10 @@ namespace NuGetGallery
                 .Include("~/Content/gallery/css/fabric.css");
             BundleTable.Bundles.Add(newStyleBundle);
 
+            var instrumentationBundle = new ScriptBundle("~/Scripts/gallery/instrumentation.min.js")
+                .Include("~/Scripts/gallery/instrumentation.js");
+            BundleTable.Bundles.Add(instrumentationBundle);
+
             var scriptBundle = new ScriptBundle("~/Scripts/gallery/site.min.js")
                 .Include("~/Scripts/gallery/jquery-3.4.1.js")
                 .Include("~/Scripts/gallery/jquery.validate-1.16.0.js")
