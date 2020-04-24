@@ -230,30 +230,31 @@ namespace NuGetGallery
         /// <inheritdoc />
         public Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages, string version, bool preRelease)
         {
-            if (preRelease)
+            Package GetPackage()
             {
                 if (string.IsNullOrEmpty(version))
+                {
                     return packages
-                        .Where(package => package.IsPrerelease)
-                        .OrderByDescending(package => package.LastUpdated).FirstOrDefault(); 
-                
-                return packages
-                    .Where(package => package.IsPrerelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
-                    .OrderByDescending(d => d.LastUpdated)
-                    .FirstOrDefault(); 
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(version))
-                    return packages
-                        .Where(package => !package.IsPrerelease)
+                        .Where(package => package.IsPrerelease == preRelease)
                         .OrderByDescending(package => package.LastUpdated).FirstOrDefault();
-                
-                return packages
-                    .Where(package => !package.IsPrerelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
-                    .OrderByDescending(d => d.LastUpdated)
-                    .FirstOrDefault();
+                }
+                else
+                {
+                    return packages
+                        .Where(package => package.IsPrerelease == preRelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0)
+                        .OrderByDescending(d => d.LastUpdated)
+                        .FirstOrDefault();
+                }
             }
+            
+            Package GetDefaultPackage()
+            {
+                return packages.Where(package => package.IsPrerelease == preRelease)
+                    .OrderByDescending(package => package.LastUpdated)
+                    .First();
+            }
+
+            return GetPackage() ?? GetDefaultPackage();
         }
 
         private static Package FilterLatestPackageHelper(
