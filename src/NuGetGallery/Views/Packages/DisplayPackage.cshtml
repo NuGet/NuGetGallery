@@ -288,6 +288,11 @@
                 @Html.Partial("_DisplayPackageDeprecation")
             }
 
+            @if (Model.IsPackageRenamesEnabled && Model.PackageRenames != null && Model.PackageRenames.Count != 0)
+            {
+                @Html.Partial("_DisplayPackageRenames")
+            }
+
             @if (Model.Prerelease)
             {
                 @ViewHelpers.AlertInfo(

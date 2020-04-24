@@ -263,6 +263,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDeprecation>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<PackageRename>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageRename>>()
+                .InstancePerLifetimeScope();
+
             ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, loggerFactory, configuration, secretInjector);
 
             var supportDbConnectionFactory = CreateDbConnectionFactory(
@@ -404,6 +409,10 @@ namespace NuGetGallery
 
             builder.RegisterType<PackageDeprecationService>()
                 .As<IPackageDeprecationService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageRenameService>()
+                .As<IPackageRenameService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageUpdateService>()

@@ -125,5 +125,10 @@ namespace NuGetGallery
         /// Whether we should enable the Usabilla feedback button on every page.
         /// </summary>
         bool IsUsabillaButtonEnabledOnEveryPage();
+
+        /// <summary>
+        /// Whether the user is able to see or manage the package renames information.
+        /// </summary>
+        bool IsPackageRenamesEnabled(User user);
     }
 }

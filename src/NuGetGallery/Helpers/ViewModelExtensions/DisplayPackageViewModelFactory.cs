@@ -23,6 +23,7 @@ namespace NuGetGallery
             IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
+            IReadOnlyList<PackageRename> packageRenames,
             RenderedReadMeResult readmeResult)
         {
             var viewModel = new DisplayPackageViewModel();
@@ -32,6 +33,7 @@ namespace NuGetGallery
                 allVersions,
                 currentUser,
                 packageKeyToDeprecation,
+                packageRenames,
                 readmeResult);
         }
 
@@ -41,11 +43,12 @@ namespace NuGetGallery
             IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
+            IReadOnlyList<PackageRename> packageRenames,
             RenderedReadMeResult readmeResult)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
             SetupCommon(viewModel, package, pushedBy: null, packageKeyToDeprecation: packageKeyToDeprecation);
-            return SetupInternal(viewModel, package, allVersions, currentUser, packageKeyToDeprecation, readmeResult);
+            return SetupInternal(viewModel, package, allVersions, currentUser, packageKeyToDeprecation, packageRenames, readmeResult);
         }
 
         private DisplayPackageViewModel SetupInternal(
@@ -54,6 +57,7 @@ namespace NuGetGallery
             IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
+            IReadOnlyList<PackageRename> packageRenames,
             RenderedReadMeResult readmeResult)
         {
             var dependencies = package.Dependencies.ToList();
@@ -110,6 +114,16 @@ namespace NuGetGallery
                 }
 
                 viewModel.CustomMessage = deprecation.CustomMessage;
+            }
+
+            if (packageRenames != null)
+            {
+                viewModel.PackageRenames = packageRenames;
+            }
+
+            if (package.PackageRegistration?.RenamedMessage != null)
+            {
+                viewModel.RenamedMessage = package.PackageRegistration.RenamedMessage;
             }
 
             viewModel.ReadMeHtml = readmeResult?.Content;

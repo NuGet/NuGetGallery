@@ -1,6 +1,15 @@
 $(function () {
     'use strict';
 
+    // Configure the rename information container
+    var container = $('#show-rename-content-container');
+    window.nuget.configureExpander("rename-content-container", "ChevronDown", null, "ChevronUp");
+    container.keydown(function (event) {
+        if (event.which === 13) { // Enter
+            $(event.target).click();
+        }
+    });
+
     // Configure the deprecation information container
     var container = $('#show-deprecation-content-container');
     if ($('#deprecation-content-container').children().length) {

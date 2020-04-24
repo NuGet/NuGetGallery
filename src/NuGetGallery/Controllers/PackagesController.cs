@@ -117,6 +117,7 @@ namespace NuGetGallery
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
+        private readonly IPackageRenameService _renameService;
         private readonly IABTestService _abTestService;
         private readonly IIconUrlProvider _iconUrlProvider;
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
@@ -154,6 +155,7 @@ namespace NuGetGallery
             ILicenseExpressionSplitter licenseExpressionSplitter,
             IFeatureFlagService featureFlagService,
             IPackageDeprecationService deprecationService,
+            IPackageRenameService renameService,
             IABTestService abTestService,
             IIconUrlProvider iconUrlProvider)
         {
@@ -185,6 +187,7 @@ namespace NuGetGallery
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
+            _renameService = renameService ?? throw new ArgumentNullException(nameof(renameService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
@@ -837,11 +840,14 @@ namespace NuGetGallery
                 .GroupBy(d => d.PackageKey)
                 .ToDictionary(g => g.Key, g => g.First());
 
+            var packageRenames = _renameService.GetPackageRenames(package.PackageRegistration);
+
             var model = _displayPackageViewModelFactory.Create(
                 package,
                 allVersions,
                 currentUser,
                 packageKeyToDeprecation,
+                packageRenames,
                 readme);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
@@ -850,8 +856,9 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
 
-            if(model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
+            if (model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
                 model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
             }
