@@ -60,6 +60,7 @@
     <Compile Include="DistIntegrationTests.cs" />
     <Compile Include="PackageCreation\SecurityPolicyTests.cs" />
     <Compile Include="Security\HttpToHttpsRedirectTests.cs" />
+    <Compile Include="StaticAssets\StaticAssetsTests.cs" />
     <Compile Include="Statistics\PackageStatisticsTests.cs" />
     <Compile Include="ODataFeeds\V2FeedTests.cs" />
     <Compile Include="TyposquattingCheck\TyposquattingCheckForUploadPackageTests.cs" />
@@ -102,5 +103,18 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <PropertyGroup>
+    <GalleryDirectory>$(MSBuildProjectDirectory)\..\..\src\NuGetGallery</GalleryDirectory>
+  </PropertyGroup>
+  <ItemGroup>
+    <StaticAssets Include="$(GalleryDirectory)\Scripts\**\*.js" Visible="false" />
+    <StaticAssets Include="$(GalleryDirectory)\Content\**\*.css" Visible="false" />
+  </ItemGroup>
+  <Target Name="CustomBeforeBuild" BeforeTargets="BeforeBuild">
+    <WriteLinesToFile File="StaticAssets\Data.g.txt" Lines="$(GalleryDirectory);@(StaticAssets)" Overwrite="true" />
+    <ItemGroup>
+      <EmbeddedResource Include="StaticAssets\Data.g.txt" />
+    </ItemGroup>
+  </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

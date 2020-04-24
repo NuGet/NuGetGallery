@@ -6,8 +6,7 @@
 }
 
 @section TopStyles{
-    @Styles.Render("~/Content/themes/custom/jqueryui")
-    @Styles.Render("~/Content/page-support-requests")
+    @Styles.Render("~/Content/themes/custom/page-support-requests.min.css")
 }
 
 @ViewHelpers.AjaxAntiForgeryToken(Html)
@@ -177,7 +176,7 @@
 @section BottomScripts {
     @if (Model != null)
     {
-        @Scripts.Render("~/Scripts/page-support-requests")
+        @Scripts.Render("~/Scripts/page-support-requests.min.js")
 
         <script type="text/javascript">
             $(function () {

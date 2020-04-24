@@ -100,7 +100,7 @@ namespace NuGetGallery
         private static void BundlingPostStart()
         {
             // Add primary style bundle
-            Bundle stylesBundle = new StyleBundle("~/Content/css");
+            Bundle stylesBundle = new StyleBundle("~/Content/css.min.css");
             foreach (string filename in new[] {
                     "Site.css",
                     "Layout.css",
@@ -144,6 +144,14 @@ namespace NuGetGallery
             var multiSelectDropdownBundle = new ScriptBundle("~/Scripts/gallery/common-multi-select-dropdown.min.js")
                 .Include("~/Scripts/gallery/common-multi-select-dropdown.js");
             BundleTable.Bundles.Add(multiSelectDropdownBundle);
+
+            var asyncFileUploadScriptBundle = new ScriptBundle("~/Scripts/gallery/async-file-upload.min.js")
+                .Include("~/Scripts/gallery/async-file-upload.js");
+            BundleTable.Bundles.Add(asyncFileUploadScriptBundle);
+
+            var certificatesScriptBundle = new ScriptBundle("~/Scripts/gallery/certificates.min.js")
+                .Include("~/Scripts/gallery/certificates.js");
+            BundleTable.Bundles.Add(certificatesScriptBundle);
 
             var homeScriptBundle = new ScriptBundle("~/Scripts/gallery/page-home.min.js")
                 .Include("~/Scripts/gallery/page-home.js");
@@ -204,16 +212,13 @@ namespace NuGetGallery
                 new ScriptResourceDefinition { Path = scriptBundle.Path });
 
             // Add support requests bundles
-            var jQueryUiStylesBundle = new StyleBundle("~/Content/themes/custom/jqueryui")
-                .Include("~/Content/themes/custom/jquery-ui-1.10.3.custom.css");
-            BundleTable.Bundles.Add(jQueryUiStylesBundle);
-
-            var supportRequestStylesBundle = new StyleBundle("~/Content/page-support-requests")
+            var supportRequestStylesBundle = new StyleBundle("~/Content/themes/custom/page-support-requests.min.css")
+                .Include("~/Content/themes/custom/jquery-ui-1.10.3.custom.css")
                 .Include("~/Content/admin/SupportRequestStyles.css");
             BundleTable.Bundles.Add(supportRequestStylesBundle);
 
-            var supportRequestsBundle = new ScriptBundle("~/Scripts/page-support-requests")
-                .Include("~/Scripts/gallery/jquery-ui-{version}.js")
+            var supportRequestsBundle = new ScriptBundle("~/Scripts/page-support-requests.min.js")
+                .Include("~/Scripts/gallery/jquery-ui-1.10.3.js")
                 .Include("~/Scripts/gallery/knockout-projections.js")
                 .Include("~/Scripts/gallery/page-support-requests.js");
             BundleTable.Bundles.Add(supportRequestsBundle);
