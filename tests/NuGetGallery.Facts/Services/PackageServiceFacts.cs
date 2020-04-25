@@ -78,21 +78,42 @@ namespace NuGetGallery
             [InlineData("", true, 7)]
             [InlineData("", false, 1)]
             [InlineData("noexist", true, 7)]
-            public void VerifyAll(string version, bool preRelease, int expectedResultIndex)
+            public void VerifySemVerMatching(string version, bool preRelease, int expectedResultIndex)
             {
                 var r = new Regex(@"-[^d]");
                 var testData = new[]
-                {
-                    ("1.0.0", 1, false, false),
-                    ("1.0.23", 2, true, false),
-                    ("1.0.23-alpha1", 3, false, false),
-                    ("1.0.23-alpha2-internal3", 4, false, false),
-                    ("1.0.23-alpha2-internal2", 5, false, false),
-                    ("1.0.23-beta", 6, false, false),
-                    ("1.0.23-internal.5", 2, false, false),
-                    ("1.0.23-internal.510", 2, false, true),
-                    ("1.0.23-internal.6", 2, false, false),
-                }
+                    {
+                        ("1.0.0", false, false),
+                        ("1.0.23", true, false),
+                        ("1.0.23-alpha1", false, false),
+                        ("1.0.23-alpha2-internal2", false, false),
+                        ("1.0.23-alpha2-internal3", false, false),
+                        ("1.0.23-beta", false, false),
+                        ("1.0.23-internal.5", false, false),
+                        ("1.0.23-internal.510", false, true),
+                        ("1.0.23-internal.6", false, false),
+                    }
+                    .Select(data => new Package() { 
+                        IsPrerelease = r.IsMatch(data.Item1), 
+                        NormalizedVersion = SemanticVersion.Parse(data.Item1).ToNormalizedString(),
+                        IsLatestStableSemVer2 = data.Item2,
+                        IsLatestSemVer2 = data.Item3
+                    })
+                    .ToArray();
+
+                var result = InvokeMethod(testData, version, preRelease);
+                Assert.Equal(testData[expectedResultIndex].NormalizedVersion, result.NormalizedVersion);
+            }
+            
+            [Fact]
+            public void VerifyFallbackToStableIfNoPrerelease()
+            {
+                var r = new Regex(@"-[^d]");
+                var testData = new[]
+                    {
+                        ("1.0.0", 1, false, false),
+                        ("1.0.23", 2, true, false),
+                    }
                     .Select(data => new Package() { 
                         IsPrerelease = r.IsMatch(data.Item1), 
                         NormalizedVersion = SemanticVersion.Parse(data.Item1).ToNormalizedString(),
@@ -101,8 +122,8 @@ namespace NuGetGallery
                     })
                     .ToArray();
 
-                var result = InvokeMethod(testData, version, preRelease);
-                Assert.Equal(testData[expectedResultIndex].NormalizedVersion, result.NormalizedVersion);
+                var result = InvokeMethod(testData, "alpha", true);
+                Assert.Equal(testData[1].NormalizedVersion, result.NormalizedVersion);
             }
         }
 

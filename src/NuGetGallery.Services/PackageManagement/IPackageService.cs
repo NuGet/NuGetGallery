@@ -75,7 +75,7 @@ namespace NuGetGallery
             bool allowPrerelease = true);
 
         Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages,
-            string version, bool preRelease);
+            string version, bool prerelease);
 
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
 

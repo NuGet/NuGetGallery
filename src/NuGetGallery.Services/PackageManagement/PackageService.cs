@@ -228,11 +228,11 @@ namespace NuGetGallery
         }
 
         /// <inheritdoc />
-        public Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages, string version, bool preRelease)
+        public Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages, string version, bool prerelease)
         {
             IOrderedEnumerable<Package> GetOrdered(IEnumerable<Package> localPackages)
             {
-                if (preRelease)
+                if (prerelease)
                 {
                     return localPackages
                             .OrderByDescending(d => d.IsLatestSemVer2)
@@ -251,24 +251,32 @@ namespace NuGetGallery
                 if (string.IsNullOrEmpty(version))
                 {
                     return GetOrdered(packages
-                        .Where(package => package.IsPrerelease == preRelease))
+                        .Where(package => package.IsPrerelease == prerelease))
                         .FirstOrDefault();
                 }
                 else
                 {
                     return GetOrdered(packages
-                        .Where(package => package.IsPrerelease == preRelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0))
+                        .Where(package => package.IsPrerelease == prerelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0))
                         .FirstOrDefault();
                 }
             }
             
             Package GetDefaultPackage()
             {
-                return GetOrdered(packages.Where(package => package.IsPrerelease == preRelease))
-                    .First();
+                return GetOrdered(packages.Where(package => package.IsPrerelease == prerelease))
+                    .FirstOrDefault();
+            }
+            
+            Package GetLatestStable()
+            {
+                return packages
+                    .OrderByDescending(package => package.IsLatestStableSemVer2)
+                    .ThenByDescending(package => package.IsLatestStable)
+                    .FirstOrDefault();
             }
 
-            return GetPackage() ?? GetDefaultPackage();
+            return GetPackage() ?? GetDefaultPackage() ?? GetLatestStable();
         }
 
         private static Package FilterLatestPackageHelper(
