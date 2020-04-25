@@ -230,49 +230,40 @@ namespace NuGetGallery
         /// <inheritdoc />
         public Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages, string version, bool prerelease)
         {
-            IOrderedEnumerable<Package> GetOrdered(IEnumerable<Package> localPackages)
+            IEnumerable<Package> GetSortedFiltered(IEnumerable<Package> localPackages, bool applyPrereleaseFilter = true)
             {
-                if (prerelease)
-                {
-                    return localPackages
-                            .OrderByDescending(d => d.IsLatestSemVer2)
-                            .ThenByDescending(d => d.IsLatest);
-                }
-                else
-                {
-                    return localPackages
-                        .OrderByDescending(d => d.IsLatestStableSemVer2)
-                        .ThenByDescending(d => d.IsLatestStable);
-                }
+                var semvered = localPackages
+                    .Select(package => (package, semVer: SemanticVersion.Parse(package.NormalizedVersion)));
+                
+                return semvered
+                    .Where(d => d.semVer.IsPrerelease == prerelease || !applyPrereleaseFilter)
+                    .OrderByDescending(d => d.semVer)
+                    .Select(d => d.package);
             }
 
             Package GetPackage()
             {
                 if (string.IsNullOrEmpty(version))
                 {
-                    return GetOrdered(packages
-                        .Where(package => package.IsPrerelease == prerelease))
+                    return GetSortedFiltered(packages)
                         .FirstOrDefault();
                 }
                 else
                 {
-                    return GetOrdered(packages
-                        .Where(package => package.IsPrerelease == prerelease && package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0))
+                    return GetSortedFiltered(packages.Where(package => package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0))
                         .FirstOrDefault();
                 }
             }
             
             Package GetDefaultPackage()
             {
-                return GetOrdered(packages.Where(package => package.IsPrerelease == prerelease))
+                return GetSortedFiltered(packages)
                     .FirstOrDefault();
             }
             
             Package GetLatestStable()
             {
-                return packages
-                    .OrderByDescending(package => package.IsLatestStableSemVer2)
-                    .ThenByDescending(package => package.IsLatestStable)
+                return GetSortedFiltered(packages, false)
                     .FirstOrDefault();
             }
 
