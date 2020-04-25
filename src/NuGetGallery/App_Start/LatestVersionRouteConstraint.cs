@@ -31,11 +31,6 @@ namespace NuGetGallery
             {
                 return true;
             }
-            
-            if (versionText.Equals(LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return true;
-            }
 
             if (route.Url.Equals(LatestPackageRouteVerifier.SupportedRoutes.LatestUrlString, StringComparison.InvariantCultureIgnoreCase)
                 || route.Url.Equals(LatestPackageRouteVerifier.SupportedRoutes.LatestUrlWithPreleaseString, StringComparison.InvariantCultureIgnoreCase)
