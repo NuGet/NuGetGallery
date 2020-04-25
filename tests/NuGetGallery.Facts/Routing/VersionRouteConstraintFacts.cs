@@ -70,7 +70,7 @@ namespace NuGetGallery.Routing
             public void ReturnsTrueIfVersionIsPrerelease()
             {
                 var routeValues = new RouteValueDictionary { { "version", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString } };
-                var constraint = new LatestVersionRouteConstraint();
+                var constraint = new VersionRouteConstraint();
 
                 var result = constraint.Match(null, null, "version", routeValues, RouteDirection.IncomingRequest);
 
