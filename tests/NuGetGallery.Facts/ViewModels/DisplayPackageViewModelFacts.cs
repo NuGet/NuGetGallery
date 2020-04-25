@@ -754,6 +754,7 @@ namespace NuGetGallery.ViewModels
             Package package,
             User currentUser = null,
             Dictionary<int, PackageDeprecation> packageKeyToDeprecation = null,
+            IReadOnlyList<PackageRename> packageRenames = null,
             string readmeHtml = null)
         {
             var allVersions = (IReadOnlyCollection<Package>)package.PackageRegistration.Packages;
@@ -763,6 +764,7 @@ namespace NuGetGallery.ViewModels
                 allVersions,
                 currentUser: currentUser,
                 packageKeyToDeprecation: packageKeyToDeprecation,
+                packageRenames: packageRenames,
                 readmeResult: new RenderedReadMeResult { Content = readmeHtml });
         }
     }
