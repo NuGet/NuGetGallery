@@ -38,6 +38,7 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.Services;
 using NuGetGallery.Services.Helpers;
 using Xunit;
 
@@ -48,6 +49,7 @@ namespace NuGetGallery
     {
         private static PackagesController CreateController(
             IGalleryConfigurationService configurationService,
+            Mock<IPackageFilter> packageFilter = null,
             Mock<IPackageService> packageService = null,
             Mock<IPackageUpdateService> packageUpdateService = null,
             Mock<IUploadFileService> uploadFileService = null,
@@ -105,6 +107,8 @@ namespace NuGetGallery
                 packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
             }
+
+            packageFilter = packageFilter ?? new Mock<IPackageFilter>();
 
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
 
@@ -216,6 +220,7 @@ namespace NuGetGallery
             var diagnosticsService = new Mock<IDiagnosticsService>();
 
             var controller = new Mock<PackagesController>(
+                packageFilter.Object,
                 packageService.Object,
                 packageUpdateService.Object,
                 uploadFileService.Object,
