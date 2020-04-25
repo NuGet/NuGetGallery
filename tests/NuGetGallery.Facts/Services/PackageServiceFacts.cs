@@ -125,6 +125,13 @@ namespace NuGetGallery
                 var result = InvokeMethod(testData, "alpha", true);
                 Assert.Equal(testData[1].NormalizedVersion, result.NormalizedVersion);
             }
+            
+            [Fact]
+            public void VerifyDoesNotThrowIfNoPackages()
+            {
+                var result = InvokeMethod(new Package[]{}, "alpha", true);
+                Assert.Equal(null, result);
+            }
         }
 
         public class TheAddPackageOwnerMethod

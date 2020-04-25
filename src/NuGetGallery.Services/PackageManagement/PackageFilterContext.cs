@@ -3,7 +3,7 @@
 
 using System.Web.Routing;
 
-namespace NuGetGallery.Services.PackageManagement
+namespace NuGetGallery.Services
 {
     public class PackageFilterContext
     {

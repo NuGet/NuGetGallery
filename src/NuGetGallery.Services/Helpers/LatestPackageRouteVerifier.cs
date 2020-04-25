@@ -13,25 +13,22 @@ namespace NuGetGallery.Services.Helpers
             public const string AbsoluteLatestUrlString = "absoluteLatest";
         }
         
-        public static bool IsLatestRoute(RouteBase route, out bool preRelease)
+        public static bool IsLatestRoute(string routeUrl, out bool prerelease)
         {
-            preRelease = false;
-            if (route is Route r)
+            prerelease = false;
+            if (routeUrl.Equals(SupportedRoutes.LatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
-                if (r.Url.Equals(SupportedRoutes.LatestUrlString, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-                if (r.Url.Equals(SupportedRoutes.LatestUrlWithPreleaseString, StringComparison.OrdinalIgnoreCase))
-                {
-                    preRelease = true;
-                    return true;
-                }
-                if (r.Url.Equals(SupportedRoutes.LatestUrlWithPreleaseAndVersionString, StringComparison.OrdinalIgnoreCase))
-                {
-                    preRelease = true;
-                    return true;
-                }
+                return true;
+            }
+            if (routeUrl.Equals(SupportedRoutes.LatestUrlWithPreleaseString, StringComparison.InvariantCultureIgnoreCase))
+            {
+                prerelease = true;
+                return true;
+            }
+            if (routeUrl.Equals(SupportedRoutes.LatestUrlWithPreleaseAndVersionString, StringComparison.InvariantCultureIgnoreCase))
+            {
+                prerelease = true;
+                return true;
             }
 
             return false;

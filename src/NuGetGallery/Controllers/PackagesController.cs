@@ -35,7 +35,7 @@ using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
-using NuGetGallery.Services.PackageManagement;
+using NuGetGallery.Services;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery

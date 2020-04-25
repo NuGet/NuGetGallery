@@ -4,10 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.Routing;
 using NuGet.Services.Entities;
 using NuGetGallery.Services.Helpers;
 
-namespace NuGetGallery.Services.PackageManagement
+namespace NuGetGallery.Services
 {
     public class PackageFilter : IPackageFilter
     {
@@ -21,10 +22,15 @@ namespace NuGetGallery.Services.PackageManagement
         /// <inheritdoc />
         public Package GetFiltered(IReadOnlyCollection<Package> packages, PackageFilterContext context)
         {
+            if (!(context.RouteBase is Route route))
+            {
+                return _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            }
+            
             var version = context.Version;
             if (version == null)
             {
-                if (LatestPackageRouteVerifier.IsLatestRoute(context.RouteBase, out var preRelease))
+                if (LatestPackageRouteVerifier.IsLatestRoute(route.Url, out var preRelease))
                 {
                     return _packageService.FilterLatestPackageBySuffix(packages, null, preRelease);
                 }
@@ -36,7 +42,7 @@ namespace NuGetGallery.Services.PackageManagement
                     // The user is looking for the absolute latest version and not an exact version.
                     return packages.FirstOrDefault(p => p.IsLatestSemVer2);
                 }
-                if (LatestPackageRouteVerifier.IsLatestRoute(context.RouteBase, out var preRelease))
+                if (LatestPackageRouteVerifier.IsLatestRoute(route.Url, out var preRelease))
                 {
                     return _packageService.FilterLatestPackageBySuffix(packages, version, preRelease);
                 }

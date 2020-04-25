@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using NuGet.Services.Entities;
 
-namespace NuGetGallery.Services.PackageManagement
+namespace NuGetGallery.Services
 {
     public interface IPackageFilter
     {
