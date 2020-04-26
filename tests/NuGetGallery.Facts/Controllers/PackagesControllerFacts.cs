@@ -1468,12 +1468,15 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration()
                     {
                         Id = id,
-                        Owners = new List<User>()
+                        Owners = new List<User>(),
+                        RenamedMessage = "TestMessage"
                     },
                     Version = "01.1.01",
                     NormalizedVersion = "1.1.1",
                     Title = "A test package!"
                 };
+
+                var packageRenames = new List<PackageRename> { new PackageRename() };
 
                 var packages = new[] { package };
                 packageService
@@ -1494,6 +1497,7 @@ namespace NuGetGallery
 
                 renameService
                     .Setup(x => x.GetPackageRenames(package.PackageRegistration))
+                    .Returns(packageRenames)
                     .Verifiable();
 
                 // Act
@@ -1502,6 +1506,8 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isRenamesEnabledForThisUser, model.IsPackageRenamesEnabled);
+                Assert.Equal(packageRenames, model.PackageRenames);
+                Assert.Equal("TestMessage", model.RenamedMessage);
                 renameService.Verify();
             }
 
