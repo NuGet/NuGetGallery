@@ -750,6 +750,89 @@ namespace NuGetGallery.ViewModels
             Assert.Null(versionModel.CustomMessage);
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void RenamesAndRenamedMessageAreSetAsExpected(bool hasRenamedMessage)
+        {
+            // Arrange
+            var package = new Package
+            {
+                PackageRegistration = new PackageRegistration
+                {
+                    RenamedMessage = hasRenamedMessage ? "TestMessage" : null
+                }
+            };
+            var packageRenames = new List<PackageRename> { new PackageRename() };
+
+            // Act
+            var model = CreateDisplayPackageViewModel(
+                package,
+                packageRenames: packageRenames);
+
+            // Assert
+            Assert.Equal(packageRenames, model.PackageRenames);
+            if (hasRenamedMessage)
+            {
+                Assert.Equal("TestMessage", model.RenamedMessage);
+            }
+            else
+            {
+                Assert.Equal(null, model.RenamedMessage);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void RenamesAndRenamedMessageAreNotSetWithNullOrEmptyRenames(bool isRenamesNull)
+        {
+            // Arrange
+            var package = new Package
+            {
+                PackageRegistration = new PackageRegistration
+                {
+                    RenamedMessage = "TestMessage"
+                }
+            };
+
+            // Act
+            DisplayPackageViewModel model;
+            if (isRenamesNull)
+            {
+                model = CreateDisplayPackageViewModel(
+                    package,
+                    packageRenames: null);
+            }
+            else
+            {
+                model = CreateDisplayPackageViewModel(
+                    package,
+                    packageRenames: new List<PackageRename>());
+            }
+
+            // Assert
+            Assert.Equal(null, model.PackageRenames);
+            Assert.Equal(null, model.RenamedMessage);
+        }
+
+        [Fact]
+        public void RenamedMessageFieldIsNotSetWithNullPackageRegistration()
+        {
+            // Arrange
+            var package = new Package();
+            var packageRenames = new List<PackageRename> { new PackageRename() };
+
+            // Act
+            var model = CreateDisplayPackageViewModel(
+                package,
+                packageRenames: packageRenames);
+
+            // Assert
+            Assert.Equal(packageRenames, model.PackageRenames);
+            Assert.Equal(null, model.RenamedMessage);
+        }
+
         private static DisplayPackageViewModel CreateDisplayPackageViewModel(
             Package package,
             User currentUser = null,

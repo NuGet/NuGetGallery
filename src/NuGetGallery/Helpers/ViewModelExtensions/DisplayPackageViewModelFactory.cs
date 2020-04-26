@@ -116,14 +116,13 @@ namespace NuGetGallery
                 viewModel.CustomMessage = deprecation.CustomMessage;
             }
 
-            if (packageRenames != null)
+            if (packageRenames != null && packageRenames.Count != 0)
             {
                 viewModel.PackageRenames = packageRenames;
-            }
-
-            if (package.PackageRegistration?.RenamedMessage != null)
-            {
-                viewModel.RenamedMessage = package.PackageRegistration.RenamedMessage;
+                if (package.PackageRegistration?.RenamedMessage != null)
+                {
+                    viewModel.RenamedMessage = package.PackageRegistration.RenamedMessage;
+                }
             }
 
             viewModel.ReadMeHtml = readmeResult?.Content;
