@@ -1632,7 +1632,6 @@ namespace NuGetGallery
                     .Verify(iup => iup.GetIconUrlString(package), Times.AtLeastOnce);
                 Assert.Equal(iconUrl, model.IconUrl);
                 renameService.Verify();
-
             }
 
             private class TestIssue : ValidationIssue

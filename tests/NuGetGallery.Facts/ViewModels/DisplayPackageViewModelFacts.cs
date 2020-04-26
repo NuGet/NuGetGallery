@@ -758,6 +758,7 @@ namespace NuGetGallery.ViewModels
             // Arrange
             var package = new Package
             {
+                Version = "1.0.0",
                 PackageRegistration = new PackageRegistration
                 {
                     RenamedMessage = hasRenamedMessage ? "TestMessage" : null
@@ -790,6 +791,7 @@ namespace NuGetGallery.ViewModels
             // Arrange
             var package = new Package
             {
+                Version = "1.0.0",
                 PackageRegistration = new PackageRegistration
                 {
                     RenamedMessage = "TestMessage"
@@ -813,23 +815,6 @@ namespace NuGetGallery.ViewModels
 
             // Assert
             Assert.Equal(null, model.PackageRenames);
-            Assert.Equal(null, model.RenamedMessage);
-        }
-
-        [Fact]
-        public void RenamedMessageFieldIsNotSetWithNullPackageRegistration()
-        {
-            // Arrange
-            var package = new Package();
-            var packageRenames = new List<PackageRename> { new PackageRename() };
-
-            // Act
-            var model = CreateDisplayPackageViewModel(
-                package,
-                packageRenames: packageRenames);
-
-            // Assert
-            Assert.Equal(packageRenames, model.PackageRenames);
             Assert.Equal(null, model.RenamedMessage);
         }
 
