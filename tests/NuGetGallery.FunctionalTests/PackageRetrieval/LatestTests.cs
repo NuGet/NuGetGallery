@@ -151,5 +151,80 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
                 Assert.Equal("1.2.0-beta", version);
             }
         }
+
+
+        [Fact]
+        [Priority(2)]
+        [Category("P2Tests")]
+        public async Task FallbackToPrereleaseForNonExistant()
+        {
+            // Arrange
+            var feedUrl = new Uri(new Uri(UrlHelper.BaseUrl), $"/packages/{Constants.TestPackageIdNoStable}/5.0.0");
+
+            // Act
+            using (var httpClient = new HttpClient())
+            using (var response = await httpClient.GetAsync(feedUrl))
+            {
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
+                Assert.Equal("application/html; charset=utf-8", contentType);
+
+                var content = await response.Content.ReadAsStringAsync();
+                GetMetaDataOrFail(content, out var package, out var version);
+                Assert.Equal(Constants.TestPackageIdWithPrereleases, package);
+                Assert.Equal("1.0.0-beta", version);
+            }
+        }
+
+
+        [Fact]
+        [Priority(2)]
+        [Category("P2Tests")]
+        public async Task FallbackToStable()
+        {
+            // Arrange
+            var feedUrl = new Uri(new Uri(UrlHelper.BaseUrl), $"/packages/{Constants.TestPackageId}/5.0.0");
+
+            // Act
+            using (var httpClient = new HttpClient())
+            using (var response = await httpClient.GetAsync(feedUrl))
+            {
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
+                Assert.Equal("application/html; charset=utf-8", contentType);
+
+                var content = await response.Content.ReadAsStringAsync();
+                GetMetaDataOrFail(content, out var package, out var version);
+                Assert.Equal(Constants.TestPackageIdWithPrereleases, package);
+                Assert.Equal("1.0.0", version);
+            }
+        }
+
+
+        [Fact]
+        [Priority(2)]
+        [Category("P2Tests")]
+        public async Task FallbackPrefersStableOverPrerelease()
+        {
+            // Arrange
+            var feedUrl = new Uri(new Uri(UrlHelper.BaseUrl), $"/packages/{Constants.TestPackageIdWithPrereleases}/5.0.0");
+
+            // Act
+            using (var httpClient = new HttpClient())
+            using (var response = await httpClient.GetAsync(feedUrl))
+            {
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
+                Assert.Equal("application/html; charset=utf-8", contentType);
+
+                var content = await response.Content.ReadAsStringAsync();
+                GetMetaDataOrFail(content, out var package, out var version);
+                Assert.Equal(Constants.TestPackageIdWithPrereleases, package);
+                Assert.Equal("1.3.0", version);
+            }
+        }
     }
 }

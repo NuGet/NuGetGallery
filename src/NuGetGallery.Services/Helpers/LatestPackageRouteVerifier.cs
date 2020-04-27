@@ -16,6 +16,10 @@ namespace NuGetGallery.Services.Helpers
         public static bool IsLatestRoute(string routeUrl, out bool prerelease)
         {
             prerelease = false;
+            
+            if (routeUrl == null)
+                return false;
+            
             if (routeUrl.Equals(SupportedRoutes.LatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;

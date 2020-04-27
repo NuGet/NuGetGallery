@@ -49,7 +49,7 @@ namespace NuGetGallery
     {
         private static PackagesController CreateController(
             IGalleryConfigurationService configurationService,
-            Mock<IPackageFilter> packageFilter = null,
+            IPackageFilter packageFilter = null,
             Mock<IPackageService> packageService = null,
             Mock<IPackageUpdateService> packageUpdateService = null,
             Mock<IUploadFileService> uploadFileService = null,
@@ -108,7 +108,7 @@ namespace NuGetGallery
                 packageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
             }
 
-            packageFilter = packageFilter ?? new Mock<IPackageFilter>();
+            packageFilter = packageFilter ?? new PackageFilter(packageService.Object);
 
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
 
@@ -220,7 +220,7 @@ namespace NuGetGallery
             var diagnosticsService = new Mock<IDiagnosticsService>();
 
             var controller = new Mock<PackagesController>(
-                packageFilter.Object,
+                packageFilter,
                 packageService.Object,
                 packageUpdateService.Object,
                 uploadFileService.Object,

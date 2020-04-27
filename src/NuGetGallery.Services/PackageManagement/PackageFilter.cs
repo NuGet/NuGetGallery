@@ -22,37 +22,31 @@ namespace NuGetGallery.Services
         /// <inheritdoc />
         public Package GetFiltered(IReadOnlyCollection<Package> packages, PackageFilterContext context)
         {
-            if (!(context.RouteBase is Route route))
+            Package result = null;
+            string routeUrl = null;
+            if (context.RouteBase is Route route)
             {
-                return _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
-            }
-            
-            var version = context.Version;
-            if (version == null)
-            {
-                if (LatestPackageRouteVerifier.IsLatestRoute(route.Url, out var preRelease))
-                {
-                    return _packageService.FilterLatestPackageBySuffix(packages, null, preRelease);
-                }
-            }
-            else
-            {
-                if (version.Equals(LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // The user is looking for the absolute latest version and not an exact version.
-                    return packages.FirstOrDefault(p => p.IsLatestSemVer2);
-                }
-                if (LatestPackageRouteVerifier.IsLatestRoute(route.Url, out var preRelease))
-                {
-                    return _packageService.FilterLatestPackageBySuffix(packages, version, preRelease);
-                }
-                else
-                {
-                    return _packageService.FilterExactPackage(packages, version);
-                }
+                routeUrl = route.Url;
             }
 
-            return _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            var version = context.Version;
+            
+            if (string.Equals(version, LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            {
+                // The user is looking for the absolute latest version and not an exact version.
+                result = packages.FirstOrDefault(p => p.IsLatestSemVer2);
+            }
+            
+            result = result ?? _packageService.FilterExactPackage(packages, version);
+            
+            if (LatestPackageRouteVerifier.IsLatestRoute(routeUrl, out var preRelease))
+            {
+                result = result ?? _packageService.FilterLatestPackageBySuffix(packages, version, preRelease);
+            }
+            
+            result =  result ?? _packageService.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, allowPrerelease: true);
+            
+            return result;
         }
     }
 }
