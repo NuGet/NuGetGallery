@@ -95,7 +95,7 @@ namespace NuGetGallery
                     }
                     .Select(data => new Package() { 
                         IsPrerelease = r.IsMatch(data.Item1), 
-                        NormalizedVersion = SemanticVersion.Parse(data.Item1).ToNormalizedString(),
+                        NormalizedVersion = NuGetVersion.Parse(data.Item1).ToNormalizedString(),
                         IsLatestStableSemVer2 = data.Item2,
                         IsLatestSemVer2 = data.Item3
                     })

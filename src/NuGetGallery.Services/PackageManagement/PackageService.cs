@@ -233,15 +233,17 @@ namespace NuGetGallery
             IEnumerable<Package> GetSortedFiltered(IEnumerable<Package> localPackages, bool applyPrereleaseFilter = true)
             {
                 var semvered = localPackages
-                    .Select(package => (package, semVer: SemanticVersion.Parse(package.NormalizedVersion)));
+                    .Select(package => new {package, semVer= NuGetVersion.Parse(package.NormalizedVersion)})
+                    .ToList();
                 
                 return semvered
                     .Where(d => d.semVer.IsPrerelease == prerelease || !applyPrereleaseFilter)
                     .OrderByDescending(d => d.semVer)
-                    .Select(d => d.package);
+                    .Select(d => d.package)
+                    .ToList();
             }
 
-            Package GetPackage()
+            Package GetPrereleaseByVersion()
             {
                 if (string.IsNullOrEmpty(version))
                 {
@@ -255,7 +257,7 @@ namespace NuGetGallery
                 }
             }
             
-            Package GetDefaultPackage()
+            Package GetLatestPrerelease()
             {
                 return GetSortedFiltered(packages)
                     .FirstOrDefault();
@@ -267,7 +269,7 @@ namespace NuGetGallery
                     .FirstOrDefault();
             }
 
-            return GetPackage() ?? GetDefaultPackage() ?? GetLatestStable();
+            return GetPrereleaseByVersion() ?? GetLatestPrerelease() ?? GetLatestStable();
         }
 
         private static Package FilterLatestPackageHelper(
