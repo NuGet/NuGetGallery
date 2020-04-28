@@ -24,6 +24,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public DbSet<PackageVulnerability> Vulnerabilities { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<Package> Packages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DbSet<PackageRename> PackageRenames { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public void DeleteOnCommit<T>(T entity) where T : class
         {
