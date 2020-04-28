@@ -14,6 +14,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
     public class LatestTests : GalleryTestBase
     {
         private readonly Regex MetaDataTitleExpression = new Regex(@"<meta property=""og:title"" content=""(?<package>[^\s]+) (?<version>[^""]+)"" />"); 
+
         /// <inheritdoc />
         public LatestTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
@@ -27,6 +28,31 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             version = match.Groups["version"].Value;
         }
 
+        [Theory]
+        [Priority(2)]
+        [Category("P2Tests")]
+        [InlineData(Constants.TestPackageId, "1.0.0")]
+        [InlineData(Constants.TestPackageIdWithPrereleases, "1.4.0-delta.4")]
+        [InlineData(Constants.TestPackageIdNoStable, "1.0.0-beta")]
+        public async Task AbsoluteLatestReturnsLatestEvenIfItIsPrerelease(string id, string expectedVersion)
+        {
+            // Arrange
+            var feedUrl = new Uri(new Uri(UrlHelper.BaseUrl), $"/packages/{id}/absoluteLatest");
+
+            // Act
+            using (var httpClient = new HttpClient())
+            using (var response = await httpClient.GetAsync(feedUrl))
+            {
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                AssertIsHtml(response);
+
+                var content = await response.Content.ReadAsStringAsync();
+                GetMetaDataOrFail(content, out var package, out var version);
+                Assert.Equal(id, package);
+                Assert.Equal(expectedVersion, version);
+            }
+        }
 
         [Fact]
         [Priority(2)]
@@ -42,8 +68,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             {
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
-                Assert.Equal("application/html; charset=utf-8", contentType);
+                AssertIsHtml(response);
 
                 var content = await response.Content.ReadAsStringAsync();
                 GetMetaDataOrFail(content, out var package, out var version);
@@ -67,8 +92,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             {
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
-                Assert.Equal("application/html; charset=utf-8", contentType);
+                AssertIsHtml(response);
 
                 var content = await response.Content.ReadAsStringAsync();
                 GetMetaDataOrFail(content, out var package, out var version);
@@ -92,8 +116,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             {
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
-                Assert.Equal("application/html; charset=utf-8", contentType);
+                AssertIsHtml(response);
 
                 var content = await response.Content.ReadAsStringAsync();
                 GetMetaDataOrFail(content, out var package, out var version);
@@ -117,8 +140,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             {
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
-                Assert.Equal("application/html; charset=utf-8", contentType);
+                AssertIsHtml(response);
 
                 var content = await response.Content.ReadAsStringAsync();
                 GetMetaDataOrFail(content, out var package, out var version);
@@ -142,8 +164,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             {
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
-                Assert.Equal("application/html; charset=utf-8", contentType);
+                AssertIsHtml(response);
 
                 var content = await response.Content.ReadAsStringAsync();
                 GetMetaDataOrFail(content, out var package, out var version);
@@ -167,16 +188,14 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             {
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
-                Assert.Equal("application/html; charset=utf-8", contentType);
+                AssertIsHtml(response);
 
                 var content = await response.Content.ReadAsStringAsync();
                 GetMetaDataOrFail(content, out var package, out var version);
-                Assert.Equal(Constants.TestPackageIdWithPrereleases, package);
+                Assert.Equal(Constants.TestPackageIdNoStable, package);
                 Assert.Equal("1.0.0-beta", version);
             }
         }
-
 
         [Fact]
         [Priority(2)]
@@ -192,12 +211,11 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             {
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
-                Assert.Equal("application/html; charset=utf-8", contentType);
+                AssertIsHtml(response);
 
                 var content = await response.Content.ReadAsStringAsync();
                 GetMetaDataOrFail(content, out var package, out var version);
-                Assert.Equal(Constants.TestPackageIdWithPrereleases, package);
+                Assert.Equal(Constants.TestPackageId, package);
                 Assert.Equal("1.0.0", version);
             }
         }
@@ -217,14 +235,19 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             {
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
-                Assert.Equal("application/html; charset=utf-8", contentType);
+                AssertIsHtml(response);
 
                 var content = await response.Content.ReadAsStringAsync();
                 GetMetaDataOrFail(content, out var package, out var version);
                 Assert.Equal(Constants.TestPackageIdWithPrereleases, package);
                 Assert.Equal("1.3.0", version);
             }
+        }
+
+        private static void AssertIsHtml(HttpResponseMessage response)
+        {
+            var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
+            Assert.Equal("text/html; charset=utf-8", contentType);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace NuGetGallery.Services
 
         public PackageFilter(IPackageService packageService)
         {
-            _packageService = packageService;
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
         }
             
         /// <inheritdoc />
