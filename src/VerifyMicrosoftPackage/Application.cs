@@ -264,6 +264,7 @@ namespace NuGet.VerifyMicrosoftPackage
             var auditingService = new FakeAuditingService();
             var telemetryService = new FakeTelemetryService();
             var securityPolicyService = new FakeSecurityPolicyService();
+            var contextFake = new FakeEntitiesContext();
 
             var packageService = new PackageService(
                 packageRegistrationRepository,
@@ -271,7 +272,9 @@ namespace NuGet.VerifyMicrosoftPackage
                 certificateRepository,
                 auditingService,
                 telemetryService,
-                securityPolicyService);
+                securityPolicyService,
+                contextFake
+                );
             return packageService;
         }
 

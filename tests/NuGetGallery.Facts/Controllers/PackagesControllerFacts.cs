@@ -81,6 +81,11 @@ namespace NuGetGallery
             Mock<IIconUrlProvider> iconUrlProvider = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
+            CreatePackageDependents packageDependents = new CreatePackageDependents();
+            packageService.Setup(x => x.GetPackageDependents(It.IsAny<String>())).Returns(packageDependents);
+
+
+
             packageUpdateService = packageUpdateService ?? new Mock<IPackageUpdateService>();
             if (uploadFileService == null)
             {
@@ -214,6 +219,8 @@ namespace NuGetGallery
 
             var diagnosticsService = new Mock<IDiagnosticsService>();
 
+            
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 packageUpdateService.Object,
@@ -250,6 +257,7 @@ namespace NuGetGallery
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
 
             httpContext = httpContext ?? new Mock<HttpContextBase>();
+            httpContext.Setup(c => c.Cache).Returns(new Cache());
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
 
             if (readPackageException != null)

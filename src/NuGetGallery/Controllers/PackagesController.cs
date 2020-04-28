@@ -832,14 +832,13 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-
           
             // Caching dependence
             CreatePackageDependents dependence; // Maybe this type is changed
             // searchAndListModel correspond to q and page; what is that?
             var cacheKey = "cache dependents_" + id.ToLowerInvariant();
 
-            var cachedResults = HttpContext.Cache.Get(cacheKey); // What cache key?
+            var cachedResults = HttpContext.Cache.Get(cacheKey);// What cache key?
             if (cachedResults == null)
             {
                  dependence = _packageService.GetPackageDependents(id);
