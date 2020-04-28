@@ -1,3 +1,5 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Web.Routing;
 
@@ -5,7 +7,7 @@ namespace NuGetGallery.Services.Helpers
 {
     public static class LatestPackageRouteVerifier
     {
-        public class SupportedRoutes
+        public static class SupportedRoutes
         {
             public const string LatestUrlString = "packages/{id}/latest";
             public const string LatestUrlWithPreleaseString = "packages/{id}/latest/prerelease";
