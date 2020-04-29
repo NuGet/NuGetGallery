@@ -1506,9 +1506,16 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isRenamesEnabledForThisUser, model.IsPackageRenamesEnabled);
-                Assert.Equal(packageRenames, model.PackageRenames);
-                Assert.Equal("TestMessage", model.RenamedMessage);
-                renameService.Verify();
+                if (isRenamesEnabledForThisUser)
+                {
+                    Assert.Equal(packageRenames, model.PackageRenames);
+                    renameService.Verify(x => x.GetPackageRenames(package.PackageRegistration), Times.Once);
+                }
+                else
+                {
+                    Assert.Equal(null, model.PackageRenames);
+                    renameService.Verify(x => x.GetPackageRenames(package.PackageRegistration), Times.Never);
+                }
             }
 
             [Fact]

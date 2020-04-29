@@ -840,7 +840,11 @@ namespace NuGetGallery
                 .GroupBy(d => d.PackageKey)
                 .ToDictionary(g => g.Key, g => g.First());
 
-            var packageRenames = _renameService.GetPackageRenames(package.PackageRegistration);
+            IReadOnlyList<PackageRename> packageRenames = null;
+            if (_featureFlagService.IsPackageRenamesEnabled(currentUser))
+            {
+                packageRenames = _renameService.GetPackageRenames(package.PackageRegistration);
+            }
 
             var model = _displayPackageViewModelFactory.Create(
                 package,
