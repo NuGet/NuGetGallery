@@ -1,16 +1,16 @@
 $(function () {
     'use strict';
 
+    // Configure the rename information container
+    window.nuget.configureExpander("rename-content-container", "ChevronDown", null, "ChevronUp");
+    configureExpanderWithEnterKeydown($('#show-rename-content-container'));
+
     // Configure the deprecation information container
     var container = $('#show-deprecation-content-container');
     if ($('#deprecation-content-container').children().length) {
         // If the deprecation information container has content, configure it as an expander.
         window.nuget.configureExpander("deprecation-content-container", "ChevronDown", null, "ChevronUp");
-        container.keydown(function (event) {
-            if (event.which === 13) { // Enter
-                $(event.target).click();
-            }
-        });
+        configureExpanderWithEnterKeydown(container)
     }
     else {
         // If the container does not have content, remove its expander attributes
@@ -23,6 +23,15 @@ $(function () {
         container.find('.deprecation-expander').removeAttr('role');
 
         $('#deprecation-expander-icon-right').hide();
+    }
+
+    // Configure expander with enter keydown event
+    function configureExpanderWithEnterKeydown(container) {
+        container.keydown(function (event) {
+            if (event.which === 13) { // Enter
+                $(event.target).click();
+            }
+        });
     }
 
     // Configure ReadMe container

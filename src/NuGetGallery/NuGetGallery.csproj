@@ -487,6 +487,7 @@
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
     <Compile Include="Services\InvalidUrlEncodingForLicenseUrlValidationMessage.cs" />
+    <Compile Include="Services\IPackageRenameService.cs" />
     <Compile Include="Services\ISearchSideBySideService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
@@ -498,6 +499,7 @@
     <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageDeprecationManagementService.cs" />
     <Compile Include="Services\PackageDeprecationService.cs" />
+    <Compile Include="Services\PackageRenameService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
     <Compile Include="Services\RenderedReadMeResult.cs" />
@@ -2283,6 +2285,9 @@
     <PackageReference Include="WindowsAzure.Storage">
       <Version>9.3.3</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\_DisplayPackageRenames.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -88,6 +88,9 @@ namespace NuGetGallery.Framework
             updater.RegisterInstance(new EntityRepository<PackageRegistration>(fakeContext))
                 .As<IEntityRepository<PackageRegistration>>();
 
+            updater.RegisterInstance(new EntityRepository<PackageRename>(fakeContext))
+                .As<IEntityRepository<PackageRename>>();
+
 #pragma warning disable CS0618 // Type or member is obsolete
             updater.Update(Container);
 #pragma warning restore CS0618 // Type or member is obsolete
