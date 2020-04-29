@@ -29,11 +29,14 @@
 
         <div class="deprecation-content-container collapse" id="rename-content-container">
             <ul class="list-unstyled">
-                @foreach (var packageRename in Model.PackageRenames)
+                @if (Model.PackageRenames != null && Model.PackageRenames.Count != 0)
                 {
-                    var renamePackageName = packageRename.ToPackageRegistration.Id;
-                    var renamePackageUrl = Url.Package(renamePackageName);
-                    <li><a href="@renamePackageUrl">@renamePackageName</a></li>
+                    foreach (var packageRename in Model.PackageRenames)
+                    {
+                        var renamePackageName = packageRename.ToPackageRegistration.Id;
+                        var renamePackageUrl = Url.Package(renamePackageName);
+                        <li><a href="@renamePackageUrl">@renamePackageName</a></li>
+                    }
                 }
             </ul>
             <p></p>
