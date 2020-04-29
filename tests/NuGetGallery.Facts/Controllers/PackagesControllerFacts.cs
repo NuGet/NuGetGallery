@@ -393,7 +393,6 @@ namespace NuGetGallery
                 var id = "Test" + Guid.NewGuid().ToString();
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
                 var diagnosticsService = new Mock<IDiagnosticsService>();
                 var searchClient = new Mock<ISearchClient>();
                 var searchService = new Mock<ExternalSearchService>(diagnosticsService.Object, searchClient.Object)
@@ -406,7 +405,6 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     deprecationService: deprecationService,
-                    renameService: renameService,
                     searchService: searchService.As<ISearchService>(),
                     httpContext: httpContext);
                 controller.SetCurrentUser(TestUtility.FakeUser);
@@ -433,10 +431,6 @@ namespace NuGetGallery
                     NormalizedVersion = "2.0.0",
                 };
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
-                    .Verifiable();
-
                 var packages = new List<Package> { package };
                 packageService
                     .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
@@ -453,7 +447,6 @@ namespace NuGetGallery
                 Assert.Equal(id, model.Id);
                 searchService.Verify(x => x.RawSearch(It.IsAny<SearchFilter>()), Times.Exactly(searchTimes));
                 deprecationService.Verify();
-                renameService.Verify();
             }
 
             [Fact]
@@ -606,15 +599,13 @@ namespace NuGetGallery
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     httpContext: httpContext,
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(currentUser);
 
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
@@ -642,10 +633,6 @@ namespace NuGetGallery
                     .Setup(p => p.FilterExactPackage(packages, version))
                     .Returns(package);
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
-                    .Verifiable();
-
                 var getDeprecationsByIdSetup = deprecationService
                     .Setup(x => x.GetDeprecationsById(id));
 
@@ -668,7 +655,6 @@ namespace NuGetGallery
                 if (expectSuccess)
                 {
                     deprecationService.Verify();
-                    renameService.Verify();
                 }
 
                 return result;
@@ -741,7 +727,6 @@ namespace NuGetGallery
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
                 var indexingService = new Mock<IIndexingService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
@@ -750,8 +735,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     indexingService: indexingService,
                     httpContext: httpContext,
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(currentUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
                 var title = "A test package!";
@@ -783,10 +767,6 @@ namespace NuGetGallery
                     .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
@@ -798,7 +778,6 @@ namespace NuGetGallery
                 Assert.Equal("1.1.1", model.Version);
 
                 deprecationService.Verify();
-                renameService.Verify();
             }
 
             [Fact]
@@ -808,13 +787,11 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService, 
                     indexingService: indexingService, 
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -866,10 +843,6 @@ namespace NuGetGallery
                     .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(latestPackage.PackageRegistration))
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
@@ -884,7 +857,6 @@ namespace NuGetGallery
                 Assert.True(model.LatestVersionSemVer2);
 
                 deprecationService.Verify();
-                renameService.Verify();
             }
 
             [Fact]
@@ -894,13 +866,11 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService, 
                     indexingService: indexingService, 
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -930,10 +900,6 @@ namespace NuGetGallery
                     .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(notLatestPackage.PackageRegistration))
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
@@ -947,7 +913,6 @@ namespace NuGetGallery
                 Assert.False(model.LatestVersionSemVer2);
 
                 deprecationService.Verify();
-                renameService.Verify();
             }
 
             [Fact]
@@ -957,13 +922,11 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService,
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var package = new Package()
@@ -992,10 +955,6 @@ namespace NuGetGallery
                     .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
@@ -1008,7 +967,6 @@ namespace NuGetGallery
                 Assert.Null(model.ReadMeHtml);
 
                 deprecationService.Verify();
-                renameService.Verify();
             }
 
             [Fact]
@@ -1068,15 +1026,13 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
                 var fileService = new Mock<IPackageFileService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService, 
                     indexingService: indexingService, 
                     packageFileService: fileService,
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -1107,10 +1063,6 @@ namespace NuGetGallery
                     .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 if (hasReadMe)
@@ -1121,7 +1073,6 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, /*version*/null);
 
                 deprecationService.Verify();
-                renameService.Verify();
 
                 return result;
             }
@@ -1132,7 +1083,6 @@ namespace NuGetGallery
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
                 var indexingService = new Mock<IIndexingService>();
                 var fileService = new Mock<IPackageFileService>();
                 var validationService = new Mock<IValidationService>();
@@ -1143,8 +1093,7 @@ namespace NuGetGallery
                     indexingService: indexingService, 
                     packageFileService: fileService, 
                     validationService: validationService,
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var package = new Package()
@@ -1171,10 +1120,6 @@ namespace NuGetGallery
                     .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 var expectedIssues = new[]
@@ -1195,7 +1140,6 @@ namespace NuGetGallery
                 Assert.Equal(model.PackageValidationIssues, expectedIssues);
 
                 deprecationService.Verify();
-                renameService.Verify();
             }
 
             [Theory]
@@ -1206,13 +1150,11 @@ namespace NuGetGallery
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     featureFlagService: featureFlagService,
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -1246,10 +1188,6 @@ namespace NuGetGallery
                     .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
-                    .Verifiable();
-
                 // Arrange and Act
                 var result = await controller.DisplayPackage(id, version: null);
 
@@ -1258,7 +1196,6 @@ namespace NuGetGallery
                 Assert.Equal(isAtomFeedEnabled, model.IsAtomFeedEnabled);
 
                 deprecationService.Verify();
-                renameService.Verify();
             }
 
             [Theory]
@@ -1526,7 +1463,6 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
 
                 var segments = new List<CompositeLicenseExpressionSegment>();
                 splitterMock
@@ -1561,10 +1497,6 @@ namespace NuGetGallery
                     .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 var controller = CreateController(
@@ -1572,8 +1504,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     indexingService: indexingService,
                     licenseExpressionSplitter: splitterMock,
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
 
                 var result = await controller.DisplayPackage(id, version: null);
 
@@ -1583,7 +1514,6 @@ namespace NuGetGallery
                     .Verify(les => les.SplitExpression(It.IsAny<string>()), Times.Once);
 
                 deprecationService.Verify();
-                renameService.Verify();
 
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Same(segments, model.LicenseExpressionSegments);
@@ -1599,14 +1529,12 @@ namespace NuGetGallery
                     .Returns(iconUrl);
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
-                var renameService = new Mock<IPackageRenameService>();
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     iconUrlProvider: iconUrlProvider,
-                    deprecationService: deprecationService,
-                    renameService: renameService);
+                    deprecationService: deprecationService);
 
                 var id = "Foo";
                 var package = new Package()
@@ -1635,16 +1563,11 @@ namespace NuGetGallery
                     .Returns(new List<PackageDeprecation>())
                     .Verifiable();
 
-                renameService
-                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
-                    .Verifiable();
-
                 var result = await controller.DisplayPackage(id, version: null);
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 iconUrlProvider
                     .Verify(iup => iup.GetIconUrlString(package), Times.AtLeastOnce);
                 Assert.Equal(iconUrl, model.IconUrl);
-                renameService.Verify();
             }
 
             private class TestIssue : ValidationIssue
