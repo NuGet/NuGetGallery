@@ -125,6 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionName.cs" />
+    <Compile Include="App_Start\LatestVersionRouteConstraint.cs" />
     <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />

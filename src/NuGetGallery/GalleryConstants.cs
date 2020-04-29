@@ -44,7 +44,6 @@ namespace NuGetGallery
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
         public static readonly string ReturnUrlMessageViewDataKey = "ReturnUrlMessage";
-        public const string AbsoluteLatestUrlString = "absoluteLatest";
         public const string AskUserToEnable2FA = "AskUserToEnable2FA";
 
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";

@@ -55,6 +55,7 @@ using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
+using NuGetGallery.Services;
 using Role = NuGet.Services.Entities.Role;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
@@ -289,6 +290,11 @@ namespace NuGetGallery
             builder.RegisterType<PackageService>()
                 .AsSelf()
                 .As<IPackageService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageFilter>()
+                .AsSelf()
+                .As<IPackageFilter>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageDeleteService>()

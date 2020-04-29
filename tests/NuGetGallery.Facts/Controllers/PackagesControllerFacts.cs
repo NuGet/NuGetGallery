@@ -38,6 +38,8 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.Services;
+using NuGetGallery.Services.Helpers;
 using Xunit;
 
 namespace NuGetGallery
@@ -47,6 +49,7 @@ namespace NuGetGallery
     {
         private static PackagesController CreateController(
             IGalleryConfigurationService configurationService,
+            IPackageFilter packageFilter = null,
             Mock<IPackageService> packageService = null,
             Mock<IPackageUpdateService> packageUpdateService = null,
             Mock<IUploadFileService> uploadFileService = null,
@@ -104,6 +107,8 @@ namespace NuGetGallery
                 packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
             }
+
+            packageFilter = packageFilter ?? new PackageFilter(packageService.Object);
 
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
 
@@ -215,6 +220,7 @@ namespace NuGetGallery
             var diagnosticsService = new Mock<IDiagnosticsService>();
 
             var controller = new Mock<PackagesController>(
+                packageFilter,
                 packageService.Object,
                 packageUpdateService.Object,
                 uploadFileService.Object,
@@ -842,7 +848,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", GalleryConstants.AbsoluteLatestUrlString);
+                var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -899,7 +905,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", GalleryConstants.AbsoluteLatestUrlString);
+                var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
