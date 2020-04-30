@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
@@ -60,21 +61,34 @@ namespace NuGetGallery.Helpers
 
         public static IHtmlString PreFormattedText(this HtmlHelper self, string text, IGalleryConfigurationService configurationService)
         {
-            // Encode HTML entities. Important! Security!
-            var encodedText = HttpUtility.HtmlEncode(text);
-            // Turn HTTP and HTTPS URLs into links.
-            // Source: https://stackoverflow.com/a/4750468
-            string anchorEvaluator(Match match)
+            void appendText(StringBuilder builder, string inputText)
+            {
+                var encodedText = HttpUtility.HtmlEncode(inputText);
+
+                // Replace new lines with the <br /> tag.
+                encodedText = encodedText.Replace("\n", "<br />");
+
+                // Replace more than one space in a row with a space then &nbsp;.
+                encodedText = RegexEx.TryReplaceWithTimeout(
+                    encodedText,
+                    "  +",
+                    match => " " + string.Join(string.Empty, Enumerable.Repeat("&nbsp;", match.Value.Length - 1)),
+                    RegexOptions.None);
+
+                builder.Append(encodedText);
+            }
+
+            void appendUrl(StringBuilder builder, string inputText)
             {
                 string trimmedEntityValue = string.Empty;
-                string trimmedAnchorValue = match.Value;
+                string trimmedAnchorValue = inputText;
 
                 foreach (var trimmedEntity in _trimmedHtmlEntities)
                 {
-                    if (match.Value.EndsWith(trimmedEntity))
+                    if (inputText.EndsWith(trimmedEntity))
                     {
                         // Remove trailing html entity from anchor URL
-                        trimmedAnchorValue = match.Value.Substring(0, match.Value.Length - trimmedEntity.Length);
+                        trimmedAnchorValue = inputText.Substring(0, inputText.Length - trimmedEntity.Length);
                         trimmedEntityValue = trimmedEntity;
 
                         break;
@@ -85,36 +99,67 @@ namespace NuGetGallery.Helpers
                 {
                     string anchorText = formattedUri;
                     string siteRoot = configurationService.GetSiteRoot(useHttps: true);
+
                     // Format links to NuGet packages
-                    Match packageMatch = RegexEx.MatchWithTimeout(formattedUri, $@"({Regex.Escape(siteRoot)}\/packages\/(?<name>\w+([_.-]\w+)*(\/[0-9a-zA-Z-.]+)?)\/?$)", RegexOptions.IgnoreCase);
+                    Match packageMatch = RegexEx.MatchWithTimeout(
+                        formattedUri,
+                        $@"({Regex.Escape(siteRoot)}\/packages\/(?<name>\w+([_.-]\w+)*(\/[0-9a-zA-Z-.]+)?)\/?$)",
+                        RegexOptions.IgnoreCase);
                     if (packageMatch != null && packageMatch.Groups["name"].Success)
                     {
                         anchorText = packageMatch.Groups["name"].Value;
                     }
 
-                    return $"<a href=\"{formattedUri}\" rel=\"nofollow\">{anchorText}</a>" + trimmedEntityValue;
+                    builder.AppendFormat(
+                        "<a href=\"{0}\" rel=\"nofollow\">{1}</a>{2}",
+                        HttpUtility.HtmlEncode(formattedUri),
+                        HttpUtility.HtmlEncode(anchorText),
+                        HttpUtility.HtmlEncode(trimmedEntityValue));
                 }
-
-                return match.Value;
+                else
+                {
+                    builder.Append(HttpUtility.HtmlEncode(inputText));
+                }
             }
 
-            encodedText = RegexEx.TryReplaceWithTimeout(
-                encodedText,
+            // Turn HTTP and HTTPS URLs into links.
+            // Source: https://stackoverflow.com/a/4750468
+            var matches = RegexEx.MatchesWithTimeout(
+                text,
                 @"((http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)",
-                anchorEvaluator,
                 RegexOptions.IgnoreCase);
 
-            // Replace new lines with the <br /> tag.
-            encodedText = encodedText.Replace("\n", "<br />");
+            var output = new StringBuilder(text.Length);
+            var currentIndex = 0;
 
-            // Replace more than one space in a row with a space then &nbsp;.
-            encodedText = RegexEx.TryReplaceWithTimeout(
-                encodedText,
-                "  +",
-                match => " " + string.Join(string.Empty, Enumerable.Repeat("&nbsp;", match.Value.Length - 1)),
-                RegexOptions.None);
+            if (matches != null && matches.Count > 0)
+            {
+                foreach (Match match in matches)
+                {
+                    // Encode the text literal before the URL, if any.
+                    var literalLength = match.Index - currentIndex;
+                    if (literalLength > 0)
+                    {
+                        var literal = text.Substring(currentIndex, literalLength);
+                        appendText(output, literal);
+                    }
 
-            return self.Raw(encodedText);
+                    // Encode the URL.
+                    var url = match.Value;
+                    appendUrl(output, url);
+
+                    currentIndex = match.Index + match.Length;
+                }
+            }
+
+            // Encode the text literal appearing after the last URL, if any.
+            if (currentIndex < text.Length)
+            {
+                var literal = text.Substring(currentIndex, text.Length - currentIndex);
+                appendText(output, literal);
+            }
+
+            return self.Raw(output.ToString());
         }
 
         public static IHtmlString ValidationSummaryFor(this HtmlHelper html, string key)

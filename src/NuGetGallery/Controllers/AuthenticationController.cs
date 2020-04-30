@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
@@ -527,7 +528,7 @@ namespace NuGetGallery
                 // The identity value contains cookie non-compliant characters like `<, >`(eg: John Doe <john@doe.com>), 
                 // These need to be replaced so that they are not treated as HTML tags
                 TempData["RawErrorMessage"] = string.Format(Strings.ChangeCredential_Failed,
-                    newCredential.Identity.Replace("<", "&lt;").Replace(">", "&gt;"),
+                    HttpUtility.HtmlEncode(newCredential.Identity),
                     UriExtensions.GetExternalUrlAnchorTag("FAQs page", GalleryConstants.FAQLinks.MSALinkedToAnotherAccount));
             }
 

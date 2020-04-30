@@ -40,5 +40,20 @@ namespace NuGetGallery.Helpers
                 return null;
             }
         }
+
+        public static MatchCollection MatchesWithTimeout(
+            string input,
+            string pattern,
+            RegexOptions options)
+        {
+            try
+            {
+                return Regex.Matches(input, pattern, options, Timeout);
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                return null;
+            }
+        }
     }
 }

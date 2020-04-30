@@ -484,7 +484,7 @@
         var strings_RequiredSigner_AnyWithSignedResult = "@Html.Raw(Strings.RequiredSigner_AnyWithSignedResult)";
         var strings_RequiredSigner_Confirm = "@Html.Raw(Strings.RequiredSigner_Confirm)";
 
-        var initialData = @Html.Raw(JsonConvert.SerializeObject(new
+        var initialData = @Html.ToJson(new
                      {
                          Owners = Model.Owners,
                          ListedPackages = Model.ListedPackages
@@ -499,7 +499,7 @@
                             .Select(r => GetSerializableOwnerRequest(r)),
                          DefaultPackageIconUrl = Url.Absolute("~/Content/gallery/img/default-package-icon.svg"),
                          PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
-                     }));
+                     });
     </script>
     @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-packages.min.js")
