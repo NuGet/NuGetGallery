@@ -515,6 +515,10 @@ namespace NuGetGallery
             [InlineData("./temp/duplicatedFile.txt", "./temp\\duplicatedFile.txt")]
             [InlineData("./temp\\duplicatedFile.txt", "./temp\\duplicatedFile.txt")]
             [InlineData("duplicatedFile.txt", "duplicatedFile.TXT")]
+            [InlineData("./duplicatedFile.txt", "duplicatedFile.txt")]
+            [InlineData("./duplicatedFile.txt", "/duplicatedFile.txt")]
+            [InlineData("/duplicatedFile.txt", "duplicatedFile.txt")]
+            [InlineData(".\\duplicatedFile.txt", "./duplicatedFile.txt")]
             public async Task WithDuplicatedEntries_ReturnsInvalidPackage(params string[] entryNames)
             {
                 // Arrange
