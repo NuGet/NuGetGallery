@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,6 +22,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         private readonly InMemoryCloudBlobContainer _storageContainer;
 
         private readonly Mock<IDocumentsOperationsWrapper> _searchOperations;
+        private readonly Mock<IFeatureFlagService> _featureFlags;
         private readonly Auxiliary2AzureSearchConfiguration _config;
         private readonly AzureSearchJobDevelopmentConfiguration _developmentConfig;
         private readonly Mock<IAzureSearchTelemetryService> _telemetry;
@@ -30,6 +34,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
 
         public PopularityTransferIntegrationTests(ITestOutputHelper output)
         {
+            _featureFlags = new Mock<IFeatureFlagService>();
             _telemetry = new Mock<IAzureSearchTelemetryService>();
 
             _config = new Auxiliary2AzureSearchConfiguration
@@ -147,6 +152,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
 
             var time = new Mock<ISystemTime>();
 
+            _featureFlags.Setup(x => x.IsPopularityTransferEnabled()).Returns(true);
+
             _target = new UpdateDownloadsCommand(
                 auxiliaryFileClient,
                 databaseFetcher.Object,
@@ -158,6 +165,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
                 searchIndexActionBuilder,
                 batchPusherFactory,
                 time.Object,
+                _featureFlags.Object,
                 options.Object,
                 _telemetry.Object,
                 output.GetLogger<Auxiliary2AzureSearchCommand>());
@@ -347,6 +355,59 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             VerifyUpdateDownloadCountAction("B", 10, actions[5]);
             VerifyUpdateDownloadCountAction("B", 10, actions[6]);
             VerifyUpdateDownloadCountAction("B", 10, actions[7]);
+        }
+
+        [Fact]
+        public async Task DisablingPopularityTransferFeatureRemovesTransfers()
+        {
+            SetExcludedPackagesJson("{}");
+
+            AddVersionList("A", "1.0.0");
+            AddVersionList("B", "1.0.0");
+            AddVersionList("C", "1.0.0");
+
+            SetOldDownloadsJson(@"
+{
+  ""A"": { ""1.0.0"": 100 },
+  ""B"": { ""1.0.0"": 20 },
+  ""C"": { ""1.0.0"": 1 }
+}");
+            SetNewDownloadsJson(@"
+[
+  [ ""A"", [ ""1.0.0"", 100 ] ],
+  [ ""B"", [ ""1.0.0"", 20 ] ],
+  [ ""C"", [ ""1.0.0"", 1 ] ]
+]");
+
+            // Old: A -> B rename
+            // New: A -> B rename
+            SetOldPopularityTransfersJson(@"{ ""A"": [ ""B"" ] }");
+            AddNewPopularityTransfer("A", "B");
+            SetDownloadOverrides(@"{ ""C"": 5 }");
+
+            _config.Scoring.PopularityTransfer = 0.5;
+            _featureFlags
+                .Setup(x => x.IsPopularityTransferEnabled())
+                .Returns(false);
+
+            await _target.ExecuteAsync();
+
+            Assert.NotNull(_indexedBatch);
+            var actions = _indexedBatch.Actions.OrderBy(x => x.Document.Key).ToList();
+            Assert.Equal(12, actions.Count);
+
+            VerifyUpdateDownloadCountAction("A", 100, actions[0]);
+            VerifyUpdateDownloadCountAction("A", 100, actions[1]);
+            VerifyUpdateDownloadCountAction("A", 100, actions[2]);
+            VerifyUpdateDownloadCountAction("A", 100, actions[3]);
+            VerifyUpdateDownloadCountAction("B", 20, actions[4]);
+            VerifyUpdateDownloadCountAction("B", 20, actions[5]);
+            VerifyUpdateDownloadCountAction("B", 20, actions[6]);
+            VerifyUpdateDownloadCountAction("B", 20, actions[7]);
+            VerifyUpdateDownloadCountAction("C", 5, actions[8]);
+            VerifyUpdateDownloadCountAction("C", 5, actions[9]);
+            VerifyUpdateDownloadCountAction("C", 5, actions[10]);
+            VerifyUpdateDownloadCountAction("C", 5, actions[11]);
         }
 
         private void SetOldDownloadsJson(string json)

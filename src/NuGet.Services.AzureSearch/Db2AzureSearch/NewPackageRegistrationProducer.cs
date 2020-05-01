@@ -23,6 +23,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly IAuxiliaryFileClient _auxiliaryFileClient;
         private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
         private readonly IDownloadTransferrer _downloadTransferrer;
+        private readonly IFeatureFlagService _featureFlags;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> _developmentOptions;
         private readonly ILogger<NewPackageRegistrationProducer> _logger;
@@ -32,6 +33,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             IAuxiliaryFileClient auxiliaryFileClient,
             IDatabaseAuxiliaryDataFetcher databaseFetcher,
             IDownloadTransferrer downloadTransferrer,
+            IFeatureFlagService featureFlags,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> developmentOptions,
             ILogger<NewPackageRegistrationProducer> logger)
@@ -40,6 +42,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentNullException(nameof(auxiliaryFileClient));
             _databaseFetcher = databaseFetcher ?? throw new ArgumentNullException(nameof(databaseFetcher));
             _downloadTransferrer = downloadTransferrer ?? throw new ArgumentNullException(nameof(downloadTransferrer));
+            _featureFlags = featureFlags ?? throw new ArgumentNullException(nameof(featureFlags));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _developmentOptions = developmentOptions ?? throw new ArgumentNullException(nameof(developmentOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -64,7 +67,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             // auxiliary file.
             var downloads = await _auxiliaryFileClient.LoadDownloadDataAsync();
 
-            var popularityTransfers = await _databaseFetcher.GetPackageIdToPopularityTransfersAsync();
+            var popularityTransfers = await GetPopularityTransfersAsync();
             var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
 
             // Apply changes from popularity transfers and download overrides.
@@ -158,6 +161,19 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             return false;
+        }
+
+        private async Task<SortedDictionary<string, SortedSet<string>>> GetPopularityTransfersAsync()
+        {
+            if (!_featureFlags.IsPopularityTransferEnabled())
+            {
+                _logger.LogWarning(
+                    "Popularity transfers feature flag is disabled. " +
+                    "Popularity transfers will be ignored.");
+                return new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            return await _databaseFetcher.GetPackageIdToPopularityTransfersAsync();
         }
 
         private Dictionary<string, long> GetTransferredDownloads(

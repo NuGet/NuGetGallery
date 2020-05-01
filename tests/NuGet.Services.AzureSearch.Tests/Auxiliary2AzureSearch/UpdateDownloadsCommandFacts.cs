@@ -233,6 +233,71 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             [Fact]
+            public async Task DisablesPopularityTransfers()
+            {
+                var downloadChanges = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "Package1", 5 }
+                };
+
+                DownloadSetComparer
+                    .Setup(c => c.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
+                    .Returns<DownloadData, DownloadData>((oldData, newData) =>
+                    {
+                        return downloadChanges;
+                    });
+
+                OldTransfers["Package1"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "Package2"
+                };
+
+                NewTransfers["Package1"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "Package2"
+                };
+
+                DownloadOverrides["Package1"] = 100;
+
+                FeatureFlags
+                    .Setup(x => x.IsPopularityTransferEnabled())
+                    .Returns(false);
+
+                await Target.ExecuteAsync();
+
+                PopularityTransferDataClient
+                    .Verify(
+                        c => c.ReadLatestIndexedAsync(),
+                        Times.Once);
+                DatabaseFetcher
+                    .Verify(
+                        d => d.GetPackageIdToPopularityTransfersAsync(),
+                        Times.Never);
+                AuxiliaryFileClient
+                    .Verify(
+                        a => a.LoadDownloadOverridesAsync(),
+                        Times.Once);
+
+                // The popularity transfers should not be given to the download transferrer.
+                DownloadTransferrer
+                    .Verify(
+                        x => x.UpdateDownloadTransfers(
+                            NewDownloadData,
+                            downloadChanges,
+                            OldTransfers,
+                            It.Is<SortedDictionary<string, SortedSet<string>>>(d => d.Count == 0),
+                            DownloadOverrides),
+                        Times.Once);
+
+                // Popularity transfers auxiliary file should be empty.
+                PopularityTransferDataClient.Verify(
+                    c => c.ReplaceLatestIndexedAsync(
+                        It.Is<SortedDictionary<string, SortedSet<string>>>(d => d.Count == 0),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task TransferChangesOverrideDownloadChanges()
             {
                 DownloadSetComparer
@@ -321,6 +386,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 IndexActionBuilder = new Mock<ISearchIndexActionBuilder>();
                 BatchPusher = new Mock<IBatchPusher>();
                 SystemTime = new Mock<ISystemTime>();
+                FeatureFlags = new Mock<IFeatureFlagService>();
                 Options = new Mock<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>>();
                 TelemetryService = new Mock<IAzureSearchTelemetryService>();
                 Logger = output.GetLogger<Auxiliary2AzureSearchCommand>();
@@ -409,6 +475,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         CurrentBatch = new ConcurrentBag<IndexActions>();
                     });
 
+                FeatureFlags.Setup(x => x.IsPopularityTransferEnabled()).Returns(true);
+
                 Target = new UpdateDownloadsCommand(
                     AuxiliaryFileClient.Object,
                     DatabaseFetcher.Object,
@@ -420,6 +488,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     IndexActionBuilder.Object,
                     () => BatchPusher.Object,
                     SystemTime.Object,
+                    FeatureFlags.Object,
                     Options.Object,
                     TelemetryService.Object,
                     Logger);
@@ -435,6 +504,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public Mock<ISearchIndexActionBuilder> IndexActionBuilder { get; }
             public Mock<IBatchPusher> BatchPusher { get; }
             public Mock<ISystemTime> SystemTime { get; }
+            public Mock<IFeatureFlagService> FeatureFlags { get; }
             public Mock<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>> Options { get; }
             public Mock<IAzureSearchTelemetryService> TelemetryService { get; }
             public RecordingLogger<Auxiliary2AzureSearchCommand> Logger { get; }

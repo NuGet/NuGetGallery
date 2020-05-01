@@ -37,6 +37,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         private readonly ISearchIndexActionBuilder _indexActionBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly ISystemTime _systemTime;
+        private readonly IFeatureFlagService _featureFlags;
         private readonly IOptionsSnapshot<Auxiliary2AzureSearchConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<Auxiliary2AzureSearchCommand> _logger;
@@ -53,6 +54,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             ISearchIndexActionBuilder indexActionBuilder,
             Func<IBatchPusher> batchPusherFactory,
             ISystemTime systemTime,
+            IFeatureFlagService featureFlags,
             IOptionsSnapshot<Auxiliary2AzureSearchConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
             ILogger<Auxiliary2AzureSearchCommand> logger)
@@ -67,6 +69,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
             _systemTime = systemTime ?? throw new ArgumentNullException(nameof(systemTime));
+            _featureFlags = featureFlags ?? throw new ArgumentNullException(nameof(featureFlags));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -132,7 +135,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
             // The "new" data is the latest popularity transfers data from the database.
             _logger.LogInformation("Fetching new popularity transfer data from database.");
-            var newTransfers = await _databaseFetcher.GetPackageIdToPopularityTransfersAsync();
+            var newTransfers = await GetPopularityTransfersAsync();
 
             _logger.LogInformation("Fetching new download overrides from blob storage.");
             var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
@@ -169,6 +172,19 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 newTransfers,
                 oldTransfers.AccessCondition);
             return true;
+        }
+
+        private async Task<SortedDictionary<string, SortedSet<string>>> GetPopularityTransfersAsync()
+        {
+            if (!_featureFlags.IsPopularityTransferEnabled())
+            {
+                _logger.LogWarning(
+                    "Popularity transfers feature flag is disabled. " +
+                    "All popularity transfers will be removed.");
+                return new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            return await _databaseFetcher.GetPackageIdToPopularityTransfersAsync();
         }
 
         private void ApplyDownloadTransfers(

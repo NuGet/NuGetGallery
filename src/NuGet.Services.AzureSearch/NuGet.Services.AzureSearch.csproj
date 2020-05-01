@@ -81,11 +81,13 @@
     <Compile Include="Db2AzureSearch\Db2AzureSearchDevelopmentConfiguration.cs" />
     <Compile Include="Db2AzureSearch\InitialAuxiliaryData.cs" />
     <Compile Include="DownloadTransferrer.cs" />
+    <Compile Include="FeatureFlagService.cs" />
     <Compile Include="IAzureSearchTelemetryService.cs" />
     <Compile Include="IBaseDocumentBuilder.cs" />
     <Compile Include="IAzureSearchCommand.cs" />
     <Compile Include="IDatabaseAuxiliaryDataFetcher.cs" />
     <Compile Include="IDownloadTransferrer.cs" />
+    <Compile Include="IFeatureFlagService.cs" />
     <Compile Include="ISearchIndexActionBuilder.cs" />
     <Compile Include="JobOutcome.cs" />
     <Compile Include="Models\IUpdatedDocument.cs" />
