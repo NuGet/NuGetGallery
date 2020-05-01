@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using NuGet.Common;
 using NuGet.Packaging;
 using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
@@ -609,7 +610,7 @@ namespace NuGetGallery
         private PackageValidationResult CheckPackageDuplicatedEntries(PackageArchiveReader nuGetPackage)
         {
             // Normalize paths and ensures case sensitivity is also considered
-            var packageFiles = nuGetPackage.GetFiles().Select(packageFile => Path.GetFullPath(packageFile.ToLower()));
+            var packageFiles = nuGetPackage.GetFiles().Select(packageFile => PathUtility.StripLeadingDirectorySeparators(packageFile.ToLower()));
 
             if (packageFiles.Count() != packageFiles.Distinct(StringComparer.OrdinalIgnoreCase).Count())
             {
