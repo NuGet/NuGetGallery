@@ -31,6 +31,8 @@ namespace NuGetGallery
         public const string ApiKeys = "ApiKeys";
         public const string Profile = "Profile";
         public const string DisplayPackage = "package-route";
+        public const string DisplayReleasePackage = "package-release-route";
+        public const string DisplayPrereleasePackage = "package-prerelease-route";
         public const string DisplayPackageFeed = "package-route-feed";
         public const string DownloadPackage = "DownloadPackage";
         public const string DownloadSymbolsPackage = "DownloadSymbolsPackage";

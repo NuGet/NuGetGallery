@@ -59,6 +59,7 @@ namespace NuGetGallery
                     throw type.MapToException();
             }
         }
+
         public static string GetMessage(this SimulatedErrorType type)
         {
             return $"{nameof(SimulatedErrorType)} {type}";
@@ -98,6 +99,9 @@ namespace NuGetGallery
                         ReasonPhrase = message,
                     });
                 case SimulatedErrorType.Exception:
+                case SimulatedErrorType.ExceptionInView:
+                case SimulatedErrorType.ExceptionInInlineErrorPage:
+                case SimulatedErrorType.ExceptionInDedicatedErrorPage:
                     return new Exception(message);
                 case SimulatedErrorType.UserSafeException:
                     return new UserSafeException(message);

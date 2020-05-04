@@ -2,11 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Security.Claims;
-using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin;
 using NuGet.Services.Entities;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
@@ -64,9 +65,27 @@ namespace NuGetGallery
 
                 if (!String.IsNullOrEmpty(userName))
                 {
-                    return DependencyResolver.Current
+                    var user = DependencyResolver.Current
                         .GetService<IUserService>()
                         .FindByUsername(userName);
+
+                    // Try to add the tenant ID information as an additional claim since we have the full user record
+                    // and the associated credentials.
+                    if (user != null && principal.Identity is ClaimsIdentity identity)
+                    {
+                        // From the schema, it is possible to have multiple credentials. Prefer the latest one.
+                        var externalCredential = user
+                            .Credentials
+                            .OrderByDescending(x => x.Created)
+                            .FirstOrDefault(c => c.IsExternal() && c.TenantId != null);
+
+                        if (externalCredential != null)
+                        {
+                            identity.TryAddClaim(MicrosoftClaims.TenantId, externalCredential.TenantId);
+                        }
+                    }
+
+                    return user;
                 }
             }
             return null; // No user logged in, or credentials could not be resolved

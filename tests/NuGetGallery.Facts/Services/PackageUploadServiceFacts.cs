@@ -510,6 +510,55 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData("duplicatedFile.txt", "duplicatedFile.txt")]
+            [InlineData("./temp/duplicatedFile.txt", "./temp/duplicatedFile.txt")]
+            [InlineData("./temp/duplicatedFile.txt", "./temp\\duplicatedFile.txt")]
+            [InlineData("./temp\\duplicatedFile.txt", "./temp\\duplicatedFile.txt")]
+            [InlineData("duplicatedFile.txt", "duplicatedFile.TXT")]
+            [InlineData("./duplicatedFile.txt", "duplicatedFile.txt")]
+            [InlineData("./duplicatedFile.txt", "/duplicatedFile.txt")]
+            [InlineData("/duplicatedFile.txt", "duplicatedFile.txt")]
+            [InlineData(".\\duplicatedFile.txt", "./duplicatedFile.txt")]
+            public async Task WithDuplicatedEntries_ReturnsInvalidPackage(params string[] entryNames)
+            {
+                // Arrange
+                _nuGetPackage = GeneratePackage(entryNames: entryNames);
+
+                // Act
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal("The package contains one or more duplicated files in the same folder.", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("noDuplicatedFile.txt", "./temp/noDuplicatedFile.txt")]
+            [InlineData("./temp1/noDuplicatedFile.txt", "./temp2/noDuplicatedFile.txt")]
+            [InlineData("./temp1/noDuplicatedFile.txt", "./temp1/noDuplicatedFile.css")]
+            [InlineData("./temp1/noDuplicatedFile.txt", "./temp1\\noDuplicatedFile.css")]
+            public async Task WithNoDuplicatedEntries_ReturnsAcceptedPackage(params string[] entryNames)
+            {
+                // Arrange
+                _nuGetPackage = GeneratePackage(entryNames: entryNames);
+
+                // Act
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
             [InlineData(false, false)]
             [InlineData(true, true)]
             public async Task HandlesMissingLicenseAccordingToSettings(bool allowLicenselessPackages, bool expectedSuccess)
@@ -2309,6 +2358,7 @@ namespace NuGetGallery
                 RepositoryMetadata repositoryMetadata = null,
                 bool isSigned = true,
                 int? desiredTotalEntryCount = null,
+                IReadOnlyList<string> entryNames = null,
                 Func<string> getCustomNuspecNodes = null)
                 => GeneratePackageWithUserContent(
                     version: version,
@@ -2320,7 +2370,8 @@ namespace NuGetGallery
                     licenseExpression: "MIT",
                     licenseFilename: null,
                     licenseFileContents: null,
-                    licenseFileBinaryContents: null);
+                    licenseFileBinaryContents: null,
+                    entryNames: entryNames);
 
             protected static Mock<TestPackageReader> GeneratePackageWithUserContent(
                 string version = "1.2.3-alpha.0",
@@ -2335,7 +2386,8 @@ namespace NuGetGallery
                 string licenseFileContents = null,
                 byte[] licenseFileBinaryContents = null,
                 string iconFilename = null,
-                byte[] iconFileBinaryContents = null)
+                byte[] iconFileBinaryContents = null,
+                IReadOnlyList<string> entryNames = null)
             {
                 var packageStream = GeneratePackageStream(
                     version: version,
@@ -2350,7 +2402,8 @@ namespace NuGetGallery
                     licenseFileContents: licenseFileContents,
                     licenseFileBinaryContents: licenseFileBinaryContents,
                     iconFilename: iconFilename,
-                    iconFileBinaryContents: iconFileBinaryContents);
+                    iconFileBinaryContents: iconFileBinaryContents,
+                    entryNames: entryNames);
 
                 return PackageServiceUtility.CreateNuGetPackage(packageStream);
             }
@@ -2368,7 +2421,8 @@ namespace NuGetGallery
                 string licenseFileContents = null,
                 byte[] licenseFileBinaryContents = null,
                 string iconFilename = null,
-                byte[] iconFileBinaryContents = null)
+                byte[] iconFileBinaryContents = null,
+                IReadOnlyList<string> entryNames = null)
             {
                 return PackageServiceUtility.CreateNuGetPackageStream(
                     id: PackageId,
@@ -2383,7 +2437,8 @@ namespace NuGetGallery
                     licenseFilename: licenseFilename,
                     licenseFileContents: GetBinaryLicenseFileContents(licenseFileBinaryContents, licenseFileContents),
                     iconFilename: iconFilename,
-                    iconFileBinaryContents: iconFileBinaryContents);
+                    iconFileBinaryContents: iconFileBinaryContents,
+                    entryNames: entryNames);
             }
 
             private static byte[] GetBinaryLicenseFileContents(byte[] binaryContents, string stringContents)

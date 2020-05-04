@@ -2643,6 +2643,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package contains one or more duplicated files in the same folder..
+        /// </summary>
+        public static string UploadPackage_PackageContainsDuplicatedEntries {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageContainsDuplicatedEntries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package contains too many files and/or folders..
         /// </summary>
         public static string UploadPackage_PackageContainsTooManyEntries {

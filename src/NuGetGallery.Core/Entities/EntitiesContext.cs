@@ -69,6 +69,7 @@ namespace NuGetGallery
         public DbSet<SymbolPackage> SymbolPackages { get; set; }
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
+        public DbSet<PackageRename> PackageRenames { get; set; }
 
         /// <summary>
         /// User or organization accounts.
@@ -477,6 +478,28 @@ namespace NuGetGallery
             modelBuilder.Entity<VulnerablePackageVersionRange>()
                 .HasIndex(pv => new { pv.VulnerabilityKey, pv.PackageId, pv.PackageVersionRange })
                 .IsUnique();
+
+            modelBuilder.Entity<PackageRename>()
+                .HasKey(r => r.Key)
+                .HasIndex(r => r.TransferPopularity);
+
+            modelBuilder.Entity<PackageRename>()
+                .HasIndex(r => new { r.FromPackageRegistrationKey, r.ToPackageRegistrationKey})
+                .IsUnique();
+
+            modelBuilder.Entity<PackageRename>()
+                .HasRequired(r => r.FromPackageRegistration)
+                .WithMany(rg => rg.PackageRenames)
+                .HasForeignKey(r => r.FromPackageRegistrationKey)
+                .WillCascadeOnDelete(true);
+
+            // Cascade deletion on the reference key "ToPackageRegistrationKey" will cause the multiple cascade path issue.
+            // Package registration deletion will delete the related "PackageRename" entities whose "ToPackageRegistrationKey" refers it.
+            modelBuilder.Entity<PackageRename>()
+                .HasRequired(r => r.ToPackageRegistration)
+                .WithMany()
+                .HasForeignKey(r => r.ToPackageRegistrationKey)
+                .WillCascadeOnDelete(false);
         }
 #pragma warning restore 618
     }

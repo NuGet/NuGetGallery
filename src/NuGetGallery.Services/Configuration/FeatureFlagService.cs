@@ -35,6 +35,7 @@ namespace NuGetGallery
         private const string ShowEnable2FADialog = GalleryPrefix + "ShowEnable2FADialog";
         private const string Get2FADismissFeedback = GalleryPrefix + "Get2FADismissFeedback";
         private const string UsabillaOnEveryPageFeatureName = GalleryPrefix + "UsabillaEveryPage";
+        private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
 
         private readonly IFeatureFlagClient _client;
 
@@ -172,6 +173,11 @@ namespace NuGetGallery
         public bool IsUsabillaButtonEnabledOnEveryPage()
         {
             return _client.IsEnabled(UsabillaOnEveryPageFeatureName, defaultValue: false);
+        }
+
+        public bool IsPackageRenamesEnabled(User user)
+        {
+            return _client.IsEnabled(PackageRenamesFeatureName, user, defaultValue: false);
         }
     }
 }

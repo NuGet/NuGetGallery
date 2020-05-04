@@ -86,10 +86,10 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Jobs.Common">
-      <Version>4.3.0-dev-3555917</Version>
+      <Version>4.3.0-dev-3612825</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.71.0</Version>
+      <Version>2.74.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -118,4 +118,5 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <Import Project="$(NuGetBuildExtensions)" Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" />
 </Project>

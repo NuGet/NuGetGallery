@@ -123,7 +123,7 @@
     @Scripts.Render("~/Scripts/gallery/page-manage-organization.min.js")
     @if (Model.IsCertificatesUIEnabled)
     {
-        @Scripts.Render("~/Scripts/gallery/certificates.js")
+        @Scripts.Render("~/Scripts/gallery/certificates.min.js")
         <script type="text/javascript">
             CertificatesManagement.init('@Url.AddOrganizationCertificate(account.Username)', '@Url.GetOrganizationCertificates(account.Username)');
         </script>

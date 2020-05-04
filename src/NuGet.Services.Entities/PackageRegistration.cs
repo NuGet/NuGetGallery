@@ -16,6 +16,7 @@ namespace NuGet.Services.Entities
             ReservedNamespaces = new HashSet<ReservedNamespace>();
             RequiredSigners = new HashSet<User>();
             AlternativeOf = new HashSet<PackageDeprecation>();
+            PackageRenames = new HashSet<PackageRename>();
         }
 
         [StringLength(Constants.MaxPackageIdLength)]
@@ -44,5 +45,15 @@ namespace NuGet.Services.Entities
         /// See <see cref="PackageDeprecation.AlternatePackageRegistration"/>.
         /// </summary>
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list of replacement package registrations.
+        /// </summary>
+        public ICollection<PackageRename> PackageRenames { get; set; }
+
+        /// <summary>
+        /// Gets or sets the user-provided custom message for this renamed package registration.
+        /// </summary>
+        public string RenamedMessage { get; set; }
     }
 }

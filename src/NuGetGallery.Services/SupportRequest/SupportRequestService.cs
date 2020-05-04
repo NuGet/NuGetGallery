@@ -21,6 +21,8 @@ namespace NuGetGallery.Areas.Admin
         private readonly string _siteRoot;
         private const string _unassignedAdmin = "unassigned";
         private const string _deletedAccount = "_deletedaccount";
+        private const string _unconfirmedEmailAddress = "_unconfirmed";
+        private const string _deletedEmailAddress = "deletedaccount";
         private const string _NuGetDSRAccount = "_NuGetDSR";
 
         public SupportRequestService(
@@ -221,7 +223,7 @@ namespace NuGetGallery.Areas.Admin
             var requestSent = await AddNewSupportRequestAsync(
                 ServicesStrings.AccountDelete_SupportRequestTitle,
                 ServicesStrings.AccountDelete_SupportRequestTitle,
-                user.EmailAddress,
+                user.EmailAddress ?? _unconfirmedEmailAddress,
                 "The user requested to have the account deleted.",
                 user) != null;
             var status = requestSent ? DeleteAccountAuditRecord.ActionStatus.Success : DeleteAccountAuditRecord.ActionStatus.Failure;
@@ -303,7 +305,7 @@ namespace NuGetGallery.Areas.Admin
             }
             foreach (var accountDeletedIssue in userIssues.Where(i => string.Equals(i.IssueTitle, ServicesStrings.AccountDelete_SupportRequestTitle)))
             {
-                accountDeletedIssue.OwnerEmail = "deletedaccount";
+                accountDeletedIssue.OwnerEmail = _deletedEmailAddress;
                 if(!accountDeletedIssue.CreatedBy.Equals(_NuGetDSRAccount, StringComparison.OrdinalIgnoreCase))
                 {
                     accountDeletedIssue.CreatedBy = _deletedAccount;

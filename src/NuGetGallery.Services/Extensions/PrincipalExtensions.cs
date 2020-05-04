@@ -213,6 +213,17 @@ namespace NuGetGallery
 
             return false;
         }
+        
+        /// <summary>
+        /// Get the tenant ID from the claims, if available. If no such claim exists, null is returned.
+        /// </summary>
+        /// <param name="identity">The identity to look for claims in.</param>
+        /// <returns>The tenant ID or null.</returns>
+        public static string GetTenantIdOrNull(this IIdentity identity)
+        {
+            var claimsIdentity = identity as ClaimsIdentity;
+            return claimsIdentity?.FindFirst(MicrosoftClaims.TenantId)?.Value;
+        }
 
         /// <summary>
         /// Try to add a new default claim to the identity. It will not replace an existing claim.
