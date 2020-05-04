@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -38,6 +39,8 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.Services;
+using NuGetGallery.Services.Helpers;
 using Xunit;
 
 namespace NuGetGallery
@@ -47,6 +50,7 @@ namespace NuGetGallery
     {
         private static PackagesController CreateController(
             IGalleryConfigurationService configurationService,
+            IPackageFilter packageFilter = null,
             Mock<IPackageService> packageService = null,
             Mock<IPackageUpdateService> packageUpdateService = null,
             Mock<IUploadFileService> uploadFileService = null,
@@ -77,6 +81,7 @@ namespace NuGetGallery
             Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null,
             Mock<IFeatureFlagService> featureFlagService = null,
             Mock<IPackageDeprecationService> deprecationService = null,
+            Mock<IPackageRenameService> renameService = null,
             Mock<IABTestService> abTestService = null,
             Mock<IIconUrlProvider> iconUrlProvider = null)
         {
@@ -104,6 +109,8 @@ namespace NuGetGallery
                 packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
             }
+
+            packageFilter = packageFilter ?? new PackageFilter(packageService.Object);
 
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
 
@@ -208,6 +215,7 @@ namespace NuGetGallery
             }
 
             deprecationService = deprecationService ?? new Mock<IPackageDeprecationService>();
+            renameService = renameService ?? new Mock<IPackageRenameService>();
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 
             abTestService = abTestService ?? new Mock<IABTestService>();
@@ -215,6 +223,7 @@ namespace NuGetGallery
             var diagnosticsService = new Mock<IDiagnosticsService>();
 
             var controller = new Mock<PackagesController>(
+                packageFilter,
                 packageService.Object,
                 packageUpdateService.Object,
                 uploadFileService.Object,
@@ -243,6 +252,7 @@ namespace NuGetGallery
                 licenseExpressionSplitter.Object,
                 featureFlagService.Object,
                 deprecationService.Object,
+                renameService.Object,
                 abTestService.Object,
                 iconUrlProvider.Object);
 
@@ -443,6 +453,7 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(id, model.Id);
                 searchService.Verify(x => x.RawSearch(It.IsAny<SearchFilter>()), Times.Exactly(searchTimes));
+                deprecationService.Verify();
             }
 
             [Fact]
@@ -486,6 +497,19 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenADeleteMethodIt405sWithAllowHeader()
+            {
+                // Arrange
+                var controller = CreateController(GetConfigurationService());
+
+                // Act
+                var result = controller.DisplayPackage();
+
+                // Assert
+                ResultAssert.IsStatusCodeWithHeaders(result, HttpStatusCode.MethodNotAllowed, new NameValueCollection() { { "allow", "GET" } });
             }
 
             public static IEnumerable<PackageStatus> ValidatingPackageStatuses =
@@ -842,7 +866,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", GalleryConstants.AbsoluteLatestUrlString);
+                var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -899,7 +923,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", GalleryConstants.AbsoluteLatestUrlString);
+                var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -1376,6 +1400,79 @@ namespace NuGetGallery
                 Assert.Equal("Hello", model.CustomMessage);
 
                 deprecationService.Verify();
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task ShowRenamesToEnabledUser(bool isRenamesEnabledForThisUser)
+            {
+                // Arrange
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var deprecationService = new Mock<IPackageDeprecationService>();
+                var renameService = new Mock<IPackageRenameService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    deprecationService: deprecationService,
+                    renameService: renameService);
+
+                var id = "Foo";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                        RenamedMessage = "TestMessage"
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!"
+                };
+
+                var packageRenames = new List<PackageRename> { new PackageRename() };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsPackageRenamesEnabled(It.IsAny<User>()))
+                    .Returns(isRenamesEnabledForThisUser);
+
+                deprecationService
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>());
+
+                renameService
+                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
+                    .Returns(packageRenames)
+                    .Verifiable();
+
+                // Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal(isRenamesEnabledForThisUser, model.IsPackageRenamesEnabled);
+                if (isRenamesEnabledForThisUser)
+                {
+                    Assert.Equal(packageRenames, model.PackageRenames);
+                    renameService.Verify(x => x.GetPackageRenames(package.PackageRegistration), Times.Once);
+                }
+                else
+                {
+                    Assert.Equal(null, model.PackageRenames);
+                    renameService.Verify(x => x.GetPackageRenames(package.PackageRegistration), Times.Never);
+                }
             }
 
             [Fact]

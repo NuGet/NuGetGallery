@@ -1,10 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGet.Versioning;
+using NuGetGallery.Services.Helpers;
 
 namespace NuGetGallery
 {
@@ -33,8 +35,8 @@ namespace NuGetGallery
             {
                 return true;
             }
-
-            if (versionText.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
+            
+            if (versionText.Equals(LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;
             }

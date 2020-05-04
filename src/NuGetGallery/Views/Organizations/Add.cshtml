@@ -17,7 +17,7 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.OrganizationsBreadcrumb(Url, CurrentUser, true, @<text>Add</text>)
             <p>
-                Organizations allow you to manage and publish packages as a team or a group. <a href="https://go.microsoft.com/fwlink/?linkid=870439">Learn more.</a>
+                Organizations allow you to manage and publish packages as a team or a group. <a href="https://go.microsoft.com/fwlink/?linkid=870439" aria-label="Learn more about organizations on NuGet.Org">Learn more.</a>
             </p>
             @if (errorMessage != null)
             {

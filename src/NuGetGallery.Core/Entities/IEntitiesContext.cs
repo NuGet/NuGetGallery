@@ -21,6 +21,7 @@ namespace NuGetGallery
         DbSet<SymbolPackage> SymbolPackages { get; set; }
         DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
+        DbSet<PackageRename> PackageRenames { get; set; }
 
         Task<int> SaveChangesAsync();
         void DeleteOnCommit<T>(T entity) where T : class;

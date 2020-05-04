@@ -3,6 +3,7 @@
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery.Controllers;
+using NuGetGallery.Services.Helpers;
 using RouteMagic;
 
 namespace NuGetGallery
@@ -228,6 +229,26 @@ namespace NuGetGallery
                     version = UrlParameter.Optional
                 },
                 new { version = new VersionRouteConstraint() });
+
+            routes.MapRoute(
+                RouteName.DisplayReleasePackage,
+                LatestPackageRouteVerifier.SupportedRoutes.LatestUrlString,
+                new
+                {
+                    controller = "Packages",
+                    action = "DisplayPackage",
+                });
+
+            routes.MapRoute(
+                RouteName.DisplayPrereleasePackage,
+                LatestPackageRouteVerifier.SupportedRoutes.LatestUrlWithPreleaseAndVersionString,
+                new
+                {
+                    controller = "Packages",
+                    action = "DisplayPackage",
+                    version = UrlParameter.Optional
+                },
+                new {version = new LatestVersionRouteConstraint()});
 
             routes.MapRoute(
                 RouteName.DisplayPackageFeed,

@@ -143,7 +143,7 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         private string Normalize(string input)
         {
-            return input.ToLower();
+            return input.ToLowerInvariant();
         }
     }
 }

@@ -938,7 +938,6 @@ img.reserved-indicator-icon {
   justify-content: space-between;
   vertical-align: middle;
   width: 100%;
-  outline: none;
 }
 .page-package-details .deprecation-container .deprecation-expander .deprecation-expander-container {
   display: -webkit-box;

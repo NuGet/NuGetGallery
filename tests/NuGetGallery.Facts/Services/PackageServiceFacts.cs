@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Migrations.Model;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Frameworks;
@@ -53,6 +55,83 @@ namespace NuGetGallery
             }
 
             return packageService.Object;
+        }
+        
+        public class TheFindPackageBySuffixMethod
+        {
+            private Package InvokeMethod(IReadOnlyCollection<Package> packages, string version, bool preRelease)
+            {
+                var service = CreateService();
+                return service.FilterLatestPackageBySuffix(packages, version, preRelease);
+            }
+            
+            [Theory]
+            [InlineData("alpha", true, 4)]
+            [InlineData("alpha2-internal", true, 4)]
+            [InlineData("alpha1", true, 2)]
+            [InlineData("alpha2", true, 4)]
+            [InlineData("alpha3", true, 7)]
+            [InlineData("internal", true, 7)]
+            [InlineData("internal.5", true, 7)]
+            [InlineData("internal.51", true, 7)]
+            [InlineData("internal.6", true, 8)]
+            [InlineData("", true, 7)]
+            [InlineData("", false, 1)]
+            [InlineData("noexist", true, 7)]
+            public void VerifySemVerMatching(string version, bool preRelease, int expectedResultIndex)
+            {
+                var r = new Regex(@"-[^d]");
+                var testData = new[]
+                    {
+                        ("1.0.0", false, false),
+                        ("1.0.23", true, false),
+                        ("1.0.23-alpha1", false, false),
+                        ("1.0.23-alpha2-internal2", false, false),
+                        ("1.0.23-alpha2-internal3", false, false),
+                        ("1.0.23-beta", false, false),
+                        ("1.0.23-internal.5", false, false),
+                        ("1.0.23-internal.510", false, true),
+                        ("1.0.23-internal.6", false, false),
+                    }
+                    .Select(data => new Package() { 
+                        IsPrerelease = r.IsMatch(data.Item1), 
+                        NormalizedVersion = NuGetVersion.Parse(data.Item1).ToNormalizedString(),
+                        IsLatestStableSemVer2 = data.Item2,
+                        IsLatestSemVer2 = data.Item3
+                    })
+                    .ToArray();
+
+                var result = InvokeMethod(testData, version, preRelease);
+                Assert.Equal(testData[expectedResultIndex].NormalizedVersion, result.NormalizedVersion);
+            }
+            
+            [Fact]
+            public void VerifyFallbackToStableIfNoPrerelease()
+            {
+                var r = new Regex(@"-[^d]");
+                var testData = new[]
+                    {
+                        ("1.0.0", 1, false, false),
+                        ("1.0.23", 2, true, false),
+                    }
+                    .Select(data => new Package() { 
+                        IsPrerelease = r.IsMatch(data.Item1), 
+                        NormalizedVersion = SemanticVersion.Parse(data.Item1).ToNormalizedString(),
+                        IsLatestStableSemVer2 = data.Item3,
+                        IsLatestSemVer2 = data.Item4
+                    })
+                    .ToArray();
+
+                var result = InvokeMethod(testData, "alpha", true);
+                Assert.Equal(testData[1].NormalizedVersion, result.NormalizedVersion);
+            }
+            
+            [Fact]
+            public void VerifyDoesNotThrowIfNoPackages()
+            {
+                var result = InvokeMethod(new Package[]{}, "alpha", true);
+                Assert.Equal(null, result);
+            }
         }
 
         public class TheAddPackageOwnerMethod

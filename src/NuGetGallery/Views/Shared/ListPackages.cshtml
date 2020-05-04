@@ -91,7 +91,7 @@
             // event to be correlated in Google Analytics.
             <text>
             window.nuget.sendAnalyticsEvent('@category', '@action', @Html.Raw(Json.Encode(Model.SearchTerm)), @Model.PageIndex);
-            window.nuget.sendAiMetric('BrowserSearchPage', @Model.PageIndex, {
+            window.nuget.sendMetric('BrowserSearchPage', @Model.PageIndex, {
                 SearchId: '@searchId',
                 SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
                 IncludePrerelease: '@Model.IncludePrerelease',
@@ -103,15 +103,11 @@
         }
 
         $(function () {
-            var emitAiClickEvent = function () {
-                if (!window.nuget.isAiAvailable()) {
-                    return;
-                }
-
+            var emitClickEvent = function () {
                 var $this = $(this);
                 var data = $this.data();
                 if ($this.attr('href') && data.track) {
-                    window.nuget.sendAiMetric('BrowserSearchSelection', data.trackValue, {
+                    window.nuget.sendMetric('BrowserSearchSelection', data.trackValue, {
                         SearchId: '@searchId',
                         SearchTerm: @Html.Raw(Json.Encode(Model.SearchTerm)),
                         IncludePrerelease: '@Model.IncludePrerelease',
@@ -132,11 +128,11 @@
             $.each($('a[data-track]'), function () {
                 $(this).on('mouseup', function (e) {
                     if (e.which === 2) { // Middle-mouse click
-                        emitAiClickEvent.call(this, e);
+                        emitClickEvent.call(this, e);
                     }
                 });
                 $(this).on('click', function (e) {
-                    emitAiClickEvent.call(this, e);
+                    emitClickEvent.call(this, e);
                 });
             });
         });
