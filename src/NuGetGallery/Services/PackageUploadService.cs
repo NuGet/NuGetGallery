@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using NuGet.Common;
 using NuGet.Packaging;
 using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
