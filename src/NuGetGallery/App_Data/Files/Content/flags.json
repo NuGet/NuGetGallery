@@ -31,7 +31,7 @@
     },
     "NuGetGallery.GitHubUsage": {
       "All": false,
-      "SiteAdmins": false,
+      "SiteAdmins": true,
       "Accounts": [],
       "Domains": []
     },
@@ -42,6 +42,12 @@
       "Domains": []
     },
     "NuGetGallery.ManageDeprecationApi": {
+      "All": false,
+      "SiteAdmins": true,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.PackageDependents": {
       "All": false,
       "SiteAdmins": true,
       "Accounts": [],

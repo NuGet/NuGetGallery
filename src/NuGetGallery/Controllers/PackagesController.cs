@@ -833,31 +833,7 @@ namespace NuGetGallery
             }
 
           
-            // Caching dependence
-            CreatePackageDependents dependence; // Maybe this type is changed
-            // searchAndListModel correspond to q and page; what is that?
-            var cacheKey = "cache dependents_" + id.ToLowerInvariant();
-
-            var cachedResults = HttpContext.Cache.Get(cacheKey);// What cache key?
-            if (cachedResults == null)
-            {
-                 dependence = _packageService.GetPackageDependents(id);
-
-                // note: this is a per instance cache
-                HttpContext.Cache.Add(
-                    cacheKey,
-                    dependence,
-                    null,
-                    DateTime.UtcNow.AddMinutes(60),
-                    Cache.NoSlidingExpiration,
-                    CacheItemPriority.Default, null);
-            }
-
-            else
-            {
-                // default for /packages view
-                dependence = (CreatePackageDependents)cachedResults;
-            }
+           
 
             var readme = await _readMeService.GetReadMeHtmlAsync(package);
             var deprecations = _deprecationService.GetDeprecationsById(id);
@@ -878,7 +854,42 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
-            model.packageDependents = dependence;
+
+            // Different switches for feature
+            var isPackageDependentsABEnabled = _abTestService.IsPackageDependendentsABEnabled(GetCurrentUser());
+            var ispackageDepentsEnabled = (model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser));
+
+            if (isPackageDependentsABEnabled)
+            {
+                // Caching dependence
+
+                CreatePackageDependents dependence; // Maybe this type is changed
+                                                    // searchAndListModel correspond to q and page; what is that?
+                var cacheKey = "cache dependents_" + id.ToLowerInvariant();
+
+                var cachedResults = HttpContext.Cache.Get(cacheKey);// What cache key?
+                if (cachedResults == null)
+                {
+                    dependence = _packageService.GetPackageDependents(id);
+
+                    // note: this is a per instance cache
+                    HttpContext.Cache.Add(
+                        cacheKey,
+                        dependence,
+                        null,
+                        DateTime.UtcNow.AddMinutes(5),
+                        Cache.NoSlidingExpiration,
+                        CacheItemPriority.Default, null);
+                }
+
+                else
+                {
+                    // default for /packages view
+                    dependence = (CreatePackageDependents)cachedResults;
+                }
+                model.packageDependents = dependence;
+            }
+            
 
             if(model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {

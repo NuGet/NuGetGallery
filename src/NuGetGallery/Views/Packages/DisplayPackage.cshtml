@@ -548,7 +548,7 @@
             }
 
 
-            @if (Model.packageDependents != null)
+            @if (Model.packageDependents != null && Model.IsPackageDependentsEnabled)
             { 
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#dependents-groups"
@@ -562,56 +562,56 @@
 
 
 
-            if (Model.packageDependents.PackageList.Count > 0)
-            {
-            <div class="dependents-groups panel-collapse collapse" aria-expanded="true" id="dependents-groups">
-                <p>
-                    Showing the top @(Model.packageDependents.PackageList.Count) packages that depend on @(Model.Id):
-                </p>
-                <table class="table borderless">
-                    <thead>
-                        <tr>
-                            <th>Dependent Package</th>
-                            <th></th>
-                            <th>Downloads</th>
-                        </tr>
-                    </thead>
-
-                    <tbody class="no-border">
-                        @foreach (var item in Model.packageDependents.PackageList)
-                        {
+                if (Model.packageDependents.PackageList.Count > 0)
+                {
+                <div class="dependents-groups panel-collapse collapse" aria-expanded="true" id="dependents-groups">
+                    <p>
+                        Showing the top @(Model.packageDependents.PackageList.Count) packages that depend on @(Model.Id):
+                    </p>
+                    <table class="table borderless">
+                        <thead>
                             <tr>
-                                <td class="gh-repo-column">
-                                    <a class="text-left gh-link" href="@Url.Package(item.Id)">
-                                        @(item.Id)
-                                    </a>
-
-
-                                    <div class="row gh-desc">
-                                        <span>@(item.Description)</span>
-
-                                    </div>
-                                </td>
-                                <td class="gh-empty-column"></td>
-                                <td>
-                                    <i class="ms-Icon ms-Icon--Download download" aria-hidden="true"></i> <label class="download-count">@(item.DownloadCount.ToKiloFormat())</label>
-                                </td>
+                                <th>Dependent Package</th>
+                                <th></th>
+                                <th>Downloads</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody class="no-border">
+                            @foreach (var item in Model.packageDependents.PackageList)
+                            {
+                                <tr>
+                                    <td class="gh-repo-column">
+                                        <a class="text-left gh-link" href="@Url.Package(item.Id)">
+                                            @(item.Id)
+                                        </a>
 
 
-            </div>
+                                        <div class="row gh-desc">
+                                            <span>@(item.Description)</span>
 
-            }
+                                        </div>
+                                    </td>
+                                    <td class="gh-empty-column"></td>
+                                    <td>
+                                        <i class="ms-Icon ms-Icon--Download download" aria-hidden="true"></i> <label class="download-count">@(item.DownloadCount.ToKiloFormat())</label>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
 
-            else
-            {
-            <p class="dependents-usage panel-collapse collapse" aria-expanded="true" id="dependents-groups">
-                This package is not used by any popular packages.
-            </p>
-            }
+
+                </div>
+
+                }
+
+                else
+                {
+                <p class="dependents-usage panel-collapse collapse" aria-expanded="true" id="dependents-groups">
+                    This package is not used by any popular packages.
+                </p>
+                }
             }
 
 

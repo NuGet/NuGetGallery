@@ -34,6 +34,7 @@ namespace NuGetGallery
         public bool IsAtomFeedEnabled { get; set; }
         public bool IsPackageDeprecationEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
+        public bool IsPackageDependentsEnabled { get; set; }
         public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
         public bool HasEmbeddedIcon { get; set; }
         //public IReadOnlyCollection<PackageDependent> packageDependents { get; set;}

@@ -11,5 +11,7 @@ namespace NuGetGallery
         /// Whether or not the user should see the preview search implementation.
         /// </summary>
         bool IsPreviewSearchEnabled(User user);
+
+        bool IsPackageDependendentsABEnabled(User user);
     }
 }

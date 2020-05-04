@@ -20,6 +20,7 @@ namespace NuGetGallery
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
         private const string ForceFlatContainerIconsFeatureName = GalleryPrefix + "ForceFlatContainerIcons";
         private const string GitHubUsageFlightName = GalleryPrefix + "GitHubUsage";
+        private const string PackageDependentsFlightName = GalleryPrefix + "PackageDependents"; // Maybe on string name
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
         private const string ManageDeprecationApiFeatureName = GalleryPrefix + "ManageDeprecationApi";
@@ -132,6 +133,11 @@ namespace NuGetGallery
         public bool IsGitHubUsageEnabled(User user)
         {
             return _client.IsEnabled(GitHubUsageFlightName, user, defaultValue: false);
+        }
+
+        public bool IsPackageDependentsEnabled(User user)
+        {
+            return _client.IsEnabled(PackageDependentsFlightName, user, defaultValue: false);
         }
 
         public bool IsABTestingEnabled(User user)
