@@ -7,7 +7,7 @@
     <ProjectGuid>{98765110-844D-41BE-8083-22E064136E05}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AccountDeleter.Facts</RootNamespace>
+    <RootNamespace>NuGet.AccountDeleter.Facts</RootNamespace>
     <AssemblyName>AccountDeleter.Facts</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccountDeleteMessageHandlerFacts.cs" />
     <Compile Include="EmailBuilderFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EvaluatorFacts.cs" />

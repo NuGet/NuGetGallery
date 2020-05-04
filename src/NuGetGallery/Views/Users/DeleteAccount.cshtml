@@ -12,7 +12,7 @@
             @if ((TempData["RequestFailedMessage"] != null))
             {
                 var message = (string)TempData["RequestFailedMessage"];
-                @ViewHelpers.AlertDanger(@<p><b class="keywords">@message</b> <br /></p>)
+                @ViewHelpers.AlertDanger(@<b class="keywords">@message</b>)
             }
             else
             {

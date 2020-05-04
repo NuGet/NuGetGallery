@@ -211,6 +211,12 @@ namespace NuGetGallery.Configuration
         int AppInsightsHeartbeatIntervalSeconds { get; set; }
 
         /// <summary>
+        /// The tenant key used for Microsoft's internal instrumentation system similar to Application Insights.
+        /// Because it is internal, this setting is not useful if used outside of Microsoft.
+        /// </summary>
+        string InternalMicrosoftTenantKey { get; set; }
+
+        /// <summary>
         /// Gets the protocol-independent site root
         /// </summary>
         string SiteRoot { get; set; }

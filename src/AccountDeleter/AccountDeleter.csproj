@@ -64,7 +64,6 @@
     <Compile Include="Evaluators\IUserEvaluatorFactory.cs" />
     <Compile Include="Evaluators\UserEvaluatorComparer.cs" />
     <Compile Include="Evaluators\UserEvaluatorFactory.cs" />
-    <Compile Include="Exceptions\EmailContactNotAllowedException.cs" />
     <Compile Include="Exceptions\UnknownEvaluatorException.cs" />
     <Compile Include="Exceptions\UnknownSourceException.cs" />
     <Compile Include="Exceptions\UserNotFoundException.cs" />
@@ -107,7 +106,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.3.0-dev-3555917</Version>
+      <Version>4.3.0-dev-3612825</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

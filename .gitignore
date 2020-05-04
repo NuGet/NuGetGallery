@@ -29,6 +29,7 @@ tools/
 .nuget/.marker.v*
 nuget.exe
 AssemblyInfo.g.cs
+*.g.txt
 tests/Scripts/Config-*.json
 
 # MSTest test Results

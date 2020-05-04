@@ -340,7 +340,12 @@ var BindReadMeDataManager = (function () {
         function displayReadMeError(errorMsg) {
             $("#readme-errors").removeClass("hidden");
             $("#preview-readme-button").attr("disabled", "disabled");
-            $("#readme-error-content").text(errorMsg);
+
+            // This is required because in order for the screen reader to correctly read the message and alert
+            // the message must change AFTER the element becomes visible. When we run all these commands
+            // synchronously, it appears that the message content is changed BEFORE the element is finished rendering.
+            // Delay it using a timeout so it will show after the message box is visible.
+            setTimeout(function() { $("#readme-error-content").text(errorMsg); }, 0);
         }
 
         function clearReadMeError() {

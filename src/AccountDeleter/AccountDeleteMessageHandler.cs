@@ -63,31 +63,42 @@ namespace NuGetGallery.AccountDeleter
                     throw new UserNotFoundException();
                 }
 
-                if (_accountDeleteConfigurationAccessor.Value.RespectEmailContactSetting && !user.EmailAllowed)
-                {
-                    throw new EmailContactNotAllowedException();
-                }
-
                 var recipientEmail = user.EmailAddress;
+                var emailAllowed = user.EmailAllowed;
                 var deleteSuccess = await _accountManager.DeleteAccount(user, source);
                 _telemetryService.TrackDeleteResult(source, deleteSuccess);
 
-                var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(source, deleteSuccess);
-                if (baseEmailBuilder != null)
+                if (recipientEmail == null)
                 {
-                    var toEmail = new List<MailAddress>();
-
-                    var configuration = _accountDeleteConfigurationAccessor.Value;
-                    var senderAddress = configuration.EmailConfiguration.GalleryOwner;
-                    var ccEmail = new List<MailAddress>();
-                    toEmail.Add(new MailAddress(recipientEmail));
-                    ccEmail.Add(new MailAddress(senderAddress));
-
-                    var recipients = new EmailRecipients(toEmail, ccEmail);
-                    var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients, username);
-                    await _messenger.SendMessageAsync(emailBuilder);
-                    _telemetryService.TrackEmailSent(source, user.EmailAllowed);
+                    _logger.LogWarning("User has no confirmed email address. The user has been deleted but no email was sent.");
+                    _telemetryService.TrackUnconfirmedUser(source);
                     messageProcessed = true;
+                }
+                else if (_accountDeleteConfigurationAccessor.Value.RespectEmailContactSetting && !emailAllowed)
+                {
+                    _logger.LogWarning("User did not allow Email Contact. The user has been deleted but no email was sent.");
+                    _telemetryService.TrackEmailBlocked(source);
+                    messageProcessed = true;
+                }
+                else
+                {
+                    var baseEmailBuilder = _emailBuilderFactory.GetEmailBuilder(source, deleteSuccess);
+                    if (baseEmailBuilder != null)
+                    {
+                        var toEmail = new List<MailAddress>();
+
+                        var configuration = _accountDeleteConfigurationAccessor.Value;
+                        var senderAddress = configuration.EmailConfiguration.GalleryOwner;
+                        var ccEmail = new List<MailAddress>();
+                        toEmail.Add(new MailAddress(recipientEmail));
+                        ccEmail.Add(new MailAddress(senderAddress));
+
+                        var recipients = new EmailRecipients(toEmail, ccEmail);
+                        var emailBuilder = new DisposableEmailBuilder(baseEmailBuilder, recipients, username);
+                        await _messenger.SendMessageAsync(emailBuilder);
+                        _telemetryService.TrackEmailSent(source, emailAllowed);
+                        messageProcessed = true;
+                    }
                 }
             }
             catch (UnknownSourceException)
@@ -98,12 +109,6 @@ namespace NuGetGallery.AccountDeleter
                 _telemetryService.TrackUnknownSource(source);
                 messageProcessed = false;
             }
-            catch (EmailContactNotAllowedException)
-            {
-                // Should we not send? or should we ignore the setting.
-                _logger.LogWarning("User did not allow Email Contact.");
-                _telemetryService.TrackEmailBlocked(source);
-            }
             catch (UserNotFoundException)
             {
                 _logger.LogWarning("User was not found. They may have already been deleted.");
@@ -112,8 +117,8 @@ namespace NuGetGallery.AccountDeleter
             }
             catch (Exception e)
             {
-                _logger.LogError(0, e, "An unknown exception occured: {ExceptionMessage}");
-                throw e;
+                _logger.LogError(e, "An unknown exception occurred.");
+                throw;
             }
 
             return messageProcessed;

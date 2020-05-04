@@ -11,6 +11,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
@@ -54,6 +55,7 @@ using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
+using NuGetGallery.Services;
 using Role = NuGet.Services.Entities.Role;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
@@ -171,7 +173,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             var galleryDbConnectionFactory = CreateDbConnectionFactory(
-                diagnosticsService,
+                loggerFactory,
                 nameof(EntitiesContext),
                 configuration.Current.SqlConnectionString,
                 secretInjector);
@@ -262,10 +264,15 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDeprecation>>()
                 .InstancePerLifetimeScope();
 
-            ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, diagnosticsService, configuration, secretInjector);
+            builder.RegisterType<EntityRepository<PackageRename>>()
+                .AsSelf()
+                .As<IEntityRepository<PackageRename>>()
+                .InstancePerLifetimeScope();
+
+            ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, loggerFactory, configuration, secretInjector);
 
             var supportDbConnectionFactory = CreateDbConnectionFactory(
-                diagnosticsService,
+                loggerFactory,
                 nameof(SupportRequestDbContext),
                 configuration.Current.SqlConnectionStringSupportRequest,
                 secretInjector);
@@ -288,6 +295,11 @@ namespace NuGetGallery
             builder.RegisterType<PackageService>()
                 .AsSelf()
                 .As<IPackageService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageFilter>()
+                .AsSelf()
+                .As<IPackageFilter>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageDeleteService>()
@@ -405,6 +417,10 @@ namespace NuGetGallery
                 .As<IPackageDeprecationService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageRenameService>()
+                .As<IPackageRenameService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageUpdateService>()
                 .As<IPackageUpdateService>()
                 .InstancePerLifetimeScope();
@@ -451,7 +467,7 @@ namespace NuGetGallery
                     break;
             }
 
-            RegisterAsynchronousValidation(builder, diagnosticsService, configuration, secretInjector);
+            RegisterAsynchronousValidation(builder, loggerFactory, configuration, secretInjector);
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
@@ -524,6 +540,8 @@ namespace NuGetGallery
 
             telemetryConfiguration.TelemetryInitializers.Add(new ClientInformationTelemetryEnricher());
             telemetryConfiguration.TelemetryInitializers.Add(new KnownOperationNameEnricher());
+            telemetryConfiguration.TelemetryInitializers.Add(new AzureWebAppTelemetryInitializer());
+            telemetryConfiguration.TelemetryInitializers.Add(new CustomerResourceIdEnricher());
 
             // Add processors
             telemetryConfiguration.TelemetryProcessorChainBuilder.Use(next =>
@@ -827,10 +845,13 @@ namespace NuGetGallery
                 .InstancePerDependency();
         }
 
-        private static ISqlConnectionFactory CreateDbConnectionFactory(IDiagnosticsService diagnostics, string name,
-            string connectionString, ISecretInjector secretInjector)
+        private static ISqlConnectionFactory CreateDbConnectionFactory(
+            ILoggerFactory loggerFactory,
+            string name,
+            string connectionString,
+            ISecretInjector secretInjector)
         {
-            var logger = diagnostics.SafeGetSource($"AzureSqlConnectionFactory-{name}");
+            var logger = loggerFactory.CreateLogger($"AzureSqlConnectionFactory-{name}");
             return new AzureSqlConnectionFactory(connectionString, secretInjector, logger);
         }
 
@@ -839,13 +860,14 @@ namespace NuGetGallery
             return Task.Run(() => connectionFactory.CreateAsync()).Result;
         }
 
-        private static void ConfigureGalleryReadOnlyReplicaEntitiesContext(ContainerBuilder builder,
-            IDiagnosticsService diagnostics,
+        private static void ConfigureGalleryReadOnlyReplicaEntitiesContext(
+            ContainerBuilder builder,
+            ILoggerFactory loggerFactory,
             ConfigurationService configuration,
             ISecretInjector secretInjector)
         {
             var galleryDbReadOnlyReplicaConnectionFactory = CreateDbConnectionFactory(
-                diagnostics,
+                loggerFactory,
                 nameof(ReadOnlyEntitiesContext),
                 configuration.Current.SqlReadOnlyReplicaConnectionString ?? configuration.Current.SqlConnectionString,
                 secretInjector);
@@ -859,11 +881,14 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private static void ConfigureValidationEntitiesContext(ContainerBuilder builder, IDiagnosticsService diagnostics,
-            ConfigurationService configuration, ISecretInjector secretInjector)
+        private static void ConfigureValidationEntitiesContext(
+            ContainerBuilder builder,
+            ILoggerFactory loggerFactory,
+            ConfigurationService configuration,
+            ISecretInjector secretInjector)
         {
             var validationDbConnectionFactory = CreateDbConnectionFactory(
-                diagnostics,
+                loggerFactory,
                 nameof(ValidationEntitiesContext),
                 configuration.Current.SqlConnectionStringValidation,
                 secretInjector);
@@ -885,8 +910,11 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private void RegisterAsynchronousValidation(ContainerBuilder builder, IDiagnosticsService diagnostics,
-            ConfigurationService configuration, ISecretInjector secretInjector)
+        private void RegisterAsynchronousValidation(
+            ContainerBuilder builder,
+            ILoggerFactory loggerFactory,
+            ConfigurationService configuration,
+            ISecretInjector secretInjector)
         {
             builder
                 .RegisterType<NuGet.Services.Validation.ServiceBusMessageSerializer>()
@@ -912,7 +940,7 @@ namespace NuGetGallery
 
             if (configuration.Current.AsynchronousPackageValidationEnabled)
             {
-                ConfigureValidationEntitiesContext(builder, diagnostics, configuration, secretInjector);
+                ConfigureValidationEntitiesContext(builder, loggerFactory, configuration, secretInjector);
 
                 builder
                     .Register(c =>

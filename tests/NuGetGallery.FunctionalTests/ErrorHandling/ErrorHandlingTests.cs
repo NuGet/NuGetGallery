@@ -15,15 +15,18 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
 {
     public class ErrorHandlingTests : GalleryTestBase, IDisposable
     {
+        private readonly CookieContainer _cookieContainer;
         private readonly HttpClientHandler _httpClientHandler;
         private readonly HttpClient _httpClient;
 
         public ErrorHandlingTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
+            _cookieContainer = new CookieContainer();
             _httpClientHandler = new HttpClientHandler
             {
                 AllowAutoRedirect = false,
-                UseCookies = false,
+                UseCookies = true,
+                CookieContainer = _cookieContainer,
             };
             _httpClient = new HttpClient(_httpClientHandler);
         }
@@ -34,11 +37,15 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         [Theory]
         [Priority(2)]
         [Category("P2Tests")]
-        [InlineData("__Controller::TempData", "Message=You successfully uploaded z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌ 1.0.0.")]
-        public async Task RejectedCookie(string name, string value)
+        [InlineData("/", "__Controller::TempData", "Message=You successfully uploaded z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌ 1.0.0.", 400, false)]
+        [InlineData("/", "__Controller::TempData", "Message=<script>alert(1)</script>", 400, false)]
+        [InlineData("/", "__Controller::TempData", "<script>alert(1)</script>", 400, false)]
+        [InlineData("/packages", "nugetab", "<script>alert(1)</script>", 400, true)]
+        [InlineData("/packages", "nugetab", "z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌", 400, false)]
+        public async Task RejectedCookie(string relativePath, string name, string value, int statusCode, bool pretty)
         {
             // Arrange
-            var relativePath = $"/packages/{Constants.TestPackageId}";
+            _httpClientHandler.UseCookies = false;
             var requestUri = GetRequestUri(relativePath);
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -48,7 +55,14 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
                 var response = await GetTestResponseAsync(relativePath, request);
 
                 // Assert
-                Validator.SimpleHtml(HttpStatusCode.BadRequest)(response);
+                if (pretty)
+                {
+                    Validator.PrettyHtml((HttpStatusCode)statusCode)(response);
+                }
+                else
+                {
+                    Validator.SimpleHtml((HttpStatusCode)statusCode)(response);
+                }
             }
         }
 
@@ -69,9 +83,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             var response = await GetTestResponseAsync(relativePath);
 
             // Assert
-            // Since the HTTP client is configured to not follow redirects, the response we get back is not the
-            // error page itself but instead a redirect to an error page.
-            Validator.Redirect("400")(response);
+            Validator.SimpleHtml(HttpStatusCode.BadRequest)(response);
         }
 
         /// <summary>
@@ -80,17 +92,102 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         [Theory]
         [Priority(2)]
         [Category("P2Tests")]
-        [InlineData("/api/does-not-exist")]
-        [InlineData("/pages/does-not-exist")]
-        [InlineData("/api/v2/curated-feed/microsoftdotnet/DoesNotExist()")]
-        [InlineData("/does-not-exist")]
-        public async Task PageThatDoesNotExist(string relativePath)
+        [InlineData("/api/does-not-exist", true)]
+        [InlineData("/pages/does-not-exist", true)]
+        [InlineData("/api/v2/curated-feed/microsoftdotnet/DoesNotExist()", true)]
+        [InlineData("/does-not-exist", true)]
+        [InlineData("/packages/package--cannot--exist", true)]
+        [InlineData("/packages/BaseTestPackage/invalid-version/Manage", true)]
+        // The following behave poorly. See: https://github.com/NuGet/NuGetGallery/issues/7959
+        [InlineData("/packages/BaseTestPackage/invalid-version", false)]
+        [InlineData("/packages/BaseTestPackage/1.0.0/Mismanage", false)]
+        public async Task PageThatDoesNotExist(string relativePath, bool pretty)
         {
             // Arrange & Act
             var response = await GetTestResponseAsync(relativePath);
 
             // Assert
-            Validator.PrettyHtml(HttpStatusCode.NotFound)(response);
+            if (pretty)
+            {
+                Validator.PrettyHtml(HttpStatusCode.NotFound)(response);
+            }
+            else
+            {
+                Validator.SimpleHtml(HttpStatusCode.NotFound)(response);
+            }
+        }
+
+        /// <summary>
+        /// Verify a matched route but a mismatched HTTP method.
+        /// </summary>
+        [Theory]
+        [Priority(2)]
+        [Category("P2Tests")]
+        [InlineData("DELETE", "/api/v2", 405)]
+        // The following have non-ideal behavior.
+        [InlineData("DELETE", "/api/status", 500)]
+        [InlineData("GET", "/packages/manage/reflow", 404)]
+        [InlineData("POST", "/packages/BaseTestPackage/1.0.0/License", 404)]
+        public async Task UnsupportedMethod(string httpMethod, string relativePath, int statusCode)
+        {
+            // Arrange & Act
+            var response = await GetTestResponseAsync(new HttpMethod(httpMethod), relativePath);
+
+            // Assert
+            Assert.Equal((HttpStatusCode)statusCode, response.StatusCode);
+        }
+
+        [Fact]
+        [Priority(2)]
+        [Category("P2Tests")]
+        public async Task DefaultErrorPageBehavior()
+        {
+            // Arrange & Act
+            var response = await GetTestResponseAsync("/Errors/500");
+
+            // Assert
+            Validator.PrettyInternalServerError()(response);
+        }
+
+        /// <summary>
+        /// Verify behavior when the pretty HTTP 500 page fails itself.
+        /// </summary>
+        [Fact]
+        [Priority(2)]
+        [Category("P2Tests")]
+        public async Task ErrorInErrorPageWithoutPath()
+        {
+            // Arrange
+            var cookies = new SimulatedErrorRequest(EndpointType.Pages, SimulatedErrorType.ExceptionInDedicatedErrorPage).GetCookies();
+
+            // Act
+            var response = await GetTestResponseAsync("/Errors/500", cookies);
+
+            // Assert
+            Validator.SimpleHtml(HttpStatusCode.InternalServerError);
+        }
+
+        /// <summary>
+        /// Verify behavior when the pretty HTTP 500 page fails itself.
+        /// </summary>
+        [Fact]
+        [Priority(2)]
+        [Category("P2Tests")]
+        public async Task ErrorInErrorPageWithPathToSelf()
+        {
+            // Arrange
+            var cookies = new SimulatedErrorRequest(EndpointType.Pages, SimulatedErrorType.ExceptionInDedicatedErrorPage).GetCookies();
+
+            // Act
+            var response = await GetTestResponseAsync("/Errors/500?aspxerrorpath=/Errors/500", cookies);
+
+            // Assert
+            Validator.SimpleHtml(HttpStatusCode.InternalServerError)(response);
+            Assert.Contains(
+                "An exception occurred while processing your request. " +
+                "Additionally, another exception occurred while executing the custom error page for the first exception. " +
+                "The request has been terminated.",
+                response.Content);
         }
 
         /// <summary>
@@ -106,7 +203,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             var request = new SimulatedErrorRequest(endpointType, simulatedErrorType);
 
             // Act
-            var response = await GetTestResponseAsync(request.GetRelativePath());
+            var response = await GetTestResponseAsync(request);
 
             // Assert
             if (!ExpectedSimulatedErrorResponses.TryGetValue(request, out var validator))
@@ -153,7 +250,13 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             { SER(EndpointType.Api, SimulatedErrorType.Result404), Validator.PrettyHtml(HttpStatusCode.NotFound) },
             { SER(EndpointType.Api, SimulatedErrorType.Result503), Validator.SimpleHtml(HttpStatusCode.ServiceUnavailable, SimulatedErrorType.Result503) },
             { SER(EndpointType.Api, SimulatedErrorType.UserSafeException), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.UserSafeException) },
+            { SER(EndpointType.Api, SimulatedErrorType.ExceptionInView), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.ExceptionInView) },
+            { SER(EndpointType.Api, SimulatedErrorType.ExceptionInInlineErrorPage), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.ExceptionInInlineErrorPage) },
+            { SER(EndpointType.Api, SimulatedErrorType.ExceptionInDedicatedErrorPage), Validator.SimpleHtml(HttpStatusCode.InternalServerError, SimulatedErrorType.ExceptionInDedicatedErrorPage) },
             { SER(EndpointType.OData, SimulatedErrorType.Exception), Validator.Xml() },
+            { SER(EndpointType.OData, SimulatedErrorType.ExceptionInView), Validator.Xml() },
+            { SER(EndpointType.OData, SimulatedErrorType.ExceptionInInlineErrorPage), Validator.Xml() },
+            { SER(EndpointType.OData, SimulatedErrorType.ExceptionInDedicatedErrorPage), Validator.Xml() },
             { SER(EndpointType.OData, SimulatedErrorType.HttpException400), Validator.Xml() },
             { SER(EndpointType.OData, SimulatedErrorType.HttpException404), Validator.Xml() },
             { SER(EndpointType.OData, SimulatedErrorType.HttpException500), Validator.Xml() },
@@ -168,13 +271,14 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             { SER(EndpointType.OData, SimulatedErrorType.Result500), Validator.Empty(HttpStatusCode.InternalServerError, SimulatedErrorType.Result500) },
             { SER(EndpointType.OData, SimulatedErrorType.Result503), Validator.Empty(HttpStatusCode.ServiceUnavailable, SimulatedErrorType.Result503) },
             { SER(EndpointType.OData, SimulatedErrorType.UserSafeException), Validator.Xml() },
-            { SER(EndpointType.Pages, SimulatedErrorType.HttpException400), Validator.Redirect("400") },
-            { SER(EndpointType.Pages, SimulatedErrorType.HttpException404), Validator.Redirect("404") },
-            { SER(EndpointType.Pages, SimulatedErrorType.HttpException503), Validator.Redirect("500") },
+            { SER(EndpointType.Pages, SimulatedErrorType.HttpException400), Validator.SimpleHtml(HttpStatusCode.BadRequest) },
+            { SER(EndpointType.Pages, SimulatedErrorType.HttpException404), Validator.SimpleHtml(HttpStatusCode.NotFound) },
+            { SER(EndpointType.Pages, SimulatedErrorType.HttpException503), Validator.SimpleHtml(HttpStatusCode.InternalServerError) },
             { SER(EndpointType.Pages, SimulatedErrorType.ReadOnlyMode), Validator.PrettyHtml(HttpStatusCode.ServiceUnavailable) },
             { SER(EndpointType.Pages, SimulatedErrorType.Result400), Validator.SimpleHtml(HttpStatusCode.BadRequest, SimulatedErrorType.Result400) },
             { SER(EndpointType.Pages, SimulatedErrorType.Result404), Validator.PrettyHtml(HttpStatusCode.NotFound) },
             { SER(EndpointType.Pages, SimulatedErrorType.Result503), Validator.SimpleHtml(HttpStatusCode.ServiceUnavailable, SimulatedErrorType.Result503) },
+            { SER(EndpointType.Pages, SimulatedErrorType.ExceptionInInlineErrorPage), Validator.SimpleHtml(HttpStatusCode.InternalServerError) },
         };
 
         /// <summary>
@@ -198,10 +302,37 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             }
         }
 
+        private async Task<TestResponse> GetTestResponseAsync(SimulatedErrorRequest errorRequest)
+        {
+            return await GetTestResponseAsync(
+                errorRequest.GetRelativePath(),
+                errorRequest.GetCookies());
+        }
+
+        private async Task<TestResponse> GetTestResponseAsync(string relativePath, IReadOnlyDictionary<string, string> cookies)
+        {
+            return await GetTestResponseAsync(HttpMethod.Get, relativePath, cookies);
+        }
+
         private async Task<TestResponse> GetTestResponseAsync(string relativePath)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, GetRequestUri(relativePath)))
+            return await GetTestResponseAsync(HttpMethod.Get, relativePath);
+        }
+
+        private async Task<TestResponse> GetTestResponseAsync(HttpMethod method, string relativePath)
+        {
+            return await GetTestResponseAsync(method, relativePath, new Dictionary<string, string>());
+        }
+
+        private async Task<TestResponse> GetTestResponseAsync(HttpMethod method, string relativePath, IReadOnlyDictionary<string, string> cookies)
+        {
+            using (var request = new HttpRequestMessage(method, GetRequestUri(relativePath)))
             {
+                foreach (var cookie in cookies)
+                {
+                    _cookieContainer.Add(new Uri(UrlHelper.BaseUrl), new Cookie { Name = cookie.Key, Value = cookie.Value });
+                }
+
                 return await GetTestResponseAsync(relativePath, request);
             }
         }

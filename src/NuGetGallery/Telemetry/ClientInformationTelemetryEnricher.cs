@@ -46,9 +46,6 @@ namespace NuGetGallery
             }
         }
 
-        protected virtual HttpContextBase GetHttpContext()
-        {
-            return new HttpContextWrapper(HttpContext.Current);
-        }
+        protected virtual HttpContextBase GetHttpContext() => HttpContextBaseExtensions.GetCurrent();
     }
 }

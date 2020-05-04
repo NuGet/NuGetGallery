@@ -28,14 +28,34 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        public virtual ActionResult Pending()
+        {
+            var validationSets = _validationAdminService.GetPending();
+            var validatedPackages = ToValidatedPackages(validationSets);
+            var validationSetIds = validatedPackages
+                .SelectMany(p => p.ValidationSets)
+                .Select(s => s.ValidationTrackingId);
+            var query = string.Join("\r\n", validationSetIds);
+
+            return View(nameof(Index), new ValidationPageViewModel(query, validatedPackages));
+        }
+
+        [HttpGet]
         public virtual ActionResult Search(string q)
         {
             var packageValidationSets = _validationAdminService.Search(q ?? string.Empty);
+            var validatedPackages = ToValidatedPackages(packageValidationSets);
+
+            return View(nameof(Index), new ValidationPageViewModel(q, validatedPackages));
+        }
+
+        private List<ValidatedPackageViewModel> ToValidatedPackages(IReadOnlyList<PackageValidationSet> packageValidationSets)
+        {
             var validatedPackages = new List<ValidatedPackageViewModel>();
             AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.Package);
             AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.SymbolPackage);
 
-            return View(nameof(Index), new ValidationPageViewModel(q, validatedPackages));
+            return validatedPackages;
         }
 
         private void AppendValidatedPackages(List<ValidatedPackageViewModel> validatedPackages, IEnumerable<PackageValidationSet> validationSets, ValidatingType validatingType)

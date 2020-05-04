@@ -112,5 +112,6 @@ namespace NuGetGallery.AccountDeleter
         public int? MaxWorkerThreads { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int? MinIoThreads { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int? MaxIoThreads { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string InternalMicrosoftTenantKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

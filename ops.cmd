@@ -1,1 +1,0 @@
-@powershell -ExecutionPolicy RemoteSigned -NoProfile -NoExit "%~dp0ops\Scripts\Enter-NuGetOps.ps1"
