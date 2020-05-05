@@ -28,6 +28,8 @@ namespace NuGet.Services.AzureSearch
 
         public string GalleryBaseUrl { get; set; }
 
+        public bool EnablePopularityTransfers { get; set; }
+
         public AzureSearchScoringConfiguration Scoring { get; set; }
 
         public Uri ParseGalleryBaseUrl()

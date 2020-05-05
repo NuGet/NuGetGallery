@@ -232,7 +232,63 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             [Fact]
-            public async Task DisablesPopularityTransfers()
+            public async Task ConfigDisablesPopularityTransfers()
+            {
+                var downloadChanges = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "Package1", 5 }
+                };
+
+                DownloadSetComparer
+                    .Setup(c => c.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
+                    .Returns<DownloadData, DownloadData>((oldData, newData) =>
+                    {
+                        return downloadChanges;
+                    });
+
+                OldTransfers.AddTransfer("Package1", "Package2");
+                NewTransfers.AddTransfer("Package1", "Package2");
+
+                DownloadOverrides["Package1"] = 100;
+
+                Config.EnablePopularityTransfers = false;
+
+                await Target.ExecuteAsync();
+
+                PopularityTransferDataClient
+                    .Verify(
+                        c => c.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()),
+                        Times.Once);
+                DatabaseFetcher
+                    .Verify(
+                        d => d.GetPopularityTransfersAsync(),
+                        Times.Never);
+                AuxiliaryFileClient
+                    .Verify(
+                        a => a.LoadDownloadOverridesAsync(),
+                        Times.Once);
+
+                // The popularity transfers should not be given to the download transferrer.
+                DownloadTransferrer
+                    .Verify(
+                        x => x.UpdateDownloadTransfers(
+                            NewDownloadData,
+                            downloadChanges,
+                            OldTransfers,
+                            It.Is<PopularityTransferData>(d => d.Count == 0),
+                            DownloadOverrides),
+                        Times.Once);
+
+                // Popularity transfers auxiliary file should be empty.
+                PopularityTransferDataClient.Verify(
+                    c => c.ReplaceLatestIndexedAsync(
+                        It.Is<PopularityTransferData>(d => d.Count == 0),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task FlagDisablesPopularityTransfers()
             {
                 var downloadChanges = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase)
                 {
@@ -385,6 +441,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     AzureSearchBatchSize = 10,
                     MaxConcurrentBatches = 1,
                     MaxConcurrentVersionListWriters = 1,
+                    EnablePopularityTransfers = true,
                     MinPushPeriod = TimeSpan.FromSeconds(5),
                 };
                 Options.Setup(x => x.Value).Returns(() => Config);

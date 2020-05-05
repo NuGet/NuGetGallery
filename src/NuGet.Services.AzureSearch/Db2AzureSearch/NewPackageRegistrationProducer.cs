@@ -165,6 +165,13 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private async Task<PopularityTransferData> GetPopularityTransfersAsync()
         {
+            if (!_options.Value.EnablePopularityTransfers)
+            {
+                _logger.LogWarning(
+                    "Popularity transfers are disabled. Popularity transfers will be ignored.");
+                return new PopularityTransferData();
+            }
+
             if (!_featureFlags.IsPopularityTransferEnabled())
             {
                 _logger.LogWarning(

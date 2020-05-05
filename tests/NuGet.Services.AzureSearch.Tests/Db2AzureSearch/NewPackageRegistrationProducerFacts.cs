@@ -54,6 +54,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _config = new Db2AzureSearchConfiguration
                 {
                     DatabaseBatchSize = 2,
+                    EnablePopularityTransfers = true,
                 };
                 _developmentOptions = new Mock<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>();
                 _developmentConfig =new Db2AzureSearchDevelopmentConfiguration();
@@ -579,7 +580,48 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             [Fact]
-            public async Task DisablesPopularityTransfers()
+            public async Task ConfigDisablesPopularityTransfers()
+            {
+                _packageRegistrations.Add(new PackageRegistration
+                {
+                    Key = 1,
+                    Id = "A",
+                    Packages = new[]
+                    {
+                        new Package { Version = "1.0.0" },
+                    },
+                });
+                _downloads.SetDownloadCount("A", "1.0.0", 100);
+                _popularityTransfers.AddTransfer("A", "A");
+                _downloadOverrides["A"] = 5;
+
+                InitializePackagesFromPackageRegistrations();
+
+                _config.EnablePopularityTransfers = false;
+
+                var result = await _target.ProduceWorkAsync(_work, _token);
+
+                // The popularity transfers should not be loaded from the database.
+                _databaseFetcher
+                    .Verify(
+                        x => x.GetPopularityTransfersAsync(),
+                        Times.Never);
+
+                // Popularity transfers should not be passed to the download transferrer.
+                _downloadTransferrer
+                    .Verify(
+                        x => x.InitializeDownloadTransfers(
+                            _downloads,
+                            It.Is<PopularityTransferData>(data => data.Count == 0),
+                            _downloadOverrides),
+                        Times.Once);
+
+                // There should be no popularity transfers.
+                Assert.Empty(result.PopularityTransfers);
+            }
+
+            [Fact]
+            public async Task FlagDisablesPopularityTransfers()
             {
                 _packageRegistrations.Add(new PackageRegistration
                 {

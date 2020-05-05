@@ -40,6 +40,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             _config = new Auxiliary2AzureSearchConfiguration
             {
                 AuxiliaryDataStorageContainer = "auxiliary-container",
+                EnablePopularityTransfers = true,
                 StorageContainer = "storage-container",
                 Scoring = new AzureSearchScoringConfiguration()
             };
@@ -355,6 +356,58 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             VerifyUpdateDownloadCountAction("B", 10, actions[5]);
             VerifyUpdateDownloadCountAction("B", 10, actions[6]);
             VerifyUpdateDownloadCountAction("B", 10, actions[7]);
+        }
+
+        [Fact]
+        public async Task DisablingPopularityTransferConfigRemovesTransfers()
+        {
+            SetExcludedPackagesJson("{}");
+
+            AddVersionList("A", "1.0.0");
+            AddVersionList("B", "1.0.0");
+            AddVersionList("C", "1.0.0");
+
+            SetOldDownloadsJson(@"
+{
+  ""A"": { ""1.0.0"": 100 },
+  ""B"": { ""1.0.0"": 20 },
+  ""C"": { ""1.0.0"": 1 }
+}");
+            SetNewDownloadsJson(@"
+[
+  [ ""A"", [ ""1.0.0"", 100 ] ],
+  [ ""B"", [ ""1.0.0"", 20 ] ],
+  [ ""C"", [ ""1.0.0"", 1 ] ]
+]");
+
+            // Old: A -> B rename
+            // New: A -> B rename
+            SetOldPopularityTransfersJson(@"{ ""A"": [ ""B"" ] }");
+            _newPopularityTransfers.AddTransfer("A", "B");
+
+            SetDownloadOverrides(@"{ ""C"": 5 }");
+
+            _config.EnablePopularityTransfers = false;
+            _config.Scoring.PopularityTransfer = 0.5;
+
+            await _target.ExecuteAsync();
+
+            Assert.NotNull(_indexedBatch);
+            var actions = _indexedBatch.Actions.OrderBy(x => x.Document.Key).ToList();
+            Assert.Equal(12, actions.Count);
+
+            VerifyUpdateDownloadCountAction("A", 100, actions[0]);
+            VerifyUpdateDownloadCountAction("A", 100, actions[1]);
+            VerifyUpdateDownloadCountAction("A", 100, actions[2]);
+            VerifyUpdateDownloadCountAction("A", 100, actions[3]);
+            VerifyUpdateDownloadCountAction("B", 20, actions[4]);
+            VerifyUpdateDownloadCountAction("B", 20, actions[5]);
+            VerifyUpdateDownloadCountAction("B", 20, actions[6]);
+            VerifyUpdateDownloadCountAction("B", 20, actions[7]);
+            VerifyUpdateDownloadCountAction("C", 5, actions[8]);
+            VerifyUpdateDownloadCountAction("C", 5, actions[9]);
+            VerifyUpdateDownloadCountAction("C", 5, actions[10]);
+            VerifyUpdateDownloadCountAction("C", 5, actions[11]);
         }
 
         [Fact]
