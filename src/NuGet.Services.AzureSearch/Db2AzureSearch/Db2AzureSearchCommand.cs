@@ -201,7 +201,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _logger.LogInformation("Done uploading the initial verified packages data file.");
         }
 
-        private async Task WritePopularityTransfersDataAsync(SortedDictionary<string, SortedSet<string>> popularityTransfers)
+        private async Task WritePopularityTransfersDataAsync(PopularityTransferData popularityTransfers)
         {
             _logger.LogInformation("Writing the initial popularity transfers data file.");
             await _popularityTransferDataClient.ReplaceLatestIndexedAsync(

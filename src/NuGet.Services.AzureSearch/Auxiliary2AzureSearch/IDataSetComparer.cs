@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
@@ -32,7 +33,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         /// <param name="oldData">The old popularity transfers, typically from storage.</param>
         /// <param name="newData">The new popularity transfers, typically from gallery DB.</param>
         SortedDictionary<string, string[]> ComparePopularityTransfers(
-            SortedDictionary<string, SortedSet<string>> oldData,
-            SortedDictionary<string, SortedSet<string>> newData);
+            PopularityTransferData oldData,
+            PopularityTransferData newData);
     }
 }

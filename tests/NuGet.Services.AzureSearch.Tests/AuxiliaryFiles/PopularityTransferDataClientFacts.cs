@@ -36,20 +36,41 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
-                Assert.Empty(output.Result);
-                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+                Assert.Empty(output.Data);
+                Assert.Equal(ETag, output.Metadata.ETag);
 
                 TelemetryService.Verify(
                     x => x.TrackReadLatestIndexedPopularityTransfers(
                         /*outgoingTransfers: */ 0,
+                        /*modified: */ true,
                         It.IsAny<TimeSpan>()),
                     Times.Once);
             }
 
             [Fact]
-            public async Task AllowsMissingBlob()
+            public async Task AllowsNotModifiedBlob()
+            {
+                CloudBlob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ThrowsAsync(new StorageException(
+                        new RequestResult
+                        {
+                            HttpStatusCode = (int)HttpStatusCode.NotModified,
+                        },
+                        message: "Not modified.",
+                        inner: null));
+
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
+
+                Assert.False(output.Modified);
+                Assert.Null(output.Data);
+                Assert.Null(output.Metadata);
+            }
+
+            [Fact]
+            public async Task ThrowsIfBlobIsMissing()
             {
                 CloudBlob
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
@@ -61,16 +82,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                         message: "Not found.",
                         inner: null));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var ex = await Assert.ThrowsAsync<StorageException>(
+                    () => Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache));
 
-                Assert.Empty(output.Result);
-                Assert.Equal("*", output.AccessCondition.IfNoneMatchETag);
-
-                TelemetryService.Verify(
-                    x => x.TrackReadLatestIndexedPopularityTransfers(
-                        /*outgoingTransfers: */ 0,
-                        It.IsAny<TimeSpan>()),
-                    Times.Once);
+                Assert.Equal((int)HttpStatusCode.NotFound, ex.RequestInformation.HttpStatusCode);
             }
 
             [Fact]
@@ -94,7 +109,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => Target.ReadLatestIndexedAsync());
+                    () => Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache));
                 Assert.Equal("The first token should be the start of an object.", ex.Message);
             }
 
@@ -120,29 +135,26 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
-                Assert.Equal(3, output.Result.Count);
-                Assert.Equal(new[] { "windowsazure.servicebus", "WindowsAzure.Storage", "ZDuplicate" }, output.Result.Keys.ToArray());
-                Assert.Equal(new[] { "Azure.Messaging.ServiceBus" }, output.Result["windowsazure.servicebus"].ToArray());
-                Assert.Equal(new[] { "Azure.Storage.Blobs", "Azure.Storage.Queues" }, output.Result["WindowsAzure.Storage"].ToArray());
-                Assert.Equal(new[] { "packageA", "packageB" }, output.Result["ZDuplicate"].ToArray());
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result.Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["windowsazure.servicebus"].Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["WindowsAzure.Storage"].Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["ZDuplicate"].Comparer);
-                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+                Assert.Equal(3, output.Data.Count);
+                Assert.Equal(new[] { "windowsazure.servicebus", "WindowsAzure.Storage", "ZDuplicate" }, output.Data.Keys.ToArray());
+                Assert.Equal(new[] { "Azure.Messaging.ServiceBus" }, output.Data["windowsazure.servicebus"].ToArray());
+                Assert.Equal(new[] { "Azure.Storage.Blobs", "Azure.Storage.Queues" }, output.Data["WindowsAzure.Storage"].ToArray());
+                Assert.Equal(new[] { "packageA", "packageB" }, output.Data["ZDuplicate"].ToArray());
+                Assert.Equal(ETag, output.Metadata.ETag);
 
                 CloudBlobContainer.Verify(x => x.GetBlobReference("popularity-transfers/popularity-transfers.v1.json"), Times.Once);
                 TelemetryService.Verify(
                     x => x.TrackReadLatestIndexedPopularityTransfers(
                         /*outgoingTransfers: */ 3,
+                        /*modified: */ true,
                         It.IsAny<TimeSpan>()),
                     Times.Once);
             }
 
             [Fact]
-            public async Task IgnoresEmptyOwnerLists()
+            public async Task IgnoresEmptyTransferList()
             {
                 var json = JsonConvert.SerializeObject(new Dictionary<string, string[]>
                 {
@@ -159,18 +171,17 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
-                Assert.Single(output.Result);
-                Assert.Equal(new[] { "PackageA" }, output.Result.Keys.ToArray());
-                Assert.Equal(new[] { "PackageB" }, output.Result["PackageA"].ToArray());
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result.Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["PackageA"].Comparer);
-                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+                Assert.Single(output.Data);
+                Assert.Equal(new[] { "PackageA" }, output.Data.Keys.ToArray());
+                Assert.Equal(new[] { "PackageB" }, output.Data["PackageA"].ToArray());
+                Assert.Equal(ETag, output.Metadata.ETag);
 
                 TelemetryService.Verify(
                     x => x.TrackReadLatestIndexedPopularityTransfers(
                         /*outgoingTransfers: */ 1,
+                        /*modified: */ true,
                         It.IsAny<TimeSpan>()),
                     Times.Once);
             }
@@ -189,20 +200,43 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-                var output = await Target.ReadLatestIndexedAsync();
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
 
-                Assert.Single(output.Result);
-                Assert.Equal(new[] { "PackageA" }, output.Result.Keys.ToArray());
-                Assert.Equal(new[] { "packageB", "packageC", "packageD" }, output.Result["packageA"].ToArray());
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result.Comparer);
-                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["packageA"].Comparer);
-                Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+                Assert.Single(output.Data);
+                Assert.Equal(new[] { "PackageA" }, output.Data.Keys.ToArray());
+                Assert.Equal(new[] { "packageB", "packageC", "packageD" }, output.Data["packageA"].ToArray());
+                Assert.Equal(ETag, output.Metadata.ETag);
 
                 TelemetryService.Verify(
                     x => x.TrackReadLatestIndexedPopularityTransfers(
                         /*outgoingTransfers: */ 1,
+                        /*modified: */ true,
                         It.IsAny<TimeSpan>()),
                     Times.Once);
+            }
+
+            [Fact]
+            public async Task DedupesStrings()
+            {
+                var json = @"
+{
+  ""PackageA"": [ ""PackageB"" ],
+  ""PackageB"": [ ""PackageA"" ]
+}";
+
+                CloudBlob
+                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
+                    .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
+
+                var output = await Target.ReadLatestIndexedAsync(AccessCondition.Object, StringCache);
+
+                var transfers = output.Data.ToList();
+                var transferA = transfers[0];
+                var transferB = transfers[1];
+
+                Assert.Equal(2, StringCache.StringCount);
+                Assert.Same(transferA.Key, transferB.Value.First());
+                Assert.Same(transferB.Key, transferA.Value.First());
             }
         }
 
@@ -215,7 +249,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             [Fact]
             public async Task SerializesWithoutBOM()
             {
-                var newData = new SortedDictionary<string, SortedSet<string>>();
+                var newData = new PopularityTransferData();
 
                 await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
 
@@ -226,7 +260,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             [Fact]
             public async Task SetsContentType()
             {
-                var newData = new SortedDictionary<string, SortedSet<string>>();
+                var newData = new PopularityTransferData();
 
                 await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
 
@@ -236,13 +270,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             [Fact]
             public async Task SerializedWithoutIndentation()
             {
-                var newData = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase)
-                {
-                    {
-                        "PackageA",
-                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "packageB", "packageC" }
-                    }
-                };
+                var newData = new PopularityTransferData();
+
+                newData.AddTransfer("PackageA", "packageB");
+                newData.AddTransfer("PackageA", "packageC");
 
                 await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
 
@@ -253,21 +284,17 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             [Fact]
             public async Task SerializesVersionsSortedOrder()
             {
-                var newData = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase)
-                {
-                    {
-                        "PackageB",
-                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "PackageA", "PackageB" }
-                    },
-                    {
-                        "PackageA",
-                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "PackageC", "packagec", "packageC", "PackageB" }
-                    },
-                    {
-                        "PackageC",
-                        new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { "PackageZ" }
-                    }
-                };
+                var newData = new PopularityTransferData();
+
+                newData.AddTransfer("PackageB", "PackageA");
+                newData.AddTransfer("PackageB", "PackageB");
+
+                newData.AddTransfer("PackageA", "PackageC");
+                newData.AddTransfer("PackageA", "packagec");
+                newData.AddTransfer("PackageA", "packageC");
+                newData.AddTransfer("PackageA", "PackageB");
+
+                newData.AddTransfer("PackageC", "PackageZ");
 
                 await Target.ReplaceLatestIndexedAsync(newData, AccessCondition.Object);
 
@@ -313,6 +340,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 ETag = "\"some-etag\"";
                 AccessCondition = new Mock<IAccessCondition>();
+                StringCache = new StringCache();
                 ReplaceLatestIndexedPopularityTransfersDurationMetric = new Mock<IDisposable>();
 
                 Options
@@ -359,8 +387,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public AzureSearchJobConfiguration Config { get; }
             public string ETag { get; }
             public Mock<IAccessCondition> AccessCondition { get; }
+            public StringCache StringCache { get; }
             public Mock<IDisposable> ReplaceLatestIndexedPopularityTransfersDurationMetric { get; }
             public PopularityTransferDataClient Target { get; }
+
 
             public List<string> BlobNames { get; } = new List<string>();
             public List<byte[]> SavedBytes { get; } = new List<byte[]>();

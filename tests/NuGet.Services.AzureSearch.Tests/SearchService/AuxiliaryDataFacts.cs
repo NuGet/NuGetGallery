@@ -92,16 +92,19 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void UsesSameMetadataInstances()
             {
                 var downloadData = Data.GetAuxiliaryFileResult(new DownloadData(), string.Empty);
-                var verifedPackages = Data.GetAuxiliaryFileResult(new HashSet<string>(StringComparer.OrdinalIgnoreCase), string.Empty);
+                var verifiedPackages = Data.GetAuxiliaryFileResult(new HashSet<string>(StringComparer.OrdinalIgnoreCase), string.Empty);
+                var popularityTransfers = Data.GetAuxiliaryFileResult(new PopularityTransferData(), string.Empty);
 
                 var target = new AuxiliaryData(
                     DateTimeOffset.MaxValue,
                     downloadData,
-                    verifedPackages);
+                    verifiedPackages,
+                    popularityTransfers);
 
                 Assert.Equal(DateTimeOffset.MaxValue, target.Metadata.Loaded);
                 Assert.Same(downloadData.Metadata, target.Metadata.Downloads);
-                Assert.Same(verifedPackages.Metadata, target.Metadata.VerifiedPackages);
+                Assert.Same(verifiedPackages.Metadata, target.Metadata.VerifiedPackages);
+                Assert.Same(popularityTransfers.Metadata, target.Metadata.PopularityTransfers);
             }
         }
 
@@ -114,7 +117,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _target = new AuxiliaryData(
                     DateTimeOffset.MinValue,
                     Data.GetAuxiliaryFileResult(new DownloadData(), string.Empty),
-                    Data.GetAuxiliaryFileResult(new HashSet<string>(StringComparer.OrdinalIgnoreCase), string.Empty));
+                    Data.GetAuxiliaryFileResult(new HashSet<string>(StringComparer.OrdinalIgnoreCase), string.Empty),
+                    Data.GetAuxiliaryFileResult(new PopularityTransferData(), string.Empty));
             }
         }
     }

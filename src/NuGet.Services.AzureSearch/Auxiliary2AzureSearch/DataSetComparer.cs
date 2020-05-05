@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 {
@@ -28,6 +29,16 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             SortedDictionary<string, SortedSet<string>> oldData,
             SortedDictionary<string, SortedSet<string>> newData)
         {
+            if (oldData.Comparer != StringComparer.OrdinalIgnoreCase)
+            {
+                throw new ArgumentException("The old data should have a case-insensitive comparer.", nameof(oldData));
+            }
+
+            if (newData.Comparer != StringComparer.OrdinalIgnoreCase)
+            {
+                throw new ArgumentException("The new data should have a case-insensitive comparer.", nameof(newData));
+            }
+
             // Use ordinal comparison to allow username case changes to flow through.
             var stopwatch = Stopwatch.StartNew();
             var result = CompareData(
@@ -44,8 +55,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         }
 
         public SortedDictionary<string, string[]> ComparePopularityTransfers(
-            SortedDictionary<string, SortedSet<string>> oldData,
-            SortedDictionary<string, SortedSet<string>> newData)
+            PopularityTransferData oldData,
+            PopularityTransferData newData)
         {
             // Ignore case changes in popularity transfers.
             var stopwatch = Stopwatch.StartNew();
@@ -63,22 +74,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         }
 
         private SortedDictionary<string, string[]> CompareData(
-            SortedDictionary<string, SortedSet<string>> oldData,
-            SortedDictionary<string, SortedSet<string>> newData,
+            IReadOnlyDictionary<string, SortedSet<string>> oldData,
+            IReadOnlyDictionary<string, SortedSet<string>> newData,
             string keyName,
             string valuesName,
             StringComparer valuesComparer)
         {
-            if (oldData.Comparer != StringComparer.OrdinalIgnoreCase)
-            {
-                throw new ArgumentException("The old data should have a case-insensitive comparer.", nameof(oldData));
-            }
-
-            if (newData.Comparer != StringComparer.OrdinalIgnoreCase)
-            {
-                throw new ArgumentException("The new data should have a case-insensitive comparer.", nameof(newData));
-            }
-
             // We use a very simplistic algorithm here. Perform one pass on the new data to find the added or changed
             // values. Then perform a second pass on the old data to find removed keys. We can optimize
             // this later if necessary.

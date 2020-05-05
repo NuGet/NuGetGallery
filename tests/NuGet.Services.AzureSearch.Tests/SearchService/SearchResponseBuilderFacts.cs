@@ -173,6 +173,12 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
       ""ETag"": ""\""etag-b\""""
+    },
+    ""PopularityTransfers"": {
+      ""LastModified"": ""2019-01-03T11:00:00+00:00"",
+      ""LoadDuration"": ""00:00:45"",
+      ""FileSize"": 9876,
+      ""ETag"": ""\""etag-c\""""
     }
   }
 }", actualJson);
@@ -198,7 +204,11 @@ namespace NuGet.Services.AzureSearch.SearchService
         ""Id"": ""WindowsAzure.Storage"",
         ""DownloadCount"": 1001,
         ""Verified"": true,
-        ""Owners"": []
+        ""Owners"": [],
+        ""PopularityTransfers"": [
+          ""transfer1"",
+          ""transfer2""
+        ]
       },
       ""Version"": ""7.1.2.0-alpha+git"",
       ""NormalizedVersion"": ""7.1.2-alpha"",
@@ -264,6 +274,26 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.Null(response.Data[0].IconUrl);
             }
+
+            [Fact]
+            public void GetsPopularityTransfer()
+            {
+                _auxiliaryData
+                    .Setup(x => x.GetPopularityTransfers(It.IsAny<string>()))
+                    .Returns(new[] { "foo", "bar" });
+
+                var response = Target.V2FromHijack(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _hijackResult,
+                    _duration);
+
+                var transfers = response.Data[0].PackageRegistration.PopularityTransfers;
+                Assert.Equal(2, transfers.Length);
+                Assert.Equal("foo", transfers[0]);
+                Assert.Equal("bar", transfers[1]);
+            }
         }
 
         public class V2FromSearch : BaseFacts
@@ -328,6 +358,26 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Fact]
+            public void GetsPopularityTransfer()
+            {
+                _auxiliaryData
+                    .Setup(x => x.GetPopularityTransfers(It.IsAny<string>()))
+                    .Returns(new[] { "foo", "bar" });
+
+                var response = Target.V2FromSearch(
+                    _v2Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                var transfers = response.Data[0].PackageRegistration.PopularityTransfers;
+                Assert.Equal(2, transfers.Length);
+                Assert.Equal("foo", transfers[0]);
+                Assert.Equal("bar", transfers[1]);
+            }
+
+            [Fact]
             public void CanIncludeDebugInformation()
             {
                 _v2Request.ShowDebug = true;
@@ -379,6 +429,12 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
       ""ETag"": ""\""etag-b\""""
+    },
+    ""PopularityTransfers"": {
+      ""LastModified"": ""2019-01-03T11:00:00+00:00"",
+      ""LoadDuration"": ""00:00:45"",
+      ""FileSize"": 9876,
+      ""ETag"": ""\""etag-c\""""
     }
   }
 }", actualJson);
@@ -407,6 +463,10 @@ namespace NuGet.Services.AzureSearch.SearchService
         ""Owners"": [
           ""Microsoft"",
           ""azure-sdk""
+        ],
+        ""PopularityTransfers"": [
+          ""transfer1"",
+          ""transfer2""
         ]
       },
       ""Version"": ""7.1.2.0-alpha+git"",
@@ -665,6 +725,12 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
       ""ETag"": ""\""etag-b\""""
+    },
+    ""PopularityTransfers"": {
+      ""LastModified"": ""2019-01-03T11:00:00+00:00"",
+      ""LoadDuration"": ""00:00:45"",
+      ""FileSize"": 9876,
+      ""ETag"": ""\""etag-c\""""
     }
   }
 }", rootDebugJson);
@@ -831,6 +897,12 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
       ""ETag"": ""\""etag-b\""""
+    },
+    ""PopularityTransfers"": {
+      ""LastModified"": ""2019-01-03T11:00:00+00:00"",
+      ""LoadDuration"": ""00:00:45"",
+      ""FileSize"": 9876,
+      ""ETag"": ""\""etag-c\""""
     }
   }
 }", rootDebugJson);
@@ -1224,7 +1296,12 @@ namespace NuGet.Services.AzureSearch.SearchService
                         new DateTimeOffset(2019, 1, 2, 11, 0, 0, TimeSpan.Zero),
                         TimeSpan.FromSeconds(30),
                         5678,
-                        "\"etag-b\""));
+                        "\"etag-b\""),
+                    new AuxiliaryFileMetadata(
+                        new DateTimeOffset(2019, 1, 3, 11, 0, 0, TimeSpan.Zero),
+                        TimeSpan.FromSeconds(45),
+                        9876,
+                        "\"etag-c\""));
 
                 _config.SearchIndexName = "search-index";
                 _config.HijackIndexName = "hijack-index";
@@ -1245,6 +1322,9 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _auxiliaryData
                     .Setup(x => x.Metadata)
                     .Returns(() => _auxiliaryMetadata);
+                _auxiliaryData
+                    .Setup(x => x.GetPopularityTransfers(It.IsAny<string>()))
+                    .Returns(() => new[] { "transfer1", "transfer2" });
 
                 _v2Request = new V2SearchRequest
                 {

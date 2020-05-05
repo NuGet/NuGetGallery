@@ -44,7 +44,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     x => x.ReplaceLatestIndexedAsync(It.IsAny<DownloadData>(), It.IsAny<IAccessCondition>()),
                     Times.Never);
                 PopularityTransferDataClient.Verify(
-                    x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()),
+                    x => x.ReplaceLatestIndexedAsync(It.IsAny<PopularityTransferData>(), It.IsAny<IAccessCondition>()),
                     Times.Never);
             }
 
@@ -174,20 +174,19 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 TransferChanges["Package1"] = 100;
                 TransferChanges["Package2"] = 200;
 
-                NewTransfers["Package1"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    "Package2"
-                };
+                NewTransfers.AddTransfer("Package1", "Package2");
 
                 await Target.ExecuteAsync();
 
                 PopularityTransferDataClient
                     .Verify(
-                        c => c.ReadLatestIndexedAsync(),
+                        c => c.ReadLatestIndexedAsync(
+                            It.Is<IAccessCondition>(x => x.IfMatchETag == null && x.IfNoneMatchETag == null),
+                            It.IsAny<StringCache>()),
                         Times.Once);
                 DatabaseFetcher
                     .Verify(
-                        d => d.GetPackageIdToPopularityTransfersAsync(),
+                        d => d.GetPopularityTransfersAsync(),
                         Times.Once);
                 AuxiliaryFileClient
                     .Verify(
@@ -224,7 +223,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 // Popularity transfers auxiliary file should have new data.
                 PopularityTransferDataClient.Verify(
                     c => c.ReplaceLatestIndexedAsync(
-                        It.Is<SortedDictionary<string, SortedSet<string>>>(d =>
+                        It.Is<PopularityTransferData>(d =>
                             d.Count == 1 &&
                             d["Package1"].Count == 1 &&
                             d["Package1"].Contains("Package2")),
@@ -247,15 +246,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         return downloadChanges;
                     });
 
-                OldTransfers["Package1"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    "Package2"
-                };
-
-                NewTransfers["Package1"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    "Package2"
-                };
+                OldTransfers.AddTransfer("Package1", "Package2");
+                NewTransfers.AddTransfer("Package1", "Package2");
 
                 DownloadOverrides["Package1"] = 100;
 
@@ -267,11 +259,11 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 PopularityTransferDataClient
                     .Verify(
-                        c => c.ReadLatestIndexedAsync(),
+                        c => c.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()),
                         Times.Once);
                 DatabaseFetcher
                     .Verify(
-                        d => d.GetPackageIdToPopularityTransfersAsync(),
+                        d => d.GetPopularityTransfersAsync(),
                         Times.Never);
                 AuxiliaryFileClient
                     .Verify(
@@ -285,14 +277,14 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                             NewDownloadData,
                             downloadChanges,
                             OldTransfers,
-                            It.Is<SortedDictionary<string, SortedSet<string>>>(d => d.Count == 0),
+                            It.Is<PopularityTransferData>(d => d.Count == 0),
                             DownloadOverrides),
                         Times.Once);
 
                 // Popularity transfers auxiliary file should be empty.
                 PopularityTransferDataClient.Verify(
                     c => c.ReplaceLatestIndexedAsync(
-                        It.Is<SortedDictionary<string, SortedSet<string>>>(d => d.Count == 0),
+                        It.Is<PopularityTransferData>(d => d.Count == 0),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
             }
@@ -321,10 +313,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 TransferChanges["A"] = 55;
                 TransferChanges["b"] = 66;
 
-                NewTransfers["A"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    "b"
-                };
+                NewTransfers.AddTransfer("A", "b");
 
                 await Target.ExecuteAsync();
 
@@ -363,7 +352,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 // Popularity transfers auxiliary file should have new data.
                 PopularityTransferDataClient.Verify(
                     c => c.ReplaceLatestIndexedAsync(
-                        It.Is<SortedDictionary<string, SortedSet<string>>>(d =>
+                        It.Is<PopularityTransferData>(d =>
                             d.Count == 1 &&
                             d["A"].Count == 1 &&
                             d["A"].Contains("b")),
@@ -413,17 +402,22 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Setup(x => x.Compare(It.IsAny<DownloadData>(), It.IsAny<DownloadData>()))
                     .Returns(() => Changes);
 
-                OldTransfers = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
-                OldTransferResult = new ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>>(
-                    OldTransfers,
-                    Mock.Of<IAccessCondition>());
+                OldTransfers = new PopularityTransferData();
+                OldTransferResult = new AuxiliaryFileResult<PopularityTransferData>(
+                    modified: true,
+                    data: OldTransfers,
+                    metadata: new AuxiliaryFileMetadata(
+                        DateTimeOffset.UtcNow,
+                        TimeSpan.Zero,
+                        fileSize: 0,
+                        etag: "etag"));
                 PopularityTransferDataClient
-                    .Setup(x => x.ReadLatestIndexedAsync())
+                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ReturnsAsync(OldTransferResult);
 
-                NewTransfers = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+                NewTransfers = new PopularityTransferData();
                 DatabaseFetcher
-                    .Setup(x => x.GetPackageIdToPopularityTransfersAsync())
+                    .Setup(x => x.GetPopularityTransfersAsync())
                     .ReturnsAsync(NewTransfers);
 
                 DownloadOverrides = new Dictionary<string, long>();
@@ -434,8 +428,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Setup(x => x.UpdateDownloadTransfers(
                         It.IsAny<DownloadData>(),
                         It.IsAny<SortedDictionary<string, long>>(),
-                        It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
-                        It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
+                        It.IsAny<PopularityTransferData>(),
+                        It.IsAny<PopularityTransferData>(),
                         It.IsAny<IReadOnlyDictionary<string, long>>()))
                     .Returns(TransferChanges);
 
@@ -512,9 +506,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public DownloadData OldDownloadData { get; }
             public AuxiliaryFileResult<DownloadData> OldDownloadResult { get; }
             public DownloadData NewDownloadData { get; }
-            public SortedDictionary<string, SortedSet<string>> OldTransfers { get; }
-            public ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>> OldTransferResult { get; }
-            public SortedDictionary<string, SortedSet<string>> NewTransfers { get; }
+            public PopularityTransferData OldTransfers { get; }
+            public AuxiliaryFileResult<PopularityTransferData> OldTransferResult { get; }
+            public PopularityTransferData NewTransfers { get; }
             public Dictionary<string, long> DownloadOverrides { get; }
             public SortedDictionary<string, long> Changes { get; }
             public SortedDictionary<string, long> TransferChanges { get; }

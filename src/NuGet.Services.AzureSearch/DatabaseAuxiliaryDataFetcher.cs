@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -153,10 +154,10 @@ ORDER BY r.[Key] ASC
             }
         }
 
-        public async Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToPopularityTransfersAsync()
+        public async Task<PopularityTransferData> GetPopularityTransfersAsync()
         {
             var stopwatch = Stopwatch.StartNew();
-            var builder = new PackageIdToPopularityTransfersBuilder(_logger);
+            var output = new PopularityTransferData();
             using (var connection = await _connectionFactory.OpenAsync())
             using (var command = connection.CreateCommand())
             {
@@ -183,7 +184,7 @@ ORDER BY r.[Key] ASC
                             var fromId = reader.GetString(0);
                             var toId = reader.GetString(1);
 
-                            builder.Add(fromId, toId);
+                            output.AddTransfer(fromId, toId);
                         }
                     }
 
@@ -191,7 +192,6 @@ ORDER BY r.[Key] ASC
                 }
                 while (currentPageResults == GetPopularityTransfersPageSize);
 
-                var output = builder.GetResult();
                 stopwatch.Stop();
                 _telemetryService.TrackReadLatestPopularityTransfersFromDatabase(output.Count, stopwatch.Elapsed);
 

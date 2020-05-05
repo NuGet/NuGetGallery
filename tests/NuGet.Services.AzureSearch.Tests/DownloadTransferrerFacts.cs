@@ -52,7 +52,7 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("A", "1.0.0", 100);
                 DownloadData.SetDownloadCount("B", "1.0.0", 5);
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 var result = Target.InitializeDownloadTransfers(
                     DownloadData,
@@ -73,8 +73,8 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("B", "1.0.0", 5);
                 DownloadData.SetDownloadCount("C", "1.0.0", 1);
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("A", "C");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "C");
 
                 var result = Target.InitializeDownloadTransfers(
                     DownloadData,
@@ -95,7 +95,7 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("A", "1.0.0", 3);
                 DownloadData.SetDownloadCount("B", "1.0.0", 0);
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 var result = Target.InitializeDownloadTransfers(
                     DownloadData,
@@ -116,8 +116,8 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("B", "1.0.0", 20);
                 DownloadData.SetDownloadCount("C", "1.0.0", 1);
 
-                AddPopularityTransfer("A", "C");
-                AddPopularityTransfer("B", "C");
+                PopularityTransfers.AddTransfer("A", "C");
+                PopularityTransfers.AddTransfer("B", "C");
 
                 var result = Target.InitializeDownloadTransfers(
                     DownloadData,
@@ -138,7 +138,7 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("A", "1.0.0", 100);
                 DownloadData.SetDownloadCount("B", "1.0.0", 5);
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 var result = Target.InitializeDownloadTransfers(
                     DownloadData,
@@ -159,9 +159,9 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("B", "1.0.0", 0);
                 DownloadData.SetDownloadCount("C", "1.0.0", 0);
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("A", "C");
-                AddPopularityTransfer("B", "C");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "C");
+                PopularityTransfers.AddTransfer("B", "C");
 
                 var result = Target.InitializeDownloadTransfers(
                     DownloadData,
@@ -184,8 +184,8 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("B", "1.0.0", 100);
                 DownloadData.SetDownloadCount("C", "1.0.0", 100);
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("B", "C");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("B", "C");
 
                 var result = Target.InitializeDownloadTransfers(
                     DownloadData,
@@ -209,8 +209,8 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("A", "1.0.0", 100);
                 DownloadData.SetDownloadCount("B", "1.0.0", 100);
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("B", "A");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("B", "A");
 
                 var result = Target.InitializeDownloadTransfers(
                     DownloadData,
@@ -227,7 +227,7 @@ namespace NuGet.Services.AzureSearch
             {
                 PopularityTransfer = 1;
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 var result = Target.InitializeDownloadTransfers(
                     DownloadData,
@@ -266,8 +266,8 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("To1", "1.0.0", 0);
                 DownloadData.SetDownloadCount("To2", "1.0.0", 0);
 
-                AddPopularityTransfer("From1", "To1");
-                AddPopularityTransfer("From2", "To2");
+                PopularityTransfers.AddTransfer("From1", "To1");
+                PopularityTransfers.AddTransfer("From2", "To2");
 
                 DownloadOverrides["From1"] = 1000;
                 DownloadOverrides["To2"] = 1000;
@@ -311,8 +311,8 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("To1", "1.0.0", 0);
                 DownloadData.SetDownloadCount("To2", "1.0.0", 0);
 
-                AddPopularityTransfer("From1", "To1");
-                AddPopularityTransfer("From2", "To2");
+                PopularityTransfers.AddTransfer("From1", "To1");
+                PopularityTransfers.AddTransfer("From2", "To2");
 
                 DownloadOverrides["From1"] = 1;
                 DownloadOverrides["To2"] = 1;
@@ -407,7 +407,7 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("A", "1.0.0", 100);
                 DownloadData.SetDownloadCount("B", "1.0.0", 5);
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -430,8 +430,8 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadChanges["A"] = 100;
 
-                AddPopularityTransfer("A", "C");
-                AddPopularityTransfer("B", "C");
+                PopularityTransfers.AddTransfer("A", "C");
+                PopularityTransfers.AddTransfer("B", "C");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -459,8 +459,8 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadChanges["A"] = 100;
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("A", "C");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "C");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -485,7 +485,7 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadChanges["A"] = 3;
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -510,8 +510,8 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadChanges["B"] = 5;
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("A", "C");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "C");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -533,7 +533,7 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("A", "1.0.0", 100);
                 DownloadData.SetDownloadCount("B", "1.0.0", 5);
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 TransferChanges["A"] = new[] { "B" };
 
@@ -558,8 +558,8 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("B", "1.0.0", 5);
                 DownloadData.SetDownloadCount("C", "1.0.0", 0);
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("A", "C");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "C");
 
                 TransferChanges["A"] = new[] { "B", "C" };
 
@@ -587,13 +587,11 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("B", "1.0.0", 5);
                 DownloadData.SetDownloadCount("C", "1.0.0", 0);
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 TransferChanges["A"] = new[] { "B" };
-                OldTransfers["A"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    "B", "C"
-                };
+                OldTransfers.AddTransfer("A", "B");
+                OldTransfers.AddTransfer("A", "C");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -619,10 +617,8 @@ namespace NuGet.Services.AzureSearch
                 DownloadData.SetDownloadCount("C", "1.0.0", 0);
 
                 TransferChanges["A"] = new string[0];
-                OldTransfers["A"] = new SortedSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    "B", "C"
-                };
+                OldTransfers.AddTransfer("A", "B");
+                OldTransfers.AddTransfer("A", "C");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -647,7 +643,7 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadChanges["A"] = 100;
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -672,9 +668,9 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadChanges["A"] = 100;
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("A", "C");
-                AddPopularityTransfer("B", "C");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "C");
+                PopularityTransfers.AddTransfer("B", "C");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -701,8 +697,8 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadChanges["A"] = 100;
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("B", "C");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("B", "C");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -730,8 +726,8 @@ namespace NuGet.Services.AzureSearch
                 DownloadChanges["A"] = 100;
                 DownloadChanges["B"] = 100;
 
-                AddPopularityTransfer("A", "B");
-                AddPopularityTransfer("B", "A");
+                PopularityTransfers.AddTransfer("A", "B");
+                PopularityTransfers.AddTransfer("B", "A");
 
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
@@ -805,7 +801,7 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadChanges["A"] = 1;
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 DownloadOverrides["B"] = 1000;
 
@@ -831,7 +827,7 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadChanges["A"] = 1000;
 
-                AddPopularityTransfer("A", "B");
+                PopularityTransfers.AddTransfer("A", "B");
 
                 DownloadOverrides["B"] = 1;
 
@@ -850,11 +846,11 @@ namespace NuGet.Services.AzureSearch
             public GetUpdatedTransferChanges()
             {
                 DownloadChanges = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-                OldTransfers = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+                OldTransfers = new PopularityTransferData();
             }
 
             public SortedDictionary<string, long> DownloadChanges { get; }
-            public SortedDictionary<string, SortedSet<string>> OldTransfers { get; }
+            public PopularityTransferData OldTransfers { get; }
         }
 
         public class Facts
@@ -865,12 +861,12 @@ namespace NuGet.Services.AzureSearch
                 DataComparer = new Mock<IDataSetComparer>();
                 DataComparer
                     .Setup(x => x.ComparePopularityTransfers(
-                        It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
-                        It.IsAny<SortedDictionary<string, SortedSet<string>>>()))
+                        It.IsAny<PopularityTransferData>(),
+                        It.IsAny<PopularityTransferData>()))
                     .Returns(TransferChanges);
 
                 DownloadOverrides = new Dictionary<string, long>();
-                PopularityTransfers = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+                PopularityTransfers = new PopularityTransferData();
 
                 var options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 options
@@ -896,20 +892,9 @@ namespace NuGet.Services.AzureSearch
 
             public DownloadData DownloadData { get; }
             public Dictionary<string, long> DownloadOverrides { get; }
-            public SortedDictionary<string, SortedSet<string>> PopularityTransfers { get; }
+            public PopularityTransferData PopularityTransfers { get; }
             public SortedDictionary<string, string[]> TransferChanges { get; }
             public double PopularityTransfer = 0;
-
-            public void AddPopularityTransfer(string fromPackageId, string toPackageId)
-            {
-                if (!PopularityTransfers.TryGetValue(fromPackageId, out var toPackageIds))
-                {
-                    toPackageIds = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-                    PopularityTransfers[fromPackageId] = toPackageIds;
-                }
-
-                toPackageIds.Add(toPackageId);
-            }
         }
     }
 }

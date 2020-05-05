@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -42,7 +41,9 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         private ICloudBlobContainer Container => _lazyContainer.Value;
 
-        public async Task<ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>>> ReadLatestIndexedAsync()
+        public async Task<AuxiliaryFileResult<PopularityTransferData>> ReadLatestIndexedAsync(
+            IAccessCondition accessCondition,
+            StringCache stringCache)
         {
             var stopwatch = Stopwatch.StartNew();
             var blobName = GetLatestIndexedBlobName();
@@ -50,34 +51,41 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
             _logger.LogInformation("Reading the latest indexed popularity transfers from {BlobName}.", blobName);
 
-            var builder = new PackageIdToPopularityTransfersBuilder(_logger);
-            IAccessCondition accessCondition;
+            bool modified;
+            var data = new PopularityTransferData();
+            AuxiliaryFileMetadata metadata;
             try
             {
-                using (var stream = await blobReference.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
+                using (var stream = await blobReference.OpenReadAsync(accessCondition))
                 {
-                    accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blobReference.ETag);
-                    ReadStream(stream, builder.Add);
+                    ReadStream(stream, (from, to) => data.AddTransfer(stringCache.Dedupe(from), stringCache.Dedupe(to)));
+                    modified = true;
+                    metadata = new AuxiliaryFileMetadata(
+                        lastModified: new DateTimeOffset(blobReference.LastModifiedUtc, TimeSpan.Zero),
+                        loadDuration: stopwatch.Elapsed,
+                        fileSize: blobReference.Properties.Length,
+                        etag: blobReference.ETag);
                 }
             }
-            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+            catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotModified)
             {
-                accessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
-                _logger.LogInformation("The blob {BlobName} does not exist.", blobName);
+                _logger.LogInformation("The blob {BlobName} has not changed.", blobName);
+                modified = false;
+                data = null;
+                metadata = null;
             }
 
-            var output = new ResultAndAccessCondition<SortedDictionary<string, SortedSet<string>>>(
-                builder.GetResult(),
-                accessCondition);
-
             stopwatch.Stop();
-            _telemetryService.TrackReadLatestIndexedPopularityTransfers(output.Result.Count, stopwatch.Elapsed);
+            _telemetryService.TrackReadLatestIndexedPopularityTransfers(data?.Count, modified, stopwatch.Elapsed);
 
-            return output;
+            return new AuxiliaryFileResult<PopularityTransferData>(
+                modified,
+                data,
+                metadata);
         }
 
         public async Task ReplaceLatestIndexedAsync(
-            SortedDictionary<string, SortedSet<string>> newData,
+            PopularityTransferData newData,
             IAccessCondition accessCondition)
         {
             using (_telemetryService.TrackReplaceLatestIndexedPopularityTransfers(newData.Count))
@@ -103,7 +111,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             }
         }
 
-        private static void ReadStream(Stream stream, Action<string, IReadOnlyList<string>> add)
+        private static void ReadStream(Stream stream, Action<string, string> add)
         {
             using (var textReader = new StreamReader(stream))
             using (var jsonReader = new JsonTextReader(textReader))
@@ -111,15 +119,21 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 Guard.Assert(jsonReader.Read(), "The blob should be readable.");
                 Guard.Assert(jsonReader.TokenType == JsonToken.StartObject, "The first token should be the start of an object.");
                 Guard.Assert(jsonReader.Read(), "There should be a second token.");
+
                 while (jsonReader.TokenType == JsonToken.PropertyName)
                 {
-                    var id = (string)jsonReader.Value;
+                    var fromId = (string)jsonReader.Value;
 
                     Guard.Assert(jsonReader.Read(), "There should be a token after the property name.");
-                    Guard.Assert(jsonReader.TokenType == JsonToken.StartArray, "The token after the property name should be the start of an object.");
+                    Guard.Assert(jsonReader.TokenType == JsonToken.StartArray, "The token after the property name should be the start of an array.");
+                    Guard.Assert(jsonReader.Read(), "There should be a token after the start of the transfer array.");
 
-                    var transfers = Serializer.Deserialize<List<string>>(jsonReader);
-                    add(id, transfers);
+                    while (jsonReader.TokenType == JsonToken.String)
+                    {
+                        add(fromId, (string)jsonReader.Value);
+
+                        Guard.Assert(jsonReader.Read(), "There should be a token after the 'to' package ID.");
+                    }
 
                     Guard.Assert(jsonReader.TokenType == JsonToken.EndArray, "The token after reading the array should be the end of an array.");
                     Guard.Assert(jsonReader.Read(), "There should be a token after the end of the array.");

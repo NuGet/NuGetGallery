@@ -131,7 +131,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             // The "old" data is the popularity transfers data that was last indexed by this job (or
             // initialized by Db2AzureSearch).
             _logger.LogInformation("Fetching old popularity transfer data from blob storage.");
-            var oldTransfers = await _popularityTransferDataClient.ReadLatestIndexedAsync();
+            var oldTransfers = await _popularityTransferDataClient.ReadLatestIndexedAsync(
+                AccessConditionWrapper.GenerateEmptyCondition(),
+                _stringCache);
 
             // The "new" data is the latest popularity transfers data from the database.
             _logger.LogInformation("Fetching new popularity transfer data from database.");
@@ -143,7 +145,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             _logger.LogInformation("Applying download transfers to download changes.");
             ApplyDownloadTransfers(
                 newData,
-                oldTransfers.Result,
+                oldTransfers.Data,
                 newTransfers,
                 downloadOverrides,
                 changes);
@@ -170,27 +172,27 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             _logger.LogInformation("Uploading the new popularity transfer data to blob storage.");
             await _popularityTransferDataClient.ReplaceLatestIndexedAsync(
                 newTransfers,
-                oldTransfers.AccessCondition);
+                oldTransfers.Metadata.GetIfMatchCondition());
             return true;
         }
 
-        private async Task<SortedDictionary<string, SortedSet<string>>> GetPopularityTransfersAsync()
+        private async Task<PopularityTransferData> GetPopularityTransfersAsync()
         {
             if (!_featureFlags.IsPopularityTransferEnabled())
             {
                 _logger.LogWarning(
                     "Popularity transfers feature flag is disabled. " +
                     "All popularity transfers will be removed.");
-                return new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+                return new PopularityTransferData();
             }
 
-            return await _databaseFetcher.GetPackageIdToPopularityTransfersAsync();
+            return await _databaseFetcher.GetPopularityTransfersAsync();
         }
 
         private void ApplyDownloadTransfers(
             DownloadData newData,
-            SortedDictionary<string, SortedSet<string>> oldTransfers,
-            SortedDictionary<string, SortedSet<string>> newTransfers,
+            PopularityTransferData oldTransfers,
+            PopularityTransferData newTransfers,
             IReadOnlyDictionary<string, long> downloadOverrides,
             SortedDictionary<string, long> downloadChanges)
         {

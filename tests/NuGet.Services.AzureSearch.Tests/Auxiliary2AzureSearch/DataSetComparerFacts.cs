@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Moq;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -184,19 +185,27 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         {
             public ComparePopularityTransfers(ITestOutputHelper output) : base(output)
             {
+                OldData = new PopularityTransferData();
+                NewData = new PopularityTransferData();
             }
+
+            public PopularityTransferData OldData { get; }
+            public PopularityTransferData NewData { get; }
 
             [Fact]
             public void FindsNoChanges()
             {
-                var oldData = TransfersData(
-                    "PackageA: PackageB, PackageC",
-                    "Package1: Package3, Package2");
-                var newData = TransfersData(
-                    "PackageA: PackageC, PackageB",
-                    "Package1: Package2, Package3");
+                OldData.AddTransfer("PackageA", "PackageB");
+                OldData.AddTransfer("PackageA", "PackageC");
+                OldData.AddTransfer("Package1", "Package3");
+                OldData.AddTransfer("Package1", "Package2");
 
-                var changes = Target.ComparePopularityTransfers(oldData, newData);
+                NewData.AddTransfer("PackageA", "PackageC");
+                NewData.AddTransfer("PackageA", "PackageB");
+                NewData.AddTransfer("Package1", "Package2");
+                NewData.AddTransfer("Package1", "Package3");
+
+                var changes = Target.ComparePopularityTransfers(OldData, NewData);
 
                 Assert.Empty(changes);
 
@@ -212,12 +221,15 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             [Fact]
             public void FindsAddedTransfers()
             {
-                var oldData = TransfersData("PackageA: PackageB, PackageC");
-                var newData = TransfersData(
-                    "PackageA: PackageB, PackageC",
-                    "Package1: Package2, Package3");
+                OldData.AddTransfer("PackageA", "PackageB");
+                OldData.AddTransfer("PackageA", "PackageC");
 
-                var changes = Target.ComparePopularityTransfers(oldData, newData);
+                NewData.AddTransfer("PackageA", "PackageB");
+                NewData.AddTransfer("PackageA", "PackageC");
+                NewData.AddTransfer("Package1", "Package2");
+                NewData.AddTransfer("Package1", "Package3");
+
+                var changes = Target.ComparePopularityTransfers(OldData, NewData);
 
                 var pair = Assert.Single(changes);
                 Assert.Equal("Package1", pair.Key);
@@ -235,12 +247,15 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             [Fact]
             public void FindsRemovedTransfers()
             {
-                var oldData = TransfersData(
-                    "PackageA: PackageB, PackageC",
-                    "Package1: Package2, Package3");
-                var newData = TransfersData("PackageA: PackageB, PackageC");
+                OldData.AddTransfer("PackageA", "PackageB");
+                OldData.AddTransfer("PackageA", "PackageC");
+                OldData.AddTransfer("Package1", "Package2");
+                OldData.AddTransfer("Package1", "Package3");
 
-                var changes = Target.ComparePopularityTransfers(oldData, newData);
+                NewData.AddTransfer("PackageA", "PackageB");
+                NewData.AddTransfer("PackageA", "PackageC");
+
+                var changes = Target.ComparePopularityTransfers(OldData, NewData);
 
                 var pair = Assert.Single(changes);
                 Assert.Equal("Package1", pair.Key);
@@ -258,10 +273,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             [Fact]
             public void FindsAddedToPackage()
             {
-                var oldData = TransfersData("PackageA: PackageB");
-                var newData = TransfersData("PackageA: PackageB, PackageC");
+                OldData.AddTransfer("PackageA", "PackageB");
 
-                var changes = Target.ComparePopularityTransfers(oldData, newData);
+                NewData.AddTransfer("PackageA", "PackageB");
+                NewData.AddTransfer("PackageA", "PackageC");
+
+                var changes = Target.ComparePopularityTransfers(OldData, NewData);
 
                 var pair = Assert.Single(changes);
                 Assert.Equal("PackageA", pair.Key);
@@ -279,10 +296,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             [Fact]
             public void FindsRemovedToPackage()
             {
-                var oldData = TransfersData("PackageA: PackageB, PackageC");
-                var newData = TransfersData("PackageA: PackageB");
+                OldData.AddTransfer("PackageA", "PackageB");
+                OldData.AddTransfer("PackageA", "PackageC");
 
-                var changes = Target.ComparePopularityTransfers(oldData, newData);
+                NewData.AddTransfer("PackageA", "PackageB");
+
+                var changes = Target.ComparePopularityTransfers(OldData, NewData);
 
                 var pair = Assert.Single(changes);
                 Assert.Equal("PackageA", pair.Key);
@@ -300,10 +319,13 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             [Fact]
             public void IgnoresCaseChanges()
             {
-                var oldData = TransfersData("PackageA: packageb, PackageC");
-                var newData = TransfersData("packagea: PACKAGEB, packageC");
+                OldData.AddTransfer("PackageA", "packageb");
+                OldData.AddTransfer("PackageA", "PackageC");
 
-                var changes = Target.ComparePopularityTransfers(oldData, newData);
+                NewData.AddTransfer("packagea", "PACKAGEB");
+                NewData.AddTransfer("PackageA", "packageC");
+
+                var changes = Target.ComparePopularityTransfers(OldData, NewData);
 
                 Assert.Empty(changes);
 
@@ -319,16 +341,17 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             [Fact]
             public void FindsManyChangesAtOnce()
             {
-                var oldData = TransfersData(
-                    "Package1: PackageA, PackageB",
-                    "Package2: PackageC",
-                    "Package3: PackageD");
-                var newData = TransfersData(
-                    "Package1: PackageA, PackageE",
-                    "Package4: PackageC",
-                    "Package3: Packaged");
+                OldData.AddTransfer("Package1", "PackageA");
+                OldData.AddTransfer("Package1", "PackageB");
+                OldData.AddTransfer("Package2", "PackageC");
+                OldData.AddTransfer("Package3", "PackageD");
 
-                var changes = Target.ComparePopularityTransfers(oldData, newData);
+                NewData.AddTransfer("Package1", "PackageA");
+                NewData.AddTransfer("Package1", "PackageE");
+                NewData.AddTransfer("Package4", "PackageC");
+                NewData.AddTransfer("Package3", "Packaged");
+
+                var changes = Target.ComparePopularityTransfers(OldData, NewData);
 
                 Assert.Equal(3, changes.Count);
                 Assert.Equal(new[] { "Package1", "Package2", "Package4" }, changes.Keys.ToArray());
@@ -369,17 +392,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public SortedDictionary<string, SortedSet<string>> OwnersData(params string[] lines)
             {
                 var builder = new PackageIdToOwnersBuilder(Logger);
-                ParseData(lines, builder.Add);
-                return builder.GetResult();
-            }
-
-            /// <summary>
-            /// A helper to turn lines formatted like this "FromPackage1: ToPackage1, ToPackage2" into package ID to popularity
-            /// transfers dictionary.
-            /// </summary>
-            public SortedDictionary<string, SortedSet<string>> TransfersData(params string[] lines)
-            {
-                var builder = new PackageIdToPopularityTransfersBuilder(Logger);
                 ParseData(lines, builder.Add);
                 return builder.GetResult();
             }

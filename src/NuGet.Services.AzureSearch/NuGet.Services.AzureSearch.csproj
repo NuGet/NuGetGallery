@@ -60,6 +60,7 @@
     <Compile Include="AuxiliaryFiles\DownloadsV1Reader.cs" />
     <Compile Include="AuxiliaryFiles\IPopularityTransferDataClient.cs" />
     <Compile Include="AuxiliaryFiles\JsonStringArrayFileParser.cs" />
+    <Compile Include="AuxiliaryFiles\PopularityTransferData.cs" />
     <Compile Include="AuxiliaryFiles\PopularityTransferDataClient.cs" />
     <Compile Include="AuxiliaryFiles\SimpleCloudBlobExtensions.cs" />
     <Compile Include="AuxiliaryFiles\DownloadByVersionData.cs" />
@@ -92,7 +93,6 @@
     <Compile Include="JobOutcome.cs" />
     <Compile Include="Models\IUpdatedDocument.cs" />
     <Compile Include="Models\UpdatedDocument.cs" />
-    <Compile Include="PackageIdToPopularityTransfersBuilder.cs" />
     <Compile Include="Auxiliary2AzureSearch\IDataSetComparer.cs" />
     <Compile Include="SearchIndexActionBuilder.cs" />
     <Compile Include="Auxiliary2AzureSearch\DataSetComparer.cs" />

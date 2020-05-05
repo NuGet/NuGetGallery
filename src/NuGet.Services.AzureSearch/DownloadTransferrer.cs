@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch.Auxiliary2AzureSearch;
@@ -30,13 +29,9 @@ namespace NuGet.Services.AzureSearch
 
         public SortedDictionary<string, long> InitializeDownloadTransfers(
             DownloadData downloads,
-            SortedDictionary<string, SortedSet<string>> outgoingTransfers,
+            PopularityTransferData outgoingTransfers,
             IReadOnlyDictionary<string, long> downloadOverrides)
         {
-            Guard.Assert(
-                outgoingTransfers.Comparer == StringComparer.OrdinalIgnoreCase,
-                $"Popularity transfer should have comparer {nameof(StringComparer.OrdinalIgnoreCase)}");
-
             // Downloads are transferred from a "from" package to one or more "to" packages.
             // The "outgoingTransfers" maps "from" packages to their corresponding "to" packages.
             // The "incomingTransfers" maps "to" packages to their corresponding "from" packages.
@@ -63,21 +58,13 @@ namespace NuGet.Services.AzureSearch
         public SortedDictionary<string, long> UpdateDownloadTransfers(
             DownloadData downloads,
             SortedDictionary<string, long> downloadChanges,
-            SortedDictionary<string, SortedSet<string>> oldTransfers,
-            SortedDictionary<string, SortedSet<string>> newTransfers,
+            PopularityTransferData oldTransfers,
+            PopularityTransferData newTransfers,
             IReadOnlyDictionary<string, long> downloadOverrides)
         {
             Guard.Assert(
                 downloadChanges.Comparer == StringComparer.OrdinalIgnoreCase,
                 $"Download changes should have comparer {nameof(StringComparer.OrdinalIgnoreCase)}");
-
-            Guard.Assert(
-                oldTransfers.Comparer == StringComparer.OrdinalIgnoreCase,
-                $"Old popularity transfer should have comparer {nameof(StringComparer.OrdinalIgnoreCase)}");
-
-            Guard.Assert(
-                newTransfers.Comparer == StringComparer.OrdinalIgnoreCase,
-                $"New popularity transfer should have comparer {nameof(StringComparer.OrdinalIgnoreCase)}");
 
             Guard.Assert(
                 downloadChanges.All(x => downloads.GetDownloadCount(x.Key) == x.Value),
@@ -115,7 +102,7 @@ namespace NuGet.Services.AzureSearch
 
         private SortedDictionary<string, long> ApplyDownloadTransfers(
             DownloadData downloads,
-            SortedDictionary<string, SortedSet<string>> outgoingTransfers,
+            PopularityTransferData outgoingTransfers,
             SortedDictionary<string, SortedSet<string>> incomingTransfers,
             HashSet<string> packageIds)
         {
@@ -137,7 +124,7 @@ namespace NuGet.Services.AzureSearch
         }
 
         private SortedDictionary<string, SortedSet<string>> GetIncomingTransfers(
-            SortedDictionary<string, SortedSet<string>> outgoingTransfers)
+            PopularityTransferData outgoingTransfers)
         {
             var result = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
 
@@ -161,8 +148,8 @@ namespace NuGet.Services.AzureSearch
         }
 
         private HashSet<string> GetPackagesAffectedByChanges(
-            SortedDictionary<string, SortedSet<string>> oldOutgoingTransfers,
-            SortedDictionary<string, SortedSet<string>> outgoingTransfers,
+            PopularityTransferData oldOutgoingTransfers,
+            PopularityTransferData outgoingTransfers,
             SortedDictionary<string, SortedSet<string>> incomingTransfers,
             SortedDictionary<string, string[]> transferChanges,
             SortedDictionary<string, long> downloadChanges)
@@ -212,7 +199,7 @@ namespace NuGet.Services.AzureSearch
 
         private long TransferPackageDownloads(
             string packageId,
-            SortedDictionary<string, SortedSet<string>> outgoingTransfers,
+            PopularityTransferData outgoingTransfers,
             SortedDictionary<string, SortedSet<string>> incomingTransfers,
             DownloadData downloads)
         {

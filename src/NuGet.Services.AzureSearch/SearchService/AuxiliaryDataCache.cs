@@ -17,6 +17,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private readonly IDownloadDataClient _downloadDataClient;
         private readonly IVerifiedPackagesDataClient _verifiedPackagesDataClient;
+        private readonly IPopularityTransferDataClient _popularityTransferDataClient;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AuxiliaryDataCache> _logger;
         private readonly StringCache _stringCache;
@@ -25,11 +26,13 @@ namespace NuGet.Services.AzureSearch.SearchService
         public AuxiliaryDataCache(
             IDownloadDataClient downloadDataClient,
             IVerifiedPackagesDataClient verifiedPackagesDataClient,
+            IPopularityTransferDataClient popularityTransferDataClient,
             IAzureSearchTelemetryService telemetryService,
             ILogger<AuxiliaryDataCache> logger)
         {
             _downloadDataClient = downloadDataClient ?? throw new ArgumentNullException(nameof(downloadDataClient));
             _verifiedPackagesDataClient = verifiedPackagesDataClient ?? throw new ArgumentNullException(nameof(verifiedPackagesDataClient));
+            _popularityTransferDataClient = popularityTransferDataClient ?? throw new ArgumentNullException(nameof(popularityTransferDataClient));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _stringCache = new StringCache();
@@ -74,23 +77,28 @@ namespace NuGet.Services.AzureSearch.SearchService
                     // Load the auxiliary files in parallel.
                     const string downloadsName = nameof(_data.Downloads);
                     const string verifiedPackagesName = nameof(_data.VerifiedPackages);
+                    const string popularityTransfersName = nameof(_data.PopularityTransfers);
                     var downloadsTask = LoadAsync(_data?.Downloads, _downloadDataClient.ReadLatestIndexedAsync);
                     var verifiedPackagesTask = LoadAsync(_data?.VerifiedPackages, _verifiedPackagesDataClient.ReadLatestAsync);
+                    var popularityTransfersTask = LoadAsync(_data?.PopularityTransfers, _popularityTransferDataClient.ReadLatestIndexedAsync);
                     await Task.WhenAll(downloadsTask, verifiedPackagesTask);
                     var downloads = await downloadsTask;
                     var verifiedPackages = await verifiedPackagesTask;
+                    var popularityTransfers = await popularityTransfersTask;
 
                     // Keep track of what was actually reloaded and what didn't change.
                     var reloadedNames = new List<string>();
                     var notModifiedNames = new List<string>();
                     (ReferenceEquals(_data?.Downloads, downloads) ? notModifiedNames : reloadedNames).Add(downloadsName);
                     (ReferenceEquals(_data?.VerifiedPackages, verifiedPackages) ? notModifiedNames : reloadedNames).Add(verifiedPackagesName);
+                    (ReferenceEquals(_data?.PopularityTransfers, popularityTransfers) ? notModifiedNames : reloadedNames).Add(popularityTransfersName);
 
                     // Reference assignment is atomic, so this is what makes the data available for readers.
                     _data = new AuxiliaryData(
                         DateTimeOffset.UtcNow,
                         downloads,
-                        verifiedPackages);
+                        verifiedPackages,
+                        popularityTransfers);
 
                     // Track the counts regarding the string cache status.
                     _telemetryService.TrackAuxiliaryFilesStringCache(

@@ -21,7 +21,7 @@ namespace NuGet.Services.AzureSearch
         void TrackReadLatestIndexedOwners(int packageIdCount, TimeSpan elapsed);
         void TrackReadLatestOwnersFromDatabase(int packageIdCount, TimeSpan elapsed);
         void TrackPopularityTransfersSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed);
-        void TrackReadLatestIndexedPopularityTransfers(int outgoingTransfers, TimeSpan elapsed);
+        void TrackReadLatestIndexedPopularityTransfers(int? outgoingTransfers, bool modified, TimeSpan elapsed);
         void TrackReadLatestPopularityTransfersFromDatabase(int outgoingTransfers, TimeSpan elapsed);
         void TrackReadLatestVerifiedPackagesFromDatabase(int packageIdCount, TimeSpan elapsed);
         IDisposable TrackReplaceLatestIndexedOwners(int packageIdCount);
@@ -54,7 +54,7 @@ namespace NuGet.Services.AzureSearch
         void TrackV2GetDocumentWithSearchIndex(TimeSpan elapsed);
         void TrackV2GetDocumentWithHijackIndex(TimeSpan elapsed);
         void TrackUpdateVerifiedPackagesCompleted(JobOutcome outcome, TimeSpan elapsed);
-        void TrackReadLatestVerifiedPackages(int? packageIdCount, bool notModified, TimeSpan elapsed);
+        void TrackReadLatestVerifiedPackages(int? packageIdCount, bool modified, TimeSpan elapsed);
         IDisposable TrackReplaceLatestVerifiedPackages(int packageIdCount);
         void TrackAuxiliaryFilesStringCache(int stringCount, long charCount, int requestCount, int hitCount);
         void TrackUpdateDownloadsCompleted(JobOutcome outcome, TimeSpan elapsed);

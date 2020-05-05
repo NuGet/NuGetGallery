@@ -163,22 +163,22 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             return false;
         }
 
-        private async Task<SortedDictionary<string, SortedSet<string>>> GetPopularityTransfersAsync()
+        private async Task<PopularityTransferData> GetPopularityTransfersAsync()
         {
             if (!_featureFlags.IsPopularityTransferEnabled())
             {
                 _logger.LogWarning(
                     "Popularity transfers feature flag is disabled. " +
                     "Popularity transfers will be ignored.");
-                return new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+                return new PopularityTransferData();
             }
 
-            return await _databaseFetcher.GetPackageIdToPopularityTransfersAsync();
+            return await _databaseFetcher.GetPopularityTransfersAsync();
         }
 
         private Dictionary<string, long> GetTransferredDownloads(
             DownloadData downloads,
-            SortedDictionary<string, SortedSet<string>> popularityTransfers,
+            PopularityTransferData popularityTransfers,
             IReadOnlyDictionary<string, long> downloadOverrides)
         {
             var transferChanges = _downloadTransferrer.InitializeDownloadTransfers(

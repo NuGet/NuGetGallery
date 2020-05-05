@@ -14,7 +14,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             DownloadData downloads,
             HashSet<string> excludedPackages,
             HashSet<string> verifiedPackages,
-            SortedDictionary<string, SortedSet<string>> popularityTransfers)
+            PopularityTransferData popularityTransfers)
         {
             Owners = owners ?? throw new ArgumentNullException(nameof(owners));
             Downloads = downloads ?? throw new ArgumentNullException(nameof(downloads));
@@ -27,6 +27,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public DownloadData Downloads { get; }
         public HashSet<string> ExcludedPackages { get; }
         public HashSet<string> VerifiedPackages { get; }
-        public SortedDictionary<string, SortedSet<string>> PopularityTransfers { get; }
+        public PopularityTransferData PopularityTransfers { get; }
     }
 }

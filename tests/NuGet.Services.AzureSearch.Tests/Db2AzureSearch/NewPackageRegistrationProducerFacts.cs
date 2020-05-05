@@ -42,7 +42,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly Mock<IFeatureFlagService> _featureFlags;
             private readonly DownloadData _downloads;
             private readonly Dictionary<string, long> _downloadOverrides;
-            private readonly SortedDictionary<string, SortedSet<string>> _popularityTransfers;
+            private readonly PopularityTransferData _popularityTransfers;
             private readonly SortedDictionary<string, long> _transferChanges;
             private HashSet<string> _excludedPackages;
 
@@ -77,10 +77,10 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     .Setup(x => x.LoadDownloadOverridesAsync())
                     .ReturnsAsync(() => _downloadOverrides);
 
-                _popularityTransfers = new SortedDictionary<string, SortedSet<string>>();
+                _popularityTransfers = new PopularityTransferData();
                 _databaseFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
                 _databaseFetcher
-                    .Setup(x => x.GetPackageIdToPopularityTransfersAsync())
+                    .Setup(x => x.GetPopularityTransfersAsync())
                     .ReturnsAsync(() => _popularityTransfers);
 
                 _downloadTransferrer = new Mock<IDownloadTransferrer>();
@@ -88,7 +88,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _downloadTransferrer
                     .Setup(x => x.InitializeDownloadTransfers(
                         It.IsAny<DownloadData>(),
-                        It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
+                        It.IsAny<PopularityTransferData>(),
                         It.IsAny<IReadOnlyDictionary<string, long>>()))
                     .Returns(_transferChanges);
 
@@ -540,7 +540,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 var result = await _target.ProduceWorkAsync(_work, _token);
 
                 _auxiliaryFileClient.Verify(x => x.LoadDownloadOverridesAsync(), Times.Once);
-                _databaseFetcher.Verify(x => x.GetPackageIdToPopularityTransfersAsync(), Times.Once);
+                _databaseFetcher.Verify(x => x.GetPopularityTransfersAsync(), Times.Once);
 
                 _downloadTransferrer
                     .Verify(
@@ -591,7 +591,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     },
                 });
                 _downloads.SetDownloadCount("A", "1.0.0", 100);
-                _popularityTransfers["A"] = new SortedSet<string> { "A" };
+                _popularityTransfers.AddTransfer("A", "A");
                 _downloadOverrides["A"] = 5;
 
                 InitializePackagesFromPackageRegistrations();
@@ -605,7 +605,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 // The popularity transfers should not be loaded from the database.
                 _databaseFetcher
                     .Verify(
-                        x => x.GetPackageIdToPopularityTransfersAsync(),
+                        x => x.GetPopularityTransfersAsync(),
                         Times.Never);
 
                 // Popularity transfers should not be passed to the download transferrer.
@@ -613,7 +613,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     .Verify(
                         x => x.InitializeDownloadTransfers(
                             _downloads,
-                            It.Is<SortedDictionary<string, SortedSet<string>>>(data => data.Count == 0),
+                            It.Is<PopularityTransferData>(data => data.Count == 0),
                             _downloadOverrides),
                         Times.Once);
 

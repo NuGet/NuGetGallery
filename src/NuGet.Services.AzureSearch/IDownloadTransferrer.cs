@@ -28,7 +28,7 @@ namespace NuGet.Services.AzureSearch
         /// </returns>
         SortedDictionary<string, long> InitializeDownloadTransfers(
             DownloadData downloads,
-            SortedDictionary<string, SortedSet<string>> popularityTransfers,
+            PopularityTransferData popularityTransfers,
             IReadOnlyDictionary<string, long> downloadOverrides);
 
         /// <summary>
@@ -54,8 +54,8 @@ namespace NuGet.Services.AzureSearch
         SortedDictionary<string, long> UpdateDownloadTransfers(
             DownloadData downloads,
             SortedDictionary<string, long> downloadChanges,
-            SortedDictionary<string, SortedSet<string>> oldTransfers,
-            SortedDictionary<string, SortedSet<string>> newTransfers,
+            PopularityTransferData oldTransfers,
+            PopularityTransferData newTransfers,
             IReadOnlyDictionary<string, long> downloadOverrides);
     }
 }

@@ -71,7 +71,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 downloads: new DownloadData(),
                 excludedPackages: new HashSet<string>(),
                 verifiedPackages: new HashSet<string>(),
-                popularityTransfers: new SortedDictionary<string, SortedSet<string>>());
+                popularityTransfers: new PopularityTransferData());
 
             _options
                 .Setup(x => x.Value)
@@ -330,12 +330,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         [Fact]
         public async Task PushesPopularityTransferData()
         {
-            SortedDictionary<string, SortedSet<string>> data = null;
+            PopularityTransferData data = null;
             IAccessCondition accessCondition = null;
             _popularityTransferDataClient
-                .Setup(x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()))
+                .Setup(x => x.ReplaceLatestIndexedAsync(It.IsAny<PopularityTransferData>(), It.IsAny<IAccessCondition>()))
                 .Returns(Task.CompletedTask)
-                .Callback<SortedDictionary<string, SortedSet<string>>, IAccessCondition>((d, a) =>
+                .Callback<PopularityTransferData, IAccessCondition>((d, a) =>
                 {
                     data = d;
                     accessCondition = a;
@@ -349,7 +349,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             Assert.Null(accessCondition.IfMatchETag);
 
             _popularityTransferDataClient.Verify(
-                x => x.ReplaceLatestIndexedAsync(It.IsAny<SortedDictionary<string, SortedSet<string>>>(), It.IsAny<IAccessCondition>()),
+                x => x.ReplaceLatestIndexedAsync(It.IsAny<PopularityTransferData>(), It.IsAny<IAccessCondition>()),
                 Times.Once);
         }
     }

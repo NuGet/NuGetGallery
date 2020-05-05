@@ -28,7 +28,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         private readonly Mock<IAzureSearchTelemetryService> _telemetry;
         private readonly UpdateDownloadsCommand _target;
 
-        private readonly SortedDictionary<string, SortedSet<string>> _newPopularityTransfers;
+        private readonly PopularityTransferData _newPopularityTransfers;
 
         private IndexBatch<KeyedDocument> _indexedBatch;
 
@@ -81,10 +81,10 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
                 _telemetry.Object,
                 output.GetLogger<AuxiliaryFileClient>());
 
-            _newPopularityTransfers = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+            _newPopularityTransfers = new PopularityTransferData();
             var databaseFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
             databaseFetcher
-                .Setup(x => x.GetPackageIdToPopularityTransfersAsync())
+                .Setup(x => x.GetPopularityTransfersAsync())
                 .ReturnsAsync(_newPopularityTransfers);
 
             var downloadDataClient = new DownloadDataClient(
@@ -194,7 +194,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             // Old: no rename
             // New: A -> B rename
             SetOldPopularityTransfersJson(@"{}");
-            AddNewPopularityTransfer("A", "B");
+            _newPopularityTransfers.AddTransfer("A", "B");
 
             _config.Scoring.PopularityTransfer = 0.5;
 
@@ -215,7 +215,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         }
 
         [Fact]
-        public async Task NewPopularityTransferChangesDownlaods()
+        public async Task NewPopularityTransferChangesDownloads()
         {
             SetDownloadOverrides("{}");
             SetExcludedPackagesJson("{}");
@@ -243,8 +243,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             // Old: A -> B rename
             // New: A -> B, C -> D rename
             SetOldPopularityTransfersJson(@"{ ""A"": [ ""B"" ] }");
-            AddNewPopularityTransfer("A", "B");
-            AddNewPopularityTransfer("C", "D");
+            _newPopularityTransfers.AddTransfer("A", "B");
+            _newPopularityTransfers.AddTransfer("C", "D");
 
             _config.Scoring.PopularityTransfer = 0.5;
 
@@ -290,7 +290,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             // Old: A -> B rename
             // New: A -> C rename
             SetOldPopularityTransfersJson(@"{ ""A"": [ ""B"" ] }");
-            AddNewPopularityTransfer("A", "C");
+            _newPopularityTransfers.AddTransfer("A", "C");
 
             _config.Scoring.PopularityTransfer = 0.5;
 
@@ -337,7 +337,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             // Old: A -> B rename
             // New: B -> A rename
             SetOldPopularityTransfersJson(@"{ ""A"": [ ""B"" ] }");
-            AddNewPopularityTransfer("B", "A");
+            _newPopularityTransfers.AddTransfer("B", "A");
 
             _config.Scoring.PopularityTransfer = 0.5;
 
@@ -382,7 +382,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             // Old: A -> B rename
             // New: A -> B rename
             SetOldPopularityTransfersJson(@"{ ""A"": [ ""B"" ] }");
-            AddNewPopularityTransfer("A", "B");
+            _newPopularityTransfers.AddTransfer("A", "B");
+
             SetDownloadOverrides(@"{ ""C"": 5 }");
 
             _config.Scoring.PopularityTransfer = 0.5;
@@ -444,17 +445,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
     """ + version + @""": { ""Listed"": true }
   }
 }");
-        }
-
-        private void AddNewPopularityTransfer(string fromId, string toId)
-        {
-            if (!_newPopularityTransfers.TryGetValue(fromId, out var popularityTransfers))
-            {
-                popularityTransfers = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-                _newPopularityTransfers[fromId] = popularityTransfers;
-            }
-
-            popularityTransfers.Add(toId);
         }
 
         private void VerifyUpdateDownloadCountAction(
