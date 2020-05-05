@@ -1,8 +1,0 @@
-﻿PREFIX catalog: <http://schema.nuget.org/catalog#> 
-PREFIX nuget: <http://schema.nuget.org/schema#>
-
-SELECT ?catalogPackage
-WHERE
-{
-	?resource catalog:item/catalog:item/nuget:catalogEntry ?catalogPackage .
-}

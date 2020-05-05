@@ -8,7 +8,6 @@ using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
 using NuGet.Services;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Registration;
 using NuGet.Versioning;
 
 namespace NuGet.Jobs.Catalog2Registration

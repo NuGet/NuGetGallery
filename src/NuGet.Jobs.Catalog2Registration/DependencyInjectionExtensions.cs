@@ -18,7 +18,7 @@ namespace NuGet.Jobs.Catalog2Registration
 {
     public static class DependencyInjectionExtensions
     {
-        private const string CursorBindingKey = "Cursor";
+        public const string CursorBindingKey = "Cursor";
 
         public static ContainerBuilder AddCatalog2Registration(this ContainerBuilder containerBuilder)
         {

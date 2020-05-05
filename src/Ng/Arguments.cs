@@ -11,9 +11,7 @@ namespace Ng
         public const char Prefix = '-';
         public const char Quote = '"';
 
-        public const string DirectoryType = "directoryType";
         public const string Gallery = "gallery";
-        public const string Id = "id";
         public const string InstrumentationKey = "instrumentationkey";
         public const string HeartbeatIntervalSeconds = "HeartbeatIntervalSeconds";
         public const string Path = "path";
@@ -26,7 +24,6 @@ namespace Ng
 
         public const int DefaultReinitializeIntervalSec = 60 * 60; // 1 hour
         public const string ReinitializeIntervalSec = "ReinitializeIntervalSec";
-
 
         public const string AzureStorageType = "azure";
         public const string FileStorageType = "file";
@@ -41,7 +38,6 @@ namespace Ng
         public const string StoragePath = "storagePath";
         public const string StorageQueueName = "storageQueueName";
         public const string StorageType = "storageType";
-        public const string Version = "version";
 
         public const string StorageSuffix = "storageSuffix";
         public const string StorageOperationMaxExecutionTimeInSeconds = "storageOperationMaxExecutionTimeInSeconds";
@@ -55,30 +51,6 @@ namespace Ng
         public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
 
         public const string StorageUseServerSideCopy = "storageUseServerSideCopy";
-        public const string MaxConcurrentBatches = "maxConcurrentBatches";
-
-        #endregion
-
-        #region Catalog2Registration
-        public const string CompressedStorageAccountName = "compressedStorageAccountName";
-        public const string CompressedStorageBaseAddress = "compressedStorageBaseAddress";
-        public const string CompressedStorageContainer = "compressedStorageContainer";
-        public const string CompressedStorageKeyValue = "compressedStorageKeyValue";
-        public const string CompressedStoragePath = "compressedStoragePath";
-
-        public const string SemVer2StorageAccountName = "semVer2StorageAccountName";
-        public const string SemVer2StorageBaseAddress = "semVer2StorageBaseAddress";
-        public const string SemVer2StorageContainer = "semVer2StorageContainer";
-        public const string SemVer2StorageKeyValue = "semVer2StorageKeyValue";
-        public const string SemVer2StoragePath = "semVer2StoragePath";
-
-        public const string UseCompressedStorage = "useCompressedStorage";
-        public const string UseSemVer2Storage = "useSemVer2Storage";
-
-        public const string ContentIsFlatContainer = "contentIsFlatContainer";
-        public const string CursorUri = "cursorUri";
-        public const string FlatContainerName = "flatContainerName";
-        public const string AllIconsInFlatContainer = "allIconsInFlatContainer";
 
         #endregion
 
@@ -185,13 +157,26 @@ namespace Ng
         #endregion
 
         #region Lightning
+        public const string CompressedStorageAccountName = "compressedStorageAccountName";
+        public const string CompressedStorageBaseAddress = "compressedStorageBaseAddress";
+        public const string CompressedStorageContainer = "compressedStorageContainer";
+        public const string CompressedStorageKeyValue = "compressedStorageKeyValue";
+        public const string CompressedStoragePath = "compressedStoragePath";
+
+        public const string SemVer2StorageAccountName = "semVer2StorageAccountName";
+        public const string SemVer2StorageBaseAddress = "semVer2StorageBaseAddress";
+        public const string SemVer2StorageContainer = "semVer2StorageContainer";
+        public const string SemVer2StorageKeyValue = "semVer2StorageKeyValue";
+        public const string SemVer2StoragePath = "semVer2StoragePath";
+
+        public const string FlatContainerName = "flatContainerName";
+
         public const string Command = "command";
         public const string OutputFolder = "outputFolder";
         public const string TemplateFile = "templateFile";
         public const string BatchSize = "batchSize";
         public const string IndexFile = "indexFile";
         public const string CursorFile = "cursorFile";
-        public const string Driver = "driver";
         #endregion
     }
 }

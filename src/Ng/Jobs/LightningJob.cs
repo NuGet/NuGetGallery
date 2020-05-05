@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Jobs.Catalog2Registration;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Catalog;
@@ -23,14 +24,13 @@ using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
-using NuGet.Services.Metadata.Catalog.Registration;
-using VDS.RDF;
+using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGetGallery;
 
 namespace Ng.Jobs
 {
     public class LightningJob : NgJob
     {
-        private const string GraphDriver = "graph";
         private const string JsonDriver = "json";
 
         public LightningJob(
@@ -71,21 +71,11 @@ namespace Ng.Jobs
             sw.WriteLine($"      The base address for package contents.");
             sw.WriteLine($"  -{Arguments.GalleryBaseAddress} <gallery-base-address>");
             sw.WriteLine($"      The base address for gallery.");
-            sw.WriteLine($"  -{Arguments.ContentIsFlatContainer} true|false");
-            sw.WriteLine($"      Boolean to indicate if the registration blobs will have the content from the packages or flat container.");
-            sw.WriteLine($"      The default value is false.");
             sw.WriteLine($"  -{Arguments.FlatContainerName} <flat-container-name>");
-            sw.WriteLine($"      It is required when the ContentIsFlatContainer flag is true.");
+            sw.WriteLine($"      The storage container name for the flat container resource.");
             sw.WriteLine($"  -{Arguments.StorageSuffix} <storage-suffix>");
             sw.WriteLine($"      String to indicate the target storage suffix. If china for example core.chinacloudapi.cn needs to be used.");
             sw.WriteLine($"      The default value is 'core.windows.net'.");
-            sw.WriteLine($"  -{Arguments.AllIconsInFlatContainer} true|false");
-            sw.WriteLine($"      Assume all icons (including external) are in flat container.");
-            sw.WriteLine($"      The default value is false.");
-            sw.WriteLine($"  -{Arguments.Driver} {GraphDriver}|{JsonDriver}");
-            sw.WriteLine($"      Specifies which implementation to use when building the hives.");
-            sw.WriteLine($"      '{GraphDriver}' uses RDF and JSON-LD. '{JsonDriver}' uses simple JSON serialization.");
-            sw.WriteLine($"      The default value is '{GraphDriver}'.");
             sw.WriteLine($"  -{Arguments.Verbose} true|false");
             sw.WriteLine($"      Switch output verbosity on/off.");
             sw.WriteLine($"      The default value is false.");
@@ -99,8 +89,6 @@ namespace Ng.Jobs
             sw.WriteLine($"  -{Arguments.StorageContainer} <container>");
             sw.WriteLine($"      Container to generate registrations in.");
             sw.WriteLine();
-            sw.WriteLine($"  -{Arguments.UseCompressedStorage} true|false");
-            sw.WriteLine($"      Enable or disable compressed registration blobs.");
             sw.WriteLine($"  -{Arguments.CompressedStorageBaseAddress} <base-address>");
             sw.WriteLine($"      Compressed only: Base address to write into registration blobs.");
             sw.WriteLine($"  -{Arguments.CompressedStorageAccountName} <azure-acc>");
@@ -110,8 +98,6 @@ namespace Ng.Jobs
             sw.WriteLine($"  -{Arguments.CompressedStorageContainer} <container>");
             sw.WriteLine($"      Compressed only: Container to generate registrations in.");
             sw.WriteLine();
-            sw.WriteLine($"  -{Arguments.UseSemVer2Storage} true|false");
-            sw.WriteLine($"      Enable or disable SemVer 2.0.0 registration blobs.");
             sw.WriteLine($"  -{Arguments.SemVer2StorageBaseAddress} <base-address>");
             sw.WriteLine($"      SemVer 2.0.0 only: Base address to write into registration blobs.");
             sw.WriteLine($"  -{Arguments.SemVer2StorageAccountName} <azure-acc>");
@@ -158,13 +144,6 @@ namespace Ng.Jobs
         private string _command;
         private bool _verbose;
         private TextWriter _log;
-        private string _contentBaseAddress;
-        private string _galleryBaseAddress;
-        private RegistrationStorageFactories _storageFactories;
-        private ShouldIncludeRegistrationPackage _shouldIncludeSemVer2ForLegacyStorageFactory;
-        private RegistrationMakerCatalogItem.PostProcessGraph _postProcessGraphForLegacyStorageFactory;
-        private bool _forceIconsFromFlatContainer;
-        private string _driver;
         private IDictionary<string, string> _arguments;
         #endregion
 
@@ -187,36 +166,12 @@ namespace Ng.Jobs
             // Hard code against Azure storage.
             arguments[Arguments.StorageType] = Arguments.AzureStorageType;
 
-            // Configure the package path provider.
-            var useFlatContainerAsPackageContent = arguments.GetOrDefault<bool>(Arguments.ContentIsFlatContainer, false);
-            if (!useFlatContainerAsPackageContent)
-            {
-                RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
-            }
-            else
-            {
-                var flatContainerName = arguments.GetOrThrow<string>(Arguments.FlatContainerName);
-                RegistrationMakerCatalogItem.PackagePathProvider = new FlatContainerPackagePathProvider(flatContainerName);
-            }
-
             _command = arguments.GetOrThrow<string>(Arguments.Command);
             _verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             _log = _verbose ? Console.Out : new StringWriter();
-            _contentBaseAddress = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
-            _galleryBaseAddress = arguments.GetOrThrow<string>(Arguments.GalleryBaseAddress);
-            _storageFactories = CommandHelpers.CreateRegistrationStorageFactories(arguments, _verbose);
-            _shouldIncludeSemVer2ForLegacyStorageFactory = RegistrationCollector.GetShouldIncludeRegistrationPackageForLegacyStorageFactory(_storageFactories.SemVer2StorageFactory);
-            _postProcessGraphForLegacyStorageFactory = RegistrationCollector.GetPostProcessGraphForLegacyStorageFactory(_storageFactories.SemVer2StorageFactory);
-            _forceIconsFromFlatContainer = arguments.GetOrDefault<bool>(Arguments.AllIconsInFlatContainer);
-            _driver = arguments.GetOrDefault(Arguments.Driver, GraphDriver).ToLowerInvariant();
             // We save the arguments because the "prepare" command generates "strike" commands. Some of the arguments
             // used by "prepare" should be used when executing "strike".
             _arguments = arguments;
-
-            if (_driver != GraphDriver && _driver != JsonDriver)
-            {
-                throw new NotSupportedException($"The lightning driver '{_driver}' is not supported.");
-            }
 
             switch (_command.ToLowerInvariant())
             {
@@ -323,9 +278,22 @@ namespace Ng.Jobs
 
             _log.WriteLine("Finished preparing lightning reindex file. Output file: {0}", indexFile);
 
+            // Create the containers
+            _log.WriteLine("Creating the containers...");
+            var container = GetAutofacContainer();
+            var blobClient = container.Resolve<ICloudBlobClient>();
+            var config = container.Resolve<IOptionsSnapshot<Catalog2RegistrationConfiguration>>().Value;
+            foreach (var name in new[] { config.LegacyStorageContainer, config.GzippedStorageContainer, config.SemVer2StorageContainer })
+            {
+                var reference = blobClient.GetContainerReference(name);
+                await reference.CreateIfNotExistAsync();
+                await reference.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+            }
+
             // Write cursor to storage
             _log.WriteLine("Start writing new cursor...");
-            var storage = _storageFactories.LegacyStorageFactory.Create();
+            var storageFactory = container.ResolveKeyed<IStorageFactory>(DependencyInjectionExtensions.CursorBindingKey);
+            var storage = storageFactory.Create();
             var cursor = new DurableCursor(storage.ResolveUri("cursor.json"), storage, latestCommit)
             {
                 Value = latestCommit
@@ -333,10 +301,6 @@ namespace Ng.Jobs
 
             await cursor.SaveAsync(CancellationToken.None);
             _log.WriteLine("Finished writing new cursor.");
-
-            // Ensure the SemVer 2.0.0 storage containers is created, if applicable. The gzipped storage account is
-            // created above when we write the cursor.
-            _storageFactories.SemVer2StorageFactory?.Create();
 
             // Write command files
             _log.WriteLine("Start preparing lightning reindex command files...");
@@ -381,11 +345,8 @@ namespace Ng.Jobs
                     //the not required arguments need to be added only if they were passed in
                     //they cannot be hardcoded in the template
                     var optionalArguments = new StringBuilder();
-                    AppendOptionalArgument(optionalArguments, Arguments.ContentIsFlatContainer);
                     AppendOptionalArgument(optionalArguments, Arguments.FlatContainerName);
                     AppendOptionalArgument(optionalArguments, Arguments.StorageSuffix);
-                    AppendOptionalArgument(optionalArguments, Arguments.AllIconsInFlatContainer);
-                    AppendOptionalArgument(optionalArguments, Arguments.Driver);
                     AppendOptionalArgument(optionalArguments, Arguments.Verbose);
 
                     commandStreamContents = commandStreamContents
@@ -440,11 +401,9 @@ namespace Ng.Jobs
             }
 
             // Time to strike
-            var httpMessageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, _verbose);
-            var collectorHttpClient = new CollectorHttpClient(httpMessageHandlerFactory());
-            var serviceProvider = GetServiceProvider();
-            var catalogClient = serviceProvider.GetRequiredService<ICatalogClient>();
-            var registrationUpdater = serviceProvider.GetRequiredService<IRegistrationUpdater>();
+            var container = GetAutofacContainer();
+            var catalogClient = container.Resolve<ICatalogClient>();
+            var registrationUpdater = container.Resolve<IRegistrationUpdater>();
 
             var startElement = string.Format("Element@{0}.", batchStart);
             var endElement = string.Format("Element@{0}.", batchEnd + 1);
@@ -468,16 +427,7 @@ namespace Ng.Jobs
                     {
                         var packageId = line.Split(new[] { ". " }, StringSplitOptions.None).Last().Trim();
 
-                        IStrike strike;
-                        switch (_driver)
-                        {
-                            case JsonDriver:
-                                strike = new JsonStrike(catalogClient, registrationUpdater, packageId);
-                                break;
-                            default:
-                                strike = new GraphStrike(this, collectorHttpClient, packageId);
-                                break;
-                        }
+                        IStrike strike = new JsonStrike(catalogClient, registrationUpdater, packageId);
 
                         line = await indexStreamReader.ReadLineAsync();
                         while (!string.IsNullOrEmpty(line) && !line.Contains("Element@"))
@@ -519,7 +469,7 @@ namespace Ng.Jobs
             return Task.FromResult(true);
         }
 
-        private IServiceProvider GetServiceProvider()
+        private IContainer GetAutofacContainer()
         {
             var services = new ServiceCollection();
             services.AddSingleton(LoggerFactory);
@@ -537,35 +487,26 @@ namespace Ng.Jobs
                     Arguments.StorageKeyValue,
                     Arguments.StorageSuffix);
 
-                if (_arguments.GetOrDefault<bool>(Arguments.UseCompressedStorage))
-                {
-                    config.GzippedBaseUrl = _arguments.GetOrDefault<string>(Arguments.CompressedStorageBaseAddress);
-                    config.GzippedStorageContainer = _arguments.GetOrDefault<string>(Arguments.CompressedStorageContainer);
-                    config.StorageConnectionString = GetConnectionString(
-                       config.StorageConnectionString,
-                       Arguments.CompressedStorageAccountName,
-                       Arguments.CompressedStorageKeyValue,
-                       Arguments.StorageSuffix);
-                }
+                config.GzippedBaseUrl = _arguments.GetOrDefault<string>(Arguments.CompressedStorageBaseAddress);
+                config.GzippedStorageContainer = _arguments.GetOrDefault<string>(Arguments.CompressedStorageContainer);
+                config.StorageConnectionString = GetConnectionString(
+                   config.StorageConnectionString,
+                   Arguments.CompressedStorageAccountName,
+                   Arguments.CompressedStorageKeyValue,
+                   Arguments.StorageSuffix);
 
-                if (_arguments.GetOrDefault<bool>(Arguments.UseSemVer2Storage))
-                {
-                    config.SemVer2BaseUrl = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageBaseAddress);
-                    config.SemVer2StorageContainer = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageContainer);
-                    config.StorageConnectionString = GetConnectionString(
-                       config.StorageConnectionString,
-                       Arguments.SemVer2StorageAccountName,
-                       Arguments.SemVer2StorageKeyValue,
-                       Arguments.StorageSuffix);
-                }
+                config.SemVer2BaseUrl = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageBaseAddress);
+                config.SemVer2StorageContainer = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageContainer);
+                config.StorageConnectionString = GetConnectionString(
+                   config.StorageConnectionString,
+                   Arguments.SemVer2StorageAccountName,
+                   Arguments.SemVer2StorageKeyValue,
+                   Arguments.StorageSuffix);
 
                 config.GalleryBaseUrl = _arguments.GetOrThrow<string>(Arguments.GalleryBaseAddress);
-                if (_arguments.GetOrThrow<bool>(Arguments.ContentIsFlatContainer))
-                {
-                    var contentBaseAddress = _arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
-                    var flatContainerName = _arguments.GetOrThrow<string>(Arguments.FlatContainerName);
-                    config.FlatContainerBaseUrl = contentBaseAddress.TrimEnd('/') + '/' + flatContainerName;
-                }
+                var contentBaseAddress = _arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
+                var flatContainerName = _arguments.GetOrThrow<string>(Arguments.FlatContainerName);
+                config.FlatContainerBaseUrl = contentBaseAddress.TrimEnd('/') + '/' + flatContainerName;
 
                 config.EnsureSingleSnapshot = true;
             });
@@ -576,7 +517,7 @@ namespace Ng.Jobs
             containerBuilder.AddCatalog2Registration();
             containerBuilder.Populate(services);
 
-            return new AutofacServiceProvider(containerBuilder.Build());
+            return containerBuilder.Build();
         }
 
         private string GetConnectionString(
@@ -598,88 +539,6 @@ namespace Ng.Jobs
             }
 
             return connectionString;
-        }
-
-        private class GraphStrike : IStrike
-        {
-            private readonly CollectorHttpClient _collectorHttpClient;
-            private readonly string _packageId;
-            private readonly LightningJob _job;
-            private Dictionary<string, IGraph> _sortedGraphs;
-
-            public GraphStrike(LightningJob job, CollectorHttpClient collectorHttpClient, string packageId)
-            {
-                _collectorHttpClient = collectorHttpClient;
-                _packageId = packageId;
-                _job = job;
-                _sortedGraphs = new Dictionary<string, IGraph>();
-            }
-
-            public async Task ProcessCatalogLeafUrlAsync(string url)
-            {
-                // Fetch graph for package version
-                var graph = await _collectorHttpClient.GetGraphAsync(new Uri(url));
-                if (_sortedGraphs.ContainsKey(url))
-                {
-                    _sortedGraphs[url] = graph;
-                }
-                else
-                {
-                    _sortedGraphs.Add(url, graph);
-                }
-
-                // To reduce memory footprint, we're flushing out large registrations
-                // in very small batches.
-                if (graph.Nodes.Count() > 3000 && _sortedGraphs.Count >= 20)
-                {
-                    // Process graphs
-                    await ProcessGraphsAsync();
-
-                    // Destroy!
-                    _sortedGraphs = new Dictionary<string, IGraph>();
-                }
-            }
-
-            public async Task FinishAsync()
-            {
-                // Process graphs
-                if (_sortedGraphs.Any())
-                {
-                    await ProcessGraphsAsync();
-                }
-            }
-
-            private async Task ProcessGraphsAsync()
-            {
-                await RegistrationMaker.ProcessAsync(
-                    new RegistrationKey(_packageId),
-                    _sortedGraphs,
-                    _job._shouldIncludeSemVer2ForLegacyStorageFactory,
-                    _job._storageFactories.LegacyStorageFactory,
-                    _job._postProcessGraphForLegacyStorageFactory,
-                    new Uri(_job._contentBaseAddress),
-                    new Uri(_job._galleryBaseAddress),
-                    RegistrationCollector.PartitionSize,
-                    RegistrationCollector.PackageCountThreshold,
-                    _job._forceIconsFromFlatContainer,
-                    _job.TelemetryService,
-                    CancellationToken.None);
-
-                if (_job._storageFactories.SemVer2StorageFactory != null)
-                {
-                    await RegistrationMaker.ProcessAsync(
-                        new RegistrationKey(_packageId),
-                        _sortedGraphs,
-                        _job._storageFactories.SemVer2StorageFactory,
-                        new Uri(_job._contentBaseAddress),
-                        new Uri(_job._galleryBaseAddress),
-                        RegistrationCollector.PartitionSize,
-                        RegistrationCollector.PackageCountThreshold,
-                        _job._forceIconsFromFlatContainer,
-                        _job.TelemetryService,
-                        CancellationToken.None);
-                }
-            }
         }
 
         private class JsonStrike : IStrike

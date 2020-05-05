@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
 using NuGet.Protocol.Registration;
-using NuGet.Services.Metadata.Catalog.Registration;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 
 namespace NuGet.Services.AzureSearch.SearchService

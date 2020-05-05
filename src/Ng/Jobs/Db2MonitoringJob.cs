@@ -9,20 +9,18 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Ng.Helpers;
 using NuGet.Protocol;
 using NuGet.Services.Configuration;
+using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Metadata.Catalog.Monitoring.Monitoring;
 using NuGet.Services.Sql;
 using NuGet.Services.Storage;
-
-using CatalogStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.StorageFactory;
 using CatalogStorage = NuGet.Services.Metadata.Catalog.Persistence.Storage;
+using CatalogStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.StorageFactory;
 using Constants = NuGet.Services.Metadata.Catalog.Constants;
-using NuGet.Services.Logging;
 
 namespace Ng.Jobs
 {

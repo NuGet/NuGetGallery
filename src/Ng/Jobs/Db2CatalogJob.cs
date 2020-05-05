@@ -9,7 +9,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Ng.Helpers;
 using NuGet.Protocol;
 using NuGet.Services.Configuration;
 using NuGet.Services.Logging;

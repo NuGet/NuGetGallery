@@ -4,9 +4,9 @@
 using System;
 using NuGet.Services.Metadata.Catalog.Helpers;
 
-namespace NuGet.Services.Metadata.Catalog.Registration
+namespace NuGet.Services.Metadata.Catalog
 {
-    public class FlatContainerPackagePathProvider : IPackagePathProvider
+    public class FlatContainerPackagePathProvider
     {
         private readonly string _container;
 

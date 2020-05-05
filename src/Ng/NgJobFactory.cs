@@ -15,7 +15,6 @@ namespace Ng
         {
             { "db2catalog", typeof(Db2CatalogJob) },
             { "db2monitoring", typeof(Db2MonitoringJob) },
-            { "catalog2registration", typeof(Catalog2RegistrationJob) },
             { "catalog2dnx", typeof(Catalog2DnxJob) },
             { "lightning", typeof(LightningJob) },
             { "catalog2monitoring", typeof(Catalog2MonitoringJob) },
