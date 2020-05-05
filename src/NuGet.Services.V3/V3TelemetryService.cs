@@ -3,11 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Services.FeatureFlags;
 using NuGet.Services.Logging;
 
 namespace NuGet.Services.V3
 {
-    public class V3TelemetryService : IV3TelemetryService
+    public class V3TelemetryService : IV3TelemetryService, IFeatureFlagTelemetryService
     {
         private const string Prefix = "V3.";
 
@@ -26,6 +27,13 @@ namespace NuGet.Services.V3
                 {
                     { "Count", count.ToString() },
                 });
+        }
+
+        public void TrackFeatureFlagStaleness(TimeSpan staleness)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "FeatureFlagStalenessSeconds",
+                staleness.TotalSeconds);
         }
     }
 }

@@ -20,12 +20,23 @@ namespace NuGet.Services
         private readonly object _lock = new object();
         private string _etag;
 
+        public InMemoryCloudBlob()
+        {
+        }
+
+        public InMemoryCloudBlob(string content)
+        {
+            Bytes = Encoding.ASCII.GetBytes(content);
+            Exists = true;
+            _etag = Interlocked.Increment(ref _nextETag).ToString();
+        }
+
         public BlobProperties Properties { get; } = new CloudBlockBlob(new Uri("https://example/blob")).Properties;
         public IDictionary<string, string> Metadata => throw new NotImplementedException();
         public CopyState CopyState => throw new NotImplementedException();
         public Uri Uri => throw new NotImplementedException();
         public string Name => throw new NotImplementedException();
-        public DateTime LastModifiedUtc => throw new NotImplementedException();
+        public DateTime LastModifiedUtc { get; private set; } = DateTime.UtcNow;
         public bool IsSnapshot => throw new NotImplementedException();
 
         public string ETag
@@ -123,9 +134,14 @@ namespace NuGet.Services
             throw new NotImplementedException();
         }
 
-        public Task<Stream> OpenWriteAsync(AccessCondition accessCondition)
+        public async Task<Stream> OpenWriteAsync(AccessCondition accessCondition)
         {
-            throw new NotImplementedException();
+            await Task.Yield();
+
+            return new RecordingStream(bytes =>
+            {
+                UploadFromBytes(bytes, accessCondition);
+            });
         }
 
         public Task SetMetadataAsync(AccessCondition accessCondition)
@@ -174,8 +190,14 @@ namespace NuGet.Services
 
             var buffer = new MemoryStream();
             await source.CopyToAsync(buffer);
-            var newETag = Interlocked.Increment(ref _nextETag).ToString();
             var newBytes = buffer.ToArray();
+
+            UploadFromBytes(newBytes, accessCondition);
+        }
+
+        private void UploadFromBytes(byte[] newBytes, AccessCondition accessCondition)
+        {
+            var newETag = Interlocked.Increment(ref _nextETag).ToString();
 
             lock (_lock)
             {
@@ -202,6 +224,7 @@ namespace NuGet.Services
                 _etag = newETag;
                 Bytes = newBytes;
                 Exists = true;
+                LastModifiedUtc = DateTime.UtcNow;
             }
         }
     }

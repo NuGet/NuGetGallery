@@ -197,23 +197,27 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             protected readonly Mock<IDownloadDataClient> _downloadDataClient;
             protected readonly Mock<IVerifiedPackagesDataClient> _verifiedPackagesDataClient;
+            protected readonly Mock<IPopularityTransferDataClient> _popularityTransferDataClient;
             protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly RecordingLogger<AuxiliaryDataCache> _logger;
             protected readonly CancellationToken _token;
             protected readonly AuxiliaryFileResult<DownloadData> _downloadData;
             protected readonly AuxiliaryFileResult<HashSet<string>> _verifiedPackages;
+            protected readonly AuxiliaryFileResult<PopularityTransferData> _popularityTransfers;
             protected readonly AuxiliaryDataCache _target;
 
             public BaseFacts(ITestOutputHelper output)
             {
                 _downloadDataClient = new Mock<IDownloadDataClient>();
                 _verifiedPackagesDataClient = new Mock<IVerifiedPackagesDataClient>();
+                _popularityTransferDataClient = new Mock<IPopularityTransferDataClient>();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
                 _logger = output.GetLogger<AuxiliaryDataCache>();
 
                 _token = CancellationToken.None;
                 _downloadData = Data.GetAuxiliaryFileResult(new DownloadData(), "downloads-etag");
                 _verifiedPackages = Data.GetAuxiliaryFileResult(new HashSet<string>(StringComparer.OrdinalIgnoreCase), "verified-packages-etag");
+                _popularityTransfers = Data.GetAuxiliaryFileResult(new PopularityTransferData(), "popularity-transfer-etag");
 
                 _downloadDataClient
                     .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
@@ -221,10 +225,14 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _verifiedPackagesDataClient
                     .Setup(x => x.ReadLatestAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ReturnsAsync(() => _verifiedPackages);
+                _popularityTransferDataClient
+                    .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
+                    .ReturnsAsync(() => _popularityTransfers);
 
                 _target = new AuxiliaryDataCache(
                     _downloadDataClient.Object,
                     _verifiedPackagesDataClient.Object,
+                    _popularityTransferDataClient.Object,
                     _telemetryService.Object,
                     _logger);
             }

@@ -37,6 +37,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auxiliary2AzureSearch\Integration\PopularityTransferIntegrationTests.cs" />
     <Compile Include="Auxiliary2AzureSearch\UpdateVerifiedPackagesCommandFacts.cs" />
     <Compile Include="Auxiliary2AzureSearch\UpdateDownloadsCommandFacts.cs" />
     <Compile Include="Auxiliary2AzureSearch\DownloadSetComparerFacts.cs" />
@@ -44,6 +45,7 @@
     <Compile Include="AuxiliaryFiles\DownloadDataClientFacts.cs" />
     <Compile Include="AuxiliaryFiles\DownloadDataFacts.cs" />
     <Compile Include="AuxiliaryFiles\JsonStringArrayFileParsingTests.cs" />
+    <Compile Include="AuxiliaryFiles\PopularityTransferDataClientFacts.cs" />
     <Compile Include="AuxiliaryFiles\StringCacheFacts.cs" />
     <Compile Include="AuxiliaryFiles\VerifiedPackagesDataClientFacts.cs" />
     <Compile Include="BaseDocumentBuilderFacts.cs" />
@@ -61,13 +63,14 @@
     <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
     <Compile Include="Db2AzureSearch\PackageEntityIndexActionBuilderFacts.cs" />
     <Compile Include="DocumentUtilitiesFacts.cs" />
+    <Compile Include="DownloadTransferrerFacts.cs" />
     <Compile Include="HijackDocumentBuilderFacts.cs" />
     <Compile Include="IndexBuilderFacts.cs" />
     <Compile Include="Models\CommittedDocumentFacts.cs" />
     <Compile Include="AuxiliaryFiles\OwnerDataClientFacts.cs" />
     <Compile Include="SearchIndexActionBuilderFacts.cs" />
     <Compile Include="Auxiliary2AzureSearch\UpdateOwnersCommandFacts.cs" />
-    <Compile Include="Auxiliary2AzureSearch\OwnerSetComparerFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\DataSetComparerFacts.cs" />
     <Compile Include="SearchDocumentBuilderFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataCacheFacts.cs" />
     <Compile Include="SearchService\AuxiliaryDataFacts.cs" />

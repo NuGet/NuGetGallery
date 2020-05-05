@@ -45,6 +45,7 @@
     <Compile Include="Support\InMemoryCloudBlobClient.cs" />
     <Compile Include="Support\InMemoryCloudBlobContainer.cs" />
     <Compile Include="Support\InMemoryRegistrationClient.cs" />
+    <Compile Include="Support\RecordingStream.cs" />
     <Compile Include="Support\V3Data.cs" />
     <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\IterTools.cs" />

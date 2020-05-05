@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = 'd298565f387e93995a179ef8ae6838f1be37904f'
+    [string]$BuildBranch = '6d1fcf147a7af8b6b4db842494bc7beed3b1d0e9'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -127,7 +127,6 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\Ng\Catalog2Dnx.nuspec", `
             "src\Ng\Catalog2icon.nuspec", `
             "src\Ng\Catalog2Monitoring.nuspec", `
-            "src\Ng\Catalog2Registration.nuspec", `
             "src\Ng\Db2Catalog.nuspec", `
             "src\Ng\Db2Monitoring.nuspec", `
             "src\Ng\Monitoring2Monitoring.nuspec", `

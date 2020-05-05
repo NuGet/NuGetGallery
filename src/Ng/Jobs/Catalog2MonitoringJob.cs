@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
-using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 
 namespace Ng.Jobs

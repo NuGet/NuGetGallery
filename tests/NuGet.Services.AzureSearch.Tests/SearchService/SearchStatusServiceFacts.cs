@@ -246,6 +246,11 @@ namespace NuGet.Services.AzureSearch.SearchService
                         DateTimeOffset.MinValue,
                         TimeSpan.Zero,
                         0,
+                        string.Empty),
+                    new AuxiliaryFileMetadata(
+                        DateTimeOffset.MinValue,
+                        TimeSpan.Zero,
+                        0,
                         string.Empty));
                 _assembly = typeof(BaseFacts).Assembly;
                 _config = new SearchServiceConfiguration();

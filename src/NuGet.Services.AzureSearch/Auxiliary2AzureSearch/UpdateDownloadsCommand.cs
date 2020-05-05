@@ -28,12 +28,16 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         private static readonly int MaxDocumentsPerId = Enum.GetValues(typeof(SearchFilters)).Length;
 
         private readonly IAuxiliaryFileClient _auxiliaryFileClient;
+        private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
         private readonly IDownloadDataClient _downloadDataClient;
         private readonly IDownloadSetComparer _downloadSetComparer;
+        private readonly IDownloadTransferrer _downloadTransferrer;
+        private readonly IPopularityTransferDataClient _popularityTransferDataClient;
         private readonly ISearchDocumentBuilder _searchDocumentBuilder;
         private readonly ISearchIndexActionBuilder _indexActionBuilder;
         private readonly Func<IBatchPusher> _batchPusherFactory;
         private readonly ISystemTime _systemTime;
+        private readonly IFeatureFlagService _featureFlags;
         private readonly IOptionsSnapshot<Auxiliary2AzureSearchConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<Auxiliary2AzureSearchCommand> _logger;
@@ -41,23 +45,31 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
         public UpdateDownloadsCommand(
             IAuxiliaryFileClient auxiliaryFileClient,
+            IDatabaseAuxiliaryDataFetcher databaseFetcher,
             IDownloadDataClient downloadDataClient,
             IDownloadSetComparer downloadSetComparer,
+            IDownloadTransferrer downloadTransferrer,
+            IPopularityTransferDataClient popularityTransferDataClient,
             ISearchDocumentBuilder searchDocumentBuilder,
             ISearchIndexActionBuilder indexActionBuilder,
             Func<IBatchPusher> batchPusherFactory,
             ISystemTime systemTime,
+            IFeatureFlagService featureFlags,
             IOptionsSnapshot<Auxiliary2AzureSearchConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
             ILogger<Auxiliary2AzureSearchCommand> logger)
         {
             _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentException(nameof(auxiliaryFileClient));
+            _databaseFetcher = databaseFetcher ?? throw new ArgumentNullException(nameof(databaseFetcher));
             _downloadDataClient = downloadDataClient ?? throw new ArgumentNullException(nameof(downloadDataClient));
             _downloadSetComparer = downloadSetComparer ?? throw new ArgumentNullException(nameof(downloadSetComparer));
+            _downloadTransferrer = downloadTransferrer ?? throw new ArgumentNullException(nameof(downloadTransferrer));
+            _popularityTransferDataClient = popularityTransferDataClient ?? throw new ArgumentNullException(nameof(popularityTransferDataClient));
             _searchDocumentBuilder = searchDocumentBuilder ?? throw new ArgumentNullException(nameof(searchDocumentBuilder));
             _indexActionBuilder = indexActionBuilder ?? throw new ArgumentNullException(nameof(indexActionBuilder));
             _batchPusherFactory = batchPusherFactory ?? throw new ArgumentNullException(nameof(batchPusherFactory));
             _systemTime = systemTime ?? throw new ArgumentNullException(nameof(systemTime));
+            _featureFlags = featureFlags ?? throw new ArgumentNullException(nameof(featureFlags));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -106,23 +118,40 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             _logger.LogInformation("Fetching new download count data from blob storage.");
             var newData = await _auxiliaryFileClient.LoadDownloadDataAsync();
 
-            _logger.LogInformation("Removing invalid IDs and versions from the old data.");
+            _logger.LogInformation("Removing invalid IDs and versions from the old downloads data.");
             CleanDownloadData(oldResult.Data);
 
-            _logger.LogInformation("Removing invalid IDs and versions from the new data.");
+            _logger.LogInformation("Removing invalid IDs and versions from the new downloads data.");
             CleanDownloadData(newData);
 
-            // Fetch the download overrides from the auxiliary file. Note that the overriden downloads are kept
-            // separate from downloads data as the original data will be persisted to auxiliary data, whereas the
-            // overriden data will be persisted to Azure Search.
-            _logger.LogInformation("Overriding download count data.");
-            var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
-            var overridenDownloads = newData.ApplyDownloadOverrides(downloadOverrides, _logger);
-
             _logger.LogInformation("Detecting download count changes.");
-            var changes = _downloadSetComparer.Compare(oldResult.Data, overridenDownloads);
+            var changes = _downloadSetComparer.Compare(oldResult.Data, newData);
+            _logger.LogInformation("{Count} package IDs have download count changes.", changes.Count);
+
+            // The "old" data is the popularity transfers data that was last indexed by this job (or
+            // initialized by Db2AzureSearch).
+            _logger.LogInformation("Fetching old popularity transfer data from blob storage.");
+            var oldTransfers = await _popularityTransferDataClient.ReadLatestIndexedAsync(
+                AccessConditionWrapper.GenerateEmptyCondition(),
+                _stringCache);
+
+            // The "new" data is the latest popularity transfers data from the database.
+            _logger.LogInformation("Fetching new popularity transfer data from database.");
+            var newTransfers = await GetPopularityTransfersAsync();
+
+            _logger.LogInformation("Fetching new download overrides from blob storage.");
+            var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
+
+            _logger.LogInformation("Applying download transfers to download changes.");
+            ApplyDownloadTransfers(
+                newData,
+                oldTransfers.Data,
+                newTransfers,
+                downloadOverrides,
+                changes);
+
             var idBag = new ConcurrentBag<string>(changes.Keys);
-            _logger.LogInformation("{Count} package IDs have download count changes.", idBag.Count);
+            _logger.LogInformation("{Count} package IDs need to be updated.", idBag.Count);
 
             if (!changes.Any())
             {
@@ -139,7 +168,58 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
             _logger.LogInformation("Uploading the new download count data to blob storage.");
             await _downloadDataClient.ReplaceLatestIndexedAsync(newData, oldResult.Metadata.GetIfMatchCondition());
+
+            _logger.LogInformation("Uploading the new popularity transfer data to blob storage.");
+            await _popularityTransferDataClient.ReplaceLatestIndexedAsync(
+                newTransfers,
+                oldTransfers.Metadata.GetIfMatchCondition());
             return true;
+        }
+
+        private async Task<PopularityTransferData> GetPopularityTransfersAsync()
+        {
+            if (!_options.Value.EnablePopularityTransfers)
+            {
+                _logger.LogWarning(
+                    "Popularity transfers are disabled. Popularity transfers will be ignored.");
+                return new PopularityTransferData();
+            }
+
+            if (!_featureFlags.IsPopularityTransferEnabled())
+            {
+                _logger.LogWarning(
+                    "Popularity transfers feature flag is disabled. " +
+                    "All popularity transfers will be removed.");
+                return new PopularityTransferData();
+            }
+
+            return await _databaseFetcher.GetPopularityTransfersAsync();
+        }
+
+        private void ApplyDownloadTransfers(
+            DownloadData newData,
+            PopularityTransferData oldTransfers,
+            PopularityTransferData newTransfers,
+            IReadOnlyDictionary<string, long> downloadOverrides,
+            SortedDictionary<string, long> downloadChanges)
+        {
+            _logger.LogInformation("Finding download changes from popularity transfers and download overrides.");
+            var transferChanges = _downloadTransferrer.UpdateDownloadTransfers(
+                newData,
+                downloadChanges,
+                oldTransfers,
+                newTransfers,
+                downloadOverrides);
+
+            _logger.LogInformation(
+                "{Count} package IDs have download count changes from popularity transfers and download overrides.",
+                transferChanges.Count);
+
+            // Apply the transfer changes to the overall download changes.
+            foreach (var transferChange in transferChanges)
+            {
+                downloadChanges[transferChange.Key] = transferChange.Value;
+            }
         }
 
         private async Task WorkAsync(ConcurrentBag<string> idBag, SortedDictionary<string, long> changes)

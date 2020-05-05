@@ -72,24 +72,6 @@ namespace CatalogTests.Helpers
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void GetResource_WhenResourceNameIsNullOrEmpty_Throws(string resourceName)
-        {
-            var exception = Assert.Throws<ArgumentException>(() => Utils.GetResource(resourceName));
-
-            Assert.Equal("resourceName", exception.ParamName);
-        }
-
-        [Fact]
-        public void GetResource_WhenResourceNameIsValid_ReturnsString()
-        {
-            var resource = Utils.GetResource("sparql.SelectInlinePackage.rq");
-
-            Assert.NotEmpty(resource);
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
         public void GetResourceStream_WhenResourceNameIsNullOrEmpty_Throws(string resourceName)
         {
             var exception = Assert.Throws<ArgumentException>(() => Utils.GetResourceStream(resourceName));
@@ -100,7 +82,7 @@ namespace CatalogTests.Helpers
         [Fact]
         public void GetResourceStream_WhenResourceNameIsValid_ReturnsStream()
         {
-            using (var stream = Utils.GetResourceStream("sparql.SelectInlinePackage.rq"))
+            using (var stream = Utils.GetResourceStream("context.Catalog.json"))
             {
                 Assert.NotNull(stream);
             }
@@ -124,16 +106,13 @@ namespace CatalogTests.Helpers
             var graph = Utils.CreateNuspecGraph(metadata.Nuspec, baseUrl, normalizeXml: true);
             var licenseFileTriples = graph.GetTriplesWithSubjectPredicate(
                 graph.CreateUriNode(uriNodeName),
-                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseFile")))
-                );
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseFile"))));
             var licenseExpressionTriples = graph.GetTriplesWithSubjectPredicate(
                 graph.CreateUriNode(uriNodeName),
-                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseExpression")))
-                );
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseExpression"))));
             var licenseUrlTriples = graph.GetTriplesWithSubjectPredicate(
                 graph.CreateUriNode(uriNodeName),
-                graph.CreateUriNode(Schema.Predicates.LicenseUrl)
-                );
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseUrl"))));
             
             // Assert
             Assert.Empty(licenseFileTriples);
@@ -158,12 +137,10 @@ namespace CatalogTests.Helpers
             var graph = Utils.CreateNuspecGraph(metadata.Nuspec, baseUrl, normalizeXml: true);
             var licenseTriples = graph.GetTriplesWithSubjectPredicate(
                 graph.CreateUriNode(uriNodeName),
-                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet, licenseType)))
-                );
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet, licenseType))));
             var licenseUrlTriples = graph.GetTriplesWithSubjectPredicate(
                 graph.CreateUriNode(uriNodeName),
-                graph.CreateUriNode(Schema.Predicates.LicenseUrl)
-                );
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "licenseUrl"))));
             var result = (LiteralNode)licenseTriples.First().Object;
 
             // Assert
@@ -191,12 +168,10 @@ namespace CatalogTests.Helpers
             var graph = Utils.CreateNuspecGraph(metadata.Nuspec, baseUrl, normalizeXml: true);
             var iconTriples = graph.GetTriplesWithSubjectPredicate(
                 graph.CreateUriNode(uriNodeName),
-                graph.CreateUriNode(Schema.Predicates.IconFile)
-                );
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "iconFile"))));
             var iconUrlTriples = graph.GetTriplesWithSubjectPredicate(
                 graph.CreateUriNode(uriNodeName),
-                graph.CreateUriNode(Schema.Predicates.IconUrl)
-                );
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "iconUrl"))));
             var result = (LiteralNode)iconTriples.FirstOrDefault()?.Object;
 
             // Assert

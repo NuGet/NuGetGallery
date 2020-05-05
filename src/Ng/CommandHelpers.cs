@@ -18,7 +18,6 @@ using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Storage;
-using CatalogAggregateStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.AggregateStorageFactory;
 using CatalogAzureStorage = NuGet.Services.Metadata.Catalog.Persistence.AzureStorage;
 using CatalogAzureStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.AzureStorageFactory;
 using CatalogFileStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.FileStorageFactory;
@@ -110,37 +109,6 @@ namespace Ng
             }
         }
 
-        public static RegistrationStorageFactories CreateRegistrationStorageFactories(IDictionary<string, string> arguments, bool verbose)
-        {
-            CatalogStorageFactory legacyStorageFactory;
-            var semVer2StorageFactory = CreateSemVer2StorageFactory(arguments, verbose);
-
-            var storageFactory = CreateStorageFactory(arguments, verbose);
-            var compressedStorageFactory = CreateCompressedStorageFactory(arguments, verbose);
-            if (compressedStorageFactory != null)
-            {
-                var secondaryStorageBaseUrlRewriter = new SecondaryStorageBaseUrlRewriter(new List<KeyValuePair<string, string>>
-                {
-                    // always rewrite storage root url in seconary
-                    new KeyValuePair<string, string>(storageFactory.BaseAddress.ToString(), compressedStorageFactory.BaseAddress.ToString())
-                });
-
-                var aggregateStorageFactory = new CatalogAggregateStorageFactory(
-                    storageFactory,
-                    new[] { compressedStorageFactory },
-                    secondaryStorageBaseUrlRewriter.Rewrite,
-                    verbose);
-
-                legacyStorageFactory = aggregateStorageFactory;
-            }
-            else
-            {
-                legacyStorageFactory = storageFactory;
-            }
-
-            return new RegistrationStorageFactories(legacyStorageFactory, semVer2StorageFactory);
-        }
-
         public static CatalogStorageFactory CreateStorageFactory(
             IDictionary<string, string> arguments,
             bool verbose,
@@ -165,54 +133,6 @@ namespace Ng
                 verbose,
                 compressed: false,
                 throttle: throttle);
-        }
-
-        public static CatalogStorageFactory CreateCompressedStorageFactory(IDictionary<string, string> arguments, bool verbose)
-        {
-            if (!arguments.GetOrDefault(Arguments.UseCompressedStorage, false))
-            {
-                return null;
-            }
-
-            IDictionary<string, string> names = new Dictionary<string, string>
-            {
-                { Arguments.StorageBaseAddress, Arguments.CompressedStorageBaseAddress },
-                { Arguments.StorageAccountName, Arguments.CompressedStorageAccountName },
-                { Arguments.StorageKeyValue, Arguments.CompressedStorageKeyValue },
-                { Arguments.StorageContainer, Arguments.CompressedStorageContainer },
-                { Arguments.StoragePath, Arguments.CompressedStoragePath },
-                { Arguments.StorageSuffix, Arguments.StorageSuffix },
-                { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
-                { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
-                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
-            };
-
-            return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
-        }
-
-        public static CatalogStorageFactory CreateSemVer2StorageFactory(
-            IDictionary<string, string> arguments,
-            bool verbose)
-        {
-            if (!arguments.GetOrDefault(Arguments.UseSemVer2Storage, false))
-            {
-                return null;
-            }
-
-            IDictionary<string, string> names = new Dictionary<string, string>
-            {
-                { Arguments.StorageBaseAddress, Arguments.SemVer2StorageBaseAddress },
-                { Arguments.StorageAccountName, Arguments.SemVer2StorageAccountName },
-                { Arguments.StorageKeyValue, Arguments.SemVer2StorageKeyValue },
-                { Arguments.StorageContainer, Arguments.SemVer2StorageContainer },
-                { Arguments.StoragePath, Arguments.SemVer2StoragePath },
-                { Arguments.StorageSuffix, Arguments.StorageSuffix },
-                { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
-                { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
-                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
-            };
-
-            return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
         }
 
         public static CatalogStorageFactory CreateSuffixedStorageFactory(

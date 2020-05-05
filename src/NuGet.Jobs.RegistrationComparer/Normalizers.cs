@@ -207,7 +207,12 @@ namespace NuGet.Jobs.RegistrationComparer
             path => path == string.Empty,
         };
 
-        private static readonly IReadOnlyList<ArrayNormalizer> DefaultUnsortedArrays = new List<ArrayNormalizer>();
+        private static readonly IReadOnlyList<ArrayNormalizer> DefaultUnsortedArrays = new List<ArrayNormalizer>
+        {
+            new ArrayNormalizer(
+                a => IsPropertyName(a.Path, "@type"),
+                (a, b) => StringComparer.Ordinal.Compare((string)a, (string)b)),
+        };
 
         private static readonly IReadOnlyList<ArrayNormalizer> IndexAndPageUnsortedArrays = new List<ArrayNormalizer>(DefaultUnsortedArrays)
         {

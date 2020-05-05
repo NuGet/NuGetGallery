@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -23,6 +24,12 @@ namespace NuGet.Services.AzureSearch
         /// gallery database.
         /// </summary>
         Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToOwnersAsync();
+
+        /// <summary>
+        /// Fetch a mapping of package IDs to set of replacement package IDs for each renamed packages that transfer
+        /// popularity in the gallery database.
+        /// </summary>
+        Task<PopularityTransferData> GetPopularityTransfersAsync();
 
         /// <summary>
         /// Fetch the set of all verified package IDs.

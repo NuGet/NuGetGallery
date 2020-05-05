@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue.Protocol;
-using Ng.Helpers;
 using NuGet.Protocol.Core.Types;
 using NuGet.Services.Configuration;
 using NuGet.Services.Logging;

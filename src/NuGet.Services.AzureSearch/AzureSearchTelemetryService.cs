@@ -178,6 +178,55 @@ namespace NuGet.Services.AzureSearch
                 });
         }
 
+        public void TrackReadLatestIndexedPopularityTransfers(
+            int? outgoingTransfers,
+            bool modified,
+            TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "ReadLatestIndexedPopularityTransfersSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "OutgoingTransfers", outgoingTransfers.ToString() },
+                    { "Modified", modified.ToString() }
+                });
+        }
+
+        public void TrackReadLatestPopularityTransfersFromDatabase(int outgoingTransfers, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "ReadLatestPopularityTransfersFromDatabase",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "OutgoingTransfers", outgoingTransfers.ToString() }
+                });
+        }
+
+        public void TrackPopularityTransfersSetComparison(int oldCount, int newCount, int changeCount, TimeSpan elapsed)
+        {
+            _telemetryClient.TrackMetric(
+                Prefix + "PopularityTransfersSetComparisonSeconds",
+                elapsed.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { "OldCount", oldCount.ToString() },
+                    { "NewCount", oldCount.ToString() },
+                    { "ChangeCount", oldCount.ToString() },
+                });
+        }
+
+        public IDisposable TrackReplaceLatestIndexedPopularityTransfers(int outogingTransfers)
+        {
+            return _telemetryClient.TrackDuration(
+                Prefix + "ReplaceLatestIndexedPopularityTransfers",
+                new Dictionary<string, string>
+                {
+                    { "OutgoingTransfers", outogingTransfers.ToString() }
+                });
+        }
+
         public IDisposable TrackCatalog2AzureSearchProcessBatch(int catalogLeafCount, int latestCatalogLeafCount, int packageIdCount)
         {
             return _telemetryClient.TrackDuration(
@@ -358,7 +407,7 @@ namespace NuGet.Services.AzureSearch
                 elapsed.TotalMilliseconds);
         }
 
-        public void TrackReadLatestVerifiedPackages(int? packageIdCount, bool notModified, TimeSpan elapsed)
+        public void TrackReadLatestVerifiedPackages(int? packageIdCount, bool modified, TimeSpan elapsed)
         {
             _telemetryClient.TrackMetric(
                 Prefix + "ReadLatestVerifiedPackagesSeconds",
@@ -366,7 +415,7 @@ namespace NuGet.Services.AzureSearch
                 new Dictionary<string, string>
                 {
                     { "PackageIdCount", packageIdCount?.ToString() },
-                    { "NotModified", notModified.ToString() },
+                    { "Modified", modified.ToString() },
                 });
         }
 

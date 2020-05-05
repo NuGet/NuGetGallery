@@ -7,14 +7,13 @@ using System.Linq;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
 using NuGet.Protocol.Registration;
-using NuGet.Services.Metadata.Catalog.Registration;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
     public class SearchResponseBuilder : ISearchResponseBuilder
     {
-        private static readonly string[] EmptyStringArray = new string[0];
         private static readonly V2SearchDependency[] EmptyDependencies = new V2SearchDependency[0];
         private readonly Lazy<IAuxiliaryData> _lazyAuxiliaryData;
         private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
@@ -363,7 +362,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 IconUrl = GetIconUrl(result),
                 LicenseUrl = result.LicenseUrl,
                 ProjectUrl = result.ProjectUrl,
-                Tags = result.Tags ?? EmptyStringArray,
+                Tags = result.Tags ?? Array.Empty<string>(),
                 Authors = new[] { result.Authors ?? string.Empty },
                 TotalDownloads = AuxiliaryData.GetTotalDownloadCount(result.PackageId),
                 Verified = AuxiliaryData.IsVerified(result.PackageId),
@@ -418,7 +417,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             var package = BaseMetadataDocumentToPackage(result);
 
-            package.PackageRegistration.Owners = result.Owners ?? EmptyStringArray;
+            package.PackageRegistration.Owners = result.Owners ?? Array.Empty<string>();
             package.Listed = true;
             package.IsLatestStable = result.IsLatestStable.Value;
             package.IsLatest = result.IsLatest.Value;
@@ -431,7 +430,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             var package = BaseMetadataDocumentToPackage(result);
 
             // The owners are not used in the hijack scenarios.
-            package.PackageRegistration.Owners = EmptyStringArray;
+            package.PackageRegistration.Owners = Array.Empty<string>();
 
             package.Listed = result.Listed.Value;
             package.IsLatestStable = semVer2 ? result.IsLatestStableSemVer2.Value : result.IsLatestStableSemVer1.Value;
@@ -449,6 +448,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Id = document.PackageId,
                     DownloadCount = AuxiliaryData.GetTotalDownloadCount(document.PackageId),
                     Verified = AuxiliaryData.IsVerified(document.PackageId),
+                    PopularityTransfers = AuxiliaryData.GetPopularityTransfers(document.PackageId),
                 },
                 Version = document.OriginalVersion ?? document.NormalizedVersion,
                 NormalizedVersion = document.NormalizedVersion,
@@ -469,7 +469,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 DownloadCount = AuxiliaryData.GetDownloadCount(document.PackageId, document.NormalizedVersion),
                 FlattenedDependencies = document.FlattenedDependencies,
                 Dependencies = EmptyDependencies,
-                SupportedFrameworks = EmptyStringArray,
+                SupportedFrameworks = Array.Empty<string>(),
                 MinClientVersion = document.MinClientVersion,
                 Hash = document.Hash,
                 HashAlgorithm = document.HashAlgorithm,

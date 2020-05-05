@@ -118,23 +118,12 @@
     <Compile Include="PackageCatalogItemTests.cs" />
     <Compile Include="PackageDeprecationItemTests.cs" />
     <Compile Include="PackageEntryTests.cs" />
-    <Compile Include="Persistence\AggregateStorageTests.cs" />
     <Compile Include="Persistence\AzureCloudBlockBlobTests.cs" />
     <Compile Include="Persistence\FileStorageTests.cs" />
     <Compile Include="Persistence\OptimisticConcurrencyControlTokenTests.cs" />
-    <Compile Include="Registration\RecordingStorageTests.cs" />
     <Compile Include="ReadOnlyGraphTests.cs" />
     <Compile Include="Registration\FlatContainerPackagePathProviderTests.cs" />
-    <Compile Include="Registration\RegistrationCollectorTests.cs" />
-    <Compile Include="Registration\RegistrationEntryKeyTests.cs" />
-    <Compile Include="Registration\RegistrationKeyTests.cs" />
-    <Compile Include="Registration\RegistrationMakerCatalogItemTests.cs" />
-    <Compile Include="Registration\PackagesFolderPackagePathProviderTests.cs" />
-    <Compile Include="Registration\RegistrationCatalogEntryTests.cs" />
-    <Compile Include="Registration\RegistrationMakerTests.cs" />
-    <Compile Include="Registration\RegistrationTestBase.cs" />
     <Compile Include="RetryWithExponentialBackoffTests.cs" />
-    <Compile Include="SortingGraphCollectorTests.cs" />
     <Compile Include="StringInternerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TelemetryHandlerTests.cs" />
@@ -337,7 +326,7 @@
       <Version>4.10.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.71.0</Version>
+      <Version>2.75.0</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.4.1</Version>

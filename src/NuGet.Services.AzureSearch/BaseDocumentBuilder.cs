@@ -10,7 +10,6 @@ using NuGet.Frameworks;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Registration;
 using NuGet.Versioning;
 using NuGetGallery;
 using PackageDependency = NuGet.Protocol.Catalog.PackageDependency;

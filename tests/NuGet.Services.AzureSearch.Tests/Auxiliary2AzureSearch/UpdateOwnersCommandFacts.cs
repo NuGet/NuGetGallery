@@ -47,12 +47,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 await Target.ExecuteAsync();
 
                 OwnerSetComparer.Verify(
-                    x => x.Compare(
+                    x => x.CompareOwners(
                         It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
                         It.IsAny<SortedDictionary<string, SortedSet<string>>>()),
                     Times.Once);
                 OwnerSetComparer.Verify(
-                    x => x.Compare(StorageResult.Result, DatabaseResult),
+                    x => x.CompareOwners(StorageResult.Result, DatabaseResult),
                     Times.Once);
             }
 
@@ -169,7 +169,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             {
                 DatabaseOwnerFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
                 OwnerDataClient = new Mock<IOwnerDataClient>();
-                OwnerSetComparer = new Mock<IOwnerSetComparer>();
+                OwnerSetComparer = new Mock<IDataSetComparer>();
                 SearchDocumentBuilder = new Mock<ISearchDocumentBuilder>();
                 SearchIndexActionBuilder = new Mock<ISearchIndexActionBuilder>();
                 Pusher = new Mock<IBatchPusher>();
@@ -203,7 +203,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Setup(x => x.ReadLatestIndexedAsync())
                     .ReturnsAsync(() => StorageResult);
                 OwnerSetComparer
-                    .Setup(x => x.Compare(
+                    .Setup(x => x.CompareOwners(
                         It.IsAny<SortedDictionary<string, SortedSet<string>>>(),
                         It.IsAny<SortedDictionary<string, SortedSet<string>>>()))
                     .Returns(() => Changes);
@@ -225,7 +225,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
             public Mock<IDatabaseAuxiliaryDataFetcher> DatabaseOwnerFetcher { get; }
             public Mock<IOwnerDataClient> OwnerDataClient { get; }
-            public Mock<IOwnerSetComparer> OwnerSetComparer { get; }
+            public Mock<IDataSetComparer> OwnerSetComparer { get; }
             public Mock<ISearchDocumentBuilder> SearchDocumentBuilder { get; }
             public Mock<ISearchIndexActionBuilder> SearchIndexActionBuilder { get; }
             public Mock<IBatchPusher> Pusher { get; }

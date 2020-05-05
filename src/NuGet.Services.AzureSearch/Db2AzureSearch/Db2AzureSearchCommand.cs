@@ -30,6 +30,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         private readonly IOwnerDataClient _ownerDataClient;
         private readonly IDownloadDataClient _downloadDataClient;
         private readonly IVerifiedPackagesDataClient _verifiedPackagesDataClient;
+        private readonly IPopularityTransferDataClient _popularityTransferDataClient;
         private readonly IOptionsSnapshot<Db2AzureSearchConfiguration> _options;
         private readonly IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> _developmentOptions;
         private readonly ILogger<Db2AzureSearchCommand> _logger;
@@ -45,6 +46,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             IOwnerDataClient ownerDataClient,
             IDownloadDataClient downloadDataClient,
             IVerifiedPackagesDataClient verifiedPackagesDataClient,
+            IPopularityTransferDataClient popularityTransferDataClient,
             IOptionsSnapshot<Db2AzureSearchConfiguration> options,
             IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration> developmentOptions,
             ILogger<Db2AzureSearchCommand> logger)
@@ -59,6 +61,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _ownerDataClient = ownerDataClient ?? throw new ArgumentNullException(nameof(ownerDataClient));
             _downloadDataClient = downloadDataClient ?? throw new ArgumentNullException(nameof(downloadDataClient));
             _verifiedPackagesDataClient = verifiedPackagesDataClient ?? throw new ArgumentNullException(nameof(verifiedPackagesDataClient));
+            _popularityTransferDataClient = popularityTransferDataClient ?? throw new ArgumentNullException(nameof(popularityTransferDataClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _developmentOptions = developmentOptions ?? throw new ArgumentNullException(nameof(developmentOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -113,6 +116,9 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 // Write the verified packages data file.
                 await WriteVerifiedPackagesDataAsync(initialAuxiliaryData.VerifiedPackages);
+
+                // Write popularity transfers data file.
+                await WritePopularityTransfersDataAsync(initialAuxiliaryData.PopularityTransfers);
 
                 // Write the cursor.
                 _logger.LogInformation("Writing the initial cursor value to be {CursorValue:O}.", initialCursorValue);
@@ -193,6 +199,15 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 verifiedPackages,
                 AccessConditionWrapper.GenerateIfNotExistsCondition());
             _logger.LogInformation("Done uploading the initial verified packages data file.");
+        }
+
+        private async Task WritePopularityTransfersDataAsync(PopularityTransferData popularityTransfers)
+        {
+            _logger.LogInformation("Writing the initial popularity transfers data file.");
+            await _popularityTransferDataClient.ReplaceLatestIndexedAsync(
+                popularityTransfers,
+                AccessConditionWrapper.GenerateIfNotExistsCondition());
+            _logger.LogInformation("Done uploading the initial popularity transfers data file.");
         }
 
         private async Task<InitialAuxiliaryData> ProduceWorkAsync(

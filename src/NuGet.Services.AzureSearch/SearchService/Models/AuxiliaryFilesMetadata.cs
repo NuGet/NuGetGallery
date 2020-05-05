@@ -13,15 +13,18 @@ namespace NuGet.Services.AzureSearch.SearchService
         public AuxiliaryFilesMetadata(
             DateTimeOffset loaded,
             AuxiliaryFileMetadata downloads,
-            AuxiliaryFileMetadata verifiedPackages)
+            AuxiliaryFileMetadata verifiedPackages,
+            AuxiliaryFileMetadata popularityTransfers)
         {
             Loaded = loaded;
             Downloads = downloads ?? throw new ArgumentNullException(nameof(downloads));
             VerifiedPackages = verifiedPackages ?? throw new ArgumentNullException(nameof(verifiedPackages));
+            PopularityTransfers = popularityTransfers ?? throw new ArgumentNullException(nameof(popularityTransfers));
         }
 
         public DateTimeOffset Loaded { get; }
         public AuxiliaryFileMetadata Downloads { get; }
         public AuxiliaryFileMetadata VerifiedPackages { get; }
+        public AuxiliaryFileMetadata PopularityTransfers { get; }
     }
 }

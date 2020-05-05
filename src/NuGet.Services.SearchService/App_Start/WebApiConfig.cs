@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -142,6 +143,8 @@ namespace NuGet.Services.SearchService
 
             var services = new ServiceCollection();
             services.AddSingleton(configuration.SecretReaderFactory);
+            services.AddSingleton(applicationInsightsConfiguration.TelemetryConfiguration);
+            services.AddSingleton<IConfiguration>(configuration.Root);
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.Configure<AzureSearchConfiguration>(configuration.Root.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(configuration.Root.GetSection(ConfigurationSectionName));
@@ -150,6 +153,7 @@ namespace NuGet.Services.SearchService
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
 
             var builder = new ContainerBuilder();
+            builder.RegisterAssemblyModules(typeof(WebApiConfig).Assembly);
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
             builder.RegisterWebApiFilterProvider(config);
             builder.RegisterWebApiModelBinderProvider();
@@ -174,10 +178,30 @@ namespace NuGet.Services.SearchService
             var heartbeatIntervalSeconds = configuration.Root.GetValue("ApplicationInsights_HeartbeatIntervalSeconds", 60);
 
             var applicationInsightsConfiguration = ApplicationInsights.Initialize(
-                    instrumentationKey,
-                    TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+                instrumentationKey,
+                TimeSpan.FromSeconds(heartbeatIntervalSeconds));
 
             applicationInsightsConfiguration.TelemetryConfiguration.TelemetryInitializers.Add(new AzureWebAppTelemetryInitializer());
+            applicationInsightsConfiguration.TelemetryConfiguration.TelemetryInitializers.Add(new KnownOperationNameEnricher(new[]
+            {
+                GetOperationName<SearchController>(HttpMethod.Get, nameof(SearchController.AutocompleteAsync)),
+                GetOperationName<SearchController>(HttpMethod.Get, nameof(SearchController.IndexAsync)),
+                GetOperationName<SearchController>(HttpMethod.Get, nameof(SearchController.GetStatusAsync)),
+                GetOperationName<SearchController>(HttpMethod.Get, nameof(SearchController.V2SearchAsync)),
+                GetOperationName<SearchController>(HttpMethod.Get, nameof(SearchController.V3SearchAsync)),
+            }));
+
+            applicationInsightsConfiguration.TelemetryConfiguration.TelemetryProcessorChainBuilder.Use(next =>
+            {
+                var processor = new RequestTelemetryProcessor(next);
+
+                processor.SuccessfulResponseCodes.Add(400);
+                processor.SuccessfulResponseCodes.Add(403);
+                processor.SuccessfulResponseCodes.Add(404);
+                processor.SuccessfulResponseCodes.Add(405);
+
+                return processor;
+            });
 
             RegisterApplicationInsightsTelemetryModules(applicationInsightsConfiguration.TelemetryConfiguration);
 
@@ -316,6 +340,11 @@ namespace NuGet.Services.SearchService
             }
 
             throw new ArgumentException($"The controller type name must end with '{ControllerSuffix}'.");
+        }
+
+        private static string GetOperationName<T>(HttpMethod verb, string actionName) where T : ApiController
+        {
+            return $"{verb} {GetControllerName<T>()}/{actionName}";
         }
 
         private class RefreshableConfiguration

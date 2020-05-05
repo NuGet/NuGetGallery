@@ -41,6 +41,12 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 Assert.Empty(output.Result);
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+
+                TelemetryService.Verify(
+                    x => x.TrackReadLatestIndexedOwners(
+                        /* packageIdCount: */ 0,
+                        It.IsAny<TimeSpan>()),
+                    Times.Once);
             }
 
             [Fact]
@@ -60,6 +66,12 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 Assert.Empty(output.Result);
                 Assert.Equal("*", output.AccessCondition.IfNoneMatchETag);
+
+                TelemetryService.Verify(
+                    x => x.TrackReadLatestIndexedOwners(
+                        /* packageIdCount: */ 0,
+                        It.IsAny<TimeSpan>()),
+                    Times.Once);
             }
 
             [Fact]
@@ -82,10 +94,15 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
 
-
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => Target.ReadLatestIndexedAsync());
                 Assert.Equal("The first token should be the start of an object.", ex.Message);
+
+                TelemetryService.Verify(
+                    x => x.TrackReadLatestIndexedOwners(
+                        It.IsAny<int>(),
+                        It.IsAny<TimeSpan>()),
+                    Times.Never);
             }
 
             [Fact]
@@ -122,9 +139,20 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 Assert.Equal(new[] { "nuget" }, output.Result["NuGet.Core"].ToArray());
                 Assert.Equal(new[] { "Microsoft", "nuget" }, output.Result["nuget.versioning"].ToArray());
                 Assert.Equal(new[] { "ownerA", "ownerB" }, output.Result["ZDuplicate"].ToArray());
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result.Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["EntityFramework"].Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["NuGet.Core"].Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["nuget.versioning"].Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["ZDuplicate"].Comparer);
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
 
                 CloudBlobContainer.Verify(x => x.GetBlobReference("owners/owners.v2.json"), Times.Once);
+
+                TelemetryService.Verify(
+                    x => x.TrackReadLatestIndexedOwners(
+                        /* packageIdCount: */ 4,
+                        It.IsAny<TimeSpan>()),
+                    Times.Once);
             }
 
             [Fact]
@@ -150,23 +178,26 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 Assert.Single(output.Result);
                 Assert.Equal(new[] { "NuGet.Core" }, output.Result.Keys.ToArray());
                 Assert.Equal(new[] { "nuget" }, output.Result["NuGet.Core"].ToArray());
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result.Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["NuGet.Core"].Comparer);
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+
+                TelemetryService.Verify(
+                    x => x.TrackReadLatestIndexedOwners(
+                        /* packageIdCount: */ 1,
+                        It.IsAny<TimeSpan>()),
+                    Times.Once);
             }
 
             [Fact]
-            public async Task AllowsDuplicateIdsWithDifferentCase()
+            public async Task AllowsDuplicateIds()
             {
-                var json = JsonConvert.SerializeObject(new SortedDictionary<string, string[]>(StringComparer.Ordinal)
-                {
-                    {
-                        "NuGet.Core",
-                        new[] { "nuget" }
-                    },
-                    {
-                        "nuget.core",
-                        new[] { "microsoft" }
-                    },
-                });
+                var json = @"
+{
+  ""NuGet.Core"": [ ""nuget"" ],
+  ""NuGet.Core"": [ ""aspnet"" ],
+  ""nuget.core"": [ ""microsoft"" ]
+}";
                 CloudBlob
                     .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
                     .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
@@ -175,8 +206,16 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 Assert.Single(output.Result);
                 Assert.Equal(new[] { "NuGet.Core" }, output.Result.Keys.ToArray());
-                Assert.Equal(new[] { "microsoft", "nuget" }, output.Result["NuGet.Core"].ToArray());
+                Assert.Equal(new[] { "aspnet", "microsoft", "nuget" }, output.Result["NuGet.Core"].ToArray());
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result.Comparer);
+                Assert.Equal(StringComparer.OrdinalIgnoreCase, output.Result["NuGet.Core"].Comparer);
                 Assert.Equal(ETag, output.AccessCondition.IfMatchETag);
+
+                TelemetryService.Verify(
+                    x => x.TrackReadLatestIndexedOwners(
+                        /* packageIdCount: */ 1,
+                        It.IsAny<TimeSpan>()),
+                    Times.Once);
             }
         }
 
@@ -271,6 +310,12 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
     ""ownerB""
   ]
 }", json);
+
+                TelemetryService.Verify(
+                    x => x.TrackReplaceLatestIndexedOwners(
+                        /*packageIdCount: */ 4),
+                    Times.Once);
+                ReplaceLatestIndexedOwnersDurationMetric.Verify(x => x.Dispose(), Times.Once);
             }
         }
 
@@ -386,6 +431,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 ETag = "\"some-etag\"";
                 AccessCondition = new Mock<IAccessCondition>();
+                ReplaceLatestIndexedOwnersDurationMetric = new Mock<IDisposable>();
 
                 Options
                     .Setup(x => x.Value)
@@ -411,6 +457,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                     .Setup(x => x.Properties)
                     .Returns(new CloudBlockBlob(new Uri("https://example/blob")).Properties);
 
+                TelemetryService
+                    .Setup(x => x.TrackReplaceLatestIndexedOwners(It.IsAny<int>()))
+                    .Returns(ReplaceLatestIndexedOwnersDurationMetric.Object);
+
                 Target = new OwnerDataClient(
                     CloudBlobClient.Object,
                     Options.Object,
@@ -427,36 +477,12 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             public AzureSearchJobConfiguration Config { get; }
             public string ETag { get; }
             public Mock<IAccessCondition> AccessCondition { get; }
+            public Mock<IDisposable> ReplaceLatestIndexedOwnersDurationMetric { get; }
             public OwnerDataClient Target { get; }
 
             public List<string> BlobNames { get; } = new List<string>();
             public List<byte[]> SavedBytes { get; } = new List<byte[]>();
             public List<string> SavedStrings { get; } = new List<string>();
-        }
-
-        private class RecordingStream : MemoryStream
-        {
-            private readonly object _lock = new object();
-            private Action<byte[]> _onDispose;
-
-            public RecordingStream(Action<byte[]> onDispose)
-            {
-                _onDispose = onDispose;
-            }
-
-            protected override void Dispose(bool disposing)
-            {
-                lock (_lock)
-                {
-                    if (_onDispose != null)
-                    {
-                        _onDispose(ToArray());
-                        _onDispose = null;
-                    }
-                }
-
-                base.Dispose(disposing);
-            }
         }
     }
 }

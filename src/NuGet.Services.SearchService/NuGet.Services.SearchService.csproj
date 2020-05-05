@@ -1,5 +1,6 @@
 ﻿<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="..\..\sign.thirdparty.props" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -114,31 +115,8 @@
     <SignType Condition="'$(SignType)' == ''">none</SignType>
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
-  <ItemGroup>
-    <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Autofac.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Autofac.Extensions.DependencyInjection.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Autofac.Integration.WebApi.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Dapper.StrongName.dll" Visible="false" />
-    <ThirdPartyBinaries Include="dotNetRDF.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Elmah.dll" Visible="false" />
-    <ThirdPartyBinaries Include="HtmlAgilityPack.dll" Visible="false" />
-    <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" Visible="false" />
-    <ThirdPartyBinaries Include="json-ld.net.StrongName.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Markdig.dll" Visible="false" />
-    <ThirdPartyBinaries Include="MarkdownSharp.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Newtonsoft.Json.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Serilog.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Serilog.Enrichers.Environment.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Serilog.Enrichers.Process.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Serilog.Extensions.Logging.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Serilog.Sinks.ApplicationInsights.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Serilog.Sinks.Console.dll" Visible="false" />
-    <ThirdPartyBinaries Include="Serilog.Sinks.File.dll" Visible="false" />
-    <ThirdPartyBinaries Include="SerilogTraceListener.dll" Visible="false" />
-    <ThirdPartyBinaries Include="VDS.Common.dll" Visible="false" />
-  </ItemGroup>
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <Import Project="$(NuGetBuildExtensions)" Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <ProjectExtensions>

@@ -29,6 +29,8 @@ namespace NuGet.Services.AzureSearch
     {
         public static ContainerBuilder AddAzureSearch(this ContainerBuilder containerBuilder)
         {
+            containerBuilder.AddFeatureFlags();
+
             /// Here, we register services that depend on an interface that there are multiple implementations.
 
             /// There are multiple implementations of <see cref="ISearchServiceClientWrapper"/>.
@@ -166,6 +168,13 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<ILogger<OwnerDataClient>>()));
 
             containerBuilder
+                .Register<IPopularityTransferDataClient>(c => new PopularityTransferDataClient(
+                    c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>(),
+                    c.Resolve<IAzureSearchTelemetryService>(),
+                    c.Resolve<ILogger<PopularityTransferDataClient>>()));
+
+            containerBuilder
                 .Register(c => new Catalog2AzureSearchCommand(
                     c.Resolve<ICollector>(),
                     c.ResolveKeyed<IStorageFactory>(key),
@@ -187,6 +196,7 @@ namespace NuGet.Services.AzureSearch
                     c.Resolve<IOwnerDataClient>(),
                     c.Resolve<IDownloadDataClient>(),
                     c.Resolve<IVerifiedPackagesDataClient>(),
+                    c.Resolve<IPopularityTransferDataClient>(),
                     c.Resolve<IOptionsSnapshot<Db2AzureSearchConfiguration>>(),
                     c.Resolve<IOptionsSnapshot<Db2AzureSearchDevelopmentConfiguration>>(),
                     c.Resolve<ILogger<Db2AzureSearchCommand>>()));
@@ -217,6 +227,9 @@ namespace NuGet.Services.AzureSearch
             IDictionary<string, string> telemetryGlobalDimensions)
         {
             services.AddV3(telemetryGlobalDimensions);
+
+            services.AddFeatureFlags();
+            services.AddTransient<IFeatureFlagService, FeatureFlagService>();
 
             services
                 .AddTransient<ISearchServiceClient>(p =>
@@ -249,14 +262,15 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ICatalogLeafFetcher, CatalogLeafFetcher>();
             services.AddTransient<ICommitCollectorLogic, AzureSearchCollectorLogic>();
             services.AddTransient<IDatabaseAuxiliaryDataFetcher, DatabaseAuxiliaryDataFetcher>();
+            services.AddTransient<IDataSetComparer, DataSetComparer>();
             services.AddTransient<IDocumentFixUpEvaluator, DocumentFixUpEvaluator>();
             services.AddTransient<IDownloadSetComparer, DownloadSetComparer>();
+            services.AddTransient<IDownloadTransferrer, DownloadTransferrer>();
             services.AddTransient<IEntitiesContextFactory, EntitiesContextFactory>();
             services.AddTransient<IHijackDocumentBuilder, HijackDocumentBuilder>();
             services.AddTransient<IIndexBuilder, IndexBuilder>();
             services.AddTransient<IIndexOperationBuilder, IndexOperationBuilder>();
             services.AddTransient<INewPackageRegistrationProducer, NewPackageRegistrationProducer>();
-            services.AddTransient<IOwnerSetComparer, OwnerSetComparer>();
             services.AddTransient<IPackageEntityIndexActionBuilder, PackageEntityIndexActionBuilder>();
             services.AddTransient<ISearchDocumentBuilder, SearchDocumentBuilder>();
             services.AddTransient<ISearchIndexActionBuilder, SearchIndexActionBuilder>();

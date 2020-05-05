@@ -9,5 +9,6 @@ namespace NuGet.Services.AzureSearch.SearchService
         public long DownloadCount { get; set; }
         public bool Verified { get; set; }
         public string[] Owners { get; set; }
+        public string[] PopularityTransfers { get; set; }
     }
 }

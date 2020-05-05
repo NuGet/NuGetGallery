@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence

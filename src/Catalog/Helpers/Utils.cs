@@ -2,9 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -23,7 +21,6 @@ using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
 using VDS.RDF;
 using VDS.RDF.Parsing;
-using VDS.RDF.Writing;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -34,8 +31,6 @@ namespace NuGet.Services.Metadata.Catalog
 
         private static readonly Lazy<XslCompiledTransform> XslTransformNuSpecCache = new Lazy<XslCompiledTransform>(() => SafeLoadXslTransform(XslTransformNuSpec));
         private static readonly Lazy<XslCompiledTransform> XslTransformNormalizeNuSpecNamespaceCache = new Lazy<XslCompiledTransform>(() => SafeLoadXslTransform(XslTransformNormalizeNuSpecNamespace));
-
-        private static readonly ConcurrentDictionary<string, string> _resourceStringCache = new ConcurrentDictionary<string, string>();
 
         private static readonly char[] TagTrimChars = { ',', ' ', '\t', '|', ';' };
 
@@ -62,22 +57,6 @@ namespace NuGet.Services.Metadata.Catalog
             string name = assembly.GetName().Name;
 
             return assembly.GetManifestResourceStream($"{name}.{resourceName}");
-        }
-
-        public static string GetResource(string resourceName)
-        {
-            if (string.IsNullOrEmpty(resourceName))
-            {
-                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(resourceName));
-            }
-
-            return _resourceStringCache.GetOrAdd(resourceName, _ =>
-            {
-                using (var reader = new StreamReader(GetResourceStream(resourceName)))
-                {
-                    return reader.ReadToEnd();
-                }
-            });
         }
 
         public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress, bool normalizeXml = false)
@@ -171,29 +150,6 @@ namespace NuGet.Services.Metadata.Catalog
             return transform;
         }
 
-        public static void Dump(IGraph graph, TextWriter writer)
-        {
-            CompressingTurtleWriter turtleWriter = new CompressingTurtleWriter();
-            turtleWriter.DefaultNamespaces.AddNamespace("nuget", new Uri("http://nuget.org/schema#"));
-            turtleWriter.DefaultNamespaces.AddNamespace("catalog", new Uri("http://nuget.org/catalog#"));
-            turtleWriter.PrettyPrintMode = true;
-            turtleWriter.CompressionLevel = 10;
-            turtleWriter.Save(graph, writer);
-        }
-
-        public static void Dump(TripleStore store, TextWriter writer)
-        {
-            Dump(store.Graphs.First(), writer);
-        }
-
-        public static IGraph Load(string name)
-        {
-            TurtleParser parser = new TurtleParser();
-            IGraph g = new Graph();
-            parser.Load(g, new StreamReader(GetResourceStream(name)));
-            return g;
-        }
-
         public static XDocument GetNuspec(ZipArchive package)
         {
             if (package == null) { return null; }
@@ -207,12 +163,6 @@ namespace NuGet.Services.Metadata.Catalog
                 }
             }
             return null;
-        }
-
-        public static ZipArchive GetPackage(Stream stream)
-        {
-            ZipArchive package = new ZipArchive(stream);
-            return package;
         }
 
         public static JToken CreateJson(IGraph graph, JToken frame = null)
@@ -318,57 +268,6 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        public static int CountItems(string indexJson)
-        {
-            if (indexJson == null)
-            {
-                return 0;
-            }
-
-            JObject index = JObject.Parse(indexJson);
-
-            int total = 0;
-            foreach (JObject item in index["items"])
-            {
-                total += item["count"].ToObject<int>();
-            }
-
-            return total;
-        }
-
-        public static bool IsType(JToken context, JToken obj, Uri type)
-        {
-            JToken objTypeToken;
-            if (((JObject)obj).TryGetValue("@type", out objTypeToken))
-            {
-                if (objTypeToken is JArray)
-                {
-                    foreach (JToken typeToken in ((JArray)objTypeToken).Values())
-                    {
-                        Uri objType = Expand(context, typeToken);
-
-                        if (objType.AbsoluteUri == type.AbsoluteUri)
-                        {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                else
-                {
-                    Uri objType = Expand(context, objTypeToken);
-
-                    return objType.AbsoluteUri == type.AbsoluteUri;
-                }
-            }
-            return false;
-        }
-
-        public static Uri Expand(JToken context, JToken token)
-        {
-            return Expand(context, token.ToString());
-        }
-
         public static Uri Expand(JToken context, string term)
         {
             if (term.StartsWith("http:", StringComparison.OrdinalIgnoreCase))
@@ -384,63 +283,6 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             return new Uri(context["@vocab"] + term);
-        }
-
-        public static string GetNuspecRelativeAddress(XDocument document)
-        {
-            XNamespace nuget = XNamespace.Get("http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd");
-
-            XElement package = document.Element(nuget.GetName("package"));
-
-            if (package == null)
-            {
-                throw new ArgumentException("document, missing <package>");
-            }
-
-            XElement metadata = package.Element(nuget.GetName("metadata"));
-
-            if (metadata == null)
-            {
-                throw new ArgumentException("document, missing <metadata>");
-            }
-
-            string id = metadata.Element(nuget.GetName("id")).Value;
-            string version = metadata.Element(nuget.GetName("version")).Value;
-
-            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(version))
-            {
-                throw new ArgumentException("document, missing <id> or <version>");
-            }
-
-            string relativeAddress = id.ToLowerInvariant() + "." + version.ToLowerInvariant() + ".xml";
-
-            return relativeAddress;
-        }
-
-        public static IEnumerable<IEnumerable<T>> Partition<T>(IEnumerable<T> source, int size)
-        {
-            T[] array = null;
-            int count = 0;
-            foreach (T item in source)
-            {
-                if (array == null)
-                {
-                    array = new T[size];
-                }
-                array[count] = item;
-                count++;
-                if (count == size)
-                {
-                    yield return new ReadOnlyCollection<T>(array);
-                    array = null;
-                    count = 0;
-                }
-            }
-            if (array != null)
-            {
-                Array.Resize(ref array, count);
-                yield return new ReadOnlyCollection<T>(array);
-            }
         }
 
         //  where the property exists on the graph being merged in remove it from the existing graph
