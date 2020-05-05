@@ -117,5 +117,17 @@ namespace NuGetGallery
             [JsonProperty("ps", Required = Required.Always)]
             public int PreviewSearchBucket { get; set; }
         }
+
+        private class StateVersion2
+        {
+            [JsonProperty("v", Required = Required.Always)]
+            public int SchemaVersion { get; set; }
+
+            [JsonProperty("ps", Required = Required.Always)]
+            public int PreviewSearchBucket { get; set; }
+
+            [JsonProperty("pd", Required = Required.Always)]
+            public int PackageDependentBucket { get; set; }
+        }
     }
 }

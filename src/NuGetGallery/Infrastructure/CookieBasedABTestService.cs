@@ -57,8 +57,7 @@ namespace NuGetGallery
                 nameof(Enrollment.PackageDependentBucket),
                 user,
                 enrollment => enrollment.PackageDependentBucket,
-                config => config.DependentsPercentage
-                );
+                config => config.DependentsPercentage);
         }
 
         private ABTestEnrollment Enrollment => _lazyEnrollment.Value;

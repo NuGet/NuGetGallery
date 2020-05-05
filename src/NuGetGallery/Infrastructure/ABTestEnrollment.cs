@@ -20,6 +20,13 @@ namespace NuGetGallery
     /// </summary>
     public class ABTestEnrollment
     {
+        public ABTestEnrollment(ABTestEnrollmentState state, int schemaVersion, int previewSearchBucket)
+        {
+            State = state;
+            SchemaVersion = schemaVersion;
+            PreviewSearchBucket = previewSearchBucket;
+        }
+
         public ABTestEnrollment(ABTestEnrollmentState state, int schemaVersion, int previewSearchBucket, int packageDependentBucket)
         {
             State = state;
@@ -27,7 +34,6 @@ namespace NuGetGallery
             PreviewSearchBucket = previewSearchBucket;
             PackageDependentBucket = packageDependentBucket;
         }
-
         public ABTestEnrollmentState State { get; }
         public int SchemaVersion { get; }
         public int PreviewSearchBucket { get; }

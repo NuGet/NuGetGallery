@@ -856,10 +856,15 @@ namespace NuGetGallery
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
 
             // Different switches for feature
-            var isPackageDependentsABEnabled = _abTestService.IsPackageDependendentsABEnabled(GetCurrentUser());
             var ispackageDepentsEnabled = (model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser));
 
-            if (isPackageDependentsABEnabled)
+            if(ispackageDepentsEnabled)
+            {
+                ispackageDepentsEnabled = _abTestService.IsPackageDependendentsABEnabled(GetCurrentUser());// vs GetCurrentUser() ? (also is the ab test)
+            }
+            
+
+            if (ispackageDepentsEnabled)
             {
                 // Caching dependence
 
