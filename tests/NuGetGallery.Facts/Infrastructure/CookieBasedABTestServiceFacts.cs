@@ -30,8 +30,7 @@ namespace NuGetGallery
                 InitializedEnrollment = new ABTestEnrollment(
                     ABTestEnrollmentState.FirstHit,
                     schemaVersion: 1,
-                    previewSearchBucket: enrollment,
-                    packageDependentBucket: 42);
+                    previewSearchBucket: enrollment);
                 Configuration.Setup(x => x.PreviewSearchPercentage).Returns(config);
 
                 var result = Target.IsPreviewSearchEnabled(User);
@@ -155,13 +154,11 @@ namespace NuGetGallery
                 InitializedEnrollment = new ABTestEnrollment(
                     ABTestEnrollmentState.FirstHit,
                     schemaVersion: 1,
-                    previewSearchBucket: 23,
-                    packageDependentBucket: 47);
+                    previewSearchBucket: 23);
                 DeserializedEnrollment = new ABTestEnrollment(
                     ABTestEnrollmentState.Active,
                     schemaVersion: 1,
-                    previewSearchBucket: 42,
-                    packageDependentBucket: 58);
+                    previewSearchBucket: 42);
                 OutEnrollment = DeserializedEnrollment;
                 SerializedEnrollment = "fake-serialization";
                 RequestCookies = new HttpCookieCollection();

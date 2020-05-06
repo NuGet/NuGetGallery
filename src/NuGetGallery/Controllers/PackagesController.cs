@@ -857,13 +857,7 @@ namespace NuGetGallery
 
             // Different switches for feature
             var ispackageDepentsEnabled = (model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser));
-
-            if(ispackageDepentsEnabled)
-            {
-                ispackageDepentsEnabled = _abTestService.IsPackageDependendentsABEnabled(GetCurrentUser());// vs GetCurrentUser() ? (also is the ab test)
-            }
             
-
             if (ispackageDepentsEnabled)
             {
                 // Caching dependence

@@ -12,7 +12,6 @@ namespace NuGetGallery
     public class ABTestEnrollmentFactory : IABTestEnrollmentFactory
     {
         private const int SchemaVersion1 = 1;
-        private const int SchemaVersion2 = 2;
 
         private static readonly RNGCryptoServiceProvider _secureRng = new RNGCryptoServiceProvider();
         private static readonly ThreadLocal<byte[]> _bytes = new ThreadLocal<byte[]>(() => new byte[sizeof(ulong)]);
@@ -30,19 +29,14 @@ namespace NuGetGallery
 
         public ABTestEnrollment Initialize()
         {
-
-            //(else ... schemaversion  == 2)
-                //If v1 does not exist 
-               var enrollment = new ABTestEnrollment(
-                    ABTestEnrollmentState.FirstHit,
-                    SchemaVersion2,
-                    previewSearchBucket: GetRandomWholePercentage(),
-                    packageDependentBucket: GetRandomWholePercentage());
+            var enrollment = new ABTestEnrollment(
+                ABTestEnrollmentState.FirstHit,
+                SchemaVersion1,
+                previewSearchBucket: GetRandomWholePercentage());
 
             _telemetryService.TrackABTestEnrollmentInitialized(
-                enrollment.SchemaVersion,
-                enrollment.PreviewSearchBucket,
-                enrollment.PackageDependentBucket); // Maybe add pdbucket or make another one??
+                enrollment.SchemaVersion, 
+                enrollment.PreviewSearchBucket);
 
             return enrollment;
         }
@@ -65,21 +59,17 @@ namespace NuGetGallery
 
         public string Serialize(ABTestEnrollment enrollment)
         {
-            if (enrollment.SchemaVersion != SchemaVersion2)
+            if (enrollment.SchemaVersion != SchemaVersion1)
             {
                 throw new NotImplementedException($"Serializing schema version {enrollment.SchemaVersion} is not implemented.");
             }
 
-            var deserialized2 = new StateVersion2
+            var deserialized = new StateVersion1
             {
-                SchemaVersion = SchemaVersion2,
+                SchemaVersion = SchemaVersion1,
                 PreviewSearchBucket = enrollment.PreviewSearchBucket,
-                PackageDependentBucket = enrollment.PackageDependentBucket,
-
             };
-            return JsonConvert.SerializeObject(deserialized2);
-
-
+            return JsonConvert.SerializeObject(deserialized);
         }
 
         public bool TryDeserialize(string serialized, out ABTestEnrollment enrollment)
@@ -90,10 +80,6 @@ namespace NuGetGallery
                 return false;
             }
 
-            return (TryDeserializeStateVer2(serialized, out enrollment) || TryDeserializeStateVer1(serialized, out enrollment));
-
-
-            /* IN CASE THINGS GO HAYWIRE REVERT BACK TO THIS VERSION
             try
             {
                 var v1 = JsonConvert.DeserializeObject<StateVersion1>(serialized);
@@ -115,66 +101,8 @@ namespace NuGetGallery
             {
                 return false;
             }
-
-         */
         }
 
-        private bool TryDeserializeStateVer1(string serialized, out ABTestEnrollment enrollment)
-        {
-            enrollment = null;
-            try
-            {
-                var v1 = JsonConvert.DeserializeObject<StateVersion1>(serialized);
-                if (v1 == null
-                    || v1.SchemaVersion != SchemaVersion1
-                    || IsNotPercentage(v1.PreviewSearchBucket))
-                {
-                    return false;
-                }
-
-                enrollment = new ABTestEnrollment(
-                    ABTestEnrollmentState.Upgraded,
-                    SchemaVersion2,
-                    v1.PreviewSearchBucket,
-                    packageDependentBucket: GetRandomWholePercentage()); // What is the point of making this here
-                //TO DO Add telememtry for this case
-                return true;
-            }
-            catch (JsonException)
-            {
-                return false;
-            }
-
-        }
-
-        private bool TryDeserializeStateVer2(string serialized, out ABTestEnrollment enrollment)
-        {
-            enrollment = null;
-            try
-            {
-                var v2 = JsonConvert.DeserializeObject<StateVersion2>(serialized);
-                if (v2 == null
-                    || v2.SchemaVersion != SchemaVersion2
-                    || IsNotPercentage(v2.PreviewSearchBucket)
-                    || IsNotPercentage(v2.PackageDependentBucket))
-                {
-                    return false;
-                }
-
-                enrollment = new ABTestEnrollment(
-                    ABTestEnrollmentState.Active,
-                    v2.SchemaVersion,
-                    v2.PreviewSearchBucket,
-                    v2.PackageDependentBucket); // What is the point of making this here
-
-                return true;
-            }
-            catch (JsonException)
-            {
-                return false;
-            }
-
-        }
 
         private static bool IsNotPercentage(int input)
         {
@@ -188,18 +116,6 @@ namespace NuGetGallery
 
             [JsonProperty("ps", Required = Required.Always)]
             public int PreviewSearchBucket { get; set; }
-        }
-
-        private class StateVersion2
-        {
-            [JsonProperty("v", Required = Required.Always)]
-            public int SchemaVersion { get; set; }
-
-            [JsonProperty("ps", Required = Required.Always)]
-            public int PreviewSearchBucket { get; set; }
-
-            [JsonProperty("pd", Required = Required.Always)]
-            public int PackageDependentBucket { get; set; }
         }
     }
 }

@@ -18,7 +18,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
-        public void TrackABTestEnrollmentInitialized(int schemaVersion, int previewSearchBucket, int packageDependentBucket)
+        public void TrackABTestEnrollmentInitialized(int schemaVersion, int previewSearchBucket)
         {
             throw new NotImplementedException();
         }

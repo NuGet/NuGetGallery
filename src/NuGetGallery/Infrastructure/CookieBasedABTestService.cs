@@ -51,15 +51,6 @@ namespace NuGetGallery
                 config => config.PreviewSearchPercentage);
         }
 
-        public bool IsPackageDependendentsABEnabled(User user)
-        {
-            return IsActive(
-                nameof(Enrollment.PackageDependentBucket),
-                user,
-                enrollment => enrollment.PackageDependentBucket,
-                config => config.DependentsPercentage);
-        }
-
         private ABTestEnrollment Enrollment => _lazyEnrollment.Value;
         private IABTestConfiguration Config => _contentObjectService.ABTestConfiguration;
 

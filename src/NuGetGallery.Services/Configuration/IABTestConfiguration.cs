@@ -17,6 +17,5 @@ namespace NuGetGallery.Services
         /// </summary>
         int PreviewHijackPercentage { get; }
 
-        int DependentsPercentage { get; }
     }
 }

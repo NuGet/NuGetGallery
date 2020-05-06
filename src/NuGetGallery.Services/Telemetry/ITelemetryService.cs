@@ -364,8 +364,7 @@ namespace NuGetGallery
         /// <param name="previewSearchBucket">The bucket for the preview search test.</param>
         void TrackABTestEnrollmentInitialized(
             int schemaVersion,
-            int previewSearchBucket,
-            int packageDependentBucket);
+            int previewSearchBucket);
 
         /// <summary>
         /// Track when an A/B test is evaluated.

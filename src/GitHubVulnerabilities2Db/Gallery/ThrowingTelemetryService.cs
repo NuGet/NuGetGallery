@@ -21,7 +21,7 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackABTestEnrollmentInitialized(int schemaVersion, int previewSearchBucket, int packageDepentsBucket)
+        public void TrackABTestEnrollmentInitialized(int schemaVersion, int previewSearchBucket)
         {
             throw new NotImplementedException();
         }
