@@ -1038,7 +1038,8 @@ namespace NuGetGallery
 
         public void TrackABTestEnrollmentInitialized(
             int schemaVersion,
-            int previewSearchBucket)
+            int previewSearchBucket,
+            int packageDependentBucket)
         {
             TrackMetric(Events.ABTestEnrollmentInitialized, 1, properties =>
             {
