@@ -608,10 +608,7 @@ namespace NuGetGallery
 
         private PackageValidationResult CheckPackageDuplicatedEntries(PackageArchiveReader nuGetPackage)
         {
-            // Normalize paths and ensures case sensitivity is also considered
-            var packageFiles = nuGetPackage.GetFiles().Select(packageFile => FileNameHelper.GetZipEntryPath(packageFile.ToLower()));
-
-            if (packageFiles.Count() != packageFiles.Distinct(StringComparer.OrdinalIgnoreCase).Count())
+            if (ValidationHelper.HasDuplicatedEntries(nuGetPackage))
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_PackageContainsDuplicatedEntries);
             }
