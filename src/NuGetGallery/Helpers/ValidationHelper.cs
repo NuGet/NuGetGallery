@@ -12,7 +12,7 @@ namespace NuGetGallery.Helpers
         public static bool HasDuplicatedEntries(PackageArchiveReader nuGetPackage)
         {
             // Normalize paths and ensures case sensitivity is also considered
-            var packageFiles = nuGetPackage.GetFiles().Select(packageFile => FileNameHelper.GetZipEntryPath(packageFile.ToLower()));
+            var packageFiles = nuGetPackage.GetFiles().Select(packageFile => FileNameHelper.GetZipEntryPath(packageFile));
 
             return packageFiles.Count() != packageFiles.Distinct(StringComparer.OrdinalIgnoreCase).Count();
         }
