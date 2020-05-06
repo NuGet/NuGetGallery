@@ -213,6 +213,7 @@
     <Compile Include="Controllers\ManageDeprecationJsonApiController.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Extensions\ImageExtensions.cs" />
+    <Compile Include="Helpers\ValidationHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DisplayLicenseViewModelFactory.cs" />
