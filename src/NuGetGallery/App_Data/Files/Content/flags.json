@@ -49,7 +49,7 @@
     },
     "NuGetGallery.PackageDependents": {
       "All": false,
-      "SiteAdmins": true,
+      "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
     }
