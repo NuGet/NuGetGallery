@@ -2,16 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
-using Autofac.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -31,28 +30,29 @@ using StatusAggregator.Update;
 
 namespace StatusAggregator
 {
-    public class Job : JobBase
+    public class Job : JsonConfigurationJob
     {
-        public IServiceProvider _serviceProvider;
+        private const string StatusAggregatorSectionName = "StatusAggregator";
+        private const string IncidentApiSectionName = "IncidentApi";
 
-        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
+        private const string StorageAccountNameParameter = "name";
+
+        private const string PrimaryStorageAccountName = "Primary";
+        private const string SecondaryStorageAccountName = "Secondary";
+
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
-            var serviceCollection = new ServiceCollection();
-
-            AddLogging(serviceCollection);
-            AddConfiguration(serviceCollection, jobArgsDictionary);
-            AddServices(serviceCollection);
-
-            var containerBuilder = new ContainerBuilder();
-            containerBuilder.Populate(serviceCollection);
-
             AddStorage(containerBuilder);
             AddFactoriesAndUpdaters(containerBuilder);
             AddIncidentRegexParser(containerBuilder);
             AddExporters(containerBuilder);
             AddEntityCollector(containerBuilder);
+        }
 
-            _serviceProvider = new AutofacServiceProvider(containerBuilder.Build());
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            AddConfiguration(services, configurationRoot);
+            AddServices(services);
         }
 
         public override Task Run()
@@ -109,11 +109,6 @@ namespace StatusAggregator
 
             serviceCollection.AddTransient<IAggregateIncidentParser, AggregateIncidentParser>();
         }
-
-        private const string StorageAccountNameParameter = "name";
-
-        private const string PrimaryStorageAccountName = "Primary";
-        private const string SecondaryStorageAccountName = "Secondary";
 
         private static void AddStorage(ContainerBuilder containerBuilder)
         {
@@ -300,60 +295,21 @@ namespace StatusAggregator
                 .As<IStatusExporter>();
         }
 
-        private const int _defaultEventStartMessageDelayMinutes = 15;
-        private const int _defaultEventEndDelayMinutes = 15;
-        private const int _defaultEventVisibilityPeriod = 10;
-
-        private void AddConfiguration(IServiceCollection serviceCollection, IDictionary<string, string> jobArgsDictionary)
+        private void AddConfiguration(IServiceCollection serviceCollection, IConfigurationRoot root)
         {
-            var configuration = new StatusAggregatorConfiguration()
+            serviceCollection.Configure<StatusAggregatorConfiguration>(root.GetSection(StatusAggregatorSectionName));
+            serviceCollection.AddSingleton(x => x.GetRequiredService<IOptionsSnapshot<StatusAggregatorConfiguration>>().Value);
+
+            serviceCollection.Configure<RawIncidentApiConfiguration>(root.GetSection(IncidentApiSectionName));
+            serviceCollection.AddSingleton(x =>
             {
-                StorageAccount =
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusStorageAccount),
-                StorageAccountSecondary =
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusStorageAccountSecondary),
-                ContainerName = 
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusContainerName),
-                TableName = 
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusTableName),
-                Environments = 
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusEnvironment)
-                    .Split(';'),
-                MaximumSeverity = 
-                    JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.StatusMaximumSeverity) 
-                    ?? int.MaxValue,
-                TeamId = 
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusIncidentApiTeamId),
-                EventStartMessageDelayMinutes = 
-                    JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.StatusEventStartMessageDelayMinutes) 
-                    ?? _defaultEventStartMessageDelayMinutes,
-                EventEndDelayMinutes = 
-                    JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.StatusEventEndDelayMinutes) 
-                    ?? _defaultEventEndDelayMinutes,
-                EventVisibilityPeriodDays = 
-                    JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.StatusEventVisibilityPeriodDays) 
-                    ?? _defaultEventVisibilityPeriod,
-            };
-            
-            serviceCollection.AddSingleton(configuration);
-
-            var incidentApiConfiguration = new IncidentApiConfiguration()
-            {
-                BaseUri = 
-                    new Uri(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusIncidentApiBaseUri)),
-                Certificate = 
-                    GetCertificateFromConfiguration(
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusIncidentApiCertificate),
-                        Logger)
-            };
-
-            serviceCollection.AddSingleton(incidentApiConfiguration);
-        }
-
-        private void AddLogging(IServiceCollection serviceCollection)
-        {
-            serviceCollection.AddSingleton(LoggerFactory);
-            serviceCollection.AddLogging();
+                var raw = x.GetRequiredService<IOptionsSnapshot<RawIncidentApiConfiguration>>();
+                return new IncidentApiConfiguration
+                {
+                    BaseUri = new Uri(raw.Value.BaseUri),
+                    Certificate = GetCertificateFromConfiguration(raw.Value.Certificate, Logger)
+                };
+            });
         }
 
         public static X509Certificate2 GetCertificateFromConfiguration(string certSecret, ILogger logger)

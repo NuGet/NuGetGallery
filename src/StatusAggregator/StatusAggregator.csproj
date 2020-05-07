@@ -78,6 +78,7 @@
     <Compile Include="Parse\IIncidentRegexParsingHandler.cs" />
     <Compile Include="Parse\IncidentRegexParsingHandler.cs" />
     <Compile Include="Parse\AIAvailabilityIncidentRegexParsingHandler.cs" />
+    <Compile Include="RawIncidentApiConfiguration.cs" />
     <Compile Include="Update\EventMessagingUpdater.cs" />
     <Compile Include="Messages\IIncidentGroupMessageFilter.cs" />
     <Compile Include="Messages\IMessageChangeEventIterator.cs" />
