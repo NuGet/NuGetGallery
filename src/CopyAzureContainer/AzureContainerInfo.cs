@@ -5,36 +5,8 @@ namespace CopyAzureContainer
 {
     public class AzureContainerInfo
     {
-        public string StorageAccountName
-        {
-            private set;
-            get;
-        }
-
-        public string StorageAccountKey
-        {
-            private set;
-            get;
-        }
-
-        public string ContainerName
-        {
-            private set;
-            get;
-        }
-
-        /// <summary>
-        /// The argument needs to be in the 
-        ///     StorageAccountName:StorageAccountKey:ContainerName
-        /// format
-        /// </summary>
-        /// <param name="argument"></param>
-        public AzureContainerInfo(string argument)
-        {
-            string[] info = argument.Split(':');
-            StorageAccountName = info[0];
-            StorageAccountKey = info[1];
-            ContainerName = info[2];
-        }
+        public string StorageAccountName { get; set; }
+        public string StorageAccountKey { get; set; }
+        public string ContainerName { get; set; }
     }
 }

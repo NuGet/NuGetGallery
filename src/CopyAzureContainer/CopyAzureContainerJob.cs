@@ -8,17 +8,22 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
 
 namespace CopyAzureContainer
 {
-    class CopyAzureContainerJob : JobBase
+    class CopyAzureContainerJob : JsonConfigurationJob
     {
-        private readonly string AzCopyPath = @"tools\azcopy\azCopy.exe";
+        private const string SectionName = "CopyAzureContainer";
+        private const string AzCopyPath = @"tools\azcopy\azCopy.exe";
         private readonly int DefaultBackupDays = -1;
         private string _destStorageAccountName;
         private string _destStorageKeyValue;
@@ -28,28 +33,23 @@ namespace CopyAzureContainer
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            _backupDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, ArgumentNames.CopyAzureContainer_BackupDays) ??
-                          DefaultBackupDays;
-            _destStorageAccountName = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.CopyAzureContainer_DestStorageAccountName);
-            _destStorageKeyValue = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.CopyAzureContainer_DestStorageKeyValue);
-            _sourceContainers = jobArgsDictionary.
-                                    Where(kvp => kvp.Key.StartsWith(ArgumentNames.CopyAzureContainer_SourceContainerPrefix)).
-                                    Select(kvp => new AzureContainerInfo(kvp.Value));
+            base.Init(serviceContainer, jobArgsDictionary);
+
+            var configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<CopyAzureContainerConfiguration>>().Value;
+
+            _backupDays = configuration.BackupDays ?? DefaultBackupDays;
+            _destStorageAccountName = configuration.DestStorageAccountName ?? throw new InvalidOperationException(nameof(configuration.DestStorageAccountName) + " is required.");
+            _destStorageKeyValue = configuration.DestStorageKeyValue ?? throw new InvalidOperationException(nameof(configuration.DestStorageKeyValue) + " is required.");
+            _sourceContainers = configuration.SourceContainers ?? throw new InvalidOperationException(nameof(configuration.SourceContainers) + " is required.");
         }
 
-        public string GetUsage()
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
-            return "Usage: CopyAzureContainerJob "
-                   + $"-{ArgumentNames.CopyAzureContainer_SourceContainerPrefix} <storageAccountName:storageAccountKey:ContainerName> More containers with the same prefix can be used"
-                   + $"-{ArgumentNames.CopyAzureContainer_DestStorageAccountName} <destinationStorageAccountName> "
-                   + $"-{ArgumentNames.CopyAzureContainer_DestStorageKeyValue} <destinationStorageAccountKey> "
-                   + $"-{ArgumentNames.CopyAzureContainer_BackupDays} <backupDaysToKeepAsIntValue> "
-                   + $"-{JobArgumentNames.InstrumentationKey} <intrumentationKey> "
-                   + $"-{JobArgumentNames.VaultName} <keyvault name> "
-                   + $"-{JobArgumentNames.UseManagedIdentity} <true|false> "
-                   + $"-{JobArgumentNames.ClientId} <keyvault-client-id> Should not be set if UseManagedIdentity is true"
-                   + $"-{JobArgumentNames.CertificateThumbprint} <keyvault-certificate-thumbprint> Should not be set if UseManagedIdentity is true"
-                   + $"-{JobArgumentNames.ValidateCertificate} <true|false>";
+        }
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            services.Configure<CopyAzureContainerConfiguration>(configurationRoot.GetSection(SectionName));
         }
 
         public override async Task Run()
