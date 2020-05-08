@@ -58,7 +58,7 @@ namespace Validation.PackageSigning.RevalidateCertificate
             });
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
     }

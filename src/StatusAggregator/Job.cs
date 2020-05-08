@@ -40,7 +40,7 @@ namespace StatusAggregator
         private const string PrimaryStorageAccountName = "Primary";
         private const string SecondaryStorageAccountName = "Secondary";
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             AddStorage(containerBuilder);
             AddFactoriesAndUpdaters(containerBuilder);

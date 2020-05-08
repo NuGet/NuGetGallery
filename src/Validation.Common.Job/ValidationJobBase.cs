@@ -101,9 +101,9 @@ namespace NuGet.Jobs.Validation
             });
         }
 
-        protected override void ConfigureDefaultAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureDefaultAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
-            base.ConfigureDefaultAutofacServices(containerBuilder);
+            base.ConfigureDefaultAutofacServices(containerBuilder, configurationRoot);
 
             ConfigureFeatureFlagAutofacServices(containerBuilder);
 

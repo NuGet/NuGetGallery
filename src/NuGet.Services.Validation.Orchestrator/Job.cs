@@ -11,13 +11,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
-using Autofac.Extensions.DependencyInjection;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.ServiceBus.Messaging;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
@@ -27,7 +25,6 @@ using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Jobs.Validation.Symbols.Core;
-using NuGet.Services.Configuration;
 using NuGet.Services.Entities;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
@@ -45,14 +42,13 @@ using NuGetGallery.Diagnostics;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
-    public class Job : JobBase
+    public class Job : JsonConfigurationJob
     {
         /// <summary>
         /// The maximum number of concurrent connections that can be established to a single server.
         /// </summary>
         private const int MaximumConnectionsPerServer = 64;
 
-        private const string ConfigurationArgument = "Configuration";
         private const string ValidateArgument = "Validate";
 
         private const string ConfigurationSectionName = "Configuration";
@@ -61,9 +57,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string ScanAndSignSectionName = "ScanAndSign";
         private const string SymbolScanOnlySectionName = "SymbolScanOnly";
         private const string RunnerConfigurationSectionName = "RunnerConfiguration";
-        private const string GalleryDbConfigurationSectionName = "GalleryDb";
-        private const string ValidationDbConfigurationSectionName = "ValidationDb";
-        private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string EmailConfigurationSectionName = "Email";
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
         private const string FlatContainerConfigurationSectionName = "FlatContainer";
@@ -75,8 +68,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string PackageCertificatesBindingKey = PackageCertificatesSectionName;
         private const string ScanAndSignBindingKey = ScanAndSignSectionName;
         private const string SymbolsScanBindingKey = "SymbolsScan";
-        private const string ScanBindingKey = "Scan";
-        private const string ValidationStorageBindingKey = "ValidationStorage";
         private const string OrchestratorBindingKey = "Orchestrator";
         private const string CoreLicenseFileServiceBindingKey = "CoreLicenseFileService";
 
@@ -86,11 +77,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string SymbolsIngesterSectionName = "SymbolsIngester";
         private const string SymbolsIngesterBindingKey = SymbolsIngesterSectionName;
 
-        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromHours(6);
-
-        private bool _validateOnly;
-        private IServiceProvider _serviceProvider;
-
         /// <summary>
         /// Indicates whether we had successful configuration validation or not
         /// </summary>
@@ -99,14 +85,10 @@ namespace NuGet.Services.Validation.Orchestrator
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             ServicePointManager.DefaultConnectionLimit = MaximumConnectionsPerServer;
-
-            var configurationFilename = JobConfigurationManager.GetArgument(jobArgsDictionary, ConfigurationArgument);
             _validateOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, ValidateArgument, defaultValue: false);
-
-            var configurationRoot = GetConfigurationRoot(configurationFilename, _validateOnly, out var secretInjector);
-            _serviceProvider = GetServiceProvider(configurationRoot, secretInjector);
-
             ConfigurationValidated = false;
+
+            base.Init(serviceContainer, jobArgsDictionary);
         }
 
         public override async Task Run()
@@ -130,76 +112,12 @@ namespace NuGet.Services.Validation.Orchestrator
             await featureFlagRefresher.StopAndWaitAsync();
         }
 
-        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, bool validateOnly, out ISecretInjector secretInjector)
-        {
-            Logger.LogInformation("Using the {ConfigurationFilename} configuration file", configurationFilename);
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: false);
-
-            var uninjectedConfiguration = builder.Build();
-
-            secretInjector = null;
-            if (validateOnly)
-            {
-                // don't try to access KeyVault if only validation is requested:
-                // we might not be running on a machine with KeyVault access.
-                // Validation settings should not contain KeyVault references anyway
-                return uninjectedConfiguration;
-            }
-
-            var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
-            var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
-            secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
-
-            builder = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddInjectedJsonFile(configurationFilename, secretInjector);
-
-            return builder.Build();
-        }
-
-        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot, ISecretInjector secretInjector)
-        {
-            var services = new ServiceCollection();
-            if (!_validateOnly)
-            {
-                services.AddSingleton(secretInjector);
-            }
-
-            ConfigureLibraries(services);
-            ConfigureJobServices(services, configurationRoot);
-
-            return CreateProvider(services, configurationRoot);
-        }
-
-        private void ConfigureLibraries(IServiceCollection services)
-        {
-            // we do not call services.AddOptions here, because we want our own custom version of IOptionsSnapshot 
-            // to be present in the service collection for KeyVault secret injection to work properly
-            services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
-            services.AddSingleton(LoggerFactory);
-            services.AddLogging();
-        }
-
-        private DbConnection CreateDbConnection<T>(IServiceProvider serviceProvider) where T : class, IDbConfiguration, new()
-        {
-            var connectionString = serviceProvider.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
-            var connectionFactory = new AzureSqlConnectionFactory(connectionString,
-                serviceProvider.GetRequiredService<ISecretInjector>(), Logger);
-
-            return Task.Run(() => connectionFactory.CreateAsync()).Result;
-        }
-
-        private void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<ValidationConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<ProcessSignatureConfiguration>(configurationRoot.GetSection(PackageSigningSectionName));
             services.Configure<ValidateCertificateConfiguration>(configurationRoot.GetSection(PackageCertificatesSectionName));
             services.Configure<OrchestrationRunnerConfiguration>(configurationRoot.GetSection(RunnerConfigurationSectionName));
-            services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
-            services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
-            services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
             services.Configure<EmailConfiguration>(configurationRoot.GetSection(EmailConfigurationSectionName));
             services.Configure<ScanAndSignConfiguration>(configurationRoot.GetSection(ScanAndSignSectionName));
             services.Configure<SymbolScanOnlyConfiguration>(configurationRoot.GetSection(SymbolScanOnlySectionName));
@@ -213,14 +131,21 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ConfigurationValidator>();
             services.AddTransient<OrchestrationRunner>();
 
-            services.AddScoped<IEntitiesContext>(serviceProvider =>
-                new EntitiesContext(
-                    CreateDbConnection<GalleryDbConfiguration>(serviceProvider),
-                    readOnly: false)
-                    );
-            services.AddScoped(serviceProvider =>
-                new ValidationEntitiesContext(
-                    CreateDbConnection<ValidationDbConfiguration>(serviceProvider)));
+            services.AddScoped<IEntitiesContext>(p =>
+            {
+                var connectionFactory = p.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>();
+                var connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
+
+                return new EntitiesContext(connection, readOnly: false);
+            });
+
+            services.AddScoped(p =>
+            {
+                var connectionFactory = p.GetRequiredService<ISqlConnectionFactory<ValidationDbConfiguration>>();
+                var connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
+
+                return new ValidationEntitiesContext(connection);
+            });
 
             services.AddScoped<IValidationEntitiesContext>(serviceProvider =>
                 serviceProvider.GetRequiredService<ValidationEntitiesContext>());
@@ -309,11 +234,8 @@ namespace NuGet.Services.Validation.Orchestrator
             ValidationJobBase.ConfigureFeatureFlagServices(services, configurationRoot);
         }
 
-        private static IServiceProvider CreateProvider(IServiceCollection services, IConfigurationRoot configurationRoot)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
-            var containerBuilder = new ContainerBuilder();
-            containerBuilder.Populate(services);
-
             containerBuilder
                 .Register(c =>
                 {
@@ -322,7 +244,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     return topicClient;
                 })
                 .Keyed<TopicClientWrapper>(PackageVerificationTopicClientBindingKey);
-            
+
             containerBuilder
                 .RegisterType<ProcessSignatureEnqueuer>()
                 .WithParameter(new ResolvedParameter(
@@ -339,8 +261,8 @@ namespace NuGet.Services.Validation.Orchestrator
 
             containerBuilder
                 .RegisterTypeWithKeyedParameter<
-                    ISubscriptionProcessor<PackageValidationMessageData>, 
-                    SubscriptionProcessor<PackageValidationMessageData>, 
+                    ISubscriptionProcessor<PackageValidationMessageData>,
+                    SubscriptionProcessor<PackageValidationMessageData>,
                     IMessageHandler<PackageValidationMessageData>>(
                         OrchestratorBindingKey);
 
@@ -355,8 +277,8 @@ namespace NuGet.Services.Validation.Orchestrator
 
             containerBuilder
                 .RegisterTypeWithKeyedParameter<
-                    IEmailMessageEnqueuer, 
-                    EmailMessageEnqueuer, 
+                    IEmailMessageEnqueuer,
+                    EmailMessageEnqueuer,
                     ITopicClient>(
                         EmailBindingKey);
 
@@ -383,8 +305,6 @@ namespace NuGet.Services.Validation.Orchestrator
 
             ValidationJobBase.ConfigureFeatureFlagAutofacServices(containerBuilder);
             ConfigureLeaseService(containerBuilder);
-
-            return new AutofacServiceProvider(containerBuilder.Build());
         }
 
         private static void ConfigurePackageSigningValidators(ContainerBuilder builder)

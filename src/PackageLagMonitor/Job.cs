@@ -39,7 +39,7 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             _telemetryService = _serviceProvider.GetService<IPackageLagTelemetryService>();
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 

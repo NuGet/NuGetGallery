@@ -389,7 +389,7 @@ namespace Stats.CollectAzureCdnLogs
             return secondsPastEpoch.ToString(CultureInfo.InvariantCulture);
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 

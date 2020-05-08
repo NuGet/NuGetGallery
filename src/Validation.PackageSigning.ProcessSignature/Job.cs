@@ -68,7 +68,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             services.AddTransient<ISignatureValidator, SignatureValidator>();
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             ConfigureDefaultSubscriptionProcessor(containerBuilder);
 

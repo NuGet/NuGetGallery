@@ -43,7 +43,7 @@ namespace CopyAzureContainer
             _sourceContainers = configuration.SourceContainers ?? throw new InvalidOperationException(nameof(configuration.SourceContainers) + " is required.");
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 

@@ -38,7 +38,7 @@ namespace NuGet.SupportRequests.Notifications
             await scheduledTask.RunAsync();
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 

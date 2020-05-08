@@ -94,7 +94,7 @@ namespace Stats.CDNLogsSanitizer
             throw new ArgumentException("Job parameter for Azure CDN Cloud Storage Account is invalid.");
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 

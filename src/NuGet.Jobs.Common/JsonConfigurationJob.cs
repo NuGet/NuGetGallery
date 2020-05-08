@@ -1,5 +1,4 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -58,6 +57,13 @@ namespace NuGet.Jobs
         /// </summary>
         private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromHours(6);
 
+        /// <summary>
+        /// Skip secret injection allowing the job to do some consistency checks without needing secret injection. This
+        /// is useful if you want to run some code in the CI or in some other environment that doesn't have access to
+        /// secrets or other secured resources.
+        /// </summary>
+        protected bool _validateOnly;
+
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             var configurationFilename = JobConfigurationManager.GetArgument(jobArgsDictionary, ConfigurationArgument);
@@ -65,7 +71,10 @@ namespace NuGet.Jobs
 
             _serviceProvider = GetServiceProvider(configurationRoot, secretInjector);
 
-            RegisterDatabases(_serviceProvider);
+            if (!_validateOnly)
+            {
+                RegisterDatabases(_serviceProvider);
+            }
         }
 
         private IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ISecretInjector secretInjector)
@@ -79,6 +88,12 @@ namespace NuGet.Jobs
                 .AddJsonFile(configurationFilename, optional: false, reloadOnChange: false);
 
             var uninjectedConfiguration = builder.Build();
+
+            if (_validateOnly)
+            {
+                secretInjector = null;
+                return uninjectedConfiguration;
+            }
 
             var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
             var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
@@ -95,7 +110,12 @@ namespace NuGet.Jobs
         {
             // Configure as much as possible with Microsoft.Extensions.DependencyInjection.
             var services = new ServiceCollection();
-            services.AddSingleton(secretInjector);
+
+            if (!_validateOnly)
+            {
+                services.AddSingleton(secretInjector);
+            }
+
             services.AddSingleton(ApplicationInsightsConfiguration.TelemetryConfiguration);
             services.AddSingleton<IConfiguration>(configurationRoot);
 
@@ -108,8 +128,8 @@ namespace NuGet.Jobs
             containerBuilder.Populate(services);
             containerBuilder.RegisterAssemblyModules(GetType().Assembly);
 
-            ConfigureDefaultAutofacServices(containerBuilder);
-            ConfigureAutofacServices(containerBuilder);
+            ConfigureDefaultAutofacServices(containerBuilder, configurationRoot);
+            ConfigureAutofacServices(containerBuilder, configurationRoot);
 
             return new AutofacServiceProvider(containerBuilder.Build());
         }
@@ -132,7 +152,7 @@ namespace NuGet.Jobs
             AddScopedSqlConnectionFactory<ValidationDbConfiguration>(services);
         }
 
-        protected virtual void ConfigureDefaultAutofacServices(ContainerBuilder containerBuilder)
+        protected virtual void ConfigureDefaultAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 
@@ -192,7 +212,7 @@ namespace NuGet.Jobs
         /// Method to be implemented in derived classes to provide Autofac-specific configuration for
         /// that specific job (like setting up keyed resolution).
         /// </summary>
-        protected abstract void ConfigureAutofacServices(ContainerBuilder containerBuilder);
+        protected abstract void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot);
 
         /// <summary>
         /// Method to be implemented in derived classes to provide DI container configuration
