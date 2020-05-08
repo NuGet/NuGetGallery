@@ -832,8 +832,6 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-          
-           
 
             var readme = await _readMeService.GetReadMeHtmlAsync(package);
             var deprecations = _deprecationService.GetDeprecationsById(id);
@@ -862,11 +860,10 @@ namespace NuGetGallery
             {
                 // Caching dependence
 
-                CreatePackageDependents dependence; // Maybe this type is changed
-                                                    // searchAndListModel correspond to q and page; what is that?
+                CreatePackageDependents dependence; 
                 var cacheKey = "cache dependents_" + id.ToLowerInvariant();
 
-                var cachedResults = HttpContext.Cache.Get(cacheKey);// What cache key?
+                var cachedResults = HttpContext.Cache.Get(cacheKey);
                 if (cachedResults == null)
                 {
                     dependence = _packageService.GetPackageDependents(id);

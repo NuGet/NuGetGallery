@@ -149,15 +149,17 @@ namespace NuGetGallery
         public CreatePackageDependents GetPackageDependents(string id)
         {
             CreatePackageDependents res = new CreatePackageDependents();
-         
-            var conn = _entitiesContext.GetDatabase().Connection;
-            conn.Open();
-            res.PackageList = GetListOfDependents(id, conn);
-            res.TotalDownloads = showTotalDownloads(id, conn);
-            return res;
+
+            using (var conn = _entitiesContext.GetDatabase().Connection)
+            { 
+                conn.Open();
+                res.PackageList = GetListOfDependents(id, conn);
+                res.TotalDownloads = showTotalDownloads(id, conn);
+                return res;
+            }
         }
 
-        public IReadOnlyCollection<PackageDependent> GetListOfDependents(String id, DbConnection conn)
+        private IReadOnlyCollection<PackageDependent> GetListOfDependents(String id, DbConnection conn)
         {
             var packageDependentsList = new List<PackageDependent>();
             using (var comm2 = conn.CreateCommand())
@@ -169,13 +171,12 @@ namespace NuGetGallery
 	                WHERE PackageDependencies.id = @id AND Packages.IsLatest = 1
 	                GROUP BY PackageRegistrations.id, PackageRegistrations.DownloadCount, Packages.Description
                     ORDER BY PackageRegistrations.DownloadCount DESC";
-
+                
                 var parameter = comm2.CreateParameter();
                 parameter.ParameterName = "@id";
                 parameter.Value = id;
-
-
                 comm2.Parameters.Add(parameter);
+
                 using (DbDataReader reader = comm2.ExecuteReader())
                 {
                     while (reader.Read())
@@ -191,9 +192,8 @@ namespace NuGetGallery
             return packageDependentsList;
         }
 
-        public int showTotalDownloads(String id, DbConnection conn)
+        private int showTotalDownloads(String id, DbConnection conn)
         {
-           
             int result = 0;
 
             using (var comm2 = conn.CreateCommand())
@@ -202,7 +202,6 @@ namespace NuGetGallery
 	                FROM PackageDependencies 
 	                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
 	                WHERE PackageDependencies.id = @id AND Packages.IsLatest = 1";
-
 
                 var parameter = comm2.CreateParameter();
                 parameter.ParameterName = "@id";
