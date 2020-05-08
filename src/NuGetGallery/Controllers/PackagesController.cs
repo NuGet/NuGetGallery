@@ -796,6 +796,10 @@ namespace NuGetGallery
             }
         }
 
+        [HttpDelete]
+        public HttpStatusCodeResult DisplayPackage() => new HttpStatusCodeResult(HttpStatusCode.MethodNotAllowed);
+
+        [HttpGet]
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
             string normalized = NuGetVersionFormatter.Normalize(version);
