@@ -223,17 +223,32 @@
 
 @helper InstrumentationScript()
 {
-    // Get instrumentation key
+    // Get instrumentation keys
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
     var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey;
     var samplingPct = config == null ? 100 : config.Current.AppInsightsSamplingPercentage;
+    var tenantKey = config == null ? string.Empty : config.Current.InternalMicrosoftTenantKey;
 
-    if (!string.IsNullOrEmpty(iKey))
+    if (!string.IsNullOrEmpty(iKey) || !string.IsNullOrEmpty(tenantKey))
     {
         var cookieService = DependencyResolver.Current.GetService<ICookieComplianceService>();
         if (cookieService.CanWriteNonEssentialCookies(Request))
         {
-            <!-- Telemetry -->
+            if (!string.IsNullOrEmpty(tenantKey))
+            {
+                @System.Web.Optimization.Scripts.Render("~/Scripts/gallery/instrumentation.min.js")
+                <script type="text/javascript">
+                if (window.initializeNuGetInstrumentation) {
+                    window.NuGetInstrumentation = window.initializeNuGetInstrumentation({
+                        appInsightsInstrumentationKey: "@iKey",
+                        appInsightsSamplingPercentage: @samplingPct,
+                        tenantKey: "@tenantKey",
+                    });
+                }
+                </script>
+            }
+            else
+            {
             <script type="text/javascript">
                 var appInsights = window.appInsights || function (config) {
                     function s(config) {
@@ -257,6 +272,7 @@
                 window.appInsights = appInsights;
                 appInsights.trackPageView();
             </script>
+            }
         }
     }
 }

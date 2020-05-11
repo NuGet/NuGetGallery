@@ -3,6 +3,19 @@
     Response.StatusCode = 500;
 }
 
+@if (StringComparer.OrdinalIgnoreCase.Equals(Request.Path, "/pages/simulate-error")
+     && StringComparer.OrdinalIgnoreCase.Equals(Request.QueryString["type"], SimulatedErrorType.ExceptionInInlineErrorPage.ToString()))
+{
+    throw SimulatedErrorType.ExceptionInInlineErrorPage.MapToException();
+}
+
+@if (StringComparer.OrdinalIgnoreCase.Equals(Request.Path, "/Errors/500")
+     && Request.Cookies["simulatedErrorType"] != null
+     && StringComparer.OrdinalIgnoreCase.Equals(Request.Cookies["simulatedErrorType"].Value, SimulatedErrorType.ExceptionInDedicatedErrorPage.ToString()))
+{
+    throw SimulatedErrorType.ExceptionInDedicatedErrorPage.MapToException();
+}
+
 @ViewHelpers.ErrorPage(Url, Html, "500", "Internal Server Error", @<text>
 <p>An error occurred while processing your request. We really messed up this time...</p></text>, @<text>
 <p>We have logged the error and will look into it so that it doesn't happen again; however, if you keep seeing this page, please <a href="https://github.com/NuGet/NuGetGallery/issues">file a bug!</a></p></text>)

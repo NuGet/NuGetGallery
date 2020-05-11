@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Services.Entities;
 using System.Collections.Generic;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -133,5 +133,10 @@ namespace NuGetGallery
         /// Whether we should enable the Usabilla feedback button on every page.
         /// </summary>
         bool IsUsabillaButtonEnabledOnEveryPage();
+
+        /// <summary>
+        /// Whether the user is able to see or manage the package renames information.
+        /// </summary>
+        bool IsPackageRenamesEnabled(User user);
     }
 }

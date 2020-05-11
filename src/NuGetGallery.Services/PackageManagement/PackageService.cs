@@ -307,6 +307,51 @@ namespace NuGetGallery
                 allowPrerelease);
         }
 
+        /// <inheritdoc />
+        public Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages, string version, bool prerelease)
+        {
+            IEnumerable<Package> GetSortedFiltered(IEnumerable<Package> localPackages, bool applyPrereleaseFilter = true)
+            {
+                var semvered = localPackages
+                    .Select(package => new {package, semVer= NuGetVersion.Parse(package.NormalizedVersion)})
+                    .ToList();
+                
+                return semvered
+                    .Where(d => d.semVer.IsPrerelease == prerelease || !applyPrereleaseFilter)
+                    .OrderByDescending(d => d.semVer)
+                    .Select(d => d.package)
+                    .ToList();
+            }
+
+            Package GetPrereleaseByVersion()
+            {
+                if (string.IsNullOrEmpty(version))
+                {
+                    return GetSortedFiltered(packages)
+                        .FirstOrDefault();
+                }
+                else
+                {
+                    return GetSortedFiltered(packages.Where(package => package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0))
+                        .FirstOrDefault();
+                }
+            }
+            
+            Package GetLatestPrerelease()
+            {
+                return GetSortedFiltered(packages)
+                    .FirstOrDefault();
+            }
+            
+            Package GetLatestStable()
+            {
+                return GetSortedFiltered(packages, false)
+                    .FirstOrDefault();
+            }
+
+            return GetPrereleaseByVersion() ?? GetLatestPrerelease() ?? GetLatestStable();
+        }
+
         private static Package FilterLatestPackageHelper(
             IReadOnlyCollection<Package> packages,
             int? semVerLevelKey,

@@ -13,7 +13,8 @@
     define([], factory);
   } else if (typeof exports === 'object') {
     // Node, CommonJS-like
-    module.exports = factory();
+    // NuGetGallery edit: commented out because we are in the browser and this line breaks WebGrease.
+    // module.exports = factory();
   } else {
     // Browser globals
     root.$clamp = factory();

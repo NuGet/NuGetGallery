@@ -2,6 +2,7 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ThirdPartyBinaries Include="AnglicanGeek.MarkdownMailer.dll" />
+    <ThirdPartyBinaries Include="Antlr3.Runtime.dll" />
     <ThirdPartyBinaries Include="Autofac.dll" />
     <ThirdPartyBinaries Include="Autofac.Extensions.DependencyInjection.dll" />
     <ThirdPartyBinaries Include="Autofac.Integration.Mvc.dll" />

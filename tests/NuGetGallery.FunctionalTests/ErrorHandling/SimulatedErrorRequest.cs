@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace NuGetGallery.FunctionalTests.ErrorHandling
 {
@@ -39,6 +40,18 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
             }
 
             return $"{path}?type={SimulatedErrorType}";
+        }
+
+        public IReadOnlyDictionary<string, string> GetCookies()
+        {
+            var cookies = new Dictionary<string, string>();
+
+            if (SimulatedErrorType == SimulatedErrorType.ExceptionInDedicatedErrorPage)
+            {
+                cookies["simulatedErrorType"] = SimulatedErrorType.ToString();
+            }
+
+            return cookies;
         }
 
         public override bool Equals(object obj)

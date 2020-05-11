@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -35,6 +35,7 @@ using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.Services;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
@@ -91,6 +92,7 @@ namespace NuGetGallery
 
         private readonly IAppConfiguration _config;
         private readonly IMessageService _messageService;
+        private readonly IPackageFilter _packageFilter;
         private readonly IPackageService _packageService;
         private readonly IPackageUpdateService _packageUpdateService;
         private readonly IPackageFileService _packageFileService;
@@ -117,6 +119,7 @@ namespace NuGetGallery
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
+        private readonly IPackageRenameService _renameService;
         private readonly IABTestService _abTestService;
         private readonly IIconUrlProvider _iconUrlProvider;
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
@@ -126,6 +129,7 @@ namespace NuGetGallery
         private readonly DeletePackageViewModelFactory _deletePackageViewModelFactory;
 
         public PackagesController(
+            IPackageFilter packageFilter,
             IPackageService packageService,
             IPackageUpdateService packageUpdateService,
             IUploadFileService uploadFileService,
@@ -154,9 +158,11 @@ namespace NuGetGallery
             ILicenseExpressionSplitter licenseExpressionSplitter,
             IFeatureFlagService featureFlagService,
             IPackageDeprecationService deprecationService,
+            IPackageRenameService renameService,
             IABTestService abTestService,
             IIconUrlProvider iconUrlProvider)
         {
+            _packageFilter = packageFilter;
             _packageService = packageService;
             _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));
             _uploadFileService = uploadFileService;
@@ -185,6 +191,7 @@ namespace NuGetGallery
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
+            _renameService = renameService ?? throw new ArgumentNullException(nameof(renameService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
@@ -799,28 +806,9 @@ namespace NuGetGallery
             }
 
             // Load all packages with the ID.
-            Package package = null;
             var allVersions = _packageService.FindPackagesById(id, includePackageRegistration: true);
-            
-
-            if (version != null)
-            {
-                if (version.Equals(GalleryConstants.AbsoluteLatestUrlString, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // The user is looking for the absolute latest version and not an exact version.
-                    package = allVersions.FirstOrDefault(p => p.IsLatestSemVer2);
-                }
-                else
-                {
-                    package = _packageService.FilterExactPackage(allVersions, version);
-                }
-            }
-
-            if (package == null)
-            {
-                // If we cannot find the exact version or no version was provided, fall back to the latest version.
-                package = _packageService.FilterLatestPackage(allVersions, SemVerLevelKey.SemVer2, allowPrerelease: true);
-            }
+            var filterContext = new PackageFilterContext(RouteData?.Route, version);
+            var package = _packageFilter.GetFiltered(allVersions, filterContext);
 
             // Validating packages should be hidden to everyone but the owners and admins.
             var currentUser = GetCurrentUser();
@@ -839,11 +827,18 @@ namespace NuGetGallery
                 .GroupBy(d => d.PackageKey)
                 .ToDictionary(g => g.Key, g => g.First());
 
+            IReadOnlyList<PackageRename> packageRenames = null;
+            if (_featureFlagService.IsPackageRenamesEnabled(currentUser))
+            {
+                packageRenames = _renameService.GetPackageRenames(package.PackageRegistration);
+            }
+
             var model = _displayPackageViewModelFactory.Create(
                 package,
                 allVersions,
                 currentUser,
                 packageKeyToDeprecation,
+                packageRenames,
                 readme);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
@@ -852,6 +847,7 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
 
             // Different switches for feature
             var ispackageDepentsEnabled = (model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser));

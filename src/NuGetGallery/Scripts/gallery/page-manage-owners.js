@@ -103,7 +103,7 @@
             var ownerInputModel =
                 {
                     username: newUsername,
-                    id: viewModel.package.id,
+                    id: viewModel["package"].id,
                     message: message
                 };
 
@@ -152,7 +152,7 @@
                 dataType: 'json',
                 type: 'POST',
                 data: window.nuget.addAjaxAntiForgeryToken({
-                    id: viewModel.package.id,
+                    id: viewModel["package"].id,
                     username: item.name(),
                 }),
                 success: function (data) {
@@ -178,7 +178,7 @@
 
     // Load initial owners.
     $.ajax({
-        url: getPackageOwnersUrl + '?id=' + viewModel.package.id,
+        url: getPackageOwnersUrl + '?id=' + viewModel["package"].id,
         cache: false,
         dataType: 'json',
         type: 'GET',
