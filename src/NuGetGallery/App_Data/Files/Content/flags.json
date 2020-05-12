@@ -31,7 +31,7 @@
     },
     "NuGetGallery.GitHubUsage": {
       "All": false,
-      "SiteAdmins": true,
+      "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
     },

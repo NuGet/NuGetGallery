@@ -24,11 +24,8 @@ namespace NuGetGallery.Services
             PreviewHijackPercentage = previewHijackPercentage;
         }
 
-
         public int PreviewSearchPercentage { get; }
         public int PreviewHijackPercentage { get; }
-
- 
 
         private static void GuardPercentage(int value, string paramName)
         {

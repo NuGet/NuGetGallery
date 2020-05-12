@@ -17,7 +17,12 @@ namespace NuGetGallery
     /// </summary>
     public interface IPackageService : ICorePackageService
     {
-        CreatePackageDependents GetPackageDependents(string id);
+        /// <summary>
+        /// Returns a PackageDependents object which includes an IReadOnlyCollection<PackageDependent> and 
+        /// a total count of dependents <see cref="Package.Id"/> of <paramref name="id"/>.
+        /// </summary>
+        PackageDependents GetPackageDependents(string id);
+
         /// <summary>
         /// Returns all packages with an <see cref="Package.Id"/> of <paramref name="id"/>.
         /// Includes deprecation fields based on <paramref name="deprecationFields"/>.

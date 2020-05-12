@@ -147,6 +147,7 @@
     <Compile Include="Helpers\UploadHelper.cs" />
     <Compile Include="Models\LuceneIndexLocation.cs" />
     <Compile Include="Models\PackageDependent.cs" />
+    <Compile Include="Models\PackageDependents.cs" />
     <Compile Include="Models\ReportPackageReason.cs" />
     <Compile Include="Models\StorageType.cs" />
     <Compile Include="PackageManagement\ActionOnNewPackageContext.cs" />

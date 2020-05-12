@@ -7,16 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetGallery
+namespace NuGetGallery.Services.Models
 {
-    public class PackageDependent
+    class PackageDependents
     {
-        public String Id { get; set; }
-        public int DownloadCount { get; set; }
-        public String Description { get; set; }
-
-        // TODO Add verify checkmark
-        // https://github.com/NuGet/NuGetGallery/issues/4718
+        public IReadOnlyCollection<PackageDependent> PackageList { get; set; }
+        public int DependentCount { get; set; }
     }
 }
-      

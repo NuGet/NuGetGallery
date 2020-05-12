@@ -85,8 +85,8 @@ namespace NuGetGallery
             Mock<IIconUrlProvider> iconUrlProvider = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
-            CreatePackageDependents packageDependents = new CreatePackageDependents();
-            packageService.Setup(x => x.GetPackageDependents(It.IsAny<String>())).Returns(packageDependents);
+            PackageDependents packageDependents = new PackageDependents();
+            packageService.Setup(x => x.GetPackageDependents(It.IsAny<string>())).Returns(packageDependents);
 
 
 
@@ -1598,39 +1598,58 @@ namespace NuGetGallery
                 Assert.Equal(iconUrl, model.IconUrl);
             }
 
-            
-            /*
             [Fact]
             public async Task CheckFeatureFlagIsOff()
             {
+                string id = "foo";
+                string cacheKey = "cache dependents_" + id.ToLowerInvariant();
+                var packageService = new Mock<IPackageService>();
+                var featureFlagService = new Mock<IFeatureFlagService>();
 
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService);
 
-                var result = await controller.DisplayPackage("foo", version: null);
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                    },
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+
+                var packages = new List<Package> { package };
+                featureFlagService
+                    .Setup(f => f.IsPackageDependentsEnabled(It.IsAny<User>()))
+                    .Returns(false);
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
+                    .Returns(package);
+
+                var result = await controller.DisplayPackage(id, version: null);
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+
+                Assert.Null(model.packageDependents);
+                packageService
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
                 Assert.False(model.IsPackageDependentsEnabled);
             }
 
             [Fact]
-            public async Task CheckFeatureFlagIsOn()
-            {
-                var result = await controller.DisplayPackage("foo", version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.True(model.IsPackageDependentsEnabled);
-                
-
-            }
-
-            */
-            [Fact]
             public async Task WhenCacheIsOccupiedGetProperPackageDependent()
             {
-                // Check that cache has stuff 
-
                 string id = "foo";
                 string cacheKey = "cache dependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var httpContext = new Mock<HttpContextBase>();
-                CreatePackageDependents pd = new CreatePackageDependents();
+                PackageDependents pd = new PackageDependents();
 
                 httpContext
                     .Setup(c => c.Cache)
@@ -1642,7 +1661,6 @@ namespace NuGetGallery
                         DateTime.UtcNow.AddMinutes(5),
                         Cache.NoSlidingExpiration,
                         CacheItemPriority.Default, null);
-
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1668,13 +1686,116 @@ namespace NuGetGallery
                     .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
                     .Returns(package);
 
-
                 var result = await controller.DisplayPackage(id, version: null);
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 
                 Assert.Same(pd, model.packageDependents);
                 packageService
-                    .Verify(iup => iup.GetPackageDependents(It.IsAny<String>()), Times.Never());
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
+            public async Task OccupyEmptyCache()
+            {
+                string id = "foo";
+                string cacheKey = "cache dependents_" + id.ToLowerInvariant();
+                var packageService = new Mock<IPackageService>();
+                var httpContext = new Mock<HttpContextBase>();
+                PackageDependents pd = new PackageDependents();
+
+                httpContext
+                    .Setup(c => c.Cache)
+                    .Returns(_cache);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    httpContext: httpContext);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                    },
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+
+                var packages = new List<Package> { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
+                    .Returns(package);
+                packageService
+                    .Setup(p => p.GetPackageDependents(It.IsAny<string>()))
+                    .Returns(pd);
+
+                var result = await controller.DisplayPackage(id, version: null);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+
+                packageService
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Once());
+                Assert.Same(pd, model.packageDependents);
+                Assert.Same(pd, _cache.Get(cacheKey));
+            }
+
+            [Fact]
+            public async Task CheckThatCacheKeyIsNotCaseSensitive()
+            {
+                string id1 = "fooBAr";
+                string id2 = "FOObAr";
+                string cacheKey1 = "cache dependents_" + id1.ToLowerInvariant();
+                string cacheKey2 = "cache dependents_" + id2.ToLowerInvariant();
+                var packageService = new Mock<IPackageService>();
+                var httpContext = new Mock<HttpContextBase>();
+                PackageDependents pd = new PackageDependents();
+
+                httpContext
+                    .Setup(c => c.Cache)
+                    .Returns(_cache);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    httpContext: httpContext);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id1,
+                        Owners = new List<User>(),
+                    },
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+
+                var packages = new List<Package> { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(It.IsAny<string>(), /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
+                    .Returns(package);
+                packageService
+                    .Setup(p => p.GetPackageDependents(It.IsAny<string>()))
+                    .Returns(pd);
+
+                var result1 = await controller.DisplayPackage(id1, version: null);
+                var model1 = ResultAssert.IsView<DisplayPackageViewModel>(result1);
+                var result2 = await controller.DisplayPackage(id2, version: null);
+                var model2 = ResultAssert.IsView<DisplayPackageViewModel>(result2);
+
+                Assert.Same(pd, model1.packageDependents);
+                Assert.Same(pd, model2.packageDependents);
+                packageService
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<String>()), Times.Once());
+                Assert.Same(pd, _cache.Get(cacheKey1));
+                Assert.Same(_cache.Get(cacheKey2), _cache.Get(cacheKey1));
             }
 
             protected override void Dispose(bool disposing)
@@ -1687,40 +1808,7 @@ namespace NuGetGallery
 
                 base.Dispose(disposing);
             }
-
-
-            /*
-            [Fact]
-            public async Task OccupyEmptyCache()
-            {
-                // Have initial cache check make sure its empty
-                var result = await controller.DisplayPackage("foo", version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                CreatePackageDependents pd = new CreatePackageDependents();
-                Assert.Equal(pd, model.packageDependents);
-
-            }
-
-            [Fact]
-            public async Task CheckThatCacheLastsFiveMinutes()
-            {
-                var httpContext = new Mock<HttpContextBase>();
-                var featureFlagService = new Mock<IFeatureFlagService>();
-                var cacheService = new Mock<ICacheService>();
-                httpContext.Setup(c => c.Cache).Returns(new Cache());
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    );
-
-            }
-
-            [Fact]
-            public async Task CheckThatCacheKeyIsNotCaseSensitive()
-            {
-
-            }
         
-            */
             private class TestIssue : ValidationIssue
             {
                 private readonly string _message;

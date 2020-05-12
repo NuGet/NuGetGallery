@@ -38,8 +38,7 @@ namespace NuGetGallery
         public bool IsPackageDependentsEnabled { get; set; }
         public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
         public bool HasEmbeddedIcon { get; set; }
-        //public IReadOnlyCollection<PackageDependent> packageDependents { get; set;}
-        public CreatePackageDependents packageDependents { get; set; }
+        public PackageDependents packageDependents { get; set; }
 
 
         public bool HasNewerPrerelease

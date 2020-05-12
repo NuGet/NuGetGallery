@@ -20,7 +20,6 @@ namespace NuGetGallery
     /// </summary>
     public class ABTestEnrollment
     {
-
         public ABTestEnrollment(ABTestEnrollmentState state, int schemaVersion, int previewSearchBucket)
         {
             State = state;

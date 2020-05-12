@@ -2516,10 +2516,5 @@ namespace NuGetGallery
                 Assert.Equal(expectedFlag, package.HasEmbeddedIcon);
             }
         }
-
-        public class TheGetPackageDependentsMethod
-        {
-
-        }
     }
 }

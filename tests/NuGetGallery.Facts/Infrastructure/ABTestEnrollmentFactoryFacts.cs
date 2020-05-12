@@ -50,7 +50,7 @@ namespace NuGetGallery
             [InlineData("[]")]
             [InlineData("null")]
             [InlineData(@"{""ps"":42}")]
-            [InlineData(@"{""v"":2,""ps"":42}")] 
+            [InlineData(@"{""v"":2,""ps"":42}")]
             [InlineData(@"{""v"":1}")]
             [InlineData(@"{""v"":1,""ps"":-1}")]
             [InlineData(@"{""v"":1,""ps"":0}")]
@@ -62,7 +62,6 @@ namespace NuGetGallery
                 Assert.False(success, "The derialization should have failed.");
                 Assert.Null(enrollment);
             }
-
 
             [Theory]
             [InlineData(@"{""v"":1,""ps"":42}", 42)]

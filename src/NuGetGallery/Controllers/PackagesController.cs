@@ -849,17 +849,16 @@ namespace NuGetGallery
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
 
-            // Different switches for feature
+            // Checks if the reverse dependencies feature flag is turned on/off
             var ispackageDepentsEnabled = (model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser));
             
             if (ispackageDepentsEnabled)
             {
-                // Caching dependence
-
-                CreatePackageDependents dependence; 
+                PackageDependents dependence; 
                 var cacheKey = "cache dependents_" + id.ToLowerInvariant();
 
                 var cachedResults = HttpContext.Cache.Get(cacheKey);
+                // Cache doesn't contain PackageDependents so PackageDependents gets put in the cache
                 if (cachedResults == null)
                 {
                     dependence = _packageService.GetPackageDependents(id);
@@ -872,18 +871,21 @@ namespace NuGetGallery
                         DateTime.UtcNow.AddMinutes(5),
                         Cache.NoSlidingExpiration,
                         CacheItemPriority.Default, null);
+
+                    // TODO Make cache time configurable
+                    // https://github.com/NuGet/NuGetGallery/issues/4718
                 }
 
+                // Cache contains PackageDependents
                 else
                 {
-                    // default for /packages view
-                    dependence = (CreatePackageDependents)cachedResults;
+                    dependence = (PackageDependents)cachedResults;
                 }
                 model.packageDependents = dependence;
             }
             
 
-            if(model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
+            if (model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
                 model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
             }

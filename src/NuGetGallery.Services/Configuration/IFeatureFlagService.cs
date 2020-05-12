@@ -80,9 +80,9 @@ namespace NuGetGallery
         /// <returns>Whether or not the Flight is enabled for the user</returns>
         bool IsGitHubUsageEnabled(User user);
 
-
         /// <summary>
-        /// Whether a user can see the "Package Dependents" section in a package's display page
+        /// Whether a user can see the "Package Dependents" section in a package's display page. Also, no
+        /// data is gathered from the database
         /// </summary>
         /// <param name="user">The user to test for the Flight</param>
         /// <returns>Whether or not the Flight is enabled for the user</returns>
