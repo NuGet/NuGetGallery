@@ -18,7 +18,7 @@ namespace NuGetGallery
             YearWeekNumber
         }
 
-        private readonly string[] _magnitudeAbbreviations = new string[] { "", "k", "M", "B", "T", "q", "Q", "s", "S", "o", "n" };
+        private static readonly string[] _magnitudeAbbreviations = new string[] { "", "k", "M", "B", "T", "q", "Q", "s", "S", "o", "n" };
 
         private DateTime? _lastUpdatedUtc;
 
@@ -142,7 +142,9 @@ namespace NuGetGallery
             return (amount / total).ToString("P0", CultureInfo.CurrentCulture);
         }
 
-        public string DisplayShortNumber(double number, int sigFigures = 3)
+        public string DisplayShortNumber(double number) => DisplayShortNumber(number, sigFigures: 3);
+
+        internal static string DisplayShortNumber(double number, int sigFigures = 3)
         {
             var numDiv = 0;
 
@@ -152,7 +154,7 @@ namespace NuGetGallery
                 numDiv++;
             }
 
-            // Find a rounding factor based on size, and round to sigFigures, e.g. for 3 sig figs, 1.774545 becomes 1.77.
+            // Find a rounding factor based on size, and round to sigFigures, e.g. for 3 sig figs, 1.776545 becomes 1.78.
             var placeValues = Math.Ceiling(Math.Log10(number));
             var roundingFactor = Math.Pow(10, sigFigures - placeValues);
             var roundedNum = Math.Round(number * roundingFactor) / roundingFactor;
@@ -169,7 +171,7 @@ namespace NuGetGallery
 
             if (numDiv >= _magnitudeAbbreviations.Length)
             {
-                return formattedNum + $"10^{numDiv*3}";
+                return formattedNum + $" 10^{numDiv*3}";
             }
             
             return formattedNum + _magnitudeAbbreviations[numDiv];
