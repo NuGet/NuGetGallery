@@ -227,6 +227,7 @@
     <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />
     <Compile Include="Infrastructure\CookieBasedABTestService.cs" />
     <Compile Include="Infrastructure\RequestValidationExceptionFilter.cs" />
+    <Compile Include="Infrastructure\HttpStatusCodeWithHeadersResult.cs" />
     <Compile Include="Infrastructure\IABTestEnrollmentFactory.cs" />
     <Compile Include="Infrastructure\IABTestService.cs" />
     <Compile Include="Infrastructure\ILuceneDocumentFactory.cs" />

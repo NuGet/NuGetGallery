@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Net;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -122,6 +123,19 @@ namespace NuGetGallery
             if (!string.IsNullOrEmpty(description) || !ignoreEmptyDescription)
             {
                 Assert.Equal(description, statusCodeResult.StatusDescription);
+            }
+
+            return statusCodeResult;
+        }
+
+        public static HttpStatusCodeWithHeadersResult IsStatusCodeWithHeaders(ActionResult result, HttpStatusCode statusCode, NameValueCollection headers)
+        {
+            var statusCodeResult = Assert.IsAssignableFrom<HttpStatusCodeWithHeadersResult>(result);
+            Assert.Equal((int)statusCode, statusCodeResult.StatusCode);
+
+            foreach (var key in headers.AllKeys)
+            {
+                Assert.Equal(headers.Get(key), statusCodeResult.Headers.Get(key));
             }
 
             return statusCodeResult;
