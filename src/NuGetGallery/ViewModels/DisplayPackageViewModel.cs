@@ -40,7 +40,6 @@ namespace NuGetGallery
         public bool HasEmbeddedIcon { get; set; }
         public PackageDependents packageDependents { get; set; }
 
-
         public bool HasNewerPrerelease
         {
             get

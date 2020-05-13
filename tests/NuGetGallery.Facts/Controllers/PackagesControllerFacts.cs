@@ -88,8 +88,6 @@ namespace NuGetGallery
             PackageDependents packageDependents = new PackageDependents();
             packageService.Setup(x => x.GetPackageDependents(It.IsAny<string>())).Returns(packageDependents);
 
-
-
             packageUpdateService = packageUpdateService ?? new Mock<IPackageUpdateService>();
             if (uploadFileService == null)
             {
@@ -232,8 +230,6 @@ namespace NuGetGallery
             abTestService = abTestService ?? new Mock<IABTestService>();
 
             var diagnosticsService = new Mock<IDiagnosticsService>();
-
-            
 
             var controller = new Mock<PackagesController>(
                 packageFilter,
@@ -1640,6 +1636,7 @@ namespace NuGetGallery
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
                 Assert.False(model.IsPackageDependentsEnabled);
+                Assert.Empty(_cache);
             }
 
             [Fact]
@@ -1748,8 +1745,7 @@ namespace NuGetGallery
             {
                 string id1 = "fooBAr";
                 string id2 = "FOObAr";
-                string cacheKey1 = "cache dependents_" + id1.ToLowerInvariant();
-                string cacheKey2 = "cache dependents_" + id2.ToLowerInvariant();
+                string cacheKey = "cache dependents_foobar";
                 var packageService = new Mock<IPackageService>();
                 var httpContext = new Mock<HttpContextBase>();
                 PackageDependents pd = new PackageDependents();
@@ -1794,8 +1790,7 @@ namespace NuGetGallery
                 Assert.Same(pd, model2.packageDependents);
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<String>()), Times.Once());
-                Assert.Same(pd, _cache.Get(cacheKey1));
-                Assert.Same(_cache.Get(cacheKey2), _cache.Get(cacheKey1));
+                Assert.Same(pd, _cache.Get(cacheKey));
             }
 
             protected override void Dispose(bool disposing)

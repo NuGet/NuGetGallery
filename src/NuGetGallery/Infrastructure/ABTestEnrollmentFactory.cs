@@ -69,6 +69,7 @@ namespace NuGetGallery
                 SchemaVersion = SchemaVersion1,
                 PreviewSearchBucket = enrollment.PreviewSearchBucket,
             };
+
             return JsonConvert.SerializeObject(deserialized);
         }
 

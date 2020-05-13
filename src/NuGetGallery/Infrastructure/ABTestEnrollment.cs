@@ -26,6 +26,7 @@ namespace NuGetGallery
             SchemaVersion = schemaVersion;
             PreviewSearchBucket = previewSearchBucket;
         }
+
         public ABTestEnrollmentState State { get; }
         public int SchemaVersion { get; }
         public int PreviewSearchBucket { get; }

@@ -273,8 +273,7 @@ namespace NuGet.VerifyMicrosoftPackage
                 auditingService,
                 telemetryService,
                 securityPolicyService,
-                contextFake
-                );
+                contextFake);
             return packageService;
         }
 

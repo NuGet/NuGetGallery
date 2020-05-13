@@ -34,13 +34,13 @@ namespace NuGetGallery
             IAuditingService auditingService,
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
-            IEntitiesContext context)
+            IEntitiesContext entitiesContext)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
-            _entitiesContext = context ?? throw new ArgumentNullException(nameof(context));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace NuGetGallery
             { 
                 connection.Open();
                 res.PackageList = GetListOfDependents(id, connection);
-                res.DependentCount = showDependentCount(id, connection);
+                res.DependentCount = ShowDependentCount(id, connection);
                 return res;
             }
         }
@@ -168,7 +168,7 @@ namespace NuGetGallery
 	                FROM PackageDependencies 
 	                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
 	                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[key]
-	                WHERE PackageDependencies.id = @id AND Packages.IsLatest = 1
+	                WHERE PackageDependencies.id = @id AND Packages.IsLatestSemVer2 = 1
 	                GROUP BY PackageRegistrations.id, PackageRegistrations.DownloadCount, Packages.Description
                     ORDER BY PackageRegistrations.DownloadCount DESC";
                 
@@ -181,18 +181,18 @@ namespace NuGetGallery
                 {
                     while (reader.Read())
                     {
-                        var packageDepen = new PackageDependent();
-                        packageDepen.Id = (string)reader["id"];
-                        packageDepen.DownloadCount = (int)reader["DownloadCount"];
-                        packageDepen.Description = (string)reader["Description"];
-                        packageDependentsList.Add(packageDepen);
+                        var dependent = new PackageDependent();
+                        dependent.Id = (string)reader["id"];
+                        dependent.DownloadCount = (int)reader["DownloadCount"];
+                        dependent.Description = (string)reader["Description"];
+                        packageDependentsList.Add(dependent);
                     }
                 }
             }
             return packageDependentsList;
         }
 
-        private int showDependentCount(string id, DbConnection connection)
+        private int ShowDependentCount(string id, DbConnection connection)
         {
             int result = 0;
 

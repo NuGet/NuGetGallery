@@ -41,7 +41,6 @@ namespace NuGetGallery
             securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
             context = context ?? new Mock<IEntitiesContext>();
 
-
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,

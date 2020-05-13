@@ -854,19 +854,19 @@ namespace NuGetGallery
             
             if (ispackageDepentsEnabled)
             {
-                PackageDependents dependence; 
+                PackageDependents dependents; 
                 var cacheKey = "cache dependents_" + id.ToLowerInvariant();
 
                 var cachedResults = HttpContext.Cache.Get(cacheKey);
                 // Cache doesn't contain PackageDependents so PackageDependents gets put in the cache
                 if (cachedResults == null)
                 {
-                    dependence = _packageService.GetPackageDependents(id);
+                    dependents = _packageService.GetPackageDependents(id);
 
                     // note: this is a per instance cache
                     HttpContext.Cache.Add(
                         cacheKey,
-                        dependence,
+                        dependents,
                         null,
                         DateTime.UtcNow.AddMinutes(5),
                         Cache.NoSlidingExpiration,
@@ -879,9 +879,9 @@ namespace NuGetGallery
                 // Cache contains PackageDependents
                 else
                 {
-                    dependence = (PackageDependents)cachedResults;
+                    dependents = (PackageDependents)cachedResults;
                 }
-                model.packageDependents = dependence;
+                model.packageDependents = dependents;
             }
             
 
