@@ -9,11 +9,11 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 ## Build and Run the Gallery in (arbitrary number) easy steps
 
 1. Prerequisites:
-    1. Visual Studio 2017 - Install the following `Workloads`:
+    1. Visual Studio 2019 - Install the following `Workloads`:
         * ASP.NET and web development
         * Azure development
-    2. PowerShell 4.0
-    3. SQL Server 2016
+    2. PowerShell 5.1 (preinstalled in Windows 10)
+    3. SQL Server 2019
         * For development purposes connection strings point to `(localdb)\mssqllocaldb`, make sure that the DB engine version 13.0 or greater is being used (check by running `sqllocaldb info mssqllocaldb` in the command line).
 2. Clone it!
     
