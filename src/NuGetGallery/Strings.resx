@@ -693,6 +693,9 @@ For more information, please contact '{2}'.</value>
     <value>The account with the email {0} is linked to another Microsoft account.
 If you would like to update the linked Microsoft account you can do so from the account settings page.</value>
   </data>
+  <data name="DirectUserToUnmanagedTenantFAQ" xml:space="preserve">
+    <value>Please refer to the {0} for steps to resolve this issue.</value>
+  </data>
   <data name="ChangeCredential_Failed" xml:space="preserve">
     <value>Failed to update the Microsoft account with '{0}'. This could happen if it is already linked to another NuGet account. See {1} for more details.</value>
   </data>
