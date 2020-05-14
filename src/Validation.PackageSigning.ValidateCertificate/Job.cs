@@ -45,7 +45,7 @@ namespace Validation.PackageSigning.ValidateCertificate
             services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             ConfigureDefaultSubscriptionProcessor(containerBuilder);
         }

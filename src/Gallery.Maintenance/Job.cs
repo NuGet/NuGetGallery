@@ -77,7 +77,7 @@ namespace Gallery.Maintenance
                 .Invoke(null, new object[] { LoggerFactory }) as ILogger;
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 

@@ -37,7 +37,7 @@ namespace StatusAggregator
         /// The maximum severity of any incidents to process.
         /// See <see cref="SeverityFilter"/>.
         /// </summary>
-        public int MaximumSeverity { get; set; }
+        public int MaximumSeverity { get; set; } = int.MaxValue;
 
         /// <summary>
         /// A team ID to use to query the incident API.
@@ -47,18 +47,18 @@ namespace StatusAggregator
         /// <summary>
         /// The number of minutes that must pass before a message is created for a recently started event.
         /// </summary>
-        public int EventStartMessageDelayMinutes { get; set; }
+        public int EventStartMessageDelayMinutes { get; set; } = 15;
 
         /// <summary>
         /// The number of minutes that must pass before an event whose incidents have all been mitigated is deactivated.
         /// In other words, <see cref="IncidentGroupUpdater"/> will wait this amount of time before it deactivates an event with all mitigated incidents.
         /// </summary>
-        public int EventEndDelayMinutes { get; set; }
+        public int EventEndDelayMinutes { get; set; } = 15;
 
         /// <summary>
         /// The number of days that a deactivated event is visible in the <see cref="ServiceStatus"/>.
         /// An event is only added to <see cref="ServiceStatus.Events"/> by <see cref="StatusExporter"/> if it is active or it has been deactivated for less than this number of days.
         /// </summary>
-        public int EventVisibilityPeriodDays { get; set; }
+        public int EventVisibilityPeriodDays { get; set; } = 10;
     }
 }

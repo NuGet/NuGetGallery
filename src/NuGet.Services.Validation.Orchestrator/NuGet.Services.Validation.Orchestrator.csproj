@@ -115,7 +115,6 @@
     <Compile Include="Criteria\IPackageCriteriaEvaluator.cs" />
     <Compile Include="Criteria\PackageCriteriaEvaluator.cs" />
     <Compile Include="Criteria\PackageCriteria.cs" />
-    <Compile Include="Configuration\ValidationDbConfiguration.cs" />
     <Compile Include="PackageValidationMessageHandler.cs" />
     <Compile Include="ValidationOutcomeProcessor.cs" />
     <Compile Include="ValidationRequest.cs" />
@@ -128,6 +127,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="README.md" />
     <None Include="Scripts\Functions.ps1" />
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
@@ -173,4 +173,5 @@
   </PropertyGroup>
   <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
   <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  <Import Project="$(NuGetBuildExtensions)" Condition="'$(NuGetBuildExtensions)' != '' And Exists('$(NuGetBuildExtensions)')" />
 </Project>

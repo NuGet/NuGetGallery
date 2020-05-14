@@ -144,7 +144,7 @@ namespace Stats.ImportAzureCdnStatistics
             return containerName;
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 

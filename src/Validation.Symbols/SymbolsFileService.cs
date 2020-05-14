@@ -37,7 +37,8 @@ namespace Validation.Symbols
 
         public async Task<Stream> DownloadSnupkgFileAsync(string snupkgUri, CancellationToken cancellationToken)
         {
-            return await _fileDownloader.DownloadAsync(new Uri(snupkgUri), cancellationToken);
+            var result = await _fileDownloader.DownloadAsync(new Uri(snupkgUri), cancellationToken);
+            return result.GetStreamOrThrow();
         }
 
         public async Task<Stream> DownloadNupkgFileAsync(string packageId, string packageNormalizedVersion, CancellationToken cancellationToken)

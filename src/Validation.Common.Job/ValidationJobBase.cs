@@ -56,7 +56,7 @@ namespace NuGet.Jobs.Validation
 
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
-            services.AddTransient<IFileDownloader, PackageDownloader>();
+            services.AddTransient<IFileDownloader, FileDownloader>();
             services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
 
             services.AddTransient<ICloudBlobClient>(c =>
@@ -101,9 +101,9 @@ namespace NuGet.Jobs.Validation
             });
         }
 
-        protected override void ConfigureDefaultAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureDefaultAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
-            base.ConfigureDefaultAutofacServices(containerBuilder);
+            base.ConfigureDefaultAutofacServices(containerBuilder, configurationRoot);
 
             ConfigureFeatureFlagAutofacServices(containerBuilder);
 

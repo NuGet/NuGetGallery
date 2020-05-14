@@ -44,7 +44,12 @@ Function Install-AzCopy
         mkdir $toolsPath -ErrorAction Ignore | Out-Null
         mkdir $bootstrap | Out-Null
 
+        # Ensure TLS 1.2 is enabled.
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+        $progressPreference = 'silentlyContinue'
         Invoke-WebRequest -Uri "http://aka.ms/downloadazcopy" -OutFile $msi
+        $progressPreference = 'Continue'
         Unblock-File $msi
 
         Write-Host "Extracting AzCopy"

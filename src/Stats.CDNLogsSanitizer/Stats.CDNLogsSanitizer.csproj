@@ -67,7 +67,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.5-master-3419450</Version>
+      <Version>4.4.5-dev-3612899</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

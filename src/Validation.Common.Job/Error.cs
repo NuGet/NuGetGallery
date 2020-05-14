@@ -12,8 +12,6 @@ namespace NuGet.Jobs.Validation
         public static EventId LoadedCertificateThumbprintDoesNotMatch = new EventId(1002, "Certificate thumbprint mismatch");
         public static EventId LoadCertificateFromStorageFailed = new EventId(1003, "Certificate loading from storage failed");
 
-        public static EventId FailedToDownloadPackage = new EventId(1100, "Failed to download package");
-
         public static EventId PackageHasUnsecureEntries = new EventId(1200, "The package archive with unsafe entries.");
         public static EventId PackagingException = new EventId(1201, "The package is not in the correct format.");
     }

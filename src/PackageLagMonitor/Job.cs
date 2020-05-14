@@ -8,7 +8,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,101 +15,39 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Monitoring.PackageLag.Telemetry;
 using NuGet.Protocol.Catalog;
-using NuGet.Services.Configuration;
-using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 
 namespace NuGet.Jobs.Monitoring.PackageLag
 {
-    public class Job : JobBase
+    public class Job : JsonConfigurationJob
     {
-        private const string ConfigurationArgument = "Configuration";
-
-        private const string AzureManagementSectionName = "AzureManagement";
         private const string MonitorConfigurationSectionName = "MonitorConfiguration";
         private const int MAX_CATALOG_RETRY_COUNT = 5;
 
-        private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
-
         private IPackageLagTelemetryService _telemetryService;
-        private IHttpClientWrapper _httpClient;
         private ISearchServiceClient _searchServiceClient;
         private ICatalogClient _catalogClient;
-        private IServiceProvider _serviceProvider;
         private PackageLagMonitorConfiguration _configuration;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var configurationFilename = JobConfigurationManager.GetArgument(jobArgsDictionary, ConfigurationArgument);
-            _serviceProvider = GetServiceProvider(GetConfigurationRoot(configurationFilename));
+            base.Init(serviceContainer, jobArgsDictionary);
 
             _configuration = _serviceProvider.GetService<PackageLagMonitorConfiguration>();
             _catalogClient = _serviceProvider.GetService<ICatalogClient>();
-            _httpClient = _serviceProvider.GetService<IHttpClientWrapper>();
             _searchServiceClient = _serviceProvider.GetService<ISearchServiceClient>();
-
             _telemetryService = _serviceProvider.GetService<IPackageLagTelemetryService>();
         }
 
-        private IConfigurationRoot GetConfigurationRoot(string configurationFilename)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
-            Logger.LogInformation("Using the {ConfigurationFilename} configuration file", configurationFilename);
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile(configurationFilename, optional: false, reloadOnChange: false);
-
-            var uninjectedConfiguration = builder.Build();
-
-            var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
-            var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
-            var secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
-
-            builder = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddInjectedJsonFile(configurationFilename, secretInjector);
-
-            return builder.Build();
         }
 
-        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot)
-        {
-            var services = new ServiceCollection();
-            ConfigureLibraries(services);
-            ConfigureJobServices(services, configurationRoot);
-
-            return CreateProvider(services);
-        }
-
-        private void ConfigureLibraries(IServiceCollection services)
-        {
-            // we do not call services.AddOptions here, because we want our own custom version of IOptionsSnapshot 
-            // to be present in the service collection for KeyVault secret injection to work properly
-            services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
-            services.AddSingleton(LoggerFactory);
-            services.AddLogging();
-        }
-
-        private void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<PackageLagMonitorConfiguration>(configurationRoot.GetSection(MonitorConfigurationSectionName));
 
-            services.AddSingleton(p =>
-            {
-                var handler = new HttpClientHandler();
-                handler.ServerCertificateCustomValidationCallback =
-                    (httpRequestMessage, cert, cetChain, policyErrors) =>
-                    {
-                        if (policyErrors == System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch || policyErrors == System.Net.Security.SslPolicyErrors.None)
-                        {
-                            return true;
-                        }
-
-                        return false;
-                    };
-                return handler;
-            });
-
-            services.AddSingleton(p => new HttpClient(p.GetService<HttpClientHandler>()));
+            services.AddSingleton(p => new HttpClient());
             services.AddSingleton<IHttpClientWrapper>(p => new HttpClientWrapper(p.GetService<HttpClient>()));
             services.AddTransient<IPackageLagTelemetryService, PackageLagTelemetryService>();
             services.AddSingleton(new TelemetryClient(ApplicationInsightsConfiguration.TelemetryConfiguration));
@@ -119,14 +56,6 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             services.AddSingleton<ISimpleHttpClient, SimpleHttpClient>();
             services.AddSingleton<ICatalogClient, CatalogClient>();
             services.AddTransient<ISearchServiceClient, SearchServiceClient>();
-        }
-
-        private static IServiceProvider CreateProvider(IServiceCollection services)
-        {
-            var containerBuilder = new ContainerBuilder();
-            containerBuilder.Populate(services);
-
-            return new AutofacServiceProvider(containerBuilder.Build());
         }
 
         public async override Task Run()

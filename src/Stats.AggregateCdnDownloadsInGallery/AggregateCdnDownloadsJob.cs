@@ -359,7 +359,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             return packageRegistrationDictionary;
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 
