@@ -46,7 +46,8 @@ Function Run-Tests {
         "tests\Validation.PackageSigning.ScanAndSign.Tests\bin\$Configuration\Validation.PackageSigning.ScanAndSign.Tests.dll", `
         "tests\Validation.PackageSigning.ValidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.ValidateCertificate.Tests.dll", `
         "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Core.Tests.dll", `
-        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll"
+        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll", `
+        "tests\SplitLargeFiles.Tests\bin\$Configuration\NuGet.Tools.SplitLargeFiles.Tests.dll"
 
     $TestCount = 0
     

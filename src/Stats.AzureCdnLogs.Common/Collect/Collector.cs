@@ -103,7 +103,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
         private void AddException(ConcurrentBag<Exception> exceptions, Exception e, string fileUri = "")
         {
-            if(e == null)
+            if (e == null)
             {
                 return;
             }
@@ -136,34 +136,46 @@ namespace Stats.AzureCdnLogs.Common.Collect
       
         protected void ProcessLogStream(Stream sourceStream, Stream targetStream)
         {
+            var rawLineNumber = 0;
+            var targetLineNumber = 0;
+
+            string rawLine = string.Empty;
+
             try
             {
                 using (var sourceStreamReader = new StreamReader(sourceStream))
                 using (var targetStreamWriter = new StreamWriter(targetStream))
                 {
                     targetStreamWriter.WriteLine(OutputLogLine.Header);
-                    var lineNumber = 0;
+
                     while (!sourceStreamReader.EndOfStream)
                     {
-                        var rawLogLine = TransformRawLogLine(sourceStreamReader.ReadLine());
-                        if (rawLogLine != null)
+                        rawLine = sourceStreamReader.ReadLine();
+                        rawLineNumber++;
+
+                        var transformedLine = TransformRawLogLine(rawLine);
+                        if (transformedLine != null)
                         {
-                            lineNumber++;
-                            var logLine = GetParsedModifiedLogEntry(lineNumber, rawLogLine.ToString());
-                            if (!string.IsNullOrEmpty(logLine))
+                            targetLineNumber++;
+                            var targetLine = GetParsedModifiedLogEntry(targetLineNumber, transformedLine.ToString());
+                            if (!string.IsNullOrEmpty(targetLine))
                             {
-                                targetStreamWriter.Write(logLine);
+                                targetStreamWriter.Write(targetLine);
                             }
                         }
                     };
-                    _logger.LogInformation("ProcessLogStream: Finished writting to the destination stream.");
+
+                    _logger.LogInformation("ProcessLogStream: Finished writing to the destination stream.");
                 }
             }
-            // It should not happen, but if it does log it for better diagnostics.
-            catch (StorageException ex)
+            catch (Exception ex)
             {
-                _logger.LogCritical("ProcessLogStream: An exception while processing the stream {Exception}.", ex);
-                throw ex;
+                _logger.LogCritical(
+                    ex,
+                    "Failed to process raw log line number {LineNumber} with content {LineContent}",
+                    rawLineNumber,
+                    rawLine);
+                throw;
             }
         }
 

@@ -2,12 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Stats.AzureCdnLogs.Common;
 using Stats.AzureCdnLogs.Common.Collect;
-using Microsoft.Extensions.Logging;
 
 namespace Stats.CollectAzureChinaCDNLogs
 {
@@ -16,9 +16,10 @@ namespace Stats.CollectAzureChinaCDNLogs
     /// </summary>
     public class ChinaStatsCollector : Collector
     {
-        const string Header = "c-ip, timestamp, cs-method, cs-uri-stem, http-ver, sc-status, sc-bytes, c-referer, c-user-agent, rs-duration(ms), hit-miss, s-ip";
+        private const string Header = "c-ip, timestamp, cs-method, cs-uri-stem, http-ver, sc-status, sc-bytes, c-referer, c-user-agent, rs-duration(ms), hit-miss, s-ip";
+        private const int ExpectedFields = 12;
         //representation of the header of the log files from China CDN
-        enum ChinaLogHeaderFields
+        private enum ChinaLogHeaderFields
         {
             cip = 0,
             timestamp = 1,
@@ -37,20 +38,27 @@ namespace Stats.CollectAzureChinaCDNLogs
         public ChinaStatsCollector(ILogSource source, ILogDestination destination, ILogger<ChinaStatsCollector> logger) : base(source, destination, logger)
         {}
 
-        public ChinaStatsCollector()
-        { }
-
         public override OutputLogLine TransformRawLogLine(string line)
         {
             if (string.IsNullOrWhiteSpace(line) || 
                 string.IsNullOrEmpty(line) || 
-                line.Trim().StartsWith("c-ip", ignoreCase: true, culture: System.Globalization.CultureInfo.InvariantCulture))
+                line.Trim().StartsWith("c-ip", ignoreCase: true, culture: CultureInfo.InvariantCulture))
             {
                 // Ignore empty lines or the header
                 return null;
             }
 
-            string[] segments = ExtensionsUtils.GetSegmentsFromCSV(line);
+            // Skip malformed lines.
+            var segments = ExtensionsUtils.GetSegmentsFromCSV(line);
+            if (segments.Length < ExpectedFields)
+            {
+                _logger.LogError(
+                    "Skipping malformed raw log line with {Segments} segments and content {Content}.",
+                    segments.Length,
+                    line);
+                return null;
+            }
+
             const string notAvailableString = "na";
             const string notAvailableInt = "0";
 
