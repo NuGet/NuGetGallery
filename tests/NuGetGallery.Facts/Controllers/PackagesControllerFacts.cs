@@ -1598,7 +1598,7 @@ namespace NuGetGallery
             public async Task CheckFeatureFlagIsOff()
             {
                 string id = "foo";
-                string cacheKey = "cache dependents_" + id.ToLowerInvariant();
+                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var featureFlagService = new Mock<IFeatureFlagService>();
 
@@ -1632,7 +1632,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
-                Assert.Null(model.packageDependents);
+                Assert.Null(model.PackageDependents);
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
                 Assert.False(model.IsPackageDependentsEnabled);
@@ -1643,7 +1643,7 @@ namespace NuGetGallery
             public async Task WhenCacheIsOccupiedGetProperPackageDependent()
             {
                 string id = "foo";
-                string cacheKey = "cache dependents_" + id.ToLowerInvariant();
+                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var httpContext = new Mock<HttpContextBase>();
                 PackageDependents pd = new PackageDependents();
@@ -1686,7 +1686,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 
-                Assert.Same(pd, model.packageDependents);
+                Assert.Same(pd, model.PackageDependents);
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
             }
@@ -1695,7 +1695,7 @@ namespace NuGetGallery
             public async Task OccupyEmptyCache()
             {
                 string id = "foo";
-                string cacheKey = "cache dependents_" + id.ToLowerInvariant();
+                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var httpContext = new Mock<HttpContextBase>();
                 PackageDependents pd = new PackageDependents();
@@ -1736,7 +1736,7 @@ namespace NuGetGallery
 
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Once());
-                Assert.Same(pd, model.packageDependents);
+                Assert.Same(pd, model.PackageDependents);
                 Assert.Same(pd, _cache.Get(cacheKey));
             }
 
@@ -1745,7 +1745,7 @@ namespace NuGetGallery
             {
                 string id1 = "fooBAr";
                 string id2 = "FOObAr";
-                string cacheKey = "cache dependents_foobar";
+                string cacheKey = "CacheDependents_foobar";
                 var packageService = new Mock<IPackageService>();
                 var httpContext = new Mock<HttpContextBase>();
                 PackageDependents pd = new PackageDependents();
@@ -1786,8 +1786,8 @@ namespace NuGetGallery
                 var result2 = await controller.DisplayPackage(id2, version: null);
                 var model2 = ResultAssert.IsView<DisplayPackageViewModel>(result2);
 
-                Assert.Same(pd, model1.packageDependents);
-                Assert.Same(pd, model2.packageDependents);
+                Assert.Same(pd, model1.PackageDependents);
+                Assert.Same(pd, model2.PackageDependents);
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<String>()), Times.Once());
                 Assert.Same(pd, _cache.Get(cacheKey));

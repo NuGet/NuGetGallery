@@ -19,7 +19,7 @@ namespace NuGetGallery
     {
         /// <summary>
         /// Returns a package dependents object that includes a collection of the top packages that 
-        /// depend on the focus package and a total count of those dependents
+        /// depend on the focus package and a total count of those dependents.
         /// </summary>
         /// <param name="id">The package ID.</param>
         PackageDependents GetPackageDependents(string id);

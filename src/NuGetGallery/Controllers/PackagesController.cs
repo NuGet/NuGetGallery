@@ -820,7 +820,6 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-
             var readme = await _readMeService.GetReadMeHtmlAsync(package);
             var deprecations = _deprecationService.GetDeprecationsById(id);
             var packageKeyToDeprecation = deprecations
@@ -849,41 +848,10 @@ namespace NuGetGallery
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
 
-            // Checks if the reverse dependencies feature flag is turned on/off
-            var ispackageDepentsEnabled = (model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser));
-            
-            if (ispackageDepentsEnabled)
+            if (model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser))
             {
-                PackageDependents dependents; 
-                var cacheKey = "cache dependents_" + id.ToLowerInvariant();
-
-                var cachedResults = HttpContext.Cache.Get(cacheKey);
-                // Cache doesn't contain PackageDependents so PackageDependents gets put in the cache
-                if (cachedResults == null)
-                {
-                    dependents = _packageService.GetPackageDependents(id);
-
-                    // note: this is a per instance cache
-                    HttpContext.Cache.Add(
-                        cacheKey,
-                        dependents,
-                        null,
-                        DateTime.UtcNow.AddMinutes(5),
-                        Cache.NoSlidingExpiration,
-                        CacheItemPriority.Default, null);
-
-                    // TODO Make cache time configurable
-                    // https://github.com/NuGet/NuGetGallery/issues/4718
-                }
-
-                // Cache contains PackageDependents
-                else
-                {
-                    dependents = (PackageDependents)cachedResults;
-                }
-                model.packageDependents = dependents;
+                model.PackageDependents = GetPackageDependents(id);
             }
-            
 
             if (model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
@@ -962,6 +930,40 @@ namespace NuGetGallery
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
+        }
+
+        private PackageDependents GetPackageDependents(string id)
+        {
+            PackageDependents dependents;
+
+            //TODO Maybe consider packages that don't exist??? IDK if it's done atop
+            var cacheDependentsCacheKey = "CacheDependents_" + id.ToLowerInvariant();
+            var cacheDependents = HttpContext.Cache.Get(cacheDependentsCacheKey);
+
+            // Cache doesn't contain PackageDependents so PackageDependents gets put in the cache
+            if (cacheDependents == null)
+            {
+                dependents = _packageService.GetPackageDependents(id);
+
+                // note: this is a per instance cache
+                HttpContext.Cache.Add(
+                    cacheDependentsCacheKey,
+                    dependents,
+                    null,
+                    DateTime.UtcNow.AddMinutes(5),
+                    Cache.NoSlidingExpiration,
+                    CacheItemPriority.Default, null);
+
+                // TODO Make cache time configurable / slidy
+                // https://github.com/NuGet/NuGetGallery/issues/4718
+            }
+
+            // Cache contains PackageDependents
+            else
+            {
+                dependents = (PackageDependents)cacheDependents;
+            }
+            return dependents;
         }
 
         [HttpGet]

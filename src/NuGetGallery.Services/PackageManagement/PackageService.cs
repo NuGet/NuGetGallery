@@ -148,18 +148,18 @@ namespace NuGetGallery
 
         public PackageDependents GetPackageDependents(string id)
         {
-            PackageDependents res = new PackageDependents();
+            PackageDependents result = new PackageDependents();
 
             using (var connection = _entitiesContext.GetDatabase().Connection)
             { 
                 connection.Open();
-                res.PackageList = GetListOfDependents(id, connection);
-                res.DependentCount = ShowDependentCount(id, connection);
-                return res;
+                result.TopPackages = GetListOfDependents(id, connection);
+                result.TotalPackageCount = GetDependentCount(id, connection);
+                return result;
             }
         }
 
-        private IReadOnlyCollection<PackageDependent> GetListOfDependents(String id, DbConnection connection)
+        private IReadOnlyCollection<PackageDependent> GetListOfDependents(string id, DbConnection connection)
         {
             var packageDependentsList = new List<PackageDependent>();
             using (var command = connection.CreateCommand())
@@ -192,13 +192,13 @@ namespace NuGetGallery
             return packageDependentsList;
         }
 
-        private int ShowDependentCount(string id, DbConnection connection)
+        private int GetDependentCount(string id, DbConnection connection)
         {
             int result = 0;
 
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = @"SELECT COUNT(Distinct Packages.PackageRegistrationKey) AS DependentCount
+                command.CommandText = @"SELECT COUNT(Distinct Packages.PackageRegistrationKey) AS TotalPackageCount
 	                FROM PackageDependencies 
 	                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
 	                WHERE PackageDependencies.id = @id AND Packages.IsLatestSemVer2 = 1";
@@ -207,14 +207,13 @@ namespace NuGetGallery
                 parameter.ParameterName = "@id";
                 parameter.Value = id;
 
-
                 command.Parameters.Add(parameter);
                 using (DbDataReader reader = command.ExecuteReader())
                 {
                     if (reader.Read())
                     {
 
-                        result = (int)reader["DependentCount"];
+                        result = (int)reader["TotalPackageCount"];
                     }
                 }
             }
