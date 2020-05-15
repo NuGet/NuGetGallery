@@ -813,7 +813,9 @@ namespace NuGetGallery
         {
             // We need a special case here because of https://github.com/NuGet/NuGetGallery/issues/7544. An unmanaged tenant scenario
             // needs the FAQ URI appended to the AAD error, and we do that here so it appears in the header.
-            if ((errorMessage?.IndexOf("AADSTS65005", StringComparison.OrdinalIgnoreCase) ?? -1) > -1)
+            if (!string.IsNullOrEmpty(errorMessage) &&
+                errorMessage.IndexOf("AADSTS65005", StringComparison.OrdinalIgnoreCase) > -1 &&
+                errorMessage.IndexOf("unmanaged", StringComparison.OrdinalIgnoreCase) > -1)
             {
                 TempData["RawErrorMessage"] = errorMessage + "<br/>" + string.Format(Strings.DirectUserToUnmanagedTenantFAQ,
                     UriExtensions.GetExternalUrlAnchorTag("FAQs page", GalleryConstants.FAQLinks.AccountBelongsToUnmanagedTenant));
