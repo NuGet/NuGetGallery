@@ -74,6 +74,7 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.DeletePackage)),
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.PublishPackage)),
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.DeprecatePackage)),
+                new ControllerActionRuleException(typeof(PackagesController), nameof(PackagesController.DisplayPackage)),
             };
 
             // Act

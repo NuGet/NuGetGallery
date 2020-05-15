@@ -2,12 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
+using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery
@@ -216,6 +218,78 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.NotNull(result.Package);
                 Assert.Equal(SymbolPackageValidationResultType.Accepted, result.Type);
+            }
+
+            [Theory]
+            [InlineData("duplicatedFile.txt", "duplicatedFile.txt")]
+            [InlineData("./temp/duplicatedFile.pdb", "./temp/duplicatedFile.pdb")]
+            [InlineData("./temp/duplicatedFile.pdb", "./temp\\duplicatedFile.pdb")]
+            [InlineData("./temp\\duplicatedFile.pdb", "./temp\\duplicatedFile.pdb")]
+            [InlineData("duplicatedFile.pdb", "duplicatedFile.PDB")]
+            [InlineData("./duplicatedFile.pdb", "duplicatedFile.pdb")]
+            [InlineData("./duplicatedFile.pdb", "/duplicatedFile.pdb")]
+            [InlineData("/duplicatedFile.pdb", "duplicatedFile.pdb")]
+            [InlineData(".\\duplicatedFile.pdb", "./duplicatedFile.pdb")]
+            public async Task WithDuplicatedEntries_ReturnsInvalidSymbolsPackage(params string[] entryNames)
+            {
+                // Arrange
+                var package = new Package() { PackageStatusKey = PackageStatus.Available };
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                symbolPackageService
+                    .Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>()))
+                    .Completes();
+                var service = CreateService(packageService: packageService, symbolPackageService: symbolPackageService);
+
+                var symbolPackageStream = CreateSymbolPackageStreamWithEntries(entryNames);
+
+                // Act
+                var result = await service.ValidateUploadedSymbolsPackage(symbolPackageStream, new User());
+
+                // Assert
+                Assert.Equal(SymbolPackageValidationResultType.Invalid, result.Type);
+                Assert.Equal("The package contains one or more duplicated files in the same folder.", result.Message);
+            }
+
+            [Theory]
+            [InlineData("noDuplicatedFile.pdb", "./temp/noDuplicatedFile.pdb")]
+            [InlineData("./temp1/noDuplicatedFile.pdb", "./temp2/noDuplicatedFile.pdb")]
+            [InlineData("./temp1/noDuplicatedFile.pdb", "./temp1/noDuplicatedFile.exe")]
+            [InlineData("./temp1/noDuplicatedFile.pdb", "./temp1\\noDuplicatedFile.exe")]
+            public async Task WithNoDuplicatedEntries_ReturnsAcceptedPackage(params string[] entryNames)
+            {
+                // Arrange
+                var package = new Package() { PackageStatusKey = PackageStatus.Available };
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                symbolPackageService
+                    .Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>()))
+                    .Completes();
+                var service = CreateService(packageService: packageService, symbolPackageService: symbolPackageService);
+                
+                var symbolPackageStream = CreateSymbolPackageStreamWithEntries(entryNames);
+
+                // Act
+                var result = await service.ValidateUploadedSymbolsPackage(symbolPackageStream, new User());
+
+                // Assert
+                Assert.Equal(SymbolPackageValidationResultType.Accepted, result.Type);
+                Assert.NotNull(result.Package);
+                Assert.Equal(SymbolPackageValidationResultType.Accepted, result.Type);
+            }
+
+            private MemoryStream CreateSymbolPackageStreamWithEntries(string[] entryNames)
+            {
+                var packageType = new NuGet.Packaging.Core.PackageType(name: "SymbolsPackage", version: NuGet.Packaging.Core.PackageType.EmptyVersion);
+                var packageTypes = new List<NuGet.Packaging.Core.PackageType>() { packageType };
+
+                return PackageServiceUtility.CreateNuGetPackageStream(packageTypes: packageTypes, entryNames: entryNames);
             }
         }
 

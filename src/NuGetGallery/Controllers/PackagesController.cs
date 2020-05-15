@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -796,6 +797,12 @@ namespace NuGetGallery
             }
         }
 
+        // This additional delete action addresses issue https://github.com/NuGet/Engineering/issues/2866 - we need to error out.
+        [HttpDelete]
+        public HttpStatusCodeResult DisplayPackage() 
+            => new HttpStatusCodeWithHeadersResult(HttpStatusCode.MethodNotAllowed, new NameValueCollection() { { "allow", "GET" } });
+
+        [HttpGet]
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
             string normalized = NuGetVersionFormatter.Normalize(version);
