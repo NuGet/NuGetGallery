@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.Entity.Migrations.Model;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Ajax.Utilities;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -2135,6 +2137,65 @@ namespace NuGetGallery
                 organization.Members.Add(membership);
                 member.Organizations.Add(membership);
             }
+        }
+
+        public class TheGetPackageDependentsMethod
+        {
+
+            [Fact]
+            public void PackageIsNotLatestSemVer2()
+            {
+
+                string id = "foo";
+                var packageDependenciesSet = new DbSet<PackageDependency>();
+                var packagesSet = new DbSet<Package>();
+                var packageRegistrationsSet = new DbSet<PackageRegistration>();
+
+                var context = new Mock<IEntitiesContext>();
+
+                var service = CreateService(context: context);
+
+                context
+                    .Setup(f => f.PackageDependencies)
+                    .Returns(packageDependenciesSet);
+                context
+                    .Setup(f => f.Packages)
+                    .Returns(packagesSet);
+                context
+                    .Setup(f => f.PackageRegistrations)
+                    .Returns(packageRegistrationsSet);
+
+                var result = service.GetPackageDependents(id);
+                Assert.Equal(12, result.TotalPackageCount);
+                Assert.Equal(10, result.TopPackages.Count);
+
+            }
+
+            [Fact]
+            public void ThereAreMoreThanTenPackages()
+            {
+                
+
+            }
+
+            [Fact]
+            public void ThereAreLessThanTenPackages()
+            {
+
+            }
+            
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("       ")]
+            public void WillThrowIfIdIsNullOrEmpty(string id)
+            {
+                var service = CreateService();
+                var ex = Assert.Throws<ArgumentNullException>(() => service.GetPackageDependents(id));
+                Assert.Equal("id", ex.ParamName);
+            }
+
         }
 
         public class TheSetLicenseReportVisibilityMethod

@@ -10,8 +10,6 @@ namespace NuGetGallery
     {
         IDbContextTransaction BeginTransaction();
 
-        DbConnection Connection { get; } // Get rid of this
-
         Task<int> ExecuteSqlCommandAsync(string sql, params object[] parameters);
 
         Task<int> ExecuteSqlResourceAsync(string name, params object[] parameters);

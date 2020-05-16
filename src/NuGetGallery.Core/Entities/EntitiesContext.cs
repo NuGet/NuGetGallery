@@ -60,6 +60,7 @@ namespace NuGetGallery
         public DbSet<Package> Packages { get; set; }
         public DbSet<PackageDeprecation> Deprecations { get; set; }
         public DbSet<PackageRegistration> PackageRegistrations { get; set; }
+        public DbSet<PackageDependency> PackageDependencies { get; set; }
         public DbSet<Credential> Credentials { get; set; }
         public DbSet<Scope> Scopes { get; set; }
         public DbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
