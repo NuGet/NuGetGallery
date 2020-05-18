@@ -113,6 +113,7 @@ namespace NuGetGallery
             public const string NuGetChangeUsername = "https://aka.ms/nuget-faq-change-username";
             public const string NuGetDeleteAccount = "https://aka.ms/nuget-faq-delete-account";
             public const string TransformToOrganization = "https://aka.ms/nuget-faq-transform-org";
+            public const string AccountBelongsToUnmanagedTenant = "https://aka.ms/nuget-faq-unmanaged-tenant";
         }
     }
 }
