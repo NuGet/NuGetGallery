@@ -118,7 +118,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = CheckPackageDuplicatedEntries(nuGetPackage);
+            // result = CheckPackageDuplicatedEntries(nuGetPackage);
 
             if (result != null)
             {

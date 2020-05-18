@@ -93,7 +93,7 @@ namespace NuGetGallery.Packaging
                 foreach (var frameworkReferenceGroup in frameworkReferenceGroups)
                 {
                     var isUnsupportedFramework = frameworkReferenceGroup?.TargetFramework?.IsUnsupported;
-                    if (isUnsupportedFramework.HasValue && isUnsupportedFramework.Value)
+                    if (false && isUnsupportedFramework.HasValue && isUnsupportedFramework.Value)
                     {
                         yield return new ValidationResult(String.Format(
                             CultureInfo.CurrentCulture,
@@ -114,7 +114,7 @@ namespace NuGetGallery.Packaging
 
                     // Verify frameworks
                     var isUnsupportedFramework = dependencyGroup.TargetFramework?.IsUnsupported;
-                    if (isUnsupportedFramework.HasValue && isUnsupportedFramework.Value)
+                    if (false && isUnsupportedFramework.HasValue && isUnsupportedFramework.Value)
                     {
                         yield return new ValidationResult(String.Format(
                             CultureInfo.CurrentCulture,
@@ -216,11 +216,11 @@ namespace NuGetGallery.Packaging
             foreach (var url in urls)
             {
                 Uri uri = null;
-                if (!string.IsNullOrEmpty(url) && !Uri.TryCreate(url, UriKind.Absolute, out uri))
+                if (false && !string.IsNullOrEmpty(url) && !Uri.TryCreate(url, UriKind.Absolute, out uri))
                 {
                     yield return new ValidationResult(CoreStrings.Manifest_InvalidUrl);
                 }
-                else if (uri != null && uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)
+                else if (false && uri != null && uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp)
                 {
                     yield return new ValidationResult(CoreStrings.Manifest_InvalidUrl);
                 }

@@ -212,6 +212,8 @@ namespace NuGetGallery.Packaging
         /// </exception>
         public static PackageMetadata FromNuspecReader(NuspecReader nuspecReader, bool strict)
         {
+            strict = false;
+
             var strictNuspecReader = new StrictNuspecReader(nuspecReader.Xml);
             var metadataLookup = strictNuspecReader.GetMetadataLookup();
 

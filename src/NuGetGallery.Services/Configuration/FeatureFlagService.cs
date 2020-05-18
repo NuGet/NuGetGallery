@@ -107,7 +107,7 @@ namespace NuGetGallery
 
         public bool AreEmbeddedIconsEnabled(User user)
         {
-            return _client.IsEnabled(EmbeddedIconFlightName, user, defaultValue: false);
+            return _client.IsEnabled(EmbeddedIconFlightName, user, defaultValue: true);
         }
 
         public bool IsForceFlatContainerIconsEnabled()
