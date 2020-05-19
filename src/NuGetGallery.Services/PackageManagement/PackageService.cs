@@ -169,7 +169,7 @@ namespace NuGetGallery
                                 group 1 by new { pr.Id, pr.DownloadCount, p.Description } into ng
                                 orderby ng.Key.DownloadCount descending
                                 select new { ng.Key.Id, ng.Key.DownloadCount, ng.Key.Description }
-                                ).Take(10).ToList();
+                                ).Take(5).ToList();
 
             foreach(var pd in listPackages)
             {
