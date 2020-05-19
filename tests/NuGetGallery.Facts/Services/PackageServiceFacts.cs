@@ -2152,9 +2152,9 @@ namespace NuGetGallery
 
                 var service = CreateService(context: context);
 
-                var packageDependenciesList = setupPackageDependency(id);
-                var packageList = setupPackages();
-                var packageRegistrationsList = setupPackageRegistration();
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
 
                 for (int i = 0; i < packageLimit; i++)
                 {
@@ -2202,9 +2202,9 @@ namespace NuGetGallery
 
                 var service = CreateService(context: context);
 
-                var packageDependenciesList = setupPackageDependency(id);
-                var packageList = setupPackages();
-                var packageRegistrationsList = setupPackageRegistration();
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
 
                 foreach (var packageDependency in packageDependenciesList)
                 {
@@ -2250,9 +2250,9 @@ namespace NuGetGallery
 
                 var service = CreateService(context: context);
 
-                var packageDependenciesList = setupPackageDependency(id);
-                var packageList = setupPackages();
-                var packageRegistrationsList = setupPackageRegistration();
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
 
                 for (int i = 0; i < packageLimit; i++)
                 {
@@ -2325,9 +2325,9 @@ namespace NuGetGallery
 
                 var service = CreateService(context: context);
 
-                var packageDependenciesList = setupPackageDependency(id);
-                var packageList = setupPackages();
-                var packageRegistrationsList = setupPackageRegistration();
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
 
                 foreach (var packageDependency in packageDependenciesList)
                 {
@@ -2360,7 +2360,7 @@ namespace NuGetGallery
                 Assert.Equal(0, result.TopPackages.Count);
             }
 
-            private List<PackageDependency> setupPackageDependency(string id)
+            private List<PackageDependency> SetupPackageDependency(string id)
             {
                 var packageDependencyList = new List<PackageDependency>();
 
@@ -2410,7 +2410,7 @@ namespace NuGetGallery
                 return packageDependencyList;
             }
 
-            private List<Package> setupPackages()
+            private List<Package> SetupPackages()
             {
                 var packagesList = new List<Package>();
 
@@ -2472,7 +2472,7 @@ namespace NuGetGallery
                 return packagesList;
             }
 
-            private List<PackageRegistration> setupPackageRegistration()
+            private List<PackageRegistration> SetupPackageRegistration()
             {
                 var packageRegistrationList= new List<PackageRegistration>();
 

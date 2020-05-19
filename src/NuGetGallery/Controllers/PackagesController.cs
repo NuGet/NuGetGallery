@@ -936,7 +936,6 @@ namespace NuGetGallery
         {
             PackageDependents dependents;
 
-            //TODO Maybe consider packages that don't exist??? IDK if it's done atop
             var cacheDependentsCacheKey = "CacheDependents_" + id.ToLowerInvariant();
             var cacheDependents = HttpContext.Cache.Get(cacheDependentsCacheKey);
 
@@ -954,14 +953,14 @@ namespace NuGetGallery
                     Cache.NoSlidingExpiration,
                     CacheItemPriority.Default, null);
 
-                // TODO Make cache time configurable / slidy
-                // https://github.com/NuGet/NuGetGallery/issues/4718
             }
 
             // Cache contains PackageDependents
             else
             {
                 dependents = (PackageDependents)cacheDependents;
+                // TODO Make cache time configurable / slidy
+                // https://github.com/NuGet/NuGetGallery/issues/4718
             }
             return dependents;
         }
