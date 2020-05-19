@@ -855,6 +855,11 @@ namespace NuGetGallery
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
 
+            if (model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser))
+            {
+                model.PackageDependents = GetPackageDependents(id);
+            }
+
             if (model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
                 model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
@@ -932,6 +937,39 @@ namespace NuGetGallery
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
+        }
+
+        private PackageDependents GetPackageDependents(string id)
+        {
+            PackageDependents dependents;
+
+            var cacheDependentsCacheKey = "CacheDependents_" + id.ToLowerInvariant();
+            var cacheDependents = HttpContext.Cache.Get(cacheDependentsCacheKey);
+
+            // Cache doesn't contain PackageDependents so PackageDependents gets put in the cache
+            if (cacheDependents == null)
+            {
+                dependents = _packageService.GetPackageDependents(id);
+
+                // note: this is a per instance cache
+                HttpContext.Cache.Add(
+                    cacheDependentsCacheKey,
+                    dependents,
+                    null,
+                    DateTime.UtcNow.AddMinutes(5),
+                    Cache.NoSlidingExpiration,
+                    CacheItemPriority.Default, null);
+
+            }
+
+            // Cache contains PackageDependents
+            else
+            {
+                dependents = (PackageDependents)cacheDependents;
+                // TODO Make cache time configurable / slidy
+                // https://github.com/NuGet/NuGetGallery/issues/4718
+            }
+            return dependents;
         }
 
         [HttpGet]

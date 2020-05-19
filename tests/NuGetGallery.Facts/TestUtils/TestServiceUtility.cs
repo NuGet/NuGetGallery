@@ -195,6 +195,7 @@ namespace NuGetGallery.TestUtils
             var auditingService = new TestAuditingService();
             var telemetryService = new Mock<ITelemetryService>();
             var securityPolicyService = new Mock<ISecurityPolicyService>();
+            var entitiesContext = new Mock<IEntitiesContext>();
 
             var packageService = new Mock<PackageService>(
                  packageRegistrationRepository.Object,
@@ -202,7 +203,8 @@ namespace NuGetGallery.TestUtils
                  certificateRepository.Object,
                  auditingService,
                  telemetryService.Object,
-                 securityPolicyService.Object);
+                 securityPolicyService.Object,
+                 entitiesContext.Object);
 
             packageService.CallBase = true;
 

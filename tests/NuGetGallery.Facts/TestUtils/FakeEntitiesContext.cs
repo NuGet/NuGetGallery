@@ -29,6 +29,17 @@ namespace NuGetGallery
                 throw new NotSupportedException();
             }
         }
+        public DbSet<PackageDependency> PackageDependencies
+        {
+            get
+            {
+                return Set<PackageDependency>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
 
         public DbSet<Package> Packages
         {
