@@ -2537,7 +2537,6 @@ namespace NuGetGallery
                 var ex = Assert.Throws<ArgumentNullException>(() => service.GetPackageDependents(id));
                 Assert.Equal("id", ex.ParamName);
             }
-
         }
 
         public class TheSetLicenseReportVisibilityMethod
