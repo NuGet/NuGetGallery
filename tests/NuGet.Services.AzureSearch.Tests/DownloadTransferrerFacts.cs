@@ -256,34 +256,6 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void OverridesPopularityTransfer()
-            {
-                PopularityTransfer = 1;
-
-                DownloadData.SetDownloadCount("From1", "1.0.0", 2);
-                DownloadData.SetDownloadCount("From2", "1.0.0", 2);
-                DownloadData.SetDownloadCount("To1", "1.0.0", 0);
-                DownloadData.SetDownloadCount("To2", "1.0.0", 0);
-
-                PopularityTransfers.AddTransfer("From1", "To1");
-                PopularityTransfers.AddTransfer("From2", "To2");
-
-                DownloadOverrides["From1"] = 1000;
-                DownloadOverrides["To2"] = 1000;
-
-                var result = Target.InitializeDownloadTransfers(
-                    DownloadData,
-                    PopularityTransfers,
-                    DownloadOverrides);
-
-                Assert.Equal(new[] { "From1", "From2", "To1", "To2" }, result.Keys);
-                Assert.Equal(1000, result["From1"]);
-                Assert.Equal(0, result["From2"]);
-                Assert.Equal(2, result["To1"]);
-                Assert.Equal(1000, result["To2"]);
-            }
-
-            [Fact]
             public void DoesNotOverrideGreaterOrEqualDownloads()
             {
                 DownloadData.SetDownloadCount("A", "1.0.0", 1000);
@@ -301,31 +273,23 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void DoesNotOverrideGreaterPopularityTransfer()
+            public void DoesNotOverrideDownloadsAndTransferPopularity()
             {
-                PopularityTransfer = 0.5;
+                DownloadData.SetDownloadCount("A", "1.0.0", 100);
+                DownloadData.SetDownloadCount("B", "1.0.0", 0);
 
-                DownloadData.SetDownloadCount("From1", "1.0.0", 100);
-                DownloadData.SetDownloadCount("From2", "1.0.0", 100);
-                DownloadData.SetDownloadCount("To1", "1.0.0", 0);
-                DownloadData.SetDownloadCount("To2", "1.0.0", 0);
+                PopularityTransfers.AddTransfer("A", "B");
 
-                PopularityTransfers.AddTransfer("From1", "To1");
-                PopularityTransfers.AddTransfer("From2", "To2");
+                DownloadOverrides["A"] = 1000;
+                DownloadOverrides["B"] = 1000;
 
-                DownloadOverrides["From1"] = 1;
-                DownloadOverrides["To2"] = 1;
+                var exception = Assert.Throws<InvalidOperationException>(
+                    () => Target.InitializeDownloadTransfers(
+                        DownloadData,
+                        PopularityTransfers,
+                        DownloadOverrides));
 
-                var result = Target.InitializeDownloadTransfers(
-                    DownloadData,
-                    PopularityTransfers,
-                    DownloadOverrides);
-
-                Assert.Equal(new[] { "From1", "From2", "To1", "To2" }, result.Keys);
-                Assert.Equal(50, result["From1"]);
-                Assert.Equal(50, result["From2"]);
-                Assert.Equal(50, result["To1"]);
-                Assert.Equal(50, result["To2"]);
+                Assert.Equal("Cannot apply both popularity transfers and download overrides.", exception.Message);
             }
         }
 
@@ -791,33 +755,7 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void OverridesPopularityTransfer()
-            {
-                PopularityTransfer = 1;
-
-                DownloadData.SetDownloadCount("A", "1.0.0", 1);
-                DownloadData.SetDownloadCount("B", "1.0.0", 0);
-
-                DownloadChanges["A"] = 1;
-
-                PopularityTransfers.AddTransfer("A", "B");
-
-                DownloadOverrides["B"] = 1000;
-
-                var result = Target.UpdateDownloadTransfers(
-                    DownloadData,
-                    DownloadChanges,
-                    OldTransfers,
-                    PopularityTransfers,
-                    DownloadOverrides);
-
-                Assert.Equal(new[] { "A", "B" }, result.Keys);
-                Assert.Equal(0, result["A"]);
-                Assert.Equal(1000, result["B"]);
-            }
-
-            [Fact]
-            public void DoesNotOverrideGreaterPopularityTransfer()
+            public void DoesNotOverrideDownloadsAndTransferPopularity()
             {
                 PopularityTransfer = 1;
 
@@ -830,6 +768,30 @@ namespace NuGet.Services.AzureSearch
 
                 DownloadOverrides["B"] = 1;
 
+                var exception = Assert.Throws<InvalidOperationException>(
+                    () => Target.UpdateDownloadTransfers(
+                        DownloadData,
+                        DownloadChanges,
+                        OldTransfers,
+                        PopularityTransfers,
+                        DownloadOverrides));
+
+                Assert.Equal("Cannot apply both popularity transfers and download overrides.", exception.Message);
+            }
+
+            [Fact]
+            public void CanReplacePopularityTransfersByOverrides()
+            {
+                PopularityTransfer = 1;
+
+                DownloadData.SetDownloadCount("A", "1.0.0", 1000);
+                DownloadData.SetDownloadCount("B", "1.0.0", 0);
+
+                TransferChanges["A"] = new string[0];
+                OldTransfers.AddTransfer("A", "B");
+                DownloadOverrides["A"] = 100;
+                DownloadOverrides["B"] = 100;
+
                 var result = Target.UpdateDownloadTransfers(
                     DownloadData,
                     DownloadChanges,
@@ -837,9 +799,10 @@ namespace NuGet.Services.AzureSearch
                     PopularityTransfers,
                     DownloadOverrides);
 
+                Assert.Equal(2, result.Count);
                 Assert.Equal(new[] { "A", "B" }, result.Keys);
-                Assert.Equal(0, result["A"]);
-                Assert.Equal(1000, result["B"]);
+                Assert.Equal(1000, result["A"]);
+                Assert.Equal(100, result["B"]);
             }
 
             public GetUpdatedTransferChanges()

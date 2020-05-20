@@ -266,6 +266,49 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         }
 
         [Fact]
+        public async Task SkipsDownloadOverridesIfPopularityTransfersAreEnabled()
+        {
+            SetDownloadOverrides(@"{ ""A"": 500, ""B"": 500 }");
+            SetExcludedPackagesJson("{}");
+
+            AddVersionList("A", "1.0.0");
+            AddVersionList("B", "1.0.0");
+
+            SetOldDownloadsJson(@"
+{
+  ""A"": { ""1.0.0"": 100 },
+  ""B"": { ""1.0.0"": 1 }
+}");
+            SetNewDownloadsJson(@"
+[
+  [ ""A"", [ ""1.0.0"", 100 ] ],
+  [ ""B"", [ ""1.0.0"", 1 ] ],
+]");
+
+            // Old: no rename
+            // New: A -> B rename
+            SetOldPopularityTransfersJson(@"{}");
+            _newPopularityTransfers.AddTransfer("A", "B");
+
+            _config.Scoring.PopularityTransfer = 0.5;
+
+            await _target.ExecuteAsync();
+
+            Assert.NotNull(_indexedBatch);
+            var actions = _indexedBatch.Actions.OrderBy(x => x.Document.Key).ToList();
+            Assert.Equal(8, actions.Count);
+
+            VerifyUpdateDownloadCountAction("A", 50, actions[0]);
+            VerifyUpdateDownloadCountAction("A", 50, actions[1]);
+            VerifyUpdateDownloadCountAction("A", 50, actions[2]);
+            VerifyUpdateDownloadCountAction("A", 50, actions[3]);
+            VerifyUpdateDownloadCountAction("B", 51, actions[4]);
+            VerifyUpdateDownloadCountAction("B", 51, actions[5]);
+            VerifyUpdateDownloadCountAction("B", 51, actions[6]);
+            VerifyUpdateDownloadCountAction("B", 51, actions[7]);
+        }
+
+        [Fact]
         public async Task UpdatedPopularityTransferChangesDownloads()
         {
             SetDownloadOverrides("{}");

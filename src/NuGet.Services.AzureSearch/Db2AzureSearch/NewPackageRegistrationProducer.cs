@@ -68,7 +68,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             var downloads = await _auxiliaryFileClient.LoadDownloadDataAsync();
 
             var popularityTransfers = await GetPopularityTransfersAsync();
-            var downloadOverrides = await _auxiliaryFileClient.LoadDownloadOverridesAsync();
+            var downloadOverrides = await GetDownloadOverridesAsync();
 
             // Apply changes from popularity transfers and download overrides.
             var transferredDownloads = GetTransferredDownloads(
@@ -181,6 +181,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             }
 
             return await _databaseFetcher.GetPopularityTransfersAsync();
+        }
+
+        private async Task<IReadOnlyDictionary<string, long>> GetDownloadOverridesAsync()
+        {
+            if (_options.Value.EnablePopularityTransfers && _featureFlags.IsPopularityTransferEnabled())
+            {
+                _logger.LogWarning(
+                    "Popularity transfers are enabled. Download overrides will be ignored.");
+                return new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            return await _auxiliaryFileClient.LoadDownloadOverridesAsync();
         }
 
         private Dictionary<string, long> GetTransferredDownloads(
