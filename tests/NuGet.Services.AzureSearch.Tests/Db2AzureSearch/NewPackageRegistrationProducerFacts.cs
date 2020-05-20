@@ -532,6 +532,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 InitializePackagesFromPackageRegistrations();
 
                 // Transfer changes should be applied to the package registrations.
+                // Download overrides should be skipped.
                 _transferChanges["A"] = 55;
                 _transferChanges["b"] = 66;
                 _transferChanges["C"] = 123;
@@ -540,7 +541,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
                 var result = await _target.ProduceWorkAsync(_work, _token);
 
-                _auxiliaryFileClient.Verify(x => x.LoadDownloadOverridesAsync(), Times.Once);
+                _auxiliaryFileClient.Verify(x => x.LoadDownloadOverridesAsync(), Times.Never);
                 _databaseFetcher.Verify(x => x.GetPopularityTransfersAsync(), Times.Once);
 
                 _downloadTransferrer
@@ -548,7 +549,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         x => x.InitializeDownloadTransfers(
                             _downloads,
                             _popularityTransfers,
-                            _downloadOverrides),
+                            It.Is<IReadOnlyDictionary<string, long>>(overrides => !overrides.Any())),
                         Times.Once);
 
                 // Documents should have overriden downloads.
@@ -608,6 +609,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         Times.Never);
 
                 // Popularity transfers should not be passed to the download transferrer.
+                // Download overrides should be passed to the download transferrer.
                 _downloadTransferrer
                     .Verify(
                         x => x.InitializeDownloadTransfers(
@@ -651,6 +653,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         Times.Never);
 
                 // Popularity transfers should not be passed to the download transferrer.
+                // Download overrides should be passed to the download transferrer.
                 _downloadTransferrer
                     .Verify(
                         x => x.InitializeDownloadTransfers(

@@ -8,10 +8,16 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.ApplicationInsights;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Ng.Jobs;
 using NuGet.Services.Configuration;
+using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using Serilog;
 using Serilog.Events;
@@ -71,6 +77,13 @@ namespace Ng
 
                 var loggerFactory = ConfigureLoggerFactory(applicationInsightsConfiguration);
 
+                InitializeServiceProvider(
+                    arguments,
+                    secretInjector,
+                    applicationInsightsConfiguration,
+                    telemetryClient,
+                    loggerFactory);
+
                 job = NgJobFactory.GetJob(jobName, loggerFactory, telemetryClient, telemetryGlobalDimensions);
                 job.SetSecretInjector(secretInjector);
 
@@ -113,6 +126,40 @@ namespace Ng
 
             Trace.Close();
             applicationInsightsConfiguration?.TelemetryConfiguration.TelemetryChannel.Flush();
+        }
+
+        /// <summary>
+        /// This mimics the approach taking in NuGet.Job's JsonConfigurationJob. We add common infrastructure to the
+        /// dependency injection container and load Autofac modules in the current assembly. This gives us a hook to
+        /// customize the initialization of this program. Today this service provider is only used for modifying
+        /// telemetry configuration but it could eventually be used in the <see cref="NgJobFactory"/>.
+        /// </summary>
+        private static IServiceProvider InitializeServiceProvider(
+            IDictionary<string, string> arguments,
+            ISecretInjector secretInjector,
+            ApplicationInsightsConfiguration applicationInsightsConfiguration,
+            ITelemetryClient telemetryClient,
+            ILoggerFactory loggerFactory)
+        {
+            var configurationBuilder = new ConfigurationBuilder()
+                .AddInMemoryCollection(arguments);
+
+            IServiceCollection services = new ServiceCollection();
+            services.AddSingleton(secretInjector);
+            services.AddSingleton(applicationInsightsConfiguration.TelemetryConfiguration);
+            services.AddSingleton<IConfiguration>(configurationBuilder.Build());
+
+            services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
+            services.AddSingleton(loggerFactory);
+            services.AddLogging();
+
+            services.AddSingleton(telemetryClient);
+
+            var containerBuilder = new ContainerBuilder();
+            containerBuilder.Populate(services);
+            containerBuilder.RegisterAssemblyModules(typeof(Program).Assembly);
+
+            return new AutofacServiceProvider(containerBuilder.Build());
         }
 
         private static ILoggerFactory ConfigureLoggerFactory(ApplicationInsightsConfiguration applicationInsightsConfiguration)

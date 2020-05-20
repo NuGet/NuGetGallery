@@ -188,10 +188,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Verify(
                         d => d.GetPopularityTransfersAsync(),
                         Times.Once);
+
+                // Download overrides should be skipped.
                 AuxiliaryFileClient
                     .Verify(
                         a => a.LoadDownloadOverridesAsync(),
-                        Times.Once);
+                        Times.Never);
 
                 DownloadTransferrer
                     .Verify(
@@ -200,7 +202,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                             downloadChanges,
                             OldTransfers,
                             NewTransfers,
-                            DownloadOverrides),
+                            It.Is<IReadOnlyDictionary<string, long>>(overrides => !overrides.Any())),
                         Times.Once);
 
                 // Documents should be updated.
@@ -269,6 +271,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         Times.Once);
 
                 // The popularity transfers should not be given to the download transferrer.
+                // Download overrides should be given to the download transferrer.
                 DownloadTransferrer
                     .Verify(
                         x => x.UpdateDownloadTransfers(
@@ -327,6 +330,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         Times.Once);
 
                 // The popularity transfers should not be given to the download transferrer.
+                // Download overrides should be given to the download transferrer.
                 DownloadTransferrer
                     .Verify(
                         x => x.UpdateDownloadTransfers(

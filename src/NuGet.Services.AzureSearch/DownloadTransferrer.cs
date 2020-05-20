@@ -32,6 +32,10 @@ namespace NuGet.Services.AzureSearch
             PopularityTransferData outgoingTransfers,
             IReadOnlyDictionary<string, long> downloadOverrides)
         {
+            Guard.Assert(
+                !outgoingTransfers.Any() || !downloadOverrides.Any(),
+                "Cannot apply both popularity transfers and download overrides.");
+
             // Downloads are transferred from a "from" package to one or more "to" packages.
             // The "outgoingTransfers" maps "from" packages to their corresponding "to" packages.
             // The "incomingTransfers" maps "to" packages to their corresponding "from" packages.
@@ -69,6 +73,10 @@ namespace NuGet.Services.AzureSearch
             Guard.Assert(
                 downloadChanges.All(x => downloads.GetDownloadCount(x.Key) == x.Value),
                 "The download changes should match the latest downloads");
+
+            Guard.Assert(
+                !newTransfers.Any() || !downloadOverrides.Any(),
+                "Cannot apply both popularity transfers and download overrides.");
 
             // Downloads are transferred from a "from" package to one or more "to" packages.
             // The "oldTransfers" and "newTransfers" maps "from" packages to their corresponding "to" packages.
