@@ -3,8 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Migrations.Model;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Ajax.Utilities;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -57,6 +61,83 @@ namespace NuGetGallery
             }
 
             return packageService.Object;
+        }
+        
+        public class TheFindPackageBySuffixMethod
+        {
+            private Package InvokeMethod(IReadOnlyCollection<Package> packages, string version, bool preRelease)
+            {
+                var service = CreateService();
+                return service.FilterLatestPackageBySuffix(packages, version, preRelease);
+            }
+            
+            [Theory]
+            [InlineData("alpha", true, 4)]
+            [InlineData("alpha2-internal", true, 4)]
+            [InlineData("alpha1", true, 2)]
+            [InlineData("alpha2", true, 4)]
+            [InlineData("alpha3", true, 7)]
+            [InlineData("internal", true, 7)]
+            [InlineData("internal.5", true, 7)]
+            [InlineData("internal.51", true, 7)]
+            [InlineData("internal.6", true, 8)]
+            [InlineData("", true, 7)]
+            [InlineData("", false, 1)]
+            [InlineData("noexist", true, 7)]
+            public void VerifySemVerMatching(string version, bool preRelease, int expectedResultIndex)
+            {
+                var r = new Regex(@"-[^d]");
+                var testData = new[]
+                    {
+                        ("1.0.0", false, false),
+                        ("1.0.23", true, false),
+                        ("1.0.23-alpha1", false, false),
+                        ("1.0.23-alpha2-internal2", false, false),
+                        ("1.0.23-alpha2-internal3", false, false),
+                        ("1.0.23-beta", false, false),
+                        ("1.0.23-internal.5", false, false),
+                        ("1.0.23-internal.510", false, true),
+                        ("1.0.23-internal.6", false, false),
+                    }
+                    .Select(data => new Package() { 
+                        IsPrerelease = r.IsMatch(data.Item1), 
+                        NormalizedVersion = NuGetVersion.Parse(data.Item1).ToNormalizedString(),
+                        IsLatestStableSemVer2 = data.Item2,
+                        IsLatestSemVer2 = data.Item3
+                    })
+                    .ToArray();
+
+                var result = InvokeMethod(testData, version, preRelease);
+                Assert.Equal(testData[expectedResultIndex].NormalizedVersion, result.NormalizedVersion);
+            }
+            
+            [Fact]
+            public void VerifyFallbackToStableIfNoPrerelease()
+            {
+                var r = new Regex(@"-[^d]");
+                var testData = new[]
+                    {
+                        ("1.0.0", 1, false, false),
+                        ("1.0.23", 2, true, false),
+                    }
+                    .Select(data => new Package() { 
+                        IsPrerelease = r.IsMatch(data.Item1), 
+                        NormalizedVersion = SemanticVersion.Parse(data.Item1).ToNormalizedString(),
+                        IsLatestStableSemVer2 = data.Item3,
+                        IsLatestSemVer2 = data.Item4
+                    })
+                    .ToArray();
+
+                var result = InvokeMethod(testData, "alpha", true);
+                Assert.Equal(testData[1].NormalizedVersion, result.NormalizedVersion);
+            }
+            
+            [Fact]
+            public void VerifyDoesNotThrowIfNoPackages()
+            {
+                var result = InvokeMethod(new Package[]{}, "alpha", true);
+                Assert.Equal(null, result);
+            }
         }
 
         public class TheAddPackageOwnerMethod
@@ -2056,6 +2137,406 @@ namespace NuGetGallery
                 var membership = new Membership() { Member = member, Organization = organization };
                 organization.Members.Add(membership);
                 member.Organizations.Add(membership);
+            }
+        }
+
+        public class TheGetPackageDependentsMethod
+        {
+            [Fact]
+            public void ThereAreExactlyFivePackages()
+            {
+                string id = "foo";
+                int packageLimit = 5;
+
+                var context = new Mock<IEntitiesContext>();
+                var entityContext = new FakeEntitiesContext();
+
+                var service = CreateService(context: context);
+
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
+
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var packageDependency = packageDependenciesList[i];
+                    entityContext.PackageDependencies.Add(packageDependency);
+                }
+
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var package = packageList[i];
+                    entityContext.Packages.Add(package);
+                }
+
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var packageRegistration = packageRegistrationsList[i];
+                    entityContext.PackageRegistrations.Add(packageRegistration);
+                }
+
+                context
+                    .Setup(f => f.PackageDependencies)
+                    .Returns(entityContext.PackageDependencies);
+                context
+                    .Setup(f => f.Packages)
+                    .Returns(entityContext.Packages);
+                context
+                    .Setup(f => f.PackageRegistrations)
+                    .Returns(entityContext.PackageRegistrations);
+
+                var result = service.GetPackageDependents(id);
+                Assert.Equal(packageLimit, result.TotalPackageCount);
+                Assert.Equal(packageLimit, result.TopPackages.Count);
+                var topPackage = result.TopPackages.ElementAt(0);
+                var runnerUpPackage = result.TopPackages.ElementAt(1);
+                Assert.True(topPackage.DownloadCount > runnerUpPackage.DownloadCount);
+            }
+
+            [Fact]
+            public void ThereAreMoreThanFivePackages()
+            {
+                string id = "foo";
+
+                var context = new Mock<IEntitiesContext>();
+                var entityContext = new FakeEntitiesContext();
+
+                var service = CreateService(context: context);
+
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
+
+                foreach (var packageDependency in packageDependenciesList)
+                {
+                    entityContext.PackageDependencies.Add(packageDependency);
+                }
+
+                foreach (var package in packageList)
+                {
+                    entityContext.Packages.Add(package);
+                }
+
+                foreach (var packageRegistration in packageRegistrationsList)
+                {
+                    entityContext.PackageRegistrations.Add(packageRegistration);
+                }
+
+                context
+                    .Setup(f => f.PackageDependencies)
+                    .Returns(entityContext.PackageDependencies);
+                context
+                    .Setup(f => f.Packages)
+                    .Returns(entityContext.Packages);
+                context
+                    .Setup(f => f.PackageRegistrations)
+                    .Returns(entityContext.PackageRegistrations);
+
+                var result = service.GetPackageDependents(id);
+                Assert.Equal(6, result.TotalPackageCount);
+                Assert.Equal(5, result.TopPackages.Count);
+                var topPackage = result.TopPackages.ElementAt(0);
+                var runnerUpPackage = result.TopPackages.ElementAt(1);
+                Assert.True(topPackage.DownloadCount > runnerUpPackage.DownloadCount);
+            }
+
+            [Fact]
+            public void ThereAreLessThanFivePackages()
+            {
+                string id = "foo";
+                int packageLimit = 3;
+
+                var context = new Mock<IEntitiesContext>();
+                var entityContext = new FakeEntitiesContext();
+
+                var service = CreateService(context: context);
+
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
+
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var packageDependency = packageDependenciesList[i];
+                    entityContext.PackageDependencies.Add(packageDependency);
+                }
+
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var package = packageList[i];
+                    entityContext.Packages.Add(package);
+                }
+
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var packageRegistration = packageRegistrationsList[i];
+                    entityContext.PackageRegistrations.Add(packageRegistration);
+                }
+
+                context
+                    .Setup(f => f.PackageDependencies)
+                    .Returns(entityContext.PackageDependencies);
+                context
+                    .Setup(f => f.Packages)
+                    .Returns(entityContext.Packages);
+                context
+                    .Setup(f => f.PackageRegistrations)
+                    .Returns(entityContext.PackageRegistrations);
+
+                var result = service.GetPackageDependents(id);
+                Assert.Equal(packageLimit, result.TotalPackageCount);
+                Assert.Equal(packageLimit, result.TopPackages.Count);
+                var topPackage = result.TopPackages.ElementAt(0);
+                var runnerUpPackage = result.TopPackages.ElementAt(1);
+                Assert.True(topPackage.DownloadCount > runnerUpPackage.DownloadCount);
+            }
+
+            [Fact]
+            public void ThereAreNoPackageDependents()
+            {
+                string id = "foo";
+
+                var context = new Mock<IEntitiesContext>();
+                var entityContext = new FakeEntitiesContext();
+
+                var service = CreateService(context: context);
+
+                context
+                    .Setup(f => f.PackageDependencies)
+                    .Returns(entityContext.PackageDependencies);
+                context
+                    .Setup(f => f.Packages)
+                    .Returns(entityContext.Packages);
+                context
+                    .Setup(f => f.PackageRegistrations)
+                    .Returns(entityContext.PackageRegistrations);
+
+                var result = service.GetPackageDependents(id);
+                Assert.Equal(0, result.TotalPackageCount);
+                Assert.Equal(0, result.TopPackages.Count);
+            }
+
+            [Fact]
+            public void PackageIsNotLatestSemVer2()
+            {
+                string id = "foo";
+
+                var context = new Mock<IEntitiesContext>();
+                var entityContext = new FakeEntitiesContext();
+
+                var service = CreateService(context: context);
+
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
+
+                foreach (var packageDependency in packageDependenciesList)
+                {
+                    entityContext.PackageDependencies.Add(packageDependency);
+                }
+
+                foreach (var package in packageList)
+                {
+                    package.IsLatestSemVer2 = false;
+                    entityContext.Packages.Add(package);
+                }
+
+                foreach (var packageRegistration in packageRegistrationsList)
+                {
+                    entityContext.PackageRegistrations.Add(packageRegistration);
+                }
+
+                context
+                    .Setup(f => f.PackageDependencies)
+                    .Returns(entityContext.PackageDependencies);
+                context
+                    .Setup(f => f.Packages)
+                    .Returns(entityContext.Packages);
+                context
+                    .Setup(f => f.PackageRegistrations)
+                    .Returns(entityContext.PackageRegistrations);
+
+                var result = service.GetPackageDependents(id);
+                Assert.Equal(0, result.TotalPackageCount);
+                Assert.Equal(0, result.TopPackages.Count);
+            }
+
+            private List<PackageDependency> SetupPackageDependency(string id)
+            {
+                var packageDependencyList = new List<PackageDependency>();
+
+                var foo1 = new PackageDependency()
+                {
+                    PackageKey = 1,
+                    Id = id
+                };
+
+                var foo2 = new PackageDependency()
+                {
+                    PackageKey = 2,
+                    Id = id
+                };
+
+                var foo3 = new PackageDependency()
+                {
+                    PackageKey = 3,
+                    Id = id
+                };
+
+                var foo4 = new PackageDependency()
+                {
+                    PackageKey = 4,
+                    Id = id
+                };
+
+                var foo5 = new PackageDependency()
+                {
+                    PackageKey = 5,
+                    Id = id
+                };
+
+                var foo6 = new PackageDependency()
+                {
+                    PackageKey = 6,
+                    Id = id
+                };
+
+                packageDependencyList.Add(foo1);
+                packageDependencyList.Add(foo2);
+                packageDependencyList.Add(foo3);
+                packageDependencyList.Add(foo4);
+                packageDependencyList.Add(foo5);
+                packageDependencyList.Add(foo6);
+
+                return packageDependencyList;
+            }
+
+            private List<Package> SetupPackages()
+            {
+                var packagesList = new List<Package>();
+
+                var pFoo1 = new Package()
+                {
+                    Key = 1,
+                    PackageRegistrationKey = 11,
+                    IsLatestSemVer2 = true,
+                    Description = "This 111"
+                };
+
+                var pFoo2 = new Package()
+                {
+                    Key = 2,
+                    PackageRegistrationKey = 22,
+                    IsLatestSemVer2 = true,
+                    Description = "This 222"
+                };
+
+                var pFoo3 = new Package()
+                {
+                    Key = 3,
+                    PackageRegistrationKey = 33,
+                    IsLatestSemVer2 = true,
+                    Description = "This 333"
+                };
+
+                var pFoo4 = new Package()
+                {
+                    Key = 4,
+                    PackageRegistrationKey = 44,
+                    IsLatestSemVer2 = true,
+                    Description = "This 444"
+                };
+
+                var pFoo5 = new Package()
+                {
+                    Key = 5,
+                    PackageRegistrationKey = 55,
+                    IsLatestSemVer2 = true,
+                    Description = "This 555"
+                };
+
+                var pFoo6 = new Package()
+                {
+                    Key = 6,
+                    PackageRegistrationKey = 66,
+                    IsLatestSemVer2 = true,
+                    Description = "I put the 7 on purpose 667"
+                };
+
+                packagesList.Add(pFoo1);
+                packagesList.Add(pFoo2);
+                packagesList.Add(pFoo3);
+                packagesList.Add(pFoo4);
+                packagesList.Add(pFoo5);
+                packagesList.Add(pFoo6);
+
+                return packagesList;
+            }
+
+            private List<PackageRegistration> SetupPackageRegistration()
+            {
+                var packageRegistrationList= new List<PackageRegistration>();
+
+                var prFoo1 = new PackageRegistration()
+                {
+                    Key = 11,
+                    DownloadCount = 100,
+                    Id = "p1"
+                };
+
+                var prFoo2 = new PackageRegistration()
+                {
+                    Key = 22,
+                    DownloadCount = 200,
+                    Id = "p2"
+                };
+
+                var prFoo3 = new PackageRegistration()
+                {
+                    Key = 33,
+                    DownloadCount = 300,
+                    Id = "p3"
+                };
+
+                var prFoo4 = new PackageRegistration()
+                {
+                    Key = 44,
+                    DownloadCount = 400,
+                    Id = "p4"
+                };
+
+                var prFoo5 = new PackageRegistration()
+                {
+                    Key = 55,
+                    DownloadCount = 500,
+                    Id = "p5"
+                };
+                var prFoo6 = new PackageRegistration()
+                {
+                    Key = 66,
+                    DownloadCount = 600,
+                    Id = "p6"
+                };
+
+                packageRegistrationList.Add(prFoo1);
+                packageRegistrationList.Add(prFoo2);
+                packageRegistrationList.Add(prFoo3);
+                packageRegistrationList.Add(prFoo4);
+                packageRegistrationList.Add(prFoo5);
+                packageRegistrationList.Add(prFoo6);
+
+                return packageRegistrationList;
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("       ")]
+            public void WillThrowIfIdIsNullOrEmpty(string id)
+            {
+                var service = CreateService();
+                var ex = Assert.Throws<ArgumentNullException>(() => service.GetPackageDependents(id));
+                Assert.Equal("id", ex.ParamName);
             }
         }
 

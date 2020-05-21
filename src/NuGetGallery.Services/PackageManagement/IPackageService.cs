@@ -19,6 +19,13 @@ namespace NuGetGallery
     {
         CreatePackageDependents GetPackageDependents(string id);
         /// <summary>
+        /// Returns a package dependents object that includes a collection of the top packages that 
+        /// depend on the focus package and a total count of those dependents.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        PackageDependents GetPackageDependents(string id);
+
+        /// <summary>
         /// Returns all packages with an <see cref="Package.Id"/> of <paramref name="id"/>.
         /// Includes deprecation fields based on <paramref name="deprecationFields"/>.
         /// </summary>
@@ -74,6 +81,9 @@ namespace NuGetGallery
             IReadOnlyCollection<Package> packages,
             int? semVerLevelKey = SemVerLevelKey.SemVer2,
             bool allowPrerelease = true);
+
+        Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages,
+            string version, bool prerelease);
 
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
 

@@ -39,6 +39,7 @@ namespace NuGetGallery
                 allVersions,
                 currentUser,
                 packageKeyToDeprecation: null,
+                packageRenames: null,
                 readmeResult: null);
 
             return SetupInternal(viewModel, package, reasons);

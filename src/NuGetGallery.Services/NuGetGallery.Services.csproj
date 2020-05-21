@@ -142,13 +142,16 @@
     <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\UriExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
+    <Compile Include="Helpers\LatestPackageRouteVerifier.cs" />
     <Compile Include="Helpers\MailAddressConverter.cs" />
     <Compile Include="Helpers\UploadHelper.cs" />
     <Compile Include="Models\LuceneIndexLocation.cs" />
     <Compile Include="Models\PackageDependent.cs" />
+    <Compile Include="Models\PackageDependents.cs" />
     <Compile Include="Models\ReportPackageReason.cs" />
     <Compile Include="Models\StorageType.cs" />
     <Compile Include="PackageManagement\ActionOnNewPackageContext.cs" />
+    <Compile Include="PackageManagement\IPackageFilter.cs" />
     <Compile Include="PackageManagement\IPackageOwnerRequestService.cs" />
     <Compile Include="PackageManagement\IIndexingService.cs" />
     <Compile Include="PackageManagement\IPackageOwnershipManagementService.cs" />
@@ -157,6 +160,8 @@
     <Compile Include="PackageManagement\IPackageVulnerabilityService.cs" />
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
     <Compile Include="PackageManagement\PackageDeleteDecision.cs" />
+    <Compile Include="PackageManagement\PackageFilter.cs" />
+    <Compile Include="PackageManagement\PackageFilterContext.cs" />
     <Compile Include="PackageManagement\PackageHelper.cs" />
     <Compile Include="PackageManagement\PackageOwnerRequestService.cs" />
     <Compile Include="PackageManagement\PackageOwnershipManagementService.cs" />

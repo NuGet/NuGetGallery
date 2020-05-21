@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Web;
 using System.Web.Mvc;
 
@@ -50,7 +52,19 @@ namespace NuGetGallery
 
         protected virtual IDictionary<string, object> LoadTempData(ControllerContext controllerContext)
         {
-            var cookie = _httpContext.Request.Cookies[TempDataCookieKey];
+            HttpCookie cookie;
+            try
+            {
+                cookie = _httpContext.Request.Cookies[TempDataCookieKey];
+            }
+            catch (HttpRequestValidationException ex)
+            {
+                throw new HttpException(
+                    (int)HttpStatusCode.BadRequest,
+                    $"The cookie {TempDataCookieKey} could not be read.",
+                    ex);
+            }
+
             var dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             if ((cookie == null) || String.IsNullOrEmpty(cookie.Value))
             {

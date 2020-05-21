@@ -67,7 +67,7 @@ namespace NuGetGallery
 
             if (returnUri != null)
             {
-                readyUriString = returnUri.ToString();
+                readyUriString = returnUri.AbsoluteUri;
                 return true;
             }
 

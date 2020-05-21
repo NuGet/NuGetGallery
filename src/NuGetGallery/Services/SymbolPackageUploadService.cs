@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -86,6 +87,12 @@ namespace NuGetGallery
                             Strings.SymbolsPackage_PackageIdAndVersionNotFound,
                             id,
                             normalizedVersion));
+                    }
+
+                    // Check for duplicated entries in symbols package
+                    if (ValidationHelper.HasDuplicatedEntries(packageToPush))
+                    {
+                        return SymbolPackageValidationResult.Invalid(Strings.UploadPackage_PackageContainsDuplicatedEntries);
                     }
 
                     // Do not allow to upload a snupkg to a package which has symbols package pending validations.

@@ -1,10 +1,10 @@
-﻿using NuGet.Services.Entities;
-using NuGetGallery;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
+using NuGet.Services.Entities;
+using NuGetGallery;
 using System.Data.Entity;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NuGet.VerifyMicrosoftPackage.Fakes
@@ -14,6 +14,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public DbSet<Certificate> Certificates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<PackageDeprecation> Deprecations { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<PackageRegistration> PackageRegistrations { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DbSet<PackageDependency> PackageDependencies  { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<Credential> Credentials { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<Scope> Scopes { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<User> Users { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

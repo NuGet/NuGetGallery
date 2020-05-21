@@ -79,6 +79,7 @@
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
+    <Compile Include="Helpers\ValidationHelperFacts.cs" />
     <Compile Include="Infrastructure\ODataCacheOutputAttributeFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQueryFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQueryFacts.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="Services\IconUrlTemplateProcessorFacts.cs" />
     <Compile Include="Services\PackageDeprecationManagementServiceFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
+    <Compile Include="Services\PackageRenameServiceFacts.cs" />
     <Compile Include="Services\PackageVulnerabilityServiceFacts.cs" />
     <Compile Include="Services\SearchSideBySideServiceFacts.cs" />
     <Compile Include="Services\PackageUpdateServiceFacts.cs" />
@@ -300,6 +302,7 @@
     <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModelFacts.cs" />
     <Compile Include="ViewModels\ListPackageItemViewModelFacts.cs" />
     <Compile Include="ViewModels\PackageViewModelFacts.cs" />
+    <Compile Include="ViewModels\StatisticsPackagesViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
     <Compile Include="ViewModels\SignerViewModelFacts.cs" />
     <Compile Include="ViewModels\UserProfileModelFacts.cs" />

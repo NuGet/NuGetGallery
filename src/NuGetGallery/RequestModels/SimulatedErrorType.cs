@@ -20,5 +20,8 @@ namespace NuGetGallery
         Exception,
         UserSafeException,
         ReadOnlyMode,
+        ExceptionInView,
+        ExceptionInInlineErrorPage,
+        ExceptionInDedicatedErrorPage,
     }
 }

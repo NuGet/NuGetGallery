@@ -33,13 +33,12 @@ namespace NuGetGallery
         public bool IsDotnetNewTemplatePackageType { get; set; }
         public bool IsAtomFeedEnabled { get; set; }
         public bool IsPackageDeprecationEnabled { get; set; }
+        public bool IsPackageRenamesEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
         public bool IsPackageDependentsEnabled { get; set; }
         public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
         public bool HasEmbeddedIcon { get; set; }
-        //public IReadOnlyCollection<PackageDependent> packageDependents { get; set;}
-        public CreatePackageDependents packageDependents { get; set; }
-
+        public PackageDependents PackageDependents { get; set; }
 
         public bool HasNewerPrerelease
         {
@@ -85,6 +84,9 @@ namespace NuGetGallery
         public string AlternatePackageId { get; set; }
         public string AlternatePackageVersion { get; set; }
         public string CustomMessage { get; set; }
+
+        public IReadOnlyCollection<PackageRename> PackageRenames { get; set; }
+        public string RenamedMessage { get; set; }
 
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
         {

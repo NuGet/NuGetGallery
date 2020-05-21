@@ -1,0 +1,51 @@
+﻿@model DisplayPackageViewModel
+
+<div class="deprecation-container">
+    <div class="icon-text alert alert-info">
+        <div id="show-rename-content-container" class="deprecation-expander" tabindex="0" data-toggle="collapse" data-target="#rename-content-container" aria-expanded="false" aria-controls="rename-content-container" aria-labelledby="rename-container-label" role="button">
+            <div class="deprecation-expander" role="button">
+                <div class="deprecation-expander-container">
+                    <i class="deprecation-expander-icon ms-Icon ms-Icon--Info" aria-hidden="true"></i>
+
+                    <div id="rename-container-label" class="deprecation-expander-info-right">
+                        @{
+                            if (Model.PackageRenames.Count == 1)
+                            {
+                                @:This package has been renamed.
+                            }
+                            else
+                            {
+                                @:This package has been renamed or split into new packages.
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="deprecation-expander-container">
+                    <i class="deprecation-expander-icon deprecation-expander-info-right ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="deprecation-content-container collapse" id="rename-content-container">
+            <ul class="list-unstyled">
+                @if (Model.PackageRenames != null && Model.PackageRenames.Count != 0)
+                {
+                    foreach (var packageRename in Model.PackageRenames)
+                    {
+                        var renamePackageName = packageRename.ToPackageRegistration.Id;
+                        var renamePackageUrl = Url.Package(renamePackageName);
+                        <li><a href="@renamePackageUrl">@renamePackageName</a></li>
+                    }
+                }
+            </ul>
+            <p></p>
+
+            @if (!string.IsNullOrEmpty(Model.RenamedMessage))
+            {
+                <b>Additional Details</b>
+                <p>@Html.PreFormattedText(Model.RenamedMessage, Config)</p>
+            }
+        </div>
+    </div>
+</div>

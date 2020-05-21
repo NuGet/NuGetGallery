@@ -24,5 +24,8 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         Exception,
         UserSafeException,
         ReadOnlyMode,
+        ExceptionInView,
+        ExceptionInInlineErrorPage,
+        ExceptionInDedicatedErrorPage,
     }
 }

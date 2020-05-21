@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -38,6 +39,8 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Infrastructure.Search;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.Services;
+using NuGetGallery.Services.Helpers;
 using Xunit;
 
 namespace NuGetGallery
@@ -47,6 +50,7 @@ namespace NuGetGallery
     {
         private static PackagesController CreateController(
             IGalleryConfigurationService configurationService,
+            IPackageFilter packageFilter = null,
             Mock<IPackageService> packageService = null,
             Mock<IPackageUpdateService> packageUpdateService = null,
             Mock<IUploadFileService> uploadFileService = null,
@@ -77,14 +81,13 @@ namespace NuGetGallery
             Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null,
             Mock<IFeatureFlagService> featureFlagService = null,
             Mock<IPackageDeprecationService> deprecationService = null,
+            Mock<IPackageRenameService> renameService = null,
             Mock<IABTestService> abTestService = null,
             Mock<IIconUrlProvider> iconUrlProvider = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
-            CreatePackageDependents packageDependents = new CreatePackageDependents();
-            packageService.Setup(x => x.GetPackageDependents(It.IsAny<String>())).Returns(packageDependents);
-
-
+            PackageDependents packageDependents = new PackageDependents();
+            packageService.Setup(x => x.GetPackageDependents(It.IsAny<string>())).Returns(packageDependents);
 
             packageUpdateService = packageUpdateService ?? new Mock<IPackageUpdateService>();
             if (uploadFileService == null)
@@ -109,6 +112,8 @@ namespace NuGetGallery
                 packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
             }
+
+            packageFilter = packageFilter ?? new PackageFilter(packageService.Object);
 
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
 
@@ -212,7 +217,15 @@ namespace NuGetGallery
                 featureFlagService.SetReturnsDefault<bool>(true);
             }
 
-            deprecationService = deprecationService ?? new Mock<IPackageDeprecationService>();
+            
+            renameService = renameService ?? new Mock<IPackageRenameService>();
+            if (deprecationService == null)
+            {
+                deprecationService = new Mock<IPackageDeprecationService>();
+                deprecationService
+                    .Setup(x => x.GetDeprecationsById(It.IsAny<string>()))
+                    .Returns(new List<PackageDeprecation>());
+            }
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 
             abTestService = abTestService ?? new Mock<IABTestService>();
@@ -222,6 +235,7 @@ namespace NuGetGallery
             
 
             var controller = new Mock<PackagesController>(
+                packageFilter,
                 packageService.Object,
                 packageUpdateService.Object,
                 uploadFileService.Object,
@@ -250,6 +264,7 @@ namespace NuGetGallery
                 licenseExpressionSplitter.Object,
                 featureFlagService.Object,
                 deprecationService.Object,
+                renameService.Object,
                 abTestService.Object,
                 iconUrlProvider.Object);
 
@@ -379,8 +394,15 @@ namespace NuGetGallery
         }
 
         public class TheDisplayPackageMethod
-            : TestContainer
+            : TestContainer, IDisposable
         {
+            private Cache _cache;
+
+            public TheDisplayPackageMethod()
+            {
+                _cache = new Cache();
+            }
+
             public static IEnumerable<object[]> PackageIsIndexedTestData => new[]
             {
                 new object[] { DateTime.UtcNow, null, 1 },
@@ -451,6 +473,7 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(id, model.Id);
                 searchService.Verify(x => x.RawSearch(It.IsAny<SearchFilter>()), Times.Exactly(searchTimes));
+                deprecationService.Verify();
             }
 
             [Fact]
@@ -494,6 +517,19 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenADeleteMethodIt405sWithAllowHeader()
+            {
+                // Arrange
+                var controller = CreateController(GetConfigurationService());
+
+                // Act
+                var result = controller.DisplayPackage();
+
+                // Assert
+                ResultAssert.IsStatusCodeWithHeaders(result, HttpStatusCode.MethodNotAllowed, new NameValueCollection() { { "allow", "GET" } });
             }
 
             public static IEnumerable<PackageStatus> ValidatingPackageStatuses =
@@ -850,7 +886,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", GalleryConstants.AbsoluteLatestUrlString);
+                var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -907,7 +943,7 @@ namespace NuGetGallery
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", GalleryConstants.AbsoluteLatestUrlString);
+                var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -1386,6 +1422,79 @@ namespace NuGetGallery
                 deprecationService.Verify();
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task ShowRenamesToEnabledUser(bool isRenamesEnabledForThisUser)
+            {
+                // Arrange
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var deprecationService = new Mock<IPackageDeprecationService>();
+                var renameService = new Mock<IPackageRenameService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    deprecationService: deprecationService,
+                    renameService: renameService);
+
+                var id = "Foo";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                        RenamedMessage = "TestMessage"
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!"
+                };
+
+                var packageRenames = new List<PackageRename> { new PackageRename() };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsPackageRenamesEnabled(It.IsAny<User>()))
+                    .Returns(isRenamesEnabledForThisUser);
+
+                deprecationService
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation>());
+
+                renameService
+                    .Setup(x => x.GetPackageRenames(package.PackageRegistration))
+                    .Returns(packageRenames)
+                    .Verifiable();
+
+                // Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal(isRenamesEnabledForThisUser, model.IsPackageRenamesEnabled);
+                if (isRenamesEnabledForThisUser)
+                {
+                    Assert.Equal(packageRenames, model.PackageRenames);
+                    renameService.Verify(x => x.GetPackageRenames(package.PackageRegistration), Times.Once);
+                }
+                else
+                {
+                    Assert.Equal(null, model.PackageRenames);
+                    renameService.Verify(x => x.GetPackageRenames(package.PackageRegistration), Times.Never);
+                }
+            }
+
             [Fact]
             public async Task SplitsLicenseExpressionWhenProvided()
             {
@@ -1501,6 +1610,216 @@ namespace NuGetGallery
                 Assert.Equal(iconUrl, model.IconUrl);
             }
 
+            [Fact]
+            public async Task CheckFeatureFlagIsOff()
+            {
+                string id = "foo";
+                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var packageService = new Mock<IPackageService>();
+                var featureFlagService = new Mock<IFeatureFlagService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                    },
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+
+                var packages = new List<Package> { package };
+                featureFlagService
+                    .Setup(f => f.IsPackageDependentsEnabled(It.IsAny<User>()))
+                    .Returns(false);
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
+                    .Returns(package);
+
+                var result = await controller.DisplayPackage(id, version: null);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+
+                Assert.Null(model.PackageDependents);
+                packageService
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
+                Assert.False(model.IsPackageDependentsEnabled);
+                Assert.Empty(_cache);
+            }
+
+            [Fact]
+            public async Task WhenCacheIsOccupiedGetProperPackageDependent()
+            {
+                string id = "foo";
+                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var packageService = new Mock<IPackageService>();
+                var httpContext = new Mock<HttpContextBase>();
+                PackageDependents pd = new PackageDependents();
+
+                httpContext
+                    .Setup(c => c.Cache)
+                    .Returns(_cache);
+
+                _cache.Add(cacheKey,
+                        pd,
+                        null,
+                        DateTime.UtcNow.AddMinutes(5),
+                        Cache.NoSlidingExpiration,
+                        CacheItemPriority.Default, null);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    httpContext: httpContext);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                    },
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+
+                var packages = new List<Package> { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
+                    .Returns(package);
+
+                var result = await controller.DisplayPackage(id, version: null);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                
+                Assert.Same(pd, model.PackageDependents);
+                packageService
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
+            public async Task OccupyEmptyCache()
+            {
+                string id = "foo";
+                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var packageService = new Mock<IPackageService>();
+                var httpContext = new Mock<HttpContextBase>();
+                PackageDependents pd = new PackageDependents();
+
+                httpContext
+                    .Setup(c => c.Cache)
+                    .Returns(_cache);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    httpContext: httpContext);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                    },
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+
+                var packages = new List<Package> { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
+                    .Returns(package);
+                packageService
+                    .Setup(p => p.GetPackageDependents(It.IsAny<string>()))
+                    .Returns(pd);
+
+                var result = await controller.DisplayPackage(id, version: null);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+
+                packageService
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Once());
+                Assert.Same(pd, model.PackageDependents);
+                Assert.Same(pd, _cache.Get(cacheKey));
+            }
+
+            [Fact]
+            public async Task CheckThatCacheKeyIsNotCaseSensitive()
+            {
+                string id1 = "fooBAr";
+                string id2 = "FOObAr";
+                string cacheKey = "CacheDependents_foobar";
+                var packageService = new Mock<IPackageService>();
+                var httpContext = new Mock<HttpContextBase>();
+                PackageDependents pd = new PackageDependents();
+
+                httpContext
+                    .Setup(c => c.Cache)
+                    .Returns(_cache);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    httpContext: httpContext);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id1,
+                        Owners = new List<User>(),
+                    },
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+
+                var packages = new List<Package> { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(It.IsAny<string>(), /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
+                    .Returns(package);
+                packageService
+                    .Setup(p => p.GetPackageDependents(It.IsAny<string>()))
+                    .Returns(pd);
+
+                var result1 = await controller.DisplayPackage(id1, version: null);
+                var model1 = ResultAssert.IsView<DisplayPackageViewModel>(result1);
+                var result2 = await controller.DisplayPackage(id2, version: null);
+                var model2 = ResultAssert.IsView<DisplayPackageViewModel>(result2);
+
+                Assert.Same(pd, model1.PackageDependents);
+                Assert.Same(pd, model2.PackageDependents);
+                packageService
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<String>()), Times.Once());
+                Assert.Same(pd, _cache.Get(cacheKey));
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                // Clear the cache to avoid test interaction.
+                foreach (DictionaryEntry entry in _cache)
+                {
+                    _cache.Remove((string)entry.Key);
+                }
+
+                base.Dispose(disposing);
+            }
+        
             private class TestIssue : ValidationIssue
             {
                 private readonly string _message;

@@ -866,6 +866,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please refer to the {0} for steps to resolve this issue..
+        /// </summary>
+        public static string DirectUserToUnmanagedTenantFAQ {
+            get {
+                return ResourceManager.GetString("DirectUserToUnmanagedTenantFAQ", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward..
         /// </summary>
         public static string DiscontinuedLogin_PasswordRemoved {
@@ -2639,6 +2648,15 @@ namespace NuGetGallery {
         public static string UploadPackage_NotAcceptingPackagesWithLicense {
             get {
                 return ResourceManager.GetString("UploadPackage_NotAcceptingPackagesWithLicense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package contains one or more duplicated files in the same folder..
+        /// </summary>
+        public static string UploadPackage_PackageContainsDuplicatedEntries {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageContainsDuplicatedEntries", resourceCulture);
             }
         }
         

@@ -34,13 +34,13 @@ namespace NuGetGallery
             IAuditingService auditingService,
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
-            IEntitiesContext context)
+            IEntitiesContext entitiesContext)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
-            _entitiesContext = context;
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
         /// <summary>
@@ -146,81 +146,52 @@ namespace NuGetGallery
             return GetPackagesByIdQueryable(id, deprecationFields).ToList();
         }
 
-        public CreatePackageDependents GetPackageDependents(string id)
+        public PackageDependents GetPackageDependents(string id)
         {
-            CreatePackageDependents res = new CreatePackageDependents();
-         
-            var conn = _entitiesContext.GetDatabase().Connection;
-            conn.Open();
-            res.PackageList = GetListOfDependents(id, conn);
-            res.TotalDownloads = showTotalDownloads(id, conn);
-            return res;
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+            
+            PackageDependents result = new PackageDependents();
+            result.TopPackages = GetListOfDependents(id);
+            result.TotalPackageCount = GetDependentCount(id);
+            return result;
         }
 
-        public IReadOnlyCollection<PackageDependent> GetListOfDependents(String id, DbConnection conn)
+        private IReadOnlyCollection<PackageDependent> GetListOfDependents(string id)
         {
             var packageDependentsList = new List<PackageDependent>();
-            using (var comm2 = conn.CreateCommand())
+            var listPackages = (from pd in _entitiesContext.PackageDependencies
+                                join p in _entitiesContext.Packages on pd.PackageKey equals p.Key
+                                join pr in _entitiesContext.PackageRegistrations on p.PackageRegistrationKey equals pr.Key
+                                where p.IsLatestSemVer2 && pd.Id == id
+                                group 1 by new { pr.Id, pr.DownloadCount, p.Description } into ng
+                                orderby ng.Key.DownloadCount descending
+                                select new { ng.Key.Id, ng.Key.DownloadCount, ng.Key.Description }
+                                ).Take(5).ToList();
+
+            foreach(var pd in listPackages)
             {
-                comm2.CommandText = @"SELECT TOP 10 PackageRegistrations.id, PackageRegistrations.DownloadCount, Packages.Description
-	                FROM PackageDependencies 
-	                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
-	                INNER JOIN PackageRegistrations ON Packages.PackageRegistrationKey = PackageRegistrations.[key]
-	                WHERE PackageDependencies.id = @id AND Packages.IsLatest = 1
-	                GROUP BY PackageRegistrations.id, PackageRegistrations.DownloadCount, Packages.Description
-                    ORDER BY PackageRegistrations.DownloadCount DESC";
-
-                var parameter = comm2.CreateParameter();
-                parameter.ParameterName = "@id";
-                parameter.Value = id;
-
-
-                comm2.Parameters.Add(parameter);
-                using (DbDataReader reader = comm2.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        var packageDepen = new PackageDependent();
-                        packageDepen.Id = (String)reader["id"];
-                        packageDepen.DownloadCount = (int)reader["DownloadCount"];
-                        packageDepen.Description = (String)reader["Description"];
-                        packageDependentsList.Add(packageDepen);
-                    }
-                }
+                var packageDependent = new PackageDependent();
+                packageDependent.Description = pd.Description;
+                packageDependent.DownloadCount = pd.DownloadCount;
+                packageDependent.Id = pd.Id;
+                packageDependentsList.Add(packageDependent);
             }
+
             return packageDependentsList;
         }
 
-        public int showTotalDownloads(String id, DbConnection conn)
+        private int GetDependentCount(string id)
         {
-           
-            int result = 0;
+            var totalCount = (from pd in _entitiesContext.PackageDependencies
+                              join p in _entitiesContext.Packages on pd.PackageKey equals p.Key
+                              where pd.Id == id && p.IsLatestSemVer2
+                              group 1 by p.PackageRegistrationKey
+                              ).Count();
 
-            using (var comm2 = conn.CreateCommand())
-            {
-                comm2.CommandText = @"SELECT COUNT(Distinct Packages.PackageRegistrationKey) AS DependentCount
-	                FROM PackageDependencies 
-	                INNER JOIN Packages ON Packages.[key] = PackageDependencies.PackageKey
-	                WHERE PackageDependencies.id = @id AND Packages.IsLatest = 1";
-
-
-                var parameter = comm2.CreateParameter();
-                parameter.ParameterName = "@id";
-                parameter.Value = id;
-
-
-                comm2.Parameters.Add(parameter);
-                using (DbDataReader reader = comm2.ExecuteReader()) //Check here
-                {
-                    if (reader.Read())
-                    {
-                        // result = reader.GetInt32(0); 
-                        result = (int)reader["DependentCount"]; // Go from here
-                    }
-
-                }
-            }
-            return result;
+            return totalCount;
         }
 
         public virtual IReadOnlyCollection<Package> FindPackagesById(
@@ -306,6 +277,51 @@ namespace NuGetGallery
                 packages?.Where(p => allowPrerelease || !p.IsPrerelease).ToList(),
                 semVerLevelKey,
                 allowPrerelease);
+        }
+
+        /// <inheritdoc />
+        public Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages, string version, bool prerelease)
+        {
+            IEnumerable<Package> GetSortedFiltered(IEnumerable<Package> localPackages, bool applyPrereleaseFilter = true)
+            {
+                var semvered = localPackages
+                    .Select(package => new {package, semVer= NuGetVersion.Parse(package.NormalizedVersion)})
+                    .ToList();
+                
+                return semvered
+                    .Where(d => d.semVer.IsPrerelease == prerelease || !applyPrereleaseFilter)
+                    .OrderByDescending(d => d.semVer)
+                    .Select(d => d.package)
+                    .ToList();
+            }
+
+            Package GetPrereleaseByVersion()
+            {
+                if (string.IsNullOrEmpty(version))
+                {
+                    return GetSortedFiltered(packages)
+                        .FirstOrDefault();
+                }
+                else
+                {
+                    return GetSortedFiltered(packages.Where(package => package.NormalizedVersion.IndexOf(version, StringComparison.InvariantCultureIgnoreCase) >= 0))
+                        .FirstOrDefault();
+                }
+            }
+            
+            Package GetLatestPrerelease()
+            {
+                return GetSortedFiltered(packages)
+                    .FirstOrDefault();
+            }
+            
+            Package GetLatestStable()
+            {
+                return GetSortedFiltered(packages, false)
+                    .FirstOrDefault();
+            }
+
+            return GetPrereleaseByVersion() ?? GetLatestPrerelease() ?? GetLatestStable();
         }
 
         private static Package FilterLatestPackageHelper(

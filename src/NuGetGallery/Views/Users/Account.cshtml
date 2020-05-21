@@ -44,7 +44,7 @@
     @ViewHelpers.SectionsScript(this)
     @if (Model.IsCertificatesUIEnabled)
     {
-        @Scripts.Render("~/Scripts/gallery/certificates.js")
+        @Scripts.Render("~/Scripts/gallery/certificates.min.js")
         <script type="text/javascript">
             CertificatesManagement.init('@Url.AddUserCertificate()', '@Url.GetUserCertificates()');
         </script>

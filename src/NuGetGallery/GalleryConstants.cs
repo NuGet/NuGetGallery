@@ -27,7 +27,7 @@ namespace NuGetGallery
         public const int GravatarCacheDurationSeconds = 300;
 
         public const int MaxEmailSubjectLength = 255;
-        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("5.5.0.0");
+        internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("5.6.0.0");
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
 
         public const string ReadMeFileSavePathTemplateActive = "active/{0}/{1}{2}";
@@ -44,7 +44,6 @@ namespace NuGetGallery
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
         public static readonly string ReturnUrlMessageViewDataKey = "ReturnUrlMessage";
-        public const string AbsoluteLatestUrlString = "absoluteLatest";
         public const string AskUserToEnable2FA = "AskUserToEnable2FA";
 
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
@@ -114,6 +113,7 @@ namespace NuGetGallery
             public const string NuGetChangeUsername = "https://aka.ms/nuget-faq-change-username";
             public const string NuGetDeleteAccount = "https://aka.ms/nuget-faq-delete-account";
             public const string TransformToOrganization = "https://aka.ms/nuget-faq-transform-org";
+            public const string AccountBelongsToUnmanagedTenant = "https://aka.ms/nuget-faq-unmanaged-tenant";
         }
     }
 }
