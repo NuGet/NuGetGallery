@@ -1,7 +1,7 @@
 ﻿@model ManagePackagesViewModel
 @using Newtonsoft.Json;
 @{
-    ViewBag.Title = "Manage My Package";
+    ViewBag.Title = "Manage my package";
     ViewBag.Tab = "Packages";
 }
 
@@ -112,7 +112,7 @@
             <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
-                        <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
+                        <th class="hidden-xs"><span class="hidden">Package icon</span></th>
                         <th>Package ID</th>
                         <th>Owners</th>
                     @if (Model.IsCertificatesUIEnabled)
@@ -131,7 +131,7 @@
                                  data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
                         </td>
                         <td class="align-middle package-id text-nowrap">
-                            <a title="View Package" data-bind="attr: { href: PackageUrl }">
+                            <a title="View package" data-bind="attr: { href: PackageUrl }">
                                 <span data-bind="text: Id"></span>
                             </a>
                         </td>
@@ -174,7 +174,7 @@
                         </td>
                         <td class="text-right align-middle package-controls">
                             <span data-bind="visible: CanEdit || CanManageOwners || CanDelete">
-                                <a class="btn" title="Manage Package" data-bind="attr: { href: ManageUrl,
+                                <a class="btn" title="Manage package" data-bind="attr: { href: ManageUrl,
                         'aria-label': 'Manage Package ' + Id + ' Version ' + LatestVersion }">
 
                                     <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
@@ -199,7 +199,7 @@
             <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
-                        <th class="hidden-xs"><span class="hidden">Reserved Namespace Icon</span></th>
+                        <th class="hidden-xs"><span class="hidden">Reserved namespace icon</span></th>
                         <th>Package ID or prefix</th>
                         <th>Owners</th>
                         <th>Upload restrictions</th>
@@ -242,7 +242,7 @@
             <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
-                        <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
+                        <th class="hidden-xs"><span class="hidden">Package icon</span></th>
                         <th>Package ID</th>
                         <th>Owners</th>
                         <th>New owner</th>
@@ -274,19 +274,19 @@
                             <!-- ko if: CanAccept -->
                             <form method="post" data-bind="attr: { action: ConfirmUrl }">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-default" title="Confirm Ownership" data-bind="attr: { 'aria-label': 'Confirm Ownership of ' + Id }">
+                                <button type="submit" class="btn btn-default" title="Confirm Ownership" data-bind="attr: { 'aria-label': 'Confirm ownership of ' + Id }">
                                     <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
                                 </button>
                             </form>
                             <form method="post" data-bind="attr: { action: RejectUrl }">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-default" title="Reject Ownership" data-bind="attr: { 'aria-label': 'Reject Ownership of ' + Id }">
+                                <button type="submit" class="btn btn-default" title="Reject Ownership" data-bind="attr: { 'aria-label': 'Reject ownership of ' + Id }">
                                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                                 </button>
                             </form>
                             <!-- /ko -->
                             <!-- ko if: !CanAccept && CanCancel -->
-                            <a class="btn" title="Manage Ownership" data-bind="attr: { href: ManagePackageOwnershipUrl, 'aria-label': 'Manage Ownership of ' + Id }">
+                            <a class="btn" title="Manage ownership" data-bind="attr: { href: ManagePackageOwnershipUrl, 'aria-label': 'Manage ownership of ' + Id }">
                                 <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                             </a>
                             <!-- /ko -->
