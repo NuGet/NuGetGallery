@@ -1,13 +1,13 @@
 ﻿@model StatisticsPackagesViewModel
 @{
-    ViewBag.Title = "Package Downloads for " + Model.PackageId + "/" + Model.PackageVersion;
+    ViewBag.Title = "Package downloads for " + Model.PackageId + "/" + Model.PackageVersion;
     ViewBag.Tab = "Statistics";
 }
 
 <section role="main" class="container main-container page-stats-per-package">
     <div class="row">
         <h1 class="statistics-report-title col-sm-12 page-heading">
-            Package Downloads for <a href="@Url.Package(Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a>
+            Package downloads for <a href="@Url.Package(Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a>
         </h1>
     </div>
 

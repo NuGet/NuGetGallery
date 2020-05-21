@@ -1,10 +1,10 @@
 ﻿@model LockPackageViewModel
 @{
-    ViewBag.Title = "Package Locking";
+    ViewBag.Title = "Package locking";
 }
 
 <section role="main" class="container main-container">
-    <h2>Package Locking</h2>
+    <h2>Package locking</h2>
 
     <form method="get" action="@Url.Action(actionName: "Search")">
         <p>
@@ -33,14 +33,14 @@
             <div>
                 <h3>Results</h3>
                 <br />
-                <button type="button" onclick="selectall()">Select All</button>
-                <button type="button" onclick="deselectall()">Deselect All</button>
+                <button type="button" onclick="selectall()">Select all</button>
+                <button type="button" onclick="deselectall()">Deselect all</button>
                 <p>
                     <table class="table">
                         <thead>
                             <tr>
                                 <th>Id</th>
-                                <th>Is Locked?</th>
+                                <th>Is locked?</th>
                             </tr>
                         </thead>
                         <tbody>
