@@ -1006,7 +1006,7 @@ img.reserved-indicator-icon {
   margin-right: 8px;
   display: inline-block;
 }
-.page-package-details .gh-desc {
+.page-package-details .used-by-desc {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
   color: #333333;
@@ -1023,14 +1023,18 @@ img.reserved-indicator-icon {
   /* number of lines to show */
   -webkit-box-orient: vertical;
 }
-.page-package-details .gh-link {
+.page-package-details .used-by-link {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 19px;
   color: #337ab7;
   width: auto;
 }
-.page-package-details .gh-star-count {
+.page-package-details .used-by-download-icon {
+  font-size: 14px;
+  line-height: 12px;
+}
+.page-package-details .used-by-count {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 16px;
@@ -1042,11 +1046,11 @@ img.reserved-indicator-icon {
   line-height: 12px;
   color: #ef8b00;
 }
-.page-package-details .gh-repo-column {
-  width: 70%;
+.page-package-details .used-by-w400 strong {
+  font-weight: 400;
 }
-.page-package-details .gh-empty-column {
-  width: 15%;
+.page-package-details .used-by-adjust-table-head {
+  word-break: normal;
 }
 .page-package-details .install-tabs {
   font-size: 0.8em;

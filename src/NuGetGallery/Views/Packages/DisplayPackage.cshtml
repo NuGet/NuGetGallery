@@ -225,62 +225,66 @@
             @if (Model.Validating)
             {
                 @ViewHelpers.AlertWarning(
-                    @<text>
-                        <strong>This package has not been published yet.</strong> It will appear in search results and
-                        will be available for install/restore after both validation and indexing are complete. Package
-                        validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
-                    </text>
-                )
+                            @<text>
+                                <strong>This package has not been published yet.</strong> It will appear in search results and
+                                will be available for install/restore after both validation and indexing are complete. Package
+                                validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
+                            </text>
+)
                 if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            The license link will become available once package validation has completed successfully.
-                        </text>
-                    )
+                                @<text>
+                                    The license link will become available once package validation has completed successfully.
+                                </text>
+)
                 }
 
                 if (Model.ValidatingTooLong)
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            <strong>Package validation is taking longer than expected.</strong> This is not normal, but we are on it!
-                        </text>
-                    )
+                                @<text>
+                                    <strong>Package validation is taking longer than expected.</strong> This is not normal, but we are on it!
+                                </text>
+)
                 }
             }
 
             @if (Model.FailedValidation)
             {
                 @ViewHelpers.AlertDanger(
-                    @<text>
-                        <strong>Package publishing failed.</strong> This package could not be published due to the following reason(s):
-                        <ul class="failed-validation-alert-list">
-                            @foreach (var issue in Model.PackageValidationIssues)
-                            {
-                                <li>@Html.Partial("_ValidationIssue", issue)</li>
-                            }
-                        </ul>
-                        @if (!Model.PackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
-                        {
-                            var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
-                            <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
-                        }
-                        else
-                        {
-                            <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
-                        }
-                    </text>)
+                            @<text>
+                                <strong>Package publishing failed.</strong> This package could not be published due to the following reason(s):
+                                <ul class="failed-validation-alert-list">
+                                    @foreach (var issue in Model.PackageValidationIssues)
+                                         {
+                                        <li>@Html.Partial("_ValidationIssue", issue)</li>
+                                         }
+                                    /**/
+                                    /**/
+                                </ul>
+                                @if (!Model.PackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                                     {
+                                         var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
+                                    <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
+                                     }
+                                     else
+                                     {
+                                    <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
+                                     }
+                                /**/
+                                /**/
+                            </text>)
             }
 
             @if (Model.Deleted)
             {
                 @ViewHelpers.AlertDanger(
-                    @<text>
-                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
-                        for install/restore.
-                    </text>
-                )
+                            @<text>
+                                <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                                for install/restore.
+                            </text>
+)
             }
 
             @if (Model.IsPackageDeprecationEnabled && Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
@@ -296,48 +300,48 @@
             @if (Model.Prerelease)
             {
                 @ViewHelpers.AlertInfo(
-                    @<text>
-                        This is a prerelease version of @(Model.Id).
-                    </text>
-                )
+                            @<text>
+                                This is a prerelease version of @(Model.Id).
+                            </text>
+)
             }
 
             @if (Model.HasNewerRelease)
             {
                 @ViewHelpers.AlertInfo(
-                    @<text>
-                        There is a newer version of this package available.
-                        <br /> See the version list below for details.
-                    </text>
-                )
+                            @<text>
+                                There is a newer version of this package available.
+                                <br /> See the version list below for details.
+                            </text>
+)
             }
             else if (Model.HasNewerPrerelease)
             {
                 @ViewHelpers.AlertInfo(
-                    @<text>
-                        There is a newer prerelease version of this package available.
-                        <br /> See the version list below for details.
-                    </text>
-                )
+                            @<text>
+                                There is a newer prerelease version of this package available.
+                                <br /> See the version list below for details.
+                            </text>
+)
             }
 
             @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
             {
                 @ViewHelpers.AlertWarning(
-                    @<text>
-                        <strong>This package has not been indexed yet.</strong> It will appear in search results
-                        and will be available for install/restore after indexing is complete.
-                    </text>
-                )
+                            @<text>
+                                <strong>This package has not been indexed yet.</strong> It will appear in search results
+                                and will be available for install/restore after indexing is complete.
+                            </text>
+)
             }
 
             @if (Model.HasEmbeddedIcon && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && (Model.Available || Model.Validating))
             {
                 @ViewHelpers.AlertWarning(
-                    @<text>
-                        The package icon will become available after this package is indexed.
-                    </text>
-                )
+                            @<text>
+                                The package icon will become available after this package is indexed.
+                            </text>
+)
             }
 
             @if (Model.CanDisplayPrivateMetadata && showSymbolsPackageStatus)
@@ -345,38 +349,42 @@
                 if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.Validating)
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            <strong>The symbols for this package have not been indexed yet.</strong> They are not available
-                            for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
-                            Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
+                                @<text>
+                                    <strong>The symbols for this package have not been indexed yet.</strong> They are not available
+                                    for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
+                                    Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
 
-                        @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
-                        </text>
-                     )
+                                    @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                                </text>
+)
                 }
                 else if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
                 {
                     @ViewHelpers.AlertDanger(
-                    @<text>
-                        <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
-                        <ul class="failed-validation-alert-list">
-                            @foreach (var issue in Model.SymbolsPackageValidationIssues)
-                            {
-                                <li>@Html.Partial("_ValidationIssue", issue)</li>
-                            }
-                        </ul>
-                        @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
-                        {
-                            var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
-                            <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
-                        }
-                        else
-                        {
-                            <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
-                        }
+                            @<text>
+                                <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
+                                <ul class="failed-validation-alert-list">
+                                    @foreach (var issue in Model.SymbolsPackageValidationIssues)
+                                         {
+                                        <li>@Html.Partial("_ValidationIssue", issue)</li>
+                                         }
+                                    /**/
+                                    /**/
+                                </ul>
+                                @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                                     {
+                                         var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
+                                    <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
+                                     }
+                                     else
+                                     {
+                                    <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
+                                     }
+                                /**/
+                                /**/
 
-                        @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
-                    </text>)
+                                @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                            </text>)
                 }
             }
 
@@ -385,21 +393,21 @@
                 if (Model.CanDisplayPrivateMetadata)
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            This package is unlisted and hidden from package listings.
-                            You can see the package because you are one of its owners. To list the package again,
-                            <a href="@Url.ManagePackage(Model)">change its listing setting</a>.
-                        </text>
-                    )
+                                @<text>
+                                    This package is unlisted and hidden from package listings.
+                                    You can see the package because you are one of its owners. To list the package again,
+                                    <a href="@Url.ManagePackage(Model)">change its listing setting</a>.
+                                </text>
+)
                 }
                 else
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            The owner has unlisted this package.
-                            This could mean that the package is deprecated or shouldn't be used anymore.
-                        </text>
-                    )
+                                @<text>
+                                    The owner has unlisted this package.
+                                    This could mean that the package is deprecated or shouldn't be used anymore.
+                                </text>
+)
                 }
             }
 
@@ -538,62 +546,128 @@
                 }
             }
 
-            @if(Model.IsGitHubUsageEnabled && !Model.IsDotnetToolPackageType)
+            @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || (Model.IsPackageDependentsEnabled && Model.PackageDependents != null)))
             {
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#github-usage"
                        aria-expanded="false" aria-controls="github-usage" id="show-github-usage">
                         <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
-                        <span>GitHub Usage</span>
+                        <span>Used By</span>
                     </a>
                 </h2>
-                if (Model.GitHubDependenciesInformation.Repos.Any())
-                {
-                    <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
+
+                <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
+                    @if (Model.IsPackageDependentsEnabled && Model.PackageDependents != null)
+                    {
+                        <h3 class="used-by-w400">
+                            <strong>NuGet packages </strong> (@Model.PackageDependents.TotalPackageCount.ToKiloFormat()+)
+                        </h3>
+                        if (Model.PackageDependents.TotalPackageCount > 0)
+                        {
+                            <p>
+                                Showing the top @(Model.PackageDependents.TopPackages.Count) NuGet packages that depend on @(Model.Id):
+                            </p>
+                            <table class="table borderless">
+                                <thead>
+                                    <tr>
+                                        <th class="used-by-adjust-table-head">Package</th>
+                                        <th></th>
+                                        <th class="used-by-adjust-table-head">Downloads</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="no-border">
+                                    @foreach (var item in Model.PackageDependents.TopPackages)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <a class="text-left used-by-link" href="@Url.Package(item.Id)" target="_blank">
+                                                    @(item.Id)
+                                                </a>
+                                                <div class="row used-by-desc">
+                                                    <span>@(item.Description)</span>
+                                                </div>
+                                            </td>
+                                            <td></td>
+                                            <td>
+                                                <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            @*
                         <p>
-                            Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) GitHub repositories that depend on @(Model.Id):
+                            Read more about the GitHub Usage information on
+                            <a href="https://docs.microsoft.com/en-us/nuget/consume-packages/finding-and-choosing-packages#evaluating-packages" title="Read more about the GitHub Usage information">our documentation</a>.
                         </p>
-                        <table class="table borderless">
-                            <thead>
-                                <tr>
-                                    <th>Repository</th>
-                                    <th></th>
-                                    <th>Stars</th>
-                                </tr>
-                            </thead>
-                            <tbody class="no-border">
-                            @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i}))
-                            {
-                                <tr>
-                                    <td class="gh-repo-column">
-                                        <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
-                                            @(item.Value.Id)
-                                        </a>
-                                        <div class="row gh-desc">
-                                            <span>@(item.Value.Description)</span>
-                                        </div>
-                                    </td>
-                                    <td class="gh-empty-column"></td>
-                                    <td>
-                                        <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="gh-star-count">@(item.Value.Stars.ToKiloFormat())</label>
-                                    </td>
-                                </tr>
-                            }
-                            </tbody>
-                        </table>
+                            *@
+                        }
+
+                        else
+                        {
+                            <p>
+                                This package has no dependencies.
+                            </p>
+                        }
+                    }
+
+                    @*  Break in the middle*@
+
+                    @if (Model.IsGitHubUsageEnabled)
+                    {
+                        <h3 class="used-by-w400">
+                            <strong> GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat()+)
+                        </h3>
+                        if (Model.GitHubDependenciesInformation.Repos.Any())
+                        {
+                            <p>
+                                Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) GitHub repositories that depend on @(Model.Id):
+                            </p>
+                            <table class="table borderless">
+                                <thead>
+                                    <tr>
+                                        <th class="used-by-adjust-table-head">Repository</th>
+                                        <th></th>
+                                        <th class="used-by-adjust-table-head">Stars</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="no-border">
+                                    @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <a data-index-number="@item.Idx" class="text-left used-by-link" href="@item.Value.Url" target="_blank">
+                                                    @(item.Value.Id)
+                                                </a>
+                                                <div class="row used-by-desc">
+                                                    <span>@(item.Value.Description)</span>
+                                                </div>
+                                            </td>
+                                            <td></td>
+                                            <td>
+                                                <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            @*
                         <p>
                             Read more about the GitHub Usage information on
 
                             <a href="https://docs.microsoft.com/en-us/nuget/consume-packages/finding-and-choosing-packages#evaluating-packages" title="Read more about the GitHub Usage information">our documentation</a>.
                         </p>
-                    </div>
-                }
-                else
-                {
-                    <p class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
-                        This package is not used by any popular GitHub repositories.
-                    </p>
-                }
+                            *@
+                        }
+
+                        else
+                        {
+                            <p>
+                                This package is not used by any popular GitHub repositories.
+                            </p>
+                        }
+                    }
+                </div>
             }
 
             <h2>
@@ -789,8 +863,7 @@
                         <img class="icon" aria-hidden="true" alt="GitHub logo"
                              src="@Url.Absolute("~/Content/gallery/img/github.svg")"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                        <a href="#show-github-usage" title="View the top dependent repositories" id="dependent-repos-link">Dependent repositories</a>
-                        (@(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())+)
+                        Dependent repositories (@(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())+)
                     </li>
                 }
                 @if (!Model.Deleted && Model.LicenseUrl != null)

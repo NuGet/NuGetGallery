@@ -9,7 +9,7 @@ namespace NuGetGallery
 {
     public class NuGetPackageGitHubInformation
     {
-        public const int ReposPerPackage = 10;
+        public const int ReposPerPackage = 5;
 
         public readonly static NuGetPackageGitHubInformation Empty = new NuGetPackageGitHubInformation(new List<RepositoryInformation>());
 
