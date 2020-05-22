@@ -3,7 +3,7 @@
 @using NuGet.Services.Validation
 @model ValidationPageViewModel
 @{
-    ViewBag.Title = "Package Validation";
+    ViewBag.Title = "Package validation";
 }
 
 @helper ShowTimestamp(DateTimeOffset? timestamp)
@@ -15,7 +15,7 @@
 }
 
 <section role="main" class="container main-container">
-    <h2>Package Validations</h2>
+    <h2>Package validations</h2>
 
     <p>Get <a href="@Url.Action(actionName:"Pending")">pending validations</a>.</p>
 
@@ -64,11 +64,11 @@
                 @switch (package.ValidatingType)
                 {
                     case ValidatingType.SymbolPackage:
-                        <b>Symbol Package Key:</b> @package.PackageKey<br />
+                        <b>Symbol package key:</b> @package.PackageKey<br />
                         break;
 
                     default:
-                        <b>@package.ValidatingType Key:</b> @package.PackageKey<br />
+                        <b>@package.ValidatingType key:</b> @package.PackageKey<br />
                         break;
                 }
 
@@ -116,7 +116,7 @@
 
             @foreach (var set in package.ValidationSets)
             {
-                <h4>Validation Set @set.Key</h4>
+                <h4>Validation set @set.Key</h4>
                 <div style="margin-left: 20px">
                     <p>
                         <b>Tracking ID:</b> <a href="@Url.Action("Search", new { q = set.ValidationTrackingId } )">@set.ValidationTrackingId</a><br />
@@ -156,7 +156,7 @@
                                     <th>Type</th>
                                     <th>Started</th>
                                     <th>Status</th>
-                                    <th>Status Timestamp</th>
+                                    <th>Status timestamp</th>
                                 </tr>
                             </thead>
                             <tbody>

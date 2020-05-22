@@ -1,8 +1,8 @@
 ﻿@model ConfirmationViewModel
 @{
-    ViewBag.Title = "Confirm Your "
-        + (Model.IsOrganization ? "Organization " : "")
-        + (Model.ConfirmingNewAccount ? "Account" : "Email");
+    ViewBag.Title = "Confirm your "
+        + (Model.IsOrganization ? "organization " : "")
+        + (Model.ConfirmingNewAccount ? "account" : "email");
     ViewBag.SmPageColumns = GalleryConstants.ColumnsWideAuthenticationSm;
     ViewBag.MdPageColumns = GalleryConstants.ColumnsWideAuthenticationMd;
 
@@ -27,7 +27,7 @@
         <div class="col-sm-12">
             @if (Model.SentEmail)
             {
-                <h1 class="text-center">Confirmation Email Sent</h1>
+                <h1 class="text-center">Confirmation email sent</h1>
             }
             else
             {
