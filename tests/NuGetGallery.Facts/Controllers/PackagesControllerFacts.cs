@@ -1658,8 +1658,13 @@ namespace NuGetGallery
                 string id = "foo";
                 string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
+                var abTestService = new Mock<IABTestService>();
                 var httpContext = new Mock<HttpContextBase>();
                 PackageDependents pd = new PackageDependents();
+
+                abTestService
+                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
+                   .Returns(true);
 
                 httpContext
                     .Setup(c => c.Cache)
@@ -1675,6 +1680,7 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
+                    abTestService: abTestService,
                     httpContext: httpContext);
 
                 var package = new Package
@@ -1710,8 +1716,13 @@ namespace NuGetGallery
                 string id = "foo";
                 string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
+                var abTestService = new Mock<IABTestService>();
                 var httpContext = new Mock<HttpContextBase>();
                 PackageDependents pd = new PackageDependents();
+
+                abTestService
+                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
+                   .Returns(true);
 
                 httpContext
                     .Setup(c => c.Cache)
@@ -1720,6 +1731,7 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
+                    abTestService: abTestService,
                     httpContext: httpContext);
 
                 var package = new Package
@@ -1760,8 +1772,13 @@ namespace NuGetGallery
                 string id2 = "FOObAr";
                 string cacheKey = "CacheDependents_foobar";
                 var packageService = new Mock<IPackageService>();
+                var abTestService = new Mock<IABTestService>();
                 var httpContext = new Mock<HttpContextBase>();
                 PackageDependents pd = new PackageDependents();
+
+                abTestService
+                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
+                   .Returns(true);
 
                 httpContext
                     .Setup(c => c.Cache)
@@ -1770,6 +1787,7 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
+                    abTestService: abTestService,
                     httpContext: httpContext);
 
                 var package = new Package
