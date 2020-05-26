@@ -17,7 +17,6 @@ namespace NuGetGallery
     /// </summary>
     public interface IPackageService : ICorePackageService
     {
-        CreatePackageDependents GetPackageDependents(string id);
         /// <summary>
         /// Returns a package dependents object that includes a collection of the top packages that 
         /// depend on the focus package and a total count of those dependents.
