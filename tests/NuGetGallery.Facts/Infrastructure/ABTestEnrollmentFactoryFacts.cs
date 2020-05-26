@@ -22,33 +22,6 @@ namespace NuGetGallery
                 Assert.InRange(enrollment.PreviewSearchBucket, 1, 100);
                 Assert.InRange(enrollment.PackageDependentBucket, 1, 100);
             }
-
-            [Fact]
-            public void CreatesANewEnrollmentInstanceWithNewDependentsAndNewPrevSearch()
-            {
-                var enrollment = Target.Initialize();
-
-                Assert.NotNull(enrollment);
-                Assert.Equal(ABTestEnrollmentState.FirstHit, enrollment.State);
-                Assert.Equal(2, enrollment.SchemaVersion);
-                Assert.InRange(enrollment.PreviewSearchBucket, 1, 100);
-                Assert.InRange(enrollment.PackageDependentBucket, 1, 100);
-
-            }
-
-            // Test for where prev search already has something
-
-            public void CreatesANewEnrollmentInstanceWithNewDependentsAndOldPrevSearch()
-            {
-                var enrollment = Target.Initialize();
-
-                Assert.NotNull(enrollment);
-                Assert.Equal(ABTestEnrollmentState.FirstHit, enrollment.State);
-                Assert.Equal(2, enrollment.SchemaVersion);
-                Assert.Equal(32, enrollment.PreviewSearchBucket); // very bad but u get the gist 
-                Assert.InRange(enrollment.PackageDependentBucket, 1, 100);
-
-            }
         }
 
         public class Serialize : Facts
@@ -117,10 +90,9 @@ namespace NuGetGallery
                 Assert.Null(enrollment);
             }
 
-
             [Theory]
             [InlineData(@"{""v"":1,""ps"":42}", 42)]
-            [InlineData(@"{""v"":1,""ps"":42,""zzz"":false}", 42)] // HUH???
+            [InlineData(@"{""v"":1,""ps"":42,""zzz"":false}", 42)]
             [InlineData(@"{""v"":1,""ps"":1}", 1)]
             [InlineData(@"{""v"":1,""ps"":100}", 100)]
             public void ParsesValid(string input, int previewSearchBucket)

@@ -31,7 +31,6 @@ namespace NuGetGallery
         public ABTestEnrollmentState State { get; }
         public int SchemaVersion { get; }
         public int PreviewSearchBucket { get; }
-
         public int PackageDependentBucket { get;}
     }
 }

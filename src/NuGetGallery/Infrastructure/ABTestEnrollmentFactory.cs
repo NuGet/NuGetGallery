@@ -30,10 +30,7 @@ namespace NuGetGallery
 
         public ABTestEnrollment Initialize()
         {
-
-            //(else ... schemaversion  == 2)
-                //If v1 does not exist 
-               var enrollment = new ABTestEnrollment(
+            var enrollment = new ABTestEnrollment(
                     ABTestEnrollmentState.FirstHit,
                     SchemaVersion2,
                     previewSearchBucket: GetRandomWholePercentage(),
@@ -42,7 +39,7 @@ namespace NuGetGallery
             _telemetryService.TrackABTestEnrollmentInitialized(
                 enrollment.SchemaVersion,
                 enrollment.PreviewSearchBucket,
-                enrollment.PackageDependentBucket); // Maybe add pdbucket or make another one??
+                enrollment.PackageDependentBucket);
 
             return enrollment;
         }
@@ -75,11 +72,8 @@ namespace NuGetGallery
                 SchemaVersion = SchemaVersion2,
                 PreviewSearchBucket = enrollment.PreviewSearchBucket,
                 PackageDependentBucket = enrollment.PackageDependentBucket,
-
             };
             return JsonConvert.SerializeObject(deserialized2);
-
-
         }
 
         public bool TryDeserialize(string serialized, out ABTestEnrollment enrollment)
@@ -90,33 +84,7 @@ namespace NuGetGallery
                 return false;
             }
 
-            return (TryDeserializeStateVer2(serialized, out enrollment) || TryDeserializeStateVer1(serialized, out enrollment));
-
-
-            /* IN CASE THINGS GO HAYWIRE REVERT BACK TO THIS VERSION
-            try
-            {
-                var v1 = JsonConvert.DeserializeObject<StateVersion1>(serialized);
-                if (v1 == null
-                    || v1.SchemaVersion != SchemaVersion1
-                    || IsNotPercentage(v1.PreviewSearchBucket))
-                {
-                    return false;
-                }
-
-                enrollment = new ABTestEnrollment(
-                    ABTestEnrollmentState.Active,
-                    v1.SchemaVersion,
-                    v1.PreviewSearchBucket);
-
-                return true;
-            }
-            catch (JsonException)
-            {
-                return false;
-            }
-
-         */
+            return TryDeserializeStateVer2(serialized, out enrollment) || TryDeserializeStateVer1(serialized, out enrollment);
         }
 
         private bool TryDeserializeStateVer1(string serialized, out ABTestEnrollment enrollment)
@@ -136,15 +104,14 @@ namespace NuGetGallery
                     ABTestEnrollmentState.Upgraded,
                     SchemaVersion2,
                     v1.PreviewSearchBucket,
-                    packageDependentBucket: GetRandomWholePercentage()); // What is the point of making this here
-                //TO DO Add telememtry for this case
+                    packageDependentBucket: GetRandomWholePercentage());
+
                 return true;
             }
             catch (JsonException)
             {
                 return false;
             }
-
         }
 
         private bool TryDeserializeStateVer2(string serialized, out ABTestEnrollment enrollment)
@@ -165,7 +132,7 @@ namespace NuGetGallery
                     ABTestEnrollmentState.Active,
                     v2.SchemaVersion,
                     v2.PreviewSearchBucket,
-                    v2.PackageDependentBucket); // What is the point of making this here
+                    v2.PackageDependentBucket);
 
                 return true;
             }
