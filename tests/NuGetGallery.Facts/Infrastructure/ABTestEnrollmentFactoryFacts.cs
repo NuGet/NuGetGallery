@@ -66,7 +66,7 @@ namespace NuGetGallery
             [InlineData("[]")]
             [InlineData("null")]
             [InlineData(@"{""ps"":42}")]
-            [InlineData(@"{""v"":2,""ps"":42}")] 
+            [InlineData(@"{""v"":2,""ps"":42}")]
             [InlineData(@"{""v"":1}")]
             [InlineData(@"{""v"":1,""ps"":-1}")]
             [InlineData(@"{""v"":1,""ps"":0}")]

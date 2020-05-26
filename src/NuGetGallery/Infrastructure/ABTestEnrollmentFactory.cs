@@ -73,6 +73,7 @@ namespace NuGetGallery
                 PreviewSearchBucket = enrollment.PreviewSearchBucket,
                 PackageDependentBucket = enrollment.PackageDependentBucket,
             };
+
             return JsonConvert.SerializeObject(deserialized2);
         }
 
@@ -140,7 +141,6 @@ namespace NuGetGallery
             {
                 return false;
             }
-
         }
 
         private static bool IsNotPercentage(int input)

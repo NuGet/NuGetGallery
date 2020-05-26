@@ -216,7 +216,6 @@ namespace NuGetGallery
                 featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService.SetReturnsDefault<bool>(true);
             }
-
             
             renameService = renameService ?? new Mock<IPackageRenameService>();
             if (deprecationService == null)
@@ -231,8 +230,6 @@ namespace NuGetGallery
             abTestService = abTestService ?? new Mock<IABTestService>();
 
             var diagnosticsService = new Mock<IDiagnosticsService>();
-
-            
 
             var controller = new Mock<PackagesController>(
                 packageFilter,

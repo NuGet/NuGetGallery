@@ -197,7 +197,6 @@ namespace NuGetGallery.TestUtils
             var securityPolicyService = new Mock<ISecurityPolicyService>();
             var entitiesContext = new Mock<IEntitiesContext>();
 
-
             var packageService = new Mock<PackageService>(
                  packageRegistrationRepository.Object,
                  packageRepository.Object,

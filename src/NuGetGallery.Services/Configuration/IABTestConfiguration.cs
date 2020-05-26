@@ -17,6 +17,10 @@ namespace NuGetGallery.Services
         /// </summary>
         int PreviewHijackPercentage { get; }
 
+        /// <summary>
+        /// A value between 0 and 100 (inclusive) representing the desired percentage of users the should get the reverse dependencies details
+        /// experience.
+        /// </summary>
         int DependentsPercentage { get; }
     }
 }
