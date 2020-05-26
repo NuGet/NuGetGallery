@@ -553,7 +553,7 @@
             }
 
 
-            @if (Model.packageDependents != null && Model.IsPackageDependentsEnabled)
+            @if (Model.PackageDependents != null && Model.IsPackageDependentsEnabled)
             { 
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#dependents-groups"
@@ -561,17 +561,17 @@
                        id="show-dependents-groups">
                         <i class="ms-Icon ms-Icon--ChevronRight"
                            aria-hidden="true"></i>
-                        <span>Dependents (@Model.packageDependents.TotalDownloads.ToKiloFormat()) </span>
+                        <span>Dependents (@Model.PackageDependents.TotalPackageCount.ToKiloFormat()) </span>
                     </a>
                 </h2>
 
 
 
-                if (Model.packageDependents.PackageList.Count > 0)
+                if (Model.PackageDependents.TopPackages.Count > 0)
                 {
                 <div class="dependents-groups panel-collapse collapse" aria-expanded="true" id="dependents-groups">
                     <p>
-                        Showing the top @(Model.packageDependents.PackageList.Count) packages that depend on @(Model.Id):
+                        Showing the top @(Model.PackageDependents.TopPackages.Count) packages that depend on @(Model.Id):
                     </p>
                     <table class="table borderless">
                         <thead>
@@ -583,7 +583,7 @@
                         </thead>
 
                         <tbody class="no-border">
-                            @foreach (var item in Model.packageDependents.PackageList)
+                            @foreach (var item in Model.PackageDependents.TopPackages)
                             {
                                 <tr>
                                     <td class="gh-repo-column">
