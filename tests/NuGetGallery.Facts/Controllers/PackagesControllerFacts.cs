@@ -1653,6 +1653,52 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task CheckABTestIsOff()
+            {
+                string id = "foo";
+                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var packageService = new Mock<IPackageService>();
+                var abTestService = new Mock<IABTestService>();
+
+                abTestService
+                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
+                   .Returns(false);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    abTestService: abTestService);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                    },
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+
+                var packages = new List<Package> { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
+                    .Returns(package);
+
+                var result = await controller.DisplayPackage(id, version: null);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+
+                Assert.Null(model.PackageDependents);
+                packageService
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
+                Assert.False(model.IsPackageDependentsEnabled);
+                Assert.Empty(_cache);
+            }
+
+            [Fact]
             public async Task WhenCacheIsOccupiedGetProperPackageDependent()
             {
                 string id = "foo";
