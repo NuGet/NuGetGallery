@@ -18,7 +18,7 @@ namespace NuGetGallery
         {
             _database = database ?? throw new ArgumentNullException(nameof(database));
         }
-            
+
         public Task<int> ExecuteSqlCommandAsync(string sql, params object[] parameters)
         {
             return _database.ExecuteSqlCommandAsync(sql, parameters);

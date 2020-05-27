@@ -31,10 +31,10 @@ namespace NuGetGallery
         public ABTestEnrollment Initialize()
         {
             var enrollment = new ABTestEnrollment(
-                    ABTestEnrollmentState.FirstHit,
-                    SchemaVersion2,
-                    previewSearchBucket: GetRandomWholePercentage(),
-                    packageDependentBucket: GetRandomWholePercentage());
+                ABTestEnrollmentState.FirstHit,
+                SchemaVersion2,
+                previewSearchBucket: GetRandomWholePercentage(),
+                packageDependentBucket: GetRandomWholePercentage());
 
             _telemetryService.TrackABTestEnrollmentInitialized(
                 enrollment.SchemaVersion,

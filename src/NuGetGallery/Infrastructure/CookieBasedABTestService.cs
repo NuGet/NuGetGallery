@@ -53,11 +53,13 @@ namespace NuGetGallery
 
         public bool IsPackageDependendentsABEnabled(User user)
         {
-            return IsActive(
+            var isActive = IsActive(
                 nameof(Enrollment.PackageDependentBucket),
                 user,
                 enrollment => enrollment.PackageDependentBucket,
                 config => config.DependentsPercentage);
+
+            return isActive;
         }
 
         private ABTestEnrollment Enrollment => _lazyEnrollment.Value;
@@ -80,7 +82,7 @@ namespace NuGetGallery
                 _logger.LogWarning("An A/B test cookie could not be deserialized: {Value}", requestCookie.Value);
             }
 
-            if (enrollment.State == ABTestEnrollmentState.FirstHit)
+            if (enrollment.State == ABTestEnrollmentState.Upgraded)
             {
                 var responseCookie = new HttpCookie(CookieName)
                 {

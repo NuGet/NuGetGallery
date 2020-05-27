@@ -15,7 +15,9 @@ namespace NuGetGallery
         /// </summary>
         Active,
 
-
+        /// <summary>
+        /// The user was already enrolled in the previous version of A/B testing and will now be upgraded to a new version.
+        /// </summary>
         Upgraded,
     }
 }

@@ -15,7 +15,7 @@ namespace NuGetGallery.Services
             DependentsPercentage = 0;
         }
 
-        [JsonConstructor]
+        
         public ABTestConfiguration(int previewSearchPercentage, int previewHijackPercentage)
         {
             GuardPercentage(previewSearchPercentage, nameof(previewSearchPercentage));
@@ -25,6 +25,7 @@ namespace NuGetGallery.Services
             PreviewHijackPercentage = previewHijackPercentage;
         }
 
+        [JsonConstructor]
         public ABTestConfiguration(int previewSearchPercentage, int previewHijackPercentage, int dependentsPercentage)
         {
             GuardPercentage(previewSearchPercentage, nameof(previewSearchPercentage));
