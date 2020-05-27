@@ -175,7 +175,7 @@ body h3 {
   background: #f4f4f4;
 }
 .banner.banner-info {
-  background: #fdf1d1;
+  background: #fff4ce;
 }
 .alert a {
   color: #2e6da4;
@@ -1779,7 +1779,7 @@ img.reserved-indicator-icon {
   color: red;
 }
 .page-status .status-degraded {
-  background-color: #FFF4CE;
+  background-color: #fff4ce;
 }
 .page-status .status-degraded .ms-Icon {
   color: orange;
