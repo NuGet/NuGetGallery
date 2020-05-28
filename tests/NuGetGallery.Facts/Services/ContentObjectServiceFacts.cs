@@ -109,7 +109,6 @@ namespace NuGetGallery.Services
                 var previewHijackPercentage = 4;
                 var dependentsPercentage = 6;
 
-
                 var abTestConfiguration = new ABTestConfiguration(
                     previewSearchPercentage,
                     previewHijackPercentage,

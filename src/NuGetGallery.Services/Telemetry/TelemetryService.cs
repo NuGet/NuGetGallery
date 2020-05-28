@@ -1056,7 +1056,7 @@ namespace NuGetGallery
             int previewSearchBucket,
             int packageDependentBucket)
         {
-            TrackMetric(Events.ABTestEnrollmentInitialized, 1, properties =>
+            TrackMetric(Events.ABTestEnrollmentUpgraded, 1, properties =>
             {
                 properties.Add(SchemaVersion, schemaVersion.ToString());
                 properties.Add(PreviewSearchBucket, previewSearchBucket.ToString());
