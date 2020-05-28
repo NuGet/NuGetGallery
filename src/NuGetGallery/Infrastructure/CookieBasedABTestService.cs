@@ -82,7 +82,7 @@ namespace NuGetGallery
                 _logger.LogWarning("An A/B test cookie could not be deserialized: {Value}", requestCookie.Value);
             }
 
-            if (enrollment.State == ABTestEnrollmentState.Upgraded)
+            if (enrollment.State == ABTestEnrollmentState.Upgraded || enrollment.State == ABTestEnrollmentState.FirstHit)
             {
                 var responseCookie = new HttpCookie(CookieName)
                 {

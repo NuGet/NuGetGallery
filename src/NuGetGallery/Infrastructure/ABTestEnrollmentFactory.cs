@@ -107,6 +107,11 @@ namespace NuGetGallery
                     v1.PreviewSearchBucket,
                     packageDependentBucket: GetRandomWholePercentage());
 
+                _telemetryService.TrackABTestEnrollmentUpgraded(
+                enrollment.SchemaVersion,
+                enrollment.PreviewSearchBucket,
+                enrollment.PackageDependentBucket);
+
                 return true;
             }
             catch (JsonException)

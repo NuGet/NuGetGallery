@@ -85,6 +85,7 @@ namespace NuGetGallery
             public const string SearchSideBySideFeedback = "SearchSideBySideFeedback";
             public const string SearchSideBySide = "SearchSideBySide";
             public const string ABTestEnrollmentInitialized = "ABTestEnrollmentInitialized";
+            public const string ABTestEnrollmentUpgraded = "ABTestEnrollmentUpgraded";
             public const string ABTestEvaluated = "ABTestEvaluated";
         }
 
@@ -215,6 +216,7 @@ namespace NuGetGallery
         // A/B testing properties
         public const string SchemaVersion = "SchemaVersion";
         public const string PreviewSearchBucket = "PreviewSearchBucket";
+        public const string PackageDependentBucket = "PackageDependentBucket";
         public const string TestName = "TestName";
         public const string IsActive = "IsActive";
         public const string TestBucket = "TestBucket";
@@ -1045,6 +1047,20 @@ namespace NuGetGallery
             {
                 properties.Add(SchemaVersion, schemaVersion.ToString());
                 properties.Add(PreviewSearchBucket, previewSearchBucket.ToString());
+                properties.Add(PackageDependentBucket, packageDependentBucket.ToString());
+            });
+        }
+
+        public void TrackABTestEnrollmentUpgraded(
+            int schemaVersion,
+            int previewSearchBucket,
+            int packageDependentBucket)
+        {
+            TrackMetric(Events.ABTestEnrollmentInitialized, 1, properties =>
+            {
+                properties.Add(SchemaVersion, schemaVersion.ToString());
+                properties.Add(PreviewSearchBucket, previewSearchBucket.ToString());
+                properties.Add(PackageDependentBucket, packageDependentBucket.ToString());
             });
         }
 

@@ -324,6 +324,10 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackABTestEnrollmentInitialized(1, 42, 47))
                     };
 
+                    yield return new object[] { "ABTestEnrollmentUpgraded",
+                        (TrackAction)(s => s.TrackABTestEnrollmentUpgraded(1, 42, 47))
+                    };
+
                     yield return new object[] { "ABTestEvaluated",
                         (TrackAction)(s => s.TrackABTestEvaluated("SearchPreview", true, true, 0, 20))
                     };

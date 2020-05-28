@@ -23,6 +23,11 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
+        public void TrackABTestEnrollmentUpgraded(int schemaVersion, int previewSearchBucket, int packageDepentsBucket)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackABTestEvaluated(string name, bool isActive, bool isAuthenticated, int testBucket, int testPercentage)
         {
             throw new NotImplementedException();

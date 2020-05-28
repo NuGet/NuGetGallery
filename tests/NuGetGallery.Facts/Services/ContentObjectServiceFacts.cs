@@ -107,10 +107,13 @@ namespace NuGetGallery.Services
 
                 var previewSearchPercentage = 2;
                 var previewHijackPercentage = 4;
+                var dependentsPercentage = 6;
+
 
                 var abTestConfiguration = new ABTestConfiguration(
                     previewSearchPercentage,
-                    previewHijackPercentage);
+                    previewHijackPercentage,
+                    dependentsPercentage);
                 var abTestJson = JsonConvert.SerializeObject(abTestConfiguration);
 
                 var contentService = GetMock<IContentService>();
@@ -167,6 +170,7 @@ namespace NuGetGallery.Services
 
                 Assert.Equal(previewSearchPercentage, abTestConfiguration.PreviewSearchPercentage);
                 Assert.Equal(previewHijackPercentage, abTestConfiguration.PreviewHijackPercentage);
+                Assert.Equal(dependentsPercentage, abTestConfiguration.DependentsPercentage);
             }
         }
     }

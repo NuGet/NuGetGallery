@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Principal;
@@ -22,6 +23,11 @@ namespace GitHubVulnerabilities2Db.Gallery
         }
 
         public void TrackABTestEnrollmentInitialized(int schemaVersion, int previewSearchBucket, int packageDepentsBucket)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackABTestEnrollmentUpgraded(int schemaVersion, int previewSearchBucket, int packageDepentsBucket)
         {
             throw new NotImplementedException();
         }
