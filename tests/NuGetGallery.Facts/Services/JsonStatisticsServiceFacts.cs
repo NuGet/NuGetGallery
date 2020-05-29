@@ -111,15 +111,15 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task RefreshesAfter1Hour()
             {
-                var time = DateTimeOffset.UtcNow - TimeSpan.FromHours(2);
-                _systemTime
+                var time = DateTime.UtcNow - TimeSpan.FromHours(2);
+                _dateTimeProvider
                     .SetupGet(st => st.UtcNow)
                     .Returns(time);
 
                 await _target.Refresh();
                 VerifyReportsLoadedOnce();
 
-                _systemTime
+                _dateTimeProvider
                     .SetupGet(st => st.UtcNow)
                     .Returns(time + TimeSpan.FromHours(1.1));
 
@@ -143,7 +143,7 @@ namespace NuGetGallery.Services
             public readonly int Package2Downloads = 789;
 
             protected readonly Mock<IReportService> _reportService;
-            protected readonly Mock<ISystemTime> _systemTime;
+            protected readonly Mock<IDateTimeProvider> _dateTimeProvider;
             protected readonly JsonStatisticsService _target;
 
             protected Dictionary<string, object>[] PackageDownloadsReport => new[]
@@ -188,12 +188,12 @@ namespace NuGetGallery.Services
             public FactsBase()
             {
                 _reportService = new Mock<IReportService>();
-                _systemTime = new Mock<ISystemTime>();
-                _systemTime
+                _dateTimeProvider = new Mock<IDateTimeProvider>();
+                _dateTimeProvider
                     .SetupGet(st => st.UtcNow)
-                    .Returns(() => DateTimeOffset.UtcNow);
+                    .Returns(() => DateTime.UtcNow);
 
-                _target = new JsonStatisticsService(_reportService.Object, _systemTime.Object);
+                _target = new JsonStatisticsService(_reportService.Object, _dateTimeProvider.Object);
             }
 
             protected void Mock(

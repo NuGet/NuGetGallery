@@ -168,7 +168,6 @@
     <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
-    <Compile Include="ISystemTime.cs" />
     <Compile Include="PackageMetadataExtensions.cs" />
     <Compile Include="PackageReaderCoreExtensions.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />
@@ -227,7 +226,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CoreStrings.resx</DependentUpon>
     </Compile>
-    <Compile Include="SystemTime.cs" />
     <Compile Include="Unit.cs" />
   </ItemGroup>
   <ItemGroup>

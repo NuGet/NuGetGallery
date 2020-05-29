@@ -31,7 +31,7 @@ namespace NuGetGallery
         /// The service used to load reports in the form of JSON blobs.
         /// </summary>
         private readonly IReportService _reportService;
-        private readonly ISystemTime _systemTime;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
         /// <summary>
         /// The semaphore used to update the statistics service's reports.
@@ -53,10 +53,10 @@ namespace NuGetGallery
         private readonly List<StatisticsNuGetUsageItem> _nuGetClientVersion = new List<StatisticsNuGetUsageItem>();
         private readonly List<StatisticsWeeklyUsageItem> _last6Weeks = new List<StatisticsWeeklyUsageItem>();
 
-        public JsonStatisticsService(IReportService reportService, ISystemTime systemTime)
+        public JsonStatisticsService(IReportService reportService, IDateTimeProvider dateTimeProvider)
         {
             _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
-            _systemTime = systemTime ?? throw new ArgumentNullException(nameof(systemTime));
+            _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
         }
 
         public StatisticsReportResult PackageDownloadsResult { get; private set; }
@@ -128,7 +128,7 @@ namespace NuGetGallery
                     .Select(r => r.LastUpdatedUtc)
                     .FirstOrDefault();
 
-                _lastRefresh = _systemTime.UtcNow.UtcDateTime;
+                _lastRefresh = _dateTimeProvider.UtcNow;
             }
             finally
             {
@@ -145,7 +145,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            return (_systemTime.UtcNow.UtcDateTime - _lastRefresh) >= _refreshInterval;
+            return (_dateTimeProvider.UtcNow - _lastRefresh) >= _refreshInterval;
         }
 
         private Task<StatisticsReportResult> LoadDownloadPackages()

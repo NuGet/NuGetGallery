@@ -108,7 +108,7 @@ namespace NuGetGallery
             fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.MinValue)));
             fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Weeks, updatedUtc)));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new SystemTime()));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.Index()).Model;
 
@@ -218,7 +218,7 @@ namespace NuGetGallery
             fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.UtcNow)));
             fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Weeks, DateTime.UtcNow)));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new SystemTime()));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.Index()).Model;
 
@@ -282,7 +282,7 @@ namespace NuGetGallery
 
             fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.UtcNow)));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new SystemTime()));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.Packages()).Model;
 
@@ -330,7 +330,7 @@ namespace NuGetGallery
             fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc1)));
             fakeReportService.Setup(x => x.Load("recentcommunitypopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc2)));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new SystemTime()));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageVersions()).Model;
 
@@ -353,7 +353,7 @@ namespace NuGetGallery
 
             var fakeReportService = new Mock<IReportService>();
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new SystemTime()));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
@@ -425,7 +425,7 @@ namespace NuGetGallery
             var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
             fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new StatisticsReport(fakeReport, updatedUtc)));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new SystemTime()));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
@@ -507,7 +507,7 @@ namespace NuGetGallery
             var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
             fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new StatisticsReport(fakeReport, updatedUtc)));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new SystemTime()));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
@@ -537,7 +537,7 @@ namespace NuGetGallery
 
             var fakeReportService = new Mock<IReportService>();
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new SystemTime()));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller);
             
@@ -611,7 +611,7 @@ namespace NuGetGallery
             var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
             fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new StatisticsReport(fakeReport, updatedUtc)));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new SystemTime()));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()));
 
             TestUtility.SetupUrlHelperForUrlGeneration(controller);
             
