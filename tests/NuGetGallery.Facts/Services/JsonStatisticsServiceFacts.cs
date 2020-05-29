@@ -113,18 +113,15 @@ namespace NuGetGallery.Services
             {
                 var time = DateTimeOffset.UtcNow - TimeSpan.FromHours(2);
                 _systemTime
-                    .SetupSequence(st => st.UtcNow)
-                    // First two calls to ShouldRefresh don't retrieve time, so that one for saving _lastRefresh
-                    .Returns(time)
-                    // After the first call to _target.Refresh(), ShouldRefresh would actually retrieve time
-                    .Returns(time + TimeSpan.FromHours(1.1))
-                    // 2nd call to ShouldRefresh
-                    .Returns(time + TimeSpan.FromHours(1.1))
-                    // _lastRefresh update call
-                    .Returns(time + TimeSpan.FromHours(1.1));
+                    .SetupGet(st => st.UtcNow)
+                    .Returns(time);
 
                 await _target.Refresh();
                 VerifyReportsLoadedOnce();
+
+                _systemTime
+                    .SetupGet(st => st.UtcNow)
+                    .Returns(time + TimeSpan.FromHours(1.1));
 
                 await _target.Refresh();
                 VerifyReportsLoaded(Times.Exactly(2));
