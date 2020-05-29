@@ -145,7 +145,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            return (_lastRefresh - _systemTime.UtcNow.UtcDateTime) >= _refreshInterval;
+            return (_systemTime.UtcNow.UtcDateTime - _lastRefresh) >= _refreshInterval;
         }
 
         private Task<StatisticsReportResult> LoadDownloadPackages()
