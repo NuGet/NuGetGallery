@@ -126,23 +126,23 @@ $(function () {
             ga('send', 'event', 'used-by', e.type);
         });
 
-        // Emit a Google Analytics event when the user clicks on a package link in the GitHub Repos area of the Used By section.
-        $(".gh-link").on('click', function (elem) { // hmm on gh link
+        // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Repos area of the Used By section.
+        $(".gh-link").on('click', function (elem) {
             if (!elem.delegateTarget.dataset.indexNumber) {
                 console.error("indexNumber property doesn't exist!");
             } else {
                 var linkIndex = elem.delegateTarget.dataset.indexNumber;
-                ga('send', 'event', 'github-usage', 'link-click-' + linkIndex); //Maybe on used by or 
+                ga('send', 'event', 'github-usage', 'link-click-' + linkIndex);
             }
         });
 
         // Emit a Google Analytics event when the user clicks on a package link in the NuGet Packages area of the Used By section.
-        $(".ngp-link").on('click', function (elem) { // hmm on .ngp-link
+        $(".ngp-link").on('click', function (elem) {
             if (!elem.delegateTarget.dataset.indexNumber) {
                 console.error("indexNumber property doesn't exist!");
             } else {
                 var linkIndex = elem.delegateTarget.dataset.indexNumber;
-                ga('send', 'event', 'used-by-packages', 'link-click-' + linkIndex); //Maybe on used by or 
+                ga('send', 'event', 'used-by-packages', 'link-click-' + linkIndex);
             }
         });
     }
@@ -151,7 +151,7 @@ $(function () {
     $("#dependent-repos-link").on('click', function (event) {
         // Emit a Google Analytics event
         if (window.nuget.isGaAvailable()) {
-            ga('send', 'event', 'used-by', 'sidebar-link-click');
+            ga('send', 'event', 'github-usage', 'sidebar-link-click');
         }
 
         if (this.hash !== "") {
