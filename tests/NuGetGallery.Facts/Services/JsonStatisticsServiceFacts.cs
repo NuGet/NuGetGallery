@@ -124,6 +124,7 @@ namespace NuGetGallery.Services
             public readonly int Package2Downloads = 789;
 
             protected readonly Mock<IReportService> _reportService;
+            protected readonly Mock<ISystemTime> _systemTime;
             protected readonly JsonStatisticsService _target;
 
             protected Dictionary<string, object>[] PackageDownloadsReport => new[]
@@ -168,8 +169,12 @@ namespace NuGetGallery.Services
             public FactsBase()
             {
                 _reportService = new Mock<IReportService>();
+                _systemTime = new Mock<ISystemTime>();
+                _systemTime
+                    .SetupGet(st => st.UtcNow)
+                    .Returns(() => DateTimeOffset.UtcNow);
 
-                _target = new JsonStatisticsService(_reportService.Object);
+                _target = new JsonStatisticsService(_reportService.Object, _systemTime.Object);
             }
 
             protected void Mock(

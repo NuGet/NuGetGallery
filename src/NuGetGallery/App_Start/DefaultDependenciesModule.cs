@@ -441,6 +441,10 @@ namespace NuGetGallery
                 .As<IPackageVulnerabilityService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<SystemTime>()
+                .As<ISystemTime>()
+                .InstancePerLifetimeScope();
+
             services.AddHttpClient();
             services.AddScoped<IGravatarProxyService, GravatarProxyService>();
 
