@@ -31,6 +31,10 @@ namespace NuGetGallery
         /// The service used to load reports in the form of JSON blobs.
         /// </summary>
         private readonly IReportService _reportService;
+
+        /// <summary>
+        /// Mockable source of current time.
+        /// </summary>
         private readonly IDateTimeProvider _dateTimeProvider;
 
         /// <summary>
