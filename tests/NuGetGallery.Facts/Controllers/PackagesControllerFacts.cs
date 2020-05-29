@@ -11,6 +11,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
@@ -41,7 +42,9 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using NuGetGallery.Services.Helpers;
+using NuGetGallery.TestUtils;
 using Xunit;
+using Xunit.Sdk;
 
 namespace NuGetGallery
 {
@@ -217,7 +220,7 @@ namespace NuGetGallery
                 featureFlagService.SetReturnsDefault<bool>(true);
             }
 
-            
+
             renameService = renameService ?? new Mock<IPackageRenameService>();
             if (deprecationService == null)
             {
@@ -827,8 +830,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService, 
-                    indexingService: indexingService, 
+                    packageService: packageService,
+                    indexingService: indexingService,
                     deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
@@ -906,8 +909,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService, 
-                    indexingService: indexingService, 
+                    packageService: packageService,
+                    indexingService: indexingService,
                     deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
@@ -1067,8 +1070,8 @@ namespace NuGetGallery
                 var fileService = new Mock<IPackageFileService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService, 
-                    indexingService: indexingService, 
+                    packageService: packageService,
+                    indexingService: indexingService,
                     packageFileService: fileService,
                     deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
@@ -1127,9 +1130,9 @@ namespace NuGetGallery
 
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService, 
-                    indexingService: indexingService, 
-                    packageFileService: fileService, 
+                    packageService: packageService,
+                    indexingService: indexingService,
+                    packageFileService: fileService,
                     validationService: validationService,
                     deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
@@ -1699,7 +1702,7 @@ namespace NuGetGallery
 
                 var result = await controller.DisplayPackage(id, version: null);
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                
+
                 Assert.Same(pd, model.PackageDependents);
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
@@ -1817,7 +1820,7 @@ namespace NuGetGallery
 
                 base.Dispose(disposing);
             }
-        
+
             private class TestIssue : ValidationIssue
             {
                 private readonly string _message;
@@ -3693,7 +3696,7 @@ namespace NuGetGallery
             }
 
 
-            private ActionResult GetDeleteSymbolsResult(User currentUser, User owner, out PackagesController controller, Mock<IIconUrlProvider> iconUrlProvider = null)  
+            private ActionResult GetDeleteSymbolsResult(User currentUser, User owner, out PackagesController controller, Mock<IIconUrlProvider> iconUrlProvider = null)
             {
                 _packageRegistration.Owners.Add(owner);
 
@@ -4211,7 +4214,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 var controller = CreateController(
-                    GetConfigurationService(), 
+                    GetConfigurationService(),
                     packageService: packageService,
                     packageUpdateService: packageUpdateService);
 
@@ -5914,10 +5917,13 @@ namespace NuGetGallery
             public async Task WillRejectBrokenZipFiles()
             {
                 // Arrange
+                var useInvariantCultureAttr = new UseInvariantCultureAttribute();
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("file.nupkg");
                 var fakeFileStream = new MemoryStream(TestDataResourceUtility.GetResourceBytes("Zip64Package.Corrupted.1.0.0.nupkg"));
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                useInvariantCultureAttr.Before(null);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -5925,6 +5931,8 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+                
+                useInvariantCultureAttr.After(null);
 
                 Assert.NotNull(result);
                 Assert.Equal("Central Directory corrupt.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
@@ -5962,10 +5970,13 @@ namespace NuGetGallery
             public async Task WillShowViewWithErrorsIfPackageIdIsBreaksParsing(string packageId)
             {
                 // Arrange
+                var useInvariantCultureAttr = new UseInvariantCultureAttribute();
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns(packageId + ".nupkg");
                 var fakeFileStream = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                useInvariantCultureAttr.Before(null);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -5973,6 +5984,8 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                useInvariantCultureAttr.After(null);
 
                 Assert.NotNull(result);
                 Assert.StartsWith($"An error occurred while parsing EntityName.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
@@ -8884,7 +8897,7 @@ namespace NuGetGallery
 
                 readmeService
                     .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
-                    .ReturnsAsync(new RenderedReadMeResult { Content = html } );
+                    .ReturnsAsync(new RenderedReadMeResult { Content = html });
 
                 var result = await controller.PreviewReadMe(request);
 
