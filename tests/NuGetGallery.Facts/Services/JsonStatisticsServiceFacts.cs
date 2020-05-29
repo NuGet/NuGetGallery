@@ -107,6 +107,25 @@ namespace NuGetGallery.Services
 
                 VerifyReportsLoadedOnce();
             }
+
+            [Fact]
+            public async Task RefreshesAfter1Hour()
+            {
+                var time = DateTime.UtcNow - TimeSpan.FromHours(2);
+                _dateTimeProvider
+                    .SetupGet(st => st.UtcNow)
+                    .Returns(time);
+
+                await _target.Refresh();
+                VerifyReportsLoadedOnce();
+
+                _dateTimeProvider
+                    .SetupGet(st => st.UtcNow)
+                    .Returns(time + TimeSpan.FromHours(1.1));
+
+                await _target.Refresh();
+                VerifyReportsLoaded(Times.Exactly(2));
+            }
         }
 
         public class FactsBase
@@ -124,6 +143,7 @@ namespace NuGetGallery.Services
             public readonly int Package2Downloads = 789;
 
             protected readonly Mock<IReportService> _reportService;
+            protected readonly Mock<IDateTimeProvider> _dateTimeProvider;
             protected readonly JsonStatisticsService _target;
 
             protected Dictionary<string, object>[] PackageDownloadsReport => new[]
@@ -168,8 +188,12 @@ namespace NuGetGallery.Services
             public FactsBase()
             {
                 _reportService = new Mock<IReportService>();
+                _dateTimeProvider = new Mock<IDateTimeProvider>();
+                _dateTimeProvider
+                    .SetupGet(st => st.UtcNow)
+                    .Returns(() => DateTime.UtcNow);
 
-                _target = new JsonStatisticsService(_reportService.Object);
+                _target = new JsonStatisticsService(_reportService.Object, _dateTimeProvider.Object);
             }
 
             protected void Mock(
@@ -223,20 +247,22 @@ namespace NuGetGallery.Services
                     .Returns(CreateReport(communityPackageVersionDownloadsReport, communityPackageVersionsLastUpdateTimeUtc));
             }
 
-            protected void VerifyReportsLoadedOnce()
+            protected void VerifyReportsLoaded(Times times)
             {
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularity.json")), Times.Once);
+                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularity.json")), times);
 
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularity.json")), Times.Once);
+                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularity.json")), times);
 
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularitydetail.json")), Times.Once);
+                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularitydetail.json")), times);
 
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularitydetail.json")), Times.Once);
+                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularitydetail.json")), times);
             }
+
+            protected void VerifyReportsLoadedOnce() => VerifyReportsLoaded(Times.Once());
         }
     }
 }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -514,6 +515,19 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsNotFound(result);
+            }
+
+            [Fact]
+            public void GivenADeleteMethodIt405sWithAllowHeader()
+            {
+                // Arrange
+                var controller = CreateController(GetConfigurationService());
+
+                // Act
+                var result = controller.DisplayPackage();
+
+                // Assert
+                ResultAssert.IsStatusCodeWithHeaders(result, HttpStatusCode.MethodNotAllowed, new NameValueCollection() { { "allow", "GET" } });
             }
 
             public static IEnumerable<PackageStatus> ValidatingPackageStatuses =

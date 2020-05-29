@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -796,6 +798,13 @@ namespace NuGetGallery
             }
         }
 
+        // This additional delete action addresses issue https://github.com/NuGet/Engineering/issues/2866 - we need to error out.
+        [HttpDelete]
+        [SuppressMessage("Microsoft.Security.Web.Configuration", "CA3147: Missing ValidateAntiForgeryTokenAttribute", Justification = "nuget.exe will not provide a token")]
+        public HttpStatusCodeResult DisplayPackage() 
+            => new HttpStatusCodeWithHeadersResult(HttpStatusCode.MethodNotAllowed, new NameValueCollection() { { "allow", "GET" } });
+
+        [HttpGet]
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
             string normalized = NuGetVersionFormatter.Normalize(version);
@@ -949,10 +958,10 @@ namespace NuGetGallery
                     cacheDependentsCacheKey,
                     dependents,
                     null,
-                    DateTime.UtcNow.AddMinutes(60),
+                    DateTime.UtcNow.AddMinutes(5),
                     Cache.NoSlidingExpiration,
-                    //Cache.NoSlidingExpiration,
                     CacheItemPriority.Default, null);
+
             }
 
             // Cache contains PackageDependents
