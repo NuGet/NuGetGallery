@@ -107,6 +107,28 @@ namespace NuGetGallery.Services
 
                 VerifyReportsLoadedOnce();
             }
+
+            [Fact]
+            public async Task RefreshesAfter1Hour()
+            {
+                var time = DateTimeOffset.UtcNow - TimeSpan.FromHours(2);
+                _systemTime
+                    .SetupSequence(st => st.UtcNow)
+                    // First two calls to ShouldRefresh don't retrieve time, so that one for saving _lastRefresh
+                    .Returns(time)
+                    // After the first call to _target.Refresh(), ShouldRefresh would actually retrieve time
+                    .Returns(time + TimeSpan.FromHours(1.1))
+                    // 2nd call to ShouldRefresh
+                    .Returns(time + TimeSpan.FromHours(1.1))
+                    // _lastRefresh update call
+                    .Returns(time + TimeSpan.FromHours(1.1));
+
+                await _target.Refresh();
+                VerifyReportsLoadedOnce();
+
+                await _target.Refresh();
+                VerifyReportsLoaded(Times.Exactly(2));
+            }
         }
 
         public class FactsBase
@@ -228,20 +250,22 @@ namespace NuGetGallery.Services
                     .Returns(CreateReport(communityPackageVersionDownloadsReport, communityPackageVersionsLastUpdateTimeUtc));
             }
 
-            protected void VerifyReportsLoadedOnce()
+            protected void VerifyReportsLoaded(Times times)
             {
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularity.json")), Times.Once);
+                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularity.json")), times);
 
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularity.json")), Times.Once);
+                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularity.json")), times);
 
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularitydetail.json")), Times.Once);
+                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularitydetail.json")), times);
 
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularitydetail.json")), Times.Once);
+                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularitydetail.json")), times);
             }
+
+            protected void VerifyReportsLoadedOnce() => VerifyReportsLoaded(Times.Once());
         }
     }
 }
