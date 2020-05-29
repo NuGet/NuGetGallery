@@ -1030,6 +1030,14 @@ img.reserved-indicator-icon {
   color: #337ab7;
   width: auto;
 }
+.page-package-details .gh-link,
+.page-package-details .ngp-link {
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 19px;
+  color: #337ab7;
+  width: auto;
+}
 .page-package-details .used-by-download-icon {
   font-size: 14px;
   line-height: 12px;
