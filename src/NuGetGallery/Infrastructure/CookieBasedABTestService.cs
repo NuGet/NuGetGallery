@@ -51,6 +51,17 @@ namespace NuGetGallery
                 config => config.PreviewSearchPercentage);
         }
 
+        public bool IsPackageDependendentsABEnabled(User user)
+        {
+            var isActive = IsActive(
+                nameof(Enrollment.PackageDependentBucket),
+                user,
+                enrollment => enrollment.PackageDependentBucket,
+                config => config.DependentsPercentage);
+
+            return isActive;
+        }
+
         private ABTestEnrollment Enrollment => _lazyEnrollment.Value;
         private IABTestConfiguration Config => _contentObjectService.ABTestConfiguration;
 
@@ -71,7 +82,7 @@ namespace NuGetGallery
                 _logger.LogWarning("An A/B test cookie could not be deserialized: {Value}", requestCookie.Value);
             }
 
-            if (enrollment.State == ABTestEnrollmentState.FirstHit)
+            if (enrollment.State == ABTestEnrollmentState.Upgraded || enrollment.State == ABTestEnrollmentState.FirstHit)
             {
                 var responseCookie = new HttpCookie(CookieName)
                 {

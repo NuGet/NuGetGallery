@@ -856,8 +856,10 @@ namespace NuGetGallery
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
-
-            if (model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser))
+            model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser) && 
+                _abTestService.IsPackageDependendentsABEnabled(currentUser);
+           
+            if (model.IsPackageDependentsEnabled)
             {
                 model.PackageDependents = GetPackageDependents(id);
             }
@@ -961,7 +963,6 @@ namespace NuGetGallery
                     DateTime.UtcNow.AddMinutes(5),
                     Cache.NoSlidingExpiration,
                     CacheItemPriority.Default, null);
-
             }
 
             // Cache contains PackageDependents
