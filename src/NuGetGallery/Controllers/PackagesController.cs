@@ -961,7 +961,6 @@ namespace NuGetGallery
                     DateTime.UtcNow.AddMinutes(60),
                     Cache.NoSlidingExpiration,
                     CacheItemPriority.Default, null);
-
             }
 
             // Cache contains PackageDependents
