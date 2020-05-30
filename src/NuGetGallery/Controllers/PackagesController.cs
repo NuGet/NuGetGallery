@@ -958,7 +958,7 @@ namespace NuGetGallery
                     cacheDependentsCacheKey,
                     dependents,
                     null,
-                    DateTime.UtcNow.AddMinutes(5),
+                    DateTime.UtcNow.AddMinutes(60),
                     Cache.NoSlidingExpiration,
                     CacheItemPriority.Default, null);
 
