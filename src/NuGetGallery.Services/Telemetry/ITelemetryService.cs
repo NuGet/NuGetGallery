@@ -369,7 +369,7 @@ namespace NuGetGallery
             int packageDependentBucket);
 
         /// <summary>
-        /// Track when an A/B test enrollment is upgraded from schema 1 to schema 2.
+        /// Track when an A/B test enrollment is upgraded
         /// </summary>
         /// <param name="schemaVersion">The schema version.</param>
         /// <param name="previewSearchBucket">The bucket for the preview search test.</param>

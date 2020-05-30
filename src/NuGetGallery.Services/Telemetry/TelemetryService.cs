@@ -214,7 +214,8 @@ namespace NuGetGallery
         public const string HasEmailAddress = "HasEmailAddress";
 
         // A/B testing properties
-        public const string SchemaVersion = "SchemaVersion";
+        public const string OldSchemaVersion = "OldSchemaVersion";
+        public const string NewSchemaVersion = "NewSchemaVersion";
         public const string PreviewSearchBucket = "PreviewSearchBucket";
         public const string PackageDependentBucket = "PackageDependentBucket";
         public const string TestName = "TestName";
@@ -1039,26 +1040,26 @@ namespace NuGetGallery
         }
 
         public void TrackABTestEnrollmentInitialized(
-            int schemaVersion,
+            int oldSchemaVersion,
             int previewSearchBucket,
             int packageDependentBucket)
         {
             TrackMetric(Events.ABTestEnrollmentInitialized, 1, properties =>
             {
-                properties.Add(SchemaVersion, schemaVersion.ToString());
+                properties.Add(OldSchemaVersion, oldSchemaVersion.ToString());
                 properties.Add(PreviewSearchBucket, previewSearchBucket.ToString());
                 properties.Add(PackageDependentBucket, packageDependentBucket.ToString());
             });
         }
 
         public void TrackABTestEnrollmentUpgraded(
-            int schemaVersion,
+            int newSchemaVersion,
             int previewSearchBucket,
             int packageDependentBucket)
         {
             TrackMetric(Events.ABTestEnrollmentUpgraded, 1, properties =>
             {
-                properties.Add(SchemaVersion, schemaVersion.ToString());
+                properties.Add(NewSchemaVersion, newSchemaVersion.ToString());
                 properties.Add(PreviewSearchBucket, previewSearchBucket.ToString());
                 properties.Add(PackageDependentBucket, packageDependentBucket.ToString());
             });

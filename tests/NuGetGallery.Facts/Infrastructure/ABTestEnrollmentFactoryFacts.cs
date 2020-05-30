@@ -95,7 +95,7 @@ namespace NuGetGallery
             [InlineData(@"{""v"":1,""ps"":42,""zzz"":false}", 42)]
             [InlineData(@"{""v"":1,""ps"":1}", 1)]
             [InlineData(@"{""v"":1,""ps"":100}", 100)]
-            public void ParsesValid(string input, int previewSearchBucket)
+            public void UpgradesValidVersionV1(string input, int previewSearchBucket)
             {
                 var success = Target.TryDeserialize(input, out var enrollment);
 
