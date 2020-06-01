@@ -46,6 +46,12 @@
       "SiteAdmins": true,
       "Accounts": [],
       "Domains": []
+    },
+    "NuGetGallery.PackageDependents": {
+      "All": false,
+      "SiteAdmins": true,
+      "Accounts": [],
+      "Domains": []
     }
   }
 }

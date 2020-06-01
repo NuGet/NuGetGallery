@@ -811,9 +811,22 @@ namespace NuGetGallery
 
         private ActionResult AuthenticationFailureOrExternalLinkExpired(string errorMessage = null)
         {
-            // User got here without an external login cookie (or an expired one)
-            // Send them to the logon action with a message
-            TempData["ErrorMessage"] = string.IsNullOrEmpty(errorMessage) ? Strings.ExternalAccountLinkExpired : errorMessage;
+            // We need a special case here because of https://github.com/NuGet/NuGetGallery/issues/7544. An unmanaged tenant scenario
+            // needs the FAQ URI appended to the AAD error, and we do that here so it appears in the header.
+            if (!string.IsNullOrEmpty(errorMessage) &&
+                errorMessage.IndexOf("AADSTS65005", StringComparison.OrdinalIgnoreCase) > -1 &&
+                errorMessage.IndexOf("unmanaged", StringComparison.OrdinalIgnoreCase) > -1)
+            {
+                TempData["RawErrorMessage"] = errorMessage + "<br/>" + string.Format(Strings.DirectUserToUnmanagedTenantFAQ,
+                    UriExtensions.GetExternalUrlAnchorTag("FAQs page", GalleryConstants.FAQLinks.AccountBelongsToUnmanagedTenant));
+            }
+            else
+            {
+                // User got here without an external login cookie (or an expired one)
+                // Send them to the logon action with a message
+                TempData["ErrorMessage"] = string.IsNullOrEmpty(errorMessage) ? Strings.ExternalAccountLinkExpired : errorMessage;
+            }
+
             return Redirect(Url.LogOn(null, relativeUrl: false));
         }
 

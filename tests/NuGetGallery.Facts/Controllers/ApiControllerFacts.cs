@@ -2780,7 +2780,7 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService())
                 {
-                    StatisticsService = new JsonStatisticsService(fakeReportService.Object),
+                    StatisticsService = new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()),
                 };
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller);
@@ -2831,7 +2831,7 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService())
                 {
-                    StatisticsService = new JsonStatisticsService(fakeReportService.Object),
+                    StatisticsService = new JsonStatisticsService(fakeReportService.Object, new DateTimeProvider()),
                 };
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller);

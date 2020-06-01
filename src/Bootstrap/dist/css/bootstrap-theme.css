@@ -174,6 +174,9 @@ body h3 {
 .banner.banner-notice {
   background: #f4f4f4;
 }
+.banner.banner-info {
+  background: #fff4ce;
+}
 .alert a {
   color: #2e6da4;
 }
@@ -998,6 +1001,10 @@ img.reserved-indicator-icon {
 }
 .page-package-details .owner-list li {
   margin-bottom: 8px;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .page-package-details .owner-list img {
   margin-right: 8px;
@@ -1438,6 +1445,9 @@ img.reserved-indicator-icon {
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
@@ -1769,7 +1779,7 @@ img.reserved-indicator-icon {
   color: red;
 }
 .page-status .status-degraded {
-  background-color: #FFF4CE;
+  background-color: #fff4ce;
 }
 .page-status .status-degraded .ms-Icon {
   color: orange;

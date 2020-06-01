@@ -8,6 +8,18 @@
     var rawErrorMessage = TempData.ContainsKey("RawErrorMessage") ? TempData["RawErrorMessage"].ToString() : null;
 }
 
+<div class="container-fluid banner banner-info text-center">
+    <div class="row">
+        <div class="col-sm-12">
+            <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+            <span>
+                NuGet.org will permanently <a href="https://devblogs.microsoft.com/nuget/nuget-org-will-permanently-remove-support-for-tls-1-0-and-1-1-on-june-15th/">
+                remove support</a> for TLS 1.0 and 1.1 on June 15th. Please ensure that your systems use TLS 1.2.
+            </span>
+        </div>
+    </div>
+</div>
+
 @if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
 {
     <div class="container-fluid banner banner-bright text-center">

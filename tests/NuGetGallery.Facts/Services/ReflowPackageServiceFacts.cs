@@ -20,8 +20,8 @@ namespace NuGetGallery
     public class ReflowPackageServiceFacts
     {
         private static ReflowPackageService CreateService(
-            Mock<IEntitiesContext> entitiesContext = null,
             Mock<PackageService> packageService = null,
+            Mock<IEntitiesContext> entitiesContext = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<ITelemetryService> telemetryService = null,
             Action<Mock<ReflowPackageService>> setup = null)
@@ -343,6 +343,7 @@ namespace NuGetGallery
             var auditingService = new TestAuditingService();
             var telemetryService = new Mock<ITelemetryService>();
             var securityPolicyService = new Mock<ISecurityPolicyService>();
+            var entitiesContext = new Mock<IEntitiesContext>();
 
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
@@ -350,7 +351,8 @@ namespace NuGetGallery
                 certificateRepository.Object,
                 auditingService,
                 telemetryService.Object,
-                securityPolicyService.Object);
+                securityPolicyService.Object,
+                entitiesContext.Object);
 
             packageService.CallBase = true;
 
