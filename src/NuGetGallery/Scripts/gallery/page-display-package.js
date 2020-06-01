@@ -146,27 +146,4 @@ $(function () {
             }
         });
     }
-
-    // Add smooth scrolling to dependent-repos-link
-    $("#dependent-repos-link").on('click', function (event) {
-        // Emit a Google Analytics event
-        if (window.nuget.isGaAvailable()) {
-            ga('send', 'event', 'github-usage', 'sidebar-link-click');
-        }
-
-        if (this.hash !== "") {
-            event.preventDefault();
-            var hash = this.hash;
-            var hashElem = $(hash);
-            if (hashElem.attr("aria-expanded") == "false") {
-                hashElem.click();
-            }
-            $('html, body').animate({
-                scrollTop: hashElem.offset().top
-            }, 400, function () {
-                // Add hash (#) to URL when done scrolling (default click behavior)
-                window.location.hash = hash;
-            });
-        }
-    });
 });
