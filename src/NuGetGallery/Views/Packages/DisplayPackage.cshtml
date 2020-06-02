@@ -538,7 +538,7 @@
                 }
             }
 
-            @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.PackageDependents != null))
+            @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
             {
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#used-by"
