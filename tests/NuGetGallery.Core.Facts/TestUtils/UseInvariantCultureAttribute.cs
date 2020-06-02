@@ -14,8 +14,6 @@ namespace NuGetGallery.TestUtils
     {
         private CultureInfo originalUICulture;
 
-        public CultureInfo OriginalUICulture { get; set; }
-
         public override void Before(MethodInfo methodUnderTest)
         {
             originalUICulture = Thread.CurrentThread.CurrentUICulture;
