@@ -7,10 +7,12 @@
     {
         public override void Up()
         {
+            Sql("CREATE NONCLUSTERED INDEX [IX_PackageDependencies_Id] ON [dbo].[PackageDependencies] ([Id]) INCLUDE ([PackageKey])");
         }
-        
+
         public override void Down()
         {
+            DropIndex(table: "PackageDependencies", name: "IX_PackageDependencies_Id");
         }
     }
 }
