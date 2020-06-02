@@ -6030,16 +6030,14 @@ namespace NuGetGallery
             }
 
             [Fact]
+            [UseInvariantCultureAttribute]
             public async Task WillRejectBrokenZipFiles()
             {
                 // Arrange
-                var useInvariantCultureAttr = new UseInvariantCultureAttribute();
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("file.nupkg");
                 var fakeFileStream = new MemoryStream(TestDataResourceUtility.GetResourceBytes("Zip64Package.Corrupted.1.0.0.nupkg"));
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
-
-                useInvariantCultureAttr.Before(null);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -6048,8 +6046,6 @@ namespace NuGetGallery
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
                 
-                useInvariantCultureAttr.After(null);
-
                 Assert.NotNull(result);
                 Assert.Equal("Central Directory corrupt.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
             }
@@ -6083,16 +6079,14 @@ namespace NuGetGallery
             [Theory]
             [InlineData("Contains#Invalid$Characters!@#$%^&*")]
             [InlineData("Contains#Invalid$Characters!@#$%^&*EndsOnValidCharacter")]
+            [UseInvariantCultureAttribute]
             public async Task WillShowViewWithErrorsIfPackageIdIsBreaksParsing(string packageId)
             {
                 // Arrange
-                var useInvariantCultureAttr = new UseInvariantCultureAttribute();
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns(packageId + ".nupkg");
                 var fakeFileStream = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
-
-                useInvariantCultureAttr.Before(null);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -6100,8 +6094,6 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
-
-                useInvariantCultureAttr.After(null);
 
                 Assert.NotNull(result);
                 Assert.StartsWith($"An error occurred while parsing EntityName.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);

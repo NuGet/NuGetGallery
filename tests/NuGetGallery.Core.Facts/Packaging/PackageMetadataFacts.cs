@@ -219,6 +219,7 @@ namespace NuGetGallery.Packaging
             // Act & Assert
             var ex = Assert.Throws<ArgumentException>(() => PackageMetadata.FromNuspecReader(nuspec, strict));
             Assert.StartsWith("'bad' is not a valid version string.", ex.Message);
+            Assert.Equal("value", ex.ParamName);
         }
 
         [Fact]
@@ -252,22 +253,18 @@ namespace NuGetGallery.Packaging
         }
 
         [Fact]
+        [UseInvariantCultureAttribute]
         public void ThrowsForEmptyAndNonEmptyDuplicatesWhenDuplicateMetadataElementsDetectedAndParsingIsNotStrict()
         {
             // Arrange
-            var useInvariantCultureAttr = new UseInvariantCultureAttribute();
             var packageStream = CreateTestPackageStreamWithDuplicateEmptyAndNonEmptyMetadataElements();
             var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
             var nuspec = nupkg.GetNuspecReader();
-
-            useInvariantCultureAttr.Before(null);
 
             // Act & Assert
             var ex = Assert.Throws<ArgumentException>(() => PackageMetadata.FromNuspecReader(
                 nuspec,
                 strict: false));
-
-            useInvariantCultureAttr.After(null);
 
             Assert.Equal(
                "An item with the same key has already been added.",
