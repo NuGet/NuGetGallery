@@ -12,6 +12,7 @@ namespace NuGetGallery
     public class ABTestEnrollmentFactory : IABTestEnrollmentFactory
     {
         private const int SchemaVersion1 = 1;
+        private const int SchemaVersion2 = 2;
 
         private static readonly RNGCryptoServiceProvider _secureRng = new RNGCryptoServiceProvider();
         private static readonly ThreadLocal<byte[]> _bytes = new ThreadLocal<byte[]>(() => new byte[sizeof(ulong)]);
@@ -31,12 +32,14 @@ namespace NuGetGallery
         {
             var enrollment = new ABTestEnrollment(
                 ABTestEnrollmentState.FirstHit,
-                SchemaVersion1,
-                previewSearchBucket: GetRandomWholePercentage());
+                SchemaVersion2,
+                previewSearchBucket: GetRandomWholePercentage(),
+                packageDependentBucket: GetRandomWholePercentage());
 
             _telemetryService.TrackABTestEnrollmentInitialized(
                 enrollment.SchemaVersion,
-                enrollment.PreviewSearchBucket);
+                enrollment.PreviewSearchBucket,
+                enrollment.PackageDependentBucket);
 
             return enrollment;
         }
@@ -59,18 +62,19 @@ namespace NuGetGallery
 
         public string Serialize(ABTestEnrollment enrollment)
         {
-            if (enrollment.SchemaVersion != SchemaVersion1)
+            if (enrollment.SchemaVersion != SchemaVersion2)
             {
                 throw new NotImplementedException($"Serializing schema version {enrollment.SchemaVersion} is not implemented.");
             }
 
-            var deserialized = new StateVersion1
+            var deserialized2 = new StateVersion2
             {
-                SchemaVersion = SchemaVersion1,
+                SchemaVersion = SchemaVersion2,
                 PreviewSearchBucket = enrollment.PreviewSearchBucket,
+                PackageDependentBucket = enrollment.PackageDependentBucket,
             };
 
-            return JsonConvert.SerializeObject(deserialized);
+            return JsonConvert.SerializeObject(deserialized2);
         }
 
         public bool TryDeserialize(string serialized, out ABTestEnrollment enrollment)
@@ -81,6 +85,12 @@ namespace NuGetGallery
                 return false;
             }
 
+            return TryDeserializeStateVer2(serialized, out enrollment) || TryDeserializeStateVer1(serialized, out enrollment);
+        }
+
+        private bool TryDeserializeStateVer1(string serialized, out ABTestEnrollment enrollment)
+        {
+            enrollment = null;
             try
             {
                 var v1 = JsonConvert.DeserializeObject<StateVersion1>(serialized);
@@ -92,9 +102,43 @@ namespace NuGetGallery
                 }
 
                 enrollment = new ABTestEnrollment(
+                    ABTestEnrollmentState.Upgraded,
+                    SchemaVersion2,
+                    v1.PreviewSearchBucket,
+                    packageDependentBucket: GetRandomWholePercentage());
+
+                _telemetryService.TrackABTestEnrollmentUpgraded(
+                enrollment.SchemaVersion,
+                enrollment.PreviewSearchBucket,
+                enrollment.PackageDependentBucket);
+
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
+        private bool TryDeserializeStateVer2(string serialized, out ABTestEnrollment enrollment)
+        {
+            enrollment = null;
+            try
+            {
+                var v2 = JsonConvert.DeserializeObject<StateVersion2>(serialized);
+                if (v2 == null
+                    || v2.SchemaVersion != SchemaVersion2
+                    || IsNotPercentage(v2.PreviewSearchBucket)
+                    || IsNotPercentage(v2.PackageDependentBucket))
+                {
+                    return false;
+                }
+
+                enrollment = new ABTestEnrollment(
                     ABTestEnrollmentState.Active,
-                    v1.SchemaVersion,
-                    v1.PreviewSearchBucket);
+                    v2.SchemaVersion,
+                    v2.PreviewSearchBucket,
+                    v2.PackageDependentBucket);
 
                 return true;
             }
@@ -116,6 +160,18 @@ namespace NuGetGallery
 
             [JsonProperty("ps", Required = Required.Always)]
             public int PreviewSearchBucket { get; set; }
+        }
+
+        private class StateVersion2
+        {
+            [JsonProperty("v", Required = Required.Always)]
+            public int SchemaVersion { get; set; }
+
+            [JsonProperty("ps", Required = Required.Always)]
+            public int PreviewSearchBucket { get; set; }
+
+            [JsonProperty("pd", Required = Required.Always)]
+            public int PackageDependentBucket { get; set; }
         }
     }
 }

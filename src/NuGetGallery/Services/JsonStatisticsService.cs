@@ -33,6 +33,11 @@ namespace NuGetGallery
         private readonly IReportService _reportService;
 
         /// <summary>
+        /// Mockable source of current time.
+        /// </summary>
+        private readonly IDateTimeProvider _dateTimeProvider;
+
+        /// <summary>
         /// The semaphore used to update the statistics service's reports.
         /// </summary>
         private readonly SemaphoreSlim _reportSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
@@ -52,9 +57,10 @@ namespace NuGetGallery
         private readonly List<StatisticsNuGetUsageItem> _nuGetClientVersion = new List<StatisticsNuGetUsageItem>();
         private readonly List<StatisticsWeeklyUsageItem> _last6Weeks = new List<StatisticsWeeklyUsageItem>();
 
-        public JsonStatisticsService(IReportService reportService)
+        public JsonStatisticsService(IReportService reportService, IDateTimeProvider dateTimeProvider)
         {
-            _reportService = reportService;
+            _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
+            _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
         }
 
         public StatisticsReportResult PackageDownloadsResult { get; private set; }
@@ -126,7 +132,7 @@ namespace NuGetGallery
                     .Select(r => r.LastUpdatedUtc)
                     .FirstOrDefault();
 
-                _lastRefresh = DateTime.UtcNow;
+                _lastRefresh = _dateTimeProvider.UtcNow;
             }
             finally
             {
@@ -143,7 +149,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            return (_lastRefresh - DateTime.UtcNow) >= _refreshInterval;
+            return (_dateTimeProvider.UtcNow - _lastRefresh) >= _refreshInterval;
         }
 
         private Task<StatisticsReportResult> LoadDownloadPackages()

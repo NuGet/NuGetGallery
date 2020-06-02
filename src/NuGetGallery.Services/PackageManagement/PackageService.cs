@@ -179,7 +179,6 @@ namespace NuGetGallery
                 packageDependent.Id = pd.Id;
                 packageDependentsList.Add(packageDependent);
             }
-
             return packageDependentsList;
         }
 
