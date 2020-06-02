@@ -1061,7 +1061,7 @@ img.reserved-indicator-icon {
   line-height: 12px;
   color: #ef8b00;
 }
-.page-package-details .used-by-w400 strong {
+.page-package-details .used-by h3 strong {
   font-weight: 400;
 }
 .page-package-details .used-by-adjust-table-head {

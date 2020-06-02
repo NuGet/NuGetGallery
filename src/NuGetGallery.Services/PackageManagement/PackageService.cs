@@ -26,6 +26,7 @@ namespace NuGetGallery
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly IEntitiesContext _entitiesContext;
+        private const int packagesDisplayed = 5;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
@@ -161,7 +162,6 @@ namespace NuGetGallery
 
         private IReadOnlyCollection<PackageDependent> GetListOfDependents(string id)
         {
-            int packagesDisplayed = 5;
             var packageDependentsList = new List<PackageDependent>();
             var listPackages = (from pd in _entitiesContext.PackageDependencies
                                 join p in _entitiesContext.Packages on pd.PackageKey equals p.Key
@@ -172,7 +172,7 @@ namespace NuGetGallery
                                 select new { ng.Key.Id, ng.Key.DownloadCount, ng.Key.Description }
                                 ).Take(packagesDisplayed).ToList();
 
-            foreach(var pd in listPackages)
+            foreach (var pd in listPackages)
             {
                 var packageDependent = new PackageDependent();
                 packageDependent.Description = pd.Description;
