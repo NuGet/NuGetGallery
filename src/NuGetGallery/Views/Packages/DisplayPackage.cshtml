@@ -574,6 +574,13 @@
                                                 <a class="text-left ngp-link" href="@Url.Package(item.Id)">
                                                     @(item.Id)
                                                 </a>
+                                                @if (item.IsVerified)
+                                                {
+                                                    <img class="reserved-indicator"
+                                                         src="~/Content/gallery/img/reserved-indicator.svg"
+                                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
+                                                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                                }
                                                 <div class="row used-by-desc">
                                                     <span>@(item.Description)</span>
                                                 </div>

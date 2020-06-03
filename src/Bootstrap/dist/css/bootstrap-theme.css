@@ -1064,6 +1064,9 @@ img.reserved-indicator-icon {
 .page-package-details .used-by h3 strong {
   font-weight: 400;
 }
+.page-package-details .used-by .reserved-indicator {
+  width: 25px;
+}
 .page-package-details .used-by-adjust-table-head {
   word-break: normal;
 }

@@ -10,6 +10,7 @@ namespace NuGetGallery
         public string Id { get; set; }
         public int DownloadCount { get; set; }
         public string Description { get; set; }
+        public bool IsVerified { get; set; }
 
         // TODO Add verify checkmark
         // https://github.com/NuGet/NuGetGallery/issues/4718
