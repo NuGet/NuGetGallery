@@ -169,18 +169,10 @@ namespace NuGetGallery
                                 where p.IsLatestSemVer2 && pd.Id == id
                                 group 1 by new { pr.Id, pr.DownloadCount, p.Description } into ng
                                 orderby ng.Key.DownloadCount descending
-                                select new { ng.Key.Id, ng.Key.DownloadCount, ng.Key.Description }
+                                select new PackageDependent { Id = ng.Key.Id, DownloadCount = ng.Key.DownloadCount, Description = ng.Key.Description }
                                 ).Take(packagesDisplayed).ToList();
 
-            foreach (var pd in listPackages)
-            {
-                var packageDependent = new PackageDependent();
-                packageDependent.Description = pd.Description;
-                packageDependent.DownloadCount = pd.DownloadCount;
-                packageDependent.Id = pd.Id;
-                packageDependentsList.Add(packageDependent);
-            }
-            return packageDependentsList;
+            return listPackages;
         }
 
         private int GetDependentCount(string id)
