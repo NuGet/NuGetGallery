@@ -162,7 +162,6 @@ namespace NuGetGallery
 
         private IReadOnlyCollection<PackageDependent> GetListOfDependents(string id)
         {
-            var packageDependentsList = new List<PackageDependent>();
             var listPackages = (from pd in _entitiesContext.PackageDependencies
                                 join p in _entitiesContext.Packages on pd.PackageKey equals p.Key
                                 join pr in _entitiesContext.PackageRegistrations on p.PackageRegistrationKey equals pr.Key
