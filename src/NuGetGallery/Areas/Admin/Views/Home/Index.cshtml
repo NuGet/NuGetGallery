@@ -1,11 +1,11 @@
 ﻿@model HomeViewModel
 @{
-    ViewBag.Title = "Site Administration";
+    ViewBag.Title = "Site administration";
     ViewBag.Tab = "Admin";
 }
 
 <section role="main" class="container main-container page-admin-index">
-    <h1>Site Administration</h1>
+    <h1>Site administration</h1>
     <ul class="list-unstyled">
         @if (Model.ShowDatabaseAdmin)
         {
@@ -13,7 +13,7 @@
                 <h2>
                     <a href="~/Admin/Database">
                         <i class="ms-Icon ms-Icon--Database"></i>
-                        <span>Database Administration</span>
+                        <span>Database administration</span>
                     </a>
                 </h2>
                 <p>
@@ -25,18 +25,18 @@
             <h2>
                 <a href="~/Admin/Errors.axd">
                     <i class="ms-Icon ms-Icon--Error"></i>
-                    <span>Error Logs</span>
+                    <span>Error logs</span>
                 </a>
             </h2>
             <p>
-                View Application Error Logs.
+                View application error logs.
             </p>
         </li>
         <li>
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "LockPackage")">
                     <i class="ms-Icon ms-Icon--Lock"></i>
-                    <span>Lock Packages</span>
+                    <span>Lock packages</span>
                 </a>
             </h2>
             <p>
@@ -47,7 +47,7 @@
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "Delete")">
                     <i class="ms-Icon ms-Icon--Delete"></i>
-                    <span>Delete Packages</span>
+                    <span>Delete packages</span>
                 </a>
             </h2>
             <p>
@@ -58,7 +58,7 @@
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "Lucene")">
                     <i class="ms-Icon ms-Icon--DocumentSearch"></i>
-                    <span>Lucene Index Maintenance</span>
+                    <span>Lucene index maintenance</span>
                 </a>
             </h2>
             <p>
@@ -69,7 +69,7 @@
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "SupportRequest")">
                     <i class="ms-Icon ms-Icon--ActivityFeed"></i>
-                    <span>Support Requests</span>
+                    <span>Support requests</span>
                 </a>
             </h2>
             <p>
@@ -83,7 +83,7 @@
                     formId: "clear-content-cache-form",
                     htmlContent: @<text>
                         <i class="ms-Icon ms-Icon--Refresh"></i>
-                        <span>Clear Content Cache</span>
+                        <span>Clear content cache</span>
                     </text>,
                     actionName: "ClearContentCache",
                     controllerName: "Home",
@@ -91,29 +91,29 @@
                     area: "Admin")
             </h2>
             <p>
-                Clear Content Cache
+                Clear content cache
             </p>
         </li>
         <li>
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "SecurityPolicy")">
                     <i class="ms-Icon ms-Icon--SecurityGroup"></i>
-                    <span>Security Policies</span>
+                    <span>Security policies</span>
                 </a>
             </h2>
             <p>
-                Manage User Security Policies
+                Manage user security policies
             </p>
         </li>
         <li>
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "ReservedNamespace")">
                     <i class="ms-Icon ms-Icon--Shield"></i>
-                    <span>Reserve Namespace</span>
+                    <span>Reserve namespace</span>
                 </a>
             </h2>
             <p>
-                Manage Namespace Reservation
+                Manage namespace reservation
             </p>
         </li>
         @if (Model.ShowValidation)
@@ -126,18 +126,18 @@
                     </a>
                 </h2>
                 <p>
-                    Inspect Package Validations
+                    Inspect package validations
                 </p>
             </li>
             <li>
                 <h2>
                     <a href="@Url.Action(actionName: "Index", controllerName: "Revalidation")">
                         <i class="ms-Icon ms-Icon--Redo"></i>
-                        <span>Revalidation Job</span>
+                        <span>Revalidation job</span>
                     </a>
                 </h2>
                 <p>
-                    Inspect the Revalidation job
+                    Inspect the revalidation job
                 </p>
             </li>
         }
@@ -145,18 +145,18 @@
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "DeleteAccount")">
                     <i class="ms-Icon ms-Icon--Delete"></i>
-                    <span>Delete Account</span>
+                    <span>Delete account</span>
                 </a>
             </h2>
             <p>
-                Manage Account Deletion
+                Manage account deletion
             </p>
         </li>
         <li>
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "Features" )">
                     <i class="ms-Icon ms-Icon--Flag"></i>
-                    <span>Feature Flags</span>
+                    <span>Feature flags</span>
                 </a>
             </h2>
             <p>
@@ -167,7 +167,7 @@
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "SiteAdmins")">
                     <i class="ms-Icon ms-Icon--Admin"></i>
-                    <span>Site Admins</span>
+                    <span>Site admins</span>
                 </a>
             </h2>
             <p>
@@ -178,11 +178,11 @@
             <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "ApiKeys")">
                     <i class="ms-Icon ms-Icon--Permissions"></i>
-                    <span>API Keys</span>
+                    <span>API keys</span>
                 </a>
             </h2>
             <p>
-                Manage and Revoke API Keys
+                Manage and revoke API keys
             </p>
         </li>
     </ul>

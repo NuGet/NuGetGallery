@@ -1,7 +1,7 @@
 ﻿@model ConfirmationViewModel
 @{
     var titleString = Model.ConfirmingNewAccount ? (Model.IsOrganization ? "Organization" : "Account") : "Email";
-    ViewBag.Title = "Confirm Your " + titleString;
+    ViewBag.Title = "Confirm your " + titleString;
     ViewBag.SmPageColumns = GalleryConstants.ColumnsWideAuthenticationSm;
     ViewBag.MdPageColumns = GalleryConstants.ColumnsWideAuthenticationMd;
 }
@@ -11,11 +11,11 @@
         <div class="col-xs-12">
             @if (Model.SuccessfulConfirmation)
             {
-                <h1 class="text-center">@titleString Confirmed</h1>
+                <h1 class="text-center">@titleString confirmed</h1>
             }
             else
             {
-                <h1 class="text-center">Email Confirmation Failed</h1>
+                <h1 class="text-center">Email confirmation failed</h1>
             }
         </div>
     </div>

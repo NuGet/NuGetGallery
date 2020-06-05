@@ -1,11 +1,11 @@
 ﻿@model NuGetGallery.Areas.Admin.Models.RevokeApiKeysRequest
 @{
-    ViewBag.Title = "Revoke API Keys";
+    ViewBag.Title = "Revoke API keys";
 }
 @ViewHelpers.AjaxAntiForgeryToken(Html)
 
 <section role="main" class="container main-container">
-    <h2>Verify API Keys</h2>
+    <h2>Verify API keys</h2>
     <p class="text-muted">
         Please follow the format as below: <br />
         {"ApiKey":"oy2apikey1","LeakedUrl":"https://leakedUrl1","RevocationSource":"GitHub"} <br />
@@ -27,7 +27,7 @@
                     <th class="col-sm-1">
                         <input type="checkbox" data-bind="visible: findAnyRevocableApiKeys, click: toggleSelectAllRevocableApiKeys, checked: selectAllRevocableApiKeys" />
                     </th>
-                    <th class="col-sm-5">Api Key</th>
+                    <th class="col-sm-5">Api key</th>
                     <th class="col-sm-6">Information</th>
                 </tr>
             </thead>
@@ -65,14 +65,14 @@
                             <code>Description:</code> <span data-bind="text: ApiKeyViewModel.Description"></span><br />
                         </span>
                         <!-- ko if: LeakedUrl -->
-                        <code>Leaked Url:</code> <a data-bind="attr: { href: LeakedUrl }">Link</a><br />
+                        <code>Leaked URL:</code> <a data-bind="attr: { href: LeakedUrl }">Link</a><br />
                         <!-- /ko -->
                         <!-- ko if: !IsRevocable && RevocationSource  -->
-                        <code>Revocation Source:</code> <span data-bind="text: RevocationSource"></span><br />
+                        <code>Revocation source:</code> <span data-bind="text: RevocationSource"></span><br />
                         <!-- /ko -->
                         <!-- /ko -->
                         <!-- ko ifnot: ApiKeyViewModel -->
-                        Not Found
+                        Not found
                         <!-- /ko -->
                     </td>
                 </tr>

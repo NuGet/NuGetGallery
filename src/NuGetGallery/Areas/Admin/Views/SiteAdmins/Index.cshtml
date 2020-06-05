@@ -1,10 +1,10 @@
 ﻿@model SiteAdminsViewModel
 @{
-    ViewBag.Title = "Site Admins";
+    ViewBag.Title = "Site admins";
 }
 
 <section role="main" class="container main-container">
-    <h2>Current Admins</h2>
+    <h2>Current admins</h2>
     <table class="table">
         @foreach (var adminUsername in Model.AdminUsernames)
         {
@@ -29,7 +29,7 @@
         }
     </table>
 
-    <h2>Add Admin</h2>
+    <h2>Add admin</h2>
     @using (Html.BeginForm("AddAdmin", "SiteAdmins"))
     {
         @Html.AntiForgeryToken()

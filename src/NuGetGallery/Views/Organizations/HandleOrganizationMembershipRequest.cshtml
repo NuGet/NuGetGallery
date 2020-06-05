@@ -1,6 +1,6 @@
 ﻿@model HandleOrganizationMembershipRequestModel
 @{
-    ViewBag.Title = "Manage Organization";
+    ViewBag.Title = "Manage organization";
 }
 
 <section role="main" class="container main-container page-manage-owners">
@@ -10,22 +10,22 @@
             {
                 if (Model.Successful)
                 {
-                    @:Membership Confirmed
+                    @:Membership confirmed
                 }
                 else
                 {
-                    @:Membership Confirmation Failed
+                    @:Membership confirmation failed
                 }
             }
             else
             {
                 if (Model.Successful)
                 {
-                    @:Membership Declined
+                    @:Membership declined
                 }
                 else
                 {
-                    @:Membership Declination Failed
+                    @:Membership declination failed
                 }
             }
         </h1>

@@ -1,6 +1,6 @@
 ﻿@model RevalidationPageViewModel
 @{
-    ViewBag.Title = "Revalidation Job";
+    ViewBag.Title = "Revalidation job";
 }
 
 <section role="main" class="container main-container page-revalidation">
@@ -54,19 +54,19 @@
             <h2>Statistics</h2>
 
             <p>
-                <strong>Revalidations Left:</strong>
+                <strong>Revalidations left:</strong>
                 @Model.Statistics.PendingRevalidations.ToString("n0")
             </p>
             <p>
-                <strong>Revalidations Started In Last Hour:</strong>
+                <strong>Revalidations started in last hour:</strong>
                 @Model.Statistics.StartedRevalidationsInLastHour.ToString("n0")
             </p>
             <p>
-                <strong>Total Revalidations Started:</strong>
+                <strong>Total revalidations started:</strong>
                 @Model.Statistics.StartedRevalidations.ToString("n0")
             </p>
             <p>
-                <strong>Desired Package Event Rate*:</strong>
+                <strong>Desired package event rate*:</strong>
                 @Model.State.DesiredPackageEventRate events per hour
             </p>
 

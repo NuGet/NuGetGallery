@@ -2,7 +2,7 @@
 @model ApiKeyListViewModel
 @using NuGetGallery.Authentication
 @{
-    ViewBag.Title = "API Keys";
+    ViewBag.Title = "API keys";
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
 }
 
@@ -20,7 +20,7 @@
             {
                 @ViewHelpers.AlertWarning(
                     @<text>
-                        To get an API Key you will need to
+                        To get an API key you will need to
                         <a href="@Url.ConfirmationRequired()">confirm your account</a>.
                     </text>)
             }
@@ -331,7 +331,7 @@
 
         <div class="row">
             <div class="col-sm-12 form-group">
-                <b class="ms-fontSize-xl">Select Scopes</b>
+                <b class="ms-fontSize-xl">Select scopes</b>
                 <br />
                 <span class="has-error">
                     <span class="help-block" data-bind="text: ScopesError" aria-live="polite" role="alert"></span>
@@ -386,7 +386,7 @@
         <!-- /ko -->
         <div class="row">
             <div class="col-sm-12">
-                <b class="ms-fontSize-xl">Select Packages</b>
+                <b class="ms-fontSize-xl">Select packages</b>
                 <p>
                     To select which packages to associate with a key, use a glob pattern, select
                     individual packages, or both.
@@ -406,7 +406,7 @@
             <div class="col-sm-7">
                 <label data-bind="attr: { for: GlobPatternId,
                                           id: GlobPatternId() + '-label' }">
-                    Glob Pattern
+                    Glob pattern
                 </label>
             </div>
         </div>
@@ -423,7 +423,7 @@
                                       enable: SelectPackagesEnabled" />
                 </div>
                 <div class="form-group">
-                    <label>Available Packages</label>
+                    <label>Available packages</label>
                     <div class="panel panel-default available-packages">
                         <div class="panel-body">
                             <!-- ko foreach: PendingPackages -->

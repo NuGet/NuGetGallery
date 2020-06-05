@@ -1,7 +1,7 @@
 ﻿@model SecurityPolicyViewModel
 
 @{
-    ViewBag.Title = "Security Policies";
+    ViewBag.Title = "Security policies";
 }
 
 @ViewHelpers.AjaxAntiForgeryToken(Html)
@@ -11,7 +11,7 @@
         @ViewHelpers.AlertInfo(@<text><span class="message" data-bind="text: message"></span></text>)
     </div>
 
-    <h2>User Security Policies</h2>
+    <h2>User Security policies</h2>
 
     <form>
         <textarea placeholder="Search for usernames (comma-separated)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />

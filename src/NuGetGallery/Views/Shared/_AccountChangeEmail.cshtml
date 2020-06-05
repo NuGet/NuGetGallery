@@ -6,7 +6,7 @@
 
 @ViewHelpers.Section(parent,
          "change-email",
-        @<text>@(Model.HasUnconfirmedEmailAddress ? "Pending Email Address" : "Email Address")</text>,
+        @<text>@(Model.HasUnconfirmedEmailAddress ? "Pending email address" : "Email address")</text>,
         @<text>@Model.CurrentEmailAddress</text>,
         @<text>
             @if (Model.HasConfirmedEmailAddress && Model.HasUnconfirmedEmailAddress)

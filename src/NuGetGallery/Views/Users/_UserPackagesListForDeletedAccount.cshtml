@@ -1,6 +1,6 @@
 ﻿@model DeleteAccountViewModel
 @{
-    var isOrganization = Model.User is Organization;
+    var isOrganization = Model.User is organization;
     var hasSingleOwnerMessage = isOrganization ? "You must transfer ownership of this package before you can delete your organization." : "After account deletion, this package will not have any owners.";
     var hasMultipleOwnersMessage = isOrganization ? "You do not need to transfer ownership of this package before you can delete your organization." : "After account deletion, this package will still have at least one owner.";
 }
@@ -24,7 +24,7 @@
                             <th>Package ID</th>
                             <th>Owners</th>
                             <th>Downloads</th>
-                            <th>Latest Version</th>
+                            <th>Latest version</th>
                             <th class="hidden-xs"></th>
                         </tr>
                     </thead>

@@ -1,6 +1,6 @@
 ﻿@model StatisticsPackagesViewModel
 @{
-    ViewBag.Title = "Package Download Statistics";
+    ViewBag.Title = "Package download statistics";
     ViewBag.Tab = "Statistics";
 }
 
@@ -17,10 +17,10 @@
 <section role="main" class="container main-container page-statistics-most-downloaded">
     <div class="row">
         <div class="col-xs-12">
-            <h1>Most Downloaded Packages</h1>
+            <h1>Most downloaded packages</h1>
 
             <span class="ms-fontSize-l" data-bind="text: showAllPackageDownloads() ? 'Top 100 Packages Over the Last 6 Weeks' : 'Top 100 Community Packages Over the Last 6 Weeks'">
-                Top 100 Community Packages Over the Last 6 Weeks
+                Top 100 community packages over the last 6 weeks
             </span>
             <label class="show-all-packages-toggle pull-right">
                 <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
