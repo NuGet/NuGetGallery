@@ -3075,7 +3075,7 @@ tbody.collapse.in {
 }
 .input-group {
   position: relative;
-  display: table;
+  display: table-row;
   border-collapse: separate;
 }
 .input-group[class*="col-"] {
