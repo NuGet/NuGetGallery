@@ -1065,6 +1065,9 @@ img.reserved-indicator-icon {
   font-weight: 400;
 }
 .page-package-details .used-by .reserved-indicator {
+  margin-bottom: 3px;
+  margin-left: 2px;
+  vertical-align: middle;
   width: 15px;
 }
 .page-package-details .used-by-adjust-table-head {
