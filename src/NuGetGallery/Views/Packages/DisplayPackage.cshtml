@@ -538,7 +538,7 @@
                 }
             }
 
-            @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || (Model.IsPackageDependentsEnabled && Model.PackageDependents != null)))
+            @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
             {
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#used-by"
@@ -548,14 +548,14 @@
                     </a>
                 </h2>
 
-                <div class="used-by panel-collapse collapse" aria-expanded="true" id="used-by">
-                    @if (Model.IsPackageDependentsEnabled && Model.PackageDependents != null)
+                <div class="used-by panel-collapse collapse" id="used-by">
+                    @if (Model.IsPackageDependentsEnabled)
                     {
-                        <h3 class="used-by-w400">
-                            <strong>NuGet packages </strong> (@Model.PackageDependents.TotalPackageCount.ToKiloFormat()+)
-                        </h3>
                         if (Model.PackageDependents.TotalPackageCount > 0)
                         {
+                            <h3>
+                                <strong>NuGet packages </strong> (@Model.PackageDependents.TotalPackageCount.ToKiloFormat()+)
+                            </h3>
                             <p>
                                 Showing the top @(Model.PackageDependents.TopPackages.Count) NuGet packages that depend on @(Model.Id):
                             </p>
@@ -563,7 +563,6 @@
                                 <thead>
                                     <tr>
                                         <th class="used-by-adjust-table-head">Package</th>
-                                        <th></th>
                                         <th class="used-by-adjust-table-head">Downloads</th>
                                     </tr>
                                 </thead>
@@ -571,15 +570,14 @@
                                     @foreach (var item in Model.PackageDependents.TopPackages)
                                     {
                                         <tr>
-                                            <td>
-                                                <a class="text-left ngp-link" href="@Url.Package(item.Id)" target="_blank">
+                                            <td class="used-by-desc-column">
+                                                <a class="text-left ngp-link" href="@Url.Package(item.Id)">
                                                     @(item.Id)
                                                 </a>
                                                 <div class="row used-by-desc">
                                                     <span>@(item.Description)</span>
                                                 </div>
                                             </td>
-                                            <td></td>
                                             <td>
                                                 <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
                                             </td>
@@ -588,22 +586,24 @@
                                 </tbody>
                             </table>
                         }
-
                         else
                         {
+                            <h3>
+                                <strong>NuGet packages </strong> (0)
+                            </h3>
                             <p>
-                                This package has no dependencies.
+                                This package is not used by any NuGet packages.
                             </p>
                         }
                     }
 
                     @if (Model.IsGitHubUsageEnabled)
                     {
-                        <h3 class="used-by-w400">
-                            <strong>GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat()+)
-                        </h3>
                         if (Model.GitHubDependenciesInformation.Repos.Any())
                         {
+                            <h3>
+                                <strong>GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat()+)
+                            </h3>
                             <p>
                                 Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) GitHub repositories that depend on @(Model.Id):
                             </p>
@@ -611,7 +611,6 @@
                                 <thead>
                                     <tr>
                                         <th class="used-by-adjust-table-head">Repository</th>
-                                        <th></th>
                                         <th class="used-by-adjust-table-head">Stars</th>
                                     </tr>
                                 </thead>
@@ -619,7 +618,7 @@
                                     @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
                                     {
                                         <tr>
-                                            <td>
+                                            <td class="used-by-desc-column">
                                                 <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
                                                     @(item.Value.Id)
                                                 </a>
@@ -627,7 +626,6 @@
                                                     <span>@(item.Value.Description)</span>
                                                 </div>
                                             </td>
-                                            <td></td>
                                             <td>
                                                 <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
                                             </td>
@@ -639,6 +637,9 @@
 
                         else
                         {
+                            <h3>
+                                <strong>GitHub repositories </strong> (0)
+                            </h3>
                             <p>
                                 This package is not used by any popular GitHub repositories.
                             </p>
@@ -832,15 +833,6 @@
                         <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
                             Source repository
                         </a>
-                    </li>
-                }
-                @if (Model.IsGitHubUsageEnabled && !Model.IsDotnetToolPackageType && Model.GitHubDependenciesInformation.TotalRepos > 0)
-                {
-                    <li>
-                        <img class="icon" aria-hidden="true" alt="GitHub logo"
-                             src="@Url.Absolute("~/Content/gallery/img/github.svg")"
-                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                        Dependent repositories (@(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())+)
                     </li>
                 }
                 @if (!Model.Deleted && Model.LicenseUrl != null)
