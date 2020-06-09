@@ -912,14 +912,6 @@ img.reserved-indicator-icon {
   font-size: 25px;
   color: red;
 }
-.page-package-details {
-  /*
-  .used-by-adjust-stars {
-    word-break: normal;
-    display: inline-block;
-  }
-      */
-}
 .page-package-details .no-border {
   border: 0;
 }
@@ -1072,14 +1064,11 @@ img.reserved-indicator-icon {
 .page-package-details .used-by h3 strong {
   font-weight: 400;
 }
-.page-package-details .used-by .reserved-indicator {
-  margin-bottom: 3px;
-  margin-left: 2px;
-  vertical-align: middle;
-  width: 15px;
-}
 .page-package-details .used-by-adjust-table-head {
   word-break: normal;
+}
+.page-package-details .used-by-desc-column {
+  width: 85%;
 }
 .page-package-details .install-tabs {
   font-size: 0.8em;
