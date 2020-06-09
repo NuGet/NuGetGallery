@@ -64,7 +64,7 @@ $(function () {
 
     // Configure expanders
     window.nuget.configureExpanderHeading("dependency-groups");
-    window.nuget.configureExpanderHeading("github-usage");
+    window.nuget.configureExpanderHeading("used-by");
     window.nuget.configureExpanderHeading("version-history");
     window.nuget.configureExpander(
         "hidden-versions",
@@ -121,12 +121,12 @@ $(function () {
             ga('send', 'event', 'dependencies', e.type);
         });
 
-        // Emit a Google Analytics event when the user expands or collapses the GitHub Usage section.
-        $("#github-usage").on('hide.bs.collapse show.bs.collapse', function (e) {
-            ga('send', 'event', 'github-usage', e.type);
+        // Emit a Google Analytics event when the user expands or collapses the Used By section.
+        $("#used-by").on('hide.bs.collapse show.bs.collapse', function (e) {
+            ga('send', 'event', 'used-by', e.type);
         });
 
-        // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Usage section.
+        // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Repos area of the Used By section.
         $(".gh-link").on('click', function (elem) {
             if (!elem.delegateTarget.dataset.indexNumber) {
                 console.error("indexNumber property doesn't exist!");
@@ -135,28 +135,15 @@ $(function () {
                 ga('send', 'event', 'github-usage', 'link-click-' + linkIndex);
             }
         });
-    }
 
-    // Add smooth scrolling to dependent-repos-link
-    $("#dependent-repos-link").on('click', function (event) {
-        // Emit a Google Analytics event
-        if (window.nuget.isGaAvailable()) {
-            ga('send', 'event', 'github-usage', 'sidebar-link-click');
-        }
-
-        if (this.hash !== "") {
-            event.preventDefault();
-            var hash = this.hash;
-            var hashElem = $(hash);
-            if (hashElem.attr("aria-expanded") == "false") {
-                hashElem.click();
+        // Emit a Google Analytics event when the user clicks on a package link in the NuGet Packages area of the Used By section.
+        $(".ngp-link").on('click', function (elem) {
+            if (!elem.delegateTarget.dataset.indexNumber) {
+                console.error("indexNumber property doesn't exist!");
+            } else {
+                var linkIndex = elem.delegateTarget.dataset.indexNumber;
+                ga('send', 'event', 'used-by-packages', 'link-click-' + linkIndex);
             }
-            $('html, body').animate({
-                scrollTop: hashElem.offset().top
-            }, 400, function () {
-                // Add hash (#) to URL when done scrolling (default click behavior)
-                window.location.hash = hash;
-            });
-        }
-    });
+        });
+    }
 });
