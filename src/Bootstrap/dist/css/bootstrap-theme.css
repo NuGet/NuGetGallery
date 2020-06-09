@@ -912,6 +912,14 @@ img.reserved-indicator-icon {
   font-size: 25px;
   color: red;
 }
+.page-package-details {
+  /*
+  .used-by-adjust-stars {
+    word-break: normal;
+    display: inline-block;
+  }
+      */
+}
 .page-package-details .no-border {
   border: 0;
 }

@@ -115,6 +115,7 @@
     <Compile Include="Services\CloudBlobCoreFileStorageServiceIntegrationTests.cs" />
     <Compile Include="Services\CorePackageFileServiceFacts.cs" />
     <Compile Include="Services\CorePackageServiceFacts.cs" />
+    <Compile Include="TestUtils\UseInvariantCultureAttribute.cs" />
     <Compile Include="TestUtils\CoreMockExtensions.cs" />
     <Compile Include="TestUtils\PackageServiceUtility.cs" />
     <Compile Include="TestUtils\TestPackage.cs" />
