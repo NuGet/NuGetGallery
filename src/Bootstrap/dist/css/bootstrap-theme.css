@@ -1064,6 +1064,12 @@ img.reserved-indicator-icon {
 .page-package-details .used-by h3 strong {
   font-weight: 400;
 }
+.page-package-details .used-by .reserved-indicator {
+  width: 15px;
+  margin-bottom: 3px;
+  margin-left: 2px;
+  vertical-align: middle;
+}
 .page-package-details .used-by-adjust-table-head {
   word-break: normal;
 }
