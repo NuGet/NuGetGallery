@@ -538,62 +538,114 @@
                 }
             }
 
-            @if(Model.IsGitHubUsageEnabled && !Model.IsDotnetToolPackageType)
+            @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
             {
                 <h2>
-                    <a href="#" role="button" data-toggle="collapse" data-target="#github-usage"
-                       aria-expanded="false" aria-controls="github-usage" id="show-github-usage">
+                    <a href="#" role="button" data-toggle="collapse" data-target="#used-by"
+                       aria-expanded="false" aria-controls="used-by" id="show-used-by">
                         <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
-                        <span>GitHub Usage</span>
+                        <span>Used By</span>
                     </a>
                 </h2>
-                if (Model.GitHubDependenciesInformation.Repos.Any())
-                {
-                    <div class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
-                        <p>
-                            Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) GitHub repositories that depend on @(Model.Id):
-                        </p>
-                        <table class="table borderless">
-                            <thead>
-                                <tr>
-                                    <th>Repository</th>
-                                    <th></th>
-                                    <th>Stars</th>
-                                </tr>
-                            </thead>
-                            <tbody class="no-border">
-                            @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i}))
-                            {
-                                <tr>
-                                    <td class="gh-repo-column">
-                                        <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
-                                            @(item.Value.Id)
-                                        </a>
-                                        <div class="row gh-desc">
-                                            <span>@(item.Value.Description)</span>
-                                        </div>
-                                    </td>
-                                    <td class="gh-empty-column"></td>
-                                    <td>
-                                        <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="gh-star-count">@(item.Value.Stars.ToKiloFormat())</label>
-                                    </td>
-                                </tr>
-                            }
-                            </tbody>
-                        </table>
-                        <p>
-                            Read more about the GitHub Usage information on
 
-                            <a href="https://docs.microsoft.com/en-us/nuget/consume-packages/finding-and-choosing-packages#evaluating-packages" title="Read more about the GitHub Usage information">our documentation</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <p class="github-usage panel-collapse collapse" aria-expanded="true" id="github-usage">
-                        This package is not used by any popular GitHub repositories.
-                    </p>
-                }
+                <div class="used-by panel-collapse collapse" id="used-by">
+                    @if (Model.IsPackageDependentsEnabled)
+                    {
+                        if (Model.PackageDependents.TotalPackageCount > 0)
+                        {
+                            <h3>
+                                <strong>NuGet packages </strong> (@Model.PackageDependents.TotalPackageCount.ToKiloFormat()+)
+                            </h3>
+                            <p>
+                                Showing the top @(Model.PackageDependents.TopPackages.Count) NuGet packages that depend on @(Model.Id):
+                            </p>
+                            <table class="table borderless">
+                                <thead>
+                                    <tr>
+                                        <th class="used-by-adjust-table-head">Package</th>
+                                        <th class="used-by-adjust-table-head">Downloads</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="no-border">
+                                    @foreach (var item in Model.PackageDependents.TopPackages)
+                                    {
+                                        <tr>
+                                            <td class="used-by-desc-column">
+                                                <a class="text-left ngp-link" href="@Url.Package(item.Id)">
+                                                    @(item.Id)
+                                                </a>
+                                                <div class="row used-by-desc">
+                                                    <span>@(item.Description)</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <h3>
+                                <strong>NuGet packages </strong> (0)
+                            </h3>
+                            <p>
+                                This package is not used by any NuGet packages.
+                            </p>
+                        }
+                    }
+
+                    @if (Model.IsGitHubUsageEnabled)
+                    {
+                        if (Model.GitHubDependenciesInformation.Repos.Any())
+                        {
+                            <h3>
+                                <strong>GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat()+)
+                            </h3>
+                            <p>
+                                Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) GitHub repositories that depend on @(Model.Id):
+                            </p>
+                            <table class="table borderless">
+                                <thead>
+                                    <tr>
+                                        <th class="used-by-adjust-table-head">Repository</th>
+                                        <th class="used-by-adjust-table-head">Stars</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="no-border">
+                                    @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
+                                    {
+                                        <tr>
+                                            <td class="used-by-desc-column">
+                                                <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
+                                                    @(item.Value.Id)
+                                                </a>
+                                                <div class="row used-by-desc">
+                                                    <span>@(item.Value.Description)</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+
+                        else
+                        {
+                            <h3>
+                                <strong>GitHub repositories </strong> (0)
+                            </h3>
+                            <p>
+                                This package is not used by any popular GitHub repositories.
+                            </p>
+                        }
+                    }
+                </div>
             }
 
             <h2>
@@ -781,16 +833,6 @@
                         <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
                             Source repository
                         </a>
-                    </li>
-                }
-                @if (Model.IsGitHubUsageEnabled && !Model.IsDotnetToolPackageType && Model.GitHubDependenciesInformation.TotalRepos > 0)
-                {
-                    <li>
-                        <img class="icon" aria-hidden="true" alt="GitHub logo"
-                             src="@Url.Absolute("~/Content/gallery/img/github.svg")"
-                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                        <a href="#show-github-usage" title="View the top dependent repositories" id="dependent-repos-link">Dependent repositories</a>
-                        (@(Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())+)
                     </li>
                 }
                 @if (!Model.Deleted && Model.LicenseUrl != null)

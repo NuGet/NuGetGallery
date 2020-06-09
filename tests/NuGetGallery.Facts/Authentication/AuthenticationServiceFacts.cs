@@ -838,8 +838,8 @@ namespace NuGetGallery.Authentication
                 var ex = await Assert.ThrowsAsync<ArgumentException>(async () => await _authenticationService.Authenticate(cred));
 
                 // Assert
-                Assert.Equal(
-                    Strings.PasswordCredentialsCannotBeUsedHere + Environment.NewLine + "Parameter name: credential",
+                Assert.StartsWith(
+                    Strings.PasswordCredentialsCannotBeUsedHere,
                     ex.Message);
                 Assert.Equal("credential", ex.ParamName);
             }
