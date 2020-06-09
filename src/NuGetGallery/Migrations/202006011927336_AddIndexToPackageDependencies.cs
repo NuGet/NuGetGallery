@@ -6,7 +6,7 @@
     {
         public override void Up()
         {
-            Sql("CREATE NONCLUSTERED INDEX [IX_PackageDependencies_Id] ON [dbo].[PackageDependencies] ([Id]) INCLUDE ([PackageKey])");
+            Sql("CREATE NONCLUSTERED INDEX [IX_PackageDependencies_Id] ON [dbo].[PackageDependencies] ([Id]) INCLUDE ([PackageKey]) WITH (ONLINE = ON)");
         }
 
         public override void Down()
