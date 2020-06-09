@@ -145,28 +145,15 @@ $(function () {
                 ga('send', 'event', 'used-by-packages', 'link-click-' + linkIndex);
             }
         });
-    }
 
-    // Add smooth scrolling to dependent-repos-link
-    $("#dependent-repos-link").on('click', function (event) {
-        // Emit a Google Analytics event
-        if (window.nuget.isGaAvailable()) {
-            ga('send', 'event', 'github-usage', 'sidebar-link-click');
-        }
-
-        if (this.hash !== "") {
-            event.preventDefault();
-            var hash = this.hash;
-            var hashElem = $(hash);
-            if (hashElem.attr("aria-expanded") == "false") {
-                hashElem.click();
+        // Emit a Google Analytics event when the user clicks on a package link in the NuGet Packages area of the Used By section.
+        $(".ngp-link").on('click', function (elem) {
+            if (!elem.delegateTarget.dataset.indexNumber) {
+                console.error("indexNumber property doesn't exist!");
+            } else {
+                var linkIndex = elem.delegateTarget.dataset.indexNumber;
+                ga('send', 'event', 'used-by-packages', 'link-click-' + linkIndex);
             }
-            $('html, body').animate({
-                scrollTop: hashElem.offset().top
-            }, 400, function () {
-                // Add hash (#) to URL when done scrolling (default click behavior)
-                window.location.hash = hash;
-            });
-        }
-    });
+        });
+    }
 });

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
@@ -41,7 +42,9 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using NuGetGallery.Services.Helpers;
+using NuGetGallery.TestUtils;
 using Xunit;
+using Xunit.Sdk;
 
 namespace NuGetGallery
 {
@@ -216,7 +219,7 @@ namespace NuGetGallery
                 featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService.SetReturnsDefault<bool>(true);
             }
-            
+
             renameService = renameService ?? new Mock<IPackageRenameService>();
             if (deprecationService == null)
             {
@@ -826,8 +829,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService, 
-                    indexingService: indexingService, 
+                    packageService: packageService,
+                    indexingService: indexingService,
                     deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
@@ -905,8 +908,8 @@ namespace NuGetGallery
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService, 
-                    indexingService: indexingService, 
+                    packageService: packageService,
+                    indexingService: indexingService,
                     deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
@@ -1066,8 +1069,8 @@ namespace NuGetGallery
                 var fileService = new Mock<IPackageFileService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService, 
-                    indexingService: indexingService, 
+                    packageService: packageService,
+                    indexingService: indexingService,
                     packageFileService: fileService,
                     deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
@@ -1126,9 +1129,9 @@ namespace NuGetGallery
 
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService, 
-                    indexingService: indexingService, 
-                    packageFileService: fileService, 
+                    packageService: packageService,
+                    indexingService: indexingService,
+                    packageFileService: fileService,
                     validationService: validationService,
                     deprecationService: deprecationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
@@ -1803,7 +1806,7 @@ namespace NuGetGallery
 
                 var result = await controller.DisplayPackage(id, version: null);
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                
+
                 Assert.Same(pd, model.PackageDependents);
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
@@ -1933,7 +1936,7 @@ namespace NuGetGallery
 
                 base.Dispose(disposing);
             }
-        
+
             private class TestIssue : ValidationIssue
             {
                 private readonly string _message;
@@ -3809,7 +3812,7 @@ namespace NuGetGallery
             }
 
 
-            private ActionResult GetDeleteSymbolsResult(User currentUser, User owner, out PackagesController controller, Mock<IIconUrlProvider> iconUrlProvider = null)  
+            private ActionResult GetDeleteSymbolsResult(User currentUser, User owner, out PackagesController controller, Mock<IIconUrlProvider> iconUrlProvider = null)
             {
                 _packageRegistration.Owners.Add(owner);
 
@@ -4327,7 +4330,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 var controller = CreateController(
-                    GetConfigurationService(), 
+                    GetConfigurationService(),
                     packageService: packageService,
                     packageUpdateService: packageUpdateService);
 
@@ -6027,6 +6030,7 @@ namespace NuGetGallery
             }
 
             [Fact]
+            [UseInvariantCultureAttribute]
             public async Task WillRejectBrokenZipFiles()
             {
                 // Arrange
@@ -6041,7 +6045,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
-
+                
                 Assert.NotNull(result);
                 Assert.Equal("Central Directory corrupt.", (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
             }
@@ -6075,6 +6079,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData("Contains#Invalid$Characters!@#$%^&*")]
             [InlineData("Contains#Invalid$Characters!@#$%^&*EndsOnValidCharacter")]
+            [UseInvariantCultureAttribute]
             public async Task WillShowViewWithErrorsIfPackageIdIsBreaksParsing(string packageId)
             {
                 // Arrange
@@ -9000,7 +9005,7 @@ namespace NuGetGallery
 
                 readmeService
                     .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
-                    .ReturnsAsync(new RenderedReadMeResult { Content = html } );
+                    .ReturnsAsync(new RenderedReadMeResult { Content = html });
 
                 var result = await controller.PreviewReadMe(request);
 

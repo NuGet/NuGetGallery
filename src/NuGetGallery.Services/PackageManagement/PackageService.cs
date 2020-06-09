@@ -26,6 +26,7 @@ namespace NuGetGallery
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly IEntitiesContext _entitiesContext;
+        private const int packagesDisplayed = 5;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
@@ -161,26 +162,16 @@ namespace NuGetGallery
 
         private IReadOnlyCollection<PackageDependent> GetListOfDependents(string id)
         {
-            int packagesDisplayed = 5;
-            var packageDependentsList = new List<PackageDependent>();
             var listPackages = (from pd in _entitiesContext.PackageDependencies
                                 join p in _entitiesContext.Packages on pd.PackageKey equals p.Key
                                 join pr in _entitiesContext.PackageRegistrations on p.PackageRegistrationKey equals pr.Key
                                 where p.IsLatestSemVer2 && pd.Id == id
                                 group 1 by new { pr.Id, pr.DownloadCount, p.Description } into ng
                                 orderby ng.Key.DownloadCount descending
-                                select new { ng.Key.Id, ng.Key.DownloadCount, ng.Key.Description }
+                                select new PackageDependent { Id = ng.Key.Id, DownloadCount = ng.Key.DownloadCount, Description = ng.Key.Description }
                                 ).Take(packagesDisplayed).ToList();
 
-            foreach(var pd in listPackages)
-            {
-                var packageDependent = new PackageDependent();
-                packageDependent.Description = pd.Description;
-                packageDependent.DownloadCount = pd.DownloadCount;
-                packageDependent.Id = pd.Id;
-                packageDependentsList.Add(packageDependent);
-            }
-            return packageDependentsList;
+            return listPackages;
         }
 
         private int GetDependentCount(string id)
