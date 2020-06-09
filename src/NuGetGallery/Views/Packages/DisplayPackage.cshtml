@@ -606,9 +606,6 @@
 
                     @if (Model.IsGitHubUsageEnabled)
                     {
-                        <h3>
-                            <strong>GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat()+)
-                        </h3>
                         if (Model.GitHubDependenciesInformation.Repos.Any())
                         {
                             <h3>
