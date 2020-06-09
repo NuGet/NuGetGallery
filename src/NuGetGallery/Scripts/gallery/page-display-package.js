@@ -145,15 +145,5 @@ $(function () {
                 ga('send', 'event', 'used-by-packages', 'link-click-' + linkIndex);
             }
         });
-
-        // Emit a Google Analytics event when the user clicks on a package link in the NuGet Packages area of the Used By section.
-        $(".ngp-link").on('click', function (elem) {
-            if (!elem.delegateTarget.dataset.indexNumber) {
-                console.error("indexNumber property doesn't exist!");
-            } else {
-                var linkIndex = elem.delegateTarget.dataset.indexNumber;
-                ga('send', 'event', 'used-by-packages', 'link-click-' + linkIndex);
-            }
-        });
     }
 });
