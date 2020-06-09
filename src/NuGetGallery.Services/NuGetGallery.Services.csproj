@@ -102,12 +102,14 @@
     <Compile Include="Authentication\V3Hasher.cs" />
     <Compile Include="Configuration\ABTestConfiguration.cs" />
     <Compile Include="Configuration\AppConfiguration.cs" />
+    <Compile Include="Configuration\CacheConfiguration.cs" />
     <Compile Include="Configuration\CertificatesConfiguration.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
     <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\FeatureFlagService.cs" />
     <Compile Include="Configuration\IABTestConfiguration.cs" />
     <Compile Include="Configuration\IAppConfiguration.cs" />
+    <Compile Include="Configuration\ICacheConfiguration.cs" />
     <Compile Include="Configuration\ICertificatesConfiguration.cs" />
     <Compile Include="Configuration\IFeatureFlagService.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />

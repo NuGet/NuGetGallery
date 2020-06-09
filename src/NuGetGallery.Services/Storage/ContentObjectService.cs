@@ -26,6 +26,8 @@ namespace NuGetGallery
             GitHubUsageConfiguration = new GitHubUsageConfiguration(Array.Empty<RepositoryInformation>());
             ABTestConfiguration = new ABTestConfiguration();
             ODataCacheConfiguration = new ODataCacheConfiguration();
+            CacheConfiguration = new CacheConfiguration();
+
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; private set; }
@@ -35,6 +37,7 @@ namespace NuGetGallery
         public IGitHubUsageConfiguration GitHubUsageConfiguration { get; private set; }
         public IABTestConfiguration ABTestConfiguration { get; private set; }
         public IODataCacheConfiguration ODataCacheConfiguration { get; private set; }
+        public ICacheConfiguration CacheConfiguration { get; private set; }
 
         public async Task Refresh()
         {
@@ -66,6 +69,10 @@ namespace NuGetGallery
             ODataCacheConfiguration =
                await Refresh<ODataCacheConfiguration>(ServicesConstants.ContentNames.ODataCacheConfiguration) ??
                new ODataCacheConfiguration();
+
+            CacheConfiguration =
+                await Refresh<CacheConfiguration>(ServicesConstants.ContentNames.CacheConfiguration) ??
+                new CacheConfiguration();
         }
 
         private async Task<T> Refresh<T>(string contentName)

@@ -15,6 +15,7 @@ namespace NuGetGallery
         IGitHubUsageConfiguration GitHubUsageConfiguration { get; }
         IABTestConfiguration ABTestConfiguration { get; }
         IODataCacheConfiguration ODataCacheConfiguration { get; }
+        ICacheConfiguration CacheConfiguration { get; }
 
         Task Refresh();
     }
