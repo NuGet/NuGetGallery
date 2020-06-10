@@ -2142,7 +2142,7 @@ namespace NuGetGallery
         public class TheGetPackageDependentsMethod
         {
             [Fact]
-            public void ThereAreExactlyFivePackages()
+            public void ThereAreExactlyFivePackagesAndAllPackagesAreVerified()
             {
                 string id = "foo";
                 int packageLimit = 5;
@@ -2185,15 +2185,30 @@ namespace NuGetGallery
                     .Returns(entityContext.PackageRegistrations);
 
                 var result = service.GetPackageDependents(id);
+
                 Assert.Equal(packageLimit, result.TotalPackageCount);
                 Assert.Equal(packageLimit, result.TopPackages.Count);
+
                 var topPackage = result.TopPackages.ElementAt(0);
                 var runnerUpPackage = result.TopPackages.ElementAt(1);
-                Assert.True(topPackage.DownloadCount > runnerUpPackage.DownloadCount);
+                var thirdPlacePackage = result.TopPackages.ElementAt(2);
+                var fourthPlacePackage = result.TopPackages.ElementAt(3);
+                var fifthPlacePackage = result.TopPackages.ElementAt(4);
+
+                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
+                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
+                Assert.True(thirdPlacePackage.DownloadCount >= fourthPlacePackage.DownloadCount);
+                Assert.True(fourthPlacePackage.DownloadCount >= fifthPlacePackage.DownloadCount);
+
+                Assert.True(topPackage.IsVerified);
+                Assert.True(runnerUpPackage.IsVerified);
+                Assert.True(thirdPlacePackage.IsVerified);
+                Assert.True(fourthPlacePackage.IsVerified);
+                Assert.True(fifthPlacePackage.IsVerified);
             }
 
             [Fact]
-            public void ThereAreMoreThanFivePackages()
+            public void ThereAreMoreThanFivePackagesAndAllPackagesAreVerified()
             {
                 string id = "foo";
 
@@ -2232,15 +2247,30 @@ namespace NuGetGallery
                     .Returns(entityContext.PackageRegistrations);
 
                 var result = service.GetPackageDependents(id);
+
                 Assert.Equal(6, result.TotalPackageCount);
                 Assert.Equal(5, result.TopPackages.Count);
+
                 var topPackage = result.TopPackages.ElementAt(0);
                 var runnerUpPackage = result.TopPackages.ElementAt(1);
-                Assert.True(topPackage.DownloadCount > runnerUpPackage.DownloadCount);
+                var thirdPlacePackage = result.TopPackages.ElementAt(2);
+                var fourthPlacePackage = result.TopPackages.ElementAt(3);
+                var fifthPlacePackage = result.TopPackages.ElementAt(4);
+
+                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
+                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
+                Assert.True(thirdPlacePackage.DownloadCount >= fourthPlacePackage.DownloadCount);
+                Assert.True(fourthPlacePackage.DownloadCount >= fifthPlacePackage.DownloadCount);
+
+                Assert.True(topPackage.IsVerified);
+                Assert.True(runnerUpPackage.IsVerified);
+                Assert.True(thirdPlacePackage.IsVerified);
+                Assert.True(fourthPlacePackage.IsVerified);
+                Assert.True(fifthPlacePackage.IsVerified);
             }
 
             [Fact]
-            public void ThereAreLessThanFivePackages()
+            public void ThereAreLessThanFivePackagesAndAllPackagesAreVerified()
             {
                 string id = "foo";
                 int packageLimit = 3;
@@ -2283,11 +2313,20 @@ namespace NuGetGallery
                     .Returns(entityContext.PackageRegistrations);
 
                 var result = service.GetPackageDependents(id);
+
                 Assert.Equal(packageLimit, result.TotalPackageCount);
                 Assert.Equal(packageLimit, result.TopPackages.Count);
+
                 var topPackage = result.TopPackages.ElementAt(0);
                 var runnerUpPackage = result.TopPackages.ElementAt(1);
-                Assert.True(topPackage.DownloadCount > runnerUpPackage.DownloadCount);
+                var thirdPlacePackage = result.TopPackages.ElementAt(2);
+
+                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
+                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
+
+                Assert.True(topPackage.IsVerified);
+                Assert.True(runnerUpPackage.IsVerified);
+                Assert.True(thirdPlacePackage.IsVerified);
             }
 
             [Fact]
@@ -2356,8 +2395,144 @@ namespace NuGetGallery
                     .Returns(entityContext.PackageRegistrations);
 
                 var result = service.GetPackageDependents(id);
+
                 Assert.Equal(0, result.TotalPackageCount);
                 Assert.Equal(0, result.TopPackages.Count);
+            }
+
+            [Fact]
+            public void NoVerifiedPackages()
+            {
+                string id = "foo";
+
+                var context = new Mock<IEntitiesContext>();
+                var entityContext = new FakeEntitiesContext();
+
+                var service = CreateService(context: context);
+
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
+
+                foreach (var packageDependency in packageDependenciesList)
+                {
+                    entityContext.PackageDependencies.Add(packageDependency);
+                }
+
+                foreach (var package in packageList)
+                {
+                    entityContext.Packages.Add(package);
+                }
+
+                foreach (var packageRegistration in packageRegistrationsList)
+                {
+                    packageRegistration.IsVerified = false;
+                    entityContext.PackageRegistrations.Add(packageRegistration);
+                }
+
+                context
+                    .Setup(f => f.PackageDependencies)
+                    .Returns(entityContext.PackageDependencies);
+                context
+                    .Setup(f => f.Packages)
+                    .Returns(entityContext.Packages);
+                context
+                    .Setup(f => f.PackageRegistrations)
+                    .Returns(entityContext.PackageRegistrations);
+
+                var result = service.GetPackageDependents(id);
+
+                Assert.Equal(6, result.TotalPackageCount);
+                Assert.Equal(5, result.TopPackages.Count);
+
+                var topPackage = result.TopPackages.ElementAt(0);
+                var runnerUpPackage = result.TopPackages.ElementAt(1);
+                var thirdPlacePackage = result.TopPackages.ElementAt(2);
+                var fourthPlacePackage = result.TopPackages.ElementAt(3);
+                var fifthPlacePackage = result.TopPackages.ElementAt(4);
+
+                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
+                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
+                Assert.True(thirdPlacePackage.DownloadCount >= fourthPlacePackage.DownloadCount);
+                Assert.True(fourthPlacePackage.DownloadCount >= fifthPlacePackage.DownloadCount);
+
+                Assert.False(topPackage.IsVerified);
+                Assert.False(runnerUpPackage.IsVerified);
+                Assert.False(thirdPlacePackage.IsVerified);
+                Assert.False(fourthPlacePackage.IsVerified);
+                Assert.False(fifthPlacePackage.IsVerified);
+            }
+
+            [Fact]
+            public void MixtureOfVerifiedAndNonVerifiedPackages()
+            {
+                string id = "foo";
+                int packageLimit = 5;
+
+                var context = new Mock<IEntitiesContext>();
+                var entityContext = new FakeEntitiesContext();
+
+                var service = CreateService(context: context);
+
+                var packageDependenciesList = SetupPackageDependency(id);
+                var packageList = SetupPackages();
+                var packageRegistrationsList = SetupPackageRegistration();
+
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var packageDependency = packageDependenciesList[i];
+                    entityContext.PackageDependencies.Add(packageDependency);
+                }
+
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var package = packageList[i];
+                    entityContext.Packages.Add(package);
+                }
+
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var packageRegistration = packageRegistrationsList[i];
+
+                    if (i % 2 == 0)
+                    {
+                        packageRegistration.IsVerified = false;
+                    }
+
+                    entityContext.PackageRegistrations.Add(packageRegistration);
+                }
+
+                context
+                    .Setup(f => f.PackageDependencies)
+                    .Returns(entityContext.PackageDependencies);
+                context
+                    .Setup(f => f.Packages)
+                    .Returns(entityContext.Packages);
+                context
+                    .Setup(f => f.PackageRegistrations)
+                    .Returns(entityContext.PackageRegistrations);
+
+                var result = service.GetPackageDependents(id);
+
+                Assert.Equal(packageLimit, result.TotalPackageCount);
+                Assert.Equal(packageLimit, result.TopPackages.Count);
+
+                var topPackage = result.TopPackages.ElementAt(0);
+                var runnerUpPackage = result.TopPackages.ElementAt(1);
+                var thirdPlacePackage = result.TopPackages.ElementAt(2);
+                var fourthPlacePackage = result.TopPackages.ElementAt(3);
+                var fifthPlacePackage = result.TopPackages.ElementAt(4);
+
+                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
+                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
+                Assert.True(thirdPlacePackage.DownloadCount >= fourthPlacePackage.DownloadCount);
+                Assert.True(fourthPlacePackage.DownloadCount >= fifthPlacePackage.DownloadCount);
+
+                Assert.False(topPackage.IsVerified);
+                Assert.True(runnerUpPackage.IsVerified);
+                Assert.False(thirdPlacePackage.IsVerified);
+                Assert.True(fourthPlacePackage.IsVerified);
+                Assert.False(fifthPlacePackage.IsVerified);
             }
 
             private List<PackageDependency> SetupPackageDependency(string id)
@@ -2480,41 +2655,47 @@ namespace NuGetGallery
                 {
                     Key = 11,
                     DownloadCount = 100,
-                    Id = "p1"
+                    Id = "p1",
+                    IsVerified = true
                 };
 
                 var prFoo2 = new PackageRegistration()
                 {
                     Key = 22,
                     DownloadCount = 200,
-                    Id = "p2"
+                    Id = "p2",
+                    IsVerified = true
                 };
 
                 var prFoo3 = new PackageRegistration()
                 {
                     Key = 33,
                     DownloadCount = 300,
-                    Id = "p3"
+                    Id = "p3",
+                    IsVerified = true
                 };
 
                 var prFoo4 = new PackageRegistration()
                 {
                     Key = 44,
                     DownloadCount = 400,
-                    Id = "p4"
+                    Id = "p4",
+                    IsVerified = true
                 };
 
                 var prFoo5 = new PackageRegistration()
                 {
                     Key = 55,
                     DownloadCount = 500,
-                    Id = "p5"
+                    Id = "p5",
+                    IsVerified = true
                 };
                 var prFoo6 = new PackageRegistration()
                 {
                     Key = 66,
                     DownloadCount = 600,
-                    Id = "p6"
+                    Id = "p6",
+                    IsVerified = true
                 };
 
                 packageRegistrationList.Add(prFoo1);
