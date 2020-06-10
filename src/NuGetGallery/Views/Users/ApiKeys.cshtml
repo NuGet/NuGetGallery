@@ -321,11 +321,15 @@
             <div class="col-sm-7 form-group">
                 <label data-bind="attr: { for: PackageOwnerId,
                                             id: PackageOwnerId() + '-label' }">Package Owner</label>
-                    <select class="form-control"
-                            data-bind="attr: { id: PackageOwnerId,
+                <select class="form-control"
+                        data-bind="attr: { id: PackageOwnerId,
                                                     name: PackageOwnerId,
                                                     'aria-labelledby': PackageOwnerId() + '-label' },
-                                            options: PackageOwners, value: PackageOwner, optionsText: 'Owner'"></select>
+                                            options: PackageOwners, value: PackageOwner, optionsText: 'Owner', optionsCaption: 'Select an owner...' "></select>
+                <div class="has-error">
+                    <span class="field-validation-valid help-block"
+                          data-bind="text: PackageOwner() ?  '' : 'A package owner must be selected.'"></span>
+                </div>
             </div>
         </div>
 
