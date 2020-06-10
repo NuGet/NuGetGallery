@@ -2189,22 +2189,7 @@ namespace NuGetGallery
                 Assert.Equal(packageLimit, result.TotalPackageCount);
                 Assert.Equal(packageLimit, result.TopPackages.Count);
 
-                var topPackage = result.TopPackages.ElementAt(0);
-                var runnerUpPackage = result.TopPackages.ElementAt(1);
-                var thirdPlacePackage = result.TopPackages.ElementAt(2);
-                var fourthPlacePackage = result.TopPackages.ElementAt(3);
-                var fifthPlacePackage = result.TopPackages.ElementAt(4);
-
-                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
-                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
-                Assert.True(thirdPlacePackage.DownloadCount >= fourthPlacePackage.DownloadCount);
-                Assert.True(fourthPlacePackage.DownloadCount >= fifthPlacePackage.DownloadCount);
-
-                Assert.True(topPackage.IsVerified);
-                Assert.True(runnerUpPackage.IsVerified);
-                Assert.True(thirdPlacePackage.IsVerified);
-                Assert.True(fourthPlacePackage.IsVerified);
-                Assert.True(fifthPlacePackage.IsVerified);
+                PackageTestsWhereAllPackagesAreVerified(result, packageLimit);
             }
 
             [Fact]
@@ -2251,22 +2236,7 @@ namespace NuGetGallery
                 Assert.Equal(6, result.TotalPackageCount);
                 Assert.Equal(5, result.TopPackages.Count);
 
-                var topPackage = result.TopPackages.ElementAt(0);
-                var runnerUpPackage = result.TopPackages.ElementAt(1);
-                var thirdPlacePackage = result.TopPackages.ElementAt(2);
-                var fourthPlacePackage = result.TopPackages.ElementAt(3);
-                var fifthPlacePackage = result.TopPackages.ElementAt(4);
-
-                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
-                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
-                Assert.True(thirdPlacePackage.DownloadCount >= fourthPlacePackage.DownloadCount);
-                Assert.True(fourthPlacePackage.DownloadCount >= fifthPlacePackage.DownloadCount);
-
-                Assert.True(topPackage.IsVerified);
-                Assert.True(runnerUpPackage.IsVerified);
-                Assert.True(thirdPlacePackage.IsVerified);
-                Assert.True(fourthPlacePackage.IsVerified);
-                Assert.True(fifthPlacePackage.IsVerified);
+                PackageTestsWhereAllPackagesAreVerified(result, result.TopPackages.Count);
             }
 
             [Fact]
@@ -2317,16 +2287,7 @@ namespace NuGetGallery
                 Assert.Equal(packageLimit, result.TotalPackageCount);
                 Assert.Equal(packageLimit, result.TopPackages.Count);
 
-                var topPackage = result.TopPackages.ElementAt(0);
-                var runnerUpPackage = result.TopPackages.ElementAt(1);
-                var thirdPlacePackage = result.TopPackages.ElementAt(2);
-
-                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
-                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
-
-                Assert.True(topPackage.IsVerified);
-                Assert.True(runnerUpPackage.IsVerified);
-                Assert.True(thirdPlacePackage.IsVerified);
+                PackageTestsWhereAllPackagesAreVerified(result, packageLimit);
             }
 
             [Fact]
@@ -2445,22 +2406,16 @@ namespace NuGetGallery
                 Assert.Equal(6, result.TotalPackageCount);
                 Assert.Equal(5, result.TopPackages.Count);
 
-                var topPackage = result.TopPackages.ElementAt(0);
-                var runnerUpPackage = result.TopPackages.ElementAt(1);
-                var thirdPlacePackage = result.TopPackages.ElementAt(2);
-                var fourthPlacePackage = result.TopPackages.ElementAt(3);
-                var fifthPlacePackage = result.TopPackages.ElementAt(4);
-
-                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
-                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
-                Assert.True(thirdPlacePackage.DownloadCount >= fourthPlacePackage.DownloadCount);
-                Assert.True(fourthPlacePackage.DownloadCount >= fifthPlacePackage.DownloadCount);
-
-                Assert.False(topPackage.IsVerified);
-                Assert.False(runnerUpPackage.IsVerified);
-                Assert.False(thirdPlacePackage.IsVerified);
-                Assert.False(fourthPlacePackage.IsVerified);
-                Assert.False(fifthPlacePackage.IsVerified);
+                for (int i = 0; i < result.TopPackages.Count; i++)
+                {
+                    var currentPackage = result.TopPackages.ElementAt(i);
+                    var prevPackage = i > 0 ? result.TopPackages.ElementAt(i - 1) : null;
+                    if (prevPackage != null)
+                    {
+                        Assert.True(currentPackage.DownloadCount <= prevPackage.DownloadCount);
+                    }
+                    Assert.False(currentPackage.IsVerified);
+                }
             }
 
             [Fact]
@@ -2517,22 +2472,39 @@ namespace NuGetGallery
                 Assert.Equal(packageLimit, result.TotalPackageCount);
                 Assert.Equal(packageLimit, result.TopPackages.Count);
 
-                var topPackage = result.TopPackages.ElementAt(0);
-                var runnerUpPackage = result.TopPackages.ElementAt(1);
-                var thirdPlacePackage = result.TopPackages.ElementAt(2);
-                var fourthPlacePackage = result.TopPackages.ElementAt(3);
-                var fifthPlacePackage = result.TopPackages.ElementAt(4);
+                for (int i = 0; i < packageLimit; i++)
+                {
+                    var currentPackage = result.TopPackages.ElementAt(i);
+                    var prevPackage = i > 0 ? result.TopPackages.ElementAt(i - 1) : null;
+                    if (prevPackage != null)
+                    {
+                        Assert.True(currentPackage.DownloadCount <= prevPackage.DownloadCount);
+                    }
 
-                Assert.True(topPackage.DownloadCount >= runnerUpPackage.DownloadCount);
-                Assert.True(runnerUpPackage.DownloadCount >= thirdPlacePackage.DownloadCount);
-                Assert.True(thirdPlacePackage.DownloadCount >= fourthPlacePackage.DownloadCount);
-                Assert.True(fourthPlacePackage.DownloadCount >= fifthPlacePackage.DownloadCount);
+                    if (i % 2 == 0)
+                    {
+                        Assert.False(currentPackage.IsVerified);
+                    }
 
-                Assert.False(topPackage.IsVerified);
-                Assert.True(runnerUpPackage.IsVerified);
-                Assert.False(thirdPlacePackage.IsVerified);
-                Assert.True(fourthPlacePackage.IsVerified);
-                Assert.False(fifthPlacePackage.IsVerified);
+                    else 
+                    {
+                        Assert.True(currentPackage.IsVerified);
+                    }    
+                }
+            }
+
+            private void PackageTestsWhereAllPackagesAreVerified(PackageDependents result, int packages)
+            {
+                for (int i = 0; i < packages; i++)
+                {
+                    var currentPackage = result.TopPackages.ElementAt(i);
+                    var prevPackage = i > 0 ? result.TopPackages.ElementAt(i - 1) : null;
+                    if (prevPackage != null)
+                    {
+                        Assert.True(currentPackage.DownloadCount <= prevPackage.DownloadCount);
+                    }
+                    Assert.True(currentPackage.IsVerified);
+                }
             }
 
             private List<PackageDependency> SetupPackageDependency(string id)
