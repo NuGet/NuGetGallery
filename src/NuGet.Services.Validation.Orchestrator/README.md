@@ -1,6 +1,6 @@
 ﻿## Overview
 
-**Subsystem:** 🔎 Validation
+**Subsystem: Validation 📝**
 
 This job manages ("orchestrates") the validation of packages (.nupkg files) and symbol packages (.snupkg files) before
 they become available for consumption on nuget.org.
