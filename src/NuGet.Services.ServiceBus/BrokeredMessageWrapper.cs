@@ -50,6 +50,11 @@ namespace NuGet.Services.ServiceBus
             return BrokeredMessage.GetBody<string>();
         }
 
+        public Stream GetBody<Stream>()
+        {
+            return BrokeredMessage.GetBody<Stream>();
+        }
+
         public Task CompleteAsync()
         {
             return BrokeredMessage.CompleteAsync();

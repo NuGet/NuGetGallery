@@ -19,6 +19,7 @@ namespace NuGet.Services.ServiceBus
         Task CompleteAsync();
         Task AbandonAsync();
         string GetBody();
+        Stream GetBody<Stream>();
         IBrokeredMessage Clone();
     }
 }
