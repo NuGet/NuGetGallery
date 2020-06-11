@@ -71,7 +71,7 @@
 
             this.PackageOwners = packageOwners;
             this.packageViewModels = [];
-            
+
             // Generic API key properties.
             this._SetPackageSelection = function (packages) {
                 $.each(self.packageViewModels, function (i, m) {
@@ -107,6 +107,9 @@
                     }
 
                     this.PackageOwner(existingOwner);
+
+                } else if (this.PackageOwners.length == 1) {
+                    this.PackageOwner(this.PackageOwners[0]);
                 } 
             };
 
