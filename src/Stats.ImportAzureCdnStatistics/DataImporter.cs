@@ -56,6 +56,12 @@ namespace Stats.ImportAzureCdnStatistics
                 dataTable.Columns.Remove("Timestamp");
             }
 
+            // Remove Fact_EdgeServer_IpAddress_Id column from in-memory data table if it exists.
+            if (dataTable.Columns.Contains("Fact_EdgeServer_IpAddress_Id"))
+            {
+                dataTable.Columns.Remove("Fact_EdgeServer_IpAddress_Id");
+            }
+
             dataTable.TableName = $"dbo.{tableName}";
             return dataTable;
         }
