@@ -5,7 +5,6 @@ namespace NuGetGallery.Services
 {
     public interface ICacheConfiguration
     {
-
         /// <summary>
         /// The cache duration for the dependent packages in the package details page
         /// </summary>
