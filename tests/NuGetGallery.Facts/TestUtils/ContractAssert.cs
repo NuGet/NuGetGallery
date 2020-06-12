@@ -38,8 +38,8 @@ namespace NuGetGallery
         {
             var argEx = Assert.Throws<ArgumentException>(() => act());
             Assert.Equal(paramName, argEx.ParamName);
-            Assert.Equal(
-                message + Environment.NewLine + $"Parameter name: {paramName}",
+            Assert.StartsWith(
+                message,
                 argEx.Message);
         }
 
@@ -47,8 +47,8 @@ namespace NuGetGallery
         {
             var argEx = await Assert.ThrowsAsync<ArgumentException>(async () => await act());
             Assert.Equal(paramName, argEx.ParamName);
-            Assert.Equal(
-                message + Environment.NewLine + $"Parameter name: {paramName}",
+            Assert.StartsWith(
+                message,
                 argEx.Message);
         }
     }
