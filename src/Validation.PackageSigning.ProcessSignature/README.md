@@ -1,6 +1,6 @@
 ﻿## Overview
 
-**Subsystem:** 🔎 Validation
+**Subsystem: Validation 📝**
 
 This job manages the validation of a package's signature. A NuGet package (.nupkg) can be signed using a cryptographic
 certificate and the signature is embedded in the package file. On nuget.org all packages must have a repository

@@ -29,7 +29,6 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly IDictionary<string, int> _cachedPlatformDimensions = new Dictionary<string, int>();
         private readonly IDictionary<string, int> _cachedOperationDimensions = new Dictionary<string, int>();
         private readonly IDictionary<string, int> _cachedUserAgentFacts = new Dictionary<string, int>();
-        private readonly IDictionary<string, int> _cachedIpAddressFacts = new Dictionary<string, int>();
         private IReadOnlyCollection<TimeDimension> _times;
 
         public Warehouse(
@@ -122,16 +121,14 @@ namespace Stats.ImportAzureCdnStatistics
             var datesTask = GetDimension("date", logFileName, connection => RetrieveDateDimensions(connection, sourceData.Min(e => e.EdgeServerTimeDelivered), sourceData.Max(e => e.EdgeServerTimeDelivered)));
             var userAgentsTask = GetDimension("useragent", logFileName, connection => RetrieveUserAgentFacts(sourceData, connection));
             var logFileNamesTask = GetDimension("logfilename", logFileName, connection => RetrieveLogFileNameFacts(logFileName, connection));
-            var ipAddressesTask = GetDimension("ipaddress", logFileName, connection => RetrieveIpAddressesFacts(sourceData, connection));
 
-            await Task.WhenAll(operationsTask, clientsTask, platformsTask, datesTask, packagesTask, userAgentsTask, logFileNamesTask, ipAddressesTask);
+            await Task.WhenAll(operationsTask, clientsTask, platformsTask, datesTask, packagesTask, userAgentsTask, logFileNamesTask);
 
             var operations = operationsTask.Result;
             var clients = clientsTask.Result;
             var platforms = platformsTask.Result;
             var userAgents = userAgentsTask.Result;
             var logFileNames = logFileNamesTask.Result;
-            var ipAddresses = ipAddressesTask.Result;
 
             var dates = datesTask.Result;
             var packages = packagesTask.Result;
@@ -144,7 +141,6 @@ namespace Stats.ImportAzureCdnStatistics
             var knownClientsAvailable = clients.Any();
             var knownPlatformsAvailable = platforms.Any();
             var knownUserAgentsAvailable = userAgents.Any();
-            var knownIpAddressesAvailable = ipAddresses.Any();
 
             int logFileNameId = DimensionId.Unknown;
             if (logFileNames.Any() && logFileNames.ContainsKey(logFileName))
@@ -208,15 +204,9 @@ namespace Stats.ImportAzureCdnStatistics
                             }
                         }
 
-                        int edgeServerIpAddressId = DimensionId.Unknown;
-                        if (!string.IsNullOrEmpty(element.EdgeServerIpAddress) && knownIpAddressesAvailable && ipAddresses.ContainsKey(element.EdgeServerIpAddress))
-                        {
-                            edgeServerIpAddressId = ipAddresses[element.EdgeServerIpAddress];
-                        }
-
                         // create fact
                         var dataRow = factsDataTable.NewRow();
-                        FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
+                        FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, clientId, userAgentId, logFileNameId);
                         factsDataTable.Rows.Add(dataRow);
                     }
                 }
@@ -245,9 +235,8 @@ namespace Stats.ImportAzureCdnStatistics
             var toolsTask = GetDimension("tool", logFileName, connection => RetrieveToolDimensions(sourceData, connection));
             var userAgentsTask = GetDimension("useragent", logFileName, connection => RetrieveUserAgentFacts(sourceData, connection));
             var logFileNamesTask = GetDimension("logfilename", logFileName, connection => RetrieveLogFileNameFacts(logFileName, connection));
-            var ipAddressesTask = GetDimension("ipaddress", logFileName, connection => RetrieveIpAddressesFacts(sourceData, connection));
 
-            await Task.WhenAll(clientsTask, platformsTask, datesTask, toolsTask, userAgentsTask, logFileNamesTask, ipAddressesTask);
+            await Task.WhenAll(clientsTask, platformsTask, datesTask, toolsTask, userAgentsTask, logFileNamesTask);
 
             var clients = clientsTask.Result;
             var platforms = platformsTask.Result;
@@ -255,7 +244,6 @@ namespace Stats.ImportAzureCdnStatistics
             var tools = toolsTask.Result;
             var userAgents = userAgentsTask.Result;
             var logFileNames = logFileNamesTask.Result;
-            var ipAddresses = ipAddressesTask.Result;
 
             // create facts data rows by linking source data with dimensions
             var dataImporter = new DataImporter(_openStatisticsSqlConnectionAsync);
@@ -264,7 +252,6 @@ namespace Stats.ImportAzureCdnStatistics
             var knownClientsAvailable = clients.Any();
             var knownPlatformsAvailable = platforms.Any();
             var knownUserAgentsAvailable = userAgents.Any();
-            var knownIpAddressesAvailable = ipAddresses.Any();
 
             int logFileNameId = DimensionId.Unknown;
             if (logFileNames.Any() && logFileNames.ContainsKey(logFileName))
@@ -330,14 +317,8 @@ namespace Stats.ImportAzureCdnStatistics
                                 }
                             }
 
-                            int edgeServerIpAddressId = DimensionId.Unknown;
-                            if (!string.IsNullOrEmpty(element.EdgeServerIpAddress) && knownIpAddressesAvailable && ipAddresses.ContainsKey(element.EdgeServerIpAddress))
-                            {
-                                edgeServerIpAddressId = ipAddresses[element.EdgeServerIpAddress];
-                            }
-
                             var dataRow = dataTable.NewRow();
-                            FillToolDataRow(dataRow, dateId, timeId, toolId, platformId, clientId, userAgentId, logFileNameId, edgeServerIpAddressId);
+                            FillToolDataRow(dataRow, dateId, timeId, toolId, platformId, clientId, userAgentId, logFileNameId);
                             dataTable.Rows.Add(dataRow);
                         }
                     }
@@ -622,7 +603,7 @@ namespace Stats.ImportAzureCdnStatistics
             return Enumerable.Empty<T>().ToList();
         }
 
-        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int clientId, int userAgentId, int logFileNameId, int edgeServerIpAddressId)
+        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int clientId, int userAgentId, int logFileNameId)
         {
             dataRow["Dimension_Package_Id"] = packageId;
             dataRow["Dimension_Date_Id"] = dateId;
@@ -632,11 +613,10 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["Dimension_Platform_Id"] = platformId;
             dataRow["Fact_UserAgent_Id"] = userAgentId;
             dataRow["Fact_LogFileName_Id"] = logFileNameId;
-            dataRow["Fact_EdgeServer_IpAddress_Id"] = edgeServerIpAddressId;
             dataRow["DownloadCount"] = 1;
         }
 
-        private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId, int edgeServerIpAddressId)
+        private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId)
         {
             dataRow["Dimension_Tool_Id"] = toolId;
             dataRow["Dimension_Date_Id"] = dateId;
@@ -645,7 +625,6 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["Dimension_Platform_Id"] = platformId;
             dataRow["Fact_UserAgent_Id"] = userAgentId;
             dataRow["Fact_LogFileName_Id"] = logFileNameId;
-            dataRow["Fact_EdgeServer_IpAddress_Id"] = edgeServerIpAddressId;
             dataRow["DownloadCount"] = 1;
         }
 
@@ -1070,67 +1049,6 @@ namespace Stats.ImportAzureCdnStatistics
                 while (await dataReader.ReadAsync())
                 {
                     results.Add(dataReader.GetString(1), dataReader.GetInt32(0));
-                }
-            }
-
-            return results;
-        }
-
-        private async Task<IDictionary<string, int>> RetrieveIpAddressesFacts(IReadOnlyCollection<ITrackEdgeServerIpAddress> sourceData, SqlConnection connection)
-        {
-            var ipAddressFacts = sourceData
-                .Where(e => !string.IsNullOrEmpty(e.EdgeServerIpAddress))
-                .GroupBy(e => e.EdgeServerIpAddress)
-                .Select(e => e.First())
-                .ToDictionary(e => e.EdgeServerIpAddress, e => new IpAddressFact(e.EdgeServerIpAddress));
-
-            var results = new Dictionary<string, int>();
-            if (!ipAddressFacts.Any())
-            {
-                return results;
-            }
-
-            var nonCachedIpAddresses = new Dictionary<string, IpAddressFact>();
-            foreach (var ipAddressFact in ipAddressFacts)
-            {
-                if (_cachedIpAddressFacts.ContainsKey(ipAddressFact.Key))
-                {
-                    var cachedUserAgentFactId = _cachedIpAddressFacts[ipAddressFact.Key];
-                    results.Add(ipAddressFact.Key, cachedUserAgentFactId);
-                }
-                else
-                {
-                    nonCachedIpAddresses.Add(ipAddressFact.Key, ipAddressFact.Value);
-                }
-            }
-
-            if (nonCachedIpAddresses.Any())
-            {
-                var parameterValue = CreateDataTable(nonCachedIpAddresses);
-
-                var command = connection.CreateCommand();
-                command.CommandText = "[dbo].[EnsureIpAddressFactsExist]";
-                command.CommandTimeout = _defaultCommandTimeout;
-                command.CommandType = CommandType.StoredProcedure;
-
-                var parameter = command.Parameters.AddWithValue("addresses", parameterValue);
-                parameter.SqlDbType = SqlDbType.Structured;
-                parameter.TypeName = "[dbo].[IpAddressFactTableType]";
-
-                using (var dataReader = await command.ExecuteReaderAsync())
-                {
-                    while (await dataReader.ReadAsync())
-                    {
-                        var ipAddress = dataReader.GetString(1);
-                        var ipAddressId = dataReader.GetInt32(0);
-
-                        if (!_cachedIpAddressFacts.ContainsKey(ipAddress))
-                        {
-                            _cachedIpAddressFacts.Add(ipAddress, ipAddressId);
-                        }
-
-                        results.Add(ipAddress, ipAddressId);
-                    }
                 }
             }
 
