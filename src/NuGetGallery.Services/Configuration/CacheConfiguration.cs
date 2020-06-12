@@ -5,16 +5,8 @@ namespace NuGetGallery.Services
 {
     public class CacheConfiguration : ICacheConfiguration
     {
-        public const int DefaultGetByIdAndVersionCacheTimeInSeconds = 60;
-        public const int DefaultSearchCacheTimeInSeconds = 45;
-        public const int DefaultFindPackagesByIdCountCacheTimeInSeconds = 0;
+        public const int DefaultGetPackageDependentsCacheTimeInSeconds = 3600;
 
-        public int GetSpecificPackageCacheTimeInSeconds { get; set; } = DefaultGetByIdAndVersionCacheTimeInSeconds;
-
-        public int FindPackagesByIdCacheTimeInSeconds { get; set; } = DefaultGetByIdAndVersionCacheTimeInSeconds;
-
-        public int FindPackagesByIdCountCacheTimeInSeconds { get; set; } = DefaultFindPackagesByIdCountCacheTimeInSeconds;
-
-        public int SearchCacheTimeInSeconds { get; set; } = DefaultSearchCacheTimeInSeconds;
+        public int PackageDependentsCacheTimeInSeconds { get; set; } = DefaultGetPackageDependentsCacheTimeInSeconds;
     }
 }

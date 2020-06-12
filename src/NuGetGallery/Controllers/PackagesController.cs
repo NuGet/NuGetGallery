@@ -960,7 +960,7 @@ namespace NuGetGallery
                     cacheDependentsCacheKey,
                     dependents,
                     null,
-                    DateTime.UtcNow.AddMinutes(60),
+                    DateTime.UtcNow.AddSeconds(_contentObjectService.CacheConfiguration.PackageDependentsCacheTimeInSeconds),
                     Cache.NoSlidingExpiration,
                     CacheItemPriority.Default, null);
             }

@@ -1817,20 +1817,29 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 var abTestService = new Mock<IABTestService>();
                 var httpContext = new Mock<HttpContextBase>();
+                var contentObjectService = new Mock<IContentObjectService>();
+
+                var cacheConfiguration = new CacheConfiguration
+                {
+                    PackageDependentsCacheTimeInSeconds = 60
+                };
                 PackageDependents pd = new PackageDependents();
 
                 abTestService
                    .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
                    .Returns(true);
-
                 httpContext
                     .Setup(c => c.Cache)
                     .Returns(_cache);
+                contentObjectService
+                    .Setup(c => c.CacheConfiguration)
+                    .Returns(cacheConfiguration);
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     abTestService: abTestService,
+                    contentObjectService: contentObjectService,
                     httpContext: httpContext);
 
                 var package = new Package
@@ -1843,8 +1852,9 @@ namespace NuGetGallery
                     Version = "2.0.0",
                     NormalizedVersion = "2.0.0",
                 };
-
                 var packages = new List<Package> { package };
+                var gitHubInformation = new NuGetPackageGitHubInformation(new List<RepositoryInformation>());
+
                 packageService
                     .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(packages);
@@ -1854,6 +1864,9 @@ namespace NuGetGallery
                 packageService
                     .Setup(p => p.GetPackageDependents(It.IsAny<string>()))
                     .Returns(pd);
+                contentObjectService
+                    .Setup(c => c.GitHubUsageConfiguration.GetPackageInformation(It.IsAny<string>()))
+                    .Returns(gitHubInformation);
 
                 var result = await controller.DisplayPackage(id, version: null);
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -1872,13 +1885,21 @@ namespace NuGetGallery
                 string cacheKey = "CacheDependents_foobar";
                 var packageService = new Mock<IPackageService>();
                 var abTestService = new Mock<IABTestService>();
+                var contentObjectService = new Mock<IContentObjectService>();
                 var httpContext = new Mock<HttpContextBase>();
+
+                var cacheConfiguration = new CacheConfiguration
+                {
+                    PackageDependentsCacheTimeInSeconds = 60
+                };
                 PackageDependents pd = new PackageDependents();
 
+                contentObjectService
+                    .Setup(c => c.CacheConfiguration)
+                    .Returns(cacheConfiguration);
                 abTestService
                    .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
                    .Returns(true);
-
                 httpContext
                     .Setup(c => c.Cache)
                     .Returns(_cache);
@@ -1887,7 +1908,8 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     abTestService: abTestService,
-                    httpContext: httpContext);
+                    contentObjectService: contentObjectService,
+                    httpContext: httpContext); ;
 
                 var package = new Package
                 {
@@ -1899,8 +1921,9 @@ namespace NuGetGallery
                     Version = "2.0.0",
                     NormalizedVersion = "2.0.0",
                 };
-
                 var packages = new List<Package> { package };
+                var gitHubInformation = new NuGetPackageGitHubInformation(new List<RepositoryInformation>());
+
                 packageService
                     .Setup(p => p.FindPackagesById(It.IsAny<string>(), /*includePackageRegistration:*/ true))
                     .Returns(packages);
@@ -1910,6 +1933,9 @@ namespace NuGetGallery
                 packageService
                     .Setup(p => p.GetPackageDependents(It.IsAny<string>()))
                     .Returns(pd);
+                contentObjectService
+                    .Setup(c => c.GitHubUsageConfiguration.GetPackageInformation(It.IsAny<string>()))
+                    .Returns(gitHubInformation);
 
                 var result1 = await controller.DisplayPackage(id1, version: null);
                 var model1 = ResultAssert.IsView<DisplayPackageViewModel>(result1);
@@ -1921,6 +1947,75 @@ namespace NuGetGallery
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<String>()), Times.Once());
                 Assert.Same(pd, _cache.Get(cacheKey));
+            }
+
+            [Fact]
+            public async Task OneSecondCacheTime()
+            {
+                string id = "foo";
+                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var packageService = new Mock<IPackageService>();
+                var abTestService = new Mock<IABTestService>();
+                var contentObjectService = new Mock<IContentObjectService>();
+                var httpContext = new Mock<HttpContextBase>();
+                PackageDependents pd = new PackageDependents();
+
+                abTestService
+                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
+                   .Returns(true);
+
+                httpContext
+                    .Setup(c => c.Cache)
+                    .Returns(_cache);
+
+                var cacheConfiguration = new CacheConfiguration
+                {
+                    PackageDependentsCacheTimeInSeconds = 1
+                };
+                contentObjectService
+                    .Setup(c => c.CacheConfiguration)
+                    .Returns(cacheConfiguration);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    abTestService: abTestService,
+                    contentObjectService: contentObjectService);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>(),
+                    },
+                    Version = "2.0.0",
+                    NormalizedVersion = "2.0.0",
+                };
+                var packages = new List<Package> { package };
+                var gitHubInformation = new NuGetPackageGitHubInformation(new List<RepositoryInformation>());
+
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
+                    .Returns(package);
+                packageService
+                    .Setup(p => p.GetPackageDependents(It.IsAny<string>()))
+                    .Returns(pd);
+                contentObjectService
+                    .Setup(c => c.GitHubUsageConfiguration.GetPackageInformation(It.IsAny<string>()))
+                    .Returns(gitHubInformation);
+
+                var result = await controller.DisplayPackage(id, version: null);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+
+                Assert.Same(pd, model.PackageDependents);
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                Assert.Empty(_cache);
+                packageService
+                    .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Once());
             }
 
             protected override void Dispose(bool disposing)
