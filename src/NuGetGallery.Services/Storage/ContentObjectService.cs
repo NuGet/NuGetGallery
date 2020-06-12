@@ -27,7 +27,6 @@ namespace NuGetGallery
             ABTestConfiguration = new ABTestConfiguration();
             ODataCacheConfiguration = new ODataCacheConfiguration();
             CacheConfiguration = new CacheConfiguration();
-
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; private set; }

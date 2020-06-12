@@ -1912,7 +1912,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     abTestService: abTestService,
                     contentObjectService: contentObjectService,
-                    httpContext: httpContext); ;
+                    httpContext: httpContext);
 
                 var package = new Package
                 {
