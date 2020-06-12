@@ -7,7 +7,7 @@ namespace NuGetGallery.Services
     {
 
         /// <summary>
-        /// The cache duration for the dependent packages of a given package
+        /// The cache duration for the dependent packages in the package details page
         /// </summary>
         int PackageDependentsCacheTimeInSeconds { get; }
     }
