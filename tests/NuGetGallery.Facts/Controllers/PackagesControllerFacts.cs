@@ -1975,6 +1975,7 @@ namespace NuGetGallery
                 {
                     PackageDependentsCacheTimeInSeconds = 1
                 };
+
                 contentObjectService
                     .Setup(c => c.CacheConfiguration)
                     .Returns(cacheConfiguration);
