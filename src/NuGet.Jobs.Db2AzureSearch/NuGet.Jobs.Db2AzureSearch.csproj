@@ -46,6 +46,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="NuGet.Jobs.Db2AzureSearch.nuspec" />
+    <None Include="README.md" />
     <None Include="Scripts\PostDeploy.ps1" />
   </ItemGroup>
   <ItemGroup>
