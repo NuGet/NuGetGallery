@@ -1341,6 +1341,7 @@
     <Content Include="Content\gallery\img\orange-circle.svg" />
     <Content Include="Content\gallery\img\purple-circle-225x225.png" />
     <Content Include="Content\gallery\img\purple-circle.svg" />
+	<Content Include="Content\gallery\img\reserved-indicator-14x14.png" />
     <Content Include="Content\gallery\img\reserved-indicator-20x20.png" />
     <Content Include="Content\gallery\img\reserved-indicator-256x256.png" />
     <Content Include="Content\gallery\img\reserved-indicator-25x25.png" />
