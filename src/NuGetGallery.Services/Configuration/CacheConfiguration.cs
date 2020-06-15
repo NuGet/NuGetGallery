@@ -5,8 +5,8 @@ namespace NuGetGallery.Services
 {
     public class CacheConfiguration : ICacheConfiguration
     {
-        public const int DefaultGetPackageDependentsCacheTimeInSeconds = 3600;
+        public const int DefaultPackageDependentsCacheTimeInSeconds = 3600;
 
-        public int PackageDependentsCacheTimeInSeconds { get; set; } = DefaultGetPackageDependentsCacheTimeInSeconds;
+        public int PackageDependentsCacheTimeInSeconds { get; set; } = DefaultPackageDependentsCacheTimeInSeconds;
     }
 }

@@ -1613,8 +1613,8 @@ namespace NuGetGallery
             [Fact]
             public async Task CheckFeatureFlagIsOff()
             {
-                string id = "foo";
-                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var id = "foo";
+                var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var featureFlagService = new Mock<IFeatureFlagService>();
 
@@ -1658,8 +1658,8 @@ namespace NuGetGallery
             [Fact]
             public async Task CheckABTestIsOff()
             {
-                string id = "foo";
-                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var id = "foo";
+                var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var abTestService = new Mock<IABTestService>();
 
@@ -1704,8 +1704,8 @@ namespace NuGetGallery
             [Fact]
             public async Task CheckABTestIsOnAndFeatFlagIsOff()
             {
-                string id = "foo";
-                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var id = "foo";
+                var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var abTestService = new Mock<IABTestService>();
                 var featureFlagService = new Mock<IFeatureFlagService>();
@@ -1757,8 +1757,8 @@ namespace NuGetGallery
             [Fact]
             public async Task WhenCacheIsOccupiedGetProperPackageDependent()
             {
-                string id = "foo";
-                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var id = "foo";
+                var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var abTestService = new Mock<IABTestService>();
                 var httpContext = new Mock<HttpContextBase>();
@@ -1815,8 +1815,8 @@ namespace NuGetGallery
             [Fact]
             public async Task OccupyEmptyCache()
             {
-                string id = "foo";
-                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var id = "foo";
+                var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var abTestService = new Mock<IABTestService>();
                 var httpContext = new Mock<HttpContextBase>();
@@ -1883,9 +1883,9 @@ namespace NuGetGallery
             [Fact]
             public async Task CheckThatCacheKeyIsNotCaseSensitive()
             {
-                string id1 = "fooBAr";
-                string id2 = "FOObAr";
-                string cacheKey = "CacheDependents_foobar";
+                var id1 = "fooBAr";
+                var id2 = "FOObAr";
+                var cacheKey = "CacheDependents_foobar";
                 var packageService = new Mock<IPackageService>();
                 var abTestService = new Mock<IABTestService>();
                 var contentObjectService = new Mock<IContentObjectService>();
@@ -1955,13 +1955,13 @@ namespace NuGetGallery
             [Fact]
             public async Task OneSecondCacheTime()
             {
-                string id = "foo";
-                string cacheKey = "CacheDependents_" + id.ToLowerInvariant();
+                var id = "foo";
+                var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
                 var abTestService = new Mock<IABTestService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 var httpContext = new Mock<HttpContextBase>();
-                PackageDependents pd = new PackageDependents();
+                var pd = new PackageDependents();
 
                 abTestService
                    .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
