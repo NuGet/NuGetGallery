@@ -71,7 +71,7 @@
 
             this.PackageOwners = packageOwners;
             this.packageViewModels = [];
-            
+
             // Generic API key properties.
             this._SetPackageSelection = function (packages) {
                 $.each(self.packageViewModels, function (i, m) {
@@ -107,10 +107,12 @@
                     }
 
                     this.PackageOwner(existingOwner);
-                } else {
+
+                } else if (this.PackageOwners.length == 1) {
                     this.PackageOwner(this.PackageOwners[0]);
-                }
+                } 
             };
+
             this.Key = ko.observable(0);
             this.Type = ko.observable();
             this.Value = ko.observable();
@@ -123,7 +125,7 @@
             this.Scopes = ko.observableArray();
             this.Packages = ko.observableArray();
             this.GlobPattern = ko.observable();
-
+ 
             // Properties used for the form
             this.PendingDescription = ko.observable();
 
@@ -133,6 +135,10 @@
                 return self.PackageOwner() && self.PackageOwner().Owner;
             }, this);
             this.PackageOwner.subscribe(function (newOwner) {
+                if (newOwner == null) {
+                    return;
+                }
+
                 // When the package owner scope is changed, update the selected action scopes to those that are allowed on behalf of the new package owner.
                 var isPushNewSelected = function () {
                     return self.PushScope() === initialData.PackagePushScope;
@@ -328,6 +334,10 @@
             this.PackageOwner.subscribe(function (newValue) {
                 // Initialize each package ID as a view model. This view model is used to track manual checkbox checks
                 // and whether the glob pattern matches the ID.
+                if (newValue == null) {
+                    return;
+                }
+
                 var packageIdToViewModel = {};
                 self.packageViewModels = [];
                 $.each(newValue.PackageIds, function (i, packageId) {

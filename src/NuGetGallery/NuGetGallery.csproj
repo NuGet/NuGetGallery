@@ -294,6 +294,10 @@
     <Compile Include="Migrations\202004030548285_AddPackageRename.designer.cs">
       <DependentUpon>202004030548285_AddPackageRename.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202006011927336_AddIndexToPackageDependencies.cs" />
+    <Compile Include="Migrations\202006011927336_AddIndexToPackageDependencies.designer.cs">
+      <DependentUpon>202006011927336_AddIndexToPackageDependencies.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\GravatarProxyResult.cs" />
@@ -1337,6 +1341,7 @@
     <Content Include="Content\gallery\img\orange-circle.svg" />
     <Content Include="Content\gallery\img\purple-circle-225x225.png" />
     <Content Include="Content\gallery\img\purple-circle.svg" />
+    <Content Include="Content\gallery\img\reserved-indicator-14x14.png" />
     <Content Include="Content\gallery\img\reserved-indicator-20x20.png" />
     <Content Include="Content\gallery\img\reserved-indicator-256x256.png" />
     <Content Include="Content\gallery\img\reserved-indicator-25x25.png" />
@@ -1613,6 +1618,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202004030548285_AddPackageRename.resx">
       <DependentUpon>202004030548285_AddPackageRename.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202006011927336_AddIndexToPackageDependencies.resx">
+      <DependentUpon>202006011927336_AddIndexToPackageDependencies.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

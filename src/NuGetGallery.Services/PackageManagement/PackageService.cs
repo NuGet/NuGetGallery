@@ -166,9 +166,9 @@ namespace NuGetGallery
                                 join p in _entitiesContext.Packages on pd.PackageKey equals p.Key
                                 join pr in _entitiesContext.PackageRegistrations on p.PackageRegistrationKey equals pr.Key
                                 where p.IsLatestSemVer2 && pd.Id == id
-                                group 1 by new { pr.Id, pr.DownloadCount, p.Description } into ng
+                                group 1 by new { pr.Id, pr.DownloadCount, pr.IsVerified, p.Description } into ng
                                 orderby ng.Key.DownloadCount descending
-                                select new PackageDependent { Id = ng.Key.Id, DownloadCount = ng.Key.DownloadCount, Description = ng.Key.Description }
+                                select new PackageDependent { Id = ng.Key.Id, DownloadCount = ng.Key.DownloadCount, IsVerified = ng.Key.IsVerified, Description = ng.Key.Description }
                                 ).Take(packagesDisplayed).ToList();
 
             return listPackages;
