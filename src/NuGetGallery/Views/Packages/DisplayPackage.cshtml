@@ -1139,7 +1139,7 @@
     </style>
 
     <script type="text/javascript">
-        var packageManagers = [@Html.Raw(string.Join(",", packageManagers.Select(pm => "\"" + pm.Id + "\"")))];
+        var packageManagers = @Html.ToJson(packageManagers.Select(pm => pm.Id).ToList());
     </script>
 
     @Scripts.Render("~/Scripts/gallery/page-display-package.min.js")

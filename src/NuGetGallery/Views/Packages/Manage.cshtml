@@ -80,19 +80,20 @@
         var strings_RemovingOrganization = "@Html.Raw(Strings.ManagePackageOwners_RemovingOrganization)";
         var strings_RemovingSelf = "@Html.Raw(Strings.ManagePackageOwners_RemovingSelf)";
 
-        // We are using JsonConvert instead of Json to serialize JSON in this CSHTML file because otherwise, with a large number of versions, this will overflow the maximum output JSON length limit for Json.
+        // We are using ToJson (which uses Newtonsoft.Json) instead of Json.Encode to serialize JSON in this CSHTML
+        // file because otherwise, with a large number of versions, this will overflow the maximum output JSON length limit for Json.
 
         // Set up delete section
-        var versionListedState = @Html.Raw(JsonConvert.SerializeObject(Model.VersionListedStateDictionary));
+        var versionListedState = @Html.ToJson(Model.VersionListedStateDictionary);
 
         // Set up deprecation section
         var strings_SelectAlternateVersionOption = "Latest";
-        var versionDeprecationState = @Html.Raw(JsonConvert.SerializeObject(Model.VersionDeprecationStateDictionary));
+        var versionDeprecationState = @Html.ToJson(Model.VersionDeprecationStateDictionary);
 
         $(function () {
             // Set up documentation section
             var readMeModel = {
-                "Versions": @Html.Raw(JsonConvert.SerializeObject(Model.VersionReadMeStateDictionary)),
+                "Versions": @Html.ToJson(Model.VersionReadMeStateDictionary),
                 "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
             };
 

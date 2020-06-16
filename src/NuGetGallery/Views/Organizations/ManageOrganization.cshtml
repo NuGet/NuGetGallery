@@ -101,7 +101,7 @@
 
 @section BottomScripts {
     <script type="text/javascript">
-    var initialData = @Html.Raw(JsonConvert.SerializeObject(new
+    var initialData = @Html.ToJson(new
         {
             AccountName = Model.AccountName,
             Members = Model.Members.Select(m => new
@@ -117,7 +117,7 @@
             UpdateMemberUrl = Url.UpdateOrganizationMember(Model.AccountName),
             DeleteMemberUrl = Url.DeleteOrganizationMember(Model.AccountName),
             ProfileUrlTemplate = Url.UserTemplate().LinkTemplate
-        }));
+        });
     </script>
     @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-organization.min.js")

@@ -503,7 +503,7 @@
 
 @section bottomScripts {
     <script type="text/javascript">
-        var initialData = @Html.Raw(JsonConvert.SerializeObject(new
+        var initialData = @Html.ToJson(new
                      {
                          ApiKeys = Model.ApiKeys,
                          PackageOwners = Model.PackageOwners,
@@ -524,7 +524,7 @@
                              ApiKeyNew = Url.Absolute("~/Content/gallery/img/api-key-new.svg"),
                              ApiKeyNewFallback = Url.Absolute("~/Content/gallery/img/api-key-new-256x256.png"),
                          }
-                     }));
+                     });
     </script>
     @Scripts.Render("~/Scripts/gallery/page-api-keys.min.js")
 }
