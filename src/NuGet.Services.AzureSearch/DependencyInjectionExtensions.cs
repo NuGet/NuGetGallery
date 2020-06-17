@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest;
+using Microsoft.Rest.TransientFaultHandling;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Protocol;
 using NuGet.Protocol.Catalog;
@@ -231,13 +232,26 @@ namespace NuGet.Services.AzureSearch
             services.AddFeatureFlags();
             services.AddTransient<IFeatureFlagService, FeatureFlagService>();
 
+            services.AddTransient<ISearchServiceClientWrapper>(p => new SearchServiceClientWrapper(
+                p.GetRequiredService<ISearchServiceClient>(),
+                GetSearchDelegatingHandlers(p.GetRequiredService<ILoggerFactory>()),
+                GetSearchRetryPolicy(),
+                p.GetRequiredService<ILogger<DocumentsOperationsWrapper>>()));
+
             services
                 .AddTransient<ISearchServiceClient>(p =>
                 {
                     var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    return new SearchServiceClient(
+
+                    var client = new SearchServiceClient(
                         options.Value.SearchServiceName,
-                        new SearchCredentials(options.Value.SearchServiceApiKey));
+                        new SearchCredentials(options.Value.SearchServiceApiKey),
+                        new WebRequestHandler(),
+                        GetSearchDelegatingHandlers(p.GetRequiredService<ILoggerFactory>()));
+
+                    client.SetRetryPolicy(GetSearchRetryPolicy());
+
+                    return client;
                 });
 
             services.AddSingleton<IAuxiliaryDataCache, AuxiliaryDataCache>();
@@ -276,12 +290,36 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ISearchIndexActionBuilder, SearchIndexActionBuilder>();
             services.AddTransient<ISearchParametersBuilder, SearchParametersBuilder>();
             services.AddTransient<ISearchResponseBuilder, SearchResponseBuilder>();
-            services.AddTransient<ISearchServiceClientWrapper, SearchServiceClientWrapper>();
             services.AddTransient<ISearchTextBuilder, SearchTextBuilder>();
             services.AddTransient<IServiceClientTracingInterceptor, ServiceClientTracingLogger>();
             services.AddTransient<ISystemTime, SystemTime>();
 
             return services;
+        }
+
+        /// <summary>
+        /// Defaults originally taken from:
+        /// https://github.com/Azure/azure-sdk-for-net/blob/96421089bc26198098f320ea50e0208e98376956/sdk/mgmtcommon/ClientRuntime/ClientRuntime/RetryDelegatingHandler.cs#L19-L22
+        /// 
+        /// Note that this policy only applied to the <see cref="RetryDelegatingHandler"/> automatically initialized by
+        /// the Azure Search SDK. This policy does not apply to <see cref="WebExceptionRetryDelegatingHandler"/>.
+        /// </summary>
+        private static RetryPolicy GetSearchRetryPolicy()
+        {
+            return new RetryPolicy(
+                new HttpStatusCodeErrorDetectionStrategy(),
+                retryCount: 3,
+                minBackoff: TimeSpan.FromSeconds(1),
+                maxBackoff: TimeSpan.FromSeconds(10),
+                deltaBackoff: TimeSpan.FromSeconds(10));
+        }
+
+        public static DelegatingHandler[] GetSearchDelegatingHandlers(ILoggerFactory loggerFactory)
+        {
+            return new[]
+            {
+                new WebExceptionRetryDelegatingHandler(loggerFactory.CreateLogger<WebExceptionRetryDelegatingHandler>()),
+            };
         }
     }
 }
