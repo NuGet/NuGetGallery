@@ -28,6 +28,51 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
+            public async Task ReturnsFailedPackageIds()
+            {
+                _versionListDataClient
+                    .Setup(x => x.TryReplaceAsync(IdB, It.IsAny<VersionListData>(), It.IsAny<IAccessCondition>()))
+                    .ReturnsAsync(false);
+
+                _config.AzureSearchBatchSize = 7;
+                _target.EnqueueIndexActions(IdA, _indexActions);
+                _target.EnqueueIndexActions(IdB, _indexActions);
+                _target.EnqueueIndexActions(IdC, _indexActions);
+
+                var result = await _target.TryFinishAsync();
+
+                Assert.Equal(new[] { IdB }, result.FailedPackageIds.ToArray());
+
+                Assert.Equal(3, _hijackBatches.Count);
+                Assert.Equal(2, _searchBatches.Count);
+
+                _versionListDataClient.Verify(
+                    x => x.TryReplaceAsync(
+                        IdA,
+                        It.IsAny<VersionListData>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+                _versionListDataClient.Verify(
+                    x => x.TryReplaceAsync(
+                        IdB,
+                        It.IsAny<VersionListData>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+                _versionListDataClient.Verify(
+                    x => x.TryReplaceAsync(
+                        IdC,
+                        It.IsAny<VersionListData>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+                _versionListDataClient.Verify(
+                    x => x.TryReplaceAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<VersionListData>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Exactly(3));
+            }
+
+            [Fact]
             public async Task UpdatesOnlyAllVersionLists()
             {
                 _config.AzureSearchBatchSize = 7;
@@ -35,31 +80,33 @@ namespace NuGet.Services.AzureSearch
                 _target.EnqueueIndexActions(IdB, _indexActions);
                 _target.EnqueueIndexActions(IdC, _indexActions);
 
-                await _target.FinishAsync();
+                var result = await _target.TryFinishAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Equal(3, _hijackBatches.Count);
                 Assert.Equal(2, _searchBatches.Count);
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdA,
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdB,
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdC,
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
@@ -72,19 +119,21 @@ namespace NuGet.Services.AzureSearch
                 _config.AzureSearchBatchSize = 1;
                 _target.EnqueueIndexActions(IdA, _indexActions);
 
-                await _target.FinishAsync();
+                var result = await _target.TryFinishAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Equal(5, _hijackBatches.Count);
                 Assert.Equal(3, _searchBatches.Count);
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdA,
                         _indexActions.VersionListDataResult.Result,
                         _indexActions.VersionListDataResult.AccessCondition),
@@ -98,13 +147,15 @@ namespace NuGet.Services.AzureSearch
                 _developmentConfig.DisableVersionListWriters = true;
                 _target.EnqueueIndexActions(IdA, _indexActions);
 
-                await _target.FinishAsync();
+                var result = await _target.TryFinishAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Equal(5, _hijackBatches.Count);
                 Assert.Equal(3, _searchBatches.Count);
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
@@ -117,7 +168,9 @@ namespace NuGet.Services.AzureSearch
                 _config.AzureSearchBatchSize = 1000;
                 _target.EnqueueIndexActions(IdA, _indexActions);
 
-                await _target.FinishAsync();
+                var result = await _target.TryFinishAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Single(_hijackBatches);
                 Assert.Equal(_hijackDocuments, _hijackBatches[0].Actions.ToArray());
@@ -125,13 +178,13 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(_searchDocuments, _searchBatches[0].Actions.ToArray());
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdA,
                         _indexActions.VersionListDataResult.Result,
                         _indexActions.VersionListDataResult.AccessCondition),
@@ -149,7 +202,9 @@ namespace NuGet.Services.AzureSearch
                 _config.AzureSearchBatchSize = 2;
                 _target.EnqueueIndexActions(IdA, _indexActions);
 
-                await _target.FinishAsync();
+                var result = await _target.TryFinishAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Equal(3, _hijackBatches.Count);
                 Assert.Equal(new[] { _hijackDocumentA, _hijackDocumentB }, _hijackBatches[0].Actions.ToArray());
@@ -160,13 +215,13 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(new[] { _searchDocumentC }, _searchBatches[1].Actions.ToArray());
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdA,
                         _indexActions.VersionListDataResult.Result,
                         _indexActions.VersionListDataResult.AccessCondition),
@@ -201,7 +256,9 @@ namespace NuGet.Services.AzureSearch
                         return Task.FromResult(new DocumentIndexResult(new List<IndexingResult>()));
                     });
 
-                await _target.FinishAsync();
+                var result = await _target.TryFinishAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Equal(9, _hijackBatches.Count);
                 Assert.Equal(
@@ -252,7 +309,7 @@ namespace NuGet.Services.AzureSearch
                     });
 
                 var ex = await Assert.ThrowsAsync<CloudException>(
-                    () => _target.FinishAsync());
+                    () => _target.TryFinishAsync());
 
                 Assert.Equal(HttpStatusCode.RequestEntityTooLarge, ex.Response.StatusCode);
                 Assert.Equal(3, _hijackBatches.Count);
@@ -292,7 +349,7 @@ namespace NuGet.Services.AzureSearch
                     }));
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => _target.PushFullBatchesAsync());
+                    () => _target.TryPushFullBatchesAsync());
 
                 Assert.Contains("Errors were found when indexing a batch. Up to 5 errors get logged.", ex.Message);
                 Assert.Contains("Indexing document with key A-0 failed for index search. 0: A-0 message", _logger.Messages);
@@ -308,6 +365,51 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
+            public async Task ReturnsFailedPackageIds()
+            {
+                _versionListDataClient
+                    .Setup(x => x.TryReplaceAsync(IdA, It.IsAny<VersionListData>(), It.IsAny<IAccessCondition>()))
+                    .ReturnsAsync(false);
+
+                _config.AzureSearchBatchSize = 7;
+                _target.EnqueueIndexActions(IdA, _indexActions);
+                _target.EnqueueIndexActions(IdB, _indexActions);
+                _target.EnqueueIndexActions(IdC, _indexActions);
+
+                var result = await _target.TryPushFullBatchesAsync();
+
+                Assert.Equal(new[] { IdA }, result.FailedPackageIds.ToArray());
+
+                Assert.Equal(2, _hijackBatches.Count);
+                Assert.Single(_searchBatches);
+
+                _versionListDataClient.Verify(
+                    x => x.TryReplaceAsync(
+                        IdA,
+                        It.IsAny<VersionListData>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+                _versionListDataClient.Verify(
+                    x => x.TryReplaceAsync(
+                        IdB,
+                        It.IsAny<VersionListData>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Once);
+                _versionListDataClient.Verify(
+                    x => x.TryReplaceAsync(
+                        IdC,
+                        It.IsAny<VersionListData>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Never);
+                _versionListDataClient.Verify(
+                    x => x.TryReplaceAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<VersionListData>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Exactly(2));
+            }
+
+            [Fact]
             public async Task UpdatesOnlyFinishedVersionLists()
             {
                 _config.AzureSearchBatchSize = 7;
@@ -315,31 +417,33 @@ namespace NuGet.Services.AzureSearch
                 _target.EnqueueIndexActions(IdB, _indexActions);
                 _target.EnqueueIndexActions(IdC, _indexActions);
 
-                await _target.PushFullBatchesAsync();
+                var result = await _target.TryPushFullBatchesAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Equal(2, _hijackBatches.Count);
                 Assert.Single(_searchBatches);
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdA,
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdB,
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdC,
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Never);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
@@ -352,7 +456,9 @@ namespace NuGet.Services.AzureSearch
                 _config.AzureSearchBatchSize = 2;
                 _target.EnqueueIndexActions(IdA, _indexActions);
 
-                await _target.PushFullBatchesAsync();
+                var result = await _target.TryPushFullBatchesAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Equal(2, _hijackBatches.Count);
                 Assert.Equal(new[] { _hijackDocumentA, _hijackDocumentB }, _hijackBatches[0].Actions.ToArray());
@@ -361,7 +467,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(new[] { _searchDocumentA, _searchDocumentB }, _searchBatches[0].Actions.ToArray());
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
@@ -379,12 +485,15 @@ namespace NuGet.Services.AzureSearch
                 _config.AzureSearchBatchSize = 1000;
                 _target.EnqueueIndexActions(IdA, _indexActions);
 
-                await _target.PushFullBatchesAsync();
+                var result = await _target.TryPushFullBatchesAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Empty(_hijackBatches);
                 Assert.Empty(_searchBatches);
+
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
@@ -397,7 +506,9 @@ namespace NuGet.Services.AzureSearch
                 _config.AzureSearchBatchSize = 3;
                 _target.EnqueueIndexActions(IdA, _indexActions);
 
-                await _target.PushFullBatchesAsync();
+                var result = await _target.TryPushFullBatchesAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Single(_hijackBatches);
                 Assert.Equal(new[] { _hijackDocumentA, _hijackDocumentB, _hijackDocumentC }, _hijackBatches[0].Actions.ToArray());
@@ -405,7 +516,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(new[] { _searchDocumentA, _searchDocumentB, _searchDocumentC }, _searchBatches[0].Actions.ToArray());
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
@@ -418,19 +529,21 @@ namespace NuGet.Services.AzureSearch
                 _config.AzureSearchBatchSize = 1;
                 _target.EnqueueIndexActions(IdA, _indexActions);
 
-                await _target.PushFullBatchesAsync();
+                var result = await _target.TryPushFullBatchesAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Equal(5, _hijackBatches.Count);
                 Assert.Equal(3, _searchBatches.Count);
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Once);
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdA,
                         _indexActions.VersionListDataResult.Result,
                         _indexActions.VersionListDataResult.AccessCondition),
@@ -442,22 +555,24 @@ namespace NuGet.Services.AzureSearch
             {
                 _config.AzureSearchBatchSize = 1;
                 _target.EnqueueIndexActions(IdA, _indexActions);
-                await _target.PushFullBatchesAsync();
+                await _target.TryPushFullBatchesAsync();
                 _target.EnqueueIndexActions(IdA, _indexActions);
 
-                await _target.PushFullBatchesAsync();
+                var result = await _target.TryPushFullBatchesAsync();
+
+                Assert.Empty(result.FailedPackageIds);
 
                 Assert.Equal(10, _hijackBatches.Count);
                 Assert.Equal(6, _searchBatches.Count);
 
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         It.IsAny<string>(),
                         It.IsAny<VersionListData>(),
                         It.IsAny<IAccessCondition>()),
                     Times.Exactly(2));
                 _versionListDataClient.Verify(
-                    x => x.ReplaceAsync(
+                    x => x.TryReplaceAsync(
                         IdA,
                         _indexActions.VersionListDataResult.Result,
                         _indexActions.VersionListDataResult.AccessCondition),
@@ -572,6 +687,9 @@ namespace NuGet.Services.AzureSearch
                 _searchIndexClientWrapper.Setup(x => x.Documents).Returns(() => _searchDocumentsWrapper.Object);
                 _hijackIndexClientWrapper.Setup(x => x.IndexName).Returns("hijack");
                 _hijackIndexClientWrapper.Setup(x => x.Documents).Returns(() => _hijackDocumentsWrapper.Object);
+                _versionListDataClient
+                    .Setup(x => x.TryReplaceAsync(It.IsAny<string>(), It.IsAny<VersionListData>(), It.IsAny<IAccessCondition>()))
+                    .ReturnsAsync(true);
                 _options.Setup(x => x.Value).Returns(() => _config);
                 _developmentOptions.Setup(x => x.Value).Returns(() => _developmentConfig);
 

@@ -121,12 +121,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 batchPusher.EnqueueIndexActions(changes.Id, indexActions);
 
-                // Note that this method can throw a storage exception if one of the version lists has been modified
-                // during the execution of this job loop.
-                await batchPusher.PushFullBatchesAsync();
+                var fullBatchesResult = await batchPusher.TryPushFullBatchesAsync();
+                fullBatchesResult.EnsureNoFailures();
             }
 
-            await batchPusher.FinishAsync();
+            var finishResult = await batchPusher.TryFinishAsync();
+            finishResult.EnsureNoFailures();
         }
     }
 }

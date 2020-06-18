@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -26,15 +25,15 @@ namespace NuGet.Services.AzureSearch
         /// <see cref="EnqueueIndexActions(string, IndexActions)"/>. If there is not enough data to create a full batch,
         /// it is not pushed by this method (until enough additional data is enqueued to make a full batch). When all of
         /// the index actions for a specific package ID completed (pushed to Azure Search), the corresponding version
-        /// list is also updated. Hijack index changes are applied before search index changes.
+        /// list is also updated. Hijack index changes are applied before search index changes. Any failures are
+        /// returned in the result.
         /// </summary>
-        /// <exception cref="StorageException">Thrown if the one of the version lists has changed.</exception>
-        Task PushFullBatchesAsync();
+        Task<BatchPusherResult> TryPushFullBatchesAsync();
 
         /// <summary>
-        /// Same as <see cref="PushFullBatchesAsync"/> but if there is a partial batch remaining, it is also pushed.
+        /// Same as <see cref="TryPushFullBatchesAsync"/> but if there is a partial batch remaining, it is also pushed.
+        /// Any failures are returned in the result.
         /// </summary>
-        /// <exception cref="StorageException">Thrown if the one of the version lists has changed.</exception>
-        Task FinishAsync();
+        Task<BatchPusherResult> TryFinishAsync();
     }
 }

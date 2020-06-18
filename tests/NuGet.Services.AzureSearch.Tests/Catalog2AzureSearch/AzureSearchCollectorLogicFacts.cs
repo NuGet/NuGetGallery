@@ -126,7 +126,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
                     Times.Exactly(2));
 
-                _batchPusher.Verify(x => x.FinishAsync(), Times.Once);
+                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Once);
             }
 
             [Fact]
@@ -198,7 +198,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
                     Times.Exactly(2));
 
-                _batchPusher.Verify(x => x.FinishAsync(), Times.Once);
+                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Once);
             }
 
             [Fact]
@@ -249,7 +249,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var otherException = new ArgumentException("Not so fast, buddy.");
                 _batchPusher
-                    .Setup(x => x.FinishAsync())
+                    .Setup(x => x.TryFinishAsync())
                     .ThrowsAsync(otherException);
 
                 var ex = await Assert.ThrowsAsync<ArgumentException>(
@@ -262,7 +262,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         It.IsAny<ConcurrentBag<IdAndValue<IndexActions>>>(),
                         It.IsAny<InvalidOperationException>()),
                     Times.Never);
-                _batchPusher.Verify(x => x.FinishAsync(), Times.Once);
+                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Once);
             }
 
             [Fact]
@@ -281,7 +281,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var otherException = new InvalidOperationException("Not so fast, buddy.");
                 _batchPusher
-                    .Setup(x => x.FinishAsync())
+                    .Setup(x => x.TryFinishAsync())
                     .ThrowsAsync(otherException);
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -294,7 +294,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         It.IsAny<ConcurrentBag<IdAndValue<IndexActions>>>(),
                         It.IsAny<InvalidOperationException>()),
                     Times.Once);
-                _batchPusher.Verify(x => x.FinishAsync(), Times.Once);
+                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Once);
             }
 
             [Fact]
@@ -313,7 +313,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var otherException = new InvalidOperationException("Not so fast, buddy.");
                 _batchPusher
-                    .Setup(x => x.FinishAsync())
+                    .Setup(x => x.TryFinishAsync())
                     .ThrowsAsync(otherException);
                 _fixUpEvaluator
                     .Setup(x => x.TryFixUpAsync(
@@ -332,7 +332,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         It.IsAny<ConcurrentBag<IdAndValue<IndexActions>>>(),
                         It.IsAny<InvalidOperationException>()),
                     Times.Once);
-                _batchPusher.Verify(x => x.FinishAsync(), Times.Exactly(2));
+                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Exactly(2));
             }
 
             [Fact]
@@ -362,7 +362,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 var otherException = new InvalidOperationException("Not so fast, buddy.");
                 _batchPusher
-                    .Setup(x => x.FinishAsync())
+                    .Setup(x => x.TryFinishAsync())
                     .ThrowsAsync(otherException);
                 _fixUpEvaluator
                     .Setup(x => x.TryFixUpAsync(
@@ -411,6 +411,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 _logger = output.GetLogger<AzureSearchCollectorLogic>();
                 _utilityLogger = output.GetLogger<CommitCollectorUtility>();
 
+                _batchPusher.SetReturnsDefault(Task.FromResult(new BatchPusherResult()));
                 _utilityOptions.Setup(x => x.Value).Returns(() => _utilityConfig);
                 _utilityConfig.MaxConcurrentCatalogLeafDownloads = 1;
                 _collectorOptions.Setup(x => x.Value).Returns(() => _collectorConfig);

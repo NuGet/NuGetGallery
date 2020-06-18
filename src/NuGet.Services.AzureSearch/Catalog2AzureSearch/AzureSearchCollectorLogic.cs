@@ -84,7 +84,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 try
                 {
-                    await batchPusher.FinishAsync();
+                    var finishResult = await batchPusher.TryFinishAsync();
+                    finishResult.EnsureNoFailures();
                 }
                 catch (InvalidOperationException ex) when (allowFixUp)
                 {

@@ -250,11 +250,13 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     if (!indexActions.IsEmpty)
                     {
                         batchPusher.EnqueueIndexActions(work.PackageId, indexActions);
-                        await batchPusher.PushFullBatchesAsync();
+                        var fullBatchesResult = await batchPusher.TryPushFullBatchesAsync();
+                        fullBatchesResult.EnsureNoFailures();
                     }
                 }
 
-                await batchPusher.FinishAsync();
+                var finishResult = await batchPusher.TryFinishAsync();
+                finishResult.EnsureNoFailures();
             }
             catch (Exception ex)
             {

@@ -90,6 +90,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition())));
+            _batchPusher.SetReturnsDefault(Task.FromResult(new BatchPusherResult()));
             _catalogClient
                 .Setup(x => x.GetIndexAsync(It.IsAny<string>()))
                 .ReturnsAsync(new CatalogIndex());
@@ -192,8 +193,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 new[] { "A", "B", "C", "D", "E" },
                 keys);
 
-            _batchPusher.Verify(x => x.PushFullBatchesAsync(), Times.Exactly(5));
-            _batchPusher.Verify(x => x.FinishAsync(), Times.Once);
+            _batchPusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Exactly(5));
+            _batchPusher.Verify(x => x.TryFinishAsync(), Times.Once);
         }
 
         [Fact]

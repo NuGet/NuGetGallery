@@ -38,8 +38,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         It.IsAny<string>(),
                         It.IsAny<Func<SearchFilters, KeyedDocument>>()),
                     Times.Never);
-                BatchPusher.Verify(x => x.FinishAsync(), Times.Never);
-                BatchPusher.Verify(x => x.PushFullBatchesAsync(), Times.Never);
+                BatchPusher.Verify(x => x.TryFinishAsync(), Times.Never);
+                BatchPusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Never);
                 DownloadDataClient.Verify(
                     x => x.ReplaceLatestIndexedAsync(It.IsAny<DownloadData>(), It.IsAny<IAccessCondition>()),
                     Times.Never);
@@ -83,8 +83,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 BatchPusher.Verify(
                     x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
                     Times.Exactly(changeCount));
-                BatchPusher.Verify(x => x.FinishAsync(), Times.Exactly(expectedPushes));
-                BatchPusher.Verify(x => x.PushFullBatchesAsync(), Times.Never);
+                BatchPusher.Verify(x => x.TryFinishAsync(), Times.Exactly(expectedPushes));
+                BatchPusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Never);
                 SystemTime.Verify(x => x.Delay(It.IsAny<TimeSpan>()), Times.Exactly(expectedPushes - 1));
                 DownloadDataClient.Verify(
                     x => x.ReplaceLatestIndexedAsync(
@@ -122,8 +122,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 BatchPusher.Verify(
                     x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
                     Times.Exactly(changeCount));
-                BatchPusher.Verify(x => x.FinishAsync(), Times.AtLeastOnce);
-                BatchPusher.Verify(x => x.PushFullBatchesAsync(), Times.Never);
+                BatchPusher.Verify(x => x.TryFinishAsync(), Times.AtLeastOnce);
+                BatchPusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Never);
             }
 
             [Fact]
@@ -522,8 +522,12 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         PushedIds.Add(id);
                     });
                 BatchPusher
-                    .Setup(x => x.FinishAsync())
-                    .Returns(Task.Delay(TimeSpan.FromMilliseconds(1)))
+                    .Setup(x => x.TryFinishAsync())
+                    .Returns(async () =>
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(1));
+                        return new BatchPusherResult();
+                    })
                     .Callback(() =>
                     {
                         FinishedBatches.Add(CurrentBatch.ToList());
