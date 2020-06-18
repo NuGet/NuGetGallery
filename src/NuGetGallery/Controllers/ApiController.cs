@@ -512,6 +512,15 @@ namespace NuGetGallery
                     HttpStatusCode.RequestEntityTooLarge,
                     Strings.PackageFileTooLarge);
             }
+            catch (HttpException ex) when (!Response.IsClientConnected)
+            {
+                // ASP.NET throws HttpException when the client has disconnected during the upload.
+                TelemetryService.TrackSymbolPackagePushDisconnectEvent();
+                QuietLog.LogHandledException(ex);
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.BadRequest,
+                    Strings.PackageUploadCancelled);
+            }
             catch (Exception ex)
             {
                 ex.Log();
@@ -810,6 +819,15 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(
                     HttpStatusCode.RequestEntityTooLarge,
                     Strings.PackageFileTooLarge);
+            }
+            catch (HttpException ex) when (!Response.IsClientConnected)
+            {
+                // ASP.NET throws HttpException when the client has disconnected during the upload.
+                TelemetryService.TrackPackagePushDisconnectEvent();
+                QuietLog.LogHandledException(ex);
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.BadRequest,
+                    Strings.PackageUploadCancelled);
             }
             catch (Exception)
             {

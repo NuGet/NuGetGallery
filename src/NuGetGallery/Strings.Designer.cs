@@ -1427,6 +1427,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package upload failed due to the client disconnecting..
+        /// </summary>
+        public static string PackageUploadCancelled {
+            get {
+                return ResourceManager.GetString("PackageUploadCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package versions that differ only by metadata cannot be uploaded. A package with ID &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
         /// </summary>
         public static string PackageVersionDiffersOnlyByMetadataAndCannotBeModified {

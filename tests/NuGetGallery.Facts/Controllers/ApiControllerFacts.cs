@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -64,7 +65,8 @@ namespace NuGetGallery
             IGalleryConfigurationService configurationService,
             MockBehavior behavior = MockBehavior.Default,
             ISecurityPolicyService securityPolicyService = null,
-            IUserService userService = null)
+            IUserService userService = null,
+            Mock<HttpResponseBase> responseMock = null)
         {
             SetOwinContextOverride(Fakes.CreateOwinContext());
             ApiScopeEvaluator = (MockApiScopeEvaluator = new Mock<IApiScopeEvaluator>()).Object;
@@ -159,6 +161,12 @@ namespace NuGetGallery
             requestMock.Setup(m => m.IsSecureConnection).Returns(true);
             requestMock.Setup(m => m.Url).Returns(new Uri(TestUtility.GallerySiteRootHttps));
 
+            if (responseMock == null)
+            {
+                responseMock = new Mock<HttpResponseBase>();
+                responseMock.Setup(m => m.IsClientConnected).Returns(true);
+            }
+
             var httpContextMock = new Mock<HttpContextBase>();
             httpContextMock.Setup(m => m.Request).Returns(requestMock.Object);
 
@@ -242,6 +250,33 @@ namespace NuGetGallery
                 // Assert
                 Assert.NotNull(result);
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_TracksClientDisconnectedWithoutFailureMetric()
+            {
+                // Arrange
+                var responseMock = new Mock<HttpResponseBase>();
+                responseMock.Setup(x => x.IsClientConnected).Returns(false);
+
+                var controller = new TestableApiController(GetConfigurationService(), responseMock: responseMock);
+                controller.SetCurrentUser(new User() { EmailAddress = "confirmed@email.com" });
+                controller.MockSymbolPackageUploadService
+                    .Setup(p => p.ValidateUploadedSymbolsPackage(
+                        It.IsAny<Stream>(),
+                        It.IsAny<User>()))
+                    .Throws(new HttpException());
+
+                controller.SetupPackageFromInputStream(TestPackage.CreateTestSymbolPackageStream());
+
+                // Act
+                var result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "The package upload failed due to the client disconnecting.");
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolPackagePushDisconnectEvent(), Times.Once);
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolPackagePushEvent(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                controller.MockTelemetryService.Verify(x => x.TrackSymbolPackagePushFailureEvent(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             }
 
             [Fact]
@@ -454,6 +489,36 @@ namespace NuGetGallery
 
                 // Assert
                 controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(null, null), Times.Once());
+            }
+
+            [Fact]
+            public async Task CreatePackage_TracksClientDisconnectedWithoutFailureMetric()
+            {
+                // Arrange
+                var responseMock = new Mock<HttpResponseBase>();
+                responseMock.Setup(x => x.IsClientConnected).Returns(false);
+
+                var controller = new TestableApiController(GetConfigurationService(), responseMock: responseMock);
+                controller.SetCurrentUser(new User() { EmailAddress = "confirmed@email.com" });
+                controller.MockPackageUploadService
+                    .Setup(p => p.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()))
+                    .Throws(new HttpException());
+
+                controller.SetupPackageFromInputStream(TestPackage.CreateTestPackageStream());
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "The package upload failed due to the client disconnecting.");
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushDisconnectEvent(), Times.Once);
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushEvent(It.IsAny<Package>(), It.IsAny<User>(), It.IsAny<IIdentity>()), Times.Never);
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(It.IsAny<string>(), It.IsAny<NuGetVersion>()), Times.Never);
             }
 
             [Fact]

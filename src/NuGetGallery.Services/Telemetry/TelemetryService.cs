@@ -87,6 +87,8 @@ namespace NuGetGallery
             public const string ABTestEnrollmentInitialized = "ABTestEnrollmentInitialized";
             public const string ABTestEnrollmentUpgraded = "ABTestEnrollmentUpgraded";
             public const string ABTestEvaluated = "ABTestEvaluated";
+            public const string PackagePushDisconnect = "PackagePushDisconnect";
+            public const string SymbolPackagePushDisconnect = "SymbolPackagePushDisconnect";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -1080,6 +1082,16 @@ namespace NuGetGallery
                 properties.Add(TestBucket, testBucket.ToString());
                 properties.Add(TestPercentage, testPercentage.ToString());
             });
+        }
+
+        public void TrackPackagePushDisconnectEvent()
+        {
+            TrackMetric(Events.PackagePushDisconnect, 1, p => { });
+        }
+
+        public void TrackSymbolPackagePushDisconnectEvent()
+        {
+            TrackMetric(Events.SymbolPackagePushDisconnect, 1, p => { });
         }
 
         /// <summary>
