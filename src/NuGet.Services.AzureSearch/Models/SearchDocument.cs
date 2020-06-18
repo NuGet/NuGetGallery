@@ -20,6 +20,7 @@ namespace NuGet.Services.AzureSearch
         public class Full : UpdateLatest, IDownloadCount, IIsExcludedByDefault
         {
             [IsFilterable]
+            [IsSortable]
             public long? TotalDownloadCount { get; set; }
 
             [IsFilterable]
