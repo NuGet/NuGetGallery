@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="FiltersFacts.cs" />
     <Compile Include="GitHubSearcherFacts.cs" />
+    <Compile Include="GitHubSearchWrapperFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReposIndexerFacts.cs" />
     <Compile Include="RepoUtilsFacts.cs" />
