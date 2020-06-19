@@ -251,12 +251,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     {
                         batchPusher.EnqueueIndexActions(work.PackageId, indexActions);
                         var fullBatchesResult = await batchPusher.TryPushFullBatchesAsync();
-                        fullBatchesResult.EnsureNoFailures();
+                        fullBatchesResult.EnsureSuccess();
                     }
                 }
 
                 var finishResult = await batchPusher.TryFinishAsync();
-                finishResult.EnsureNoFailures();
+                finishResult.EnsureSuccess();
             }
             catch (Exception ex)
             {

@@ -127,6 +127,70 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             [Fact]
+            public async Task RetriesFailedPackageIds()
+            {
+                Config.MaxConcurrentVersionListWriters = 1;
+                Changes["PackageA"] = 1;
+                Changes["PackageB"] = 2;
+                BatchPusher
+                    .SetupSequence(x => x.TryFinishAsync())
+                    .ReturnsAsync(new BatchPusherResult(new[] { "PackageB" }))
+                    .ReturnsAsync(new BatchPusherResult());
+
+                await Target.ExecuteAsync();
+
+                VerifyCompletedTelemetry(JobOutcome.Success);
+                VerifyAllIdsAreProcessed(new[] { "PackageA", "PackageB", "PackageB" });
+                IndexActionBuilder.Verify(
+                    x => x.UpdateAsync(
+                        "PackageA",
+                        It.IsAny<Func<SearchFilters, KeyedDocument>>()),
+                    Times.Once);
+                IndexActionBuilder.Verify(
+                    x => x.UpdateAsync(
+                        "PackageB",
+                        It.IsAny<Func<SearchFilters, KeyedDocument>>()),
+                    Times.Exactly(2));
+                BatchPusher.Verify(
+                    x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
+                    Times.Exactly(3));
+                BatchPusher.Verify(x => x.TryFinishAsync(), Times.Exactly(2));
+                BatchPusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task EventuallyFailsIfBatchPusherNeverSucceeds()
+            {
+                Config.MaxConcurrentVersionListWriters = 1;
+                Changes["PackageA"] = 1;
+                Changes["PackageB"] = 2;
+                BatchPusher
+                    .Setup(x => x.TryFinishAsync())
+                    .ReturnsAsync(new BatchPusherResult(new[] { "PackageB" }));
+
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => Target.ExecuteAsync());
+
+                Assert.Equal("The index operations for the following package IDs failed due to version list concurrency: PackageB", ex.Message);
+                VerifyCompletedTelemetry(JobOutcome.Failure);
+                VerifyAllIdsAreProcessed(new[] { "PackageA", "PackageB", "PackageB", "PackageB" });
+                IndexActionBuilder.Verify(
+                    x => x.UpdateAsync(
+                        "PackageA",
+                        It.IsAny<Func<SearchFilters, KeyedDocument>>()),
+                    Times.Once);
+                IndexActionBuilder.Verify(
+                    x => x.UpdateAsync(
+                        "PackageB",
+                        It.IsAny<Func<SearchFilters, KeyedDocument>>()),
+                    Times.Exactly(3));
+                BatchPusher.Verify(
+                    x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
+                    Times.Exactly(4));
+                BatchPusher.Verify(x => x.TryFinishAsync(), Times.Exactly(3));
+                BatchPusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Never);
+            }
+
+            [Fact]
             public async Task FailureIsRecordedInTelemetry()
             {
                 var expected = new InvalidOperationException("Something bad!");
@@ -605,10 +669,15 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public void VerifyAllIdsAreProcessed(int changeCount)
             {
                 var changedIds = Changes.Keys.OrderBy(x => x).ToArray();
+                Assert.Equal(changeCount, changedIds.Length);
+                VerifyAllIdsAreProcessed(changedIds);
+            }
+
+            public void VerifyAllIdsAreProcessed(string[] changedIds)
+            {
                 var processedIds = ProcessedIds.OrderBy(x => x).ToArray();
                 var pushedIds = PushedIds.OrderBy(x => x).ToArray();
 
-                Assert.Equal(changeCount, changedIds.Length);
                 Assert.Equal(changedIds, processedIds);
                 Assert.Equal(changedIds, pushedIds);
             }

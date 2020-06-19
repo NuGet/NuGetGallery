@@ -106,18 +106,18 @@ namespace NuGet.Services.AzureSearch
 
         private async Task<BatchPusherResult> TryPushBatchesAsync(bool onlyFull)
         {
-            var failedPackageIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var failedPackageIds = new List<string>();
             failedPackageIds.AddRange(await PushBatchesAsync(_hijackIndexClient, _hijackActions, onlyFull));
             failedPackageIds.AddRange(await PushBatchesAsync(_searchIndexClient, _searchActions, onlyFull));
             return new BatchPusherResult(failedPackageIds);
         }
 
-        private async Task<HashSet<string>> PushBatchesAsync(
+        private async Task<List<string>> PushBatchesAsync(
             ISearchIndexClientWrapper indexClient,
             Queue<IdAndValue<IndexAction<KeyedDocument>>> actions,
             bool onlyFull)
         {
-            var failedPackageIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var failedPackageIds = new List<string>();
             while ((onlyFull && actions.Count >= _options.Value.AzureSearchBatchSize)
                 || (!onlyFull && actions.Count > 0))
             {

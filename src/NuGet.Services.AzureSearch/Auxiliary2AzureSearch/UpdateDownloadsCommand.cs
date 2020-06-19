@@ -162,7 +162,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 "Starting {Count} workers pushing download count changes to Azure Search.",
                 _options.Value.MaxConcurrentBatches);
             await ParallelAsync.Repeat(
-                () => WorkAsync(idBag, changes),
+                () => WorkAndRetryAsync(idBag, changes),
                 _options.Value.MaxConcurrentBatches);
             _logger.LogInformation("All of the download count changes have been pushed to Azure Search.");
 
@@ -234,7 +234,32 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
         }
 
-        private async Task WorkAsync(ConcurrentBag<string> idBag, SortedDictionary<string, long> changes)
+        private async Task WorkAndRetryAsync(ConcurrentBag<string> idBag, SortedDictionary<string, long> changes)
+        {
+            BatchPusherResult result;
+            var attempt = 0;
+            const int maxAttempts = 3;
+            do
+            {
+                attempt++;
+                result = await WorkAsync(idBag, changes);
+
+                // Retry any failed package IDs.
+                if (result.FailedPackageIds.Any() && attempt < maxAttempts)
+                {
+                    _logger.LogWarning("Attempt {Attempt} did not fully succeed. Retrying {Count} package IDs.", attempt, result.FailedPackageIds.Count);
+                    foreach (var id in result.FailedPackageIds)
+                    {
+                        idBag.Add(id);
+                    }
+                }
+            }
+            while (!result.Success && attempt < maxAttempts);
+
+            result.EnsureSuccess();
+        }
+
+        private async Task<BatchPusherResult> WorkAsync(ConcurrentBag<string> idBag, SortedDictionary<string, long> changes)
         {
             // Perform two batching mechanisms:
             //
@@ -245,6 +270,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             var idsToIndex = new ConcurrentBag<string>();
             var indexActionsToPush = new ConcurrentBag<IdAndValue<IndexActions>>();
             var timeSinceLastPush = new Stopwatch();
+            var batchPushResults = new List<BatchPusherResult>();
 
             while (idBag.TryTake(out var id))
             {
@@ -267,7 +293,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     _logger.LogInformation(
                         "Starting to push a batch. There are {IdCount} unprocessed IDs left to index and push.",
                         idBag.Count);
-                    await PushIndexActionsAsync(indexActionsToPush, timeSinceLastPush);
+                    batchPushResults.Add(await PushIndexActionsAsync(indexActionsToPush, timeSinceLastPush));
                 }
 
                 // THIRD, now that the two batching "buffers" have been flushed if necessary, add the current ID to the
@@ -284,11 +310,13 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             // Push any leftover index actions that didn't make it into a full batch.
             if (indexActionsToPush.Any())
             {
-                await PushIndexActionsAsync(indexActionsToPush, timeSinceLastPush);
+                batchPushResults.Add(await PushIndexActionsAsync(indexActionsToPush, timeSinceLastPush));
             }
 
             Guard.Assert(idsToIndex.IsEmpty, "There should be no more IDs to process.");
             Guard.Assert(indexActionsToPush.IsEmpty, "There should be no more index actions to push.");
+
+            return batchPushResults.Aggregate(new BatchPusherResult(), (a, b) => a.Merge(b));
         }
 
         /// <summary>
@@ -322,7 +350,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 _options.Value.MaxConcurrentVersionListWriters);
         }
 
-        private async Task<int> PushIndexActionsAsync(
+        private async Task<BatchPusherResult> PushIndexActionsAsync(
             ConcurrentBag<IdAndValue<IndexActions>> indexActionsToPush,
             Stopwatch timeSinceLastPush)
         {
@@ -353,12 +381,11 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             var finishResult = await batchPusher.TryFinishAsync();
-            finishResult.EnsureNoFailures();
 
             // Restart the timer AFTER the push is completed to err on the side of caution.
             timeSinceLastPush.Restart();
 
-            return 0;
+            return finishResult;
         }
 
         /// <summary>

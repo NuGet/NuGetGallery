@@ -82,6 +82,70 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
 
             [Fact]
+            public async Task RetriesFailedPushes()
+            {
+                Changes["NuGet.Core"] = new string[0];
+                Changes["NuGet.Versioning"] = new string[0];
+                Changes["EntityFramework"] = new string[0];
+                Pusher
+                    .SetupSequence(x => x.TryPushFullBatchesAsync())
+                    // Attempt #1
+                    .ReturnsAsync(new BatchPusherResult(new[] { "EntityFramework" }))
+                    .ReturnsAsync(new BatchPusherResult(new[] { "NuGet.Core" }))
+                    .ReturnsAsync(new BatchPusherResult())
+                    // Attempt #2
+                    .ReturnsAsync(new BatchPusherResult())
+                    .ReturnsAsync(new BatchPusherResult())
+                    .ReturnsAsync(new BatchPusherResult());
+
+                await Target.ExecuteAsync();
+
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
+                    Times.Exactly(6));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("NuGet.Core", It.IsAny<IndexActions>()),
+                    Times.Exactly(2));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("NuGet.Versioning", It.IsAny<IndexActions>()),
+                    Times.Exactly(2));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("EntityFramework", It.IsAny<IndexActions>()),
+                    Times.Exactly(2));
+                Pusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Exactly(6));
+                Pusher.Verify(x => x.TryFinishAsync(), Times.Exactly(2));
+            }
+
+            [Fact]
+            public async Task FailsAfterRetries()
+            {
+                Changes["NuGet.Core"] = new string[0];
+                Changes["NuGet.Versioning"] = new string[0];
+                Changes["EntityFramework"] = new string[0];
+                Pusher
+                    .Setup(x => x.TryPushFullBatchesAsync())
+                    .ReturnsAsync(new BatchPusherResult(new[] { "EntityFramework" }));
+
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => Target.ExecuteAsync());
+
+                Assert.Equal("The index operations for the following package IDs failed due to version list concurrency: EntityFramework", ex.Message);
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
+                    Times.Exactly(9));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("NuGet.Core", It.IsAny<IndexActions>()),
+                    Times.Exactly(3));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("NuGet.Versioning", It.IsAny<IndexActions>()),
+                    Times.Exactly(3));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("EntityFramework", It.IsAny<IndexActions>()),
+                    Times.Exactly(3));
+                Pusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Exactly(9));
+                Pusher.Verify(x => x.TryFinishAsync(), Times.Exactly(3));
+            }
+
+            [Fact]
             public async Task PushesAllChangesWithMultipleWorkers()
             {
                 Configuration.MaxConcurrentBatches = 32;

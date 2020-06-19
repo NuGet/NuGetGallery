@@ -298,7 +298,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             }
 
             [Fact]
-            public async Task ThrowsOriginalExceptionIfFixFailsAgain()
+            public async Task ThrowsOriginalExceptionIfFixFailsThreeTimes()
             {
                 var items = new[]
                 {
@@ -331,8 +331,131 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         It.IsAny<IReadOnlyList<CatalogCommitItem>>(),
                         It.IsAny<ConcurrentBag<IdAndValue<IndexActions>>>(),
                         It.IsAny<InvalidOperationException>()),
+                    Times.Exactly(2));
+                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Exactly(3));
+            }
+
+            [Fact]
+            public async Task ThrowsExceptionIfPackageIdsFailThreeTimes()
+            {
+                var items = new[]
+                {
+                    new CatalogCommitItem(
+                        uri: new Uri("https://example/0"),
+                        commitId: null,
+                        commitTimeStamp: new DateTime(2018, 1, 1),
+                        types: null,
+                        typeUris: new List<Uri> { Schema.DataTypes.PackageDetails },
+                        packageIdentity: new PackageIdentity("NuGet.Versioning", NuGetVersion.Parse("1.0.0"))),
+                };
+
+                _batchPusher
+                    .Setup(x => x.TryFinishAsync())
+                    .ReturnsAsync(new BatchPusherResult(new[] { "NuGet.Versioning" }));
+
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => _target.OnProcessBatchAsync(items));
+
+                Assert.Equal("The index operations for the following package IDs failed due to version list concurrency: NuGet.Versioning", ex.Message);
+                _fixUpEvaluator.Verify(
+                    x => x.TryFixUpAsync(
+                        It.IsAny<IReadOnlyList<CatalogCommitItem>>(),
+                        It.IsAny<ConcurrentBag<IdAndValue<IndexActions>>>(),
+                        It.IsAny<InvalidOperationException>()),
+                    Times.Never);
+                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Exactly(3));
+            }
+
+            [Fact]
+            public async Task ThrowsOriginalExceptionWithMixOfFixUpAndFailedPackageIds()
+            {
+                var items = new[]
+                {
+                    new CatalogCommitItem(
+                        uri: new Uri("https://example/0"),
+                        commitId: null,
+                        commitTimeStamp: new DateTime(2018, 1, 1),
+                        types: null,
+                        typeUris: new List<Uri> { Schema.DataTypes.PackageDetails },
+                        packageIdentity: new PackageIdentity("NuGet.Versioning", NuGetVersion.Parse("1.0.0"))),
+                };
+
+                var otherException = new InvalidOperationException("Not so fast, buddy.");
+                _batchPusher
+                    .SetupSequence(x => x.TryFinishAsync())
+                    .ThrowsAsync(new InvalidOperationException())
+                    .ReturnsAsync(new BatchPusherResult(new[] { "NuGet.Versioning" }))
+                    .ThrowsAsync(otherException);
+                _fixUpEvaluator
+                    .Setup(x => x.TryFixUpAsync(
+                        It.IsAny<IReadOnlyList<CatalogCommitItem>>(),
+                        It.IsAny<ConcurrentBag<IdAndValue<IndexActions>>>(),
+                        It.IsAny<InvalidOperationException>()))
+                    .ReturnsAsync(() => DocumentFixUp.IsApplicable(new List<CatalogCommitItem>()));
+
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => _target.OnProcessBatchAsync(items));
+
+                Assert.Same(otherException, ex);
+                _fixUpEvaluator.Verify(
+                    x => x.TryFixUpAsync(
+                        It.IsAny<IReadOnlyList<CatalogCommitItem>>(),
+                        It.IsAny<ConcurrentBag<IdAndValue<IndexActions>>>(),
+                        It.IsAny<InvalidOperationException>()),
                     Times.Once);
-                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Exactly(2));
+                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Exactly(3));
+            }
+
+            [Fact]
+            public async Task RetriesOfFixUpAndFailedPackageIdsCanSucceedWithinRetries()
+            {
+                var itemsA = new[]
+                {
+                    new CatalogCommitItem(
+                        uri: new Uri("https://example/0"),
+                        commitId: null,
+                        commitTimeStamp: new DateTime(2018, 1, 1),
+                        types: null,
+                        typeUris: new List<Uri> { Schema.DataTypes.PackageDetails },
+                        packageIdentity: new PackageIdentity("NuGet.Versioning", NuGetVersion.Parse("1.0.0"))),
+                };
+
+                var itemsB = new List<CatalogCommitItem>
+                {
+                    new CatalogCommitItem(
+                        uri: new Uri("https://example/1"),
+                        commitId: null,
+                        commitTimeStamp: new DateTime(2019, 1, 1),
+                        types: null,
+                        typeUris: new List<Uri> { Schema.DataTypes.PackageDetails },
+                        packageIdentity: new PackageIdentity("NuGet.Versioning", NuGetVersion.Parse("1.0.0"))),
+                };
+
+                var otherException = new InvalidOperationException("Not so fast, buddy.");
+                _batchPusher
+                    .SetupSequence(x => x.TryFinishAsync())
+                    .ReturnsAsync(new BatchPusherResult(new[] { "NuGet.Versioning" }))
+                    .ThrowsAsync(new InvalidOperationException())
+                    .ReturnsAsync(new BatchPusherResult());
+                _fixUpEvaluator
+                    .Setup(x => x.TryFixUpAsync(
+                        It.IsAny<IReadOnlyList<CatalogCommitItem>>(),
+                        It.IsAny<ConcurrentBag<IdAndValue<IndexActions>>>(),
+                        It.IsAny<InvalidOperationException>()))
+                    .ReturnsAsync(() => DocumentFixUp.IsApplicable(new List<CatalogCommitItem>(itemsB)));
+
+                await _target.OnProcessBatchAsync(itemsA);
+
+                _fixUpEvaluator.Verify(
+                    x => x.TryFixUpAsync(
+                        It.IsAny<IReadOnlyList<CatalogCommitItem>>(),
+                        It.IsAny<ConcurrentBag<IdAndValue<IndexActions>>>(),
+                        It.IsAny<InvalidOperationException>()),
+                    Times.Once);
+                _batchPusher.Verify(x => x.TryFinishAsync(), Times.Exactly(3));
+
+                _catalogClient.Verify(x => x.GetPackageDetailsLeafAsync("https://example/0"), Times.Exactly(2));
+                _catalogClient.Verify(x => x.GetPackageDetailsLeafAsync("https://example/1"), Times.Once);
             }
 
             [Fact]
@@ -375,7 +498,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     () => _target.OnProcessBatchAsync(itemsA));
 
                 _catalogClient.Verify(x => x.GetPackageDetailsLeafAsync("https://example/0"), Times.Once);
-                _catalogClient.Verify(x => x.GetPackageDetailsLeafAsync("https://example/1"), Times.Once);
+                _catalogClient.Verify(x => x.GetPackageDetailsLeafAsync("https://example/1"), Times.Exactly(2));
             }
         }
 
