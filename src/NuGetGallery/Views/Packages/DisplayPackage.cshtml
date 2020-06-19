@@ -554,7 +554,7 @@
                         if (Model.PackageDependents.TotalPackageCount > 0)
                         {
                             <h3>
-                                <strong>NuGet packages </strong> (@Model.PackageDependents.TotalPackageCount.ToKiloFormat()+)
+                                <strong>NuGet packages </strong> (@Model.PackageDependents.TotalPackageCount.ToKiloFormat())
                             </h3>
                             <p>
                                 Showing the top @(Model.PackageDependents.TopPackages.Count) NuGet packages that depend on @(Model.Id):
@@ -596,7 +596,7 @@
                         else
                         {
                             <h3>
-                                <strong>NuGet packages </strong> (0)
+                                <strong>NuGet packages</strong>
                             </h3>
                             <p>
                                 This package is not used by any NuGet packages.
@@ -609,10 +609,10 @@
                         if (Model.GitHubDependenciesInformation.Repos.Any())
                         {
                             <h3>
-                                <strong>GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat()+)
+                                <strong>GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())
                             </h3>
                             <p>
-                                Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) GitHub repositories that depend on @(Model.Id):
+                                Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) popular GitHub repositories that depend on @(Model.Id):
                             </p>
                             <table class="table borderless">
                                 <thead>
@@ -645,7 +645,7 @@
                         else
                         {
                             <h3>
-                                <strong>GitHub repositories </strong> (0)
+                                <strong>GitHub repositories</strong>
                             </h3>
                             <p>
                                 This package is not used by any popular GitHub repositories.
