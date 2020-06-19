@@ -2,11 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
@@ -170,17 +173,40 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             var packageUri = _packageStorage.ResolveUri(packageFilename);
             var packageBlobReference = await _packageStorage.GetCloudBlockBlobReferenceAsync(packageUri);
             using (_telemetryService.TrackEmbeddedIconProcessingDuration(item.PackageIdentity.Id, item.PackageIdentity.Version.ToNormalizedString()))
-            using (var packageStream = await packageBlobReference.GetStreamAsync(cancellationToken))
             {
-                var targetStoragePath = GetTargetStorageIconPath(item);
-                var resultUrl = await _iconProcessor.CopyEmbeddedIconFromPackageAsync(
-                    packageStream,
-                    iconFile,
-                    destinationStorage,
-                    targetStoragePath,
-                    cancellationToken,
-                    item.PackageIdentity.Id,
-                    item.PackageIdentity.Version.ToNormalizedString());
+                Stream packageStream;
+                try
+                {
+                    packageStream = await packageBlobReference.GetStreamAsync(cancellationToken);
+                }
+                catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+                {
+                    _logger.LogWarning("Package blob not found at {PackageUrl}: {Exception}. Will assume package was deleted and skip",
+                        packageUri.AbsoluteUri,
+                        ex);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    // logging other exceptions here to have proper scope in log message
+                    _logger.LogError("Exception while trying to access package blob {PackageUrl}: {Exception}",
+                        packageUri.AbsoluteUri,
+                        ex);
+                    throw;
+                }
+
+                using (packageStream)
+                {
+                    var targetStoragePath = GetTargetStorageIconPath(item);
+                    var resultUrl = await _iconProcessor.CopyEmbeddedIconFromPackageAsync(
+                        packageStream,
+                        iconFile,
+                        destinationStorage,
+                        targetStoragePath,
+                        cancellationToken,
+                        item.PackageIdentity.Id,
+                        item.PackageIdentity.Version.ToNormalizedString());
+                }
             }
         }
 

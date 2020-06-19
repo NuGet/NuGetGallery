@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Moq.Protected;
 using NuGet.Packaging.Core;
@@ -117,6 +118,42 @@ namespace CatalogTests.Icons
                             packageId,
                             leaf.PackageIdentity.Version.ToNormalizedString()),
                         Times.Once);
+            }
+
+            [Fact]
+            public async Task IgnoresPackageNotFoundExceptions()
+            {
+                var leaf = CreateCatalogLeaf("packageid", "1.2.3");
+                var packageUri = new Uri("https://package/url");
+                var cloudBlockBlobMock = new Mock<ICloudBlockBlob>();
+                PackageStorageMock
+                    .Setup(ps => ps.ResolveUri(It.IsAny<string>()))
+                    .Returns(packageUri);
+                PackageStorageMock
+                    .Setup(ps => ps.GetCloudBlockBlobReferenceAsync(packageUri))
+                    .ReturnsAsync(cloudBlockBlobMock.Object);
+                var exception = new StorageException(new RequestResult { HttpStatusCode = 404 }, message: "Exception!!1", inner: null);
+                cloudBlockBlobMock
+                    .Setup(cbb => cbb.GetStreamAsync(It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(exception);
+
+                await Target.ProcessPackageDetailsLeafAsync(
+                    DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
+                    leaf,
+                    null,
+                    "icon.png",
+                    CancellationToken.None);
+
+                IconProcessorMock
+                    .Verify(ip => ip.CopyEmbeddedIconFromPackageAsync(
+                        It.IsAny<Stream>(),
+                        It.IsAny<string>(),
+                        It.IsAny<IStorage>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()), Times.Never);
             }
 
             [Fact]
