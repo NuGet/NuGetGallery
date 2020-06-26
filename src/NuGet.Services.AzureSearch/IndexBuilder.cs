@@ -115,6 +115,7 @@ namespace NuGet.Services.AzureSearch
                     DescriptionAnalyzer.Instance,
                     ExactMatchCustomAnalyzer.Instance,
                     PackageIdCustomAnalyzer.Instance,
+                    TagsCustomAnalyzer.Instance
                 },
                 Tokenizers = new List<Tokenizer>
                 {

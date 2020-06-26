@@ -48,6 +48,7 @@
     <Compile Include="Analysis\IdentifierCustomTokenFilter.cs" />
     <Compile Include="Analysis\PackageIdCustomAnalyzer.cs" />
     <Compile Include="Analysis\PackageIdCustomTokenizer.cs" />
+    <Compile Include="Analysis\TagsCustomAnalyzer.cs" />
     <Compile Include="Analysis\TruncateCustomTokenFilter.cs" />
     <Compile Include="Auxiliary2AzureSearch\UpdateDownloadsCommand.cs" />
     <Compile Include="Auxiliary2AzureSearch\UpdateVerifiedPackagesCommand.cs" />
