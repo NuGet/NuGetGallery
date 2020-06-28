@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 
 namespace NuGetGallery
 {
@@ -160,14 +161,20 @@ namespace NuGetGallery
             var roundedNum = Math.Round(number * roundingFactor) / roundingFactor;
 
             // Pad from right with zeroes to sigFigures length, so for 3 sig figs, 1.6 becomes 1.60
-            var formattedNum = roundedNum.ToString("F" + sigFigures);
-            var desiredLength = formattedNum.Contains('.') ? sigFigures + 1 : sigFigures;
+            var decimalPoint = Thread.CurrentThread.CurrentUICulture.NumberFormat.NumberDecimalSeparator;
+            var formattedNum = roundedNum.ToString("F" + sigFigures, Thread.CurrentThread.CurrentUICulture.NumberFormat);
+            var desiredLength = formattedNum.Contains(decimalPoint) ? sigFigures + decimalPoint.Length : sigFigures;
             if (formattedNum.Length > desiredLength)
             {
                 formattedNum = formattedNum.Substring(0, desiredLength);
             }
 
-            formattedNum = formattedNum.TrimEnd('.');
+            // If trailing char/s is/are decimal point separator, trim it
+            if (formattedNum.Length > decimalPoint.Length && 
+                formattedNum.Substring(formattedNum.Length - decimalPoint.Length, decimalPoint.Length) == decimalPoint)
+            {
+                formattedNum = formattedNum.Substring(0, formattedNum.Length - decimalPoint.Length);
+            }
 
             if (numDiv >= _magnitudeAbbreviations.Length)
             {
