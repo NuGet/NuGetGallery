@@ -61,7 +61,7 @@ namespace NuGet.Services.Metadata.Catalog
 
                     Trace.TraceInformation("HttpReadCursor.Load: {0}", this);
                 },
-                ex => ex is HttpRequestException,
+                ex => ex is HttpRequestException || ex is TaskCanceledException,
                 maxRetries: 5,
                 initialWaitInterval: TimeSpan.Zero,
                 waitIncrement: TimeSpan.FromSeconds(10));

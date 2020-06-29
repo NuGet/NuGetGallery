@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.AuxiliaryFiles
@@ -69,28 +70,40 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             string blobName,
             Func<JsonReader, T> loadData) where T : class
         {
-            _logger.LogInformation(
-                "Attempted to load blob {BlobName} as {TypeName}.",
-                blobName,
-                typeof(T).FullName);
+            // Retry on HTTP 412 because it's possible CloudBlockBlob.OpenReadyAsync throws a 412 while reading the
+            // resulting stream. This is because the WindowsAzure.Storage SDK implements the streaming read with a
+            // series of range requests with If-Match, presumably to keep memory consumption at a minimum. During these
+            // reads, the file can be modified which will cause an HTTP 412 Precondition Failed.
+            var data = default(T);
+            await Retry.IncrementalAsync(
+                async () =>
+                {
+                    _logger.LogInformation(
+                        "Attempted to load blob {BlobName} as {TypeName}.",
+                        blobName,
+                        typeof(T).FullName);
 
-            var stopwatch = Stopwatch.StartNew();
-            var blob = Container.GetBlobReference(blobName);
-            using (var stream = await blob.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
-            using (var textReader = new StreamReader(stream))
-            using (var jsonReader = new JsonTextReader(textReader))
-            {
-                var data = loadData(jsonReader);
-                stopwatch.Stop();
+                    var stopwatch = Stopwatch.StartNew();
+                    var blob = Container.GetBlobReference(blobName);
+                    using (var stream = await blob.OpenReadAsync(AccessCondition.GenerateEmptyCondition()))
+                    using (var textReader = new StreamReader(stream))
+                    using (var jsonReader = new JsonTextReader(textReader))
+                    {
+                        data = loadData(jsonReader);
+                        stopwatch.Stop();
 
-                _telemetryService.TrackAuxiliaryFileDownloaded(blobName, stopwatch.Elapsed);
-                _logger.LogInformation(
-                    "Loaded blob {BlobName}. Took {Duration}.",
-                    blobName,
-                    stopwatch.Elapsed);
-
-                return data;
-            };
+                        _telemetryService.TrackAuxiliaryFileDownloaded(blobName, stopwatch.Elapsed);
+                        _logger.LogInformation(
+                            "Loaded blob {BlobName}. Took {Duration}.",
+                            blobName,
+                            stopwatch.Elapsed);
+                    };
+                },
+                ex => ex is StorageException se && se.IsPreconditionFailedException(),
+                maxRetries: 5,
+                initialWaitInterval: TimeSpan.Zero,
+                waitIncrement: TimeSpan.FromSeconds(10));
+            return data;
         }
     }
 }
