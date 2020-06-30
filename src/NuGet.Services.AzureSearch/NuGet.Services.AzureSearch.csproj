@@ -75,6 +75,7 @@
     <Compile Include="AzureSearchJobDevelopmentConfiguration.cs" />
     <Compile Include="AzureSearchScoringConfiguration.cs" />
     <Compile Include="BaseDocumentBuilder.cs" />
+    <Compile Include="BatchPusherResult.cs" />
     <Compile Include="Catalog2AzureSearch\DocumentFixUp.cs" />
     <Compile Include="Catalog2AzureSearch\DocumentFixUpEvaluator.cs" />
     <Compile Include="Catalog2AzureSearch\IDocumentFixUpEvaluator.cs" />
@@ -228,6 +229,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="AzureSearchException.cs" />
+    <Compile Include="WebExceptionRetryDelegatingHandler.cs" />
     <Compile Include="Wrappers\DocumentsOperationsWrapper.cs" />
     <Compile Include="Wrappers\IDocumentsOperationsWrapper.cs" />
     <Compile Include="Wrappers\IIndexesOperationsWrapper.cs" />

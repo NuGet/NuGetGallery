@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,17 +13,18 @@ using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
+using NuGet.Services.Metadata.Catalog.Helpers;
 
 namespace NuGet.Services.AzureSearch
 {
     public class DatabaseAuxiliaryDataFetcher : IDatabaseAuxiliaryDataFetcher
     {
-        private static readonly string[] EmptyStringArray = new string[0];
-
         private readonly ISqlConnectionFactory<GalleryDbConfiguration> _connectionFactory;
         private readonly IEntitiesContextFactory _entitiesContextFactory;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<DatabaseAuxiliaryDataFetcher> _logger;
+
+        private const int SqlCommandTimeoutSeconds = 120;
 
         private const string GetVerifiedPackagesSql = @"
 SELECT pr.Id
@@ -80,13 +82,13 @@ ORDER BY r.[Key] ASC
                 if (owners == null)
                 {
                     _logger.LogWarning("No package registration with ID {PackageId} was found. Assuming no owners.", id);
-                    return EmptyStringArray;
+                    return Array.Empty<string>();
                 }
 
                 if (owners.Count == 0)
                 {
                     _logger.LogInformation("The package registration with ID {PackageId} has no owners.", id);
-                    return EmptyStringArray;
+                    return Array.Empty<string>();
                 }
 
                 // Sort the usernames in a consistent manner.
@@ -103,100 +105,127 @@ ORDER BY r.[Key] ASC
 
         public async Task<HashSet<string>> GetVerifiedPackagesAsync()
         {
-            var stopwatch = Stopwatch.StartNew();
-            using (var connection = await _connectionFactory.OpenAsync())
-            using (var command = connection.CreateCommand())
+            return await RetrySqlAsync(async () =>
             {
-                command.CommandText = GetVerifiedPackagesSql;
-
-                using (var reader = await command.ExecuteReaderAsync())
+                var stopwatch = Stopwatch.StartNew();
+                using (var connection = await _connectionFactory.OpenAsync())
+                using (var command = connection.CreateCommand())
                 {
-                    var output = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    while (await reader.ReadAsync())
+                    command.CommandText = GetVerifiedPackagesSql;
+                    command.CommandTimeout = SqlCommandTimeoutSeconds;
+
+                    using (var reader = await command.ExecuteReaderAsync())
                     {
-                        var id = reader.GetString(0);
-                        output.Add(id);
+                        var output = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        while (await reader.ReadAsync())
+                        {
+                            var id = reader.GetString(0);
+                            output.Add(id);
+                        }
+
+                        stopwatch.Stop();
+                        _telemetryService.TrackReadLatestVerifiedPackagesFromDatabase(output.Count, stopwatch.Elapsed);
+
+                        return output;
                     }
-
-                    stopwatch.Stop();
-                    _telemetryService.TrackReadLatestVerifiedPackagesFromDatabase(output.Count, stopwatch.Elapsed);
-
-                    return output;
                 }
-            }
+            });
         }
 
         public async Task<SortedDictionary<string, SortedSet<string>>> GetPackageIdToOwnersAsync()
         {
-            var stopwatch = Stopwatch.StartNew();
-            using (var connection = await _connectionFactory.OpenAsync())
-            using (var command = connection.CreateCommand())
+            return await RetrySqlAsync(async () =>
             {
-                command.CommandText = GetPackageIdToOwnersSql;
-
-                using (var reader = await command.ExecuteReaderAsync())
+                var stopwatch = Stopwatch.StartNew();
+                using (var connection = await _connectionFactory.OpenAsync())
+                using (var command = connection.CreateCommand())
                 {
-                    var builder = new PackageIdToOwnersBuilder(_logger);
-                    while (await reader.ReadAsync())
+                    command.CommandText = GetPackageIdToOwnersSql;
+                    command.CommandTimeout = SqlCommandTimeoutSeconds;
+
+                    using (var reader = await command.ExecuteReaderAsync())
                     {
-                        var id = reader.GetString(0);
-                        var username = reader.GetString(1);
+                        var builder = new PackageIdToOwnersBuilder(_logger);
+                        while (await reader.ReadAsync())
+                        {
+                            var id = reader.GetString(0);
+                            var username = reader.GetString(1);
 
-                        builder.Add(id, username);
+                            builder.Add(id, username);
+                        }
+
+                        var output = builder.GetResult();
+                        stopwatch.Stop();
+                        _telemetryService.TrackReadLatestOwnersFromDatabase(output.Count, stopwatch.Elapsed);
+
+                        return output;
                     }
-
-                    var output = builder.GetResult();
-                    stopwatch.Stop();
-                    _telemetryService.TrackReadLatestOwnersFromDatabase(output.Count, stopwatch.Elapsed);
-
-                    return output;
                 }
-            }
+            });
         }
 
         public async Task<PopularityTransferData> GetPopularityTransfersAsync()
         {
-            var stopwatch = Stopwatch.StartNew();
-            var output = new PopularityTransferData();
-            using (var connection = await _connectionFactory.OpenAsync())
-            using (var command = connection.CreateCommand())
+            return await RetrySqlAsync(async () =>
             {
-                command.CommandText = GetPopularityTransfersSql;
-                command.Parameters.Add(GetPopularityTransfersSkipParameter, SqlDbType.Int);
-                command.Parameters.AddWithValue(GetPopularityTransfersTakeParameter, GetPopularityTransfersPageSize);
-
-                // Load popularity transfers by paging through the database.
-                // We continue paging until we receive fewer results than the page size.
-                int currentPageResults;
-                int totalResults = 0;
-                do
+                var stopwatch = Stopwatch.StartNew();
+                var output = new PopularityTransferData();
+                using (var connection = await _connectionFactory.OpenAsync())
+                using (var command = connection.CreateCommand())
                 {
-                    command.Parameters[GetPopularityTransfersSkipParameter].Value = totalResults;
+                    command.CommandText = GetPopularityTransfersSql;
+                    command.CommandTimeout = SqlCommandTimeoutSeconds;
+                    command.Parameters.Add(GetPopularityTransfersSkipParameter, SqlDbType.Int);
+                    command.Parameters.AddWithValue(GetPopularityTransfersTakeParameter, GetPopularityTransfersPageSize);
 
-                    using (var reader = await command.ExecuteReaderAsync())
+                    // Load popularity transfers by paging through the database.
+                    // We continue paging until we receive fewer results than the page size.
+                    int currentPageResults;
+                    int totalResults = 0;
+                    do
                     {
-                        currentPageResults = 0;
+                        command.Parameters[GetPopularityTransfersSkipParameter].Value = totalResults;
 
-                        while (await reader.ReadAsync())
+                        using (var reader = await command.ExecuteReaderAsync())
                         {
-                            currentPageResults++;
+                            currentPageResults = 0;
 
-                            var fromId = reader.GetString(0);
-                            var toId = reader.GetString(1);
+                            while (await reader.ReadAsync())
+                            {
+                                currentPageResults++;
 
-                            output.AddTransfer(fromId, toId);
+                                var fromId = reader.GetString(0);
+                                var toId = reader.GetString(1);
+
+                                output.AddTransfer(fromId, toId);
+                            }
                         }
+
+                        totalResults += currentPageResults;
                     }
+                    while (currentPageResults == GetPopularityTransfersPageSize);
 
-                    totalResults += currentPageResults;
+                    stopwatch.Stop();
+                    _telemetryService.TrackReadLatestPopularityTransfersFromDatabase(output.Count, stopwatch.Elapsed);
+
+                    return output;
                 }
-                while (currentPageResults == GetPopularityTransfersPageSize);
+            });
+        }
 
-                stopwatch.Stop();
-                _telemetryService.TrackReadLatestPopularityTransfersFromDatabase(output.Count, stopwatch.Elapsed);
-
-                return output;
-            }
+        private async Task<T> RetrySqlAsync<T>(Func<Task<T>> actAsync)
+        {
+            var output = default(T);
+            await Retry.IncrementalAsync(
+                async () =>
+                {
+                    output = await actAsync();
+                },
+                ex => ex is SqlException,
+                maxRetries: 5,
+                initialWaitInterval: TimeSpan.Zero,
+                waitIncrement: TimeSpan.FromSeconds(10));
+            return output;
         }
     }
 }

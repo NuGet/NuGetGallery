@@ -20,9 +20,9 @@ namespace NuGet.Services.AzureSearch
 {
     public class VersionListDataClientFacts
     {
-        public class ReadVersionListAsync : Facts
+        public class TheReadAsyncMethod : Facts
         {
-            public ReadVersionListAsync(ITestOutputHelper output) : base(output)
+            public TheReadAsyncMethod(ITestOutputHelper output) : base(output)
             {
             }
 
@@ -96,10 +96,35 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
-        public class ReplaceVersionListAsync : Facts
+        public class TheTryReplaceAsyncMethod : Facts
         {
-            public ReplaceVersionListAsync(ITestOutputHelper output) : base(output)
+            public TheTryReplaceAsyncMethod(ITestOutputHelper output) : base(output)
             {
+            }
+
+            [Fact]
+            public async Task ThrowsForOtherStorageExceptions()
+            {
+                var expected = new StorageException(new RequestResult { HttpStatusCode = (int)HttpStatusCode.InternalServerError }, "Fail.", null);
+                _cloudBlob
+                    .Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
+                    .ThrowsAsync(expected);
+
+                var actual = await Assert.ThrowsAsync<StorageException>(() => _target.TryReplaceAsync(_id, _versionList, _accessCondition.Object));
+
+                Assert.Same(expected, actual);
+            }
+
+            [Fact]
+            public async Task ReturnsFalseForPreconditionFailed()
+            {
+                _cloudBlob
+                    .Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
+                    .ThrowsAsync(new StorageException(new RequestResult { HttpStatusCode = (int)HttpStatusCode.PreconditionFailed }, "Fail.", null));
+
+                var success = await _target.TryReplaceAsync(_id, _versionList, _accessCondition.Object);
+
+                Assert.False(success);
             }
 
             [Theory]
@@ -108,8 +133,9 @@ namespace NuGet.Services.AzureSearch
             {
                 _config.StoragePath = path;
 
-                await _target.ReplaceAsync(_id, _versionList, _accessCondition.Object);
+                var success = await _target.TryReplaceAsync(_id, _versionList, _accessCondition.Object);
 
+                Assert.True(success);
                 _cloudBlobClient.Verify(
                     x => x.GetContainerReference(_config.StorageContainer),
                     Times.Once);
@@ -126,7 +152,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task SerializesWithoutBOM()
             {
-                await _target.ReplaceAsync(_id, _versionList, _accessCondition.Object);
+                await _target.TryReplaceAsync(_id, _versionList, _accessCondition.Object);
 
                 var bytes = Assert.Single(_savedBytes);
                 Assert.Equal((byte)'{', bytes[0]);
@@ -135,7 +161,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task SetsContentType()
             {
-                await _target.ReplaceAsync(_id, _versionList, _accessCondition.Object);
+                await _target.TryReplaceAsync(_id, _versionList, _accessCondition.Object);
 
                 Assert.Equal("application/json", _cloudBlob.Object.Properties.ContentType);
             }
@@ -143,7 +169,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task SerializesWithIndentation()
             {
-                await _target.ReplaceAsync(_id, _versionList, _accessCondition.Object);
+                await _target.TryReplaceAsync(_id, _versionList, _accessCondition.Object);
 
                 var json = Assert.Single(_savedStrings);
                 Assert.Contains("\n", json);
@@ -160,7 +186,7 @@ namespace NuGet.Services.AzureSearch
                     { "1.0.0-beta.10", new VersionPropertiesData(listed: true, semVer2: true) },
                 });
 
-                await _target.ReplaceAsync(_id, versionList, _accessCondition.Object);
+                await _target.TryReplaceAsync(_id, versionList, _accessCondition.Object);
 
                 var json = Assert.Single(_savedStrings);
                 Assert.Equal(@"{

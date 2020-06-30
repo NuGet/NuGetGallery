@@ -17,6 +17,17 @@ namespace NuGet.Services.AzureSearch
     public interface IVersionListDataClient
     {
         Task<ResultAndAccessCondition<VersionListData>> ReadAsync(string id);
-        Task ReplaceAsync(string id, VersionListData data, IAccessCondition accessCondition);
+
+        /// <summary>
+        /// Replace the version list of the provided package ID. May return false due to access condition (i.e. 412
+        /// Precondition Failed in Azure Blob Storage). May throw exceptions unrelated to access condition failures.
+        /// False will be returned if another caller has modified the version list thus invalidating the access
+        /// condition.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="data">The data of the version list to be written.</param>
+        /// <param name="accessCondition">The access condition for the write operation.</param>
+        /// <returns>True if the access condition is accepted. False if the access condition fails.</returns>
+        Task<bool> TryReplaceAsync(string id, VersionListData data, IAccessCondition accessCondition);
     }
 }

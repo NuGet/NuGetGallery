@@ -58,13 +58,33 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
         public async Task OnProcessBatchAsync(IEnumerable<CatalogCommitItem> items)
         {
-            await ProcessItemsAsync(items, allowFixUp: true);
+            var itemList = items.ToList();
+            var attempt = 0;
+            var success = false;
+            while (!success)
+            {
+                attempt++;
+                var result = await ProcessItemsAsync(itemList, allowRetry: attempt < 3);
+                success = result.Success;
+                itemList = result.Items;
+            }
         }
 
-        private async Task ProcessItemsAsync(IEnumerable<CatalogCommitItem> items, bool allowFixUp)
+        /// <summary>
+        /// Processes the provided list of catalog items while handling known retriable errors. It is this method's
+        /// responsibility to throw an exception if the operation is unsuccessful and <paramref name="allowRetry"/> is
+        /// <c>false</c>, even if the failure is generally retriable. Failure to do so could lead to an infinite loop
+        /// in the caller.
+        /// </summary>
+        /// <param name="itemList">The item list to use for the Azure Search updates.</param>
+        /// <param name="allowRetry">
+        /// False to make any error encountered bubble out as an exception. True if retriable errors should returned a
+        /// result with <see cref="ProcessItemsResult.Success"/> set to <c>false</c>.
+        /// </param>
+        /// <returns>The result, including success boolean and the next item list to use for a retry.</returns>
+        private async Task<ProcessItemsResult> ProcessItemsAsync(List<CatalogCommitItem> itemList, bool allowRetry)
         {
-            var itemList = items.ToList();
-            var latestItems = _utility.GetLatestPerIdentity(items);
+            var latestItems = _utility.GetLatestPerIdentity(itemList);
             var allWork = _utility.GroupById(latestItems);
 
             using (_telemetryService.TrackCatalog2AzureSearchProcessBatch(itemList.Count, latestItems.Count, allWork.Count))
@@ -84,9 +104,17 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
 
                 try
                 {
-                    await batchPusher.FinishAsync();
+                    var finishResult = await batchPusher.TryFinishAsync();
+                    if (allowRetry && !finishResult.Success)
+                    {
+                        _logger.LogWarning("Retrying catalog batch due to access condition failures on package IDs: {Ids}", finishResult.FailedPackageIds);
+                        return new ProcessItemsResult(success: false, items: itemList);
+                    }
+
+                    finishResult.EnsureSuccess();
+                    return new ProcessItemsResult(success: true, items: itemList);
                 }
-                catch (InvalidOperationException ex) when (allowFixUp)
+                catch (InvalidOperationException ex) when (allowRetry)
                 {
                     var result = await _fixUpEvaluator.TryFixUpAsync(itemList, allIndexActions, ex);
                     if (!result.Applicable)
@@ -94,9 +122,26 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                         throw;
                     }
 
-                    await ProcessItemsAsync(result.ItemList, allowFixUp: false);
+                    _logger.LogWarning("Retrying catalog batch due to Azure Search bug fix-up.");
+                    return new ProcessItemsResult(success: false, items: result.ItemList);
                 }
             }
+        }
+
+        private class ProcessItemsResult
+        {
+            public ProcessItemsResult(bool success, List<CatalogCommitItem> items)
+            {
+                Success = success;
+                Items = items ?? throw new ArgumentNullException(nameof(items));
+            }
+
+            public bool Success { get; }
+
+            /// <summary>
+            /// The item list to used for the next iteration.
+            /// </summary>
+            public List<CatalogCommitItem> Items { get; }
         }
 
         private async Task<ConcurrentBag<IdAndValue<IndexActions>>> ProcessWorkAsync(

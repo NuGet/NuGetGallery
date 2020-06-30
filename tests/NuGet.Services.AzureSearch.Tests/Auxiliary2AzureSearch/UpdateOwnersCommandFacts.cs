@@ -31,8 +31,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 Pusher.Verify(
                     x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
                     Times.Never);
-                Pusher.Verify(x => x.PushFullBatchesAsync(), Times.Never);
-                Pusher.Verify(x => x.FinishAsync(), Times.Never);
+                Pusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Never);
+                Pusher.Verify(x => x.TryFinishAsync(), Times.Never);
                 OwnerDataClient.Verify(x => x.UploadChangeHistoryAsync(It.IsAny<IReadOnlyList<string>>()), Times.Never);
                 OwnerDataClient.Verify(
                     x => x.ReplaceLatestIndexedAsync(
@@ -77,8 +77,72 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 Pusher.Verify(
                     x => x.EnqueueIndexActions("EntityFramework", It.IsAny<IndexActions>()),
                     Times.Once);
-                Pusher.Verify(x => x.PushFullBatchesAsync(), Times.Exactly(3));
-                Pusher.Verify(x => x.FinishAsync(), Times.Once);
+                Pusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Exactly(3));
+                Pusher.Verify(x => x.TryFinishAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task RetriesFailedPushes()
+            {
+                Changes["NuGet.Core"] = new string[0];
+                Changes["NuGet.Versioning"] = new string[0];
+                Changes["EntityFramework"] = new string[0];
+                Pusher
+                    .SetupSequence(x => x.TryPushFullBatchesAsync())
+                    // Attempt #1
+                    .ReturnsAsync(new BatchPusherResult(new[] { "EntityFramework" }))
+                    .ReturnsAsync(new BatchPusherResult(new[] { "NuGet.Core" }))
+                    .ReturnsAsync(new BatchPusherResult())
+                    // Attempt #2
+                    .ReturnsAsync(new BatchPusherResult())
+                    .ReturnsAsync(new BatchPusherResult())
+                    .ReturnsAsync(new BatchPusherResult());
+
+                await Target.ExecuteAsync();
+
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
+                    Times.Exactly(6));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("NuGet.Core", It.IsAny<IndexActions>()),
+                    Times.Exactly(2));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("NuGet.Versioning", It.IsAny<IndexActions>()),
+                    Times.Exactly(2));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("EntityFramework", It.IsAny<IndexActions>()),
+                    Times.Exactly(2));
+                Pusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Exactly(6));
+                Pusher.Verify(x => x.TryFinishAsync(), Times.Exactly(2));
+            }
+
+            [Fact]
+            public async Task FailsAfterRetries()
+            {
+                Changes["NuGet.Core"] = new string[0];
+                Changes["NuGet.Versioning"] = new string[0];
+                Changes["EntityFramework"] = new string[0];
+                Pusher
+                    .Setup(x => x.TryPushFullBatchesAsync())
+                    .ReturnsAsync(new BatchPusherResult(new[] { "EntityFramework" }));
+
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => Target.ExecuteAsync());
+
+                Assert.Equal("The index operations for the following package IDs failed due to version list concurrency: EntityFramework", ex.Message);
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions(It.IsAny<string>(), It.IsAny<IndexActions>()),
+                    Times.Exactly(9));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("NuGet.Core", It.IsAny<IndexActions>()),
+                    Times.Exactly(3));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("NuGet.Versioning", It.IsAny<IndexActions>()),
+                    Times.Exactly(3));
+                Pusher.Verify(
+                    x => x.EnqueueIndexActions("EntityFramework", It.IsAny<IndexActions>()),
+                    Times.Exactly(3));
+                Pusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Exactly(9));
+                Pusher.Verify(x => x.TryFinishAsync(), Times.Exactly(3));
             }
 
             [Fact]
@@ -112,8 +176,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 Pusher.Verify(
                     x => x.EnqueueIndexActions("Microsoft.Extensions.DependencyInjection", It.IsAny<IndexActions>()),
                     Times.Once);
-                Pusher.Verify(x => x.PushFullBatchesAsync(), Times.Exactly(5));
-                Pusher.Verify(x => x.FinishAsync(), Times.Exactly(32));
+                Pusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Exactly(5));
+                Pusher.Verify(x => x.TryFinishAsync(), Times.Exactly(32));
             }
 
             [Fact]
@@ -121,9 +185,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             {
                 var actions = new List<string>();
                 Pusher
-                    .Setup(x => x.FinishAsync())
-                    .Returns(Task.CompletedTask)
-                    .Callback(() => actions.Add(nameof(IBatchPusher.FinishAsync)));
+                    .Setup(x => x.TryFinishAsync())
+                    .ReturnsAsync(new BatchPusherResult())
+                    .Callback(() => actions.Add(nameof(IBatchPusher.TryFinishAsync)));
                 OwnerDataClient
                     .Setup(x => x.UploadChangeHistoryAsync(It.IsAny<IReadOnlyList<string>>()))
                     .Returns(Task.CompletedTask)
@@ -138,7 +202,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 await Target.ExecuteAsync();
 
                 Assert.Equal(
-                    new[] { nameof(IBatchPusher.FinishAsync), nameof(IOwnerDataClient.UploadChangeHistoryAsync), nameof(IOwnerDataClient.ReplaceLatestIndexedAsync) },
+                    new[] { nameof(IBatchPusher.TryFinishAsync), nameof(IOwnerDataClient.UploadChangeHistoryAsync), nameof(IOwnerDataClient.ReplaceLatestIndexedAsync) },
                     actions.ToArray());
             }
 
@@ -193,6 +257,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         new Mock<IAccessCondition>().Object));
 
+                Pusher.SetReturnsDefault(Task.FromResult(new BatchPusherResult()));
                 Options
                     .Setup(x => x.Value)
                     .Returns(() => Configuration);

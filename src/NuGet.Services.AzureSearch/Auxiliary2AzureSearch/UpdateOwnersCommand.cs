@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -80,7 +81,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 _logger.LogInformation(
                     "Starting {Count} workers pushing owners changes to Azure Search.",
                     _options.Value.MaxConcurrentBatches);
-                await ParallelAsync.Repeat(() => WorkAsync(changesBag), _options.Value.MaxConcurrentBatches);
+                await ParallelAsync.Repeat(() => WorkAndRetryAsync(changesBag), _options.Value.MaxConcurrentBatches);
                 _logger.LogInformation("All of the owner changes have been pushed to Azure Search.");
 
                 // Persist in storage the list of all package IDs that have owner changes. This allows debugging and future
@@ -99,13 +100,37 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             }
         }
 
-        private async Task WorkAsync(ConcurrentBag<IdAndValue<string[]>> changesBag)
+        private async Task WorkAndRetryAsync(ConcurrentBag<IdAndValue<string[]>> changesBag)
         {
             await Task.Yield();
 
+            WorkResult result;
+            var attempt = 0;
+            do
+            {
+                attempt++;
+                result = await WorkAsync(changesBag);
+                changesBag = result.Attempted;
+            }
+            while (!result.Success && attempt < 3);
+
+            result
+                .Results
+                .Where(x => !x.Success)
+                .Aggregate(new BatchPusherResult(), (a, b) => a.Merge(b))
+                .EnsureSuccess();
+        }
+
+        private async Task<WorkResult> WorkAsync(ConcurrentBag<IdAndValue<string[]>> changesBag)
+        {
             var batchPusher = _batchPusherFactory();
+            var attempted = new ConcurrentBag<IdAndValue<string[]>>();
+            var results = new List<BatchPusherResult>();
+
             while (changesBag.TryTake(out var changes))
             {
+                attempted.Add(changes);
+
                 // Note that the owner list passed in can be empty (e.g. if the last owner was deleted or removed from
                 // the package registration).
                 var indexActions = await _searchIndexActionBuilder.UpdateAsync(
@@ -121,12 +146,24 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 batchPusher.EnqueueIndexActions(changes.Id, indexActions);
 
-                // Note that this method can throw a storage exception if one of the version lists has been modified
-                // during the execution of this job loop.
-                await batchPusher.PushFullBatchesAsync();
+                results.Add(await batchPusher.TryPushFullBatchesAsync());
             }
 
-            await batchPusher.FinishAsync();
+            results.Add(await batchPusher.TryFinishAsync());
+            return new WorkResult(attempted, results);
+        }
+
+        private class WorkResult
+        {
+            public WorkResult(ConcurrentBag<IdAndValue<string[]>> attempted, List<BatchPusherResult> results)
+            {
+                Attempted = attempted;
+                Results = results;
+            }
+
+            public bool Success => Results.All(x => x.Success);
+            public ConcurrentBag<IdAndValue<string[]>> Attempted { get; }
+            public List<BatchPusherResult> Results { get; }
         }
     }
 }

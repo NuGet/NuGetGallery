@@ -71,7 +71,7 @@ namespace NuGet.Services.AzureSearch
             return new ResultAndAccessCondition<VersionListData>(data, accessCondition);
         }
 
-        public async Task ReplaceAsync(string id, VersionListData data, IAccessCondition accessCondition)
+        public async Task<bool> TryReplaceAsync(string id, VersionListData data, IAccessCondition accessCondition)
         {
             using (var stream = new MemoryStream())
             {
@@ -98,9 +98,18 @@ namespace NuGet.Services.AzureSearch
                 var blobReference = Container.GetBlobReference(GetFileName(id));
                 blobReference.Properties.ContentType = "application/json";
 
-                await blobReference.UploadFromStreamAsync(
-                    stream,
-                    mappedAccessCondition);
+                try
+                {
+                    await blobReference.UploadFromStreamAsync(
+                        stream,
+                        mappedAccessCondition);
+                    return true;
+                }
+                catch (StorageException ex) when (ex.IsPreconditionFailedException())
+                {
+                    _logger.LogWarning(ex, "Replacing the version list for {Id} failed due to access condition.", id);
+                    return false;
+                }
             }
         }
 

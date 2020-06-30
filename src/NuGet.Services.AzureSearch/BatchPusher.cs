@@ -13,6 +13,7 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest.Azure;
+using NuGet.Packaging;
 using NuGet.Services.AzureSearch.Wrappers;
 
 namespace NuGet.Services.AzureSearch
@@ -93,27 +94,30 @@ namespace NuGet.Services.AzureSearch
             _versionListDataResults.Add(packageId, indexActions.VersionListDataResult);
         }
 
-        public async Task PushFullBatchesAsync()
+        public async Task<BatchPusherResult> TryPushFullBatchesAsync()
         {
-            await PushBatchesAsync(onlyFull: true);
+            return await TryPushBatchesAsync(onlyFull: true);
         }
 
-        public async Task FinishAsync()
+        public async Task<BatchPusherResult> TryFinishAsync()
         {
-            await PushBatchesAsync(onlyFull: false);
+            return await TryPushBatchesAsync(onlyFull: false);
         }
 
-        private async Task PushBatchesAsync(bool onlyFull)
+        private async Task<BatchPusherResult> TryPushBatchesAsync(bool onlyFull)
         {
-            await PushBatchesAsync(_hijackIndexClient, _hijackActions, onlyFull);
-            await PushBatchesAsync(_searchIndexClient, _searchActions, onlyFull);
+            var failedPackageIds = new List<string>();
+            failedPackageIds.AddRange(await PushBatchesAsync(_hijackIndexClient, _hijackActions, onlyFull));
+            failedPackageIds.AddRange(await PushBatchesAsync(_searchIndexClient, _searchActions, onlyFull));
+            return new BatchPusherResult(failedPackageIds);
         }
 
-        private async Task PushBatchesAsync(
+        private async Task<List<string>> PushBatchesAsync(
             ISearchIndexClientWrapper indexClient,
             Queue<IdAndValue<IndexAction<KeyedDocument>>> actions,
             bool onlyFull)
         {
+            var failedPackageIds = new List<string>();
             while ((onlyFull && actions.Count >= _options.Value.AzureSearchBatchSize)
                 || (!onlyFull && actions.Count > 0))
             {
@@ -136,7 +140,7 @@ namespace NuGet.Services.AzureSearch
 
                 if (allFinished.Any())
                 {
-                    await UpdateVersionListsAsync(allFinished);
+                    failedPackageIds.AddRange(await UpdateVersionListsAsync(allFinished));
                 }
             }
 
@@ -152,6 +156,8 @@ namespace NuGet.Services.AzureSearch
                     .Except(_versionListDataResults.Keys)
                     .Any(),
                 "There are some reference counts without version list data results.");
+
+            return failedPackageIds;
         }
 
         private async Task IndexAsync(
@@ -255,14 +261,14 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
-        private async Task UpdateVersionListsAsync(List<IdAndValue<ResultAndAccessCondition<VersionListData>>> allFinished)
+        private async Task<HashSet<string>> UpdateVersionListsAsync(List<IdAndValue<ResultAndAccessCondition<VersionListData>>> allFinished)
         {
             if (_developmentOptions.Value.DisableVersionListWriters)
             {
                 _logger.LogWarning(
                     "Skipped updating {VersionListCount} version lists.",
                     allFinished.Count);
-                return;
+                return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
 
             var versionListIdSample = allFinished
@@ -278,6 +284,7 @@ namespace NuGet.Services.AzureSearch
                 versionListIdSample);
 
             var work = new ConcurrentBag<IdAndValue<ResultAndAccessCondition<VersionListData>>>(allFinished);
+            var failedPackageIds = new ConcurrentQueue<string>();
             using (_telemetryService.TrackVersionListsUpdated(allFinished.Count, workerCount))
             {
                 var tasks = Enumerable
@@ -287,17 +294,26 @@ namespace NuGet.Services.AzureSearch
                         await Task.Yield();
                         while (work.TryTake(out var finished))
                         {
-                            // This method can throw a storage exception if the version list has changed.
-                            await _versionListDataClient.ReplaceAsync(
+                            var success = await _versionListDataClient.TryReplaceAsync(
                                 finished.Id,
                                 finished.Value.Result,
                                 finished.Value.AccessCondition);
+
+                            if (!success)
+                            {
+                                failedPackageIds.Enqueue(finished.Id);
+                            }
                         }
                     })
                     .ToList();
                 await Task.WhenAll(tasks);
 
-                _logger.LogInformation("Done updating {VersionListCount} version lists.", allFinished.Count);
+                _logger.LogInformation(
+                    "Done updating {VersionListCount} version lists. {FailureCount} version lists failed.",
+                    allFinished.Count - failedPackageIds.Count,
+                    failedPackageIds.Count);
+
+                return failedPackageIds.ToHashSet(StringComparer.OrdinalIgnoreCase);
             }
         }
 
