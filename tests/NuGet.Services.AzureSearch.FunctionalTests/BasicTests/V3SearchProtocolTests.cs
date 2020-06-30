@@ -86,17 +86,17 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         [MemberData(nameof(TakeResults))]
         public async Task TakeReturnsExactResults(int take)
         {
-            var results = await V3SearchAsync(new V3SearchBuilder { Query = "json", Take = take });
+            var results = await V3SearchAsync(new V3SearchBuilder { Query = "", Take = take });
 
             Assert.NotNull(results);
-            Assert.True(results.TotalHits > take);
+            Assert.True(results.TotalHits >= results.Data.Count);
             Assert.True(results.Data.Count == take, $"The search result did not return the expected {take} results");
         }
 
         [Fact]
         public async Task SkipDoesSkipThePackagesInResult()
         {
-            var searchTerm = "json";
+            var searchTerm = "";
             var skip = 5;
             var resultsWithoutSkip = await V3SearchAsync(new V3SearchBuilder { Query = searchTerm, Take = 10 });
             var resultsWithSkip = await V3SearchAsync(new V3SearchBuilder { Query = searchTerm, Skip = skip, Take = 10 - skip });

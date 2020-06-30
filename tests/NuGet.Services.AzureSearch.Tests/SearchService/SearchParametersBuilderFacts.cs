@@ -63,6 +63,33 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal(0, output.Top);
                 Assert.Equal("searchFilters eq 'Default' and (isExcludedByDefault eq false or isExcludedByDefault eq null)", output.Filter);
             }
+            
+            [Theory]
+            [MemberData(nameof(ValidPackageTypes))]
+            public void PackageTypeFiltering(string packageType)
+            {
+                var request = new V2SearchRequest
+                {
+                    PackageType = packageType,
+                };
+
+                var output = _target.V2Search(request, It.IsAny<bool>());
+
+                Assert.Equal($"searchFilters eq 'Default' and filterablePackageTypes/any(p: p eq '{packageType.ToLowerInvariant()}')", output.Filter);
+            }
+
+            [Fact]
+            public void InvalidPackageType()
+            {
+                var request = new V2SearchRequest
+                {
+                    PackageType = "something's-weird",
+                };
+
+                var output = _target.V2Search(request, It.IsAny<bool>());
+
+                Assert.Equal("searchFilters eq 'Default'", output.Filter);
+            }
 
             [Fact]
             public void CountOnly()
@@ -179,7 +206,11 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var metadataProperties = typeof(BaseMetadataDocument)
                     .GetProperties()
+                    .Union(typeof(SearchDocument.Full).GetProperties()) // Properties can also be in a SearchDocument (e.g: TotalDownloadCount)
+                    .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .Select(g => g.First())
                     .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
+
                 var expectedOrderBy = V2SortByToOrderBy[v2SortBy];
 
                 foreach (var clause in expectedOrderBy)
@@ -507,6 +538,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                 { V2SortBy.SortableTitleDesc, new[] { "sortableTitle desc", "created desc" } },
                 { V2SortBy.CreatedAsc, new[] { "created asc" } },
                 { V2SortBy.CreatedDesc, new[] { "created desc" } },
+                { V2SortBy.TotalDownloadsAsc, new[] { "totalDownloadCount asc", "created asc"} },
+                { V2SortBy.TotalDownloadsDesc, new[] { "totalDownloadCount desc", "created desc"} },
             };
 
             public static IEnumerable<object[]> AllSearchFilters => new[]

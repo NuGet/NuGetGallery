@@ -59,6 +59,30 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Fact]
+            public async Task ShouldThrowOnInvalidAdvancedSearchOnHijackIndex()
+            {
+                _v2Request.IgnoreFilter = true;
+                _v2Request.SortBy = V2SortBy.TotalDownloadsAsc;
+                await Assert.ThrowsAsync<InvalidSearchRequestException>(async () =>
+                 {
+                     await _target.V2SearchAsync(_v2Request);
+                 });
+
+                _v2Request.SortBy = V2SortBy.TotalDownloadsDesc;
+                await Assert.ThrowsAsync<InvalidSearchRequestException>(async () =>
+                {
+                    await _target.V2SearchAsync(_v2Request);
+                });
+
+                _v2Request.SortBy = V2SortBy.Popularity; // This is valid
+                _v2Request.PackageType = "dotnettool"; // This should make the request crash
+                await Assert.ThrowsAsync<InvalidSearchRequestException>(async () =>
+                {
+                    await _target.V2SearchAsync(_v2Request);
+                });
+            }
+
+            [Fact]
             public async Task SearchIndexAndGetOperation()
             {
                 _v2Request.IgnoreFilter = false;

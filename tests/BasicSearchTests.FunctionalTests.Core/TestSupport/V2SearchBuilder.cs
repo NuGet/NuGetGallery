@@ -22,6 +22,8 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
 
         public bool? LuceneQuery { get; set; }
 
+        public string PackageType { get; set; }
+
         public V2SearchBuilder() : base("/search/query?") { }
 
         protected override NameValueCollection GetQueryString()
@@ -55,6 +57,11 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
             if (LuceneQuery.HasValue)
             {
                 queryString["luceneQuery"] = LuceneQuery.ToString();
+            }
+
+            if (PackageType != null)
+            {
+                queryString["packageType"] = PackageType;
             }
 
             return queryString;

@@ -120,6 +120,27 @@ namespace NuGet.Services.AzureSearch.SearchService
                 TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
                 ParametersBuilder.Verify(x => x.V2Search(V2SearchRequest, It.IsAny<bool>()), Times.Once);
             }
+
+            [Fact]
+            public void ReturnsEmptyQueryForInvalidPackageType()
+            {
+                V2SearchRequest.PackageType = "invalid package type";
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Empty, actual.Type);
+            }
+
+            [Fact]
+            public void BuildsSearchOperationForSingleValidPackageIdAndPackageType()
+            {
+                V2SearchRequest.PackageType = "Dependency";
+                ParsedQuery.Grouping[QueryField.PackageId] = new HashSet<string>(new[] { Id });
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Search, actual.Type);
+            }
         }
 
         public class V2SearchWithHijackIndex : Facts
