@@ -20,6 +20,10 @@ namespace NuGetGallery
         {
             TelemetryService.Events.PackagePush,
             TelemetryService.Events.PackagePushFailure,
+            TelemetryService.Events.PackagePushDisconnect,
+            TelemetryService.Events.SymbolPackagePush,
+            TelemetryService.Events.SymbolPackagePushFailure,
+            TelemetryService.Events.SymbolPackagePushDisconnect,
         };
 
         public void Initialize(ITelemetry telemetry)

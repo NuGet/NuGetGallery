@@ -123,6 +123,10 @@ namespace NuGetGallery.Telemetry
         {
             new object[] { "PackagePush" },
             new object[] { "PackagePushFailure" },
+            new object[] { "PackagePushDisconnect" },
+            new object[] { "SymbolPackagePush" },
+            new object[] { "SymbolPackagePushFailure" },
+            new object[] { "SymbolPackagePushDisconnect" },
         };
     }
 }

@@ -236,6 +236,11 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
+        public void TrackPackagePushDisconnectEvent()
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackPackagePushEvent(Package package, User user, IIdentity identity)
         {
             throw new NotImplementedException();
@@ -312,6 +317,11 @@ namespace GitHubVulnerabilities2Db.Gallery
         }
 
         public void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackSymbolPackagePushDisconnectEvent()
         {
             throw new NotImplementedException();
         }

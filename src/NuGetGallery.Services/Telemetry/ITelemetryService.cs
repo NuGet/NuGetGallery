@@ -32,6 +32,8 @@ namespace NuGetGallery
 
         void TrackPackagePushFailureEvent(string id, NuGetVersion version);
 
+        void TrackPackagePushDisconnectEvent();
+
         void TrackPackageUnlisted(Package package);
 
         void TrackPackageListed(Package package);
@@ -201,6 +203,11 @@ namespace NuGetGallery
         /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
         /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
         void TrackSymbolPackagePushFailureEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package push failed due to client disconnect.
+        /// </summary>
+        void TrackSymbolPackagePushDisconnectEvent();
 
         /// <summary>
         /// A telemetry event emitted when a symbol package fails Gallery validation.

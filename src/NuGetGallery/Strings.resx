@@ -1159,4 +1159,7 @@ The {1} Team</value>
   <data name="TwoFAFeedback_Error" xml:space="preserve">
     <value>There was an unexpected error when submitting feedback. Please contact NuGet support.</value>
   </data>
+  <data name="PackageUploadCancelled" xml:space="preserve">
+    <value>The package upload failed due to the client disconnecting.</value>
+  </data>
 </root>
