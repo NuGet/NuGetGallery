@@ -1,7 +1,3 @@
-﻿User-agent: * 
+User-agent: * 
 Disallow: /api/v2/package/*$
 Disallow: /api/v2/package/*/*$
-Disallow: /packages/*/*/Contents$
-Disallow: /packages/*/*/contents$
-Disallow: /Packages/*/*/Contents$
-Disallow: /Packages/*/*/contents$
