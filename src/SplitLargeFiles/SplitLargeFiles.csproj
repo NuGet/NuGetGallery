@@ -57,6 +57,14 @@
     <None Include="App.config" />
     <None Include="SplitLargeFiles.nuspec" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Services.KeyVault">
+      <Version>2.74.0</Version>
+    </PackageReference>
+    <PackageReference Include="WindowsAzure.Storage">
+      <Version>9.3.3</Version>
+    </PackageReference>
+  </ItemGroup>
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>
     <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
