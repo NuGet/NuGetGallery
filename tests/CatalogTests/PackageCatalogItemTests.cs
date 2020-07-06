@@ -124,7 +124,7 @@ namespace CatalogTests.Helpers
         public void CreateContent_ThrowsIfMultipleDeprecationTriples()
         {
             var packageDetails = Schema.DataTypes.PackageDetails;
-            var catalogItemMock = new Mock<PackageCatalogItem>(null, null, null, null, null, null, null)
+            var catalogItemMock = new Mock<PackageCatalogItem>(null, null, null, null, null, null, null, null)
             {
                 CallBase = true
             };

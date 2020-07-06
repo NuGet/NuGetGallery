@@ -100,6 +100,8 @@ namespace NgTests
         public const string VerbatimVersion = "verbatimVersion";
         public const string Version = "version";
         public const string VocabKeyword = "@vocab";
+        public const string Vulnerabilities = "vulnerabilities";
+        public const string Vulnerability = "vulnerability";
         public const string XmlDateTimeSchemaUri = "http://www.w3.org/2001/XMLSchema#dateTime";
         public const string XmlSchemaUri = "http://www.w3.org/2001/XMLSchema#";
         public const string Xsd = "xsd";

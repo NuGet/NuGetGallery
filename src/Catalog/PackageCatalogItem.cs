@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Entities;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using VDS.RDF;
@@ -22,6 +24,7 @@ namespace NuGet.Services.Metadata.Catalog
         public DateTime? LastEditedDate { get; }
         public DateTime? PublishedDate { get; }
         public PackageDeprecationItem Deprecation { get; }
+        public IList<PackageVulnerabilityItem> Vulnerabilities { get; }
 
         public PackageCatalogItem(
             NupkgMetadata nupkgMetadata, 
@@ -30,47 +33,48 @@ namespace NuGet.Services.Metadata.Catalog
             DateTime? publishedDate = null, 
             string licenseNames = null, 
             string licenseReportUrl = null,
-            PackageDeprecationItem deprecation = null)
+            PackageDeprecationItem deprecation = null,
+            IList<PackageVulnerabilityItem> vulnerabilities = null)
         {
             NupkgMetadata = nupkgMetadata;
             CreatedDate = createdDate;
             LastEditedDate = lastEditedDate;
             PublishedDate = publishedDate;
             Deprecation = deprecation;
+            Vulnerabilities = vulnerabilities;
         }
 
         public override IGraph CreateContentGraph(CatalogContext context)
         {
             IGraph graph = Utils.CreateNuspecGraph(NupkgMetadata.Nuspec, GetBaseAddress().ToString(), normalizeXml: true);
 
-            //  catalog infrastructure fields
+            // catalog infrastructure fields
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
             INode permanentType = graph.CreateUriNode(Schema.DataTypes.Permalink);
             Triple resource = graph.GetTriplesWithPredicateObject(rdfTypePredicate, graph.CreateUriNode(GetItemType())).First();
             graph.Assert(resource.Subject, rdfTypePredicate, permanentType);
 
-            //  published
+            // published
             INode publishedPredicate = graph.CreateUriNode(Schema.Predicates.Published);
             DateTime published = PublishedDate ?? TimeStamp;
             graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(published.ToString("O"), Schema.DataTypes.DateTime));
 
-            //  listed
+            // listed
             INode listedPredicate = graph.CreateUriNode(Schema.Predicates.Listed);
             Boolean listed = GetListed(published);
             graph.Assert(resource.Subject, listedPredicate, graph.CreateLiteralNode(listed.ToString(), Schema.DataTypes.Boolean));
 
-            //  created
+            // created
             INode createdPredicate = graph.CreateUriNode(Schema.Predicates.Created);
             DateTime created = CreatedDate ?? TimeStamp;
             graph.Assert(resource.Subject, createdPredicate, graph.CreateLiteralNode(created.ToString("O"), Schema.DataTypes.DateTime));
 
-            //  lastEdited
+            // lastEdited
             INode lastEditedPredicate = graph.CreateUriNode(Schema.Predicates.LastEdited);
             DateTime lastEdited = LastEditedDate ?? DateTime.MinValue;
             graph.Assert(resource.Subject, lastEditedPredicate, graph.CreateLiteralNode(lastEdited.ToString("O"), Schema.DataTypes.DateTime));
 
-            //  entries
-
+            // entries
             if (NupkgMetadata.Entries != null)
             {
                 INode packageEntryPredicate = graph.CreateUriNode(Schema.Predicates.PackageEntry);
@@ -95,12 +99,12 @@ namespace NuGet.Services.Metadata.Catalog
                 }
             }
 
-            //  packageSize and packageHash
+            // packageSize and packageHash
             graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageSize), graph.CreateLiteralNode(NupkgMetadata.PackageSize.ToString(), Schema.DataTypes.Integer));
             graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHash), graph.CreateLiteralNode(NupkgMetadata.PackageHash));
             graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHashAlgorithm), graph.CreateLiteralNode(Constants.Sha512));
 
-            //  identity and version
+            // identity and version
             SetIdVersionFromGraph(graph);
 
             // deprecation
@@ -149,12 +153,35 @@ namespace NuGet.Services.Metadata.Catalog
                 }
             }
 
+            // vulnerabilities
+            if (Vulnerabilities != null)
+            {
+                INode vulnerabilityPredicate = graph.CreateUriNode(Schema.Predicates.Vulnerability);
+                INode vulnerabilityType = graph.CreateUriNode(Schema.DataTypes.Vulnerability);
+                INode gitHubDatabaseKeyPredicate = graph.CreateUriNode(Schema.Predicates.GitHubDatabaseKey);
+                INode advisoryUrlPredicate = graph.CreateUriNode(Schema.Predicates.AdvisoryUrl);
+                INode severityPredicate = graph.CreateUriNode(Schema.Predicates.Severity);
+
+                foreach (PackageVulnerabilityItem vulnerability in Vulnerabilities)
+                {
+                    Uri vulnerabilityUri = new Uri(resource.Subject.ToString() + "#vulnerability/GitHub/" + vulnerability.GitHubDatabaseKey);
+
+                    INode vulnerabilityNode = graph.CreateUriNode(vulnerabilityUri);
+
+                    graph.Assert(resource.Subject, vulnerabilityPredicate, vulnerabilityNode);
+                    graph.Assert(vulnerabilityNode, rdfTypePredicate, vulnerabilityType);
+                    graph.Assert(vulnerabilityNode, gitHubDatabaseKeyPredicate, graph.CreateLiteralNode(vulnerability.GitHubDatabaseKey));
+                    graph.Assert(vulnerabilityNode, advisoryUrlPredicate, graph.CreateLiteralNode(vulnerability.AdvisoryUrl));
+                    graph.Assert(vulnerabilityNode, severityPredicate, graph.CreateLiteralNode(vulnerability.Severity));
+                }
+            }
+
             return graph;
         }
 
         public static bool GetListed(DateTime published)
         {
-            //If the published date is 1900/01/01, then the package is unlisted
+            // if the published date is 1900/01/01, then the package is unlisted
             if (published.ToUniversalTime() == Constants.UnpublishedDate)
             {
                 return false;
@@ -186,11 +213,11 @@ namespace NuGet.Services.Metadata.Catalog
 
         public override StorageContent CreateContent(CatalogContext context)
         {
-            //  metadata from nuspec
+            // metadata from nuspec
 
             using (IGraph graph = CreateContentGraph(context))
             {
-                //  catalog infrastructure fields
+                // catalog infrastructure fields
                 INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
                 INode timeStampPredicate = graph.CreateUriNode(Schema.Predicates.CatalogTimeStamp);
                 INode commitIdPredicate = graph.CreateUriNode(Schema.Predicates.CatalogCommitId);
@@ -204,7 +231,7 @@ namespace NuGet.Services.Metadata.Catalog
                     throw new ArgumentException("Package catalog items can only have a single deprecation.");
                 }
 
-                //  create JSON content
+                // create JSON content
                 JObject frame = context.GetJsonLdContext("context.PackageDetails.json", GetItemType());
 
                 StorageContent content = new StringStorageContent(Utils.CreateArrangedJson(graph, frame), "application/json", "no-store");

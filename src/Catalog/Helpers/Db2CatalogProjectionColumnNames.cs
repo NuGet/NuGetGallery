@@ -8,6 +8,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
     /// </summary>
     public static class Db2CatalogProjectionColumnNames
     {
+        public const string Key = "Key";
         public const string PackageId = "Id";
         public const string NormalizedVersion = "NormalizedVersion";
         public const string FullVersion = "Version";
@@ -23,5 +24,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public const string DeprecationStatus = "DeprecationStatus";
         public const string DeprecationMessage = "DeprecationMessage";
         public const string RequiresLicenseAcceptance = "RequiresLicenseAcceptance";
+        public const string VulnerabilityGitHubDatabaseKey = "VulnerabilityGitHubDatabaseKey";
+        public const string VulnerabilityAdvisoryUrl = "VulnerabilityAdvisoryUrl";
+        public const string VulnerabilitySeverity = "VulnerabilitySeverity";
     }
 }

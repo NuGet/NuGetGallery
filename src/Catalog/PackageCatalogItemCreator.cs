@@ -137,7 +137,8 @@ namespace NuGet.Services.Metadata.Catalog
                             licenseNames: null,
                             licenseReportUrl: null,
                             packageHash: packageHash,
-                            deprecationItem: packageItem.DeprecationInfo);
+                            deprecationItem: packageItem.DeprecationInfo,
+                            vulnerabilities: packageItem.VulnerabilityInfo);
 
                         if (item == null)
                         {
@@ -212,7 +213,8 @@ namespace NuGet.Services.Metadata.Catalog
                         packageItem.CreatedDate,
                         packageItem.LastEditedDate,
                         packageItem.PublishedDate,
-                        deprecationItem: packageItem.DeprecationInfo);
+                        deprecationItem: packageItem.DeprecationInfo,
+                        vulnerabilities: packageItem.VulnerabilityInfo);
 
                     if (item == null)
                     {

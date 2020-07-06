@@ -89,6 +89,7 @@
     <Compile Include="CatalogIndexEntry.cs" />
     <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="CatalogTypeConverter.cs" />
+    <Compile Include="PackageVulnerabilityItem.cs" />
     <Compile Include="Persistence\CloudBlockBlobClientWrapper.cs" />
     <Compile Include="Persistence\CloudBlobDirectoryWrapper.cs" />
     <Compile Include="CloudBlobStorageExtensions.cs" />

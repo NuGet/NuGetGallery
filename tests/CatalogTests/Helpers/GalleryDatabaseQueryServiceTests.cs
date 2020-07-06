@@ -25,7 +25,7 @@ namespace CatalogTests.Helpers
                 var queryString = GalleryDatabaseQueryService.BuildDb2CatalogSqlQuery(cursor);
 
                 // Assert
-                Assert.StartsWith($"SELECT TOP {cursor.Top} WITH TIES", queryString);
+                Assert.Contains($"SELECT TOP {cursor.Top} WITH TIES", queryString);
             }
 
             [Fact]
@@ -38,7 +38,7 @@ namespace CatalogTests.Helpers
                 var queryString = GalleryDatabaseQueryService.BuildDb2CatalogSqlQuery(cursor);
 
                 // Assert
-                Assert.EndsWith($"ORDER BY P.[{cursor.ColumnName}]", queryString);
+                Assert.EndsWith($"ORDER BY P_EXT.[{cursor.ColumnName}], P_EXT.[{Db2CatalogProjectionColumnNames.Key}]", queryString);
             }
 
             [Fact]
@@ -51,7 +51,7 @@ namespace CatalogTests.Helpers
                 var queryString = GalleryDatabaseQueryService.BuildDb2CatalogSqlQuery(cursor);
 
                 // Assert
-                Assert.EndsWith($"ORDER BY P.[{cursor.ColumnName}]", queryString);
+                Assert.EndsWith($"ORDER BY P_EXT.[{cursor.ColumnName}], P_EXT.[{Db2CatalogProjectionColumnNames.Key}]", queryString);
             }
 
             [Fact]
@@ -78,6 +78,21 @@ namespace CatalogTests.Helpers
 
                 // Assert
                 Assert.Contains("INNER JOIN [dbo].[PackageRegistrations] AS PR ON P.[PackageRegistrationKey] = PR.[Key]", queryString);
+            }
+
+            [Fact]
+            public void JoinsWithPackageVulnerabilitiesTables()
+            {
+                // Arrange
+                var cursor = Db2CatalogCursor.ByCreated(DateTime.UtcNow, 20);
+
+                // Act
+                var queryString = GalleryDatabaseQueryService.BuildDb2CatalogSqlQuery(cursor);
+
+                // Assert
+                Assert.Contains("LEFT JOIN [dbo].[VulnerablePackageVersionRangePackages] AS VPVRP ON VPVRP.[Package_Key] = P_EXT.[Key]", queryString);
+                Assert.Contains("LEFT JOIN [dbo].[VulnerablePackageVersionRanges] AS VPVR ON VPVR.[Key] = VPVRP.[VulnerablePackageVersionRange_Key]", queryString);
+                Assert.Contains("LEFT JOIN [dbo].[PackageVulnerabilities] AS PV ON PV.[Key] = VPVR.[VulnerabilityKey]", queryString);
             }
 
             [Fact]

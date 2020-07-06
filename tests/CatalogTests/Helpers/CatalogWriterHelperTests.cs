@@ -223,7 +223,10 @@ namespace CatalogTests.Helpers
                         {
                             foreach (var deprecationState in Enum.GetValues(typeof(PackageDeprecationItemState)).Cast<PackageDeprecationItemState>())
                             {
-                                yield return new object[] { createdPackages, updateCreatedFromEdited, deprecationState };
+                                for (var vulnerabilityCount = 0; vulnerabilityCount < 3; vulnerabilityCount++)
+                                {
+                                    yield return new object[] { createdPackages, updateCreatedFromEdited, deprecationState, vulnerabilityCount };
+                                }
                             }
                         }
                     }
@@ -232,7 +235,7 @@ namespace CatalogTests.Helpers
 
             [Theory]
             [MemberData(nameof(WithOnePackage_UpdatesStorage_Data))]
-            public async Task WithOnePackage_UpdatesStorage(bool createdPackages, bool updateCreatedFromEdited, PackageDeprecationItemState deprecationState)
+            public async Task WithOnePackage_UpdatesStorage(bool createdPackages, bool updateCreatedFromEdited, PackageDeprecationItemState deprecationState, int vulnerabilityCount)
             {
                 // Arrange
                 using (var test = new WritePackageDetailsToCatalogAsyncTest())
@@ -240,19 +243,21 @@ namespace CatalogTests.Helpers
                     test.CreatedPackages = createdPackages;
                     test.UpdateCreatedFromEdited = updateCreatedFromEdited;
                     test.Packages.Add(test.UtcNow, new List<FeedPackageDetails>()
-                {
-                    test.FeedPackageDetails
-                });
+                    {
+                        test.FeedPackageDetails
+                    });
 
                     NupkgMetadata nupkgMetadata = GetNupkgMetadata("Newtonsoft.Json.9.0.2-beta1.nupkg");
 
                     var deprecationItem = GetPackageDeprecationItemFromState(deprecationState);
+                    var vulnerabilities = CreateTestPackageVulnerabilityItems(vulnerabilityCount);
                     var packageCatalogItem = new PackageCatalogItem(
                         nupkgMetadata,
                         test.FeedPackageDetails.CreatedDate,
                         test.FeedPackageDetails.LastEditedDate,
                         test.FeedPackageDetails.PublishedDate,
-                        deprecation: deprecationItem);
+                        deprecation: deprecationItem,
+                        vulnerabilities: vulnerabilities);
 
                     test.PackageCatalogItemCreator.Setup(x => x.CreateAsync(
                             It.Is<FeedPackageDetails>(details => details == test.FeedPackageDetails),
@@ -311,7 +316,8 @@ namespace CatalogTests.Helpers
                         packageCatalogItem.CreatedDate.Value,
                         packageCatalogItem.LastEditedDate.Value,
                         packageCatalogItem.PublishedDate.Value,
-                        deprecationItem);
+                        deprecationItem,
+                        vulnerabilities);
 
                     var actualContent = JObject.Parse(stringContent.Content);
 
@@ -492,6 +498,22 @@ namespace CatalogTests.Helpers
             }
 
             return new PackageDeprecationItem(reasons, message, altId, altVersion);
+        }
+
+        private static IList<PackageVulnerabilityItem> CreateTestPackageVulnerabilityItems(int vulnerabilityCount)
+        {
+            if (vulnerabilityCount == 0)
+            {
+                return null;
+            }
+
+            var vulnerabilities = new List<PackageVulnerabilityItem>();
+            for (int i = 0; i < vulnerabilityCount; i++)
+            {
+                vulnerabilities.Add(new PackageVulnerabilityItem("" + 100 + i, "http://www.foo.com/advisory" + i + ".html", "" + i));
+            }
+
+            return vulnerabilities;
         }
 
         private static NupkgMetadata GetNupkgMetadata(string resourceName)
