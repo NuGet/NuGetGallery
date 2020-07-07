@@ -52,7 +52,6 @@ As an alternative to using nuget.org's DEV resources, you can also run this tool
 
 In your Azure Blob Storage account, you will need to create a container named `ng-search-data` and upload the following files:
 1. `downloads.v1.json` with content `[]`
-1. `downloadOverrides.json` with content `{}`
 1. `ExcludedPackages.v1.json` with content `[]`
 1. `verifiedPackages.json` with content `[]`
 
@@ -88,7 +87,6 @@ Once you've created your Azure resources, you can create your `settings.json` fi
     "AuxiliaryDataStorageConnectionString": "PLACEHOLDER",
     "AuxiliaryDataStorageContainer": "ng-search-data",
     "AuxiliaryDataStorageDownloadsPath": "downloads.v1.json",
-    "AuxiliaryDataStorageDownloadOverridesPath": "downloadOverrides.json",
     "AuxiliaryDataStorageExcludedPackagesPath": "ExcludedPackages.v1.json",
     "AuxiliaryDataStorageVerifiedPackagesPath": "verifiedPackages.json",
     "FlatContainerBaseUrl": "https://api.nuget.org/",

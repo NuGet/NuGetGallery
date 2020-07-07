@@ -56,7 +56,6 @@
     <Compile Include="Auxiliary2AzureSearch\DownloadSetComparer.cs" />
     <Compile Include="Auxiliary2AzureSearch\IDownloadSetComparer.cs" />
     <Compile Include="AuxiliaryFiles\AuxiliaryDataStorageConfiguration.cs" />
-    <Compile Include="AuxiliaryFiles\DownloadOverrides.cs" />
     <Compile Include="AuxiliaryFiles\DownloadsV1Reader.cs" />
     <Compile Include="AuxiliaryFiles\IPopularityTransferDataClient.cs" />
     <Compile Include="AuxiliaryFiles\JsonStringArrayFileParser.cs" />

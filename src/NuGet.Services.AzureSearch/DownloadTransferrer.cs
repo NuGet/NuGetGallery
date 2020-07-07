@@ -29,13 +29,8 @@ namespace NuGet.Services.AzureSearch
 
         public SortedDictionary<string, long> InitializeDownloadTransfers(
             DownloadData downloads,
-            PopularityTransferData outgoingTransfers,
-            IReadOnlyDictionary<string, long> downloadOverrides)
+            PopularityTransferData outgoingTransfers)
         {
-            Guard.Assert(
-                !outgoingTransfers.Any() || !downloadOverrides.Any(),
-                "Cannot apply both popularity transfers and download overrides.");
-
             // Downloads are transferred from a "from" package to one or more "to" packages.
             // The "outgoingTransfers" maps "from" packages to their corresponding "to" packages.
             // The "incomingTransfers" maps "to" packages to their corresponding "from" packages.
@@ -46,25 +41,18 @@ namespace NuGet.Services.AzureSearch
             packageIds.UnionWith(outgoingTransfers.Keys);
             packageIds.UnionWith(incomingTransfers.Keys);
 
-            var downloadTransfers = ApplyDownloadTransfers(
+            return ApplyDownloadTransfers(
                 downloads,
                 outgoingTransfers,
                 incomingTransfers,
                 packageIds);
-
-            // TODO: Remove download overrides.
-            // See: https://github.com/NuGet/Engineering/issues/3089
-            ApplyDownloadOverrides(downloads, downloadOverrides, downloadTransfers);
-
-            return downloadTransfers;
         }
 
         public SortedDictionary<string, long> UpdateDownloadTransfers(
             DownloadData downloads,
             SortedDictionary<string, long> downloadChanges,
             PopularityTransferData oldTransfers,
-            PopularityTransferData newTransfers,
-            IReadOnlyDictionary<string, long> downloadOverrides)
+            PopularityTransferData newTransfers)
         {
             Guard.Assert(
                 downloadChanges.Comparer == StringComparer.OrdinalIgnoreCase,
@@ -73,10 +61,6 @@ namespace NuGet.Services.AzureSearch
             Guard.Assert(
                 downloadChanges.All(x => downloads.GetDownloadCount(x.Key) == x.Value),
                 "The download changes should match the latest downloads");
-
-            Guard.Assert(
-                !newTransfers.Any() || !downloadOverrides.Any(),
-                "Cannot apply both popularity transfers and download overrides.");
 
             // Downloads are transferred from a "from" package to one or more "to" packages.
             // The "oldTransfers" and "newTransfers" maps "from" packages to their corresponding "to" packages.
@@ -95,17 +79,11 @@ namespace NuGet.Services.AzureSearch
                 transferChanges,
                 downloadChanges);
 
-            var downloadTransfers = ApplyDownloadTransfers(
+            return ApplyDownloadTransfers(
                 downloads,
                 newTransfers,
                 incomingTransfers,
                 affectedPackages);
-
-            // TODO: Remove download overrides.
-            // See: https://github.com/NuGet/Engineering/issues/3089
-            ApplyDownloadOverrides(downloads, downloadOverrides, downloadTransfers);
-
-            return downloadTransfers;
         }
 
         private SortedDictionary<string, long> ApplyDownloadTransfers(
@@ -243,44 +221,6 @@ namespace NuGet.Services.AzureSearch
 
             // The package has no outgoing or incoming transfers. Return its downloads unchanged.
             return originalDownloads;
-        }
-
-        private void ApplyDownloadOverrides(
-            DownloadData downloads,
-            IReadOnlyDictionary<string, long> downloadOverrides,
-            SortedDictionary<string, long> transferredDownloads)
-        {
-            // TODO: Remove download overrides.
-            // See: https://github.com/NuGet/Engineering/issues/3089
-            foreach (var downloadOverride in downloadOverrides)
-            {
-                var packageId = downloadOverride.Key;
-                var packageDownloads = downloads.GetDownloadCount(packageId);
-
-                if (transferredDownloads.TryGetValue(packageId, out var updatedDownloads))
-                {
-                    packageDownloads = updatedDownloads;
-                }
-
-                if (packageDownloads >= downloadOverride.Value)
-                {
-                    _logger.LogInformation(
-                        "Skipping download override for package {PackageId} as its downloads of {Downloads} are " +
-                        "greater than its override of {DownloadsOverride}",
-                        packageId,
-                        packageDownloads,
-                        downloadOverride.Value);
-                    continue;
-                }
-
-                _logger.LogInformation(
-                    "Overriding downloads of package {PackageId} from {Downloads} to {DownloadsOverride}",
-                    packageId,
-                    packageDownloads,
-                    downloadOverride.Value);
-
-                transferredDownloads[packageId] = downloadOverride.Value;
-            }
         }
     }
 }

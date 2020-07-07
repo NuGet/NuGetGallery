@@ -41,7 +41,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly Mock<IDownloadTransferrer> _downloadTransferrer;
             private readonly Mock<IFeatureFlagService> _featureFlags;
             private readonly DownloadData _downloads;
-            private readonly Dictionary<string, long> _downloadOverrides;
             private readonly PopularityTransferData _popularityTransfers;
             private readonly SortedDictionary<string, long> _transferChanges;
             private HashSet<string> _excludedPackages;
@@ -73,10 +72,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _auxiliaryFileClient
                     .Setup(x => x.LoadDownloadDataAsync())
                     .ReturnsAsync(() => _downloads);
-                _downloadOverrides = new Dictionary<string, long>();
-                _auxiliaryFileClient
-                    .Setup(x => x.LoadDownloadOverridesAsync())
-                    .ReturnsAsync(() => _downloadOverrides);
 
                 _popularityTransfers = new PopularityTransferData();
                 _databaseFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
@@ -89,8 +84,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _downloadTransferrer
                     .Setup(x => x.InitializeDownloadTransfers(
                         It.IsAny<DownloadData>(),
-                        It.IsAny<PopularityTransferData>(),
-                        It.IsAny<IReadOnlyDictionary<string, long>>()))
+                        It.IsAny<PopularityTransferData>()))
                     .Returns(_transferChanges);
 
                 _featureFlags = new Mock<IFeatureFlagService>();
@@ -532,24 +526,16 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 InitializePackagesFromPackageRegistrations();
 
                 // Transfer changes should be applied to the package registrations.
-                // Download overrides should be skipped.
                 _transferChanges["A"] = 55;
                 _transferChanges["b"] = 66;
                 _transferChanges["C"] = 123;
 
-                _downloadOverrides["C"] = 5;
-
                 var result = await _target.ProduceWorkAsync(_work, _token);
-
-                _auxiliaryFileClient.Verify(x => x.LoadDownloadOverridesAsync(), Times.Never);
                 _databaseFetcher.Verify(x => x.GetPopularityTransfersAsync(), Times.Once);
 
                 _downloadTransferrer
                     .Verify(
-                        x => x.InitializeDownloadTransfers(
-                            _downloads,
-                            _popularityTransfers,
-                            It.Is<IReadOnlyDictionary<string, long>>(overrides => !overrides.Any())),
+                        x => x.InitializeDownloadTransfers(_downloads, _popularityTransfers),
                         Times.Once);
 
                 // Documents should have overriden downloads.
@@ -594,7 +580,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 });
                 _downloads.SetDownloadCount("A", "1.0.0", 100);
                 _popularityTransfers.AddTransfer("A", "A");
-                _downloadOverrides["A"] = 5;
 
                 InitializePackagesFromPackageRegistrations();
 
@@ -609,13 +594,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         Times.Never);
 
                 // Popularity transfers should not be passed to the download transferrer.
-                // Download overrides should be passed to the download transferrer.
                 _downloadTransferrer
                     .Verify(
                         x => x.InitializeDownloadTransfers(
                             _downloads,
-                            It.Is<PopularityTransferData>(data => data.Count == 0),
-                            _downloadOverrides),
+                            It.Is<PopularityTransferData>(data => data.Count == 0)),
                         Times.Once);
 
                 // There should be no popularity transfers.
@@ -636,7 +619,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 });
                 _downloads.SetDownloadCount("A", "1.0.0", 100);
                 _popularityTransfers.AddTransfer("A", "A");
-                _downloadOverrides["A"] = 5;
 
                 InitializePackagesFromPackageRegistrations();
 
@@ -653,13 +635,11 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                         Times.Never);
 
                 // Popularity transfers should not be passed to the download transferrer.
-                // Download overrides should be passed to the download transferrer.
                 _downloadTransferrer
                     .Verify(
                         x => x.InitializeDownloadTransfers(
                             _downloads,
-                            It.Is<PopularityTransferData>(data => data.Count == 0),
-                            _downloadOverrides),
+                            It.Is<PopularityTransferData>(data => data.Count == 0)),
                         Times.Once);
 
                 // There should be no popularity transfers.

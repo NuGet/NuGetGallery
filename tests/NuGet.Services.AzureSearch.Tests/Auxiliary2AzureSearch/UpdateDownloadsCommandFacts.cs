@@ -253,20 +253,13 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                         d => d.GetPopularityTransfersAsync(),
                         Times.Once);
 
-                // Download overrides should be skipped.
-                AuxiliaryFileClient
-                    .Verify(
-                        a => a.LoadDownloadOverridesAsync(),
-                        Times.Never);
-
                 DownloadTransferrer
                     .Verify(
                         x => x.UpdateDownloadTransfers(
                             NewDownloadData,
                             downloadChanges,
                             OldTransfers,
-                            NewTransfers,
-                            It.Is<IReadOnlyDictionary<string, long>>(overrides => !overrides.Any())),
+                            NewTransfers),
                         Times.Once);
 
                 // Documents should be updated.
@@ -315,8 +308,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 OldTransfers.AddTransfer("Package1", "Package2");
                 NewTransfers.AddTransfer("Package1", "Package2");
 
-                DownloadOverrides["Package1"] = 100;
-
                 Config.EnablePopularityTransfers = false;
 
                 await Target.ExecuteAsync();
@@ -329,21 +320,15 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Verify(
                         d => d.GetPopularityTransfersAsync(),
                         Times.Never);
-                AuxiliaryFileClient
-                    .Verify(
-                        a => a.LoadDownloadOverridesAsync(),
-                        Times.Once);
 
                 // The popularity transfers should not be given to the download transferrer.
-                // Download overrides should be given to the download transferrer.
                 DownloadTransferrer
                     .Verify(
                         x => x.UpdateDownloadTransfers(
                             NewDownloadData,
                             downloadChanges,
                             OldTransfers,
-                            It.Is<PopularityTransferData>(d => d.Count == 0),
-                            DownloadOverrides),
+                            It.Is<PopularityTransferData>(d => d.Count == 0)),
                         Times.Once);
 
                 // Popularity transfers auxiliary file should be empty.
@@ -372,8 +357,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 OldTransfers.AddTransfer("Package1", "Package2");
                 NewTransfers.AddTransfer("Package1", "Package2");
 
-                DownloadOverrides["Package1"] = 100;
-
                 FeatureFlags
                     .Setup(x => x.IsPopularityTransferEnabled())
                     .Returns(false);
@@ -388,21 +371,15 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Verify(
                         d => d.GetPopularityTransfersAsync(),
                         Times.Never);
-                AuxiliaryFileClient
-                    .Verify(
-                        a => a.LoadDownloadOverridesAsync(),
-                        Times.Once);
 
                 // The popularity transfers should not be given to the download transferrer.
-                // Download overrides should be given to the download transferrer.
                 DownloadTransferrer
                     .Verify(
                         x => x.UpdateDownloadTransfers(
                             NewDownloadData,
                             downloadChanges,
                             OldTransfers,
-                            It.Is<PopularityTransferData>(d => d.Count == 0),
-                            DownloadOverrides),
+                            It.Is<PopularityTransferData>(d => d.Count == 0)),
                         Times.Once);
 
                 // Popularity transfers auxiliary file should be empty.
@@ -545,17 +522,13 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Setup(x => x.GetPopularityTransfersAsync())
                     .ReturnsAsync(NewTransfers);
 
-                DownloadOverrides = new Dictionary<string, long>();
-                AuxiliaryFileClient.Setup(x => x.LoadDownloadOverridesAsync()).ReturnsAsync(() => DownloadOverrides);
-
                 TransferChanges = new SortedDictionary<string, long>(StringComparer.OrdinalIgnoreCase);
                 DownloadTransferrer
                     .Setup(x => x.UpdateDownloadTransfers(
                         It.IsAny<DownloadData>(),
                         It.IsAny<SortedDictionary<string, long>>(),
                         It.IsAny<PopularityTransferData>(),
-                        It.IsAny<PopularityTransferData>(),
-                        It.IsAny<IReadOnlyDictionary<string, long>>()))
+                        It.IsAny<PopularityTransferData>()))
                     .Returns(TransferChanges);
 
                 IndexActions = new IndexActions(
@@ -638,7 +611,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             public PopularityTransferData OldTransfers { get; }
             public AuxiliaryFileResult<PopularityTransferData> OldTransferResult { get; }
             public PopularityTransferData NewTransfers { get; }
-            public Dictionary<string, long> DownloadOverrides { get; }
             public SortedDictionary<string, long> Changes { get; }
             public SortedDictionary<string, long> TransferChanges { get; }
             public UpdateDownloadsCommand Target { get; }

@@ -73,7 +73,6 @@ Once you've created your Azure resources, you can create your `settings.json` fi
     "AuxiliaryDataStorageConnectionString": "PLACEHOLDER",
     "AuxiliaryDataStorageContainer": "ng-search-data",
     "AuxiliaryDataStorageDownloadsPath": "downloads.v1.json",
-    "AuxiliaryDataStorageDownloadOverridesPath": "downloadOverrides.json",
     "AuxiliaryDataStorageExcludedPackagesPath": "ExcludedPackages.v1.json",
     "AuxiliaryDataStorageVerifiedPackagesPath": "verifiedPackages.json",
     "MinPushPeriod": "00:00:10",
