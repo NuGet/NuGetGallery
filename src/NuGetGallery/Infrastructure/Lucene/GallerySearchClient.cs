@@ -30,16 +30,26 @@ namespace NuGetGallery.Infrastructure.Search
             return new ServiceResponse<JObject>(await _httpClient.GetAsync(_diagnosticsPath, null));
         }
 
-        // This code is copied from the SearchClient 
+        // This code is copied from the SearchClient [and modified a bit] 
         private static readonly Dictionary<SearchModels.SortOrder, string> SortNames = new Dictionary<SearchModels.SortOrder, string>
         {
-            {SearchModels.SortOrder.LastEdited, "lastEdited"},
-            {SearchModels.SortOrder.Relevance, "relevance"},
-            {SearchModels.SortOrder.Published, "published"},
-            {SearchModels.SortOrder.TitleAscending, "title-asc"},
-            {SearchModels.SortOrder.TitleDescending, "title-desc"},
-            {SearchModels.SortOrder.CreatedAscending, "created-asc"},
-            {SearchModels.SortOrder.CreatedDescending, "created-desc"},
+            {SearchModels.SortOrder.LastEdited, GalleryConstants.SearchSortNames.LastEdited},
+            {SearchModels.SortOrder.Relevance, GalleryConstants.SearchSortNames.Relevance},
+            {SearchModels.SortOrder.Published, GalleryConstants.SearchSortNames.Published},
+            {SearchModels.SortOrder.TitleAscending, GalleryConstants.SearchSortNames.TitleAsc},
+            {SearchModels.SortOrder.TitleDescending, GalleryConstants.SearchSortNames.TitleDesc},
+            {SearchModels.SortOrder.CreatedAscending, GalleryConstants.SearchSortNames.CreatedAsc},
+            {SearchModels.SortOrder.CreatedDescending, GalleryConstants.SearchSortNames.CreatedDesc},
+            {SearchModels.SortOrder.TotalDownloadsAscending, GalleryConstants.SearchSortNames.TotalDownloadsAsc},
+            {SearchModels.SortOrder.TotalDownloadsDescending, GalleryConstants.SearchSortNames.TotalDownloadsDesc},
+        };
+
+        private static readonly Dictionary<SearchModels.PackageTypeFilter, string> PackageTypeNames = new Dictionary<SearchModels.PackageTypeFilter, string>
+        {
+            {SearchModels.PackageTypeFilter.AllTypes, GalleryConstants.PackageTypeFilterNames.AllTypes},
+            {SearchModels.PackageTypeFilter.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency},
+            {SearchModels.PackageTypeFilter.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool},
+            {SearchModels.PackageTypeFilter.Template, GalleryConstants.PackageTypeFilterNames.Template},
         };
 
         // This code is copied from the SearchClient 
@@ -47,6 +57,7 @@ namespace NuGetGallery.Infrastructure.Search
             string query,
             string projectTypeFilter = null,
             bool includePrerelease = false,
+            SearchModels.PackageTypeFilter packageType = SearchModels.PackageTypeFilter.AllTypes,
             SearchModels.SortOrder sortBy = SearchModels.SortOrder.Relevance,
             int skip = 0,
             int take = 10,
@@ -61,6 +72,7 @@ namespace NuGetGallery.Infrastructure.Search
             nameValue.Add("q", query);
             nameValue.Add("skip", skip.ToString());
             nameValue.Add("take", take.ToString());
+            nameValue.Add("packageType", PackageTypeNames[packageType]);
             nameValue.Add("sortBy", SortNames[sortBy]);
 
             if (!String.IsNullOrEmpty(semVerLevel))

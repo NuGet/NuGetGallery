@@ -29,6 +29,7 @@ namespace NuGetGallery.Infrastructure.Search
             string query,
             string projectTypeFilter,
             bool includePrerelease,
+            SearchModels.PackageTypeFilter packageType,
             SearchModels.SortOrder sortBy,
             int skip,
             int take,

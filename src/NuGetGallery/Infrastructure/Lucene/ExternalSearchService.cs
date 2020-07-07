@@ -60,6 +60,7 @@ namespace NuGetGallery.Infrastructure.Search
                 filter.SearchTerm,
                 projectTypeFilter: null,
                 includePrerelease: filter.IncludePrerelease,
+                packageType: filter.PackageType,
                 sortBy: filter.SortOrder,
                 skip: filter.Skip,
                 take: filter.Take,

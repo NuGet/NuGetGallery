@@ -1,4 +1,4 @@
-﻿@model PackageListViewModel
+@model PackageListViewModel
 @{
     ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
     ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
@@ -97,7 +97,9 @@
                 IncludePrerelease: '@Model.IncludePrerelease',
                 PageIndex: @Model.PageIndex,
                 TotalCount: @Model.TotalCount,
-                IsPreviewSearch: '@Model.IsPreviewSearch'
+                IsPreviewSearch: '@Model.IsPreviewSearch',
+                PackageType: '@Model.PackageType',
+                SortBy: '@Model.SortBy'
             });
             </text>
         }
@@ -119,7 +121,9 @@
                         UseVersion: data.useVersion,
                         SincePageLoadMs: Date.now() - pageLoadTime,
                         SincePageLoadCount: sincePageLoadCount,
-                        IsPreviewSearch: '@Model.IsPreviewSearch'
+                        IsPreviewSearch: '@Model.IsPreviewSearch',
+                        PackageType: '@Model.PackageType',
+                        SortBy: '@Model.SortBy'
                     });
 
                     sincePageLoadCount++;

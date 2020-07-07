@@ -115,5 +115,26 @@ namespace NuGetGallery
             public const string TransformToOrganization = "https://aka.ms/nuget-faq-transform-org";
             public const string AccountBelongsToUnmanagedTenant = "https://aka.ms/nuget-faq-unmanaged-tenant";
         }
+
+        public static class SearchSortNames
+        {
+            public const string Relevance = "relevance";
+            public const string LastEdited = "lastEdited";
+            public const string Published = "published";
+            public const string TitleAsc = "title-asc";
+            public const string TitleDesc = "title-desc";
+            public const string CreatedAsc = "created-asc";
+            public const string CreatedDesc = "created-desc";
+            public const string TotalDownloadsAsc = "totalDownloads-asc";
+            public const string TotalDownloadsDesc = "totalDownloads-desc";
+        }
+
+        public static class PackageTypeFilterNames
+        {
+            public const string AllTypes = ""; //TODO-riad: verify this with the backend values
+            public const string Dependency = "dependency"; //TODO-riad: verify this with the backend values
+            public const string DotNetTool = "dotnettool"; //TODO-riad: verify this with the backend values
+            public const string Template = "template"; //TODO-riad: verify this with the backend values
+        }
     }
 }

@@ -4843,6 +4843,50 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData(GalleryConstants.SearchSortNames.Relevance, null, true)]
+            [InlineData(null, GalleryConstants.PackageTypeFilterNames.AllTypes, true)]
+            [InlineData(null, null, true)]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, null, false)]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedDesc, null, false)]
+            [InlineData(GalleryConstants.SearchSortNames.LastEdited, null, false)]
+            [InlineData(GalleryConstants.SearchSortNames.Published, null, false)]
+            [InlineData(GalleryConstants.SearchSortNames.TitleAsc, null, false)]
+            [InlineData(GalleryConstants.SearchSortNames.TitleDesc, null, false)]
+            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsAsc, null, false)]
+            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsDesc, null, false)]
+            [InlineData(null, GalleryConstants.PackageTypeFilterNames.Dependency, false)]
+            [InlineData(null, GalleryConstants.PackageTypeFilterNames.DotNetTool, false)]
+            [InlineData(null, GalleryConstants.PackageTypeFilterNames.Template, false)]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, GalleryConstants.PackageTypeFilterNames.Dependency, false)]
+            public async Task DoesNotCacheAdvancedSearch(string sortBy, string packageType, bool expectCached)
+            {
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.Cache).Returns(_cache);
+
+                var searchService = new Mock<ISearchService>();
+                searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
+                    Task.FromResult(new SearchResults(0, DateTime.UtcNow)));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    httpContext: httpContext,
+                    searchService: searchService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = string.Empty, SortBy = sortBy, PackageType = packageType});
+                if(expectCached)
+                {
+                    Assert.NotNull(_cache.Get("DefaultSearchResults"));
+                }else
+                {
+                    Assert.Null(_cache.Get("DefaultSearchResults"));
+                }
+
+
+                searchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Once);
+            }
+
+            [Theory]
             [InlineData(false, "DefaultSearchResults")]
             [InlineData(true, "DefaultPreviewSearchResults")]
             public async Task CachesDefaultSearch(bool preview, string key)

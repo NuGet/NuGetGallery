@@ -911,6 +911,7 @@ namespace NuGetGallery
                                 q: "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
                             page: 1,
                             includePrerelease: true,
+                            packageType: null,
                             sortOrder: null,
                             context: SearchFilter.ODataSearchContext,
                             semVerLevel: SemVerLevelKey.SemVerLevel2);
@@ -1111,6 +1112,8 @@ namespace NuGetGallery
             var page = searchAndListModel.Page;
             var q = searchAndListModel.Q;
             var includePrerelease = searchAndListModel.Prerel ?? true;
+            var sortBy = searchAndListModel.SortBy;
+            var packageType = searchAndListModel.PackageType;
 
             if (page < 1)
             {
@@ -1134,8 +1137,12 @@ namespace NuGetGallery
             var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
 
+            // If sortBy or packageType is anything but the default values, the request is using the Advanced Search features and should not be cached
+            var isAdvancedSearchRequest = (sortBy != null && !string.Equals(sortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase))
+                                           || (packageType != null && !string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.AllTypes, StringComparison.OrdinalIgnoreCase));
+
             // fetch most common query from cache to relieve load on the search service
-            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease)
+            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease && !isAdvancedSearchRequest)
             {
                 var cacheKey = isPreviewSearchEnabled ? "DefaultPreviewSearchResults" : "DefaultSearchResults";
                 var cachedResults = HttpContext.Cache.Get(cacheKey);
@@ -1145,7 +1152,8 @@ namespace NuGetGallery
                         q,
                         page,
                         includePrerelease: includePrerelease,
-                        sortOrder: null,
+                        packageType: packageType,
+                        sortOrder: sortBy,
                         context: SearchFilter.UISearchContext,
                         semVerLevel: SemVerLevelKey.SemVerLevel2);
 
@@ -1172,7 +1180,8 @@ namespace NuGetGallery
                     q,
                     page,
                     includePrerelease: includePrerelease,
-                    sortOrder: null,
+                    packageType: packageType,
+                    sortOrder: sortBy,
                     context: SearchFilter.UISearchContext,
                     semVerLevel: SemVerLevelKey.SemVerLevel2);
 
@@ -1200,7 +1209,9 @@ namespace NuGetGallery
                 GalleryConstants.DefaultPackageListPageSize,
                 Url,
                 includePrerelease,
-                isPreviewSearchEnabled);
+                isPreviewSearchEnabled,
+                packageType,
+                sortBy);
 
             ViewBag.SearchTerm = q;
 

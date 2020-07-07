@@ -80,6 +80,139 @@ namespace NuGetGallery
             }
         }
 
+        public class TheGetSearchFilterFunction
+        {
+
+            private static readonly Dictionary<SortOrder, string> SortNames = new Dictionary<SortOrder, string>
+            {
+                {SortOrder.LastEdited, GalleryConstants.SearchSortNames.LastEdited},
+                {SortOrder.Relevance, GalleryConstants.SearchSortNames.Relevance},
+                {SortOrder.Published, GalleryConstants.SearchSortNames.Published},
+                {SortOrder.TitleAscending, GalleryConstants.SearchSortNames.TitleAsc},
+                {SortOrder.TitleDescending, GalleryConstants.SearchSortNames.TitleDesc},
+                {SortOrder.CreatedAscending, GalleryConstants.SearchSortNames.CreatedAsc},
+                {SortOrder.CreatedDescending, GalleryConstants.SearchSortNames.CreatedDesc},
+                {SortOrder.TotalDownloadsAscending, GalleryConstants.SearchSortNames.TotalDownloadsAsc},
+                {SortOrder.TotalDownloadsDescending, GalleryConstants.SearchSortNames.TotalDownloadsDesc},
+            };
+
+            private static readonly Dictionary<PackageTypeFilter, string> PackageTypeNames = new Dictionary<PackageTypeFilter, string>
+            {
+                {PackageTypeFilter.AllTypes, GalleryConstants.PackageTypeFilterNames.AllTypes},
+                {PackageTypeFilter.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency},
+                {PackageTypeFilter.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool},
+                {PackageTypeFilter.Template, GalleryConstants.PackageTypeFilterNames.Template},
+            };
+
+            public static IEnumerable<object[]> AllSortOrders => Enum
+           .GetValues(typeof(SortOrder))
+           .Cast<SortOrder>()
+           .Select(so => new object[] { so });
+
+            public static IEnumerable<object[]> AllPackageTypes => Enum
+                .GetValues(typeof(PackageTypeFilter))
+                .Cast<PackageTypeFilter>()
+                .Select(pt => new object[] { pt });
+
+            [Fact]
+            public void ReturnsDefaultSearchFilter()
+            {
+                const string query = "someQuery";
+                const int page = 1;
+                const bool includePrerelease = true;
+                const string packageType = GalleryConstants.PackageTypeFilterNames.AllTypes;
+                const string sortOrder = GalleryConstants.SearchSortNames.Relevance;
+                const string context = "someContext";
+                const string semVerLevel = "someSemVer";
+
+                var searchFilter = SearchAdaptor.GetSearchFilter(
+                    query,
+                    page,
+                    includePrerelease,
+                    packageType,
+                    sortOrder,
+                    context,
+                    semVerLevel);
+
+                Assert.Equal(query, searchFilter.SearchTerm);
+                Assert.Equal((page - 1) * GalleryConstants.DefaultPackageListPageSize, searchFilter.Skip);
+                Assert.Equal(GalleryConstants.DefaultPackageListPageSize, searchFilter.Take);
+                Assert.Equal(includePrerelease, searchFilter.IncludePrerelease);
+                Assert.Equal(context, searchFilter.Context);
+                Assert.Equal(semVerLevel, searchFilter.SemVerLevel);
+                Assert.Equal(PackageTypeFilter.AllTypes, searchFilter.PackageType);
+                Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
+            }
+
+            [Fact]
+            public void ReturnsDefaultSearchFilterOnNull()
+            {
+                var searchFilter = SearchAdaptor.GetSearchFilter(
+                    q: null,
+                    page: -1,
+                    includePrerelease: true,
+                    packageType: null,
+                    sortOrder: null,
+                    context: null,
+                    semVerLevel: null);
+
+                Assert.Null(searchFilter.SearchTerm);
+                Assert.Equal(0, searchFilter.Skip);
+                Assert.Equal(GalleryConstants.DefaultPackageListPageSize, searchFilter.Take);
+                Assert.True(searchFilter.IncludePrerelease);
+                Assert.Null(searchFilter.Context);
+                Assert.Null(searchFilter.SemVerLevel);
+                Assert.Equal(PackageTypeFilter.AllTypes, searchFilter.PackageType);
+                Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
+            }
+
+            [Theory]
+            [MemberData(nameof(AllPackageTypes))]
+            public void MapsAllPackageTypes(PackageTypeFilter packageType)
+            {
+                var searchFilter = SearchAdaptor.GetSearchFilter(
+                    q: string.Empty,
+                    page: 1,
+                    includePrerelease: true,
+                    packageType: PackageTypeNames[packageType],
+                    sortOrder: GalleryConstants.SearchSortNames.Relevance,
+                    context: string.Empty,
+                    semVerLevel: "SomeSemVer");
+
+                Assert.Equal(string.Empty, searchFilter.SearchTerm);
+                Assert.Equal(0, searchFilter.Skip);
+                Assert.Equal(GalleryConstants.DefaultPackageListPageSize, searchFilter.Take);
+                Assert.Equal(true, searchFilter.IncludePrerelease);
+                Assert.Equal(string.Empty, searchFilter.Context);
+                Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
+                Assert.Equal(packageType, searchFilter.PackageType);
+                Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
+            }
+
+            [Theory]
+            [MemberData(nameof(AllSortOrders))]
+            public void MapsAllSortOrders(SortOrder sortOrder)
+            {
+                var searchFilter = SearchAdaptor.GetSearchFilter(
+                   q: string.Empty,
+                   page: 1,
+                   includePrerelease: true,
+                   packageType: GalleryConstants.PackageTypeFilterNames.Dependency,
+                   sortOrder: SortNames[sortOrder],
+                   context: string.Empty,
+                   semVerLevel: "SomeSemVer");
+
+                Assert.Equal(string.Empty, searchFilter.SearchTerm);
+                Assert.Equal(0, searchFilter.Skip);
+                Assert.Equal(GalleryConstants.DefaultPackageListPageSize, searchFilter.Take);
+                Assert.Equal(true, searchFilter.IncludePrerelease);
+                Assert.Equal(string.Empty, searchFilter.Context);
+                Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
+                Assert.Equal(PackageTypeFilter.Dependency, searchFilter.PackageType);
+                Assert.Equal(sortOrder, searchFilter.SortOrder);
+            }
+        }
+
         public class TheFindByIdAndVersionCoreMethod : Facts
         {
             public TheFindByIdAndVersionCoreMethod()
