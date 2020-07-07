@@ -82,7 +82,6 @@ namespace NuGetGallery
 
         public class TheGetSearchFilterFunction
         {
-
             private static readonly Dictionary<SortOrder, string> SortNames = new Dictionary<SortOrder, string>
             {
                 {SortOrder.LastEdited, GalleryConstants.SearchSortNames.LastEdited},
@@ -105,9 +104,9 @@ namespace NuGetGallery
             };
 
             public static IEnumerable<object[]> AllSortOrders => Enum
-           .GetValues(typeof(SortOrder))
-           .Cast<SortOrder>()
-           .Select(so => new object[] { so });
+               .GetValues(typeof(SortOrder))
+               .Cast<SortOrder>()
+               .Select(so => new object[] { so });
 
             public static IEnumerable<object[]> AllPackageTypes => Enum
                 .GetValues(typeof(PackageTypeFilter))

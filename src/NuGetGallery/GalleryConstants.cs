@@ -131,10 +131,10 @@ namespace NuGetGallery
 
         public static class PackageTypeFilterNames
         {
-            public const string AllTypes = ""; //TODO-riad: verify this with the backend values
-            public const string Dependency = "dependency"; //TODO-riad: verify this with the backend values
-            public const string DotNetTool = "dotnettool"; //TODO-riad: verify this with the backend values
-            public const string Template = "template"; //TODO-riad: verify this with the backend values
+            public const string AllTypes = "";
+            public const string Dependency = "dependency";
+            public const string DotNetTool = "dotnettool";
+            public const string Template = "template";
         }
     }
 }

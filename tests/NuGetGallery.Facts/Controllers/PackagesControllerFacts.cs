@@ -4882,7 +4882,6 @@ namespace NuGetGallery
                     Assert.Null(_cache.Get("DefaultSearchResults"));
                 }
 
-
                 searchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Once);
             }
 
