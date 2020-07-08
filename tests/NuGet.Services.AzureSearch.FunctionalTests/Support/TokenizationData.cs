@@ -15,11 +15,53 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             { "𠈓", new[] { "𠈓" } },
         });
 
+        public static readonly IEnumerable<object[]> TrimsTokens = ToMemberData(new Dictionary<string, string[]>
+        {
+            { " hello", new[] { "hello" } },
+            { "\thello", new[] { "hello" } },
+            { "\nhello", new[] { "hello" } },
+            { "\rhello", new[] { "hello" } },
+
+            { "hello ", new[] { "hello" } },
+            { "hello\t", new[] { "hello" } },
+            { "hello\n", new[] { "hello" } },
+            { "hello\r", new[] { "hello" } },
+        });
+
         private static readonly string TokenWith300Characters = new string('a', 300);
         public static readonly IEnumerable<object[]> TruncatesTokensAtLength300 = ToMemberData(new Dictionary<string, string[]>
         {
             { TokenWith300Characters, new[] { TokenWith300Characters } },
             { TokenWith300Characters + 'z', new[] { TokenWith300Characters } }
+        });
+
+        public static readonly IEnumerable<object[]> SplitsTokensAtLength300 = ToMemberData(new Dictionary<string, string[]>
+        {
+            { TokenWith300Characters, new[] { TokenWith300Characters } },
+            { TokenWith300Characters + 'z', new[] { TokenWith300Characters, "z" } }
+        });
+
+        public static readonly IEnumerable<object[]> DoesNotSplitTokensOnSpecialCharacters = ToMemberData(new Dictionary<string, string[]>
+        {
+            { "foo.bar", new[] { "foo.bar" } },
+            { "foo-bar", new[] { "foo-bar" } },
+            { "foo,bar", new[] { "foo,bar" } },
+            { "foo;bar", new[] { "foo;bar" } },
+            { "foo:bar", new[] { "foo:bar" } },
+            { "foo'bar", new[] { "foo'bar" } },
+            { "foo*bar", new[] { "foo*bar" } },
+            { "foo#bar", new[] { "foo#bar" } },
+            { "foo!bar", new[] { "foo!bar" } },
+            { "foo~bar", new[] { "foo~bar" } },
+            { "foo+bar", new[] { "foo+bar" } },
+            { "foo(bar", new[] { "foo(bar" } },
+            { "foo)bar", new[] { "foo)bar" } },
+            { "foo[bar", new[] { "foo[bar" } },
+            { "foo]bar", new[] { "foo]bar" } },
+            { "foo{bar", new[] { "foo{bar" } },
+            { "foo}bar", new[] { "foo}bar" } },
+            { "foo_bar", new[] { "foo_bar" } },
+            { "foo_𠈓_bar", new[] { "foo_𠈓_bar" } },
         });
 
         public static readonly IEnumerable<object[]> SplitsTokensOnSpecialCharactersAndLowercases = ToMemberData(new Dictionary<string, string[]>
