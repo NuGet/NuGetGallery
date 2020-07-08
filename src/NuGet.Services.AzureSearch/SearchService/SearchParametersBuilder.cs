@@ -30,10 +30,12 @@ namespace NuGet.Services.AzureSearch.SearchService
         private static readonly List<string> ScoreDesc = new List<string> { Score + Desc, IndexFields.Created + Desc }; // Highest score first ("most relevant"), then newest
         private static readonly List<string> LastEditedDesc = new List<string> { IndexFields.LastEdited + Desc, IndexFields.Created + Desc }; // Most recently edited first, then newest
         private static readonly List<string> PublishedDesc = new List<string> { IndexFields.Published + Desc, IndexFields.Created + Desc }; // Most recently published first, then newest
-        private static readonly List<string> SortableTitleAsc = new List<string> { IndexFields.SortableTitle + Asc, IndexFields.Created + Asc }; // First title by lex order first, then newest
-        private static readonly List<string> SortableTitleDesc = new List<string> { IndexFields.SortableTitle + Desc, IndexFields.Created + Desc }; // Last title by lex order first, then oldest
+        private static readonly List<string> SortableTitleAsc = new List<string> { IndexFields.SortableTitle + Asc, IndexFields.Created + Asc }; // First title by lex order first, then oldest
+        private static readonly List<string> SortableTitleDesc = new List<string> { IndexFields.SortableTitle + Desc, IndexFields.Created + Desc }; // Last title by lex order first, then newest
         private static readonly List<string> CreatedAsc = new List<string> { IndexFields.Created + Asc }; // Newest first
         private static readonly List<string> CreatedDesc = new List<string> { IndexFields.Created + Desc }; // Oldest first
+        private static readonly List<string> TotalDownloadsAsc = new List<string> { IndexFields.Search.TotalDownloadCount + Asc, IndexFields.Created + Asc }; // Least downloads first, then oldest
+        private static readonly List<string> TotalDownloadsDesc = new List<string> { IndexFields.Search.TotalDownloadCount + Desc, IndexFields.Created + Desc}; // Most downloads first, then newest
 
         public SearchParameters LastCommitTimestamp()
         {
@@ -74,7 +76,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
             else
             {
-                ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, packageType: null);
+                ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType);
             }
 
             return searchParameters;
@@ -201,6 +203,12 @@ namespace NuGet.Services.AzureSearch.SearchService
                     break;
                 case V2SortBy.CreatedDesc:
                     orderBy = CreatedDesc;
+                    break;
+                case V2SortBy.TotalDownloadsAsc:
+                    orderBy = TotalDownloadsAsc;
+                    break;
+                case V2SortBy.TotalDownloadsDesc:
+                    orderBy = TotalDownloadsDesc;
                     break;
                 default:
                     throw new ArgumentException($"The provided {nameof(V2SortBy)} is not supported.", nameof(sortBy));

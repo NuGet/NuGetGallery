@@ -3,6 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Net;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -357,6 +360,92 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal(4, response.Data[0].DownloadCount);
             }
 
+            [Fact]
+            public void SortDownloadsAscUsingAuxilaryFile()
+            {
+                var mockAuxilaryDataDownloads = new Dictionary<string, long>();
+                for (int i = 0; i < _fiveSearchResults.Count; ++i)
+                {
+                    var newDoc = _fiveSearchResults.Results[i];
+                    newDoc.Document.PackageId += i;
+                    newDoc.Document.TotalDownloadCount += i;
+                    newDoc.Document.Title += i;
+
+                    // Set download count in reverse order on the Auxilary file
+                    mockAuxilaryDataDownloads.Add(newDoc.Document.PackageId, _fiveSearchResults.Count.Value - i);
+                }
+                
+                var expectedOrder = _fiveSearchResults
+                    .Results
+                    .OrderBy(x => mockAuxilaryDataDownloads[x.Document.PackageId])
+                    .ThenBy(x => x.Document.Created)
+                    .Select(x => x.Document.PackageId);
+
+                _auxiliaryData
+                    .Setup(x => x.GetTotalDownloadCount(It.IsAny<string>()))
+                    .Returns((string packageId) =>
+                    {
+                        return mockAuxilaryDataDownloads[packageId];
+                    });
+
+                // Apply the order by ASCENDING TotalDownloadCount and search
+                _searchParameters.OrderBy = new List<string> { IndexFields.Search.TotalDownloadCount + " asc" };
+                _v2Request.SortBy = V2SortBy.TotalDownloadsAsc;
+                var responseAsc = Target.V2FromSearch(
+                   _v2Request,
+                   _text,
+                   _searchParameters,
+                   _fiveSearchResults,
+                   _duration);
+                
+                Assert.Equal(responseAsc.Data.Select(x => x.PackageRegistration.Id), expectedOrder);
+            }
+
+            [Fact]
+            public void SortDownloadsDescUsingAuxilaryFile()
+            {
+                var mockAuxilaryDataDownloads = new Dictionary<string, long>();
+                for (int i = 0; i < _fiveSearchResults.Count; ++i)
+                {
+                    var newDoc = _fiveSearchResults.Results[i];
+                    newDoc.Document.PackageId += i;
+                    newDoc.Document.TotalDownloadCount += i;
+                    newDoc.Document.Title += i;
+
+                    // Set download count in reverse order on the Auxilary file
+                    mockAuxilaryDataDownloads.Add(newDoc.Document.PackageId, _fiveSearchResults.Count.Value - i);
+                }
+
+                var expectedOrder = _fiveSearchResults
+                    .Results
+                    .OrderByDescending(x => mockAuxilaryDataDownloads[x.Document.PackageId])
+                    .ThenByDescending(x => x.Document.Created)
+                    .Select(x => x.Document.PackageId);
+
+                _auxiliaryData
+                    .Setup(x => x.GetTotalDownloadCount(It.IsAny<string>()))
+                    .Returns((string packageId) =>
+                    {
+                        return mockAuxilaryDataDownloads[packageId];
+                    });
+
+                // Apply the order by ASCENDING TotalDownloadCount and search
+                _searchParameters.OrderBy = new List<string>
+                { 
+                    IndexFields.Search.TotalDownloadCount + " desc" 
+                };
+                _v2Request.SortBy = V2SortBy.TotalDownloadsDesc;
+
+                var responseDesc = Target.V2FromSearch(
+                   _v2Request,
+                   _text,
+                   _searchParameters,
+                   _fiveSearchResults,
+                   _duration);
+
+                Assert.Equal(responseDesc.Data.Select(x => x.PackageRegistration.Id), expectedOrder);
+            }
+            
             [Fact]
             public void GetsPopularityTransfer()
             {
@@ -1261,6 +1350,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             protected readonly string _text;
             protected readonly TimeSpan _duration;
             protected readonly DocumentSearchResult<SearchDocument.Full> _searchResult;
+            protected readonly DocumentSearchResult<SearchDocument.Full> _fiveSearchResults;
             protected readonly DocumentSearchResult<SearchDocument.Full> _emptySearchResult;
             protected readonly DocumentSearchResult<SearchDocument.Full> _manySearchResults;
             protected readonly DocumentSearchResult<HijackDocument.Full> _hijackResult;
@@ -1354,6 +1444,33 @@ namespace NuGet.Services.AzureSearch.SearchService
                     Count = 1,
                     Results = new List<SearchResult<SearchDocument.Full>>
                     {
+                        new SearchResult<SearchDocument.Full>
+                        {
+                            Document = Data.SearchDocument,
+                        },
+                    },
+                };
+                _fiveSearchResults = new DocumentSearchResult<SearchDocument.Full>
+                {
+                    Count = 5,
+                    Results = new List<SearchResult<SearchDocument.Full>>
+                    {
+                        new SearchResult<SearchDocument.Full>
+                        {
+                            Document = Data.SearchDocument,
+                        },
+                        new SearchResult<SearchDocument.Full>
+                        {
+                            Document = Data.SearchDocument,
+                        },
+                        new SearchResult<SearchDocument.Full>
+                        {
+                            Document = Data.SearchDocument,
+                        },
+                        new SearchResult<SearchDocument.Full>
+                        {
+                            Document = Data.SearchDocument,
+                        },
                         new SearchResult<SearchDocument.Full>
                         {
                             Document = Data.SearchDocument,

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using BasicSearchTests.FunctionalTests.Core;
 using BasicSearchTests.FunctionalTests.Core.Models;
@@ -46,17 +47,17 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         [MemberData(nameof(TakeResults))]
         public async Task TakeReturnsExactResults(int take)
         {
-            var results = await V2SearchAsync(new V2SearchBuilder { Query = "json", Take = take });
+            var results = await V2SearchAsync(new V2SearchBuilder { Query = "", Take = take });
 
             Assert.NotNull(results);
-            Assert.True(results.TotalHits > take);
+            Assert.True(results.TotalHits >= results.Data.Count);
             Assert.True(results.Data.Count == take, $"The search result did not return the expected {take} results");
         }
 
         [Fact]
         public async Task SkipDoesSkipThePackagesInResult()
         {
-            var searchTerm = "json";
+            var searchTerm = "";
             var skip = 5;
             var resultsWithoutSkip = await V2SearchAsync(new V2SearchBuilder { Query = searchTerm, Take = 10 });
             var resultsWithSkip = await V2SearchAsync(new V2SearchBuilder { Query = searchTerm, Skip = skip, Take = 10 - skip });
@@ -260,6 +261,164 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             Assert.Equal(Constants.TestPackageVersion_SearchFilters_PrerelSemVer2, package.Version);
         }
 
+        [Fact]
+        public async Task ByDefaultReturnsAnyPackageType()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_PackageType}",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId_PackageType, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion_PackageType, package.Version);
+        }
+
+        [Fact]
+        public async Task ExcludesPackagesWithMismatchingPackageType()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_PackageType}",
+                PackageType = "Dependency",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Theory]
+        [InlineData("DOTnettOoL", "DotnetTool", Constants.TestPackageId_PackageType)]
+        [InlineData("depenDENCY", "Dependency", Constants.TestPackageId)]
+        public async Task TreatsPackageTypeAsCaseInsensitive(string packageTypeQuery, string expected, string id)
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{id}",
+                PackageType = packageTypeQuery,
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(id, package.PackageRegistration.Id);
+        }
+
+        [Fact]
+        public async Task IncludesPackagesWithMatchingPackageType()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_PackageType}",
+                PackageType = "DotNetTool",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId_PackageType, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion_PackageType, package.Version);
+        }
+
+        [Fact]
+        public async Task PackagesWithoutPackageTypesAreAssumedToBeDependency()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId}",
+                PackageType = "Dependency",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            var package = Assert.Single(results.Data);
+            Assert.Equal(Constants.TestPackageId, package.PackageRegistration.Id);
+            Assert.Equal(Constants.TestPackageVersion, package.Version);
+        }
+
+        [Fact]
+        public async Task ReturnsNothingWhenThePackageTypeDoesNotExist()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                PackageType = Guid.NewGuid().ToString(),
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task ReturnsNothingWhenThePackageTypeIsInvalid()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                PackageType = "cannot$be:a;package|type",
+            };
+
+            var results = await V2SearchAsync(searchBuilder);
+
+            Assert.Empty(results.Data);
+        }
+
+        [Fact]
+        public async Task ReturnsErrorWhenUsingPackageTypeFilterOnHijack()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_PackageType}",
+                PackageType = "DotNetTool",
+                IgnoreFilter = true,
+            };
+
+            var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            {
+                var results = await V2SearchAsync(searchBuilder);
+            });
+
+            Assert.Equal("Response status code does not indicate success: 400 (Bad Request).", ex.Message);
+        }
+
+        [Fact]
+        public async Task ReturnsErrorWhenSortingByDownloadsAscOnHijack()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_PackageType}",
+                IgnoreFilter = true,
+                SortBy = "totalDownloads-asc"
+            };
+
+            var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            {
+                var results = await V2SearchAsync(searchBuilder);
+            });
+
+            Assert.Equal("Response status code does not indicate success: 400 (Bad Request).", ex.Message);
+        }
+
+        [Fact]
+        public async Task ReturnsErrorWhenSortingByDownloadsDescOnHijack()
+        {
+            var searchBuilder = new V2SearchBuilder
+            {
+                Query = $"packageid:{Constants.TestPackageId_PackageType}",
+                IgnoreFilter = true,
+                SortBy = "totalDownloads-desc"
+            };
+
+            var ex = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            {
+                var results = await V2SearchAsync(searchBuilder);
+            });
+
+            Assert.Equal("Response status code does not indicate success: 400 (Bad Request).", ex.Message);
+        }
+
         [Theory]
         [InlineData(false, false, Constants.TestPackageVersion_SearchFilters_Default)]
         [InlineData(true, false, Constants.TestPackageVersion_SearchFilters_Prerel)]
@@ -406,7 +565,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         [MemberData(nameof(GetSortByData))]
         public async Task ResultsAreOrderedBySpecifiedParameter(string orderBy, Func<V2SearchResultEntry, object> GetPropertyValue, bool reverse = false)
         {
-            var results = await V2SearchAsync(new V2SearchBuilder { Query = "json", SortBy = orderBy });
+            var results = await V2SearchAsync(new V2SearchBuilder { Query = "", SortBy = orderBy });
 
             Assert.NotNull(results);
             Assert.True(results.Data.Count > 1);
@@ -420,10 +579,18 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
 
             // Descending comparers
             Func<object, object, bool> comparer = (x1, x2) => {
-                return topResults[0].GetType() == typeof(DateTime)
-                        ? DateTime.Compare((DateTime)x1, (DateTime)x2) >= 0
-                        : string.Compare(x1.ToString(), x2.ToString()) >= 0;
-                };
+                switch (x1)
+                {
+                    case DateTime _:
+                        return DateTime.Compare((DateTime)x1, (DateTime)x2) >= 0;
+                    case string _:
+                        return string.Compare(x1.ToString(), x2.ToString()) >= 0;
+                    case long _:
+                        return (long)x1 >= (long) x2;
+                    default:
+                        throw new NotSupportedException($"Type {x1.GetType()} is not supported.");
+                }
+            };
 
             for (int i = 1; i < topResults.Count(); i++)
             {
@@ -518,6 +685,8 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
                 yield return new object[] { "title-desc", (Func<V2SearchResultEntry, object>)((V2SearchResultEntry data) => { return data.Title; }) };
                 yield return new object[] { "created-asc", (Func<V2SearchResultEntry, object>)((V2SearchResultEntry data) => { return data.Created; }), true };
                 yield return new object[] { "created-desc", (Func<V2SearchResultEntry, object>)((V2SearchResultEntry data) => { return data.Created; }) };
+                yield return new object[] { "totalDownloads-asc", (Func<V2SearchResultEntry, object>)((V2SearchResultEntry data) => { return data.PackageRegistration.DownloadCount; }), true };
+                yield return new object[] { "totalDownloads-desc", (Func<V2SearchResultEntry, object>)((V2SearchResultEntry data) => { return data.PackageRegistration.DownloadCount; }) };
             }
         }
     }

@@ -152,6 +152,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Null(lastRequest.Query);
                 Assert.True(lastRequest.LuceneQuery);
                 Assert.False(lastRequest.ShowDebug);
+                Assert.Null(lastRequest.PackageType);
             }
 
             [Fact]
@@ -173,7 +174,8 @@ namespace NuGet.Services.SearchService.Controllers
                     q: null,
                     sortBy: null,
                     luceneQuery: null,
-                    debug: null);
+                    debug: null,
+                    packageType: null);
 
                 _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
                 Assert.NotNull(lastRequest);
@@ -186,6 +188,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Null(lastRequest.Query);
                 Assert.True(lastRequest.LuceneQuery);
                 Assert.False(lastRequest.ShowDebug);
+                Assert.Null(lastRequest.PackageType);
             }
 
             [Fact]
@@ -207,7 +210,8 @@ namespace NuGet.Services.SearchService.Controllers
                     q: "windows azure storage",
                     sortBy: "lastEdited",
                     luceneQuery: true,
-                    debug: true);
+                    debug: true,
+                    packageType: "dotnettool");
 
                 _searchService.Verify(x => x.V2SearchAsync(It.IsAny<V2SearchRequest>()), Times.Once);
                 Assert.NotNull(lastRequest);
@@ -220,6 +224,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Equal("windows azure storage", lastRequest.Query);
                 Assert.True(lastRequest.LuceneQuery);
                 Assert.True(lastRequest.ShowDebug);
+                Assert.Equal("dotnettool", lastRequest.PackageType);
             }
 
             [Theory]
@@ -243,6 +248,10 @@ namespace NuGet.Services.SearchService.Controllers
             [InlineData("Created-asc", V2SortBy.CreatedAsc)]
             [InlineData("CREATED-desc", V2SortBy.CreatedDesc)]
             [InlineData("Created-desc", V2SortBy.CreatedDesc)]
+            [InlineData("totalDownloads", V2SortBy.Popularity)]
+            [InlineData("totalDownloads-asc", V2SortBy.TotalDownloadsAsc)]
+            [InlineData("totalDownloads-desc", V2SortBy.TotalDownloadsDesc)]
+            [InlineData("TotalDownloads-desc", V2SortBy.TotalDownloadsDesc)]
             public async Task ParsesSortBy(string sortBy, V2SortBy expected)
             {
                 await _target.V2SearchAsync(sortBy: sortBy);

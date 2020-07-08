@@ -323,16 +323,29 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
             else
             {
+                var resultData = results.Select(x =>
+                {
+                    var package = toPackage(x.Document);
+                    package.Debug = request.ShowDebug ? x : null;
+                    return package;
+                });
+
+                // The real sorting happens in Azure Search. However, we do another round of sorting here since the sorting 
+                // on Azure Search index's downloads may produce different results from what customers see on 
+                // the Gallery (which uses Auxiliary file's download count)
+                if (request.SortBy == V2SortBy.TotalDownloadsAsc)
+                {
+                    resultData = resultData.OrderBy(x => x.PackageRegistration.DownloadCount).ThenBy(x => x.Created);   
+                }
+                else if (request.SortBy == V2SortBy.TotalDownloadsDesc)
+                {
+                    resultData = resultData.OrderByDescending(x => x.PackageRegistration.DownloadCount).ThenByDescending(x => x.Created);
+                }
+
                 return new V2SearchResponse
                 {
                     TotalHits = result.Count.Value,
-                    Data = results
-                        .Select(x =>
-                        {
-                            var package = toPackage(x.Document);
-                            package.Debug = request.ShowDebug ? x : null;
-                            return package;
-                        })
+                    Data = resultData
                         .ToList(),
                     Debug = DebugInformation.CreateFromSearchOrNull(
                         request,

@@ -50,7 +50,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation V2SearchWithSearchIndex(V2SearchRequest request)
         {
-            if (HasInvalidParameters(request, packageType: null))
+            if (HasInvalidParameters(request, request.PackageType))
             {
                 return IndexOperation.Empty();
             }
@@ -58,7 +58,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             var parsed = _textBuilder.ParseV2Search(request);
 
             IndexOperation indexOperation;
-            if (TryGetSearchDocumentByKey(request, parsed, out indexOperation))
+            if (request.PackageType == null
+                && TryGetSearchDocumentByKey(request, parsed, out indexOperation))
             {
                 return indexOperation;
             }
