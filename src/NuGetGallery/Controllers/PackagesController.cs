@@ -1120,6 +1120,13 @@ namespace NuGetGallery
                 page = 1;
             }
 
+            // If advanced search is disabled, use the default experience
+            if (!(searchAndListModel.IsAdvancedSearchEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser())))
+            {
+                sortBy = GalleryConstants.SearchSortNames.Relevance;
+                packageType = GalleryConstants.PackageTypeFilterNames.All;
+            }
+
             q = (q ?? string.Empty).Trim();
 
             // We are not going to SQL here anyway, but our request logs do show some attempts to SQL injection.
