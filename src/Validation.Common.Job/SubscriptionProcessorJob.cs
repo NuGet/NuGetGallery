@@ -45,8 +45,8 @@ namespace NuGet.Jobs.Validation
 
             processor.Start(configuration.Value.MaxConcurrentCalls);
 
-            // Wait a day, and then shutdown this process so that it is restarted.
-            await Task.Delay(TimeSpan.FromDays(1));
+            // Wait a certain period of time, and then shutdown this process so that it is restarted.
+            await Task.Delay(configuration.Value.ProcessDuration);
 
             if (!await processor.ShutdownAsync(MaxShutdownTime))
             {
