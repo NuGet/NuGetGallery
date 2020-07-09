@@ -46,7 +46,7 @@ namespace NuGetGallery.Infrastructure.Search
 
         private static readonly Dictionary<SearchModels.PackageTypeFilter, string> PackageTypeNames = new Dictionary<SearchModels.PackageTypeFilter, string>
         {
-            {SearchModels.PackageTypeFilter.AllTypes, GalleryConstants.PackageTypeFilterNames.AllTypes},
+            {SearchModels.PackageTypeFilter.All, GalleryConstants.PackageTypeFilterNames.All},
             {SearchModels.PackageTypeFilter.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency},
             {SearchModels.PackageTypeFilter.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool},
             {SearchModels.PackageTypeFilter.Template, GalleryConstants.PackageTypeFilterNames.Template},
@@ -57,7 +57,7 @@ namespace NuGetGallery.Infrastructure.Search
             string query,
             string projectTypeFilter = null,
             bool includePrerelease = false,
-            SearchModels.PackageTypeFilter packageType = SearchModels.PackageTypeFilter.AllTypes,
+            SearchModels.PackageTypeFilter packageType = SearchModels.PackageTypeFilter.All,
             SearchModels.SortOrder sortBy = SearchModels.SortOrder.Relevance,
             int skip = 0,
             int take = 10,

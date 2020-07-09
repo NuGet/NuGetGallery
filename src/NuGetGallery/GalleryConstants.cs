@@ -116,6 +116,9 @@ namespace NuGetGallery
             public const string AccountBelongsToUnmanagedTenant = "https://aka.ms/nuget-faq-unmanaged-tenant";
         }
 
+        /// <summary>
+        /// These sort names represent the possible options that the search service supports for sorting packages.
+        /// </summary>
         public static class SearchSortNames
         {
             public const string Relevance = "relevance";
@@ -129,9 +132,12 @@ namespace NuGetGallery
             public const string TotalDownloadsDesc = "totalDownloads-desc";
         }
 
+        /// <summary>
+        /// These filter names represent the possible options that the search service supports for filtering packages.
+        /// </summary>
         public static class PackageTypeFilterNames
         {
-            public const string AllTypes = "";
+            public const string All = "";
             public const string Dependency = "dependency";
             public const string DotNetTool = "dotnettool";
             public const string Template = "template";

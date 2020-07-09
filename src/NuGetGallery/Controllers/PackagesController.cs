@@ -1146,7 +1146,7 @@ namespace NuGetGallery
 
             // If sortBy or packageType is anything but the default values, the request is using the Advanced Search features and should not be cached
             var isAdvancedSearchRequest = (sortBy != null && !string.Equals(sortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase))
-                                           || (packageType != null && !string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.AllTypes, StringComparison.OrdinalIgnoreCase));
+                                           || (packageType != null && !string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.All, StringComparison.OrdinalIgnoreCase));
 
             // fetch most common query from cache to relieve load on the search service
             if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease && !isAdvancedSearchRequest)

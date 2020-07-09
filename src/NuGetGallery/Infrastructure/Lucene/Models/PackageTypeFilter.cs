@@ -5,7 +5,7 @@ namespace NuGetGallery.Infrastructure.Search.Models
 {
     public enum PackageTypeFilter
     {
-        AllTypes,
+        All,
         Dependency,
         DotNetTool,
         Template,

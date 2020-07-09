@@ -4844,7 +4844,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(GalleryConstants.SearchSortNames.Relevance, null, true)]
-            [InlineData(null, GalleryConstants.PackageTypeFilterNames.AllTypes, true)]
+            [InlineData(null, GalleryConstants.PackageTypeFilterNames.All, true)]
             [InlineData(null, null, true)]
             [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, null, false)]
             [InlineData(GalleryConstants.SearchSortNames.CreatedDesc, null, false)]

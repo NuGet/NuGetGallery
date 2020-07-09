@@ -158,7 +158,7 @@ namespace NuGetGallery.Infrastructure.Search
 
         private static readonly Dictionary<PackageTypeFilter, string> PackageTypeNames = new Dictionary<PackageTypeFilter, string>
         {
-            {PackageTypeFilter.AllTypes, GalleryConstants.PackageTypeFilterNames.AllTypes},
+            {PackageTypeFilter.All, GalleryConstants.PackageTypeFilterNames.All},
             {PackageTypeFilter.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency},
             {PackageTypeFilter.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool},
             {PackageTypeFilter.Template, GalleryConstants.PackageTypeFilterNames.Template},

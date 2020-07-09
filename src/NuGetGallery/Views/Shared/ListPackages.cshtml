@@ -98,8 +98,8 @@
                 PageIndex: @Model.PageIndex,
                 TotalCount: @Model.TotalCount,
                 IsPreviewSearch: '@Model.IsPreviewSearch',
-                PackageType: '@Model.PackageType',
-                SortBy: '@Model.SortBy'
+                PackageType: '@Html.Raw(Json.Encode(Model.PackageType))',
+                SortBy: '@Html.Raw(Json.Encode(Model.SortBy))'
             });
             </text>
         }
@@ -122,8 +122,8 @@
                         SincePageLoadMs: Date.now() - pageLoadTime,
                         SincePageLoadCount: sincePageLoadCount,
                         IsPreviewSearch: '@Model.IsPreviewSearch',
-                        PackageType: '@Model.PackageType',
-                        SortBy: '@Model.SortBy'
+                        PackageType: '@Html.Raw(Json.Encode(Model.PackageType))',
+                        SortBy: '@Html.Raw(Json.Encode(Model.SortBy))'
                     });
 
                     sincePageLoadCount++;

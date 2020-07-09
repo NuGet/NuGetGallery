@@ -51,7 +51,7 @@ namespace NuGetGallery.OData
                     searchFilter.PackageType = PackageTypeFilter.Template;
                     break;
                 default:
-                    searchFilter.PackageType = PackageTypeFilter.AllTypes;
+                    searchFilter.PackageType = PackageTypeFilter.All;
                     break;
             }
 

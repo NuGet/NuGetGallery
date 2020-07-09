@@ -97,7 +97,7 @@ namespace NuGetGallery
 
             private static readonly Dictionary<PackageTypeFilter, string> PackageTypeNames = new Dictionary<PackageTypeFilter, string>
             {
-                {PackageTypeFilter.AllTypes, GalleryConstants.PackageTypeFilterNames.AllTypes},
+                {PackageTypeFilter.All, GalleryConstants.PackageTypeFilterNames.All},
                 {PackageTypeFilter.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency},
                 {PackageTypeFilter.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool},
                 {PackageTypeFilter.Template, GalleryConstants.PackageTypeFilterNames.Template},
@@ -119,7 +119,7 @@ namespace NuGetGallery
                 const string query = "someQuery";
                 const int page = 1;
                 const bool includePrerelease = true;
-                const string packageType = GalleryConstants.PackageTypeFilterNames.AllTypes;
+                const string packageType = GalleryConstants.PackageTypeFilterNames.All;
                 const string sortOrder = GalleryConstants.SearchSortNames.Relevance;
                 const string context = "someContext";
                 const string semVerLevel = "someSemVer";
@@ -139,7 +139,7 @@ namespace NuGetGallery
                 Assert.Equal(includePrerelease, searchFilter.IncludePrerelease);
                 Assert.Equal(context, searchFilter.Context);
                 Assert.Equal(semVerLevel, searchFilter.SemVerLevel);
-                Assert.Equal(PackageTypeFilter.AllTypes, searchFilter.PackageType);
+                Assert.Equal(PackageTypeFilter.All, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
             }
 
@@ -161,7 +161,7 @@ namespace NuGetGallery
                 Assert.True(searchFilter.IncludePrerelease);
                 Assert.Null(searchFilter.Context);
                 Assert.Null(searchFilter.SemVerLevel);
-                Assert.Equal(PackageTypeFilter.AllTypes, searchFilter.PackageType);
+                Assert.Equal(PackageTypeFilter.All, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
             }
 
