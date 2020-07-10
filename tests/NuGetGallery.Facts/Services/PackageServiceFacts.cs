@@ -4,11 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Migrations.Model;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.Ajax.Utilities;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -2141,6 +2139,58 @@ namespace NuGetGallery
 
         public class TheGetPackageDependentsMethod
         {
+            [Fact]
+            public void AllQueriesShouldUseRecompileQueryHint()
+            {
+                string id = "foo";
+                var context = new Mock<IEntitiesContext>();
+                var entityContext = new FakeEntitiesContext();
+                var disposable = new Mock<IDisposable>();
+
+                var operations = new List<string>();
+
+                disposable
+                    .Setup(x => x.Dispose())
+                    .Callback(() => operations.Add(nameof(IDisposable.Dispose)));
+                context
+                    .Setup(x => x.WithQueryHint(It.IsAny<string>()))
+                    .Returns(() => disposable.Object)
+                    .Callback(() => operations.Add(nameof(EntitiesContext.WithQueryHint)));
+                context
+                    .Setup(f => f.PackageDependencies)
+                    .Returns(entityContext.PackageDependencies)
+                    .Callback(() => operations.Add(nameof(EntitiesContext.PackageDependencies)));
+                context
+                    .Setup(f => f.Packages)
+                    .Returns(entityContext.Packages)
+                    .Callback(() => operations.Add(nameof(EntitiesContext.Packages)));
+                context
+                    .Setup(f => f.PackageRegistrations)
+                    .Returns(entityContext.PackageRegistrations)
+                    .Callback(() => operations.Add(nameof(EntitiesContext.PackageRegistrations)));
+
+                var service = CreateService(context: context);
+
+                service.GetPackageDependents(id);
+
+                Assert.Equal(nameof(EntitiesContext.WithQueryHint), operations.First());
+                Assert.All(
+                    operations.Skip(1).Take(operations.Count - 2),
+                    o => Assert.Contains(
+                        o,
+                        new[]
+                        {
+                            nameof(EntitiesContext.PackageDependencies),
+                            nameof(EntitiesContext.Packages),
+                            nameof(EntitiesContext.PackageRegistrations),
+                        }));
+                Assert.Equal(nameof(IDisposable.Dispose), operations.Last());
+
+                disposable.Verify(x => x.Dispose(), Times.Once);
+                context.Verify(x => x.WithQueryHint(It.IsAny<string>()), Times.Once);
+                context.Verify(x => x.WithQueryHint("RECOMPILE"), Times.Once);
+            }
+
             [Fact]
             public void ThereAreExactlyFivePackagesAndAllPackagesAreVerified()
             {

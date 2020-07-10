@@ -48,8 +48,8 @@
       "Domains": []
     },
     "NuGetGallery.PackageDependents": {
-      "All": false,
-      "SiteAdmins": true,
+      "All": true,
+      "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
     }
