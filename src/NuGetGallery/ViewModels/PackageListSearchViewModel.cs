@@ -10,7 +10,5 @@ namespace NuGetGallery
         public bool? Prerel { get; set; }
         public string SortBy { get; set; }
         public string PackageType { get; set; }
-
-        public bool IsAdvancedSearchEnabled { get; set; }
     }
 }

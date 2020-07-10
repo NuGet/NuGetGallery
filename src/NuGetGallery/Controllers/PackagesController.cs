@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
+using Lucene.Net.Search;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
@@ -1112,19 +1113,19 @@ namespace NuGetGallery
             var page = searchAndListModel.Page;
             var q = searchAndListModel.Q;
             var includePrerelease = searchAndListModel.Prerel ?? true;
-            var sortBy = searchAndListModel.SortBy;
-            var packageType = searchAndListModel.PackageType;
 
             if (page < 1)
             {
                 page = 1;
             }
 
+            var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
+            
             // If advanced search is disabled, use the default experience
-            if (!(searchAndListModel.IsAdvancedSearchEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser())))
+            if (!isAdvancedSearchFlightEnabled)
             {
-                sortBy = GalleryConstants.SearchSortNames.Relevance;
-                packageType = GalleryConstants.PackageTypeFilterNames.All;
+                searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
+                searchAndListModel.PackageType = GalleryConstants.PackageTypeFilterNames.All;
             }
 
             q = (q ?? string.Empty).Trim();
@@ -1144,12 +1145,24 @@ namespace NuGetGallery
             var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
 
-            // If sortBy or packageType is anything but the default values, the request is using the Advanced Search features and should not be cached
-            var isAdvancedSearchRequest = (sortBy != null && !string.Equals(sortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase))
-                                           || (packageType != null && !string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.All, StringComparison.OrdinalIgnoreCase));
+            if(!isSupportedSortBy(searchAndListModel.SortBy))
+            {
+                searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
+            }
+
+            if(!isSupportedPackageType(searchAndListModel.PackageType))
+            {
+                searchAndListModel.PackageType = GalleryConstants.PackageTypeFilterNames.All;
+            }
+
+            var isDefaultSortBy = string.Equals(searchAndListModel.SortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase);
+            var isDefaultPackageType = string.Equals(searchAndListModel.PackageType, GalleryConstants.PackageTypeFilterNames.All, StringComparison.OrdinalIgnoreCase);
+
+            // Cache when null or default value
+            var shouldCacheAdvancedSearch = isDefaultSortBy && isDefaultPackageType;
 
             // fetch most common query from cache to relieve load on the search service
-            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease && !isAdvancedSearchRequest)
+            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease && shouldCacheAdvancedSearch)
             {
                 var cacheKey = isPreviewSearchEnabled ? "DefaultPreviewSearchResults" : "DefaultSearchResults";
                 var cachedResults = HttpContext.Cache.Get(cacheKey);
@@ -1159,8 +1172,8 @@ namespace NuGetGallery
                         q,
                         page,
                         includePrerelease: includePrerelease,
-                        packageType: packageType,
-                        sortOrder: sortBy,
+                        packageType: searchAndListModel.PackageType,
+                        sortOrder: searchAndListModel.SortBy,
                         context: SearchFilter.UISearchContext,
                         semVerLevel: SemVerLevelKey.SemVerLevel2);
 
@@ -1187,8 +1200,8 @@ namespace NuGetGallery
                     q,
                     page,
                     includePrerelease: includePrerelease,
-                    packageType: packageType,
-                    sortOrder: sortBy,
+                    packageType: searchAndListModel.PackageType,
+                    sortOrder: searchAndListModel.SortBy,
                     context: SearchFilter.UISearchContext,
                     semVerLevel: SemVerLevelKey.SemVerLevel2);
 
@@ -1217,8 +1230,12 @@ namespace NuGetGallery
                 Url,
                 includePrerelease,
                 isPreviewSearchEnabled,
-                packageType,
-                sortBy);
+                searchAndListModel.PackageType,
+                searchAndListModel.SortBy);
+
+            // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
+            viewModel.IsAdvancedSearchFlightEnabled = isAdvancedSearchFlightEnabled;
+            viewModel.shouldDisplayAdvancedSearchPanel = !shouldCacheAdvancedSearch || !includePrerelease;
 
             ViewBag.SearchTerm = q;
 
@@ -2984,6 +3001,23 @@ namespace NuGetGallery
         private static HttpStatusCodeResult HttpForbidden()
         {
             return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
+        }
+
+        private static bool isSupportedSortBy(string sortBy)
+        {
+            return sortBy != null && 
+                (string.Equals(sortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(sortBy, GalleryConstants.SearchSortNames.TotalDownloadsDesc, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(sortBy, GalleryConstants.SearchSortNames.CreatedDesc, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool isSupportedPackageType(string packageType)
+        {
+            return packageType != null &&
+                (string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.All, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.Dependency, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.DotNetTool, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.Template, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

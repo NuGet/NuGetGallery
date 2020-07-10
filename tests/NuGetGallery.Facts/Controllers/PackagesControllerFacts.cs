@@ -38,6 +38,7 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Infrastructure.Search;
+using NuGetGallery.Infrastructure.Search.Models;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
@@ -4846,26 +4847,81 @@ namespace NuGetGallery
             [InlineData(GalleryConstants.SearchSortNames.Relevance, null, true)]
             [InlineData(null, GalleryConstants.PackageTypeFilterNames.All, true)]
             [InlineData(null, null, true)]
-            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, null, false)]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, null, true)]
             [InlineData(GalleryConstants.SearchSortNames.CreatedDesc, null, false)]
-            [InlineData(GalleryConstants.SearchSortNames.LastEdited, null, false)]
-            [InlineData(GalleryConstants.SearchSortNames.Published, null, false)]
-            [InlineData(GalleryConstants.SearchSortNames.TitleAsc, null, false)]
-            [InlineData(GalleryConstants.SearchSortNames.TitleDesc, null, false)]
-            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsAsc, null, false)]
+            [InlineData(GalleryConstants.SearchSortNames.LastEdited, null, true)]
+            [InlineData(GalleryConstants.SearchSortNames.Published, null, true)]
+            [InlineData(GalleryConstants.SearchSortNames.TitleAsc, null, true)]
+            [InlineData(GalleryConstants.SearchSortNames.TitleDesc, null, true)]
+            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsAsc, null, true)]
             [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsDesc, null, false)]
             [InlineData(null, GalleryConstants.PackageTypeFilterNames.Dependency, false)]
             [InlineData(null, GalleryConstants.PackageTypeFilterNames.DotNetTool, false)]
             [InlineData(null, GalleryConstants.PackageTypeFilterNames.Template, false)]
-            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, GalleryConstants.PackageTypeFilterNames.Dependency, false)]
-            public async Task DoesNotCacheAdvancedSearch(string sortBy, string packageType, bool expectCached)
+            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, GalleryConstants.PackageTypeFilterNames.Dependency, false, true)]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, GalleryConstants.PackageTypeFilterNames.Dependency, true, false)]
+            public async Task DoesNotCacheAdvancedSearch(string sortBy, string packageType, bool expectCached, bool flightStatus = true)
             {
                 var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(c => c.Cache).Returns(_cache);
+                httpContext
+                    .Setup(c => c.Cache)
+                    .Returns(_cache);
 
                 var searchService = new Mock<ISearchService>();
-                searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
-                    Task.FromResult(new SearchResults(0, DateTime.UtcNow)));
+                searchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(new SearchResults(0, DateTime.UtcNow));
+
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsAdvancedSearchEnabled(It.IsAny<User>()))
+                    .Returns(flightStatus);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    httpContext: httpContext,
+                    searchService: searchService,
+                    featureFlagService: featureFlagService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = string.Empty, SortBy = sortBy, PackageType = packageType});
+                if(expectCached)
+                {
+                    Assert.NotNull(_cache.Get("DefaultSearchResults"));
+                }
+                else
+                {
+                    Assert.Null(_cache.Get("DefaultSearchResults"));
+                }
+
+                searchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(null, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(GalleryConstants.SearchSortNames.LastEdited, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(GalleryConstants.SearchSortNames.Published, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(GalleryConstants.SearchSortNames.TitleAsc, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(GalleryConstants.SearchSortNames.TitleDesc, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsAsc, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedDesc, SortOrder.CreatedDescending, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsDesc, SortOrder.TotalDownloadsDescending, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(GalleryConstants.SearchSortNames.Relevance, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
+            [InlineData(null, SortOrder.Relevance, GalleryConstants.PackageTypeFilterNames.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency)]
+            [InlineData(null, SortOrder.Relevance, GalleryConstants.PackageTypeFilterNames.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool)]
+            [InlineData(null, SortOrder.Relevance, GalleryConstants.PackageTypeFilterNames.Template, GalleryConstants.PackageTypeFilterNames.Template)]
+            public async Task RedirectsToDefaultWhenInvalidAdvancedSearch(string sortBy, SortOrder expectedSortBy, string packageType, string expectedPackageType)
+            {
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext
+                    .Setup(c => c.Cache)
+                    .Returns(_cache);
+
+                var searchService = new Mock<ISearchService>();
+                searchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(new SearchResults(0, DateTime.UtcNow));
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -4873,16 +4929,9 @@ namespace NuGetGallery
                     searchService: searchService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = string.Empty, SortBy = sortBy, PackageType = packageType});
-                if(expectCached)
-                {
-                    Assert.NotNull(_cache.Get("DefaultSearchResults"));
-                }else
-                {
-                    Assert.Null(_cache.Get("DefaultSearchResults"));
-                }
+                var result = await controller.ListPackages(new PackageListSearchViewModel { Q = string.Empty, SortBy = sortBy, PackageType = packageType });
 
-                searchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Once);
+                searchService.Verify(x => x.Search(It.Is<SearchFilter>(f => f.SortOrder == expectedSortBy && f.PackageType == expectedPackageType)), Times.Once);
             }
 
             [Theory]

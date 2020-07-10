@@ -29,31 +29,17 @@ namespace NuGetGallery.OData
         public static SearchFilter GetSearchFilter(string q, int page, bool includePrerelease, string packageType, string sortOrder, string context, string semVerLevel)
         {
             page = page < 1 ? 1 : page; // pages are 1-based. 
+            packageType = packageType ?? GalleryConstants.PackageTypeFilterNames.All;
 
             var searchFilter = new SearchFilter(context)
             {
                 SearchTerm = q,
-                Skip = (page - 1) * GalleryConstants.DefaultPackageListPageSize, 
+                Skip = (page - 1) * GalleryConstants.DefaultPackageListPageSize,
                 Take = GalleryConstants.DefaultPackageListPageSize,
                 IncludePrerelease = includePrerelease,
-                SemVerLevel = semVerLevel
+                SemVerLevel = semVerLevel,
+                PackageType = packageType,
             };
-
-            switch (packageType)
-            {
-                case GalleryConstants.PackageTypeFilterNames.Dependency:
-                    searchFilter.PackageType = PackageTypeFilter.Dependency;
-                        break;
-                case GalleryConstants.PackageTypeFilterNames.DotNetTool:
-                    searchFilter.PackageType = PackageTypeFilter.DotNetTool;
-                    break;
-                case GalleryConstants.PackageTypeFilterNames.Template:
-                    searchFilter.PackageType = PackageTypeFilter.Template;
-                    break;
-                default:
-                    searchFilter.PackageType = PackageTypeFilter.All;
-                    break;
-            }
 
             switch (sortOrder)
             {

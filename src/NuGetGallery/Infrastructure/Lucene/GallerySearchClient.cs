@@ -44,20 +44,12 @@ namespace NuGetGallery.Infrastructure.Search
             {SearchModels.SortOrder.TotalDownloadsDescending, GalleryConstants.SearchSortNames.TotalDownloadsDesc},
         };
 
-        private static readonly Dictionary<SearchModels.PackageTypeFilter, string> PackageTypeNames = new Dictionary<SearchModels.PackageTypeFilter, string>
-        {
-            {SearchModels.PackageTypeFilter.All, GalleryConstants.PackageTypeFilterNames.All},
-            {SearchModels.PackageTypeFilter.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency},
-            {SearchModels.PackageTypeFilter.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool},
-            {SearchModels.PackageTypeFilter.Template, GalleryConstants.PackageTypeFilterNames.Template},
-        };
-
         // This code is copied from the SearchClient 
         public async Task<ServiceResponse<SearchModels.SearchResults>> Search(
             string query,
             string projectTypeFilter = null,
             bool includePrerelease = false,
-            SearchModels.PackageTypeFilter packageType = SearchModels.PackageTypeFilter.All,
+            string packageType = GalleryConstants.PackageTypeFilterNames.All,
             SearchModels.SortOrder sortBy = SearchModels.SortOrder.Relevance,
             int skip = 0,
             int take = 10,
@@ -72,7 +64,7 @@ namespace NuGetGallery.Infrastructure.Search
             nameValue.Add("q", query);
             nameValue.Add("skip", skip.ToString());
             nameValue.Add("take", take.ToString());
-            nameValue.Add("packageType", PackageTypeNames[packageType]);
+            nameValue.Add("packageType", packageType);
             nameValue.Add("sortBy", SortNames[sortBy]);
 
             if (!String.IsNullOrEmpty(semVerLevel))

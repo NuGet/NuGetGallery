@@ -24,7 +24,7 @@ namespace NuGetGallery
 
         public string SemVerLevel { get; set; }
 
-        public PackageTypeFilter PackageType { get; set; }
+        public string PackageType { get; set; }
 
         public SortOrder SortOrder { get; set; }
 
