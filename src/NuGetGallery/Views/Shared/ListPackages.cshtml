@@ -6,9 +6,61 @@
     ViewBag.BlockSearchEngineIndexing = !String.IsNullOrWhiteSpace(Model.SearchTerm) || Model.PageIndex != 0;
 }
 
+@helper AddPackageFilterOption(string optionName, string optionValue, bool canBeNull = false)
+{
+    @AddRadioGroupOption("advanced-search-packagetype", optionName, optionValue, Model.PackageType, canBeNull);
+}
+
+@helper AddSortByOption(string optionName, string optionValue, bool canBeNull = false)
+{
+    @AddRadioGroupOption("advanced-search-sortby", optionName, optionValue, Model.SortBy, canBeNull);
+}
+
+@helper AddRadioGroupOption(string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool canBeNull = false)
+{
+    <div style="display: flex;">
+        <input type="radio" name="@radioGroupName" @(optionCompareValue == optionValue || (canBeNull && optionCompareValue == null) ? "checked=\"checked\"" : "") value="@optionValue">
+        <label>@optionName</label>
+    </div>
+}
+
+<script>
+    function ApplyAdvancedSearch() {
+        // string
+        var packageType = document.querySelector('input[name="advanced-search-packagetype"]:checked').value;
+        // string
+        var sortBy = document.querySelector('input[name="advanced-search-sortby"]:checked').value;
+        // bool
+        var includePrerelease = document.getElementById('advanced-search-includeprerelease').checked;
+
+        var searchTermStr = `?q=${'@(Model.SearchTerm)'}`
+        var includePreReleaseStr = "&prerel=" + includePrerelease;
+        var packageTypeStr = !packageType ? "" : `&packageType=${packageType}`;
+        var sortByStr = !sortBy ? "" : `&sortBy=${sortBy}`;
+
+        location.href = searchTermStr + includePreReleaseStr + packageTypeStr + sortByStr;
+    }
+
+    // Reset advanced search by redirecting to a URL without A-S params
+    function ResetAdvancedSearch() {
+        var searchTermStr = `?q=${'@(Model.SearchTerm)'}`
+        location.href = searchTermStr;
+    }
+</script>
+
+<style>
+    .aligned-row {
+    display: flex;
+    flex-flow: row wrap;
+
+    &::before {
+        display: block;
+    }
+}
+</style>
 <section role="main" class="container main-container page-list-packages">
-    <div class="row-heading clearfix">
-        <div class="cell-heading">
+    <div class="aligned-row clearfix no-margin">
+        <div class="col-md-10 no-padding">
             <h1 role="alert">
                 @if (String.IsNullOrEmpty(Model.SearchTerm))
                 {
@@ -36,11 +88,59 @@
                 }
             </h1>
         </div>
-        <div class="cell-controls">
-            <a href="?q=@Model.SearchTerm@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
+        <div class="col-md-2 col-xs-3 col-sm-1 text-right no-padding">
+            @if(!Model.IsAdvancedSearchFlightEnabled)
+            {
+                <button class="btn-command" data-toggle="collapse" data-target="#advancedSearchPanel" aria-expanded="false" aria-controls="advancedSearchPanel">
+                    <i class="ms-Icon @(Model.shouldDisplayAdvancedSearchPanel ? "ms-Icon--FilterSolid" : "ms-Icon--Filter") ms-fontColor-blue" aria-hidden="true"></i>
+                    Filter
+                </button>
+            }
+            else
+            {
+                <a class="prerel-filter" href="?q=@Model.SearchTerm@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
+            }
         </div>
     </div>
 
+    <div class="row clearfix collapse advanced-search-panel@(Model.shouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
+        <div class="row">
+            <div class="col-md-2">
+                <fieldset id="advanced-search-packagetype">
+                    <legend>Package type</legend>
+                    @AddPackageFilterOption("All types", GalleryConstants.PackageTypeFilterNames.All, canBeNull: true)
+                    @AddPackageFilterOption("Dependency", GalleryConstants.PackageTypeFilterNames.Dependency)
+                    @AddPackageFilterOption(".NET tool", GalleryConstants.PackageTypeFilterNames.DotNetTool)
+                    @AddPackageFilterOption("Template", GalleryConstants.PackageTypeFilterNames.Template)
+                </fieldset>
+            </div>
+            <div class="col-md-2">
+                <fieldset id="advanced-search-sortby">
+                    <legend>Sort by</legend>
+                    @AddSortByOption("Relevance", GalleryConstants.SearchSortNames.Relevance, canBeNull: true)
+                    @AddSortByOption("Downloads", GalleryConstants.SearchSortNames.TotalDownloadsDesc)
+                    @AddSortByOption("Recently updated", GalleryConstants.SearchSortNames.CreatedDesc)
+                </fieldset>
+            </div>
+            <div class="col-md-2">
+                <fieldset>
+                    <legend>Options</legend>
+                    <div style="display: flex;">
+                        <input id="advanced-search-includeprerelease" type="checkbox" @(Model.IncludePrerelease ? "checked=\"checked\"" : "")>
+                        <label>Include prerelease</label>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1">
+                <input class="btn btn-primary form-control" type="button" value="Apply" onclick="ApplyAdvancedSearch()">
+            </div>
+            <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1">
+                <input class="btn btn-link form-control" type="button" value="Reset" onclick="ResetAdvancedSearch()">
+            </div>
+        </div>
+    </div>
     @if (!Model.Items.Any())
     {
         <div class="row">
@@ -98,8 +198,8 @@
                 PageIndex: @Model.PageIndex,
                 TotalCount: @Model.TotalCount,
                 IsPreviewSearch: '@Model.IsPreviewSearch',
-                PackageType: '@Html.Raw(Json.Encode(Model.PackageType))',
-                SortBy: '@Html.Raw(Json.Encode(Model.SortBy))'
+                PackageType: @Html.ToJson(Model.PackageType),
+                SortBy: @Html.ToJson(Model.SortBy)
             });
             </text>
         }
@@ -122,8 +222,8 @@
                         SincePageLoadMs: Date.now() - pageLoadTime,
                         SincePageLoadCount: sincePageLoadCount,
                         IsPreviewSearch: '@Model.IsPreviewSearch',
-                        PackageType: '@Html.Raw(Json.Encode(Model.PackageType))',
-                        SortBy: '@Html.Raw(Json.Encode(Model.SortBy))'
+                        PackageType: @Html.ToJson(Model.PackageType),
+                        SortBy: @Html.ToJson(Model.SortBy)
                     });
 
                     sincePageLoadCount++;
