@@ -102,7 +102,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
             var stopwatch = Stopwatch.StartNew();
 
             var reportBuilder = new ReportBuilder(reportBuilderLogger, reportName);
-            var reportDataCollector = new ReportDataCollector(reportCollectorLogger, _storedProcedures[reportName], OpenSqlConnectionAsync<StatisticsDbConfiguration>, _sqlCommandTimeoutSeconds);
+            var reportDataCollector = new ReportDataCollector(
+                reportCollectorLogger,
+                _storedProcedures[reportName],
+                OpenSqlConnectionAsync<StatisticsDbConfiguration>,
+                _sqlCommandTimeoutSeconds,
+                _applicationInsightsHelper);
 
             await ProcessReport(LoggerFactory, destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime);
 
@@ -242,7 +247,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 LoggerFactory.CreateLogger<ReportDataCollector>(),
                 OpenSqlConnectionAsync<StatisticsDbConfiguration>,
                 reportGenerationTime,
-                _sqlCommandTimeoutSeconds);
+                _sqlCommandTimeoutSeconds,
+                _applicationInsightsHelper);
 
             if (!dirtyPackageIds.Any())
             {
@@ -255,7 +261,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 LoggerFactory.CreateLogger<ReportDataCollector>(),
                 _storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId],
                 OpenSqlConnectionAsync<StatisticsDbConfiguration>,
-                _sqlCommandTimeoutSeconds);
+                _sqlCommandTimeoutSeconds,
+                _applicationInsightsHelper);
 
             var top100Task = Parallel.ForEach(top100, new ParallelOptions { MaxDegreeOfParallelism = _perPackageReportDegreeOfParallelism }, dirtyPackageId =>
             {
@@ -290,7 +297,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
                                     LoggerFactory.CreateLogger<ReportDataCollector>(),
                                     _storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId],
                                     OpenSqlConnectionAsync<StatisticsDbConfiguration>,
-                                    _sqlCommandTimeoutSeconds)
+                                    _sqlCommandTimeoutSeconds,
+                                    _applicationInsightsHelper)
                             }
                         };
 

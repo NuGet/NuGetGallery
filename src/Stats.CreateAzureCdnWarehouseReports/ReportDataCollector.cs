@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -14,6 +15,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
     internal class ReportDataCollector
     {
         private int _commandTimeoutSeconds;
+        private readonly ApplicationInsightsHelper _applicationInsightsHelper;
         private readonly string _procedureName;
         private readonly Func<Task<SqlConnection>> _openGallerySqlConnectionAsync;
 
@@ -23,12 +25,14 @@ namespace Stats.CreateAzureCdnWarehouseReports
             ILogger<ReportDataCollector> logger,
             string procedureName,
             Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
-            int commandTimeoutSeconds)
+            int commandTimeoutSeconds,
+            ApplicationInsightsHelper applicationInsightsHelper)
         {
             _logger = logger;
             _procedureName = procedureName;
             _openGallerySqlConnectionAsync = openGallerySqlConnectionAsync;
             _commandTimeoutSeconds = commandTimeoutSeconds;
+            _applicationInsightsHelper = applicationInsightsHelper ?? throw new ArgumentNullException(nameof(applicationInsightsHelper));
         }
 
         public async Task<DataTable> CollectAsync(DateTime reportGenerationTime, params Tuple<string, int, string>[] parameters)
@@ -38,7 +42,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             DataTable table = null;
 
             // Get the data
-            await WithRetry(async () => table = await ExecuteSql(reportGenerationTime, parameters), _logger);
+            await WithRetry(async () => table = await ExecuteSql(reportGenerationTime, parameters), _logger, _applicationInsightsHelper);
 
             Debug.Assert(table != null);
             _logger.LogInformation("{ProcedureName}: Collected {RowsCount} rows", _procedureName, table.Rows.Count);
@@ -49,14 +53,18 @@ namespace Stats.CreateAzureCdnWarehouseReports
             ILogger logger,
             Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
             DateTime reportGenerationTime,
-            int commandTimeout)
+            int commandTimeout,
+            ApplicationInsightsHelper applicationInsightsHelper)
         {
             logger.LogInformation("Getting list of dirty packages IDs.");
 
             IReadOnlyCollection<DirtyPackageId> packageIds = new List<DirtyPackageId>();
 
             // Get the data
-            await WithRetry(async () => packageIds = await GetDirtyPackageIdsFromWarehouse(openGallerySqlConnectionAsync, reportGenerationTime, commandTimeout), logger);
+            await WithRetry(
+                async () => packageIds = await GetDirtyPackageIdsFromWarehouse(openGallerySqlConnectionAsync, reportGenerationTime, commandTimeout),
+                logger,
+                applicationInsightsHelper);
 
             logger.LogInformation("Found {DirtyPackagesCount} dirty packages to update.", packageIds.Count);
 
@@ -89,7 +97,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
         }
 
-        private static async Task WithRetry(Func<Task> action, ILogger logger)
+        private static async Task WithRetry(Func<Task> action, ILogger logger, ApplicationInsightsHelper applicationInsightsHelper)
         {
             int attempts = 10;
 
@@ -115,6 +123,19 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
                 SqlConnection.ClearAllPools();
                 logger.LogError("SQL Invocation failed, retrying. {RemainingAttempts} attempts remaining. Exception: {Exception}", attempts, caught);
+
+                if (caught is SqlException sqlException && sqlException.InnerException is Win32Exception win32Exception)
+                {
+                    logger.LogError("SqlException with inner Win32Exception, native error code: {NativeErrorCode}", win32Exception.NativeErrorCode);
+
+                    // Native error code reference:
+                    // https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-erref/18d8fbe8-a967-4f1c-ae50-99ca8e491d2d
+                    if (win32Exception.NativeErrorCode == 0x00000102) // WAIT_TIMEOUT
+                    {
+                        applicationInsightsHelper.TrackMetric("Stats.SqlQueryTimeout", 1);
+                    }
+                }
+
                 await Task.Delay(20 * 1000);
             }
         }
