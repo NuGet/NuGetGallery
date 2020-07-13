@@ -95,14 +95,6 @@ namespace NuGetGallery
                 {SortOrder.TotalDownloadsDescending, GalleryConstants.SearchSortNames.TotalDownloadsDesc},
             };
 
-            private static readonly Dictionary<PackageTypeFilter, string> PackageTypeNames = new Dictionary<PackageTypeFilter, string>
-            {
-                {PackageTypeFilter.All, GalleryConstants.PackageTypeFilterNames.All},
-                {PackageTypeFilter.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency},
-                {PackageTypeFilter.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool},
-                {PackageTypeFilter.Template, GalleryConstants.PackageTypeFilterNames.Template},
-            };
-
             public static IEnumerable<object[]> AllSortOrders => Enum
                .GetValues(typeof(SortOrder))
                .Cast<SortOrder>()
@@ -114,7 +106,7 @@ namespace NuGetGallery
                 const string query = "someQuery";
                 const int page = 1;
                 const bool includePrerelease = true;
-                const string packageType = GalleryConstants.PackageTypeFilterNames.All;
+                const string packageType = "";
                 const string sortOrder = GalleryConstants.SearchSortNames.Relevance;
                 const string context = "someContext";
                 const string semVerLevel = "someSemVer";
@@ -134,7 +126,7 @@ namespace NuGetGallery
                 Assert.Equal(includePrerelease, searchFilter.IncludePrerelease);
                 Assert.Equal(context, searchFilter.Context);
                 Assert.Equal(semVerLevel, searchFilter.SemVerLevel);
-                Assert.Equal(GalleryConstants.PackageTypeFilterNames.All, searchFilter.PackageType);
+                Assert.Equal(string.Empty, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
             }
 
@@ -156,7 +148,7 @@ namespace NuGetGallery
                 Assert.True(searchFilter.IncludePrerelease);
                 Assert.Null(searchFilter.Context);
                 Assert.Null(searchFilter.SemVerLevel);
-                Assert.Equal(GalleryConstants.PackageTypeFilterNames.All, searchFilter.PackageType);
+                Assert.Equal(string.Empty, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
             }
 
@@ -168,7 +160,7 @@ namespace NuGetGallery
                    q: string.Empty,
                    page: 1,
                    includePrerelease: true,
-                   packageType: GalleryConstants.PackageTypeFilterNames.Dependency,
+                   packageType: "Dependency",
                    sortOrder: SortNames[sortOrder],
                    context: string.Empty,
                    semVerLevel: "SomeSemVer");
@@ -179,7 +171,7 @@ namespace NuGetGallery
                 Assert.Equal(true, searchFilter.IncludePrerelease);
                 Assert.Equal(string.Empty, searchFilter.Context);
                 Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
-                Assert.Equal(GalleryConstants.PackageTypeFilterNames.Dependency, searchFilter.PackageType);
+                Assert.Equal("Dependency", searchFilter.PackageType);
                 Assert.Equal(sortOrder, searchFilter.SortOrder);
             }
         }
