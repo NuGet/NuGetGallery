@@ -19,17 +19,12 @@ namespace NuGet.Services.AzureSearch
         /// The initial popularity transfers. Maps packages transferring their popularity
         /// away to the list of packages receiving the popularity.
         /// </param>
-        /// <param name="downloadOverrides">
-        /// The initial download overrides. Maps package that should be overriden to
-        /// their desired download value.
-        /// </param>
         /// <returns>
         /// The downloads that are changed due to transfers. Maps package ids to the new download value.
         /// </returns>
         SortedDictionary<string, long> InitializeDownloadTransfers(
             DownloadData downloads,
-            PopularityTransferData popularityTransfers,
-            IReadOnlyDictionary<string, long> downloadOverrides);
+            PopularityTransferData popularityTransfers);
 
         /// <summary>
         /// Determine changes that should be applied to the latest downloads data due to popularity transfers.
@@ -44,10 +39,6 @@ namespace NuGet.Services.AzureSearch
         /// The latest popularity transfers. Maps packages transferring their popularity
         /// away to the list of packages receiving the popularity.
         /// </param>
-        /// <param name="downloadOverrides">
-        /// The latest download overrides. Maps package that should be overriden to
-        /// their desired download value.
-        /// </param>
         /// <returns>
         /// The downloads that are changed due to transfers. Maps package ids to the new download value.
         /// </returns>
@@ -55,7 +46,6 @@ namespace NuGet.Services.AzureSearch
             DownloadData downloads,
             SortedDictionary<string, long> downloadChanges,
             PopularityTransferData oldTransfers,
-            PopularityTransferData newTransfers,
-            IReadOnlyDictionary<string, long> downloadOverrides);
+            PopularityTransferData newTransfers);
     }
 }

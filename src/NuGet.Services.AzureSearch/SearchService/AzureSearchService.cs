@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGetGallery;
@@ -34,6 +35,15 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             if (request.IgnoreFilter)
             {
+                if (request.PackageType != null && request.PackageType.Any())
+                {
+                    throw new InvalidSearchRequestException("Can't apply the packageType filter on the Hijack index");
+                }
+                else if (request.SortBy == V2SortBy.TotalDownloadsAsc || request.SortBy == V2SortBy.TotalDownloadsDesc)
+                {
+                    throw new InvalidSearchRequestException("Can't sortBy downloads on the Hijack index");
+                }
+
                 return await UseHijackIndexAsync(request);
             }
             else

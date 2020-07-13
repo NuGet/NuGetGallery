@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,27 +22,44 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         private const string PackageIdParameterName = "PackageId";
         private const string PackageVersionParameterName = "PackageVersion";
 
-        private static readonly string Db2CatalogSqlSubQuery = $@" PR.[Id],	
-                        P.[NormalizedVersion],	
-                        P.[Version],
-                        P.[Created],	
-                        P.[LastEdited],
-                        P.[Published],
-                        P.[Listed],
-                        P.[HideLicenseReport],
-                        P.[LicenseNames],
-                        P.[LicenseReportUrl],
-                        P.[RequiresLicenseAcceptance],
-                        PD.[Status] AS '{Db2CatalogProjectionColumnNames.DeprecationStatus}',
-                        APR.[Id] AS '{Db2CatalogProjectionColumnNames.AlternatePackageId}',
-                        AP.[NormalizedVersion] AS '{Db2CatalogProjectionColumnNames.AlternatePackageVersion}',
-                        PD.[CustomMessage] AS '{Db2CatalogProjectionColumnNames.DeprecationMessage}'
+        // insertions are:
+        // {0} - inner SELECT type
+        // {1} - additional WHERE conditions and ORDER BY if needed for inner SELECT's TOP n
+        // {2} - outer ORDER BY if needed
+        private static readonly string Db2CatalogSqlSubQuery = @"SELECT 
+             P_EXT.*,
+                PV.[GitHubDatabaseKey] AS 'VulnerabilityGitHubDatabaseKey',
+                PV.[AdvisoryUrl] AS 'VulnerabilityAdvisoryUrl',
+                PV.[Severity] AS 'VulnerabilitySeverity'
+            FROM
+                ({0} P.[Key],
+                    PR.[Id],
+                     P.[NormalizedVersion],
+                     P.[Version],
+                     P.[Created],
+                     P.[LastEdited],
+                     P.[Published],
+                     P.[Listed],
+                     P.[HideLicenseReport],
+                     P.[LicenseNames],
+                     P.[LicenseReportUrl],
+                     P.[RequiresLicenseAcceptance],
+                    PD.[Status] AS '" + Db2CatalogProjectionColumnNames.DeprecationStatus + @"',
+                   APR.[Id] AS '" + Db2CatalogProjectionColumnNames.AlternatePackageId + @"',
+                    AP.[NormalizedVersion] AS '" + Db2CatalogProjectionColumnNames.AlternatePackageVersion + @"',
+                    PD.[CustomMessage] AS '" + Db2CatalogProjectionColumnNames.DeprecationMessage + @"'
                     FROM [dbo].[Packages] AS P
                     INNER JOIN [dbo].[PackageRegistrations] AS PR ON P.[PackageRegistrationKey] = PR.[Key]
                     LEFT JOIN [dbo].[PackageDeprecations] AS PD ON PD.[PackageKey] = P.[Key]
                     LEFT JOIN [dbo].[Packages] AS AP ON AP.[Key] = PD.[AlternatePackageKey]
                     LEFT JOIN [dbo].[PackageRegistrations] AS APR ON APR.[Key] = ISNULL(AP.[PackageRegistrationKey], PD.[AlternatePackageRegistrationKey])
-                    WHERE P.[PackageStatusKey] = {(int)PackageStatus.Available} ";
+                    WHERE P.[PackageStatusKey] = 0
+                        {1}
+                ) AS P_EXT
+                LEFT JOIN [dbo].[VulnerablePackageVersionRangePackages] AS VPVRP ON VPVRP.[Package_Key] = P_EXT.[Key]
+                LEFT JOIN [dbo].[VulnerablePackageVersionRanges] AS VPVR ON VPVR.[Key] = VPVRP.[VulnerablePackageVersionRange_Key]
+                LEFT JOIN [dbo].[PackageVulnerabilities] AS PV ON PV.[Key] = VPVR.[VulnerabilityKey]
+                {2}";
 
         private readonly ISqlConnectionFactory _connectionFactory;
         private readonly Db2CatalogProjection _db2catalogProjection;
@@ -100,18 +119,10 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
                     using (_telemetryService.TrackGetPackageQueryDuration(id, version))
                     {
-                        using (var packagesReader = await packagesCommand.ExecuteReaderAsync())
-                        {
-                            while (await packagesReader.ReadAsync())
-                            {
-                                packages.Add(_db2catalogProjection.ReadFeedPackageDetailsFromDataReader(packagesReader));
-                            }
-                        }
+                        return (await ReadPackagesAsync(packagesCommand)).SingleOrDefault();
                     }
                 }
             }
-
-            return packages.SingleOrDefault();
         }
 
         /// <summary>
@@ -175,10 +186,12 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// <returns>The SQL query string for the db2catalog job, build from the the provided <see cref="Db2CatalogCursor"/>.</returns>
         internal static string BuildDb2CatalogSqlQuery(Db2CatalogCursor cursor)
         {
-            return $@"SELECT TOP {cursor.Top} WITH TIES
-                        {Db2CatalogSqlSubQuery}
-                        AND P.[{cursor.ColumnName}] > @{CursorParameterName}
-                    ORDER BY P.[{cursor.ColumnName}]";
+            // We need to provide an inner ORDER BY to support the TOP clause
+            return string.Format(Db2CatalogSqlSubQuery,
+                                   $@"SELECT TOP {cursor.Top} WITH TIES ",
+                                   $@"AND P.[{cursor.ColumnName}] > @{CursorParameterName}
+                                      ORDER BY P.[{cursor.ColumnName}]",
+                                   $@"ORDER BY P_EXT.[{cursor.ColumnName}], P_EXT.[{Db2CatalogProjectionColumnNames.Key}]");
         }
 
         /// <summary>
@@ -186,10 +199,10 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// </summary>
         internal static string BuildGetPackageSqlQuery()
         {
-            return $@"SELECT 
-                        {Db2CatalogSqlSubQuery}
-                        AND PR.[Id] = @PackageId
-                        AND P.[NormalizedVersion] = @PackageVersion";
+            return string.Format(Db2CatalogSqlSubQuery,
+                                   "SELECT ",
+                                   "AND PR.[Id] = @PackageId AND P.[NormalizedVersion] = @PackageVersion",
+                                   "");
         }
 
         /// <summary>
@@ -211,7 +224,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             SqlConnection sqlConnection,
             Db2CatalogCursor cursor)
         {
-            var packages = new List<FeedPackageDetails>();
             var packageQuery = BuildDb2CatalogSqlQuery(cursor);
 
             using (var packagesCommand = new SqlCommand(packageQuery, sqlConnection)
@@ -223,13 +235,49 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
                 using (_telemetryService.TrackGetPackageDetailsQueryDuration(cursor))
                 {
-                    using (var packagesReader = await packagesCommand.ExecuteReaderAsync())
+                    return await ReadPackagesAsync(packagesCommand);
+                }
+            }
+        }
+
+        private async Task<IReadOnlyCollection<FeedPackageDetails>> ReadPackagesAsync(SqlCommand packagesCommand)
+        {
+            var packages = new List<FeedPackageDetails>();
+
+            using (var packagesReader = await packagesCommand.ExecuteReaderAsync())
+            {
+                //  query has been ordered by package/version key, so we can use control break logic here to read it efficiently
+                //  - we break on key change to find the end of a group of rows for which we must accumulate vulnerability data
+                if (await packagesReader.ReadAsync()) // priming read
+                {
+                    var key = _db2catalogProjection.ReadPackageVersionKeyFromDataReader(packagesReader);
+                    var readEnded = false;
+                    do
                     {
-                        while (await packagesReader.ReadAsync())
+                        var package = _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(packagesReader);
+                        packages.Add(package);
+
+                        //  loop through all rows with the same key, so we cover all vulnerabilities for package/version
+                        var thisKey = key;
+                        do
                         {
-                            packages.Add(_db2catalogProjection.ReadFeedPackageDetailsFromDataReader(packagesReader));
-                        }
-                    }
+                            var vulnerability = _db2catalogProjection.ReadPackageVulnerabilityFromDataReader(packagesReader);
+                            if (vulnerability != null)
+                            {
+                                package.AddVulnerability(vulnerability);
+                            }
+
+                            //  read next, prime for control break
+                            if (await packagesReader.ReadAsync())
+                            {
+                                key = _db2catalogProjection.ReadPackageVersionKeyFromDataReader(packagesReader);
+                            }
+                            else
+                            {
+                                readEnded = true;
+                            }
+                        } while (!readEnded && key == thisKey);
+                    } while (!readEnded);
                 }
             }
 

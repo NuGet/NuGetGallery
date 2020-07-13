@@ -378,7 +378,8 @@ namespace NuGet.Services.Metadata.Catalog
             string licenseNames = null,
             string licenseReportUrl = null,
             string packageHash = null,
-            PackageDeprecationItem deprecationItem = null)
+            PackageDeprecationItem deprecationItem = null,
+            IList<PackageVulnerabilityItem> vulnerabilities = null)
         {
             try
             {
@@ -388,7 +389,8 @@ namespace NuGet.Services.Metadata.Catalog
                     createdDate, 
                     lastEditedDate, 
                     publishedDate, 
-                    deprecation: deprecationItem);
+                    deprecation: deprecationItem,
+                    vulnerabilities: vulnerabilities);
             }
             catch (InvalidDataException e)
             {

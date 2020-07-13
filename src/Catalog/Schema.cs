@@ -30,6 +30,8 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Integer = new Uri(Prefixes.Xsd + "integer");
             public static readonly Uri DateTime = new Uri(Prefixes.Xsd + "dateTime");
             public static readonly Uri Boolean = new Uri(Prefixes.Xsd + "boolean");
+
+            public static readonly Uri Vulnerability = new Uri(Prefixes.NuGet + "Vulnerability");
         }
 
         public static class Predicates
@@ -72,6 +74,11 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Reasons = new Uri(Prefixes.NuGet + "reasons");
             public static readonly Uri Message = new Uri(Prefixes.NuGet + "message");
             public static readonly Uri AlternatePackage = new Uri(Prefixes.NuGet + "alternatePackage");
+
+            public static readonly Uri Vulnerability = new Uri(Prefixes.NuGet + "vulnerability");
+            public static readonly Uri GitHubDatabaseKey = new Uri(Prefixes.NuGet + "gitHubDatabaseKey");
+            public static readonly Uri AdvisoryUrl = new Uri(Prefixes.NuGet + "advisoryUrl");
+            public static readonly Uri Severity = new Uri(Prefixes.NuGet + "severity");
         }
     }
 }

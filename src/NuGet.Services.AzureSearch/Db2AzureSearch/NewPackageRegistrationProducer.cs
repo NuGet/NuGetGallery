@@ -66,15 +66,10 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             // counts in the search service. We don't use the gallery DB values as they are different from the
             // auxiliary file.
             var downloads = await _auxiliaryFileClient.LoadDownloadDataAsync();
-
             var popularityTransfers = await GetPopularityTransfersAsync();
-            var downloadOverrides = await GetDownloadOverridesAsync();
 
-            // Apply changes from popularity transfers and download overrides.
-            var transferredDownloads = GetTransferredDownloads(
-                downloads,
-                popularityTransfers,
-                downloadOverrides);
+            // Apply changes from popularity transfers.
+            var transferredDownloads = GetTransferredDownloads(downloads, popularityTransfers);
 
             // Build a list of the owners data and verified IDs as we collect package registrations from the database.
             var ownersBuilder = new PackageIdToOwnersBuilder(_logger);
@@ -183,27 +178,13 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             return await _databaseFetcher.GetPopularityTransfersAsync();
         }
 
-        private async Task<IReadOnlyDictionary<string, long>> GetDownloadOverridesAsync()
-        {
-            if (_options.Value.EnablePopularityTransfers && _featureFlags.IsPopularityTransferEnabled())
-            {
-                _logger.LogWarning(
-                    "Popularity transfers are enabled. Download overrides will be ignored.");
-                return new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-            }
-
-            return await _auxiliaryFileClient.LoadDownloadOverridesAsync();
-        }
-
         private Dictionary<string, long> GetTransferredDownloads(
             DownloadData downloads,
-            PopularityTransferData popularityTransfers,
-            IReadOnlyDictionary<string, long> downloadOverrides)
+            PopularityTransferData popularityTransfers)
         {
             var transferChanges = _downloadTransferrer.InitializeDownloadTransfers(
                 downloads,
-                popularityTransfers,
-                downloadOverrides);
+                popularityTransfers);
 
             var result = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 

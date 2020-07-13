@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers
 {
@@ -18,6 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public string LicenseReportUrl { get; }
         public bool RequiresLicenseAcceptance { get; }
         public PackageDeprecationItem DeprecationInfo { get; }
+        public IList<PackageVulnerabilityItem> VulnerabilityInfo { get; private set; }
 
         public bool HasDeprecationInfo => DeprecationInfo != null;
 
@@ -68,6 +71,12 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             LicenseReportUrl = licenseReportUrl;
             DeprecationInfo = deprecationInfo;
             RequiresLicenseAcceptance = requiresLicenseAcceptance;
+        }
+
+        public void AddVulnerability(PackageVulnerabilityItem vulnerability)
+        {
+            VulnerabilityInfo = VulnerabilityInfo ?? new List<PackageVulnerabilityItem>();
+            VulnerabilityInfo.Add(vulnerability);
         }
     }
 }

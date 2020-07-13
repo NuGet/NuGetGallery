@@ -139,15 +139,11 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             _logger.LogInformation("Fetching new popularity transfer data from database.");
             var newTransfers = await GetPopularityTransfersAsync();
 
-            _logger.LogInformation("Fetching new download overrides from blob storage.");
-            var downloadOverrides = await GetDownloadOverridesAsync();
-
             _logger.LogInformation("Applying download transfers to download changes.");
             ApplyDownloadTransfers(
                 newData,
                 oldTransfers.Data,
                 newTransfers,
-                downloadOverrides,
                 changes);
 
             var idBag = new ConcurrentBag<string>(changes.Keys);
@@ -196,35 +192,21 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             return await _databaseFetcher.GetPopularityTransfersAsync();
         }
 
-        private async Task<IReadOnlyDictionary<string, long>> GetDownloadOverridesAsync()
-        {
-            if (_options.Value.EnablePopularityTransfers && _featureFlags.IsPopularityTransferEnabled())
-            {
-                _logger.LogWarning(
-                    "Popularity transfers are enabled. Download overrides will be ignored.");
-                return new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-            }
-
-            return await _auxiliaryFileClient.LoadDownloadOverridesAsync();
-        }
-
         private void ApplyDownloadTransfers(
             DownloadData newData,
             PopularityTransferData oldTransfers,
             PopularityTransferData newTransfers,
-            IReadOnlyDictionary<string, long> downloadOverrides,
             SortedDictionary<string, long> downloadChanges)
         {
-            _logger.LogInformation("Finding download changes from popularity transfers and download overrides.");
+            _logger.LogInformation("Finding download changes from popularity transfers.");
             var transferChanges = _downloadTransferrer.UpdateDownloadTransfers(
                 newData,
                 downloadChanges,
                 oldTransfers,
-                newTransfers,
-                downloadOverrides);
+                newTransfers);
 
             _logger.LogInformation(
-                "{Count} package IDs have download count changes from popularity transfers and download overrides.",
+                "{Count} package IDs have download count changes from popularity transfers.",
                 transferChanges.Count);
 
             // Apply the transfer changes to the overall download changes.

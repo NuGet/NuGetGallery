@@ -42,7 +42,7 @@ namespace NuGet.Services.Metadata.Catalog
                     using (HttpClient client = new HttpClient(handler))
                     using (HttpResponseMessage response = await client.GetAsync(_address, cancellationToken))
                     {
-                        Trace.TraceInformation("HttpReadCursor.Load {0}", response.StatusCode);
+                        Trace.TraceInformation("HttpReadCursor.Load {0} {1}", response.StatusCode, _address.AbsoluteUri);
 
                         if (_defaultValue != null && response.StatusCode == HttpStatusCode.NotFound)
                         {
@@ -59,7 +59,7 @@ namespace NuGet.Services.Metadata.Catalog
                         }
                     }
 
-                    Trace.TraceInformation("HttpReadCursor.Load: {0}", this);
+                    Trace.TraceInformation("HttpReadCursor.Load: {0} {1}", this, _address.AbsoluteUri);
                 },
                 ex => ex is HttpRequestException || ex is TaskCanceledException,
                 maxRetries: 5,

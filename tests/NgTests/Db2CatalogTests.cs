@@ -1183,7 +1183,7 @@ namespace NgTests
                 licenseNames: null,
                 licenseReportUrl: null,
                 deprecationInfo: null,
-                requiresLicenseAcceptance: false);
+                requiresLicenseAcceptance: false) ;
 
             return new PackageCreationOrEdit(package, feedPackageDetails);
         }
@@ -1648,6 +1648,10 @@ namespace NgTests
                 new JProperty(CatalogConstants.Tags,
                     new JObject(
                         new JProperty(CatalogConstants.IdKeyword, CatalogConstants.Tag),
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))),
+                new JProperty(CatalogConstants.Vulnerabilities,
+                    new JObject(
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.Vulnerability),
                         new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))),
                 new JProperty(CatalogConstants.Published,
                     new JObject(new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),

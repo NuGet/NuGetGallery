@@ -48,6 +48,7 @@
     <Compile Include="Analysis\IdentifierCustomTokenFilter.cs" />
     <Compile Include="Analysis\PackageIdCustomAnalyzer.cs" />
     <Compile Include="Analysis\PackageIdCustomTokenizer.cs" />
+    <Compile Include="Analysis\TagsCustomAnalyzer.cs" />
     <Compile Include="Analysis\TruncateCustomTokenFilter.cs" />
     <Compile Include="Auxiliary2AzureSearch\UpdateDownloadsCommand.cs" />
     <Compile Include="Auxiliary2AzureSearch\UpdateVerifiedPackagesCommand.cs" />
@@ -56,7 +57,6 @@
     <Compile Include="Auxiliary2AzureSearch\DownloadSetComparer.cs" />
     <Compile Include="Auxiliary2AzureSearch\IDownloadSetComparer.cs" />
     <Compile Include="AuxiliaryFiles\AuxiliaryDataStorageConfiguration.cs" />
-    <Compile Include="AuxiliaryFiles\DownloadOverrides.cs" />
     <Compile Include="AuxiliaryFiles\DownloadsV1Reader.cs" />
     <Compile Include="AuxiliaryFiles\IPopularityTransferDataClient.cs" />
     <Compile Include="AuxiliaryFiles\JsonStringArrayFileParser.cs" />

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog;
@@ -616,7 +617,7 @@ namespace CatalogTests
   ],
   ""tags"": [
     ""json""
-  ],
+  ],{7}
   ""@context"": {{
     ""@vocab"": ""http://schema.nuget.org/schema#"",
     ""catalog"": ""http://schema.nuget.org/catalog#"",
@@ -643,6 +644,10 @@ namespace CatalogTests
     }},
     ""tags"": {{
       ""@id"": ""tag"",
+      ""@container"": ""@set""
+    }},
+    ""vulnerabilities"": {{
+      ""@id"": ""vulnerability"",
       ""@container"": ""@set""
     }},
     ""published"": {{
@@ -678,6 +683,18 @@ namespace CatalogTests
 
         private const string _packageDeprecationMessageDetails = @"
     ""message"": ""this is the message"",";
+
+        private const string _packageVulnerabilitiesDetails = @"
+  ""vulnerabilities"": [{0}],";
+
+        private const string _packageVulnerabilityDetails = @"
+    {{
+      ""@id"": ""{0}#vulnerability/GitHub/{1}"",
+      ""@type"": ""Vulnerability"",
+      ""advisoryUrl"": ""{2}"",
+      ""gitHubDatabaseKey"": ""{1}"",
+      ""severity"": ""{3}""
+    }}";
 
         internal static JObject GetBeforeIndex(Uri indexUri)
         {
@@ -729,7 +746,8 @@ namespace CatalogTests
             DateTime created,
             DateTime lastEdited,
             DateTime published,
-            PackageDeprecationItem deprecation)
+            PackageDeprecationItem deprecation,
+            IList<PackageVulnerabilityItem> vulnerabilities)
         {
             return JObject.Parse(
                 string.Format(
@@ -740,7 +758,8 @@ namespace CatalogTests
                     created.ToString("O"),
                     lastEdited.ToString("O"),
                     published.ToString("O"),
-                    GetPackageDeprecationDetails(packageDetailsUri, deprecation)));
+                    GetPackageDeprecationDetails(packageDetailsUri, deprecation),
+                    GetPackageVulnerabilityDetails(packageDetailsUri, vulnerabilities)));
         }
 
         private static string GetPackageDeprecationDetails(
@@ -758,6 +777,34 @@ namespace CatalogTests
                 GetPackageDeprecationAlternatePackageDetails(packageDetailsUri, deprecation),
                 deprecation.Message == null ? string.Empty : _packageDeprecationMessageDetails,
                 string.Join(",", deprecation.Reasons.Select(r => $"\r\n      \"{r}\"")) + "\r\n    ");
+        }
+
+        private static string GetPackageVulnerabilityDetails(
+            Uri packageDetailsUri,
+            IList<PackageVulnerabilityItem> vulnerabilities)
+        {
+            if (vulnerabilities == null)
+            {
+                return string.Empty;
+            }
+
+            var vulnerabilityJson = string.Empty;
+            foreach (var vulnerability in vulnerabilities)
+            {
+                if (!string.IsNullOrEmpty(vulnerabilityJson))
+                {
+                    vulnerabilityJson += ",";
+                }
+
+                vulnerabilityJson += string.Format(
+                    _packageVulnerabilityDetails,
+                    packageDetailsUri,
+                    vulnerability.GitHubDatabaseKey,
+                    vulnerability.AdvisoryUrl,
+                    vulnerability.Severity);
+            }
+
+            return string.Format(_packageVulnerabilitiesDetails, vulnerabilityJson);
         }
 
         private static string GetPackageDeprecationAlternatePackageDetails(

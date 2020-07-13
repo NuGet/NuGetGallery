@@ -59,7 +59,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             {
                 AuxiliaryDataStorageContainer = "auxiliary-container",
                 AuxiliaryDataStorageDownloadsPath = "downloads.json",
-                AuxiliaryDataStorageDownloadOverridesPath = "downloadOverrides.json",
                 AuxiliaryDataStorageExcludedPackagesPath = "excludedPackages.json",
             };
 
@@ -174,7 +173,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         [Fact]
         public async Task FirstPopularityTransferChangesDownloads()
         {
-            SetDownloadOverrides("{}");
             SetExcludedPackagesJson("{}");
 
             AddVersionList("A", "1.0.0");
@@ -217,7 +215,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         [Fact]
         public async Task NewPopularityTransferChangesDownloads()
         {
-            SetDownloadOverrides("{}");
             SetExcludedPackagesJson("{}");
 
             AddVersionList("A", "1.0.0");
@@ -265,52 +262,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         }
 
         [Fact]
-        public async Task SkipsDownloadOverridesIfPopularityTransfersAreEnabled()
-        {
-            SetDownloadOverrides(@"{ ""A"": 500, ""B"": 500 }");
-            SetExcludedPackagesJson("{}");
-
-            AddVersionList("A", "1.0.0");
-            AddVersionList("B", "1.0.0");
-
-            SetOldDownloadsJson(@"
-{
-  ""A"": { ""1.0.0"": 100 },
-  ""B"": { ""1.0.0"": 1 }
-}");
-            SetNewDownloadsJson(@"
-[
-  [ ""A"", [ ""1.0.0"", 100 ] ],
-  [ ""B"", [ ""1.0.0"", 1 ] ],
-]");
-
-            // Old: no rename
-            // New: A -> B rename
-            SetOldPopularityTransfersJson(@"{}");
-            _newPopularityTransfers.AddTransfer("A", "B");
-
-            _config.Scoring.PopularityTransfer = 0.5;
-
-            await _target.ExecuteAsync();
-
-            Assert.NotNull(_indexedBatch);
-            var actions = _indexedBatch.Actions.OrderBy(x => x.Document.Key).ToList();
-            Assert.Equal(8, actions.Count);
-
-            VerifyUpdateDownloadCountAction("A", 50, actions[0]);
-            VerifyUpdateDownloadCountAction("A", 50, actions[1]);
-            VerifyUpdateDownloadCountAction("A", 50, actions[2]);
-            VerifyUpdateDownloadCountAction("A", 50, actions[3]);
-            VerifyUpdateDownloadCountAction("B", 51, actions[4]);
-            VerifyUpdateDownloadCountAction("B", 51, actions[5]);
-            VerifyUpdateDownloadCountAction("B", 51, actions[6]);
-            VerifyUpdateDownloadCountAction("B", 51, actions[7]);
-        }
-
-        [Fact]
         public async Task UpdatedPopularityTransferChangesDownloads()
         {
-            SetDownloadOverrides("{}");
             SetExcludedPackagesJson("{}");
 
             AddVersionList("A", "1.0.0");
@@ -360,7 +313,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         [Fact]
         public async Task ReverseTransferChangesDownloads()
         {
-            SetDownloadOverrides("{}");
             SetExcludedPackagesJson("{}");
 
             AddVersionList("A", "1.0.0");
@@ -427,8 +379,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             SetOldPopularityTransfersJson(@"{ ""A"": [ ""B"" ] }");
             _newPopularityTransfers.AddTransfer("A", "B");
 
-            SetDownloadOverrides(@"{ ""C"": 5 }");
-
             _config.EnablePopularityTransfers = false;
             _config.Scoring.PopularityTransfer = 0.5;
 
@@ -436,7 +386,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
 
             Assert.NotNull(_indexedBatch);
             var actions = _indexedBatch.Actions.OrderBy(x => x.Document.Key).ToList();
-            Assert.Equal(12, actions.Count);
+            Assert.Equal(8, actions.Count);
 
             VerifyUpdateDownloadCountAction("A", 100, actions[0]);
             VerifyUpdateDownloadCountAction("A", 100, actions[1]);
@@ -446,10 +396,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             VerifyUpdateDownloadCountAction("B", 20, actions[5]);
             VerifyUpdateDownloadCountAction("B", 20, actions[6]);
             VerifyUpdateDownloadCountAction("B", 20, actions[7]);
-            VerifyUpdateDownloadCountAction("C", 5, actions[8]);
-            VerifyUpdateDownloadCountAction("C", 5, actions[9]);
-            VerifyUpdateDownloadCountAction("C", 5, actions[10]);
-            VerifyUpdateDownloadCountAction("C", 5, actions[11]);
         }
 
         [Fact]
@@ -479,8 +425,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             SetOldPopularityTransfersJson(@"{ ""A"": [ ""B"" ] }");
             _newPopularityTransfers.AddTransfer("A", "B");
 
-            SetDownloadOverrides(@"{ ""C"": 5 }");
-
             _config.Scoring.PopularityTransfer = 0.5;
             _featureFlags
                 .Setup(x => x.IsPopularityTransferEnabled())
@@ -490,7 +434,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
 
             Assert.NotNull(_indexedBatch);
             var actions = _indexedBatch.Actions.OrderBy(x => x.Document.Key).ToList();
-            Assert.Equal(12, actions.Count);
+            Assert.Equal(8, actions.Count);
 
             VerifyUpdateDownloadCountAction("A", 100, actions[0]);
             VerifyUpdateDownloadCountAction("A", 100, actions[1]);
@@ -500,10 +444,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             VerifyUpdateDownloadCountAction("B", 20, actions[5]);
             VerifyUpdateDownloadCountAction("B", 20, actions[6]);
             VerifyUpdateDownloadCountAction("B", 20, actions[7]);
-            VerifyUpdateDownloadCountAction("C", 5, actions[8]);
-            VerifyUpdateDownloadCountAction("C", 5, actions[9]);
-            VerifyUpdateDownloadCountAction("C", 5, actions[10]);
-            VerifyUpdateDownloadCountAction("C", 5, actions[11]);
         }
 
         private void SetOldDownloadsJson(string json)
@@ -514,11 +454,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         private void SetNewDownloadsJson(string json)
         {
             _auxilliaryContainer.Blobs["downloads.json"] = new InMemoryCloudBlob(json);
-        }
-
-        private void SetDownloadOverrides(string json)
-        {
-            _auxilliaryContainer.Blobs["downloadOverrides.json"] = new InMemoryCloudBlob(json);
         }
 
         private void SetExcludedPackagesJson(string json)

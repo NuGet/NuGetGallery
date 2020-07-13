@@ -59,13 +59,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 reader => JsonStringArrayFileParser.Load(reader, _logger));
         }
 
-        public async Task<IReadOnlyDictionary<string, long>> LoadDownloadOverridesAsync()
-        {
-            return await LoadAuxiliaryFileAsync(
-                _options.Value.AuxiliaryDataStorageDownloadOverridesPath,
-                reader => DownloadOverrides.Load(reader, _logger));
-        }
-
         private async Task<T> LoadAuxiliaryFileAsync<T>(
             string blobName,
             Func<JsonReader, T> loadData) where T : class

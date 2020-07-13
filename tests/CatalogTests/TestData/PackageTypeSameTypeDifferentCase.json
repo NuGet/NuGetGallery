@@ -70,6 +70,10 @@
       "@id": "tag",
       "@container": "@set"
     },
+    "vulnerabilities": {
+      "@id": "vulnerability",
+      "@container": "@set"
+    },
     "published": {
       "@type": "xsd:dateTime"
     },

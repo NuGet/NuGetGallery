@@ -285,7 +285,7 @@ values. Once this configuration files has the settings you'd like, you can launc
 To use you own resources, you need to initialize the indexes in an Azure Search resource and the auxiliary files in
 Azure Blob Storage. The easiest way to do this is using the [Db2AzureSearch tool](../NuGet.Jobs.Db2AzureSearch/README.md).
 This tool populates the search and hijack indexes in the configured Azure Search resource and initialize the initial
-auxiliary data files. After the tool finished, simply configure the Search Service to point to the same Azure Search and
+auxiliary data files. After the tool finishes, simply configure the Search Service to point to the same Azure Search and
 Blob Storage container.
 
 You don't necessarily need to run Catalog2AzureSearch or Auxiliary2AzureSearch since these two jobs keep the indexes and
@@ -358,3 +358,5 @@ The `ApplicationInsights_InstrumentationKey` setting is optional and can be remo
 
 - **Azure Search**. The search and hijack indexes must already be initialized in the Azure Search resource.
 - **Azure Blob Storage**. Several auxiliary files are read from Blob Storage and reloaded periodically.
+
+For more information, please refer to the [`Db2AzureSearch`](../NuGet.Jobs.Db2AzureSearch/README.md) tool.

@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Threading.Tasks;
+using NuGet.Protocol.Plugins;
 using NuGet.Services.Entities;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers
@@ -25,6 +27,12 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             _packageContentUriBuilder = packageContentUriBuilder ?? throw new ArgumentNullException(nameof(packageContentUriBuilder));
         }
 
+        public string ReadPackageVersionKeyFromDataReader(DbDataReader dataReader) =>
+            dataReader[Db2CatalogProjectionColumnNames.Key].ToString();
+
+        /// <summary>
+        /// Note that this method will read details from current and end by reading next, closing reader (to communicate state) when end reached.
+        /// </summary>
         public FeedPackageDetails ReadFeedPackageDetailsFromDataReader(DbDataReader dataReader)
         {
             if (dataReader == null)
@@ -53,6 +61,20 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseReportUrl]?.ToString(),
                 deprecationInfo,
                 dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)));
+        }
+
+        public PackageVulnerabilityItem ReadPackageVulnerabilityFromDataReader(DbDataReader dataReader)
+        {
+            var gitHubDatabaseKey = dataReader[Db2CatalogProjectionColumnNames.VulnerabilityGitHubDatabaseKey].ToString();
+            var advisoryUrl = dataReader[Db2CatalogProjectionColumnNames.VulnerabilityAdvisoryUrl].ToString();
+            var severity = dataReader[Db2CatalogProjectionColumnNames.VulnerabilitySeverity].ToString();
+
+            if (string.IsNullOrEmpty(gitHubDatabaseKey) || string.IsNullOrEmpty(advisoryUrl) || string.IsNullOrEmpty(severity))
+            {
+                return null;
+            }
+
+            return new PackageVulnerabilityItem(gitHubDatabaseKey: gitHubDatabaseKey, advisoryUrl: advisoryUrl, severity: severity);
         }
 
         public PackageDeprecationItem ReadDeprecationInfoFromDataReader(DbDataReader dataReader)

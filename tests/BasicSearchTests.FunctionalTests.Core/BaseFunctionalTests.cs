@@ -21,6 +21,7 @@ namespace BasicSearchTests.FunctionalTests.Core
         public BaseFunctionalTests(string baseUrl)
         {
             // Arrange
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
             RetryHandler = new RetryHandler(new HttpClientHandler());
             Client = new HttpClient(RetryHandler) { BaseAddress = new Uri(baseUrl) };
         }
