@@ -4845,7 +4845,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(GalleryConstants.SearchSortNames.Relevance, null, true)]
-            [InlineData(null, GalleryConstants.PackageTypeFilterNames.All, true)]
+            [InlineData(null, "", true)]
             [InlineData(null, null, true)]
             [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, null, true)]
             [InlineData(GalleryConstants.SearchSortNames.CreatedDesc, null, false)]
@@ -4855,11 +4855,13 @@ namespace NuGetGallery
             [InlineData(GalleryConstants.SearchSortNames.TitleDesc, null, true)]
             [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsAsc, null, true)]
             [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsDesc, null, false)]
-            [InlineData(null, GalleryConstants.PackageTypeFilterNames.Dependency, false)]
-            [InlineData(null, GalleryConstants.PackageTypeFilterNames.DotNetTool, false)]
-            [InlineData(null, GalleryConstants.PackageTypeFilterNames.Template, false)]
-            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, GalleryConstants.PackageTypeFilterNames.Dependency, false, true)]
-            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, GalleryConstants.PackageTypeFilterNames.Dependency, true, false)]
+            [InlineData(GalleryConstants.SearchSortNames.Relevance, "Dependency", false)]
+            [InlineData(null, "Dependency", false)]
+            [InlineData(null, "DotNetTool", false)]
+            [InlineData(null, "Template", false)]
+            [InlineData(null, "SomeRandomPackageType", false)]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, "Dependency", false, true)]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, "Dependency", true, false)]
             public async Task DoesNotCacheAdvancedSearch(string sortBy, string packageType, bool expectCached, bool flightStatus = true)
             {
                 var httpContext = new Mock<HttpContextBase>();
@@ -4898,19 +4900,19 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(null, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(GalleryConstants.SearchSortNames.LastEdited, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(GalleryConstants.SearchSortNames.Published, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(GalleryConstants.SearchSortNames.TitleAsc, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(GalleryConstants.SearchSortNames.TitleDesc, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsAsc, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(GalleryConstants.SearchSortNames.CreatedDesc, SortOrder.CreatedDescending, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsDesc, SortOrder.TotalDownloadsDescending, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(GalleryConstants.SearchSortNames.Relevance, SortOrder.Relevance, null, GalleryConstants.PackageTypeFilterNames.All)]
-            [InlineData(null, SortOrder.Relevance, GalleryConstants.PackageTypeFilterNames.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency)]
-            [InlineData(null, SortOrder.Relevance, GalleryConstants.PackageTypeFilterNames.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool)]
-            [InlineData(null, SortOrder.Relevance, GalleryConstants.PackageTypeFilterNames.Template, GalleryConstants.PackageTypeFilterNames.Template)]
+            [InlineData(null, SortOrder.Relevance, null, "")]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedAsc, SortOrder.Relevance, null, "")]
+            [InlineData(GalleryConstants.SearchSortNames.LastEdited, SortOrder.Relevance, null, "")]
+            [InlineData(GalleryConstants.SearchSortNames.Published, SortOrder.Relevance, null, "")]
+            [InlineData(GalleryConstants.SearchSortNames.TitleAsc, SortOrder.Relevance, null, "")]
+            [InlineData(GalleryConstants.SearchSortNames.TitleDesc, SortOrder.Relevance, null, "")]
+            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsAsc, SortOrder.Relevance, null, "")]
+            [InlineData(GalleryConstants.SearchSortNames.CreatedDesc, SortOrder.CreatedDescending, null, "")]
+            [InlineData(GalleryConstants.SearchSortNames.TotalDownloadsDesc, SortOrder.TotalDownloadsDescending, null, "")]
+            [InlineData(GalleryConstants.SearchSortNames.Relevance, SortOrder.Relevance, null, "")]
+            [InlineData(null, SortOrder.Relevance, "Dependency", "Dependency")]
+            [InlineData(null, SortOrder.Relevance, "DotNetTool", "DotNetTool")]
+            [InlineData(null, SortOrder.Relevance, "Template", "Template")]
             public async Task RedirectsToDefaultWhenInvalidAdvancedSearch(string sortBy, SortOrder expectedSortBy, string packageType, string expectedPackageType)
             {
                 var httpContext = new Mock<HttpContextBase>();

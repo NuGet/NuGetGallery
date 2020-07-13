@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
-using Lucene.Net.Search;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
@@ -1125,7 +1124,7 @@ namespace NuGetGallery
             if (!isAdvancedSearchFlightEnabled)
             {
                 searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
-                searchAndListModel.PackageType = GalleryConstants.PackageTypeFilterNames.All;
+                searchAndListModel.PackageType = string.Empty;
             }
 
             q = (q ?? string.Empty).Trim();
@@ -1150,13 +1149,8 @@ namespace NuGetGallery
                 searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
             }
 
-            if(!isSupportedPackageType(searchAndListModel.PackageType))
-            {
-                searchAndListModel.PackageType = GalleryConstants.PackageTypeFilterNames.All;
-            }
-
             var isDefaultSortBy = string.Equals(searchAndListModel.SortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase);
-            var isDefaultPackageType = string.Equals(searchAndListModel.PackageType, GalleryConstants.PackageTypeFilterNames.All, StringComparison.OrdinalIgnoreCase);
+            var isDefaultPackageType = searchAndListModel.PackageType == null || !searchAndListModel.PackageType.Any();
 
             // Cache when null or default value
             var shouldCacheAdvancedSearch = isDefaultSortBy && isDefaultPackageType;
@@ -3009,15 +3003,6 @@ namespace NuGetGallery
                 (string.Equals(sortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(sortBy, GalleryConstants.SearchSortNames.TotalDownloadsDesc, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(sortBy, GalleryConstants.SearchSortNames.CreatedDesc, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static bool isSupportedPackageType(string packageType)
-        {
-            return packageType != null &&
-                (string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.All, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.Dependency, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.DotNetTool, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(packageType, GalleryConstants.PackageTypeFilterNames.Template, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

@@ -131,16 +131,5 @@ namespace NuGetGallery
             public const string TotalDownloadsAsc = "totalDownloads-asc";
             public const string TotalDownloadsDesc = "totalDownloads-desc";
         }
-
-        /// <summary>
-        /// These filter names represent the possible options that the search service supports for filtering packages.
-        /// </summary>
-        public static class PackageTypeFilterNames
-        {
-            public const string All = "";
-            public const string Dependency = "dependency";
-            public const string DotNetTool = "dotnettool";
-            public const string Template = "template";
-        }
     }
 }

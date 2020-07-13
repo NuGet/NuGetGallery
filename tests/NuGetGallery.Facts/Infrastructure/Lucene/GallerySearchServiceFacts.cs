@@ -64,11 +64,11 @@ namespace NuGetGallery.Infrastructure.Search
         }
 
         [Theory]
-        [InlineData(null, null, false, GalleryConstants.PackageTypeFilterNames.Dependency, SortOrder.Relevance, 1, 10, false, false, false, false, null, null, "q=&skip=1&take=10&packageType=dependency&sortBy=relevance&luceneQuery=false")]
-        [InlineData("query", "projectTypeFilter", true, GalleryConstants.PackageTypeFilterNames.DotNetTool ,SortOrder.LastEdited, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&packageType=dotnettool&sortBy=lastEdited&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
-        [InlineData("query", "projectTypeFilter", true, GalleryConstants.PackageTypeFilterNames.Template, SortOrder.Published, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&packageType=template&sortBy=published&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
-        [InlineData("query", "projectTypeFilter", true, GalleryConstants.PackageTypeFilterNames.Dependency, SortOrder.TitleAscending, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&packageType=dependency&sortBy=title-asc&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
-        [InlineData("query", "projectTypeFilter", true, GalleryConstants.PackageTypeFilterNames.Dependency, SortOrder.TitleDescending, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&packageType=dependency&sortBy=title-desc&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
+        [InlineData(null, null, false, "dependency", SortOrder.Relevance, 1, 10, false, false, false, false, null, null, "q=&skip=1&take=10&packageType=dependency&sortBy=relevance&luceneQuery=false")]
+        [InlineData("query", "projectTypeFilter", true, "dotnettool" ,SortOrder.LastEdited, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&packageType=dotnettool&sortBy=lastEdited&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
+        [InlineData("query", "projectTypeFilter", true, "template", SortOrder.Published, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&packageType=template&sortBy=published&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
+        [InlineData("query", "projectTypeFilter", true, "dependency", SortOrder.TitleAscending, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&packageType=dependency&sortBy=title-asc&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
+        [InlineData("query", "projectTypeFilter", true, "dependency", SortOrder.TitleDescending, 1, 10, true, true, true, true, "supportedFramework", "semVerLevel", "q=query&skip=1&take=10&packageType=dependency&sortBy=title-desc&semVerLevel=semVerLevel&supportedFramework=supportedFramework&projectType=projectTypeFilter&prerelease=true&explanation=true&ignoreFilter=true&countOnly=true")]
 
         public async Task SearchArgumentsAreCorrectSet(string query,
             string projectTypeFilter,
@@ -131,14 +131,6 @@ namespace NuGetGallery.Infrastructure.Search
             {SortOrder.CreatedDescending, "created-desc"},
             {SortOrder.TotalDownloadsAscending, "totalDownloads-asc"},
             {SortOrder.TotalDownloadsDescending, "totalDownloads-desc"},
-        };
-
-        private static readonly Dictionary<PackageTypeFilter, string> PackageTypeNames = new Dictionary<PackageTypeFilter, string>
-        {
-            {PackageTypeFilter.All, GalleryConstants.PackageTypeFilterNames.All},
-            {PackageTypeFilter.Dependency, GalleryConstants.PackageTypeFilterNames.Dependency},
-            {PackageTypeFilter.DotNetTool, GalleryConstants.PackageTypeFilterNames.DotNetTool},
-            {PackageTypeFilter.Template, GalleryConstants.PackageTypeFilterNames.Template},
         };
 
         public class ResilientClientForTest : IResilientSearchClient

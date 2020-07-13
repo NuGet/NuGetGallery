@@ -49,7 +49,7 @@ namespace NuGetGallery.Infrastructure.Search
             string query,
             string projectTypeFilter = null,
             bool includePrerelease = false,
-            string packageType = GalleryConstants.PackageTypeFilterNames.All,
+            string packageType = "",
             SearchModels.SortOrder sortBy = SearchModels.SortOrder.Relevance,
             int skip = 0,
             int take = 10,
