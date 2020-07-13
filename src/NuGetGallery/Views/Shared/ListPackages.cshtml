@@ -24,6 +24,17 @@
     </div>
 }
 
+@functions{
+    private const string DEFAULT_PACKAGETYPE = "";
+    private static readonly Dictionary<string, string> UI_SUPPORTED_PACKAGETYPES = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase)
+    {
+        { DEFAULT_PACKAGETYPE, "All types" },
+        { "dependency", "Dependency" },
+        { "dotnettool", ".NET tool" },
+        { "template" , "Template" },
+    };
+}
+
 <script>
     function ApplyAdvancedSearch() {
         // string
@@ -48,18 +59,8 @@
     }
 </script>
 
-<style>
-    .aligned-row {
-    display: flex;
-    flex-flow: row wrap;
-
-    &::before {
-        display: block;
-    }
-}
-</style>
 <section role="main" class="container main-container page-list-packages">
-    <div class="aligned-row clearfix no-margin">
+    <div class="row clearfix no-margin">
         <div class="col-md-10 no-padding">
             <h1 role="alert">
                 @if (String.IsNullOrEmpty(Model.SearchTerm))
@@ -89,7 +90,7 @@
             </h1>
         </div>
         <div class="col-md-2 col-xs-3 col-sm-1 text-right no-padding">
-            @if(!Model.IsAdvancedSearchFlightEnabled)
+            @if(Model.IsAdvancedSearchFlightEnabled)
             {
                 <button class="btn-command" data-toggle="collapse" data-target="#advancedSearchPanel" aria-expanded="false" aria-controls="advancedSearchPanel">
                     <i class="ms-Icon @(Model.shouldDisplayAdvancedSearchPanel ? "ms-Icon--FilterSolid" : "ms-Icon--Filter") ms-fontColor-blue" aria-hidden="true"></i>
@@ -102,45 +103,57 @@
             }
         </div>
     </div>
-
-    <div class="row clearfix collapse advanced-search-panel@(Model.shouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
-        <div class="row">
-            <div class="col-md-2">
-                <fieldset id="advanced-search-packagetype">
-                    <legend>Package type</legend>
-                    @AddPackageFilterOption("All types", GalleryConstants.PackageTypeFilterNames.All, canBeNull: true)
-                    @AddPackageFilterOption("Dependency", GalleryConstants.PackageTypeFilterNames.Dependency)
-                    @AddPackageFilterOption(".NET tool", GalleryConstants.PackageTypeFilterNames.DotNetTool)
-                    @AddPackageFilterOption("Template", GalleryConstants.PackageTypeFilterNames.Template)
-                </fieldset>
-            </div>
-            <div class="col-md-2">
-                <fieldset id="advanced-search-sortby">
-                    <legend>Sort by</legend>
-                    @AddSortByOption("Relevance", GalleryConstants.SearchSortNames.Relevance, canBeNull: true)
-                    @AddSortByOption("Downloads", GalleryConstants.SearchSortNames.TotalDownloadsDesc)
-                    @AddSortByOption("Recently updated", GalleryConstants.SearchSortNames.CreatedDesc)
-                </fieldset>
-            </div>
-            <div class="col-md-2">
-                <fieldset>
-                    <legend>Options</legend>
-                    <div style="display: flex;">
-                        <input id="advanced-search-includeprerelease" type="checkbox" @(Model.IncludePrerelease ? "checked=\"checked\"" : "")>
-                        <label>Include prerelease</label>
+    @if (Model.IsAdvancedSearchFlightEnabled)
+    {
+        <div class="row clearfix collapse advanced-search-panel@(Model.shouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
+            @if(Model.PackageType != null && !UI_SUPPORTED_PACKAGETYPES.ContainsKey(Model.PackageType))
+            {
+                <div class="row" style="margin-left: 10px;margin-right: 10px;">
+                    <div class="col-md-12 icon-text alert alert-warning">
+                        <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
+                        Filtering on unrecognized package type: @Html.ToJson(Model.PackageType)
                     </div>
-                </fieldset>
+                </div>
+            }
+            <div class="row">
+                <div class="col-md-2">
+                    <fieldset id="advanced-search-packagetype">
+                        <legend>Package type</legend>
+                        @foreach(var packageType in UI_SUPPORTED_PACKAGETYPES)
+                        {
+                            @AddPackageFilterOption(packageType.Value, packageType.Key, canBeNull: packageType.Key == DEFAULT_PACKAGETYPE)    
+                        }
+                    </fieldset>
+                </div>
+                <div class="col-md-2">
+                    <fieldset id="advanced-search-sortby">
+                        <legend>Sort by</legend>
+                        @AddSortByOption("Relevance", GalleryConstants.SearchSortNames.Relevance, canBeNull: true)
+                        @AddSortByOption("Downloads", GalleryConstants.SearchSortNames.TotalDownloadsDesc)
+                        @AddSortByOption("Recently updated", GalleryConstants.SearchSortNames.CreatedDesc)
+                    </fieldset>
+                </div>
+                <div class="col-md-2">
+                    <fieldset>
+                        <legend>Options</legend>
+                        <div style="display: flex;">
+                            <input id="advanced-search-includeprerelease" type="checkbox" @(Model.IncludePrerelease ? "checked=\"checked\"" : "")>
+                            <label>Include prerelease</label>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1">
+                    <input class="btn btn-primary form-control" type="button" value="Apply" onclick="ApplyAdvancedSearch()">
+                </div>
+                <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1">
+                    <input class="btn btn-link form-control" type="button" value="Reset" onclick="ResetAdvancedSearch()">
+                </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1">
-                <input class="btn btn-primary form-control" type="button" value="Apply" onclick="ApplyAdvancedSearch()">
-            </div>
-            <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1">
-                <input class="btn btn-link form-control" type="button" value="Reset" onclick="ResetAdvancedSearch()">
-            </div>
-        </div>
-    </div>
+    }
+    
     @if (!Model.Items.Any())
     {
         <div class="row">
