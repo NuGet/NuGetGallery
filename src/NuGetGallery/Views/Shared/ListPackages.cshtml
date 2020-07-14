@@ -91,7 +91,7 @@
             </h1>
         </div>
         <div class="col-md-2 col-xs-3 col-sm-1 text-right no-padding">
-            @if(Model.IsAdvancedSearchFlightEnabled)
+            @ if(Model.IsAdvancedSearchFlightEnabled)
             {
                 <button class="btn-command" data-toggle="collapse" data-target="#advancedSearchPanel" aria-expanded="false" aria-controls="advancedSearchPanel">
                     <i class="ms-Icon @(Model.ShouldDisplayAdvancedSearchPanel ? "ms-Icon--FilterSolid" : "ms-Icon--Filter") ms-fontColor-blue" aria-hidden="true"></i>
