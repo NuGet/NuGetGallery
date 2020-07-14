@@ -1348,6 +1348,10 @@ img.reserved-indicator-icon {
   margin-left: 20px;
   margin-bottom: 10px;
 }
+.advanced-search-panel .warning-panel {
+  margin-left: 10px;
+  margin-right: 10px;
+}
 .page-manage-deprecation .full-line {
   display: block;
   width: 100%;
