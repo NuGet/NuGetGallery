@@ -1144,13 +1144,13 @@ namespace NuGetGallery
             var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
 
-            if(!isSupportedSortBy(searchAndListModel.SortBy))
+            if (!IsSupportedSortBy(searchAndListModel.SortBy))
             {
                 searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
             }
 
-            var isDefaultSortBy = string.Equals(searchAndListModel.SortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase);
-            var isDefaultPackageType = searchAndListModel.PackageType == null || !searchAndListModel.PackageType.Any();
+            var isDefaultSortBy = searchAndListModel.SortBy == null || string.Equals(searchAndListModel.SortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase);
+            var isDefaultPackageType = string.IsNullOrEmpty(searchAndListModel.PackageType);
 
             // Cache when null or default value
             var shouldCacheAdvancedSearch = isDefaultSortBy && isDefaultPackageType;
@@ -1229,7 +1229,7 @@ namespace NuGetGallery
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = isAdvancedSearchFlightEnabled;
-            viewModel.shouldDisplayAdvancedSearchPanel = !shouldCacheAdvancedSearch || !includePrerelease;
+            viewModel.ShouldDisplayAdvancedSearchPanel = !shouldCacheAdvancedSearch || !includePrerelease;
 
             ViewBag.SearchTerm = q;
 
@@ -2997,7 +2997,7 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
         }
 
-        private static bool isSupportedSortBy(string sortBy)
+        private static bool IsSupportedSortBy(string sortBy)
         {
             return sortBy != null && 
                 (string.Equals(sortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase)

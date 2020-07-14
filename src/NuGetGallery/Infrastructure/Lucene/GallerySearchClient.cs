@@ -64,7 +64,10 @@ namespace NuGetGallery.Infrastructure.Search
             nameValue.Add("q", query);
             nameValue.Add("skip", skip.ToString());
             nameValue.Add("take", take.ToString());
-            nameValue.Add("packageType", packageType);
+            if (!string.IsNullOrEmpty(packageType))
+            {
+                nameValue.Add("packageType", packageType);
+            }
             nameValue.Add("sortBy", SortNames[sortBy]);
 
             if (!String.IsNullOrEmpty(semVerLevel))
