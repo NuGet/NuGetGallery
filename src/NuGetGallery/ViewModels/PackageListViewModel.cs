@@ -69,7 +69,7 @@ namespace NuGetGallery
 
         public string SortBy { get; set; }
 
-        public bool shouldDisplayAdvancedSearchPanel { get; set; }
+        public bool ShouldDisplayAdvancedSearchPanel { get; set; }
 
         public bool IsAdvancedSearchFlightEnabled { get; set; }
     }

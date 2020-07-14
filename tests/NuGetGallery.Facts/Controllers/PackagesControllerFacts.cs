@@ -4887,7 +4887,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.ListPackages(new PackageListSearchViewModel { Q = string.Empty, SortBy = sortBy, PackageType = packageType});
-                if(expectCached)
+                if (expectCached)
                 {
                     Assert.NotNull(_cache.Get("DefaultSearchResults"));
                 }
@@ -4913,6 +4913,7 @@ namespace NuGetGallery
             [InlineData(null, SortOrder.Relevance, "Dependency", "Dependency")]
             [InlineData(null, SortOrder.Relevance, "DotNetTool", "DotNetTool")]
             [InlineData(null, SortOrder.Relevance, "Template", "Template")]
+            [InlineData(null, SortOrder.Relevance, "IsNotARealpackageType", "IsNotARealpackageType")]
             public async Task RedirectsToDefaultWhenInvalidAdvancedSearch(string sortBy, SortOrder expectedSortBy, string packageType, string expectedPackageType)
             {
                 var httpContext = new Mock<HttpContextBase>();
