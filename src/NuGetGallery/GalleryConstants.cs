@@ -115,5 +115,21 @@ namespace NuGetGallery
             public const string TransformToOrganization = "https://aka.ms/nuget-faq-transform-org";
             public const string AccountBelongsToUnmanagedTenant = "https://aka.ms/nuget-faq-unmanaged-tenant";
         }
+
+        /// <summary>
+        /// These sort names represent the possible options that the search service supports for sorting packages.
+        /// </summary>
+        public static class SearchSortNames
+        {
+            public const string Relevance = "relevance";
+            public const string LastEdited = "lastEdited";
+            public const string Published = "published";
+            public const string TitleAsc = "title-asc";
+            public const string TitleDesc = "title-desc";
+            public const string CreatedAsc = "created-asc";
+            public const string CreatedDesc = "created-desc";
+            public const string TotalDownloadsAsc = "totalDownloads-asc";
+            public const string TotalDownloadsDesc = "totalDownloads-desc";
+        }
     }
 }

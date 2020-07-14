@@ -81,6 +81,14 @@ namespace NuGetGallery
         bool IsGitHubUsageEnabled(User user);
 
         /// <summary>
+        /// Whether a user can see the "Advanced Search" panel in the packages list view as well as use the 
+        /// advanced search request parameters
+        /// </summary>
+        /// <param name="user">The user to test for the Flight</param>
+        /// <returns>Whether or not the Flight is enabled for the user</returns>
+        bool IsAdvancedSearchEnabled(User user);
+
+        /// <summary>
         /// Whether a user can see the "Package Dependents" section in a package's display page. Also, no
         /// data is gathered from the database
         /// </summary>
