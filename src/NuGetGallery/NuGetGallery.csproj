@@ -298,6 +298,10 @@
     <Compile Include="Migrations\202006011927336_AddIndexToPackageDependencies.designer.cs">
       <DependentUpon>202006011927336_AddIndexToPackageDependencies.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.cs" />
+    <Compile Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.designer.cs">
+      <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\GravatarProxyResult.cs" />
@@ -1621,6 +1625,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202006011927336_AddIndexToPackageDependencies.resx">
       <DependentUpon>202006011927336_AddIndexToPackageDependencies.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.resx">
+      <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
