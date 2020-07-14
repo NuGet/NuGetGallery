@@ -18,9 +18,10 @@
 
 @helper AddRadioGroupOption(string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool canBeNull = false)
 {
+    var elemGuid = Guid.NewGuid();
     <div style="display: flex;">
-        <input type="radio" name="@radioGroupName" @(optionCompareValue == optionValue || (canBeNull && optionCompareValue == null) ? "checked=\"checked\"" : "") value="@optionValue">
-        <label>@optionName</label>
+        <input id="@elemGuid" type="radio" name="@radioGroupName" @(optionCompareValue == optionValue || (canBeNull && optionCompareValue == null) ? "checked=\"checked\"" : "") value="@optionValue">
+        <label for="@elemGuid">@optionName</label>
     </div>
 }
 
@@ -93,7 +94,7 @@
             @if(Model.IsAdvancedSearchFlightEnabled)
             {
                 <button class="btn-command" data-toggle="collapse" data-target="#advancedSearchPanel" aria-expanded="false" aria-controls="advancedSearchPanel">
-                    <i class="ms-Icon @(Model.shouldDisplayAdvancedSearchPanel ? "ms-Icon--FilterSolid" : "ms-Icon--Filter") ms-fontColor-blue" aria-hidden="true"></i>
+                    <i class="ms-Icon @(Model.ShouldDisplayAdvancedSearchPanel ? "ms-Icon--FilterSolid" : "ms-Icon--Filter") ms-fontColor-blue" aria-hidden="true"></i>
                     Filter
                 </button>
             }
@@ -105,7 +106,7 @@
     </div>
     @if (Model.IsAdvancedSearchFlightEnabled)
     {
-        <div class="row clearfix collapse advanced-search-panel@(Model.shouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
+        <div class="row clearfix collapse advanced-search-panel@(Model.ShouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
             @if(Model.PackageType != null && !UI_SUPPORTED_PACKAGETYPES.ContainsKey(Model.PackageType))
             {
                 <div class="row" style="margin-left: 10px;margin-right: 10px;">
@@ -138,7 +139,7 @@
                         <legend>Options</legend>
                         <div style="display: flex;">
                             <input id="advanced-search-includeprerelease" type="checkbox" @(Model.IncludePrerelease ? "checked=\"checked\"" : "")>
-                            <label>Include prerelease</label>
+                            <label for="advanced-search-includeprerelease">Include prerelease</label>
                         </div>
                     </fieldset>
                 </div>
