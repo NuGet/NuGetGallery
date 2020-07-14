@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Options;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
@@ -169,6 +170,23 @@ namespace NuGet.Jobs.Catalog2Registration
 
             catalogEntry.Title = packageDetails.Title ?? string.Empty;
             catalogEntry.Version = parsedVersion.ToFullString();
+
+            if (hive == HiveType.SemVer2 &&
+                packageDetails.Vulnerabilities != null && 
+                packageDetails.Vulnerabilities.Count > 0)
+            {
+                catalogEntry.Vulnerabilities = packageDetails.Vulnerabilities.Select(v => 
+                    new RegistrationPackageVulnerability()
+                    {
+                        AdvisoryUrl = v.AdvisoryUrl,
+                        Severity = v.Severity
+                    }
+                ).ToList();
+            }
+            else
+            {
+                catalogEntry.Vulnerabilities = null;
+            }
         }
 
         public RegistrationLeaf NewLeaf(RegistrationLeafItem leafItem)

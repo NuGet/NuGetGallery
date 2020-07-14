@@ -75,5 +75,8 @@ namespace NuGet.Protocol.Registration
 
         [JsonProperty("version")]
         public string Version { get; set; }
+
+        [JsonProperty("vulnerabilities")]
+        public List<RegistrationPackageVulnerability> Vulnerabilities { get; set; }
     }
 }

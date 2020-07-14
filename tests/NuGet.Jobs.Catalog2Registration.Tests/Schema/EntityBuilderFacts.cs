@@ -129,7 +129,7 @@ namespace NuGet.Jobs.Catalog2Registration
             }
 
             [Fact]
-            public void PopulatesProperties()
+            public void PopulatesDeprecationProperties()
             {
                 Hive = HiveType.SemVer2;
                 var leaf = V3Data.Leaf;
@@ -220,6 +220,89 @@ namespace NuGet.Jobs.Catalog2Registration
   ""registration"": ""https://example/reg-gz-semver2/windowsazure.storage/index.json""
 }",
                     json);
+            }
+
+            [Fact]
+            public void PopulatesVulnerabilityProperties()
+            {
+                Hive = HiveType.SemVer2;
+                var leaf = V3Data.Leaf;
+                leaf.Vulnerabilities = new List<PackageVulnerability>() {
+                    new PackageVulnerability
+                    {
+                        Id = "https://example/v3/catalog0/data/2020.07.06.06.49.47/bar.1.0.0.json#vulnerability/GitHub/999",
+                        Type = "Vulnerability",
+                        GitHubDatabaseKey = "999",
+                        AdvisoryUrl = "https://nvd.nist.gov/vuln/detail/CVE-1234-56789",
+                        Severity = "3"
+                    }
+                };
+
+                Target.UpdateLeafItem(LeafItem, Hive, Id, leaf);
+
+                var json = JsonConvert.SerializeObject(LeafItem, SerializerSettings);
+                Assert.Equal(
+                @"{
+  ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/7.1.2-alpha.json"",
+  ""@type"": ""Package"",
+  ""commitTimeStamp"": ""0001-01-01T00:00:00+00:00"",
+  ""catalogEntry"": {
+    ""@type"": ""PackageDetails"",
+    ""authors"": ""Microsoft"",
+    ""dependencyGroups"": [
+      {
+        ""dependencies"": [
+          {
+            ""id"": ""Microsoft.Data.OData"",
+            ""range"": ""[5.6.4, )"",
+            ""registration"": ""https://example/reg-gz-semver2/microsoft.data.odata/index.json""
+          },
+          {
+            ""id"": ""Newtonsoft.Json"",
+            ""range"": ""[6.0.8, )"",
+            ""registration"": ""https://example/reg-gz-semver2/newtonsoft.json/index.json""
+          }
+        ],
+        ""targetFramework"": "".NETFramework4.0-Client""
+      }
+    ],
+    ""description"": ""Description."",
+    ""iconUrl"": ""https://example/fc/windowsazure.storage/7.1.2-alpha/icon"",
+    ""id"": ""WindowsAzure.Storage"",
+    ""language"": ""en-US"",
+    ""licenseExpression"": """",
+    ""licenseUrl"": ""http://go.microsoft.com/fwlink/?LinkId=331471"",
+    ""listed"": true,
+    ""minClientVersion"": ""2.12"",
+    ""packageContent"": ""https://example/fc/windowsazure.storage/7.1.2-alpha/windowsazure.storage.7.1.2-alpha.nupkg"",
+    ""projectUrl"": ""https://github.com/Azure/azure-storage-net"",
+    ""published"": ""2017-01-03T00:00:00+00:00"",
+    ""requireLicenseAcceptance"": true,
+    ""summary"": ""Summary."",
+    ""tags"": [
+      ""Microsoft"",
+      ""Azure"",
+      ""Storage"",
+      ""Table"",
+      ""Blob"",
+      ""File"",
+      ""Queue"",
+      ""Scalable"",
+      ""windowsazureofficial""
+    ],
+    ""title"": ""Windows Azure Storage"",
+    ""version"": ""7.1.2-alpha+git"",
+    ""vulnerabilities"": [
+      {
+        ""advisoryUrl"": ""https://nvd.nist.gov/vuln/detail/CVE-1234-56789"",
+        ""severity"": ""3""
+      }
+    ]
+  },
+  ""packageContent"": ""https://example/fc/windowsazure.storage/7.1.2-alpha/windowsazure.storage.7.1.2-alpha.nupkg"",
+  ""registration"": ""https://example/reg-gz-semver2/windowsazure.storage/index.json""
+}",
+                json);
             }
         }
 

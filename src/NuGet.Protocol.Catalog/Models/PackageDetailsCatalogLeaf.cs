@@ -93,5 +93,8 @@ namespace NuGet.Protocol.Catalog
 
         [JsonProperty("iconFile")]
         public string IconFile { get; set; }
+
+        [JsonProperty("vulnerabilities")]
+        public List<PackageVulnerability> Vulnerabilities { get; set; }
     }
 }

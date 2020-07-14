@@ -44,6 +44,7 @@
     <Compile Include="Registration\Models\RegistrationContainerContext.cs" />
     <Compile Include="Registration\Models\RegistrationLeafContext.cs" />
     <Compile Include="Registration\Models\RegistrationPackageDependencyGroup.cs" />
+    <Compile Include="Registration\Models\RegistrationPackageVulnerability.cs" />
     <Compile Include="Support\Guard.cs" />
     <Compile Include="Support\IdAndValue.cs" />
     <Compile Include="IV3TelemetryService.cs" />

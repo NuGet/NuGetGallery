@@ -55,5 +55,8 @@ namespace NuGet.Protocol.Registration
 
         [JsonProperty("registration")]
         public ContextTypeDescription Registration { get; set; }
+
+        [JsonProperty("vulnerabilities")]
+        public ContextTypeDescription Vulnerabilities { get; set; }
     }
 }

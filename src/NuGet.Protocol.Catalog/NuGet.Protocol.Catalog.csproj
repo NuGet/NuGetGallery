@@ -86,6 +86,7 @@
     <Compile Include="Models\CatalogPageContext.cs" />
     <Compile Include="Models\CatalogPageItem.cs" />
     <Compile Include="Models\ContextTypeDescription.cs" />
+    <Compile Include="Models\PackageVulnerability.cs" />
     <Compile Include="Models\PackageDeprecation.cs" />
     <Compile Include="Models\ICatalogLeafItem.cs" />
     <Compile Include="Models\ModelExtensions.cs" />
