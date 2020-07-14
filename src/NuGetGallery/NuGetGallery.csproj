@@ -298,9 +298,9 @@
     <Compile Include="Migrations\202006011927336_AddIndexToPackageDependencies.designer.cs">
       <DependentUpon>202006011927336_AddIndexToPackageDependencies.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202007141855149_ReadmeChanges.cs" />
-    <Compile Include="Migrations\202007141855149_ReadmeChanges.designer.cs">
-      <DependentUpon>202007141855149_ReadmeChanges.cs</DependentUpon>
+    <Compile Include="Migrations\202007150051382_ReadmeChanges.cs" />
+    <Compile Include="Migrations\202007150051382_ReadmeChanges.designer.cs">
+      <DependentUpon>202007150051382_ReadmeChanges.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
@@ -1626,8 +1626,8 @@
     <EmbeddedResource Include="Migrations\202006011927336_AddIndexToPackageDependencies.resx">
       <DependentUpon>202006011927336_AddIndexToPackageDependencies.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202007141855149_ReadmeChanges.resx">
-      <DependentUpon>202007141855149_ReadmeChanges.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202007150051382_ReadmeChanges.resx">
+      <DependentUpon>202007150051382_ReadmeChanges.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
