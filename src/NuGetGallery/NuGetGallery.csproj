@@ -298,6 +298,7 @@
     <Compile Include="Migrations\202006011927336_AddIndexToPackageDependencies.designer.cs">
       <DependentUpon>202006011927336_AddIndexToPackageDependencies.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20200713010635_ReadmeChanges.cs" />
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\GravatarProxyResult.cs" />
