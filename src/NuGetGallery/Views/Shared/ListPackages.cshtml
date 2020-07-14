@@ -6,21 +6,21 @@
     ViewBag.BlockSearchEngineIndexing = !String.IsNullOrWhiteSpace(Model.SearchTerm) || Model.PageIndex != 0;
 }
 
-@helper AddPackageFilterOption(string optionName, string optionValue, bool canBeNull = false)
+@helper AddPackageFilterOption(string optionName, string optionValue, bool isDefault = false)
 {
-    @AddRadioGroupOption("advanced-search-packagetype", optionName, optionValue, Model.PackageType, canBeNull);
+    @AddRadioGroupOption("advanced-search-packagetype", optionName, optionValue, Model.PackageType, isDefault);
 }
 
-@helper AddSortByOption(string optionName, string optionValue, bool canBeNull = false)
+@helper AddSortByOption(string optionName, string optionValue, bool isDefault = false)
 {
-    @AddRadioGroupOption("advanced-search-sortby", optionName, optionValue, Model.SortBy, canBeNull);
+    @AddRadioGroupOption("advanced-search-sortby", optionName, optionValue, Model.SortBy, isDefault);
 }
 
-@helper AddRadioGroupOption(string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool canBeNull = false)
+@helper AddRadioGroupOption(string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool isDefault = false)
 {
     var elemGuid = Guid.NewGuid();
     <div style="display: flex;">
-        <input id="@elemGuid" type="radio" name="@radioGroupName" @(optionCompareValue == optionValue || (canBeNull && optionCompareValue == null) ? "checked=\"checked\"" : "") value="@optionValue">
+        <input id="@elemGuid" type="radio" name="@radioGroupName" @(optionCompareValue == optionValue || (isDefault && optionCompareValue == null) ? "checked=\"checked\"" : "") value="@optionValue">
         <label for="@elemGuid">@optionName</label>
     </div>
 }
@@ -91,7 +91,7 @@
             </h1>
         </div>
         <div class="col-md-2 col-xs-3 col-sm-1 text-right no-padding">
-            @ if(Model.IsAdvancedSearchFlightEnabled)
+            @if(Model.IsAdvancedSearchFlightEnabled)
             {
                 <button class="btn-command" data-toggle="collapse" data-target="#advancedSearchPanel" aria-expanded="false" aria-controls="advancedSearchPanel">
                     <i class="ms-Icon @(Model.ShouldDisplayAdvancedSearchPanel ? "ms-Icon--FilterSolid" : "ms-Icon--Filter") ms-fontColor-blue" aria-hidden="true"></i>
@@ -122,14 +122,14 @@
                         <legend>Package type</legend>
                         @foreach(var packageType in UI_SUPPORTED_PACKAGETYPES)
                         {
-                            @AddPackageFilterOption(packageType.Value, packageType.Key, canBeNull: packageType.Key == DEFAULT_PACKAGETYPE)    
+                            @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DEFAULT_PACKAGETYPE)    
                         }
                     </fieldset>
                 </div>
                 <div class="col-md-2">
                     <fieldset id="advanced-search-sortby">
                         <legend>Sort by</legend>
-                        @AddSortByOption("Relevance", GalleryConstants.SearchSortNames.Relevance, canBeNull: true)
+                        @AddSortByOption("Relevance", GalleryConstants.SearchSortNames.Relevance, isDefault: true)
                         @AddSortByOption("Downloads", GalleryConstants.SearchSortNames.TotalDownloadsDesc)
                         @AddSortByOption("Recently updated", GalleryConstants.SearchSortNames.CreatedDesc)
                     </fieldset>
