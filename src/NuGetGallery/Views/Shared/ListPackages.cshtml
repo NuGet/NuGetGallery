@@ -37,14 +37,6 @@
     };
 }
 
-<script>
-    // Reset advanced search by redirecting to a URL without A-S params
-    function ResetAdvancedSearch() {
-        var searchTermStr = `?q=${'@Html.Encode(Model.SearchTerm)'}`
-        location.href = searchTermStr;
-    }
-</script>
-
 <section role="main" class="container main-container page-list-packages">
     <div class="row clearfix no-margin">
         <div class="col-md-10 no-padding">
@@ -124,7 +116,7 @@
                         <legend>Options</legend>
                         <div style="display: flex;">
                             <label>
-                                <input id="prerel" type="checkbox" @(Model.IncludePrerelease ? "checked" : "")>
+                                <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
                                 Include prerelease
                             </label>
                         </div>
@@ -136,10 +128,11 @@
                     <input class="btn btn-primary form-control" type="submit" value="Apply">
                 </div>
                 <div class="col-xs-4 col-sm-3 col-md-2 col-lg-1">
-                    <input class="btn btn-link form-control" type="button" value="Reset" onclick="ResetAdvancedSearch()">
+                    <input id="reset-advanced-search" class="btn btn-link form-control" type="button" value="Reset">
                 </div>
             </div>
              <input type="hidden" name="q" value="@Model.SearchTerm">
+             <input type="hidden" id="prerel" name="prerel" value="@Model.IncludePrerelease.ToString()">
         </form>
     }
     
@@ -241,6 +234,15 @@
                     emitClickEvent.call(this, e);
                 });
             });
+        });
+
+        $('#prerel-checkbox').on('change', function (event) {
+            $('#prerel').val($(event.target).is(':checked'));
+        });
+
+        $('#reset-advanced-search').on('click', function () {
+            var searchTermStr = `?q=${'@Html.Encode(Model.SearchTerm)'}`
+            location.href = searchTermStr;
         });
     </script>
 }
