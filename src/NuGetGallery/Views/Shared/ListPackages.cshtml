@@ -27,10 +27,10 @@
 }
 
 @functions{
-    private const string DEFAULT_PACKAGETYPE = "";
+    private const string DefaultPackageType = "";
     private static readonly IReadOnlyDictionary<string, string> UI_SUPPORTED_PACKAGETYPES = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase)
     {
-        { DEFAULT_PACKAGETYPE, "All types" },
+        { DefaultPackageType, "All types" },
         { "dependency", "Dependency" },
         { "dotnettool", ".NET tool" },
         { "template" , "Template" },
@@ -123,7 +123,7 @@
                         <legend>Package type</legend>
                         @foreach (var packageType in UI_SUPPORTED_PACKAGETYPES)
                         {
-                            @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DEFAULT_PACKAGETYPE)    
+                            @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DefaultPackageType)    
                         }
                     </fieldset>
                 </div>
