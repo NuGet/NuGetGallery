@@ -28,7 +28,7 @@
 
 @functions{
     private const string DEFAULT_PACKAGETYPE = "";
-    private static readonly Dictionary<string, string> UI_SUPPORTED_PACKAGETYPES = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase)
+    private static readonly IReadOnlyDictionary<string, string> UI_SUPPORTED_PACKAGETYPES = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase)
     {
         { DEFAULT_PACKAGETYPE, "All types" },
         { "dependency", "Dependency" },
