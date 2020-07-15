@@ -9,12 +9,12 @@ namespace NuGet.Services.Entities
     public enum EmbeddedReadmeFileType
     {
         /// <summary>
-        /// Indicates that package has no embedded readme file.
+        /// Indicates that the package has no embedded readme file.
         /// </summary>
         Absent = 0,
 
         /// <summary>
-        /// Indicates that embedded readme file is markdown.
+        /// Indicates that tne embedded readme file is markdown.
         /// </summary>
         Markdown = 1,
     }
