@@ -174,6 +174,29 @@ namespace NuGetGallery
                 Assert.Equal("Dependency", searchFilter.PackageType);
                 Assert.Equal(sortOrder, searchFilter.SortOrder);
             }
+
+            [Theory]
+            [MemberData(nameof(AllSortOrders))]
+            public void IgnoresCaseForSortOrder(SortOrder sortOrder)
+            {
+                var searchFilter = SearchAdaptor.GetSearchFilter(
+                       q: string.Empty,
+                       page: 1,
+                       includePrerelease: true,
+                       packageType: "Dependency",
+                       sortOrder: SortNames[sortOrder].ToUpper(),
+                       context: string.Empty,
+                       semVerLevel: "SomeSemVer");
+
+                Assert.Equal(string.Empty, searchFilter.SearchTerm);
+                Assert.Equal(0, searchFilter.Skip);
+                Assert.Equal(GalleryConstants.DefaultPackageListPageSize, searchFilter.Take);
+                Assert.Equal(true, searchFilter.IncludePrerelease);
+                Assert.Equal(string.Empty, searchFilter.Context);
+                Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
+                Assert.Equal("Dependency", searchFilter.PackageType);
+                Assert.Equal(sortOrder, searchFilter.SortOrder);
+            }
         }
 
         public class TheFindByIdAndVersionCoreMethod : Facts

@@ -25,6 +25,19 @@ namespace NuGetGallery.OData
         ///     Determines the maximum number of packages returned in a single page of an OData result.
         /// </summary>
         internal const int MaxPageSize = 100;
+        private static IReadOnlyDictionary<string, SortOrder> SORT_ORDERS = new Dictionary<string, SortOrder>(StringComparer.OrdinalIgnoreCase)
+        {
+            { GalleryConstants.AlphabeticSortOrder, SortOrder.TitleAscending },
+            { GalleryConstants.SearchSortNames.TitleAsc, SortOrder.TitleAscending },
+            { GalleryConstants.SearchSortNames.TitleDesc, SortOrder.TitleDescending },
+            { GalleryConstants.RecentSortOrder, SortOrder.Published },
+            { GalleryConstants.SearchSortNames.Published, SortOrder.Published },
+            { GalleryConstants.SearchSortNames.LastEdited, SortOrder.LastEdited },
+            { GalleryConstants.SearchSortNames.CreatedAsc, SortOrder.CreatedAscending },
+            { GalleryConstants.SearchSortNames.CreatedDesc, SortOrder.CreatedDescending },
+            { GalleryConstants.SearchSortNames.TotalDownloadsAsc, SortOrder.TotalDownloadsAscending },
+            { GalleryConstants.SearchSortNames.TotalDownloadsDesc, SortOrder.TotalDownloadsDescending },
+        };
 
         public static SearchFilter GetSearchFilter(string q, int page, bool includePrerelease, string packageType, string sortOrder, string context, string semVerLevel)
         {
@@ -41,42 +54,12 @@ namespace NuGetGallery.OData
                 PackageType = packageType,
             };
 
-            switch (sortOrder)
+            if(sortOrder == null || !SORT_ORDERS.TryGetValue(sortOrder, out var sortOrderValue))
             {
-                case GalleryConstants.AlphabeticSortOrder:
-                case GalleryConstants.SearchSortNames.TitleAsc:
-                    searchFilter.SortOrder = SortOrder.TitleAscending;
-                    break;
-
-                case GalleryConstants.SearchSortNames.TitleDesc:
-                    searchFilter.SortOrder = SortOrder.TitleDescending;
-                    break;
-
-                case GalleryConstants.RecentSortOrder:
-                case GalleryConstants.SearchSortNames.Published:
-                    searchFilter.SortOrder = SortOrder.Published;
-                    break;
-
-                case GalleryConstants.SearchSortNames.LastEdited:
-                    searchFilter.SortOrder = SortOrder.LastEdited;
-                    break;
-
-                case GalleryConstants.SearchSortNames.CreatedAsc:
-                    searchFilter.SortOrder = SortOrder.CreatedAscending;
-                    break;
-                case GalleryConstants.SearchSortNames.CreatedDesc:
-                    searchFilter.SortOrder = SortOrder.CreatedDescending;
-                    break;
-                case GalleryConstants.SearchSortNames.TotalDownloadsAsc:
-                    searchFilter.SortOrder = SortOrder.TotalDownloadsAscending;
-                    break;
-                case GalleryConstants.SearchSortNames.TotalDownloadsDesc:
-                    searchFilter.SortOrder = SortOrder.TotalDownloadsDescending;
-                    break;
-                default: // popularity
-                    searchFilter.SortOrder = SortOrder.Relevance;
-                    break;
+                sortOrderValue = SortOrder.Relevance;
             }
+
+            searchFilter.SortOrder = sortOrderValue;
 
             return searchFilter;
         }

@@ -18,10 +18,11 @@
 
 @helper AddRadioGroupOption(string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool isDefault = false)
 {
-    var elemGuid = Guid.NewGuid();
     <div style="display: flex;">
-        <input id="@elemGuid" type="radio" name="@radioGroupName" @(optionCompareValue == optionValue || (isDefault && optionCompareValue == null) ? "checked=\"checked\"" : "") value="@optionValue">
-        <label for="@elemGuid">@optionName</label>
+        <label>
+            <input type="radio" name="@radioGroupName" @(string.Equals(optionValue, optionCompareValue, StringComparison.OrdinalIgnoreCase) || (isDefault && optionCompareValue == null) ? "checked" : "") value="@optionValue">
+            @optionName
+        </label>
     </div>
 }
 
