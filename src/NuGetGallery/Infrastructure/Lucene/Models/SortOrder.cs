@@ -11,5 +11,7 @@ namespace NuGetGallery.Infrastructure.Search.Models
         TitleDescending,
         CreatedAscending,
         CreatedDescending,
+        TotalDownloadsAscending,
+        TotalDownloadsDescending,
     }
 }

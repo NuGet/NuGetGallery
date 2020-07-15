@@ -14,5 +14,19 @@ namespace NuGetGallery
         DbSet<T> Set<T>() where T : class;
 
         void SetCommandTimeout(int? seconds);
+
+        /// <summary>
+        /// Sets the <see cref="QueryHint"/> for queries to the provided value until the returned disposable is disposed.
+        /// Note that this method MUST NOT be called with user input.
+        /// </summary>
+        /// <param name="queryHint">The query hint.</param>
+        /// <example>Provide "RECOMPILE" to disable query plan caching.</example>
+        /// <returns>A disposable that determines the lifetime of the provided query hint.</returns>
+        IDisposable WithQueryHint(string queryHint);
+
+        /// <summary>
+        /// The current query hint to use for queries. Can be set using <see cref="WithQueryHint(string)"/>.
+        /// </summary>
+        string QueryHint { get; }
     }
 }

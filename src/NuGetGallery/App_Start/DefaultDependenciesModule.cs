@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure.Interception;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -171,6 +172,8 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<ICacheService>()
                 .InstancePerLifetimeScope();
+
+            DbInterception.Add(new QueryHintInterceptor());
 
             var galleryDbConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,

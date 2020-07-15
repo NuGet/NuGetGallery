@@ -27,6 +27,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public DbSet<Package> Packages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<PackageRename> PackageRenames { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+        public string QueryHint => throw new NotImplementedException();
+
         public void DeleteOnCommit<T>(T entity) where T : class
         {
             throw new NotImplementedException();
@@ -53,6 +55,11 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         }
 
         public void SetCommandTimeout(int? seconds)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDisposable WithQueryHint(string queryHint)
         {
             throw new NotImplementedException();
         }

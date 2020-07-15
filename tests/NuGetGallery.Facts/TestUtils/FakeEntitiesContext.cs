@@ -209,6 +209,8 @@ namespace NuGetGallery
             }
         }
 
+        public virtual string QueryHint => throw new NotImplementedException();
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;
@@ -311,6 +313,11 @@ namespace NuGetGallery
 
         public void Dispose()
         {
+        }
+
+        public virtual IDisposable WithQueryHint(string queryHint)
+        {
+            throw new NotImplementedException();
         }
     }
 }

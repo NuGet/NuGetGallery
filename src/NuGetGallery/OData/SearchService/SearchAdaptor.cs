@@ -26,28 +26,54 @@ namespace NuGetGallery.OData
         /// </summary>
         internal const int MaxPageSize = 100;
 
-        public static SearchFilter GetSearchFilter(string q, int page, bool includePrerelease, string sortOrder, string context, string semVerLevel)
+        public static SearchFilter GetSearchFilter(string q, int page, bool includePrerelease, string packageType, string sortOrder, string context, string semVerLevel)
         {
+            page = page < 1 ? 1 : page; // pages are 1-based. 
+            packageType = packageType ?? string.Empty;
+
             var searchFilter = new SearchFilter(context)
             {
                 SearchTerm = q,
-                Skip = (page - 1) * GalleryConstants.DefaultPackageListPageSize, // pages are 1-based. 
+                Skip = (page - 1) * GalleryConstants.DefaultPackageListPageSize,
                 Take = GalleryConstants.DefaultPackageListPageSize,
                 IncludePrerelease = includePrerelease,
-                SemVerLevel = semVerLevel
+                SemVerLevel = semVerLevel,
+                PackageType = packageType,
             };
 
             switch (sortOrder)
             {
                 case GalleryConstants.AlphabeticSortOrder:
+                case GalleryConstants.SearchSortNames.TitleAsc:
                     searchFilter.SortOrder = SortOrder.TitleAscending;
                     break;
 
+                case GalleryConstants.SearchSortNames.TitleDesc:
+                    searchFilter.SortOrder = SortOrder.TitleDescending;
+                    break;
+
                 case GalleryConstants.RecentSortOrder:
+                case GalleryConstants.SearchSortNames.Published:
                     searchFilter.SortOrder = SortOrder.Published;
                     break;
 
-                default:
+                case GalleryConstants.SearchSortNames.LastEdited:
+                    searchFilter.SortOrder = SortOrder.LastEdited;
+                    break;
+
+                case GalleryConstants.SearchSortNames.CreatedAsc:
+                    searchFilter.SortOrder = SortOrder.CreatedAscending;
+                    break;
+                case GalleryConstants.SearchSortNames.CreatedDesc:
+                    searchFilter.SortOrder = SortOrder.CreatedDescending;
+                    break;
+                case GalleryConstants.SearchSortNames.TotalDownloadsAsc:
+                    searchFilter.SortOrder = SortOrder.TotalDownloadsAscending;
+                    break;
+                case GalleryConstants.SearchSortNames.TotalDownloadsDesc:
+                    searchFilter.SortOrder = SortOrder.TotalDownloadsDescending;
+                    break;
+                default: // popularity
                     searchFilter.SortOrder = SortOrder.Relevance;
                     break;
             }

@@ -155,8 +155,13 @@ namespace NuGetGallery
             }
             
             PackageDependents result = new PackageDependents();
-            result.TopPackages = GetListOfDependents(id);
-            result.TotalPackageCount = GetDependentCount(id);
+            
+            using (_entitiesContext.WithQueryHint("RECOMPILE"))
+            {
+                result.TopPackages = GetListOfDependents(id);
+                result.TotalPackageCount = GetDependentCount(id);
+            }
+
             return result;
         }
 

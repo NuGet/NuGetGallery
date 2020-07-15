@@ -539,6 +539,65 @@ namespace NuGetGallery.Infrastructure
             Assert.Equal("FooQuery", results[1].PackageRegistration.Id);
         }
 
+        [Fact]
+        public void SearchIgnoresPackageTypeFilter()
+        {
+            var packages = new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 145,
+                        PackageRegistrationKey = 13,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "FooQuery",
+                            Key = 13,
+                            DownloadCount = 21,
+                            IsVerified = false
+                        },
+                        Description = "FooQuery is overall much less popular than JQuery UI",
+                        DownloadCount = 5,
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestSemVer2 = true,
+                        IsLatestStable = true,
+                        IsLatestStableSemVer2 = true,
+                        FlattenedAuthors = "Alpha Beta Gamma",
+                        Title = "FooQuery",
+                        Tags = "web javascript",
+                        PackageTypes = { new PackageType { Name = "Dependency", Version = "0.0" } }
+                    },
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "JQuery.UI.Combined",
+                            Key = 12,
+                            DownloadCount = 42,
+                            IsVerified = false
+                        },
+                        DownloadCount = 3,
+                        Description = "jQuery UI has only a few downloads of its latest and greatest version, but many total downloads",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestSemVer2 = true,
+                        IsLatestStable = true,
+                        IsLatestStableSemVer2 = true,
+                        FlattenedAuthors = "Alpha Beta Gamma",
+                        Title = "JQuery UI (Combined Blobbary)",
+                        Tags = "web javascript",
+                        PackageTypes = { new PackageType { Name = "Dotnettool", Version = "0.0" } }
+                    },
+                };
+
+            var results = IndexAndSearch(packages, string.Empty, "2.0.0", "Dotnettool");
+            Assert.Equal(packages.Count, results.Count);
+            Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
+            Assert.Equal("FooQuery", results[1].PackageRegistration.Id);
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("2.0.0")]
@@ -666,7 +725,7 @@ namespace NuGetGallery.Infrastructure
             Assert.NotEmpty(results);
         }
 
-        private IList<Package> IndexAndSearch(IEnumerable<Package> packages, string searchTerm, string semVerLevel)
+        private IList<Package> IndexAndSearch(IEnumerable<Package> packages, string searchTerm, string semVerLevel, string packageType = "")
         {
             Directory d = new RAMDirectory();
 
@@ -689,7 +748,8 @@ namespace NuGetGallery.Infrastructure
                 Skip = 0,
                 Take = 10,
                 SearchTerm = searchTerm,
-                SemVerLevel = semVerLevel
+                SemVerLevel = semVerLevel,
+                PackageType = packageType
             };
 
             var results = luceneSearchService.Search(searchFilter).Result.Data.ToList();

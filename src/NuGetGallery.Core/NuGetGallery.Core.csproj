@@ -121,6 +121,7 @@
     <Compile Include="DisposableAction.cs" />
     <Compile Include="Entities\DatabaseWrapper.cs" />
     <Compile Include="Entities\DbContextTransactionWrapper.cs" />
+    <Compile Include="Entities\QueryHintInterceptor.cs" />
     <Compile Include="Entities\ReadOnlyEntitiesContext.cs" />
     <Compile Include="Entities\IReadOnlyEntitiesContext.cs" />
     <Compile Include="Entities\ReadOnlyEntityRepository.cs" />

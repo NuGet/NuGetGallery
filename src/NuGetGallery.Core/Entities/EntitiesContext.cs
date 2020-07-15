@@ -56,7 +56,18 @@ namespace NuGetGallery
            ReadOnly = readOnly;
         }
 
+        public IDisposable WithQueryHint(string queryHint)
+        {
+            if (QueryHint != null)
+            {
+                throw new InvalidOperationException("A query hint is already applied.");
+            }
+
+            return new QueryHintScope(this, queryHint);
+        }
+
         public bool ReadOnly { get; private set; }
+        public string QueryHint { get; private set; }
         public DbSet<Package> Packages { get; set; }
         public DbSet<PackageDeprecation> Deprecations { get; set; }
         public DbSet<PackageRegistration> PackageRegistrations { get; set; }
@@ -503,5 +514,21 @@ namespace NuGetGallery
                 .WillCascadeOnDelete(false);
         }
 #pragma warning restore 618
+
+        private class QueryHintScope : IDisposable
+        {
+            private readonly EntitiesContext _entitiesContext;
+
+            public QueryHintScope(EntitiesContext entitiesContext, string queryHint)
+            {
+                _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+                _entitiesContext.QueryHint = queryHint;
+            }
+
+            public void Dispose()
+            {
+                _entitiesContext.QueryHint = null;
+            }
+        }
     }
 }
