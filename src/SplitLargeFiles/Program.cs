@@ -3,7 +3,11 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.GZip;
+using Microsoft.WindowsAzure.Storage;
+using NuGet.Services.KeyVault;
 
 namespace NuGet.Tools.SplitLargeFiles
 {
@@ -12,6 +16,103 @@ namespace NuGet.Tools.SplitLargeFiles
         private const string GzipExtension = ".gz";
 
         public static int Main(string[] args)
+        {
+            if (args.Length > 0 && args[0].Equals("upload", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Executing the 'upload' command.");
+                Console.WriteLine();
+                return ExecuteUploadAsync(args).GetAwaiter().GetResult();
+            }
+            else
+            {
+                Console.WriteLine("Executing the 'split' command. Use 'upload' as the first argument to run the upload command.");
+                Console.WriteLine();
+                return ExecuteSplit(args);
+            }
+        }
+
+        private static async Task<int> ExecuteUploadAsync(string[] args)
+        {
+            if (args.Length < 5)
+            {
+                Console.WriteLine("The first parameter is the command name: 'upload'.");
+                Console.WriteLine("The second parameter must be a directory to non-recursively enumerate for files to upload.");
+                Console.WriteLine("The third parameter must be a wildcard pattern of file names to upload.");
+                Console.WriteLine("The fourth parameter must be a Azure Storage connection string.");
+                Console.WriteLine("The fifth parameter must be a blob storage container to upload the files to.");
+                Console.WriteLine("The optional sixth parameter can be a KeyVault name to inject secrets from. A managed identity will be used.");
+                Console.WriteLine();
+                Console.WriteLine("After uploading each file to the root of the storage container, the file will be deleted.");
+                Console.WriteLine("The blob name will be the same as the original file name.");
+                return 1;
+            }
+
+            var directory = args[1];
+            var pattern = args[2];
+            var connectionString = args[3];
+            var containerName = args[4];
+
+            if (args.Length >= 6)
+            {
+                var vaultName = args[5];
+                Console.WriteLine($"Injecting secrets into the connection string from KeyVault '{vaultName}'...");
+                var keyVaultReader = new KeyVaultReader(new KeyVaultConfiguration(vaultName));
+                var secretInjector = new SecretInjector(keyVaultReader);
+                connectionString = await secretInjector.InjectAsync(connectionString);
+            }
+
+            Console.Write($"Searching for '{pattern}' in {directory}...");
+            var files = Directory.EnumerateFiles(directory, pattern, SearchOption.TopDirectoryOnly).ToList();
+            Console.WriteLine($" found {files.Count} files to upload.");
+
+            var account = CloudStorageAccount.Parse(connectionString);
+            var client = account.CreateCloudBlobClient();
+            var container = client.GetContainerReference(containerName);
+
+            Console.Write($"Checking the connection to {account.BlobEndpoint.AbsoluteUri}, container '{containerName}'...");
+            var exists = await container.ExistsAsync();
+            if (exists)
+            {
+                Console.WriteLine(" the container exists.");
+            }
+            else
+            {
+                Console.WriteLine(" the container does not exist. Halting.");
+                return 1;
+            }
+
+            Console.WriteLine();
+
+            var failures = 0;
+            foreach (var filePath in files)
+            {
+                try
+                {
+                    var fileName = Path.GetFileName(filePath);
+                    var blob = container.GetBlockBlobReference(fileName);
+                    Console.WriteLine($"File src: {filePath}");
+                    Console.WriteLine($"Blob dst: {blob.Uri.AbsoluteUri}");
+                    Console.Write("  Uploading the file to blob storage...");
+                    await blob.UploadFromFileAsync(filePath);
+                    Console.WriteLine(" done.");
+                    Console.Write("  Deleting the file from the file system...");
+                    File.Delete(filePath);
+                    Console.WriteLine(" done.");
+                    Console.WriteLine();
+                }
+                catch (Exception ex)
+                {
+                    failures++;
+                    Console.WriteLine(" failed. Continuing to the next file.");
+                    Console.WriteLine(ex.ToString());
+                    Console.WriteLine();
+                }
+            }
+
+            return failures;
+        }
+
+        private static int ExecuteSplit(string[] args)
         {
             var desiredFileSize = 20 * 1024 * 1024;
             var fileIndexFormat = "_{0:D4}";
@@ -24,7 +125,7 @@ namespace NuGet.Tools.SplitLargeFiles
             }
 
             var inputPath = args[0];
-            
+
             if (args.Length > 1 && !int.TryParse(args[1], out desiredFileSize))
             {
                 Console.WriteLine($"Unable to parse desired file size: {args[1]}");
