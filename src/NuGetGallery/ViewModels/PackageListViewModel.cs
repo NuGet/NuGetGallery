@@ -35,7 +35,7 @@ namespace NuGetGallery
                 packageViewModels,
                 PageIndex,
                 pageCount,
-                page => url.PackageList(page, searchTerm, includePrerelease));
+                page => url.PackageList(page, searchTerm, includePrerelease, packageType, sortBy));
             Items = pager.Items;
             Pager = pager;
             IncludePrerelease = includePrerelease;
