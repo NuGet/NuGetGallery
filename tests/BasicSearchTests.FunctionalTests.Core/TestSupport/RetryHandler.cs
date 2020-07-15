@@ -22,6 +22,8 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
             HttpResponseMessage response = null;
             for (int i = 0; i < MaxRetries; i++)
             {
+                response?.Dispose();
+
                 response = await base.SendAsync(request, cancellationToken);
                 // One of the test validates that we get a 404 for a route, don't block on NotFound Http status code either.
                 if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound)

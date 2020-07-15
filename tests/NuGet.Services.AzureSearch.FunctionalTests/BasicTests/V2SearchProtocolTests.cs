@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -584,7 +584,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
                     case DateTime _:
                         return DateTime.Compare((DateTime)x1, (DateTime)x2) >= 0;
                     case string _:
-                        return string.Compare(x1.ToString(), x2.ToString()) >= 0;
+                        return string.Compare(x1.ToString(), x2.ToString(), StringComparison.OrdinalIgnoreCase) >= 0;
                     case long _:
                         return (long)x1 >= (long) x2;
                     default:
