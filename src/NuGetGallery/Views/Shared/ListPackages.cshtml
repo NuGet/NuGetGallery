@@ -213,7 +213,7 @@
                 PageIndex: @Model.PageIndex,
                 TotalCount: @Model.TotalCount,
                 IsPreviewSearch: '@Model.IsPreviewSearch',
-                PackageType: @Html.ToJson(Model.PackageType),
+                PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
                 SortBy: @Html.ToJson(Model.SortBy)
             });
             </text>
@@ -237,7 +237,7 @@
                         SincePageLoadMs: Date.now() - pageLoadTime,
                         SincePageLoadCount: sincePageLoadCount,
                         IsPreviewSearch: '@Model.IsPreviewSearch',
-                        PackageType: @Html.ToJson(Model.PackageType),
+                        PackageType: @Html.ToJson(Model.PackageType ?? string.Empty),
                         SortBy: @Html.ToJson(Model.SortBy)
                     });
 
