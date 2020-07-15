@@ -139,8 +139,10 @@
                     <fieldset>
                         <legend>Options</legend>
                         <div style="display: flex;">
-                            <input id="advanced-search-includeprerelease" type="checkbox" @(Model.IncludePrerelease ? "checked=\"checked\"" : "")>
-                            <label for="advanced-search-includeprerelease">Include prerelease</label>
+                            <label>
+                                <input id="advanced-search-includeprerelease" type="checkbox" @(Model.IncludePrerelease ? "checked" : "")>
+                                Include prerelease
+                            </label>
                         </div>
                     </fieldset>
                 </div>
