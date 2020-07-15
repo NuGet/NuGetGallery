@@ -40,7 +40,7 @@ namespace GitHubVulnerabilities2Db.Facts
                 var advisory = new SecurityAdvisory
                 {
                     DatabaseId = 1,
-                    Permalink = "GHSA-3456-abcd-7890",
+                    Permalink = "https://example/advisories/GHSA-3456-abcd-7890",
                     Severity = "MODERATE",
                     WithdrawnAt = withdrawn ? new DateTimeOffset() : (DateTimeOffset?)null
                 };
