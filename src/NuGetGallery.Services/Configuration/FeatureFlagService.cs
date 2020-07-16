@@ -37,6 +37,7 @@ namespace NuGetGallery
         private const string Get2FADismissFeedback = GalleryPrefix + "Get2FADismissFeedback";
         private const string UsabillaOnEveryPageFeatureName = GalleryPrefix + "UsabillaEveryPage";
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
+        private const string UploadEmbeddedReadMeFeatureName = GalleryPrefix + "UploadEmbeddedReadMeFeatureName";
 
         private readonly IFeatureFlagClient _client;
 
@@ -184,6 +185,11 @@ namespace NuGetGallery
         public bool IsPackageRenamesEnabled(User user)
         {
             return _client.IsEnabled(PackageRenamesFeatureName, user, defaultValue: false);
+        }
+
+        public bool IsUploadEmbeddedReadMeEnabled(User user)
+        {
+            return _client.IsEnabled(UploadEmbeddedReadMeFeatureName, user, defaultValue: false);
         }
     }
 }
