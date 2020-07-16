@@ -18,5 +18,10 @@ namespace NuGetGallery
         /// Gets a boolean indicating if all versions of each package are stored in the index
         /// </summary>
         bool ContainsAllVersions { get; }
+
+        /// <summary>
+        /// Gets a boolean indicating if the search service supports Advanced Search.
+        /// </summary>
+        bool SupportsAdvancedSearch { get; }
     }
 }

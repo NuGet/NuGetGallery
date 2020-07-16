@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -35,6 +35,8 @@ namespace NuGetGallery.Infrastructure.Search
         }
 
         public bool ContainsAllVersions { get { return true; } }
+
+        public bool SupportsAdvancedSearch { get { return true; } }
 
         public ExternalSearchService(IDiagnosticsService diagnostics, ISearchClient searchClient)
         {

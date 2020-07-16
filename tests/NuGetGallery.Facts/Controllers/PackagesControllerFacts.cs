@@ -4873,6 +4873,9 @@ namespace NuGetGallery
                 searchService
                     .Setup(s => s.Search(It.IsAny<SearchFilter>()))
                     .ReturnsAsync(new SearchResults(0, DateTime.UtcNow));
+                searchService
+                    .Setup(s => s.SupportsAdvancedSearch)
+                    .Returns(true);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
@@ -4925,6 +4928,9 @@ namespace NuGetGallery
                 searchService
                     .Setup(s => s.Search(It.IsAny<SearchFilter>()))
                     .ReturnsAsync(new SearchResults(0, DateTime.UtcNow));
+                searchService
+                    .Setup(s => s.SupportsAdvancedSearch)
+                    .Returns(true);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -4935,6 +4941,59 @@ namespace NuGetGallery
                 var result = await controller.ListPackages(new PackageListSearchViewModel { Q = string.Empty, SortBy = sortBy, PackageType = packageType });
 
                 searchService.Verify(x => x.Search(It.Is<SearchFilter>(f => f.SortOrder == expectedSortBy && f.PackageType == expectedPackageType)), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(true, true, true)]
+            [InlineData(true, false, false)]
+            [InlineData(false, true, false)]
+            [InlineData(false, false, false)]
+            public async Task AdvancedSearchOnlyWorksWhenSupported(bool searchServiceSupport, bool flightStatus, bool expectedSupport)
+            {
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext
+                    .Setup(c => c.Cache)
+                    .Returns(_cache);
+
+                var searchService = new Mock<ISearchService>();
+                searchService
+                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
+                    .ReturnsAsync(new SearchResults(0, DateTime.UtcNow));
+                searchService
+                    .Setup(s => s.SupportsAdvancedSearch)
+                    .Returns(searchServiceSupport);
+
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsAdvancedSearchEnabled(It.IsAny<User>()))
+                    .Returns(flightStatus);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    httpContext: httpContext,
+                    searchService: searchService,
+                    featureFlagService: featureFlagService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller
+                    .ListPackages(new PackageListSearchViewModel 
+                    { 
+                        Q = string.Empty,
+                        SortBy = GalleryConstants.SearchSortNames.TotalDownloadsDesc, 
+                        PackageType = "dotnettool"
+                    });
+
+                // If it's not supported, it should cache the result since it's a default search query (empty string)
+                if (!expectedSupport)
+                {
+                    Assert.NotNull(_cache.Get("DefaultSearchResults"));
+                }
+                else
+                {
+                    Assert.Null(_cache.Get("DefaultSearchResults"));
+                }
+
+                searchService.Verify(x => x.Search(It.IsAny<SearchFilter>()), Times.Once);
             }
 
             [Theory]
