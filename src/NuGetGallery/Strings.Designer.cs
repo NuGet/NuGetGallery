@@ -2425,7 +2425,18 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("UploadPackage_EmbeddedIconNotAccepted", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The embeddedReadme element is not currently supported..
+        /// </summary>
+        public static string UploadPackage_EmbeddedReadmeNotAccepted
+        {
+            get
+            {
+                return ResourceManager.GetString("UploadPackage_EmbeddedReadmeNotAccepted", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The {0} file &apos;{1}&apos; does not exist in the package..
         /// </summary>
@@ -2714,7 +2725,17 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to readme.
+        /// </summary>
+        public static string UploadPackage_ReadmeFileType
+        {
+            get
+            {
+                return ResourceManager.GetString("UploadPackage_ReadmeFileType", resourceCulture);
+            }
+        }
         /// <summary>
         ///   Looks up a localized string similar to The previous package version &apos;{0}&apos; is author signed but the uploaded package is unsigned. To avoid this warning, sign the package before uploading..
         /// </summary>

@@ -662,7 +662,7 @@ namespace NuGetGallery
             package.EmbeddedLicenseType = GetEmbeddedLicenseType(packageMetadata);
             package.LicenseExpression = GetLicenseExpression(packageMetadata);
             package.HasEmbeddedIcon = !string.IsNullOrWhiteSpace(packageMetadata.IconFile);
-            package.EmbeddedLicenseType
+            package.EmbeddedReadmeFileType = GetEmbeddedReadmeType(packageMetadata);
 
             return package;
         }
@@ -710,6 +710,23 @@ namespace NuGetGallery
             }
 
             throw new ArgumentException($"Invalid file name: {licenseFileName}");
+        }
+
+        private static EmbeddedReadmeFileType GetEmbeddedReadmeType(PackageMetadata packageMetadata)
+        {
+            const string MarkdownFileExtension = ".md";
+            if (packageMetadata.ReadmeFile == null) {
+                return EmbeddedReadmeFileType.Absent;
+            }
+
+            var extension = Path.GetExtension(packageMetadata.ReadmeFile);
+
+            if (MarkdownFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase))
+            {
+                return EmbeddedReadmeFileType.Markdown;
+            }
+
+            throw new ArgumentException($"Invalid file name: {packageMetadata.ReadmeFile}");
         }
 
         private static void ValidateSupportedFrameworks(string[] supportedFrameworks)

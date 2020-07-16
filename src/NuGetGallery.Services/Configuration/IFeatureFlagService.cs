@@ -142,6 +142,6 @@ namespace NuGetGallery
         /// <summary>
         /// Whether the user is able to upload package with an embedded readme file.
         /// </summary>
-        bool IsUploadEmbeddedReadMeEnabled();
+        bool IsUploadEmbeddedReadMeEnabled(User user);
     }
 }
