@@ -715,6 +715,7 @@ namespace NuGetGallery
         private static EmbeddedReadmeFileType GetEmbeddedReadmeType(PackageMetadata packageMetadata)
         {
             const string MarkdownFileExtension = ".md";
+
             if (packageMetadata.ReadmeFile == null)
             {
                 return EmbeddedReadmeFileType.Absent;
