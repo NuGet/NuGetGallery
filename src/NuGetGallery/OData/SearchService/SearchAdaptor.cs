@@ -54,7 +54,7 @@ namespace NuGetGallery.OData
                 PackageType = packageType,
             };
 
-            if(sortOrder == null || !SortOrders.TryGetValue(sortOrder, out var sortOrderValue))
+            if (sortOrder == null || !SortOrders.TryGetValue(sortOrder, out var sortOrderValue))
             {
                 sortOrderValue = SortOrder.Relevance;
             }

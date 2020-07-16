@@ -169,7 +169,7 @@ namespace NuGetGallery
                 routeValues["prerel"] = "false";
             }
 
-            if(!string.IsNullOrWhiteSpace(packageType))
+            if (!string.IsNullOrWhiteSpace(packageType))
             {
                 routeValues["packageType"] = packageType;
             }
