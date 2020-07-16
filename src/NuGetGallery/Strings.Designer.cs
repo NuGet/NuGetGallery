@@ -2427,6 +2427,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &lt;readme&gt; element is not currently supported..
+        /// </summary>
+        public static string UploadPackage_EmbeddedReadmeNotAccepted {
+            get {
+                return ResourceManager.GetString("UploadPackage_EmbeddedReadmeNotAccepted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {0} file &apos;{1}&apos; does not exist in the package..
         /// </summary>
         public static string UploadPackage_FileDoesNotExist {
@@ -2531,6 +2540,15 @@ namespace NuGetGallery {
         public static string UploadPackage_InvalidPackage {
             get {
                 return ResourceManager.GetString("UploadPackage_InvalidPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The readme file has an invalid extension &apos;{0}&apos;. Extension must be one of the following: {1}..
+        /// </summary>
+        public static string UploadPackage_InvalidReadmeFileExtension {
+            get {
+                return ResourceManager.GetString("UploadPackage_InvalidReadmeFileExtension", resourceCulture);
             }
         }
         
@@ -2712,6 +2730,15 @@ namespace NuGetGallery {
         public static string UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner {
             get {
                 return ResourceManager.GetString("UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to readme.
+        /// </summary>
+        public static string UploadPackage_ReadmeFileType {
+            get {
+                return ResourceManager.GetString("UploadPackage_ReadmeFileType", resourceCulture);
             }
         }
         

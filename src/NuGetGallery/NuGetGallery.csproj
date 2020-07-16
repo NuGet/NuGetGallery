@@ -302,6 +302,8 @@
     <Compile Include="Migrations\202007171757502_AddEmbeddedReadmeFileTypeColumn.designer.cs">
       <DependentUpon>202007171757502_AddEmbeddedReadmeFileTypeColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Services\IPackageMetadataValidationService.cs" />
+    <Compile Include="Services\PackageMetadataValidationService.cs" />
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\GravatarProxyResult.cs" />

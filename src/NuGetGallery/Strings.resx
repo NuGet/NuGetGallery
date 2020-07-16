@@ -1122,6 +1122,9 @@ The {1} Team</value>
   <data name="UploadPackage_EmbeddedIconNotAccepted" xml:space="preserve">
     <value>The &lt;icon&gt; element is not currently supported.</value>
   </data>
+  <data name="UploadPackage_EmbeddedReadmeNotAccepted" xml:space="preserve">
+    <value>The &lt;readme&gt; element is not currently supported.</value>
+  </data>
   <data name="DeprecatePackage_CustomMessageTooLong" xml:space="preserve">
     <value>Your custom message is too long. It must be under {0} characters.</value>
   </data>
@@ -1161,5 +1164,12 @@ The {1} Team</value>
   </data>
   <data name="PackageUploadCancelled" xml:space="preserve">
     <value>The package upload failed due to the client disconnecting.</value>
+  </data>
+  <data name="UploadPackage_InvalidReadmeFileExtension" xml:space="preserve">
+    <value>The readme file has an invalid extension '{0}'. Extension must be one of the following: {1}.</value>
+    <comment>{0} is the specified extension. {1} is the string containing the allowed non-empty extensions list</comment>
+  </data>
+  <data name="UploadPackage_ReadmeFileType" xml:space="preserve">
+    <value>readme</value>
   </data>
 </root>
