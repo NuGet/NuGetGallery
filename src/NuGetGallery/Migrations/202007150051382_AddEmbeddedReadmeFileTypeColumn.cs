@@ -6,7 +6,7 @@
     {
         public override void Up()
         {
-            Sql("ALTER TABLE [dbo].[Packages] ADD EmbeddedReadmeFileType INT NOT NULL CONSTRAINT DF_Doc_Exz_EmbeddedReadmeFileType DEFAULT 0");
+            AddColumn("dbo.Packages", "EmbeddedReadmeFileType", c => c.Int(nullable: false));
         }
 
         public override void Down()
