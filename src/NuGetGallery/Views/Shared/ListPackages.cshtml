@@ -28,7 +28,7 @@
 
 @functions{
     private const string DefaultPackageType = "";
-    private static readonly IReadOnlyDictionary<string, string> UI_SUPPORTED_PACKAGETYPES = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase)
+    private static readonly IReadOnlyDictionary<string, string> UiSupportedPackageTypes = new Dictionary<string, string> (StringComparer.OrdinalIgnoreCase)
     {
         { DefaultPackageType, "All types" },
         { "dependency", "Dependency" },
@@ -84,7 +84,7 @@
     @if (Model.IsAdvancedSearchFlightEnabled)
     {
         <form method="get" class="row clearfix collapse advanced-search-panel@(Model.ShouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
-            @if(Model.PackageType != null && !UI_SUPPORTED_PACKAGETYPES.ContainsKey(Model.PackageType))
+            @if(Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
             {
                 <div class="row warning-panel">
                     <div class="col-md-12 icon-text alert alert-warning">
@@ -97,7 +97,7 @@
                 <div class="col-md-2">
                     <fieldset id="packagetype">
                         <legend>Package type</legend>
-                        @foreach (var packageType in UI_SUPPORTED_PACKAGETYPES)
+                        @foreach (var packageType in UiSupportedPackageTypes)
                         {
                             @AddPackageFilterOption(packageType.Value, packageType.Key, isDefault: packageType.Key == DefaultPackageType)    
                         }
