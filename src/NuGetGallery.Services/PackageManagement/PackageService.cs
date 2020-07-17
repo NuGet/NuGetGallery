@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
@@ -156,7 +155,29 @@ namespace NuGetGallery
             
             PackageDependents result = new PackageDependents();
             
-            using (_entitiesContext.WithQueryHint("RECOMPILE"))
+            // We use OPTIMIZE FOR UNKNOWN here because there are distinct 2-3 query plans that may be selected via SQL
+            // Server parameter sniffing. Because SQL Server caches query plans, this means that the first parameter
+            // plus query combination that SQL sees defines which query plan is selected and cached for all subsequent
+            // parameter values of the same query. This could result in a non-optimal query plan getting cached
+            // depending on what package ID is viewed first.
+            // 
+            // For example, the query plan for Newtonsoft.Json is very good for that specific parameter value since
+            // there are so many package dependents but the same query plan takes a very long time for packages with few
+            // or no dependents. The query plan for "UNKNOWN" (that is a package ID with unknown SQL Server statistic)
+            // behaves acceptably for Newtonsoft.Json and very well for the long tail of unpopular packages. Because we
+            // have in-memory caching above this layer, OPTIMIZE FOR UNKNOWN is acceptable for even Newtonsoft.Json
+            // because the extra cost of the non-optimal query plan is amortized over many, many page views. For the
+            // long tail packages, in-memory caching is less effective (low page views) so an optimal query should be
+            // selected for this category.
+            //
+            // Another option would using the RECOMPILE query hint which would force SQL Server to select a new query
+            // plan for each query execution. In principal this sounds good but the approach has three problems:
+            //
+            //   1. SQL Server must recompile the query for every execution. There is some overhead (5-50ms).
+            //   2. SQL Server must have accurate and up to date statistics. This is not always the case.
+            //   3. SQL Server must pick the proper query plan. We have observed cases where this does not happen.
+            //
+            using (_entitiesContext.WithQueryHint("OPTIMIZE FOR UNKNOWN"))
             {
                 result.TopPackages = GetListOfDependents(id);
                 result.TotalPackageCount = GetDependentCount(id);
