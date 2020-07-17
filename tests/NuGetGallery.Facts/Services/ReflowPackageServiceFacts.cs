@@ -344,6 +344,7 @@ namespace NuGetGallery
             var telemetryService = new Mock<ITelemetryService>();
             var securityPolicyService = new Mock<ISecurityPolicyService>();
             var entitiesContext = new Mock<IEntitiesContext>();
+            var contentObjectService = new Mock<IContentObjectService>();
 
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
@@ -352,7 +353,8 @@ namespace NuGetGallery
                 auditingService,
                 telemetryService.Object,
                 securityPolicyService.Object,
-                entitiesContext.Object);
+                entitiesContext.Object,
+                contentObjectService.Object);
 
             packageService.CallBase = true;
 

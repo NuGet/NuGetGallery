@@ -56,6 +56,7 @@ namespace NuGetGallery
             public static readonly string ABTestConfiguration = "AB-Test-Configuration";
             public static readonly string ODataCacheConfiguration = "OData-Cache-Configuration";
             public static readonly string CacheConfiguration = "Cache-Configuration";
+            public static readonly string QueryHintConfiguration = "Query-Hint-Configuration";
         }
     }
 }

@@ -16,6 +16,7 @@ namespace NuGetGallery
         IABTestConfiguration ABTestConfiguration { get; }
         IODataCacheConfiguration ODataCacheConfiguration { get; }
         ICacheConfiguration CacheConfiguration { get; }
+        IQueryHintConfiguration QueryHintConfiguration { get; }
 
         Task Refresh();
     }
