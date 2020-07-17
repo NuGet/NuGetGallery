@@ -78,14 +78,14 @@
             }
             else
             {
-                <a class="prerel-filter" href="?q=@Model.SearchTerm@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
+                <a class="prerel-filter" href="?q=@Uri.EscapeDataString(Model.SearchTerm)@(Model.IncludePrerelease ? "&prerel=false" : "")">@(Model.IncludePrerelease ? "Hide" : "Show") prerelease</a>
             }
         </div>
     </div>
     @if (Model.IsAdvancedSearchFlightEnabled)
     {
         <form method="get" class="row clearfix collapse advanced-search-panel@(Model.ShouldDisplayAdvancedSearchPanel ? " in" : "")" id="advancedSearchPanel">
-            @if(Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
+            @if (Model.PackageType != null && !UiSupportedPackageTypes.ContainsKey(Model.PackageType))
             {
                 <div class="row warning-panel">
                     <div class="col-md-12 icon-text alert alert-warning">
@@ -242,8 +242,7 @@
         });
 
         $('#reset-advanced-search').on('click', function () {
-            var searchTermStr = `?q=${'@Html.Encode(Model.SearchTerm)'}`
-            location.href = searchTermStr;
+            location.href = '?q=@Uri.EscapeDataString(Model.SearchTerm)';
         });
     </script>
 }
