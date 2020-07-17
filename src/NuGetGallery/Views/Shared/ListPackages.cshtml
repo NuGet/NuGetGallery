@@ -8,18 +8,18 @@
 
 @helper AddPackageFilterOption(string optionName, string optionValue, bool isDefault = false)
 {
-    @AddRadioGroupOption("packagetype", optionName, optionValue, Model.PackageType, isDefault);
+    @AddRadioGroupOption("Package Type", "packagetype", optionName, optionValue, Model.PackageType, isDefault);
 }
 
 @helper AddSortByOption(string optionName, string optionValue, bool isDefault = false)
 {
-    @AddRadioGroupOption("sortby", optionName, optionValue, Model.SortBy, isDefault);
+    @AddRadioGroupOption("Sort By", "sortby", optionName, optionValue, Model.SortBy, isDefault);
 }
 
-@helper AddRadioGroupOption(string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool isDefault = false)
+@helper AddRadioGroupOption(string ariaSectionLabel, string radioGroupName, string optionName, string optionValue, string optionCompareValue, bool isDefault = false)
 {
     <div style="display: flex;">
-        <label>
+        <label aria-label="@(ariaSectionLabel): @optionName">
             <input type="radio" name="@radioGroupName" @(string.Equals(optionValue, optionCompareValue, StringComparison.OrdinalIgnoreCase) || (isDefault && optionCompareValue == null) ? "checked" : "") value="@optionValue">
             @optionName
         </label>
@@ -116,7 +116,7 @@
                     <fieldset>
                         <legend>Options</legend>
                         <div style="display: flex;">
-                            <label>
+                            <label aria-label="Options: Include prerelease">
                                 <input id="prerel-checkbox" type="checkbox" checked="@Model.IncludePrerelease">
                                 Include prerelease
                             </label>
