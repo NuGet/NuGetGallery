@@ -14,7 +14,7 @@ namespace NuGet.Services.Entities
         Absent = 0,
 
         /// <summary>
-        /// Indicates that tne embedded readme file is markdown.
+        /// Indicates that the embedded readme file is markdown.
         /// </summary>
         Markdown = 1,
     }
