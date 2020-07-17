@@ -2140,7 +2140,7 @@ namespace NuGetGallery
         public class TheGetPackageDependentsMethod
         {
             [Fact]
-            public void AllQueriesShouldUseRecompileQueryHint()
+            public void AllQueriesShouldUseQueryHint()
             {
                 string id = "foo";
                 var context = new Mock<IEntitiesContext>();
@@ -2188,7 +2188,7 @@ namespace NuGetGallery
 
                 disposable.Verify(x => x.Dispose(), Times.Once);
                 context.Verify(x => x.WithQueryHint(It.IsAny<string>()), Times.Once);
-                context.Verify(x => x.WithQueryHint("RECOMPILE"), Times.Once);
+                context.Verify(x => x.WithQueryHint("OPTIMIZE FOR UNKNOWN"), Times.Once);
             }
 
             [Fact]
