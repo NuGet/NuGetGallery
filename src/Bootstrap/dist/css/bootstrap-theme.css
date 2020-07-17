@@ -1263,34 +1263,14 @@ img.reserved-indicator-icon {
 .page-home .circuit-board .circuit-board-up.triangle:after {
   left: 30px;
 }
-.page-list-packages {
-  /*.row-heading {
-    .cell-heading {
-      h1 {
-        .break-word;
-      }
-    }
-
-    @media (min-width: @screen-md-min) {
-      display: table;
-      width: 100%;
-
-      .cell-heading {
-        text-align: left;
-        display: table-cell;
-      }
-
-      .cell-controls {
-        margin-top: 42px;
-        display: table-cell;
-        text-align: right;
-        white-space: nowrap;
-      }
-    }
-  }*/
-}
 .page-list-packages h1 {
   margin-bottom: 33px;
+}
+.page-list-packages .no-padding {
+  padding: 0 !important;
+}
+.page-list-packages .no-margin {
+  margin: 0 !important;
 }
 .btn-command {
   margin-top: 33px;
@@ -1318,12 +1298,6 @@ img.reserved-indicator-icon {
 }
 .btn-command:hover {
   background-color: #f4f4f4;
-}
-.no-padding {
-  padding: 0 !important;
-}
-.no-margin {
-  margin: 0 !important;
 }
 .advanced-search-panel {
   background-color: #f4f4f4;
