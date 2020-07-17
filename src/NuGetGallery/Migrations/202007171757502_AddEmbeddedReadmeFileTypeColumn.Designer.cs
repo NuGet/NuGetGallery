@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.4.0-preview3-19553-01")]
-    public sealed partial class ReadmeChanges : IMigrationMetadata
+    public sealed partial class AddEmbeddedReadmeFileTypeColumn : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(ReadmeChanges));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddEmbeddedReadmeFileTypeColumn));
         
         string IMigrationMetadata.Id
         {
-            get { return "202007150051382_ReadmeChanges"; }
+            get { return "202007171757502_AddEmbeddedReadmeFileTypeColumn"; }
         }
         
         string IMigrationMetadata.Source
