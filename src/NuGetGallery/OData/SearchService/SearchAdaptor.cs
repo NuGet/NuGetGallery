@@ -25,7 +25,7 @@ namespace NuGetGallery.OData
         ///     Determines the maximum number of packages returned in a single page of an OData result.
         /// </summary>
         internal const int MaxPageSize = 100;
-        private static IReadOnlyDictionary<string, SortOrder> SortOrders = new Dictionary<string, SortOrder>(StringComparer.OrdinalIgnoreCase)
+        private static readonly IReadOnlyDictionary<string, SortOrder> SortOrders = new Dictionary<string, SortOrder>(StringComparer.OrdinalIgnoreCase)
         {
             { GalleryConstants.AlphabeticSortOrder, SortOrder.TitleAscending },
             { GalleryConstants.SearchSortNames.TitleAsc, SortOrder.TitleAscending },

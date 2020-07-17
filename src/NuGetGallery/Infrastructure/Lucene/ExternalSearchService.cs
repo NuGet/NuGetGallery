@@ -34,9 +34,9 @@ namespace NuGetGallery.Infrastructure.Search
             get { return false; }
         }
 
-        public bool ContainsAllVersions { get { return true; } }
+        public bool ContainsAllVersions => true;
 
-        public bool SupportsAdvancedSearch { get { return true; } }
+        public bool SupportsAdvancedSearch => true;
 
         public ExternalSearchService(IDiagnosticsService diagnostics, ISearchClient searchClient)
         {
