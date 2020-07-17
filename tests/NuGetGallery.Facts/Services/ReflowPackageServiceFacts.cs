@@ -34,12 +34,14 @@ namespace NuGetGallery
             packageService = packageService ?? new Mock<PackageService>();
             packageFileService = packageFileService ?? new Mock<IPackageFileService>();
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
+            var contentObjectService = new Mock<IContentObjectService>();
 
             var reflowPackageService = new Mock<ReflowPackageService>(
                 entitiesContext.Object,
                 packageService.Object,
                 packageFileService.Object,
-                telemetryService.Object);
+                telemetryService.Object,
+                contentObjectService.Object);
 
             reflowPackageService.CallBase = true;
 

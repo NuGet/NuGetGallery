@@ -2302,6 +2302,9 @@
   <ItemGroup>
     <Content Include="App_Data\Files\Content\Cache-Configuration.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_Data\Files\Content\Query-Hint-Configuration.json" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
