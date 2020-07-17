@@ -221,11 +221,7 @@ namespace NuGetGallery.Infrastructure
             error.ServerVariables["HTTP_X_NUGET_APIKEY"] = string.Empty;
 
             var forwardedIps = error.ServerVariables["HTTP_X_FORWARDED_FOR"].Split(',');
-            var obfuscatedIps = new List<string>();
-            foreach(var ip in forwardedIps)
-            {
-                obfuscatedIps.Add(Obfuscator.ObfuscateIp(ip));
-            }
+            var obfuscatedIps = forwardedIps.Select(Obfuscator.ObfuscateIp);
 
             error.ServerVariables["HTTP_X_FORWARDED_FOR"] = string.Join(",", obfuscatedIps);
         }
