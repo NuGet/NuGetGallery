@@ -34,14 +34,12 @@ namespace NuGetGallery
             packageService = packageService ?? new Mock<PackageService>();
             packageFileService = packageFileService ?? new Mock<IPackageFileService>();
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
-            var contentObjectService = new Mock<IContentObjectService>();
 
             var reflowPackageService = new Mock<ReflowPackageService>(
                 entitiesContext.Object,
                 packageService.Object,
                 packageFileService.Object,
-                telemetryService.Object,
-                contentObjectService.Object);
+                telemetryService.Object);
 
             reflowPackageService.CallBase = true;
 
@@ -346,6 +344,7 @@ namespace NuGetGallery
             var telemetryService = new Mock<ITelemetryService>();
             var securityPolicyService = new Mock<ISecurityPolicyService>();
             var entitiesContext = new Mock<IEntitiesContext>();
+            var contentObjectService = new Mock<IContentObjectService>();
 
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
@@ -354,7 +353,8 @@ namespace NuGetGallery
                 auditingService,
                 telemetryService.Object,
                 securityPolicyService.Object,
-                entitiesContext.Object);
+                entitiesContext.Object,
+                contentObjectService.Object);
 
             packageService.CallBase = true;
 
