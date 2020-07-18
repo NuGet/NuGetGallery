@@ -148,6 +148,8 @@ namespace NuGetGallery
             int page,
             string q,
             bool includePrerelease,
+            string packageType,
+            string sortBy,
             bool relativeUrl = true)
         {
             var routeValues = new RouteValueDictionary();
@@ -165,6 +167,16 @@ namespace NuGetGallery
             if (!includePrerelease)
             {
                 routeValues["prerel"] = "false";
+            }
+
+            if (!string.IsNullOrWhiteSpace(packageType))
+            {
+                routeValues["packageType"] = packageType;
+            }
+
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                routeValues["sortBy"] = sortBy;
             }
 
             return GetActionLink(

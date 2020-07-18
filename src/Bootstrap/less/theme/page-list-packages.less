@@ -3,28 +3,85 @@
     margin-bottom: 33px;
   }
 
-  .row-heading {
-    .cell-heading {
-      h1 {
-        .break-word;
+  .no-padding {
+    padding: 0 !important;
+  }
+
+  .no-margin {
+    margin: 0 !important;
+  }
+
+  .btn-command {
+    margin-top: 33px;
+    margin-bottom: 33px;
+    width: 90px;
+    height: 45px;
+    background-color: transparent;
+    border: none;
+  }
+
+  @media (max-width: @screen-md) {
+    .btn-command {
+      text-align: left;
+      margin-top: 0px;
+      margin-bottom: 5px;
+    }
+  }
+
+  .prerel-filter {
+    white-space: nowrap;
+  }
+
+  @media (min-width: @screen-md) {
+    .prerel-filter {
+      display: inline-block;
+      margin-top: 54px;
+    }
+  }
+
+  .btn-command:hover {
+    background-color: #f4f4f4;
+  }
+
+  .advanced-search-panel {
+    background-color: @alert-info-bg;
+    border-color: @alert-info-border;
+    margin-right: 0px;
+    margin-left: 0;
+    margin-bottom: 15px;
+
+    fieldset {
+      margin: 20px;
+
+      label {
+        margin-left: 3px;
+        font-weight: 400;
+        font-size: small;
+        white-space: nowrap;
+      }
+
+      input {
+        margin-right: 3px;
+        position: relative;
+        top: 2px;
       }
     }
 
-    @media (min-width: @screen-md-min) {
-      display: table;
-      width: 100%;
+    legend {
+      margin-bottom: 5px;
+      font-weight: 500;
+      font-size: medium;
+      white-space: nowrap;
+    }
 
-      .cell-heading {
-        text-align: left;
-        display: table-cell;
-      }
+    .btn {
+      margin-left: 20px;
+      margin-bottom: 10px;
+    }
 
-      .cell-controls {
-        margin-top: 42px;
-        display: table-cell;
-        text-align: right;
-        white-space: nowrap;
-      }
+    .warning-panel {
+      margin-left: 10px;
+      margin-right: 10px;
     }
   }
 }
