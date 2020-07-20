@@ -15,43 +15,21 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
 {
     public class PackageListTests : GalleryTestBase
     {
-        private readonly Regex TotalDownloadsExpr= new Regex(@"((\d+[,]?)+) total download[s]?");
-        private readonly Regex LastUpdatedExpr= new Regex(@"<span data-datetime=""(.+)"">");
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
+        private static readonly Regex TotalDownloadsExpr = new Regex(@"((\d+[,]?)+) total download[s]?", RegexOptions.None, RegexTimeout);
+        private static readonly Regex LastUpdatedExpr = new Regex(@"<span data-datetime=""(.+)"">", RegexOptions.None, RegexTimeout);
 
         public PackageListTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
-        }
-
-        private List<long> GetPackagesDownloads(string content)
-        {
-            return TotalDownloadsExpr
-                .Matches(content)
-                .Cast<Match>()
-                .Select(x => long.Parse(x.Groups[1].Value.Replace(",", ""))).ToList();
-        }
-
-        private List<DateTime> GetPackagesUpdateDates(string content)
-        {
-            var dates = LastUpdatedExpr
-                .Matches(content)
-                .Cast<Match>()
-                .ToList();
-                
-
-            return dates.Select(x => DateTime.Parse(x.Groups[1].Value)).ToList();
-        }
-
-        private static void AssertIsHtml(HttpResponseMessage response)
-        {
-            var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
-            Assert.Equal("text/html; charset=utf-8", contentType);
         }
 
         [Theory]
         [Priority(2)]
         [Category("P2Tests")]
         [InlineData("totaldownloads-desc", true)]
+        [InlineData("tOtAlDoWnLoadS-DEsc", true)]
         [InlineData("totaldownloads-asc", false)]
+        [InlineData("totaldowNLOADS-ASC", false)]
         public async Task MakeSureSortedByDownloadsWork(
             string sortBy = "",
             bool expectDescending = true)
@@ -59,8 +37,8 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             var sortByParam = string.IsNullOrEmpty(sortBy) ? string.Empty : $"&sortBy={sortBy}";
             // Arrange
             var feedUrl = new Uri(
-                new Uri(UrlHelper.BaseUrl), 
-                $"/packages?q={Constants.TestPackageId}++owner%3A{Constants.TestAccount}{sortByParam}");
+                new Uri(UrlHelper.BaseUrl),
+                $"/packages?q={Constants.TestPackageId}+owner%3A{Constants.TestAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -74,6 +52,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
                 var downloads = GetPackagesDownloads(content);
                 var expectedDownloads = expectDescending ? downloads.OrderByDescending(x => x) : downloads.Select(x => x);
                 Assert.Contains($"/packages/{Constants.TestPackageId}", content); // It found the package
+                Assert.True(downloads.Count > 1);
                 Assert.Equal(expectedDownloads, downloads); // The downloads are sorted as expected
             }
         }
@@ -87,7 +66,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             // Arrange
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?q={Constants.TestPackageId}++owner%3A{Constants.TestAccount}{sortByParam}");
+                $"/packages?q={Constants.TestPackageId}+owner%3A{Constants.TestAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -119,7 +98,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             // Arrange
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?q={id}++owner%3A{Constants.TestAccount}{packageTypeParam}");
+                $"/packages?q={id}+owner%3A{Constants.TestAccount}{packageTypeParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -132,6 +111,30 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
                 var content = await response.Content.ReadAsStringAsync();
                 Assert.Contains($"/packages/{id}", content);
             }
+        }
+
+        private static List<long> GetPackagesDownloads(string content)
+        {
+            return TotalDownloadsExpr
+                .Matches(content)
+                .Cast<Match>()
+                .Select(x => long.Parse(x.Groups[1].Value.Replace(",", ""))).ToList();
+        }
+
+        private static List<DateTime> GetPackagesUpdateDates(string content)
+        {
+            var dates = LastUpdatedExpr
+                .Matches(content)
+                .Cast<Match>()
+                .ToList();
+
+            return dates.Select(x => DateTime.Parse(x.Groups[1].Value)).ToList();
+        }
+
+        private static void AssertIsHtml(HttpResponseMessage response)
+        {
+            var contentType = Assert.Single(response.Content.Headers.GetValues("Content-Type"));
+            Assert.Equal("text/html; charset=utf-8", contentType);
         }
     }
 }
