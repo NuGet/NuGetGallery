@@ -17,7 +17,7 @@ namespace Stats.ImportAzureCdnStatistics
     internal class Warehouse
         : IStatisticsWarehouse
     {
-        private const int _defaultCommandTimeout = 1800; // 30 minutes max
+        private const int _defaultCommandTimeout = 3600; // 60 minutes max
         private const int _maxRetryCount = 3;
         private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
         private readonly ILogger _logger;
@@ -167,7 +167,7 @@ namespace Stats.ImportAzureCdnStatistics
                     }
 
                     var packageId = package.Id;
-                    var dimensionIdsDictionary = new Dictionary<Tuple<int, int, int, int, int, int>, int>();
+
                     foreach (var element in groupedByPackageIdAndVersion)
                     {
                         // required dimensions
@@ -176,6 +176,7 @@ namespace Stats.ImportAzureCdnStatistics
 
                         // dimensions that could be "(unknown)"
                         int operationId = DimensionId.Unknown;
+
                         if (knownOperationsAvailable && operations.ContainsKey(element.Operation))
                         {
                             operationId = operations[element.Operation];
@@ -203,33 +204,10 @@ namespace Stats.ImportAzureCdnStatistics
                             }
                         }
 
-                        var dimensionIds = Tuple.Create(dateId, timeId, operationId, platformId, clientId, userAgentId);
-                        if (dimensionIdsDictionary.ContainsKey(dimensionIds))
-                        {
-                            dimensionIdsDictionary[dimensionIds] += 1;
-                        }
-                        else
-                        {
-                            dimensionIdsDictionary[dimensionIds] = 1;
-                        }
-                    }
-
-                    foreach (var dimensionIds in dimensionIdsDictionary.Keys)
-                    {
+                        // create fact
                         var dataRow = factsDataTable.NewRow();
-                        var dateId = dimensionIds.Item1;
-                        var timeId = dimensionIds.Item2;
-                        var operationId = dimensionIds.Item3;
-                        var platformId = dimensionIds.Item4;
-                        var clientId = dimensionIds.Item5;
-                        var userAgentId = dimensionIds.Item6;
-                        var downloadCount = dimensionIdsDictionary[dimensionIds];
-                        FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, clientId, userAgentId, logFileNameId, downloadCount);
+                        FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, clientId, userAgentId, logFileNameId);
                         factsDataTable.Rows.Add(dataRow);
-
-                        _logger.LogDebug("Inserted 1 row into factsDataTable, which counts for {downloadCount} downloads, with the dimension Ids (" +
-                            "dateId: {dateId}, timeId: {timeId}, packageId: {packageId}, operationId: {operationId}, platformId: {platformId}, clientId: {clientId}, " +
-                            "userAgentId: {userAgentId}, logFileNameId: {logFileNameId}).", downloadCount, dateId, timeId, packageId, operationId, platformId, clientId, userAgentId, logFileNameId);
                     }
                 }
             }
@@ -625,7 +603,7 @@ namespace Stats.ImportAzureCdnStatistics
             return Enumerable.Empty<T>().ToList();
         }
 
-        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int clientId, int userAgentId, int logFileNameId, int downloadCount)
+        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int clientId, int userAgentId, int logFileNameId)
         {
             dataRow["Dimension_Package_Id"] = packageId;
             dataRow["Dimension_Date_Id"] = dateId;
@@ -635,7 +613,7 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["Dimension_Platform_Id"] = platformId;
             dataRow["Fact_UserAgent_Id"] = userAgentId;
             dataRow["Fact_LogFileName_Id"] = logFileNameId;
-            dataRow["DownloadCount"] = downloadCount;
+            dataRow["DownloadCount"] = 1;
         }
 
         private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId)
