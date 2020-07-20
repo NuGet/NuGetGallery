@@ -17,7 +17,7 @@ namespace Stats.ImportAzureCdnStatistics
     internal class Warehouse
         : IStatisticsWarehouse
     {
-        private const int _defaultCommandTimeout = 1800; // 30 minutes max
+        private const int _defaultCommandTimeout = 3600; // 60 minutes max
         private const int _maxRetryCount = 3;
         private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
         private readonly ILogger _logger;
