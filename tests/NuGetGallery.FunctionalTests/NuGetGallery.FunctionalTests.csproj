@@ -53,6 +53,7 @@
     <Compile Include="ErrorHandling\SimulatedErrorType.cs" />
     <Compile Include="ErrorHandling\TestResponse.cs" />
     <Compile Include="PackageRetrieval\LatestTests.cs" />
+    <Compile Include="PackageRetrieval\PackageListTests.cs" />
     <Compile Include="ProfileTests.cs" />
     <Compile Include="ODataFeeds\CuratedFeedTest.cs" />
     <Compile Include="ODataFeeds\SearchTest.cs" />
