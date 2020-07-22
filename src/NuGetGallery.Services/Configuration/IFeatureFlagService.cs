@@ -146,5 +146,10 @@ namespace NuGetGallery
         /// Whether the user is able to see or manage the package renames information.
         /// </summary>
         bool IsPackageRenamesEnabled(User user);
+
+        /// <summary>
+        /// Whether the user is able to upload package with an embedded readme file.
+        /// </summary>
+        bool IsUploadEmbeddedReadmeEnabled(User user);
     }
 }
