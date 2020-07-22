@@ -149,6 +149,7 @@ namespace Stats.ImportAzureCdnStatistics
             }
 
             _logger.LogDebug("Creating facts...");
+            var stopwatchCreatingFacts = Stopwatch.StartNew();
             foreach (var groupedByPackageId in sourceData.GroupBy(e => e.PackageId, StringComparer.OrdinalIgnoreCase))
             {
                 var packagesForId = packages.Where(e => string.Equals(e.PackageId, groupedByPackageId.Key, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -167,7 +168,7 @@ namespace Stats.ImportAzureCdnStatistics
                     }
 
                     var packageId = package.Id;
-
+                    var dimensionIdsDictionary = new Dictionary<(int, int, int, int, int, int), int>();
                     foreach (var element in groupedByPackageIdAndVersion)
                     {
                         // required dimensions
@@ -204,15 +205,39 @@ namespace Stats.ImportAzureCdnStatistics
                             }
                         }
 
+                        var dimensionIds = (dateId, timeId, operationId, platformId, clientId, userAgentId);
+                        if (dimensionIdsDictionary.ContainsKey(dimensionIds))
+                        {
+                            dimensionIdsDictionary[dimensionIds] += 1;
+                        }
+                        else
+                        {
+                            dimensionIdsDictionary[dimensionIds] = 1;
+                        }
+                    }
+
+                    foreach (var dimensionIds in dimensionIdsDictionary)
+                    {
                         // create fact
                         var dataRow = factsDataTable.NewRow();
-                        FillDataRow(dataRow, dateId, timeId, packageId, operationId, platformId, clientId, userAgentId, logFileNameId);
+
+                        (int dateId, int timeId, int operationId, int platformId, int clientId, int userAgentId) key = dimensionIds.Key;
+                        var downloadCount = dimensionIds.Value;
+
+                        FillDataRow(dataRow, key.dateId, key.timeId, packageId, key.operationId, key.platformId, key.clientId, key.userAgentId, logFileNameId, downloadCount);
                         factsDataTable.Rows.Add(dataRow);
+
+                        _logger.LogDebug("Inserted 1 row into factsDataTable, which counts for {DownloadCount} downloads, with the dimension Ids (" +
+                            "dateId: {DateId}, timeId: {TimeId}, packageId: {PackageId}, operationId: {OperationId}, platformId: {PlatformId}, clientId: {ClientId}, " +
+                            "userAgentId: {UserAgentId}, logFileNameId: {LogFileNameId}).", downloadCount, key.dateId, key.timeId, packageId, key.operationId,
+                            key.platformId, key.clientId, key.userAgentId, logFileNameId);
                     }
                 }
             }
+            stopwatchCreatingFacts.Stop();
             stopwatch.Stop();
             _logger.LogDebug("  DONE (" + factsDataTable.Rows.Count + " facts, " + stopwatch.ElapsedMilliseconds + "ms)");
+            _applicationInsightsHelper.TrackMetric("Facts creation time (ms)", stopwatchCreatingFacts.ElapsedMilliseconds, logFileName);
             _applicationInsightsHelper.TrackMetric("Blob record count", factsDataTable.Rows.Count, logFileName);
 
             return factsDataTable;
@@ -603,7 +628,7 @@ namespace Stats.ImportAzureCdnStatistics
             return Enumerable.Empty<T>().ToList();
         }
 
-        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int clientId, int userAgentId, int logFileNameId)
+        private static void FillDataRow(DataRow dataRow, int dateId, int timeId, int packageId, int operationId, int platformId, int clientId, int userAgentId, int logFileNameId, int downloadCount)
         {
             dataRow["Dimension_Package_Id"] = packageId;
             dataRow["Dimension_Date_Id"] = dateId;
@@ -613,7 +638,7 @@ namespace Stats.ImportAzureCdnStatistics
             dataRow["Dimension_Platform_Id"] = platformId;
             dataRow["Fact_UserAgent_Id"] = userAgentId;
             dataRow["Fact_LogFileName_Id"] = logFileNameId;
-            dataRow["DownloadCount"] = 1;
+            dataRow["DownloadCount"] = downloadCount;
         }
 
         private static void FillToolDataRow(DataRow dataRow, int dateId, int timeId, int toolId, int platformId, int clientId, int userAgentId, int logFileNameId)
