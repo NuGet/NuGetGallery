@@ -285,5 +285,7 @@ namespace NuGet.Services.Entities
         /// A flag that indicates that the package metadata had an embedded icon specified.
         /// </summary>
         public bool HasEmbeddedIcon { get; set; }
+
+        public EmbeddedReadmeFileType EmbeddedReadmeType { get; set; }
     }
 }
