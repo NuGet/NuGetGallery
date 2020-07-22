@@ -35,6 +35,11 @@ namespace NuGetGallery
             ".png"
         };
 
+        private static readonly IReadOnlyCollection<string> AllowedReadmeFileExtensions = new HashSet<string>
+        {
+            ".md"
+        };
+
         private static readonly IReadOnlyCollection<string> AllowedLicenseTypes = new HashSet<string>
         {
             LicenseType.File.ToString(),
@@ -52,9 +57,12 @@ namespace NuGetGallery
         private const long MaxAllowedLicenseLengthForUploading = 1024 * 1024; // 1 MB
         private const long MaxAllowedIconLengthForUploading = 1024 * 1024; // 1 MB
         private const int MaxAllowedLicenseNodeValueLength = 500;
+        // 1 MB Keep consistent with icon, license for now, change value later once we define the size
+        private const long MaxAllowedReadmeLengthForUploading = 1024 * 1024;
         private const string LicenseNodeName = "license";
         private const string IconNodeName = "icon";
         private const string AllowedLicenseVersion = "1.0.0";
+        private const string ReadmeNode = "readme";
         private const string Unlicensed = "UNLICENSED";
 
         private readonly IPackageService _packageService;
@@ -138,6 +146,12 @@ namespace NuGetGallery
             if (result != null)
             {
                 //_telemetryService.TrackIconValidationFailure();
+                return result;
+            }
+
+            result = await CheckReadmeMetadataAsync(nuGetPackage, warnings, currentUser);
+            if (result != null)
+            {
                 return result;
             }
 
@@ -398,6 +412,66 @@ namespace NuGetGallery
             return null;
         }
 
+        private async Task<PackageValidationResult> CheckReadmeMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
+        {
+            var nuspecReader = GetNuspecReader(nuGetPackage);
+            var readmeElement = nuspecReader.ReadmeElement;
+            var embeddedReadmeEnabled = _featureFlagService.IsUploadEmbeddedReadmeEnabled(user);
+
+            if (readmeElement == null)
+            {
+                return null;
+            }
+
+            if (!embeddedReadmeEnabled)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_EmbeddedReadmeNotAccepted);
+            }
+
+            if (HasChildElements(readmeElement))
+            {
+                return PackageValidationResult.Invalid(string.Format(Strings.UploadPackage_NodeContainsChildren, ReadmeNode));
+            }
+
+            var readmeFilePath = FileNameHelper.GetZipEntryPath(readmeElement.Value);
+            if (!FileExists(nuGetPackage, readmeFilePath))
+            {
+                return PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.UploadPackage_FileDoesNotExist,
+                        Strings.UploadPackage_ReadmeFileType,
+                        readmeFilePath));
+            }
+
+            var readmeFileExtension = Path.GetExtension(readmeFilePath);
+            if (!AllowedReadmeFileExtensions.Contains(readmeFileExtension, StringComparer.OrdinalIgnoreCase))
+            {
+                var result = PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.UploadPackage_InvalidReadmeFileExtension,
+                        readmeFileExtension,
+                        string.Join(", ", AllowedReadmeFileExtensions.Where(x => x != string.Empty).Select(extension => $"'{extension}'"))));
+                return result;
+            }
+
+            var readmeFileEntry = nuGetPackage.GetEntry(readmeFilePath);
+            if (readmeFileEntry.Length > MaxAllowedReadmeLengthForUploading)
+            {
+                return PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.UploadPackage_FileTooLong,
+                        Strings.UploadPackage_ReadmeFileType,
+                        MaxAllowedReadmeLengthForUploading.ToUserFriendlyBytesLabel()));
+            }
+
+            if (!await IsStreamLengthMatchesReportedAsync(nuGetPackage, readmeFilePath, readmeFileEntry.Length))
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_CorruptNupkg);
+            }
+            //check the supported the md format
+            return null;
+        }
+
         private static async Task<bool> FileMatchesPredicate(PackageArchiveReader nuGetPackage, string filePath, Func<Stream, Task<bool>> predicate)
         {
             using (var stream = await nuGetPackage.GetStreamAsync(filePath, CancellationToken.None))
@@ -553,6 +627,7 @@ namespace NuGetGallery
 
             public XElement LicenseElement => MetadataNode.Element(MetadataNode.Name.Namespace + LicenseNodeName);
             public XElement IconElement => MetadataNode.Element(MetadataNode.Name.Namespace + IconNodeName);
+            public XElement ReadmeElement => MetadataNode.Element(MetadataNode.Name.Namespace + ReadmeNode);
         }
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(

@@ -1355,6 +1355,211 @@ namespace NuGetGallery
                     _currentUser);
             }
 
+            public async Task RejectPackagesWithEmbeddedReadme()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "some readme md");
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("readme", result.Message.PlainTextMessage);
+            }
+
+            [Fact]
+            public async Task AcceptsPackagesWithEmbeddedReadmeForFlightedUsers()
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    readmeFilename: "readme.md",
+                    readmeFileContents: "some readme md",
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
+                    .Returns(true);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("<readme><something/></readme>")]
+            [InlineData("<readme><something>readme.md</something></readme>")]
+            public async Task RejectsReadmeElementWithChildren(string ReadmeElement)
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    getCustomNuspecNodes: () => ReadmeElement,
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
+                    .Returns(true);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("readme", result.Message.PlainTextMessage);
+                Assert.Contains("child", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsPackagesWithMissingReadmeFile()
+            {
+                const string readmeFilename = "readme.md";
+                var result = await ValidatePackageWithReadme(readmeFilename, null);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("readme", result.Message.PlainTextMessage);
+                Assert.Contains("does not exist", result.Message.PlainTextMessage);
+                Assert.Contains(readmeFilename, result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            private async Task<PackageValidationResult> ValidatePackageWithReadme(string readmePath, byte[] readmeFileData)
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    readmeFilename: readmePath,
+                    readmeFileBinaryContents: readmeFileData,
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
+                    .Returns(true);
+
+                return await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+            }
+
+            [Theory]
+            [InlineData("", false)]
+            [InlineData(".txt", false)]
+            [InlineData(".md", true)]
+            [InlineData(".Txt", false)]
+            [InlineData(".Md", true)]
+            [InlineData(".doc", false)]
+            [InlineData(".pdf", false)]
+            public async Task ChecksReadmeFileExtension(string extension, bool successExpected)
+            {
+                string readmeFileName = $"readme{extension}";
+
+                var result = await ValidatePackageWithReadme(readmeFileName, new byte[] { 0xFF, 0xD8, 0xFF, 0x32 });
+
+                if (successExpected)
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains(extension, result.Message.PlainTextMessage);
+                    Assert.Contains("invalid extension", result.Message.PlainTextMessage);
+                    Assert.Contains("md", result.Message.PlainTextMessage);
+                }
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsLongReadme()
+            {
+                const int ExpectedMaxReadmeLength = 1024 * 1024;
+
+                var readmeTextBuilder = new StringBuilder(ExpectedMaxReadmeLength + 100);
+
+                while (readmeTextBuilder.Length < ExpectedMaxReadmeLength + 1)
+                {
+                    readmeTextBuilder.AppendLine("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+                }
+
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    readmeFilename: "readme.md",
+                    readmeFileContents: readmeTextBuilder.ToString(),
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
+                    .Returns(true);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("The readme file cannot be larger", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsNupkgsReportingIncorrectReadmeFileLengthforReadmeFile()
+            {
+                const string readmeFilename = "readme.md";
+                const string readmeFileContents = "readmedocumentation";
+
+                _featureFlagService
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
+                    .Returns(true);
+                // Arrange
+                var packageStream = GeneratePackageStream(
+                    readmeFilename: readmeFilename,
+                    readmeFileContents: readmeFileContents);
+
+                PatchFileSizeInPackageStream(readmeFilename, readmeFileContents.Length, packageStream);
+
+                _nuGetPackage = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("corrupt", result.Message.PlainTextMessage);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("readme/readme.md")]
+            [InlineData("readme\\anotherReadme.md")]
+            [InlineData(".\\readme\\moreReadme.md")]
+            [InlineData("./readme/moreReadme.md")]
+            public async Task AcceptsReadmeFileInSubdirectories(string readmePath)
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    readmeFilename: readmePath,
+                    readmeFileContents: "some readme",
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
+                    .Returns(true);
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
             /// <summary>
             /// A (quite ineffective) method to search for a sequence in an array
             /// </summary>
@@ -1480,6 +1685,9 @@ namespace NuGetGallery
                 byte[] licenseFileBinaryContents = null,
                 string iconFilename = null,
                 byte[] iconFileBinaryContents = null,
+                string readmeFilename = null,
+                string readmeFileContents = null,
+                byte[] readmeFileBinaryContents = null,
                 IReadOnlyList<string> entryNames = null)
             {
                 var packageStream = GeneratePackageStream(
@@ -1496,6 +1704,9 @@ namespace NuGetGallery
                     licenseFileBinaryContents: licenseFileBinaryContents,
                     iconFilename: iconFilename,
                     iconFileBinaryContents: iconFileBinaryContents,
+                    readmeFilename: readmeFilename,
+                    readmeFileContents: readmeFileContents,
+                    readmeFileBinaryContents: readmeFileBinaryContents,
                     entryNames: entryNames);
 
                 return PackageServiceUtility.CreateNuGetPackage(packageStream);
@@ -1515,6 +1726,9 @@ namespace NuGetGallery
                 byte[] licenseFileBinaryContents = null,
                 string iconFilename = null,
                 byte[] iconFileBinaryContents = null,
+                string readmeFilename = null,
+                string readmeFileContents = null,
+                byte[] readmeFileBinaryContents = null,
                 IReadOnlyList<string> entryNames = null)
             {
                 return PackageServiceUtility.CreateNuGetPackageStream(
@@ -1531,6 +1745,8 @@ namespace NuGetGallery
                     licenseFileContents: GetBinaryLicenseOrReadmeFileContents(licenseFileBinaryContents, licenseFileContents),
                     iconFilename: iconFilename,
                     iconFileBinaryContents: iconFileBinaryContents,
+                    readmeFilename: readmeFilename,
+                    readmeFileContents: GetBinaryLicenseOrReadmeFileContents(readmeFileBinaryContents, readmeFileContents),
                     entryNames: entryNames);
             }
 
