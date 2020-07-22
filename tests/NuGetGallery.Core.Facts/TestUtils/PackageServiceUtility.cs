@@ -132,6 +132,8 @@ namespace NuGetGallery.TestUtils
             byte[] licenseFileContents = null,
             string iconFilename = null,
             byte[] iconFileBinaryContents = null,
+            string readmeFilename = null,
+            byte[] readmeFileContents = null,
             IReadOnlyList<string> entryNames = null)
         {
             if (packageDependencyGroups == null)
@@ -206,7 +208,9 @@ namespace NuGetGallery.TestUtils
                 licenseFilename: licenseFilename,
                 licenseFileContents: licenseFileContents,
                 iconFilename: iconFilename,
-                iconFileContents: iconFileBinaryContents);
+                iconFileContents: iconFileBinaryContents,
+                readmeFilename: readmeFilename,
+                readmeFileContents: readmeFileContents);
         }
 
         private static void WriteEntry(ZipArchive archive, string entryName)
