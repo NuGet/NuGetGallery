@@ -1162,4 +1162,17 @@ The {1} Team</value>
   <data name="PackageUploadCancelled" xml:space="preserve">
     <value>The package upload failed due to the client disconnecting.</value>
   </data>
+  <data name="UploadPackage_EmbeddedReadmeNotAccepted" xml:space="preserve">
+    <value>The &lt;readme&gt; element is not currently supported.</value>
+  </data>
+  <data name="UploadPackage_InvalidReadmeFileExtension" xml:space="preserve">
+    <value>The readme file has an invalid extension '{0}'. Extension must be one of the following: {1}.</value>
+    <comment>{0} is the readme file extension specified in the .nuspec, {1} is the list of allowed extensions</comment>
+  </data>
+  <data name="UploadPackage_ReadmeFileType" xml:space="preserve">
+    <value>readme</value>
+  </data>
+  <data name="UploadPackage_ReadmeMustBePlainText" xml:space="preserve">
+    <value>The readme file must be plain text using UTF-8 encoding.</value>
+  </data>
 </root>
