@@ -27,6 +27,7 @@ namespace NuGetGallery
             ABTestConfiguration = new ABTestConfiguration();
             ODataCacheConfiguration = new ODataCacheConfiguration();
             CacheConfiguration = new CacheConfiguration();
+            QueryHintConfiguration = new QueryHintConfiguration();
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; private set; }
@@ -37,6 +38,7 @@ namespace NuGetGallery
         public IABTestConfiguration ABTestConfiguration { get; private set; }
         public IODataCacheConfiguration ODataCacheConfiguration { get; private set; }
         public ICacheConfiguration CacheConfiguration { get; private set; }
+        public IQueryHintConfiguration QueryHintConfiguration { get; private set; }
 
         public async Task Refresh()
         {
@@ -72,6 +74,10 @@ namespace NuGetGallery
             CacheConfiguration =
                 await Refresh<CacheConfiguration>(ServicesConstants.ContentNames.CacheConfiguration) ??
                 new CacheConfiguration();
+
+            QueryHintConfiguration =
+                await Refresh<QueryHintConfiguration>(ServicesConstants.ContentNames.QueryHintConfiguration) ??
+                new QueryHintConfiguration();
         }
 
         private async Task<T> Refresh<T>(string contentName)

@@ -125,12 +125,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionName.cs" />
-    <Compile Include="App_Start\GalleryMachineKeyConfigurationProvider.cs" />
     <Compile Include="App_Start\LatestVersionRouteConstraint.cs" />
     <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />
     <Compile Include="App_Start\StorageDependent.cs" />
+    <Compile Include="App_Start\SessionPersistence.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\ApiKeysController.cs" />
@@ -297,6 +297,10 @@
     <Compile Include="Migrations\202006011927336_AddIndexToPackageDependencies.cs" />
     <Compile Include="Migrations\202006011927336_AddIndexToPackageDependencies.designer.cs">
       <DependentUpon>202006011927336_AddIndexToPackageDependencies.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.cs" />
+    <Compile Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.designer.cs">
+      <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
@@ -1622,6 +1626,9 @@
     <EmbeddedResource Include="Migrations\202006011927336_AddIndexToPackageDependencies.resx">
       <DependentUpon>202006011927336_AddIndexToPackageDependencies.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.resx">
+      <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -2301,6 +2308,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\Files\Content\Cache-Configuration.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_Data\Files\Content\Query-Hint-Configuration.json" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

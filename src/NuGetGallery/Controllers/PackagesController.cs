@@ -1118,15 +1118,6 @@ namespace NuGetGallery
                 page = 1;
             }
 
-            var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
-            
-            // If advanced search is disabled, use the default experience
-            if (!isAdvancedSearchFlightEnabled)
-            {
-                searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
-                searchAndListModel.PackageType = string.Empty;
-            }
-
             q = (q ?? string.Empty).Trim();
 
             // We are not going to SQL here anyway, but our request logs do show some attempts to SQL injection.
@@ -1143,6 +1134,14 @@ namespace NuGetGallery
 
             var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
+            var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
+
+            // If advanced search is disabled, use the default experience
+            if (!isAdvancedSearchFlightEnabled || !searchService.SupportsAdvancedSearch)
+            {
+                searchAndListModel.SortBy = GalleryConstants.SearchSortNames.Relevance;
+                searchAndListModel.PackageType = string.Empty;
+            }
 
             if (!IsSupportedSortBy(searchAndListModel.SortBy))
             {
@@ -1228,8 +1227,8 @@ namespace NuGetGallery
                 searchAndListModel.SortBy);
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
-            viewModel.IsAdvancedSearchFlightEnabled = isAdvancedSearchFlightEnabled;
-            viewModel.ShouldDisplayAdvancedSearchPanel = !shouldCacheAdvancedSearch || !includePrerelease;
+            viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
+            viewModel.ShouldDisplayAdvancedSearchPanel =  !shouldCacheAdvancedSearch || !includePrerelease;
 
             ViewBag.SearchTerm = q;
 

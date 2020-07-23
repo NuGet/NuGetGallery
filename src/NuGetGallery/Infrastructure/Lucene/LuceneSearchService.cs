@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -25,7 +25,9 @@ namespace NuGetGallery
         private static readonly string[] FieldAliases = new[] { "Id", "Title", "Tag", "Tags", "Description", "Author", "Authors", "Owner", "Owners" };
         private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Authors", "Owners" };
 
-        public bool ContainsAllVersions { get { return false; } }
+        public bool ContainsAllVersions => false;
+
+        public bool SupportsAdvancedSearch => false;
 
         public LuceneSearchService(Lucene.Net.Store.Directory directory)
         {

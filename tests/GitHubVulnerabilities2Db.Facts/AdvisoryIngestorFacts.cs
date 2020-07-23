@@ -40,7 +40,7 @@ namespace GitHubVulnerabilities2Db.Facts
                 var advisory = new SecurityAdvisory
                 {
                     DatabaseId = 1,
-                    GhsaId = "ghsa",
+                    Permalink = "https://example/advisories/GHSA-3456-abcd-7890",
                     Severity = "MODERATE",
                     WithdrawnAt = withdrawn ? new DateTimeOffset() : (DateTimeOffset?)null
                 };
@@ -51,7 +51,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     {
                         Assert.Equal(advisory.DatabaseId, vulnerability.GitHubDatabaseKey);
                         Assert.Equal(PackageVulnerabilitySeverity.Moderate, vulnerability.Severity);
-                        Assert.Equal(advisory.GetPermalink(), vulnerability.AdvisoryUrl);
+                        Assert.Equal(advisory.Permalink, vulnerability.AdvisoryUrl);
                     })
                     .Returns(Task.CompletedTask)
                     .Verifiable();
@@ -82,7 +82,7 @@ namespace GitHubVulnerabilities2Db.Facts
                 var advisory = new SecurityAdvisory
                 {
                     DatabaseId = 1,
-                    GhsaId = "ghsa",
+                    Permalink = "https://example/advisories/GHSA-6543-dcba-0987",
                     Severity = "CRITICAL",
                     WithdrawnAt = withdrawn ? new DateTimeOffset() : (DateTimeOffset?)null,
                     Vulnerabilities = new ConnectionResponseData<SecurityVulnerability>
@@ -110,7 +110,7 @@ namespace GitHubVulnerabilities2Db.Facts
                     {
                         Assert.Equal(advisory.DatabaseId, vulnerability.GitHubDatabaseKey);
                         Assert.Equal(PackageVulnerabilitySeverity.Critical, vulnerability.Severity);
-                        Assert.Equal(advisory.GetPermalink(), vulnerability.AdvisoryUrl);
+                        Assert.Equal(advisory.Permalink, vulnerability.AdvisoryUrl);
 
                         var range = vulnerability.AffectedRanges.Single();
                         Assert.Equal(securityVulnerability.Package.Name, range.PackageId);

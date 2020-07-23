@@ -21,7 +21,7 @@ namespace GitHubVulnerabilities2Db.Collector
       cursor
       node {
         databaseId
-        ghsaId
+        permalink
         severity
         updatedAt
         " + CreateVulnerabilitiesConnectionQuery() + @"
@@ -33,7 +33,7 @@ namespace GitHubVulnerabilities2Db.Collector
         public string CreateSecurityAdvisoryQuery(SecurityAdvisory advisory)
             => @"
 {
-  securityAdvisory(ghsaId: " + advisory.GhsaId + @") {
+  securityAdvisory(databaseId: " + advisory.DatabaseId + @") {
     severity
     updatedAt
     identifiers {

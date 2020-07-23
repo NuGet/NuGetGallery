@@ -40,6 +40,7 @@
   <ItemGroup>
     <Compile Include="Application.cs" />
     <Compile Include="Fakes\FakeAuditingService.cs" />
+    <Compile Include="Fakes\FakeContentObjectService.cs" />
     <Compile Include="Fakes\FakeEntitiesContext.cs" />
     <Compile Include="Fakes\FakeEntityRepository.cs" />
     <Compile Include="Fakes\FakeSecurityPolicyService.cs" />

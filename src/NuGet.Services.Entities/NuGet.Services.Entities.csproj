@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountDelete.cs" />
+    <Compile Include="EmbeddedReadmeFileType.cs" />
     <Compile Include="CredentialRevocationSource.cs" />
     <Compile Include="Certificate.cs" />
     <Compile Include="Constants.cs" />

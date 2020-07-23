@@ -1266,26 +1266,77 @@ img.reserved-indicator-icon {
 .page-list-packages h1 {
   margin-bottom: 33px;
 }
-.page-list-packages .row-heading .cell-heading h1 {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: normal;
-  word-break: break-word;
+.page-list-packages .no-padding {
+  padding: 0 !important;
+}
+.page-list-packages .no-margin {
+  margin: 0 !important;
+}
+.page-list-packages .btn-command {
+  margin-top: 33px;
+  margin-bottom: 33px;
+  width: 90px;
+  height: 45px;
+  background-color: transparent;
+  border: none;
+}
+@media (max-width: 992px) {
+  .page-list-packages .btn-command {
+    text-align: left;
+    margin-top: 0px;
+    margin-bottom: 5px;
+  }
+}
+.page-list-packages .prerel-filter {
+  white-space: nowrap;
 }
 @media (min-width: 992px) {
-  .page-list-packages .row-heading {
-    display: table;
-    width: 100%;
+  .page-list-packages .prerel-filter {
+    display: inline-block;
+    margin-top: 54px;
   }
-  .page-list-packages .row-heading .cell-heading {
-    text-align: left;
-    display: table-cell;
-  }
-  .page-list-packages .row-heading .cell-controls {
-    margin-top: 42px;
-    display: table-cell;
+}
+.page-list-packages .btn-command:hover {
+  background-color: #f4f4f4;
+}
+.page-list-packages .advanced-search-panel {
+  background-color: #f4f4f4;
+  border-color: #f4f4f4;
+  margin-right: 0px;
+  margin-left: 0;
+  margin-bottom: 15px;
+}
+.page-list-packages .advanced-search-panel fieldset {
+  margin: 20px;
+}
+.page-list-packages .advanced-search-panel fieldset label {
+  margin-left: 3px;
+  font-weight: 400;
+  font-size: small;
+  white-space: nowrap;
+}
+.page-list-packages .advanced-search-panel fieldset input {
+  margin-right: 3px;
+  position: relative;
+  top: 2px;
+}
+.page-list-packages .advanced-search-panel legend {
+  margin-bottom: 5px;
+  font-weight: 500;
+  font-size: medium;
+  white-space: nowrap;
+}
+.page-list-packages .advanced-search-panel .btn {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+.page-list-packages .advanced-search-panel .warning-panel {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+@media (min-width: 768px) {
+  .page-list-packages .text-align-right {
     text-align: right;
-    white-space: nowrap;
   }
 }
 .page-manage-deprecation .full-line {
