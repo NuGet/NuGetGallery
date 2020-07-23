@@ -444,6 +444,27 @@ namespace NuGetGallery
                 Assert.Null(package.LicenseExpression);
             }
 
+            [Theory]
+            [InlineData(null, EmbeddedReadmeFileType.Absent)]
+            [InlineData("readme.md", EmbeddedReadmeFileType.Markdown)]
+            [InlineData("readme.mD", EmbeddedReadmeFileType.Markdown)]
+            public async Task WillDetectReadmeFileType(string readmeFileName, EmbeddedReadmeFileType expectedFileType)
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(
+                    licenseUrl: new Uri("http://thelicenseurl/"),
+                    projectUrl: new Uri("http://theprojecturl/"),
+                    iconUrl: new Uri("http://theiconurl/"),
+                    readmeFilename: readmeFileName);
+                var currentUser = new User();
+
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+
+                Assert.Equal(expectedFileType, package.EmbeddedReadmeType);
+            }
+
             [Fact]
             public async Task WillSaveLicenseExpression()
             {
