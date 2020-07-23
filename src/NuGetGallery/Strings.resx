@@ -1166,7 +1166,7 @@ The {1} Team</value>
     <value>The &lt;readme&gt; element is not currently supported.</value>
   </data>
   <data name="UploadPackage_InvalidReadmeFileExtension" xml:space="preserve">
-    <value>The readme file has an invalid extension '{0}'. Extension must be following: {1}.</value>
+    <value>The readme file has an invalid extension '{0}'. Extension must be one of the following: {1}.</value>
     <comment>{0} is the readme file extension specified in the .nuspec, {1} is the list of allowed extensions</comment>
   </data>
   <data name="UploadPackage_ReadmeFileType" xml:space="preserve">

@@ -1480,16 +1480,11 @@ namespace NuGetGallery
             {
                 const int ExpectedMaxReadmeLength = 1024 * 1024;
 
-                var readmeTextBuilder = new StringBuilder(ExpectedMaxReadmeLength + 100);
-
-                while (readmeTextBuilder.Length < ExpectedMaxReadmeLength + 1)
-                {
-                    readmeTextBuilder.AppendLine("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
-                }
+                var readmeText = new String('a', ExpectedMaxReadmeLength + 100);
 
                 _nuGetPackage = GeneratePackageWithUserContent(
                     readmeFilename: "readme.md",
-                    readmeFileContents: readmeTextBuilder.ToString(),
+                    readmeFileContents: readmeText,
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
