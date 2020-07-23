@@ -158,7 +158,6 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 INode vulnerabilityPredicate = graph.CreateUriNode(Schema.Predicates.Vulnerability);
                 INode vulnerabilityType = graph.CreateUriNode(Schema.DataTypes.Vulnerability);
-                INode gitHubDatabaseKeyPredicate = graph.CreateUriNode(Schema.Predicates.GitHubDatabaseKey);
                 INode advisoryUrlPredicate = graph.CreateUriNode(Schema.Predicates.AdvisoryUrl);
                 INode severityPredicate = graph.CreateUriNode(Schema.Predicates.Severity);
 
@@ -170,7 +169,6 @@ namespace NuGet.Services.Metadata.Catalog
 
                     graph.Assert(resource.Subject, vulnerabilityPredicate, vulnerabilityNode);
                     graph.Assert(vulnerabilityNode, rdfTypePredicate, vulnerabilityType);
-                    graph.Assert(vulnerabilityNode, gitHubDatabaseKeyPredicate, graph.CreateLiteralNode(vulnerability.GitHubDatabaseKey));
                     graph.Assert(vulnerabilityNode, advisoryUrlPredicate, graph.CreateLiteralNode(vulnerability.AdvisoryUrl));
                     graph.Assert(vulnerabilityNode, severityPredicate, graph.CreateLiteralNode(vulnerability.Severity));
                 }

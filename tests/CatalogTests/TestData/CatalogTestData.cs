@@ -692,7 +692,6 @@ namespace CatalogTests
       ""@id"": ""{0}#vulnerability/GitHub/{1}"",
       ""@type"": ""Vulnerability"",
       ""advisoryUrl"": ""{2}"",
-      ""gitHubDatabaseKey"": ""{1}"",
       ""severity"": ""{3}""
     }}";
 

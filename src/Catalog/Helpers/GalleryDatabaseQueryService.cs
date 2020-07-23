@@ -28,9 +28,9 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         // {2} - outer ORDER BY if needed
         private static readonly string Db2CatalogSqlSubQuery = @"SELECT 
              P_EXT.*,
-                PV.[GitHubDatabaseKey] AS 'VulnerabilityGitHubDatabaseKey',
-                PV.[AdvisoryUrl] AS 'VulnerabilityAdvisoryUrl',
-                PV.[Severity] AS 'VulnerabilitySeverity'
+                PV.[GitHubDatabaseKey] AS '" + Db2CatalogProjectionColumnNames.VulnerabilityGitHubDatabaseKey + @"',
+                PV.[AdvisoryUrl] AS '" + Db2CatalogProjectionColumnNames.VulnerabilityAdvisoryUrl + @"',
+                PV.[Severity] AS '" + Db2CatalogProjectionColumnNames.VulnerabilitySeverity + @"'
             FROM
                 ({0} P.[Key],
                     PR.[Id],

@@ -232,7 +232,6 @@ namespace NuGet.Jobs.Catalog2Registration
                     {
                         Id = "https://example/v3/catalog0/data/2020.07.06.06.49.47/bar.1.0.0.json#vulnerability/GitHub/999",
                         Type = "Vulnerability",
-                        GitHubDatabaseKey = "999",
                         AdvisoryUrl = "https://nvd.nist.gov/vuln/detail/CVE-1234-56789",
                         Severity = "3"
                     }

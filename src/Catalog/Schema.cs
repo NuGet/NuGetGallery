@@ -76,7 +76,6 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri AlternatePackage = new Uri(Prefixes.NuGet + "alternatePackage");
 
             public static readonly Uri Vulnerability = new Uri(Prefixes.NuGet + "vulnerability");
-            public static readonly Uri GitHubDatabaseKey = new Uri(Prefixes.NuGet + "gitHubDatabaseKey");
             public static readonly Uri AdvisoryUrl = new Uri(Prefixes.NuGet + "advisoryUrl");
             public static readonly Uri Severity = new Uri(Prefixes.NuGet + "severity");
         }
