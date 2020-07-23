@@ -2544,7 +2544,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The readme file has an invalid extension &apos;{0}&apos;. Extension must be following: {1}..
+        ///   Looks up a localized string similar to The readme file has an invalid extension &apos;{0}&apos;. Extension must be one of the following: {1}..
         /// </summary>
         public static string UploadPackage_InvalidReadmeFileExtension {
             get {

@@ -419,13 +419,13 @@ namespace NuGetGallery
         {
             var nuspecReader = GetNuspecReader(nuGetPackage);
             var readmeElement = nuspecReader.ReadmeElement;
-            var embeddedReadmeEnabled = _featureFlagService.IsUploadEmbeddedReadmeEnabled(user);
 
             if (readmeElement == null)
             {
                 return null;
             }
 
+            var embeddedReadmeEnabled = _featureFlagService.IsUploadEmbeddedReadmeEnabled(user);
             if (!embeddedReadmeEnabled)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_EmbeddedReadmeNotAccepted);
@@ -471,7 +471,7 @@ namespace NuGetGallery
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_CorruptNupkg);
             }
-            //check the supported the md format
+
             return null;
         }
 
