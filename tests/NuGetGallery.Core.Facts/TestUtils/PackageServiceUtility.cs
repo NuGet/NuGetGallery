@@ -84,15 +84,39 @@ namespace NuGetGallery.TestUtils
             Func<string> getCustomNuspecNodes = null,
             string licenseExpression = null,
             string licenseFilename = null,
-            byte[] licenseFileContents = null)
+            byte[] licenseFileContents = null,
+            string readmeFilename = null,
+            byte[] readmeFileContents = null)
         {
-            var testPackage = CreateNuGetPackageStream(id, version, title,
-                summary, authors, owners, description, tags, language,
-                copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl,
-                iconUrl, requireLicenseAcceptance, developmentDependency, packageDependencyGroups,
-                packageTypes, repositoryMetadata, isSigned, desiredTotalEntryCount,
-                getCustomNuspecNodes, licenseExpression, licenseFilename,
-                licenseFileContents);
+            var testPackage = CreateNuGetPackageStream(
+                    id:id, 
+                    version: version, 
+                    title: title,
+                    summary:summary,
+                    authors:authors,
+                    owners: owners,
+                    description: description, 
+                    tags: tags,
+                    language: language,
+                    copyright: copyright,
+                    releaseNotes: releaseNotes,
+                    minClientVersion: minClientVersion,
+                    licenseUrl: licenseUrl,
+                    projectUrl: projectUrl,
+                    iconUrl: iconUrl,
+                    requireLicenseAcceptance: requireLicenseAcceptance,
+                    developmentDependency: developmentDependency,
+                    packageDependencyGroups: packageDependencyGroups,
+                    packageTypes: packageTypes,
+                    repositoryMetadata: repositoryMetadata,
+                    isSigned: isSigned,
+                    desiredTotalEntryCount: desiredTotalEntryCount,
+                    getCustomNuspecNodes: getCustomNuspecNodes,
+                    licenseExpression: licenseExpression,
+                    licenseFilename: licenseFilename,
+                    licenseFileContents: licenseFileContents,
+                    readmeFilename: readmeFilename,
+                    readmeFileContents: readmeFileContents);
 
             return CreateNuGetPackage(testPackage);
         }
@@ -132,6 +156,8 @@ namespace NuGetGallery.TestUtils
             byte[] licenseFileContents = null,
             string iconFilename = null,
             byte[] iconFileBinaryContents = null,
+            string readmeFilename = null,
+            byte[] readmeFileContents = null,
             IReadOnlyList<string> entryNames = null)
         {
             if (packageDependencyGroups == null)
@@ -206,7 +232,9 @@ namespace NuGetGallery.TestUtils
                 licenseFilename: licenseFilename,
                 licenseFileContents: licenseFileContents,
                 iconFilename: iconFilename,
-                iconFileContents: iconFileBinaryContents);
+                iconFileContents: iconFileBinaryContents,
+                readmeFilename: readmeFilename,
+                readmeFileContents: readmeFileContents);
         }
 
         private static void WriteEntry(ZipArchive archive, string entryName)
