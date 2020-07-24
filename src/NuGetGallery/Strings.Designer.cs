@@ -2743,6 +2743,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The readme file must be plain text using UTF-8 encoding..
+        /// </summary>
+        public static string UploadPackage_ReadmeMustBePlainText {
+            get {
+                return ResourceManager.GetString("UploadPackage_ReadmeMustBePlainText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The previous package version &apos;{0}&apos; is author signed but the uploaded package is unsigned. To avoid this warning, sign the package before uploading..
         /// </summary>
         public static string UploadPackage_SignedToUnsignedTransition {

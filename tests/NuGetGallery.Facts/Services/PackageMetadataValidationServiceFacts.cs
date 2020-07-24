@@ -761,16 +761,16 @@ namespace NuGetGallery
             }
 
             // any valid UTF-8 encoded file should be accepted
-            public static IEnumerable<object[]> RejectsBinaryLicenseFiles_Smoke => new object[][]
+            public static IEnumerable<object[]> RejectsBinaryFiles_Smoke => new object[][]
             {
                 new object[] { new byte[] { 0, 1, 2, 3 }, true },
                 new object[] { new byte[] { 10, 13, 12 }, false },
-                new object[] { Encoding.UTF8.GetBytes("Sample license test"), false},
+                new object[] { Encoding.UTF8.GetBytes("Sample license/readme test"), false},
                 new object[] { Encoding.UTF8.GetBytes("тест тест"), false},
             };
 
             [Theory]
-            [MemberData(nameof(RejectsBinaryLicenseFiles_Smoke))]
+            [MemberData(nameof(RejectsBinaryFiles_Smoke))]
             public async Task RejectsBinaryLicenseFiles(byte[] licenseFileContent, bool expectedFailure)
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
@@ -1355,7 +1355,8 @@ namespace NuGetGallery
                     _currentUser);
             }
 
-            public async Task RejectPackagesWithEmbeddedReadme()
+            [Fact]
+            public async Task RejectsPackagesWithEmbeddedReadme()
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
                     readmeFilename: "readme.md",
@@ -1452,6 +1453,8 @@ namespace NuGetGallery
             [InlineData(".md", true)]
             [InlineData(".Txt", false)]
             [InlineData(".Md", true)]
+            [InlineData(".MD", true)]
+            [InlineData(".mD", true)]
             [InlineData(".doc", false)]
             [InlineData(".pdf", false)]
             public async Task ChecksReadmeFileExtension(string extension, bool successExpected)
@@ -1555,6 +1558,39 @@ namespace NuGetGallery
                 Assert.Null(result.Message);
                 Assert.Empty(result.Warnings);
             }
+
+            [Theory]
+            [MemberData(nameof(RejectsBinaryFiles_Smoke))]
+            public async Task RejectsBinaryReadmeFiles(byte[] readmeFileContent, bool expectedFailure)
+            {
+                _nuGetPackage = GeneratePackageWithUserContent(
+                    readmeFilename: "readme.md",
+                    readmeFileBinaryContents: readmeFileContent,
+                    licenseExpression: "MIT",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
+                _featureFlagService
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
+                    .Returns(true);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                if (!expectedFailure)
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("The readme file must be plain text using UTF-8 encoding.", result.Message.PlainTextMessage);
+                    Assert.Empty(result.Warnings);
+                }
+            }
+
             /// <summary>
             /// A (quite ineffective) method to search for a sequence in an array
             /// </summary>
