@@ -1172,4 +1172,7 @@ The {1} Team</value>
   <data name="UploadPackage_ReadmeFileType" xml:space="preserve">
     <value>readme</value>
   </data>
+  <data name="UploadPackage_ReadmeMustBePlainText" xml:space="preserve">
+    <value>The readme file must be plain text using UTF-8 encoding.</value>
+  </data>
 </root>

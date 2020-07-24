@@ -472,6 +472,16 @@ namespace NuGetGallery
                 return PackageValidationResult.Invalid(Strings.UploadPackage_CorruptNupkg);
             }
 
+            // zip streams do not support seeking, so we'll have to reopen them
+            using (var readmeFileStream = nuGetPackage.GetStream(readmeFilePath))
+            {
+                // check if specified file is a text file
+                if (!await TextHelper.LooksLikeUtf8TextStreamAsync(readmeFileStream))
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_ReadmeMustBePlainText);
+                }
+            }
+
             return null;
         }
 
