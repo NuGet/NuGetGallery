@@ -110,6 +110,7 @@ namespace NuGetGallery
         public string RepositoryUrl { get; set; }
         public string RepositoryType { get; set; }
         public string ReleaseNotes { get; set; }
+        public string ReadmeFileContents { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }

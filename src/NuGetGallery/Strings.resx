@@ -1181,4 +1181,7 @@ The {1} Team</value>
   <data name="ODataParametersDisabled" xml:space="preserve">
     <value>The combination of parameters provided to this OData endpoint is not supported.</value>
   </data>
+  <data name="ReadmeNotEditableWithEmbeddedReadme" xml:space="preserve">
+    <value>The readme is not editable with the package has the embedded readme</value>
+  </data>
 </root>

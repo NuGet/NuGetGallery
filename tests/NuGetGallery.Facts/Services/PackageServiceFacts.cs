@@ -297,7 +297,8 @@ namespace NuGetGallery
                     licenseUrl: new Uri("http://thelicenseurl/"),
                     projectUrl: new Uri("http://theprojecturl/"),
                     iconUrl: new Uri("http://theiconurl/"),
-                    licenseFilename: "license.txt");
+                    licenseFilename: "license.txt",
+                    readmeFilename:"readme.md");
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
@@ -321,6 +322,7 @@ namespace NuGetGallery
                 Assert.Equal("theTitle", package.Title);
                 Assert.Equal("theCopyright", package.Copyright);
                 Assert.Equal(EmbeddedLicenseFileType.PlainText, package.EmbeddedLicenseType);
+                Assert.Equal(EmbeddedReadmeFileType.Markdown, package.EmbeddedReadmeType);
                 Assert.Null(package.Language);
                 Assert.False(package.IsPrerelease);
 
@@ -3175,6 +3177,51 @@ namespace NuGetGallery
                 service.EnrichPackageFromNuGetPackage(package, packageArchiveReader, packageMetadata, new PackageStreamMetadata(), new User());
 
                 Assert.Equal(expectedFlag, package.HasEmbeddedIcon);
+            }
+
+            [Theory]
+            [InlineData("readme.md", true)]
+            [InlineData(null, false)]
+            public void SetsHasReadmeFlagProperly(string readmeFilename, bool expectedFlag)
+            {
+                var service = CreateService();
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "SomePackage"
+                    },
+                    HasReadMe = false,
+                };
+
+                // the EnrichPackageFromNuGetPackage method does not read readme filename from the PackageArchiveReader
+                // so we won't bother setting it up here.
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(package.Id);
+
+                var packageArchiveReader = new PackageArchiveReader(packageStream);
+
+                var metadataDictionary = new Dictionary<string, string>
+                {
+                    { "version", "1.2.3" },
+                };
+
+                if (readmeFilename != null)
+                {
+                    metadataDictionary.Add("readme", readmeFilename);
+                }
+
+                var packageMetadata = new PackageMetadata(
+                    metadataDictionary,
+                    Enumerable.Empty<PackageDependencyGroup>(),
+                    Enumerable.Empty<FrameworkSpecificGroup>(),
+                    Enumerable.Empty<NuGet.Packaging.Core.PackageType>(),
+                    new NuGetVersion(3, 2, 1),
+                    repositoryMetadata: null,
+                    licenseMetadata: null);
+
+                service.EnrichPackageFromNuGetPackage(package, packageArchiveReader, packageMetadata, new PackageStreamMetadata(), new User());
+
+                Assert.Equal(expectedFlag, package.HasReadMe);
             }
         }
     }

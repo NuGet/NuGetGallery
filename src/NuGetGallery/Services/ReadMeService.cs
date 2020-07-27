@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
+using NuGet.Packaging;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -99,6 +100,28 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Get the converted HTML from the package with Readme markdown.
+        /// </summary>
+        /// <param name="readmeFileName">The path of Readme markdown.</param>
+        /// <param name="packageArchiveReader">
+        /// The <see cref="PackageArchiveReader"/> instance providing the package metadata.
+        /// </param>
+        /// <returns>ReadMe converted to HTML.</returns>
+        public async Task<RenderedReadMeResult> GetReadMeHtmlAsync(string readmeFileName, PackageArchiveReader packageArchiveReader, Encoding encoding)
+        {
+            var readmeMd = await GetReadMeMdAsync(readmeFileName, packageArchiveReader, encoding);
+            var result = new RenderedReadMeResult
+            {
+                Content = readmeMd,
+                ImagesRewritten = false
+            };
+
+            return string.IsNullOrEmpty(readmeMd) ?
+                result :
+                GetReadMeHtml(readmeMd);
+        }
+
+        /// <summary>
         /// Get package ReadMe markdown from storage.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
@@ -111,6 +134,23 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Get content of Readme markdown.
+        /// </summary>
+        /// <param name="readmeFileName">Package entity associated with the ReadMe.</param>
+        /// <param name="packageArchiveReader">
+        /// The <see cref="PackageArchiveReader"/> instance providing the package metadata.
+        /// </param>
+        /// <returns>ReadMe markdown from package metadata.</returns>
+        private async Task<string> GetReadMeMdAsync(string readmeFileName, PackageArchiveReader packageArchiveReader, Encoding encoding)
+        {
+            using (var readmeFileStream = packageArchiveReader.GetStream(readmeFileName))
+            using (var streamReader = new StreamReader(readmeFileStream, encoding))
+            {
+                 return await streamReader.ReadToEndAsync();
+            }
         }
 
         /// <summary>
