@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
+using NuGet.Packaging;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -80,7 +81,7 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Get the converted HTML from the stored ReadMe markdown.
+        /// Get the converted HTML from the ReadMe markdown.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <returns>ReadMe converted to HTML.</returns>
@@ -99,6 +100,25 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Get the converted HTML from the stored Readme markdown.
+        /// </summary>
+        /// <param name="readmeFileName">The path of Readme markdown.</param>
+        /// <returns>ReadMe converted to HTML.</returns>
+        public async Task<RenderedReadMeResult> GetReadMeHtmlAsync(String readmeFileName, PackageArchiveReader packageArchiveReader)
+        {
+            var readmeMd = await GetReadMeMdAsync(readmeFileName, packageArchiveReader);
+            var result = new RenderedReadMeResult
+            {
+                Content = readmeMd,
+                ImagesRewritten = false
+            };
+
+            return string.IsNullOrEmpty(readmeMd) ?
+                result :
+                GetReadMeHtml(readmeMd);
+        }
+
+        /// <summary>
         /// Get package ReadMe markdown from storage.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
@@ -111,6 +131,20 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Get content of Readme markdown.
+        /// </summary>
+        /// <param name="readmeFileName">Package entity associated with the ReadMe.</param>
+        /// <returns>ReadMe markdown from storage.</returns>
+        public async Task<string> GetReadMeMdAsync(String readmeFileName, PackageArchiveReader packageArchiveReader)
+        {
+            using (var readmeFileStream = packageArchiveReader.GetStream(readmeFileName))
+            using (var streamReader = new StreamReader(readmeFileStream, Encoding.UTF8))
+            {
+                 return await streamReader.ReadToEndAsync();
+            }
         }
 
         /// <summary>

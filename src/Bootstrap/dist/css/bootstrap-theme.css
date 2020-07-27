@@ -648,6 +648,16 @@ img.reserved-indicator-icon {
   margin-left: 10px;
   width: 100%;
 }
+.readme .readme-container {
+  display: block;
+  padding: 10.5px;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  word-break: normal;
+  margin-bottom: 24px;
+  overflow: auto;
+  max-height: 450px;
+}
 .user-package-list .manage-package-listing .package-icon {
   max-height: 2em;
   min-width: 20px;

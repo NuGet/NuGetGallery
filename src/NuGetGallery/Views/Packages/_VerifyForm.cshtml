@@ -1,4 +1,5 @@
-﻿<form aria-label="Verify your package" id="verify-metadata-form">
+﻿@model SubmitPackageRequest
+<form aria-label="Verify your package" id="verify-metadata-form">
     @Html.AntiForgeryToken()
 
     <div id="verify-collapser-container" class="hidden">
@@ -16,20 +17,22 @@
 
     @Html.Partial("_VerifyMetadata")
 
-    <div id="readme-collapser-container" class="hidden">
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#readme-package-form"
-               aria-expanded="true" aria-controls="readme-package-form" id="show-readme-package-form">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>Import Documentation</span>
-            </a>
-        </h2>
-    </div>
+    @if (Model!= null && !Model.AreUploadEmbeddedReadmesEnabled)
+    {
+        <div id="readme-collapser-container" class="hidden">
+            <h2>
+                <a href="#" role="button" data-toggle="collapse" data-target="#readme-package-form"
+                   aria-expanded="true" aria-controls="readme-package-form" id="show-readme-package-form">
+                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                    <span>Import Documentation</span>
+                </a>
+            </h2>
+        </div>
 
-    <div id="import-readme-container">
-    </div>
-    @Html.Partial("_ImportReadMe")
-
+        <div id="import-readme-container">
+        </div>
+        @Html.Partial("_ImportReadMe", Model)
+    }
     <div id="submit-collapser-container" class="hidden">
         <h2>
             <a href="#" role="button" data-toggle="collapse" data-target="#submit-package-form"
