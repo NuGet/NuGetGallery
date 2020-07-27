@@ -1,4 +1,5 @@
-﻿<form aria-label="Verify your package" id="verify-metadata-form">
+﻿@model SubmitPackageRequest
+<form aria-label="Verify your package" id="verify-metadata-form">
     @Html.AntiForgeryToken()
 
     <div id="verify-collapser-container" class="hidden">
@@ -28,7 +29,7 @@
 
     <div id="import-readme-container">
     </div>
-    @Html.Partial("_ImportReadMe")
+    @Html.Partial("_ImportReadMe", Model)
 
     <div id="submit-collapser-container" class="hidden">
         <h2>

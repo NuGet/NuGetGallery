@@ -23,8 +23,8 @@
     </div>
 }
 
-<script type="text/html" id="import-readme-template">
-
+@helper ImportReadmeTemplate()
+{
     <div class="collapse in" id="readme-package-form">
 
         <div id="readme-errors" class="hidden">
@@ -105,4 +105,11 @@
             </div>
         </div>
     </div>
+}
+
+<script type="text/html" id="import-readme-template">
+    @if (Model != null && !Model.AreUploadEmbeddedReadmesEnabled)
+    {
+       @ImportReadmeTemplate()
+    }
 </script>

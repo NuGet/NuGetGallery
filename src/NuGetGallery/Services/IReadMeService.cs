@@ -3,6 +3,7 @@
 
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.Packaging;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -29,6 +30,13 @@ namespace NuGetGallery
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <returns>ReadMe converted to HTML.</returns>
         Task<RenderedReadMeResult> GetReadMeHtmlAsync(Package package);
+
+        /// <summary>
+        /// Get the converted HTML from the stored Readme markdown.
+        /// </summary>
+        /// <param name="readmeMd">The content of Readme markdown.</param>
+        /// <returns>ReadMe converted to HTML.</returns>
+        Task<RenderedReadMeResult> GetReadMeHtmlAsync(string readmeMd, PackageArchiveReader packageArchiveReader);
 
         /// <summary>
         /// Get package ReadMe markdown from storage.
