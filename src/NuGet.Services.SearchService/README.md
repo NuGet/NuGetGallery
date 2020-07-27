@@ -138,6 +138,7 @@ semVerLevel  | string  | A SemVer 1.0.0 version string: `1.0.0` or `2.0.0`
 ignoreFilter | boolean | `true` to include unlisted packages and ignore the `prerelease` parameter
 countOnly    | boolean | `true` to return only the total count and no metadata
 sortBy       | string  | Sort results using a specified ordering
+packageType  | string  | Filter results to those with the specified package type
 luceneQuery  | bool    | `true` to treat a `q` starting with `id:` like `packageid:` (yes, it's silly, see [#7366](https://github.com/NuGet/NuGetGallery/issues/7366))
 debug        | bool    | `true` to shows the raw Azure Search document and other diagnostic information
 
@@ -171,11 +172,15 @@ The `sortBy` parameter supports the following options:
 - `title-desc` - sort by title, descending case-insensitive lexicographical order
 - `created-asc` - sort by created timestamp, ascending chronological order
 - `created-desc` - sort by created timestamp, descending chronological order
+- `totalDownloads-asc` - sort by total downloads count, ascending numerical order
+- `totalDownloads-desc` - sort by total downloads count, descending numerical order
 
 The `relevance` value is used by default or if the provided value is not supported.
 
 For `title-asc` and `title-desc`, a package's ID is used if the package has no explicit title value. Given that package
 `title` is no longer prominently shown in NuGet experiences, this sorting order is only maintained for legacy reasons.
+
+The `packageType` parameter is a free form input. It defaults to an empty string, which means no filter. If there are no packages with the specified packageType in a request, an empty `data` array will be returned.
 
 #### Response
 
