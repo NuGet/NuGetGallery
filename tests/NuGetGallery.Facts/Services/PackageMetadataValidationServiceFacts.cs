@@ -1397,10 +1397,10 @@ namespace NuGetGallery
             [Theory]
             [InlineData("<readme><something/></readme>")]
             [InlineData("<readme><something>readme.md</something></readme>")]
-            public async Task RejectsReadmeElementWithChildren(string ReadmeElement)
+            public async Task RejectsReadmeElementWithChildren(string readmeElement)
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
-                    getCustomNuspecNodes: () => ReadmeElement,
+                    getCustomNuspecNodes: () => readmeElement,
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
