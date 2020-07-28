@@ -114,7 +114,7 @@ namespace GalleryTools.Commands
             string connectionString,
             IReadOnlyList<SecurityAdvisory> advisories)
         {
-            Console.Write("Fetching vulnerabilities from DB...");
+            Console.WriteLine("Fetching vulnerabilities from DB...");
 
             using (var sqlConnection = new SqlConnection(connectionString))
             {
@@ -161,7 +161,9 @@ namespace GalleryTools.Commands
                 {
                     if (existingVulnerability != null)
                     {
-                        Console.Error.WriteLine($"Vulnerability was withdrawn or affects no packages and should not be in DB!");
+                        Console.Error.WriteLine(withdrawn ? 
+                            $@"Vulnerability advisory {vulnerability.GitHubDatabaseKey} was withdrawn and should not be in DB!" :
+                            $@"Vulnerability advisory {vulnerability.GitHubDatabaseKey} affects no packages and should not be in DB!");
                         HasErrors = true;
                     }
 
@@ -170,20 +172,24 @@ namespace GalleryTools.Commands
 
                 if (existingVulnerability == null)
                 {
-                    Console.Error.WriteLine($"Cannot find vulnerability in DB!");
+                    Console.Error.WriteLine($"Cannot find vulnerability {vulnerability.GitHubDatabaseKey} in DB!");
                     HasErrors = true;
                     return Task.CompletedTask;
                 }
 
                 if (existingVulnerability.Severity != vulnerability.Severity)
                 {
-                    Console.Error.WriteLine($"Severity does not match!");
+                    Console.Error.WriteLine(
+                        $@"Vulnerability advisory {vulnerability.GitHubDatabaseKey
+                        }, severity does not match! GitHub: {vulnerability.Severity}, DB: {existingVulnerability.Severity}");
                     HasErrors = true;
                 }
 
-                if (existingVulnerability.ReferenceUrl != vulnerability.ReferenceUrl)
+                if (existingVulnerability.AdvisoryUrl != vulnerability.AdvisoryUrl)
                 {
-                    Console.Error.WriteLine($"Reference URL does not match!");
+                    Console.Error.WriteLine(
+                        $@"Vulnerability advisory {vulnerability.GitHubDatabaseKey
+                        }, advisory URL does not match! GitHub: {vulnerability.AdvisoryUrl}, DB: { existingVulnerability.AdvisoryUrl}");
                     HasErrors = true;
                 }
 
@@ -195,20 +201,24 @@ namespace GalleryTools.Commands
 
                     if (existingRange == null)
                     {
-                        Console.Error.WriteLine($"Cannot find range in DB!");
+                        Console.Error.WriteLine(
+                            $@"Vulnerability advisory {vulnerability.GitHubDatabaseKey
+                            }, cannot find range {range.PackageId} {range.PackageVersionRange} in DB!");
                         HasErrors = true;
                         continue;
                     }
 
                     if (existingRange.FirstPatchedPackageVersion != range.FirstPatchedPackageVersion)
                     {
-                        Console.Error.WriteLine($"First patched version does not match!");
+                        Console.Error.WriteLine(
+                            $@"Vulnerability advisory {vulnerability.GitHubDatabaseKey
+                            }, range {range.PackageId} {range.PackageVersionRange}, first patched version does not match! GitHub: {
+                            range.FirstPatchedPackageVersion}, DB: {range.FirstPatchedPackageVersion}");
                         HasErrors = true;
                     }
 
                     var packages = _entitiesContext.Packages
                         .Where(p => p.PackageRegistration.Id == range.PackageId)
-                        .Include(p => p.Vulnerabilities)
                         .Include(p => p.Vulnerabilities)
                         .ToList();
 
@@ -218,7 +228,10 @@ namespace GalleryTools.Commands
                         var version = NuGetVersion.Parse(package.NormalizedVersion);
                         if (versionRange.Satisfies(version) != package.Vulnerabilities.Contains(existingRange))
                         {
-                            Console.Error.WriteLine($"Package {package.NormalizedVersion} is not properly marked vulnerable to vulnerability!");
+                            Console.Error.WriteLine(
+                                $@"Vulnerability advisory {vulnerability.GitHubDatabaseKey
+                                }, range {range.PackageId} {range.PackageVersionRange}, package {package.NormalizedVersion
+                                } is not properly marked vulnerable to vulnerability!");
                             HasErrors = true;
                         }
                     }
