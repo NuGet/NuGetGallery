@@ -140,8 +140,8 @@ namespace NuGetGallery
         bool IsPackageRenamesEnabled(User user);
 
         /// <summary>
-        /// Whether the user is able to the upload package with an embedded readme file.
+        /// Whether the user is able to publish the package with an embedded readme file.
         /// </summary>
-        bool IsUploadEmbeddedReadmeEnabled(User user);
+        bool AreEmbeddedReadmesEnabled(User user);
     }
 }

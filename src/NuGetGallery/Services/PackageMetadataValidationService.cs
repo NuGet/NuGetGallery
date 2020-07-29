@@ -62,7 +62,7 @@ namespace NuGetGallery
         private const string LicenseNodeName = "license";
         private const string IconNodeName = "icon";
         private const string AllowedLicenseVersion = "1.0.0";
-        private const string ReadmeNode = "readme";
+        private const string ReadmeNodeName = "readme";
         private const string Unlicensed = "UNLICENSED";
 
         private readonly IPackageService _packageService;
@@ -152,7 +152,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = await CheckReadmeMetadataAsync(nuGetPackage, warnings, currentUser);
+            result = await CheckReadmeMetadataAsync(nuGetPackage, currentUser);
             if (result != null)
             {
                 return result;
@@ -415,7 +415,7 @@ namespace NuGetGallery
             return null;
         }
 
-        private async Task<PackageValidationResult> CheckReadmeMetadataAsync(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings, User user)
+        private async Task<PackageValidationResult> CheckReadmeMetadataAsync(PackageArchiveReader nuGetPackage, User user)
         {
             var nuspecReader = GetNuspecReader(nuGetPackage);
             var readmeElement = nuspecReader.ReadmeElement;
@@ -425,7 +425,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            var embeddedReadmeEnabled = _featureFlagService.IsUploadEmbeddedReadmeEnabled(user);
+            var embeddedReadmeEnabled = _featureFlagService.AreEmbeddedReadmesEnabled(user);
             if (!embeddedReadmeEnabled)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_EmbeddedReadmeNotAccepted);
@@ -433,7 +433,7 @@ namespace NuGetGallery
 
             if (HasChildElements(readmeElement))
             {
-                return PackageValidationResult.Invalid(string.Format(Strings.UploadPackage_NodeContainsChildren, ReadmeNode));
+                return PackageValidationResult.Invalid(string.Format(Strings.UploadPackage_NodeContainsChildren, ReadmeNodeName));
             }
 
             var readmeFilePath = FileNameHelper.GetZipEntryPath(readmeElement.Value);
@@ -640,7 +640,7 @@ namespace NuGetGallery
 
             public XElement LicenseElement => MetadataNode.Element(MetadataNode.Name.Namespace + LicenseNodeName);
             public XElement IconElement => MetadataNode.Element(MetadataNode.Name.Namespace + IconNodeName);
-            public XElement ReadmeElement => MetadataNode.Element(MetadataNode.Name.Namespace + ReadmeNode);
+            public XElement ReadmeElement => MetadataNode.Element(MetadataNode.Name.Namespace + ReadmeNodeName);
         }
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(
