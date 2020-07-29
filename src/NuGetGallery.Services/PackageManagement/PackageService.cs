@@ -21,6 +21,8 @@ namespace NuGetGallery
 {
     public class PackageService : CorePackageService, IPackageService
     {
+        private const string MarkdownFileExtension = ".md";
+
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
@@ -722,7 +724,6 @@ namespace NuGetGallery
 
         private static EmbeddedLicenseFileType GetEmbeddedLicenseType(string licenseFileName)
         {
-            const string MarkdownFileExtension = ".md";
             const string TextFileExtension = ".txt";
 
             var extension = Path.GetExtension(licenseFileName);
@@ -742,8 +743,6 @@ namespace NuGetGallery
 
         private static EmbeddedReadmeFileType GetEmbeddedReadmeType(PackageMetadata packageMetadata)
         {
-            const string MarkdownFileExtension = ".md";
-
             if (packageMetadata.ReadmeFile == null)
             {
                 return EmbeddedReadmeFileType.Absent;
@@ -751,12 +750,12 @@ namespace NuGetGallery
 
             var extension = Path.GetExtension(packageMetadata.ReadmeFile);
 
-            if (MarkdownFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase))
+            if (MarkdownFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase) || string.Empty == extension)
             {
                 return EmbeddedReadmeFileType.Markdown;
             }
 
-            throw new ArgumentException($"Invalid file name: {packageMetadata.ReadmeFile}");
+            throw new ArgumentException($"The file name for the package readme must have the \"md\" file extentsion: {packageMetadata.ReadmeFile}");
         }
 
         private static void ValidateSupportedFrameworks(string[] supportedFrameworks)

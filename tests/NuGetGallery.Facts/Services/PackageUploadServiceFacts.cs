@@ -33,7 +33,6 @@ namespace NuGetGallery
             Mock<IPackageService> packageService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
             Mock<IValidationService> validationService = null,
-            Mock<IAppConfiguration> config = null,
             Mock<IPackageVulnerabilityService> vulnerabilityService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
@@ -70,7 +69,6 @@ namespace NuGetGallery
             }
 
             validationService = validationService ?? new Mock<IValidationService>();
-            config = config ?? new Mock<IAppConfiguration>();
             var diagnosticsService = new Mock<IDiagnosticsService>();
             diagnosticsService
                 .Setup(ds => ds.GetSource(It.IsAny<string>()))
@@ -83,8 +81,6 @@ namespace NuGetGallery
                 new Mock<IEntitiesContext>().Object,
                 reservedNamespaceService.Object,
                 validationService.Object,
-                config.Object,
-                new Mock<ITyposquattingService>().Object,
                 Mock.Of<ICoreLicenseFileService>(),
                 diagnosticsService.Object,
                 vulnerabilityService.Object,
@@ -690,8 +686,6 @@ namespace NuGetGallery
                     _entitiesContext.Object,
                     _reservedNamespaceService.Object,
                     _validationService.Object,
-                    _config.Object,
-                    _typosquattingService.Object,
                     _licenseFileService.Object,
                     _diagnosticsService.Object,
                     _vulnerabilityService.Object,

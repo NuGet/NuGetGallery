@@ -2,16 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
-using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Packaging;
 
@@ -19,13 +15,12 @@ namespace NuGetGallery
 {
     public class PackageUploadService : IPackageUploadService
     {
+
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IValidationService _validationService;
-        private readonly IAppConfiguration _config;
-        private readonly ITyposquattingService _typosquattingService;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly IPackageVulnerabilityService _vulnerabilityService;
         private readonly IPackageMetadataValidationService _metadataValidationService;
@@ -36,8 +31,6 @@ namespace NuGetGallery
             IEntitiesContext entitiesContext,
             IReservedNamespaceService reservedNamespaceService,
             IValidationService validationService,
-            IAppConfiguration config,
-            ITyposquattingService typosquattingService,
             ICoreLicenseFileService coreLicenseFileService,
             IDiagnosticsService diagnosticsService,
             IPackageVulnerabilityService vulnerabilityService,
@@ -48,8 +41,6 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _typosquattingService = typosquattingService ?? throw new ArgumentNullException(nameof(typosquattingService));
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             if (diagnosticsService == null)
             {
