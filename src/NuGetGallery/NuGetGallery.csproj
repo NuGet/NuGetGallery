@@ -125,12 +125,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionName.cs" />
+    <Compile Include="App_Start\GalleryMachineKeyConfigurationProvider.cs" />
     <Compile Include="App_Start\LatestVersionRouteConstraint.cs" />
     <Compile Include="App_Start\NuGetODataV2FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />
     <Compile Include="App_Start\StorageDependent.cs" />
-    <Compile Include="App_Start\SessionPersistence.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\ApiKeysController.cs" />
