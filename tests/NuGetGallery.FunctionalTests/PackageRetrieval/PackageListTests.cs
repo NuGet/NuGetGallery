@@ -97,7 +97,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             // Arrange
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?q=packageid:{Uri.EscapeUriString(id)}+owner%3A{Constants.TestAccount}{packageTypeParam}");
+                $"/packages?q=packageid%3A{Uri.EscapeUriString(id)}+owner%3A{Constants.TestAccount}{packageTypeParam}");
 
             // Act
             using (var httpClient = new HttpClient())
