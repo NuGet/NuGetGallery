@@ -32,7 +32,11 @@ namespace NuGetGallery.FunctionalTests
         public const string StatsPageDefaultText = "Statistics last updated";
         public const string ContactOwnersText = "Your message has been sent to the owners of";
         public const string UnListedPackageText = "This package is unlisted and hidden from package listings";
+        public const string TestAccount = "NugetTestAccount";
         public const string TestPackageId = "BaseTestPackage";
+        public const string TestPackageIdDotNetTool = "BaseTestPackage.DotnetTool";
+        public const string TestPackageIdARandomType = "BaseTestPackage.ARandomType";
+        public const string TestPackageIdTemplate = "BaseTestPackage.Template";
         public const string TestPackageIdWithPrereleases = "BaseTestPackage.SearchFilters";
         public const string TestPackageIdNoStable = "BaseTestPackage.NoStable";
         public const string TestOrganizationCollaboratorPackageId = "BaseTestOrganizationCollaboratorPackage";
