@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -38,7 +38,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             // Arrange
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?q={Constants.TestPackageId}+owner%3A{Constants.TestAccount}{sortByParam}");
+                $"/packages?owner%3A{Constants.TestAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -51,7 +51,6 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
                 var content = await response.Content.ReadAsStringAsync();
                 var downloads = GetPackagesDownloads(content);
                 var expectedDownloads = expectDescending ? downloads.OrderByDescending(x => x) : downloads.Select(x => x);
-                Assert.Contains($"/packages/{Constants.TestPackageId}", content); // It found the package
                 Assert.True(downloads.Count > 1);
                 Assert.Equal(expectedDownloads, downloads); // The downloads are sorted as expected
             }
@@ -66,7 +65,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             // Arrange
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?q={Constants.TestPackageId}+owner%3A{Constants.TestAccount}{sortByParam}");
+                $"/packages?owner%3A{Constants.TestAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
