@@ -38,7 +38,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             // Arrange
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?owner%3A{Constants.TestAccount}{sortByParam}");
+                $"/packages?q=owner%3A{Constants.TestAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -59,13 +59,13 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
         [Theory]
         [InlineData("created-desc")]
         [InlineData("cReAtEd-DeSc")]
-        public async Task MakeSureLastUpodatedSortingWorks(string sortBy)
+        public async Task MakeSureLastUpdatedSortingWorks(string sortBy)
         {
             var sortByParam = string.IsNullOrEmpty(sortBy) ? string.Empty : $"&sortBy={sortBy}";
             // Arrange
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?owner%3A{Constants.TestAccount}{sortByParam}");
+                $"/packages?q=owner%3A{Constants.TestAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -97,7 +97,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             // Arrange
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?q={id}+owner%3A{Constants.TestAccount}{packageTypeParam}");
+                $"/packages?q=packageid:{Uri.EscapeUriString(id)}+owner%3A{Constants.TestAccount}{packageTypeParam}");
 
             // Act
             using (var httpClient = new HttpClient())
