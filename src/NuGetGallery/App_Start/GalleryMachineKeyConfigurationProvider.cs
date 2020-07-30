@@ -27,8 +27,9 @@ namespace NuGetGallery
             var config = Configuration;
             if (Configuration == null)
             {
-                Trace.TraceWarning($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Initializing configuration service.");
+                Trace.TraceWarning($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Initializing dedicated configuration service.");
                 config = ConfigurationService.Initialize();
+                Trace.TraceWarning($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Initialized dedicated configuration service.");
                 Configuration = config;
             }
 
@@ -37,6 +38,7 @@ namespace NuGetGallery
             // thereby providing session persistence across different instances in the same deployment slot. However, across different slots(staging vs production)
             // these session keys are different. Thereby causing the loss of session upon a slot swap. Manually setting these values on role start ensures same
             // keys are used by all the instances across all the slots of a Azure cloud service. See more analysis here: https://github.com/NuGet/Engineering/issues/1329
+            Trace.TraceInformation($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Checking current gallery configuration.");
             if (config.Current.EnableMachineKeyConfiguration
                 && !string.IsNullOrWhiteSpace(config.Current.MachineKeyDecryption)
                 && !string.IsNullOrWhiteSpace(config.Current.MachineKeyDecryptionKey)
