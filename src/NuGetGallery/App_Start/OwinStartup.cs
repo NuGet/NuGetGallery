@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -12,7 +13,6 @@ using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Mvc;
 using Elmah;
-using Microsoft.Extensions.Logging;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -25,8 +25,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using Owin;
-
-using ILoggerFactory = Microsoft.Extensions.Logging.ILoggerFactory;
 
 [assembly: OwinStartup(typeof(NuGetGallery.OwinStartup))]
 
@@ -64,8 +62,19 @@ namespace NuGetGallery
             var config = dependencyResolver.GetService<IGalleryConfigurationService>();
             var auth = dependencyResolver.GetService<AuthenticationService>();
 
-            // Configure machine key for session persistence across slots
-            SessionPersistence.Setup(config);
+            // Ensure the machine key provider has the shared configuration instance and force the machine key
+            // configuration section to be initialized. This is normally done only when the first request needs the
+            // machine key but we choose to aggressively execute the initialization here outside of the request context
+            // since it is internally awaiting an asynchronous API in a synchronous method. This cannot be done in a
+            // request context because it will cause a deadlock.
+            // 
+            // Note that is is technically possible for some code before this to initialize the machine key (e.g. by
+            // calling an API that uses the  machine key configuration). If this happens, the machine key will be
+            // fetched from KeyVault seperately. This will be slightly slower (two KeyVault secret resolutions instead
+            // of one) but will not be harmful.
+            GalleryMachineKeyConfigurationProvider.Configuration = config;
+            ConfigurationManager.GetSection("system.web/machineKey");
+
             // Refresh the content for the ContentObjectService to guarantee it has loaded the latest configuration on startup.
             var contentObjectService = dependencyResolver.GetService<IContentObjectService>();
             HostingEnvironment.QueueBackgroundWorkItem(async token =>
