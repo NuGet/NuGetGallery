@@ -23,7 +23,7 @@ namespace NuGet.Jobs
             await _serviceProvider.GetRequiredService<Catalog2RegistrationCommand>().ExecuteAsync();
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             containerBuilder.AddCatalog2Registration();
         }

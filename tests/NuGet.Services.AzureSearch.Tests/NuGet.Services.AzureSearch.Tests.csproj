@@ -100,6 +100,10 @@
       <Project>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
+      <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
+      <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
       <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
       <Name>NuGet.Protocol.Catalog</Name>

@@ -46,6 +46,10 @@
     <Compile Include="TestHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{d44c2e89-2d98-44bd-8712-8ccbe4e67c9c}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\PackageLagMonitor\Monitoring.PackageLag.csproj">
       <Project>{b5147169-e941-4cf8-9fcd-1c123acd3149}</Project>
       <Name>Monitoring.PackageLag</Name>

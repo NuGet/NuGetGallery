@@ -262,6 +262,10 @@
       <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
       <Name>NuGet.Services.Metadata.Catalog</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
+      <Project>{4b4b1efb-8f33-42e6-b79f-54e7f3293d31}</Project>
+      <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
       <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
       <Name>NuGet.Protocol.Catalog</Name>
@@ -269,6 +273,10 @@
     <ProjectReference Include="..\NuGet.Services.V3\NuGet.Services.V3.csproj">
       <Project>{c3f9a738-9759-4b2b-a50d-6507b28a659b}</Project>
       <Name>NuGet.Services.V3</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj">
+      <Project>{FA87D075-A934-4443-8D0B-5DB32640B6D7}</Project>
+      <Name>Validation.Common.Job</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
