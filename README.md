@@ -1,5 +1,8 @@
 NuGet.Jobs
-==============
+==========
+
+This repo contains nuget.org's implementation of the [NuGet V3 API](https://docs.microsoft.com/en-us/nuget/api/overview)
+as well as many other back-end jobs for the operation of nuget.org.
 
 1. Each job would be an exe with 2 main classes Program and Job
 2. Program.Main should simply do the following and nothing more
@@ -19,6 +22,14 @@ NuGet.Jobs
     ```
     
 7. Also, add settings.job file to mark the job as singleton, if the job will be run as a webjob, and it be a continuously running singleton
+
+## Feedback
+
+If you're having trouble with the NuGet.org Website, file a bug on the [NuGet Gallery Issue Tracker](https://github.com/nuget/NuGetGallery/issues). 
+
+If you're having trouble with the NuGet client tools (the Visual Studio extension, NuGet.exe command line tool, etc.), file a bug on [NuGet Home](https://github.com/nuget/home/issues).
+
+Check out the [contributing](http://docs.nuget.org/contribute) page to see the best places to log issues and start discussions. The [NuGet Home](https://github.com/NuGet/Home) repo provides an overview of the different NuGet projects available.
 
 Open Source Code of Conduct
 ===================

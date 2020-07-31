@@ -22,7 +22,7 @@ Function Run-Tests {
     
     Trace-Log 'Running tests'
     
-    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
+    $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console.2.1.0\tools\xunit.console.exe")
     
     $TestAssemblies = `
         "tests\Monitoring.PackageLag.Tests\bin\$Configuration\Monitoring.PackageLag.Tests.dll", `
@@ -47,12 +47,25 @@ Function Run-Tests {
         "tests\Validation.PackageSigning.ValidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.ValidateCertificate.Tests.dll", `
         "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Core.Tests.dll", `
         "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll", `
-        "tests\SplitLargeFiles.Tests\bin\$Configuration\NuGet.Tools.SplitLargeFiles.Tests.dll"
-
+        "tests\SplitLargeFiles.Tests\bin\$Configuration\NuGet.Tools.SplitLargeFiles.Tests.dll", `
+        "tests\NgTests\bin\$Configuration\NgTests.dll", `
+        "tests\CatalogTests\bin\$Configuration\CatalogTests.dll", `
+        "tests\CatalogMetadataTests\bin\$Configuration\CatalogMetadataTests.dll", `
+        "tests\NuGet.Protocol.Catalog.Tests\bin\$Configuration\NuGet.Protocol.Catalog.Tests.dll", `
+        "tests\NuGet.Services.AzureSearch.Tests\bin\$Configuration\NuGet.Services.AzureSearch.Tests.dll", `
+        "tests\NuGet.Services.SearchService.Tests\bin\$Configuration\NuGet.Services.SearchService.Tests.dll", `
+        "tests\NuGet.Jobs.Catalog2Registration.Tests\bin\$Configuration\NuGet.Jobs.Catalog2Registration.Tests.dll"
+    
     $TestCount = 0
     
     foreach ($Test in $TestAssemblies) {
-        & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml "Results.$TestCount.xml"
+        $TestResultFile = "Results.$TestCount.xml"
+        & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml $TestResultFile
+        if (-not (Test-Path $TestResultFile))
+        {
+            Write-Error "The test run failed to produce a result file";
+            exit 1;
+        }
         $TestCount++
     }
 }

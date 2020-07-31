@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6A9C3802-A2A2-49CF-87BD-C1303533B846}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGet.Services.AzureSearch</RootNamespace>
+    <AssemblyName>NuGet.Services.AzureSearch.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Auxiliary2AzureSearch\Integration\PopularityTransferIntegrationTests.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateVerifiedPackagesCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateDownloadsCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\DownloadSetComparerFacts.cs" />
+    <Compile Include="AuxiliaryFiles\DownloadByVersionDataFacts.cs" />
+    <Compile Include="AuxiliaryFiles\DownloadDataClientFacts.cs" />
+    <Compile Include="AuxiliaryFiles\DownloadDataFacts.cs" />
+    <Compile Include="AuxiliaryFiles\JsonStringArrayFileParsingTests.cs" />
+    <Compile Include="AuxiliaryFiles\PopularityTransferDataClientFacts.cs" />
+    <Compile Include="AuxiliaryFiles\StringCacheFacts.cs" />
+    <Compile Include="AuxiliaryFiles\VerifiedPackagesDataClientFacts.cs" />
+    <Compile Include="BaseDocumentBuilderFacts.cs" />
+    <Compile Include="BatchPusherFacts.cs" />
+    <Compile Include="Catalog2AzureSearch\AzureSearchCollectorLogicFacts.cs" />
+    <Compile Include="Catalog2AzureSearch\DocumentFixUpEvaluatorFacts.cs" />
+    <Compile Include="Catalog2AzureSearch\Integration\AzureSearchCollectorLogicIntegrationTests.cs" />
+    <Compile Include="Catalog2AzureSearch\Catalog2AzureSearchCommandFacts.cs" />
+    <Compile Include="Catalog2AzureSearch\CatalogIndexActionBuilderFacts.cs" />
+    <Compile Include="Catalog2AzureSearch\CatalogLeafFetcherFacts.cs" />
+    <Compile Include="Catalog2AzureSearch\Integration\InMemoryDocumentsOperations.cs" />
+    <Compile Include="DatabaseAuxiliaryDataFetcherFacts.cs" />
+    <Compile Include="Db2AzureSearch\Db2AzureSearchCommandFacts.cs" />
+    <Compile Include="Db2AzureSearch\EnumerableExtensionsFacts.cs" />
+    <Compile Include="Db2AzureSearch\NewPackageRegistrationProducerFacts.cs" />
+    <Compile Include="Db2AzureSearch\PackageEntityIndexActionBuilderFacts.cs" />
+    <Compile Include="DocumentUtilitiesFacts.cs" />
+    <Compile Include="DownloadTransferrerFacts.cs" />
+    <Compile Include="HijackDocumentBuilderFacts.cs" />
+    <Compile Include="IndexBuilderFacts.cs" />
+    <Compile Include="Models\CommittedDocumentFacts.cs" />
+    <Compile Include="AuxiliaryFiles\OwnerDataClientFacts.cs" />
+    <Compile Include="DependencyInjectionExtensionsFacts.cs" />
+    <Compile Include="SearchIndexActionBuilderFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\UpdateOwnersCommandFacts.cs" />
+    <Compile Include="Auxiliary2AzureSearch\DataSetComparerFacts.cs" />
+    <Compile Include="SearchDocumentBuilderFacts.cs" />
+    <Compile Include="SearchService\AuxiliaryDataCacheFacts.cs" />
+    <Compile Include="SearchService\AuxiliaryDataFacts.cs" />
+    <Compile Include="AuxiliaryFiles\AuxiliaryFileClientFacts.cs" />
+    <Compile Include="SearchService\AuxiliaryFileReloaderFacts.cs" />
+    <Compile Include="SearchService\SecretRefresherFacts.cs" />
+    <Compile Include="SearchService\AzureSearchServiceFacts.cs" />
+    <Compile Include="SearchService\IndexOperationBuilderFacts.cs" />
+    <Compile Include="SearchService\SearchParametersBuilderFacts.cs" />
+    <Compile Include="SearchService\SearchResponseBuilderFacts.cs" />
+    <Compile Include="SearchService\SearchStatusServiceFacts.cs" />
+    <Compile Include="SearchService\SearchTextBuilderFacts.cs" />
+    <Compile Include="Support\Data.cs" />
+    <Compile Include="Support\SerializationUtilities.cs" />
+    <Compile Include="VersionList\FilteredVersionListFacts.cs" />
+    <Compile Include="VersionList\MutableHijackDocumentChangesFacts.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VersionList\MutableIndexChangesFacts.cs" />
+    <Compile Include="VersionList\VersionListDataClientFacts.cs" />
+    <Compile Include="VersionList\TestExtensionMethods.cs" />
+    <Compile Include="VersionList\VersionListsFacts.cs" />
+    <Compile Include="Wrappers\DocumentOperationsWrapperFacts.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">
+      <Project>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</Project>
+      <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
+      <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
+      <Name>NuGet.Protocol.Catalog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">
+      <Project>{1a53fe3d-8041-4773-942f-d73aef5b82b2}</Project>
+      <Name>NuGet.Services.AzureSearch</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGet.Services.V3\NuGet.Services.V3.csproj">
+      <Project>{c3f9a738-9759-4b2b-a50d-6507b28a659b}</Project>
+      <Name>NuGet.Services.V3</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.V3.Tests\NuGet.Services.V3.Tests.csproj">
+      <Project>{ccb4d5ef-ac84-449d-ac6e-0a0ad295483a}</Project>
+      <Name>NuGet.Services.V3.Tests</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Moq">
+      <Version>4.10.1</Version>
+    </PackageReference>
+    <PackageReference Include="xunit">
+      <Version>2.4.1</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>2.4.1</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
+</Project>
