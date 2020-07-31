@@ -103,16 +103,16 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "src\Stats.CDNLogsSanitizer\Properties\AssemblyInfo.g.cs",
             "src\NuGet.Jobs.GitHubIndexer\Properties\AssemblyInfo.g.cs",
             "src\SplitLargeFiles\Properties\AssemblyInfo.g.cs",
-            "src\Catalog\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.ApplicationInsights.Owin\Properties\AssemblyInfo.g.cs", `
-            "src\Ng\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Services.Metadata.Catalog.Monitoring\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Protocol.Catalog\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Services.AzureSearch\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Jobs.Db2AzureSearch\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Jobs.Catalog2AzureSearch\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Services.SearchService\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Jobs.Auxiliary2AzureSearch\Properties\AssemblyInfo.g.cs", `
+            "src\Catalog\Properties\AssemblyInfo.g.cs",
+            "src\NuGet.ApplicationInsights.Owin\Properties\AssemblyInfo.g.cs",
+            "src\Ng\Properties\AssemblyInfo.g.cs",
+            "src\NuGet.Services.Metadata.Catalog.Monitoring\Properties\AssemblyInfo.g.cs",
+            "src\NuGet.Protocol.Catalog\Properties\AssemblyInfo.g.cs",
+            "src\NuGet.Services.AzureSearch\Properties\AssemblyInfo.g.cs",
+            "src\NuGet.Jobs.Db2AzureSearch\Properties\AssemblyInfo.g.cs",
+            "src\NuGet.Jobs.Catalog2AzureSearch\Properties\AssemblyInfo.g.cs",
+            "src\NuGet.Services.SearchService\Properties\AssemblyInfo.g.cs",
+            "src\NuGet.Jobs.Auxiliary2AzureSearch\Properties\AssemblyInfo.g.cs",
             "src\NuGet.Jobs.Catalog2Registration\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
@@ -155,7 +155,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj",
             "src\Validation.Common.Job\Validation.Common.Job.csproj",
             "src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj",
-            "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj"
+            "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj",
             "src\Catalog\NuGet.Services.Metadata.Catalog.csproj",
             "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj",
             "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj",

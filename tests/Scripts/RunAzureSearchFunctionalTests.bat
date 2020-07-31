@@ -10,7 +10,7 @@ set exitCode=0
 
 REM Required Tools
 set msbuild="%PROGRAMFILES(X86)%\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\msbuild"
-set xunit=".\packages\xunit.runner.console.2.4.1\tools\net461\xunit.console.exe"
+set xunit="..\packages\xunit.runner.console.2.1.0\tools\xunit.console.exe"
 set nuget="nuget.exe"
 
 REM Delete old test results
@@ -25,6 +25,7 @@ if not exist nuget (
 
 echo "Restoring all solutions..."
 call %nuget% restore "%solutionPath%" -NonInteractive
+call %nuget% restore "..\.nuget\packages.config" -PackagesDirectory "..\packages" -NonInteractive
 if not "%errorlevel%"=="0" goto failure
 
 echo "Building solution..." %solutionPath%

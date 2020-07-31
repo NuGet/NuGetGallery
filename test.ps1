@@ -30,7 +30,7 @@ Function Run-Tests {
         "tests\NuGet.Jobs.GitHubIndexer.Tests\bin\$Configuration\NuGet.Jobs.GitHubIndexer.Tests.dll", `
         "tests\NuGet.Services.Revalidate.Tests\bin\$Configuration\NuGet.Services.Revalidate.Tests.dll", `
         "tests\NuGet.Services.Validation.Orchestrator.Tests\bin\$Configuration\NuGet.Services.Validation.Orchestrator.Tests.dll", `
-        "tests\StatusAggregator\bin\$Configuration\StatusAggregator.dll", `
+        "tests\StatusAggregator.Tests\bin\$Configuration\StatusAggregator.Tests.dll", `
         "tests\Tests.CredentialExpiration\bin\$Configuration\Tests.CredentialExpiration.dll", `
         "tests\Tests.Gallery.Maintenance\bin\$Configuration\Tests.Gallery.Maintenance.dll", `
         "tests\Tests.Stats.AggregateCdnDownloadsInGallery\bin\$Configuration\Tests.Stats.AggregateCdnDownloadsInGallery.dll", `
@@ -45,7 +45,7 @@ Function Run-Tests {
         "tests\Validation.PackageSigning.RevalidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.RevalidateCertificate.Tests.dll", `
         "tests\Validation.PackageSigning.ScanAndSign.Tests\bin\$Configuration\Validation.PackageSigning.ScanAndSign.Tests.dll", `
         "tests\Validation.PackageSigning.ValidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.ValidateCertificate.Tests.dll", `
-        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Core.Tests.dll", `
+        "tests\Validation.Symbols.Core.Tests\bin\$Configuration\Validation.Symbols.Core.Tests.dll", `
         "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll", `
         "tests\SplitLargeFiles.Tests\bin\$Configuration\NuGet.Tools.SplitLargeFiles.Tests.dll", `
         "tests\NgTests\bin\$Configuration\NgTests.dll", `
