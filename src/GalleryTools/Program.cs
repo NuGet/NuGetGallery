@@ -21,6 +21,7 @@ namespace GalleryTools
             commandLineApplication.Command("filldevdeps", BackfillDevelopmentDependencyCommand.Configure);
             commandLineApplication.Command("verifyapikey", VerifyApiKeyCommand.Configure);
             commandLineApplication.Command("updateIsLatest", UpdateIsLatestCommand.Configure);
+            commandLineApplication.Command("verifyVulnerabilities", VerifyGitHubVulnerabilitiesCommand.Configure);
 
             try
             {

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using GitHubVulnerabilities2Db.GraphQL;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Cursor;
 
 namespace GitHubVulnerabilities2Db.Collector
 {
@@ -28,10 +27,8 @@ namespace GitHubVulnerabilities2Db.Collector
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<IReadOnlyList<SecurityAdvisory>> GetAdvisoriesSinceAsync(ReadCursor<DateTimeOffset> cursor, CancellationToken token)
+        public async Task<IReadOnlyList<SecurityAdvisory>> GetAdvisoriesSinceAsync(DateTimeOffset lastUpdated, CancellationToken token)
         {
-            await cursor.Load(token);
-            var lastUpdated = cursor.Value;
             _logger.LogInformation("Fetching advisories updated since {LastUpdated}", lastUpdated);
             var firstQuery = _queryBuilder.CreateSecurityAdvisoriesQuery(lastUpdated);
             var firstResponse = await _queryService.QueryAsync(firstQuery, token);

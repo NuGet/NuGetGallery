@@ -15,6 +15,6 @@ namespace GitHubVulnerabilities2Db.Collector
     /// </summary>
     public interface IAdvisoryQueryService
     {
-        Task<IReadOnlyList<SecurityAdvisory>> GetAdvisoriesSinceAsync(ReadCursor<DateTimeOffset> cursor, CancellationToken token);
+        Task<IReadOnlyList<SecurityAdvisory>> GetAdvisoriesSinceAsync(DateTimeOffset lastUpdated, CancellationToken token);
     }
 }
