@@ -755,7 +755,7 @@ namespace NuGetGallery
                 return EmbeddedReadmeFileType.Markdown;
             }
 
-            throw new ArgumentException($"The file name for the package readme must have the \"md\" file extentsion: {packageMetadata.ReadmeFile}");
+            throw new ArgumentException($"The file name for the package readme must have the \"md\" file extension: {packageMetadata.ReadmeFile}");
         }
 
         private static void ValidateSupportedFrameworks(string[] supportedFrameworks)
