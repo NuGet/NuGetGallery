@@ -36,14 +36,14 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
             IEntitiesContext entitiesContext,
-            IContentObjectService contentObjectService = null)
+            IContentObjectService contentObjectService)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
-            _contentObjectService = contentObjectService;
+            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(id));
             }
-
+            
             PackageDependents result = new PackageDependents();
 
             // We use OPTIMIZE FOR UNKNOWN by default here because there are distinct 2-3 query plans that may be
@@ -183,7 +183,7 @@ namespace NuGetGallery
             //   3. SQL Server actually picks the proper query plan. We have observed cases where this does not happen
             //      even with up-to-date statistics.
             //
-            var useRecompile = _contentObjectService?.QueryHintConfiguration?.ShouldUseRecompileForPackageDependents(id) ?? false;
+            var useRecompile = _contentObjectService.QueryHintConfiguration.ShouldUseRecompileForPackageDependents(id);
             using (_entitiesContext.WithQueryHint(useRecompile ? "RECOMPILE" : "OPTIMIZE FOR UNKNOWN"))
             {
                 result.TopPackages = GetListOfDependents(id);
@@ -309,9 +309,9 @@ namespace NuGetGallery
             IEnumerable<Package> GetSortedFiltered(IEnumerable<Package> localPackages, bool applyPrereleaseFilter = true)
             {
                 var semvered = localPackages
-                    .Select(package => new { package, semVer = NuGetVersion.Parse(package.NormalizedVersion) })
+                    .Select(package => new {package, semVer= NuGetVersion.Parse(package.NormalizedVersion)})
                     .ToList();
-
+                
                 return semvered
                     .Where(d => d.semVer.IsPrerelease == prerelease || !applyPrereleaseFilter)
                     .OrderByDescending(d => d.semVer)
@@ -332,13 +332,13 @@ namespace NuGetGallery
                         .FirstOrDefault();
                 }
             }
-
+            
             Package GetLatestPrerelease()
             {
                 return GetSortedFiltered(packages)
                     .FirstOrDefault();
             }
-
+            
             Package GetLatestStable()
             {
                 return GetSortedFiltered(packages, false)
