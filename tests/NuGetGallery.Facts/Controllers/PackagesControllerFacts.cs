@@ -9087,9 +9087,16 @@ namespace NuGetGallery
             [Fact]
             public async Task ReturnsProperResponseModelWhenSucceeds()
             {
+                var featureFlagService = new Mock<IFeatureFlagService>();
                 var readmeService = new Mock<IReadMeService>();
                 var controller = CreateController(GetConfigurationService(),
-                    readMeService: readmeService.Object);
+                    readMeService: readmeService.Object,
+                    featureFlagService: featureFlagService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+                
+                featureFlagService
+                    .Setup(x => x.AreEmbeddedReadmesEnabled(TestUtility.FakeUser))
+                    .Returns(false);
 
                 var request = new ReadMeRequest();
 
@@ -9112,9 +9119,16 @@ namespace NuGetGallery
             [Fact]
             public async Task ReturnsProperResponseModelWhenNoReadme()
             {
+                var featureFlagService = new Mock<IFeatureFlagService>();
                 var readmeService = new Mock<IReadMeService>();
                 var controller = CreateController(GetConfigurationService(),
-                    readMeService: readmeService.Object);
+                    readMeService: readmeService.Object,
+                    featureFlagService: featureFlagService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                featureFlagService
+                    .Setup(x => x.AreEmbeddedReadmesEnabled(TestUtility.FakeUser))
+                    .Returns(false);
 
                 var request = new ReadMeRequest();
 
@@ -9132,9 +9146,16 @@ namespace NuGetGallery
             [Fact]
             public async Task ReturnsProperResponseModelWhenConversionFails()
             {
+                var featureFlagService = new Mock<IFeatureFlagService>();
                 var readmeService = new Mock<IReadMeService>();
                 var controller = CreateController(GetConfigurationService(),
-                    readMeService: readmeService.Object);
+                    readMeService: readmeService.Object,
+                    featureFlagService: featureFlagService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                featureFlagService
+                    .Setup(x => x.AreEmbeddedReadmesEnabled(TestUtility.FakeUser))
+                    .Returns(false);
 
                 var request = new ReadMeRequest();
 
