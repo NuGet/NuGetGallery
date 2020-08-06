@@ -108,7 +108,7 @@
 }
 
 <script type="text/html" id="import-readme-template">
-    @if (Model != null && !Model.AreUploadEmbeddedReadmesEnabled)
+    @if (Model != null && !Model.AreEmbeddedReadmesEnabled)
     {
        @ImportReadmeTemplate()
     }

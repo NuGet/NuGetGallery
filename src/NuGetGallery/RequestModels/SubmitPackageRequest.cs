@@ -11,6 +11,6 @@ namespace NuGetGallery
 
         public bool IsSymbolsUploadEnabled { get; set; }
 
-        public bool AreUploadEmbeddedReadmesEnabled { get; set; }
+        public bool AreEmbeddedReadmesEnabled { get; set; }
     }
 }

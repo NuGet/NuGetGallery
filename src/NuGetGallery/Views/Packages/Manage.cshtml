@@ -52,12 +52,15 @@
                 @<text>@Html.Partial("_ManageListing", Model)</text>,
                 expanded: false)
 
-            @ViewHelpers.Section(
+            @if (!Model.IsManageDeprecationEnabled)
+            {
+                @ViewHelpers.Section(
                 this,
                 "Documentation",
                 "Documentation",
                 @<text>@Html.Partial("_ManageDocumentation", Model)</text>,
                 expanded: false)
+            }
         </div>
     </div>
 </section>

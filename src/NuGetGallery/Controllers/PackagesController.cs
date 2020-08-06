@@ -344,13 +344,13 @@ namespace NuGetGallery
             verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
             verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
 
-            var areUploadEmbeddedReadmesEnabled = _featureFlagService.AreEmbeddedReadmesEnabled(currentUser);
-            if (areUploadEmbeddedReadmesEnabled) 
+            var AreEmbeddedReadmesEnabled = _featureFlagService.AreEmbeddedReadmesEnabled(currentUser);
+            if (AreEmbeddedReadmesEnabled) 
             {
                 verifyRequest.ReadmeFileContents = await GetReadmeFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
             }
 
-            model.AreUploadEmbeddedReadmesEnabled = areUploadEmbeddedReadmesEnabled;
+            model.AreEmbeddedReadmesEnabled = AreEmbeddedReadmesEnabled;
             model.InProgressUpload = verifyRequest;
             return View(model);
         }
@@ -1684,7 +1684,8 @@ namespace NuGetGallery
                 ReportMyPackageReasons,
                 Url,
                 await _readMeService.GetReadMeMdAsync(package),
-                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration));
+                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration),
+                _featureFlagService.AreEmbeddedIconsEnabled(currentUser));
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {
