@@ -124,7 +124,7 @@ namespace NuGetGallery.Controllers
             }
             catch (ODataException ex) when (ex.InnerException != null && ex.InnerException is FormatException)
             {
-                // Sometimes users make invalid requests. It's not excetpional behavior, don't trace.
+                // Sometimes users make invalid requests. It's not exceptional behavior, don't trace.
             }
             catch (Exception ex)
             {
