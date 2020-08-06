@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
+using Microsoft.Data.OData;
 using NuGet.Frameworks;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -120,6 +121,10 @@ namespace NuGetGallery.Controllers
                 {
                     customQuery = true;
                 }
+            }
+            catch (ODataException ex) when (ex.InnerException != null && ex.InnerException is FormatException)
+            {
+                // Sometimes users make invalid requests. It's not exceptional behavior, don't trace.
             }
             catch (Exception ex)
             {
