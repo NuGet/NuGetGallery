@@ -66,7 +66,7 @@ namespace NuGetGallery.Controllers
             {
                 shouldIgnoreOrderById = ShouldIgnoreOrderById(options);
             }
-            catch(ODataException)
+            catch (ODataException)
             {
                 return BadRequest("Invalid OrderBy parameter");
             }
