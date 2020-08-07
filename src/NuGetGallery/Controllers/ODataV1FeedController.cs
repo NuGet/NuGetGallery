@@ -60,17 +60,13 @@ namespace NuGetGallery.Controllers
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
 
-            bool shouldIgnoreOrderById;
+            bool result = TryShouldIgnoreOrderById(options, out var shouldIgnoreOrderById);
 
-            try
-            {
-                shouldIgnoreOrderById = ShouldIgnoreOrderById(options);
-            }
-            catch(ODataException)
+            if (!result)
             {
                 return BadRequest("Invalid OrderBy parameter");
             }
-
+            
             var queryable = GetAll()
                             .Where(p => !p.IsPrerelease && p.PackageStatusKey == PackageStatus.Available)
                             .Where(SemVerLevelKey.IsUnknownPredicate())

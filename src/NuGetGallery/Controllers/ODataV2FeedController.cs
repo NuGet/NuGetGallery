@@ -61,13 +61,9 @@ namespace NuGetGallery.Controllers
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri]string semVerLevel = null)
         {
-            bool shouldIgnoreOrderById;
+            bool result = TryShouldIgnoreOrderById(options, out var shouldIgnoreOrderById);
 
-            try
-            {
-                shouldIgnoreOrderById = ShouldIgnoreOrderById(options);
-            }
-            catch (ODataException)
+            if (!result)
             {
                 return BadRequest("Invalid OrderBy parameter");
             }
