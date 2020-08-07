@@ -110,7 +110,7 @@ namespace NuGetGallery.Controllers
             string requestPath)
             where TFeedPackage : class
         {
-            var queryResult = await InvokeODataFeedControllerActionAsync(asyncControllerAction, requestPath);
+            var queryResult = (QueryResult<TFeedPackage>)await GetActionResultAsync(asyncControllerAction, requestPath);
 
             return await GetValueFromQueryResult(queryResult);
         }
@@ -130,7 +130,7 @@ namespace NuGetGallery.Controllers
             string requestPath) 
             where TFeedPackage : class
         {
-            var queryResult = await InvokeODataFeedControllerActionAsync(asyncControllerAction, requestPath);
+            var queryResult = (QueryResult<TFeedPackage>)await GetActionResultAsync(asyncControllerAction, requestPath);
 
             return int.Parse(await GetValueFromQueryResult(queryResult));
         }
@@ -153,6 +153,18 @@ namespace NuGetGallery.Controllers
             var controller = CreateTestableODataFeedController(request);
 
             return controllerAction(controller, new ODataQueryOptions<TFeedPackage>(CreateODataQueryContext<TFeedPackage>(), request));
+        }
+
+        protected async Task<IHttpActionResult> GetActionResultAsync<TFeedPackage>(
+           Func<TController, ODataQueryOptions<TFeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
+           string requestPath)
+           where TFeedPackage : class
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_siteRoot}{requestPath}");
+            var controller = CreateTestableODataFeedController(request);
+
+            return await asyncControllerAction(controller,
+                new ODataQueryOptions<TFeedPackage>(CreateODataQueryContext<TFeedPackage>(), request));
         }
 
         private static IQueryable<Package> CreatePackagesQueryable()
@@ -266,18 +278,6 @@ namespace NuGetGallery.Controllers
                 var objectContent = (ObjectContent<IQueryable<TEntity>>)httpResponseMessage.Content;
                 return ((IQueryable<TEntity>)objectContent.Value).ToList();
             }
-        }
-
-        private async Task<QueryResult<TFeedPackage>> InvokeODataFeedControllerActionAsync<TFeedPackage>(
-            Func<TController, ODataQueryOptions<TFeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
-            string requestPath)
-            where TFeedPackage : class
-        {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{_siteRoot}{requestPath}");
-            var controller = CreateTestableODataFeedController(request);
-
-            return (QueryResult<TFeedPackage>)await asyncControllerAction(controller,
-                new ODataQueryOptions<TFeedPackage>(CreateODataQueryContext<TFeedPackage>(), request));
         }
     }
 }
