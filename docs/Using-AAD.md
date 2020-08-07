@@ -25,7 +25,7 @@ Let's configure the NuGetGallery to use your Azure Active Directory application 
 1. Modify the `Auth.AzureActiveDirectoryV2.ClientId` setting to the application ID you copied earlier
 1. Modify the `Auth.AzureActiveDirectoryV2.ClientSecret` setting to the client secret you copied earlier
 
-If when you created your Azure Active Directory app registration you selected the "Single tenant" option, update [`AzureActiveDirectoryV2AuthenticatorConfiguration`](https://github.com/NuGet/NuGetGallery/blob/0659deed143f0b58868fa691ec22f46f1d57cba6/src/NuGetGallery.Services/Authentication/Providers/AzureActiveDirectoryV2/AzureActiveDirectoryV2AuthenticatorConfiguration.cs#L53) to set the authority tenant ID to your AAD Tenant ID:
+If you selected the "Single tenant" option when you created your Azure Active Directory app registration, update [`AzureActiveDirectoryV2AuthenticatorConfiguration`](https://github.com/NuGet/NuGetGallery/blob/0659deed143f0b58868fa691ec22f46f1d57cba6/src/NuGetGallery.Services/Authentication/Providers/AzureActiveDirectoryV2/AzureActiveDirectoryV2AuthenticatorConfiguration.cs#L53) to set the authority tenant ID to your AAD Tenant ID:
 
 ```csharp
 openIdOptions.Authority = String.Format(CultureInfo.InvariantCulture, AzureActiveDirectoryV2Authenticator.Authority, "<Your AAD Tenant ID>");
