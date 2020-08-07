@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
+using Microsoft.Data.OData;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
@@ -58,11 +59,23 @@ namespace NuGetGallery.Controllers
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
             }
+
+            bool shouldIgnoreOrderById;
+
+            try
+            {
+                shouldIgnoreOrderById = ShouldIgnoreOrderById(options);
+            }
+            catch(ODataException)
+            {
+                return BadRequest("Invalid OrderBy parameter");
+            }
+
             var queryable = GetAll()
                             .Where(p => !p.IsPrerelease && p.PackageStatusKey == PackageStatus.Available)
                             .Where(SemVerLevelKey.IsUnknownPredicate())
                             .WithoutSortOnColumn(Version)
-                            .WithoutSortOnColumn(Id, ShouldIgnoreOrderById(options))
+                            .WithoutSortOnColumn(Id, shouldIgnoreOrderById)
                             .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
 
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery: true);
