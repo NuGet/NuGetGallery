@@ -61,12 +61,19 @@ namespace NuGetGallery.Controllers
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri]string semVerLevel = null)
         {
+            bool result = TryShouldIgnoreOrderById(options, out var shouldIgnoreOrderById);
+
+            if (!result)
+            {
+                return BadRequest("Invalid OrderBy parameter");
+            }
+
             // Setup the search
             var packages = GetAll()
                             .Where(p => p.PackageStatusKey == PackageStatus.Available)
                             .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                             .WithoutSortOnColumn(Version)
-                            .WithoutSortOnColumn(Id, ShouldIgnoreOrderById(options))
+                            .WithoutSortOnColumn(Id, shouldIgnoreOrderById)
                             .InterceptWith(new NormalizeVersionInterceptor());
 
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
