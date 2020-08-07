@@ -1685,7 +1685,7 @@ namespace NuGetGallery
                 Url,
                 await _readMeService.GetReadMeMdAsync(package),
                 _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration),
-                _featureFlagService.AreEmbeddedIconsEnabled(currentUser));
+                _featureFlagService.AreEmbeddedReadmesEnabled(currentUser));
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {

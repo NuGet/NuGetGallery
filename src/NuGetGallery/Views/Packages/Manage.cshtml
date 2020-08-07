@@ -52,8 +52,9 @@
                 @<text>@Html.Partial("_ManageListing", Model)</text>,
                 expanded: false)
 
-            @if (!Model.IsManageDeprecationEnabled)
+            @if (!Model.AreEmbeddedReadmesEnabled)
             {
+                <span>are embedded is false.</span>
                 @ViewHelpers.Section(
                     this,
                     "Documentation",
@@ -95,19 +96,23 @@
 
         $(function () {
             // Set up documentation section
-            var readMeModel = {
-                "Versions": @Html.ToJson(Model.VersionReadMeStateDictionary),
-                "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
+            var AreEmbeddedReadmesEnabled = '@Model.AreEmbeddedReadmesEnabled' == 'True' ? true : false;
+            if (!AreEmbeddedReadmesEnabled)
+            {
+                var readMeModel = {
+                    "Versions": @Html.ToJson(Model.VersionReadMeStateDictionary),
+                    "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
             };
 
-            var readMeModelVersion = readMeModel.Versions['@Model.Version'];
-            if (readMeModelVersion) {
-                readMeModelVersion.readMe = @Html.Raw(Json.Encode(Model.ReadMe));
-            }
+                var readMeModelVersion = readMeModel.Versions['@Model.Version'];
+                if (readMeModelVersion) {
+                    readMeModelVersion.readMe = @Html.Raw(Json.Encode(Model.ReadMe));
+                }
 
-            EditReadMeManager.init(
-                readMeModel,
-                '@Url.PreviewReadMe()');
+                EditReadMeManager.init(
+                    readMeModel,
+                    '@Url.PreviewReadMe()');
+            }
 
             // Set up delete section
             var deleteVersionSelect = $('.page-delete-package #input-select-version');
@@ -143,5 +148,8 @@
     @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")
     @Scripts.Render("~/Scripts/gallery/page-manage-deprecation.min.js")
     @Scripts.Render("~/Scripts/gallery/page-delete-package.min.js")
-    @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
+    @if (!Model.AreEmbeddedReadmesEnabled)
+    {
+        @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
+    }
 }
