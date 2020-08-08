@@ -10,7 +10,7 @@ You can configure the NuGetGallery to use Azure Active Directory to manage your 
 
 > ⚠ **NOTE**: This allows any Azure Active Directory or personal account to create an account and publish packages to your on-prem gallery. If you'd like to authenticate with a specific directory (the "Single tenant" option), you will need to make a code change later.
 
-1. For "Redirect URI", select "Web" with value `https://<Your domain>/users/account/authenticate/return`.
+1. For "Redirect URI", select "Web" with the value `https://<Your domain>/users/account/authenticate/return`.
 1. Press "Register" to create the application.
 
 You will need to configure the Azure Active Directory application before it can be used by the NuGetGallery:
