@@ -21,7 +21,7 @@ You will need to configure the Azure Active Directory application before it can 
 
 ## Configure the Gallery
 
-Now that the Azure Active Directory application is ready, let's configure the configure the NuGetGallery to use your new app:
+Now that the Azure Active Directory application is ready, let's configure the NuGetGallery to use your new app:
 
 1. Open the NuGetGallery solution using Visual Studio.
 1. Modify the "Web.config" file in the NuGetGallery project.
