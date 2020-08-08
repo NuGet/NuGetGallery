@@ -4,7 +4,7 @@ You can configure the NuGetGallery to use Azure Active Directory to manage your 
 
 ## Create an Azure Active Directory application registration
 
-1. On the portal, open the ["App registrations" blade](https://ms.portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade)
+1. On the portal, open the ["App registrations" blade](https://ms.portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade).
 1. Select "New registration".
 1. For "Supported account types", select "Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)".
 
