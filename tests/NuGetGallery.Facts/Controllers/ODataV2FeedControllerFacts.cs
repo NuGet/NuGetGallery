@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web.Http.Results;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -44,6 +45,18 @@ namespace NuGetGallery.Controllers
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet);
             Assert.Equal(AvailablePackages.Count, resultSet.Count);
+        }
+
+        [Fact]
+        public async Task Get_ReturnsBadRequestWhenOrderByInvalidColumn()
+        {
+            // Act
+            var resultSet = await GetActionResultAsync<V2FeedPackage>(
+                (controller, options) => controller.Get(options),
+                "/api/v2/Packages?$orderby=abc");
+
+            // Assert
+            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
         }
 
         [Fact]

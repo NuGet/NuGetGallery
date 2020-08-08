@@ -2,6 +2,10 @@
 
 Tests for the NuGet Gallery
 
+## Prerequisites
+
+To run the functional tests, you will need to install Visual Studio 2015 Enterprise. 
+
 ## Projects
 
 Unit Tests

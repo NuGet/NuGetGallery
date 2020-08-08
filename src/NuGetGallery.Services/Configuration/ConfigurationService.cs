@@ -14,6 +14,7 @@ using System.Web.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
+using NuGetGallery.Configuration.SecretReader;
 
 namespace NuGetGallery.Configuration
 {
@@ -39,6 +40,22 @@ namespace NuGetGallery.Configuration
             SettingPrefix + "ValidationSqlServer" };
 
         public ISecretInjector SecretInjector { get; set; }
+
+        /// <summary>
+        /// Initializes the configuration service and associates a secret injector based on the configured KeyVault
+        /// settings.
+        /// </summary>
+        public static ConfigurationService Initialize()
+        {
+            var configuration = new ConfigurationService();
+            var secretReaderFactory = new SecretReaderFactory(configuration);
+            var secretReader = secretReaderFactory.CreateSecretReader();
+            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+
+            configuration.SecretInjector = secretInjector;
+
+            return configuration;
+        }
 
         public ConfigurationService()
         {

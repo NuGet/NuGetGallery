@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
+using Microsoft.Data.OData;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData.QueryFilter;
 using NuGetGallery.WebApi;
@@ -110,14 +111,25 @@ namespace NuGetGallery.OData
         /// </summary>
         /// <param name="options">The request OData options.</param>
         /// <returns></returns>
-        protected bool ShouldIgnoreOrderById<T>(ODataQueryOptions<T> options)
+        protected bool TryShouldIgnoreOrderById<T>(ODataQueryOptions<T> options, out bool shouldIgnoreOrderById)
         {
-            return options.OrderBy != null && 
-                   !options.OrderBy.OrderByNodes.Any((node) =>
-                                    {
-                                        string nodeName = ((OrderByPropertyNode)node).Property.Name;
-                                        return string.Equals(nodeName, Id, StringComparison.Ordinal);
-                                    });
+            shouldIgnoreOrderById = false;
+
+            try
+            {
+                shouldIgnoreOrderById = options.OrderBy != null &&
+                       !options.OrderBy.OrderByNodes.Any((node) =>
+                                        {
+                                            string nodeName = ((OrderByPropertyNode)node).Property.Name;
+                                            return string.Equals(nodeName, Id, StringComparison.Ordinal);
+                                        });
+            }
+            catch (ODataException)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

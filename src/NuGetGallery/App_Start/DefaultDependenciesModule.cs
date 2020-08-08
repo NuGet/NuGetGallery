@@ -12,7 +12,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
 using System.Security.Principal;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
@@ -58,7 +57,6 @@ using NuGetGallery.Infrastructure.Search.Correlation;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using Role = NuGet.Services.Entities.Role;
-using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
 {
@@ -88,17 +86,13 @@ namespace NuGetGallery
         {
             var services = new ServiceCollection();
 
-            var configuration = new ConfigurationService();
-            var secretReaderFactory = new SecretReaderFactory(configuration);
-            var secretReader = secretReaderFactory.CreateSecretReader();
-            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+            var configuration = ConfigurationService.Initialize();
+            var secretInjector = configuration.SecretInjector;
 
             builder.RegisterInstance(secretInjector)
                 .AsSelf()
                 .As<ISecretInjector>()
                 .SingleInstance();
-
-            configuration.SecretInjector = secretInjector;
 
             // Register the ILoggerFactory and configure AppInsights.
             var applicationInsightsConfiguration = ConfigureApplicationInsights(

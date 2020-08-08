@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web.Http.Results;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
@@ -26,6 +27,18 @@ namespace NuGetGallery.Controllers
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
             Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
+        }
+
+        [Fact]
+        public void Get_ReturnsBadRequestWhenOrderByInvalidColumn()
+        {
+            // Act
+            var resultSet = GetActionResult<V1FeedPackage>(
+                (controller, options) => controller.Get(options),
+                "/api/v1/Packages?$orderby=abc");
+
+            // Assert
+            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
         }
 
         [Fact]
