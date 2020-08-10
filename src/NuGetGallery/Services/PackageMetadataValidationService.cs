@@ -59,7 +59,6 @@ namespace NuGetGallery
 
         private readonly IPackageService _packageService;
         private readonly IAppConfiguration _config;
-        private readonly ITyposquattingService _typosquattingService;
         private readonly ITelemetryService _telemetryService;
         private readonly IDiagnosticsSource _trace;
         private readonly IFeatureFlagService _featureFlagService;
@@ -67,14 +66,12 @@ namespace NuGetGallery
         public PackageMetadataValidationService(
             IPackageService packageService,
             IAppConfiguration config,
-            ITyposquattingService typosquattingService,
             ITelemetryService telemetryService,
             IDiagnosticsService diagnosticsService,
             IFeatureFlagService featureFlagService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _typosquattingService = typosquattingService ?? throw new ArgumentNullException(nameof(typosquattingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             if (diagnosticsService == null)
             {
@@ -627,32 +624,6 @@ namespace NuGetGallery
             return null;
         }
 
-        public async Task<PackageValidationResult> ValidateMetadaAfterGeneratePackageAsync(
-            Package package,
-            PackageArchiveReader nuGetPackage,
-            User owner,
-            User currentUser,
-            bool isNewPackageRegistration)
-        {
-            var result = await ValidateSignatureFilePresenceAsync(
-                package.PackageRegistration,
-                nuGetPackage,
-                owner,
-                currentUser);
-            if (result != null)
-            {
-                return result;
-            }
-
-            if (isNewPackageRegistration && _typosquattingService.IsUploadedPackageIdTyposquatting(package.Id, owner, out List<string> typosquattingCheckCollisionIds))
-            {
-                return PackageValidationResult.Invalid(string.Format(Strings.TyposquattingCheckFails, string.Join(",", typosquattingCheckCollisionIds)));
-            }
-
-            return PackageValidationResult.Accepted();
-
-        }
-
         /// <summary>
         /// If a package author pushes version X that is author signed then pushes version Y that is unsigned, where Y
         /// is immediately after X when the version list is sorted used SemVer 2.0.0 rules, warn the package author.
@@ -699,68 +670,6 @@ namespace NuGetGallery
                     string.Format(
                         Strings.UploadPackage_SignedToUnsignedTransition,
                         previousPackage.Version.ToNormalizedString())));
-            }
-
-            return null;
-        }
-
-        public async Task<PackageValidationResult> ValidateSignatureFilePresenceAsync(
-            PackageRegistration packageRegistration,
-            PackageArchiveReader nugetPackage,
-            User owner,
-            User currentUser)
-        {
-            if (await nugetPackage.IsSignedAsync(CancellationToken.None))
-            {
-                if (_config.RejectSignedPackagesWithNoRegisteredCertificate
-                    && !packageRegistration.IsSigningAllowed())
-                {
-                    var requiredSigner = packageRegistration.RequiredSigners.FirstOrDefault();
-                    var hasRequiredSigner = requiredSigner != null;
-
-                    if (hasRequiredSigner)
-                    {
-                        if (requiredSigner == currentUser)
-                        {
-                            return PackageValidationResult.Invalid(new PackageShouldNotBeSignedUserFixableValidationMessage());
-                        }
-                        else
-                        {
-                            return PackageValidationResult.Invalid(
-                               string.Format(
-                                   Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
-                                   requiredSigner.Username));
-                        }
-                    }
-                    else
-                    {
-                        var isCurrentUserAnOwner = packageRegistration.Owners.Contains(currentUser);
-
-                        // Technically, if there is no required signer, any one of the owners can register a
-                        // certificate to resolve this issue. However, we favor either the current user or the provided
-                        // owner since these are both accounts the current user can push on behalf of. In other words
-                        // we provide a message that leads the current user to remedying the problem rather than asking
-                        // someone else for help.
-                        if (isCurrentUserAnOwner)
-                        {
-                            return PackageValidationResult.Invalid(new PackageShouldNotBeSignedUserFixableValidationMessage());
-                        }
-                        else
-                        {
-                            return PackageValidationResult.Invalid(
-                                string.Format(
-                                    Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
-                                    owner.Username));
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (packageRegistration.IsSigningRequired())
-                {
-                    return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIsNotSigned);
-                }
             }
 
             return null;
