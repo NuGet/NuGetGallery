@@ -101,7 +101,6 @@ namespace NuGetGallery.Packaging
             Tags = GetValue(PackageMetadataStrings.Tags, (string)null);
             Language = GetValue(PackageMetadataStrings.Language, (string)null);
             IconFile = GetValue(PackageMetadataStrings.Icon, (string)null);
-            ReadmeFile = GetValue(PackageMetadataStrings.Readme, (string)null);
 
             Owners = GetValue(PackageMetadataStrings.Owners, (string)null);
 
@@ -141,12 +140,6 @@ namespace NuGetGallery.Packaging
         /// Null if not specified.
         /// </summary>
         public string IconFile { get; private set; }
-
-        /// <summary>
-        /// Contains the embedded readme filename taken from the 'readme' node of the nuspec file.
-        /// Null if not specified.
-        /// </summary>
-        public string ReadmeFile { get; private set; }
 
         public string GetValueFromMetadata(string key)
         {
