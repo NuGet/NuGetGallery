@@ -1381,7 +1381,7 @@ namespace NuGetGallery
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
                     .Returns(true);
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
@@ -1395,13 +1395,8 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("<readme><someChildNode/></readme>")]
-            [InlineData("<readme><someChildNode/> </readme>")]
-            [InlineData("<readme><someChildNode>readme.md</someChildNode></readme>")]
-            [InlineData("<readme><someChildNode /></readme>")]
-            [InlineData("<readme>readme.<someChildNode>md</someChildNode></readme>")]
-            [InlineData("<readme><M>M</M><I>I</I><T>T</T></readme>")]
-            [InlineData("<readme>M<I>I</I>T</readme>")]
+            [InlineData("<readme><something/></readme>")]
+            [InlineData("<readme><something>readme.md</something></readme>")]
             public async Task RejectsReadmeElementWithChildren(string readmeElement)
             {
                 _nuGetPackage = GeneratePackageWithUserContent(
@@ -1409,7 +1404,7 @@ namespace NuGetGallery
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
                     .Returns(true);
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
@@ -1444,7 +1439,7 @@ namespace NuGetGallery
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
                     .Returns(true);
 
                 return await _target.ValidateMetadataBeforeUploadAsync(
@@ -1484,16 +1479,12 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
-            [Theory]
-            [InlineData(42, true)]
-            [InlineData(1024, true)]
-            [InlineData(1024 * 1024 - 1, true)]
-            [InlineData(1024 * 1024, true)]
-            [InlineData(1024 * 1024 + 1, false)]
-            public async Task RejectsLongReadme(int fileLength, bool expectedSuccess)
+            [Fact]
+            public async Task RejectsLongReadme()
             {
+                const int ExpectedMaxReadmeLength = 1024 * 1024;
 
-                var readmeText = new String('a', fileLength);
+                var readmeText = new String('a', ExpectedMaxReadmeLength + 100);
 
                 _nuGetPackage = GeneratePackageWithUserContent(
                     readmeFilename: "readme.md",
@@ -1501,7 +1492,7 @@ namespace NuGetGallery
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
                     .Returns(true);
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
@@ -1509,15 +1500,8 @@ namespace NuGetGallery
                     GetPackageMetadata(_nuGetPackage),
                     _currentUser);
 
-                if (expectedSuccess)
-                {
-                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
-                }
-                else
-                {
-                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                    Assert.Contains("The readme file cannot be larger", result.Message.PlainTextMessage);
-                }
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("The readme file cannot be larger", result.Message.PlainTextMessage);
                 Assert.Empty(result.Warnings);
             }
 
@@ -1528,7 +1512,7 @@ namespace NuGetGallery
                 const string readmeFileContents = "readmedocumentation";
 
                 _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
                     .Returns(true);
                 // Arrange
                 var packageStream = GeneratePackageStream(
@@ -1564,7 +1548,7 @@ namespace NuGetGallery
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
                     .Returns(true);
                 var result = await _target.ValidateMetadataBeforeUploadAsync(
                     _nuGetPackage.Object,
@@ -1586,7 +1570,7 @@ namespace NuGetGallery
                     licenseExpression: "MIT",
                     licenseUrl: new Uri("https://licenses.nuget.org/MIT"));
                 _featureFlagService
-                    .Setup(ffs => ffs.AreEmbeddedReadmesEnabled(_currentUser))
+                    .Setup(ffs => ffs.IsUploadEmbeddedReadmeEnabled(_currentUser))
                     .Returns(true);
 
                 var result = await _target.ValidateMetadataBeforeUploadAsync(

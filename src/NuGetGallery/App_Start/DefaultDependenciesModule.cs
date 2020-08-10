@@ -340,6 +340,7 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageMetadataValidationService>()
+                .AsSelf()
                 .As<IPackageMetadataValidationService>()
                 .InstancePerLifetimeScope();
 
