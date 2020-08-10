@@ -43,8 +43,7 @@ namespace NuGetGallery
             Func<string> getCustomNodes = null,
             string licenseExpression = null,
             string licenseFilename = null,
-            string iconFilename = null,
-            string readmeFilename = null)
+            string iconFilename = null)
         {
             var fullNuspec = (@"<?xml version=""1.0""?>
                 <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
@@ -65,7 +64,6 @@ namespace NuGetGallery
                         <licenseUrl>" + (licenseUrl?.AbsoluteUri ?? string.Empty) + @"</licenseUrl>
                         " + WriteLicense(licenseExpression, licenseFilename) + @"
                         " + WriteIcon(iconFilename) + @"
-                        " + WriteReadme(readmeFilename) + @"
                         <projectUrl>" + (projectUrl?.ToString() ?? string.Empty) + @"</projectUrl>
                         <iconUrl>" + (iconUrl?.ToString() ?? string.Empty) + @"</iconUrl>
                         <packageTypes>" + WritePackageTypes(packageTypes) + @"</packageTypes>
@@ -113,16 +111,6 @@ namespace NuGetGallery
             if (iconFilename != null)
             {
                 return $"<icon>{iconFilename}</icon>";
-            }
-
-            return string.Empty;
-        }
-
-        private static string WriteReadme(string readmeFilename)
-        {
-            if (readmeFilename != null)
-            {
-                return $"<readme>{readmeFilename}</readme>";
             }
 
             return string.Empty;
@@ -227,9 +215,7 @@ namespace NuGetGallery
             string licenseFilename = null,
             byte[] licenseFileContents = null,
             string iconFilename = null,
-            byte[] iconFileContents = null,
-            string readmeFilename = null,
-            byte[] readmeFileContents = null)
+            byte[] iconFileContents = null)
         {
             return CreateTestPackageStream(packageArchive =>
             {
@@ -239,12 +225,11 @@ namespace NuGetGallery
                     WriteNuspec(stream, true, id, version, title, summary, authors, owners, description, tags, language,
                         copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl, iconUrl,
                         requireLicenseAcceptance, developmentDependency, packageDependencyGroups, packageTypes, isSymbolPackage, repositoryMetadata,
-                        getCustomNuspecNodes, licenseExpression, licenseFilename, iconFilename, readmeFilename);
+                        getCustomNuspecNodes, licenseExpression, licenseFilename, iconFilename);
                 }
 
                 licenseFilename = AddBinaryFile(packageArchive, licenseFilename, licenseFileContents);
                 iconFilename = AddBinaryFile(packageArchive, iconFilename, iconFileContents);
-                readmeFilename = AddBinaryFile(packageArchive, readmeFilename, readmeFileContents);
 
                 if (populatePackage != null)
                 {
