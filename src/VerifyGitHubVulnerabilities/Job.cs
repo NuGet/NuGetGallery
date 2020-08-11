@@ -62,10 +62,6 @@ namespace VerifyGitHubVulnerabilities
             ConfigureGalleryServices(containerBuilder);
 
             containerBuilder
-                .RegisterType<PackageVulnerabilityService>()
-                .As<IPackageVulnerabilityService>();
-
-            containerBuilder
                 .RegisterType<GitHubVersionRangeParser>()
                 .As<IGitHubVersionRangeParser>();
 
