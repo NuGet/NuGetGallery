@@ -249,7 +249,7 @@ namespace NuGetGallery
                 Assert.True(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeFile, SourceFile = sourceFile.Object }));
             }
         }
-        
+
         public class TheGetReadMeHtmlMethod
         {
             [Theory]
@@ -258,7 +258,7 @@ namespace NuGetGallery
             [InlineData("<a href=\"javascript:alert('test');\">", "<p>&lt;a href=&quot;javascript:alert('test');&quot;&gt;</p>")]
             public void EncodesHtmlInMarkdown(string originalMd, string expectedHtml)
             {
-                Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd).Content));
+                Assert.Equal(expectedHtml, StripNewLines(new ReadMeService(null, null).GetReadMeHtml(originalMd).Content));
             }
 
             [Theory]
@@ -274,7 +274,7 @@ namespace NuGetGallery
             [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>", true)]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected)
             {
-                var readMeResult = ReadMeService.GetReadMeHtml(originalMd);
+                var readMeResult = new ReadMeService(null, null).GetReadMeHtml(originalMd);
                 Assert.Equal(expectedHtml, StripNewLines(readMeResult.Content));
                 Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
             }

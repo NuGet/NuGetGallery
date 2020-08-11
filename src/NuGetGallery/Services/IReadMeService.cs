@@ -50,5 +50,7 @@ namespace NuGetGallery
             EditPackageVersionReadMeRequest edit,
             Encoding encoding,
             bool commitChanges);
+
+        RenderedReadMeResult GetReadMeHtml(string readMeMd);
     }
 }

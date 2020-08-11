@@ -175,7 +175,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="readMeMd">ReadMe.md content.</param>
         /// <returns>HTML content.</returns>
-        internal static RenderedReadMeResult GetReadMeHtml(string readMeMd)
+        public RenderedReadMeResult GetReadMeHtml(string readMeMd)
         {
             var output = new RenderedReadMeResult()
             {

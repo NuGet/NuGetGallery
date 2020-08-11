@@ -10,11 +10,13 @@ namespace NuGetGallery
 {
     public class DisplayLicenseViewModelFactory
     {
+        private readonly IReadMeService _readMeService;
         private PackageViewModelFactory _packageViewModelFactory;
 
-        public DisplayLicenseViewModelFactory(IIconUrlProvider iconUrlProvider)
+        public DisplayLicenseViewModelFactory(IIconUrlProvider iconUrlProvider, IReadMeService readMeService)
         {
             _packageViewModelFactory = new PackageViewModelFactory(iconUrlProvider);
+            _readMeService = readMeService;
         }
 
         public DisplayLicenseViewModel Create(
@@ -56,6 +58,15 @@ namespace NuGetGallery
             }
             viewModel.LicenseExpressionSegments = licenseExpressionSegments;
             viewModel.LicenseFileContents = licenseFileContents;
+
+            if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Markdown && licenseFileContents != null)
+            {
+                // For some reason, the BOM character causes CommonMarkSettings to not work properly
+
+                var newlinesFixed = licenseFileContents.Replace("\ufeff", "");
+                viewModel.LicenseFileContentsMd = _readMeService.GetReadMeHtml(newlinesFixed).Content;
+            }
+
 
             return viewModel;
         }

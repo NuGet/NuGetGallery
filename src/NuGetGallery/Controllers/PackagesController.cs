@@ -198,7 +198,7 @@ namespace NuGetGallery
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
             _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider);
-            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider);
+            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, readMeService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
             _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider);
             _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider);
@@ -612,6 +612,13 @@ namespace NuGetGallery
             model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
             model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = packageContentData.LicenseFileContents;
+
+            var licence = packageContentData?.PackageMetadata?.LicenseMetadata?.License;
+
+            if (licence != null)
+                if (Path.GetExtension(licence).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
+                    model.LicenseFileContentsMd = _readMeService.GetReadMeHtml(packageContentData.LicenseFileContents).Content;
+
             model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
 
             if (packageContentData.EmbeddedIconInformation != null)
@@ -801,7 +808,7 @@ namespace NuGetGallery
         // This additional delete action addresses issue https://github.com/NuGet/Engineering/issues/2866 - we need to error out.
         [HttpDelete]
         [SuppressMessage("Microsoft.Security.Web.Configuration", "CA3147: Missing ValidateAntiForgeryTokenAttribute", Justification = "nuget.exe will not provide a token")]
-        public HttpStatusCodeResult DisplayPackage() 
+        public HttpStatusCodeResult DisplayPackage()
             => new HttpStatusCodeWithHeadersResult(HttpStatusCode.MethodNotAllowed, new NameValueCollection() { { "allow", "GET" } });
 
         [HttpGet]
@@ -856,9 +863,9 @@ namespace NuGetGallery
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
-            model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser) && 
+            model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser) &&
                 _abTestService.IsPackageDependendentsABEnabled(currentUser);
-           
+
             if (model.IsPackageDependentsEnabled)
             {
                 model.PackageDependents = GetPackageDependents(id);
@@ -1228,7 +1235,7 @@ namespace NuGetGallery
 
             // If the experience hasn't been cached, it means it's not the default experienced, therefore, show the panel
             viewModel.IsAdvancedSearchFlightEnabled = searchService.SupportsAdvancedSearch && isAdvancedSearchFlightEnabled;
-            viewModel.ShouldDisplayAdvancedSearchPanel =  !shouldCacheAdvancedSearch || !includePrerelease;
+            viewModel.ShouldDisplayAdvancedSearchPanel = !shouldCacheAdvancedSearch || !includePrerelease;
 
             ViewBag.SearchTerm = q;
 
@@ -2188,7 +2195,7 @@ namespace NuGetGallery
             {
                 return Redirect(Url.ManageMyReceivedPackageOwnershipRequests());
             }
-            
+
             if (accept)
             {
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
@@ -2848,7 +2855,7 @@ namespace NuGetGallery
             {
                 return Json(HttpStatusCode.Forbidden, null, JsonRequestBehavior.AllowGet);
             }
-            
+
             var request = new EditPackageVersionReadMeRequest();
             if (package.HasReadMe)
             {
@@ -2998,7 +3005,7 @@ namespace NuGetGallery
 
         private static bool IsSupportedSortBy(string sortBy)
         {
-            return sortBy != null && 
+            return sortBy != null &&
                 (string.Equals(sortBy, GalleryConstants.SearchSortNames.Relevance, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(sortBy, GalleryConstants.SearchSortNames.TotalDownloadsDesc, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(sortBy, GalleryConstants.SearchSortNames.CreatedDesc, StringComparison.OrdinalIgnoreCase));

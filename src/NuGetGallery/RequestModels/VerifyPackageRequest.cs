@@ -21,7 +21,7 @@ namespace NuGetGallery
             Id = packageMetadata.Id;
             Version = packageMetadata.Version.ToFullStringSafe();
             OriginalVersion = packageMetadata.Version.OriginalVersion;
-            
+
             // Verifiable fields
             Language = packageMetadata.Language;
             MinClientVersionDisplay = packageMetadata.MinClientVersion.ToFullStringSafe();
@@ -105,6 +105,7 @@ namespace NuGetGallery
         public string LicenseExpression { get; set; }
         public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; set; }
         public string LicenseFileContents { get; set; }
+        public string LicenseFileContentsMd { get; set; }
         public string MinClientVersionDisplay { get; set; }
         public string ProjectUrl { get; set; }
         public string RepositoryUrl { get; set; }

@@ -113,7 +113,9 @@ namespace NuGetGallery.ViewModels
             var licenseFileContents = "It's a license";
 
             // act
-            var model = CreateDisplayLicenseViewModel(package, licenseExpressionSegments: null, licenseFileContents: licenseFileContents);
+            var model = CreateDisplayLicenseViewModel(package,
+                licenseExpressionSegments: null,
+                licenseFileContents: licenseFileContents);
 
             // assert
             Assert.Equal(licenseFileContents, model.LicenseFileContents);
@@ -124,7 +126,7 @@ namespace NuGetGallery.ViewModels
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments = null,
             string licenseFileContents = null)
         {
-            return new DisplayLicenseViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(
+            return new DisplayLicenseViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IReadMeService>()).Create(
                 package,
                 licenseExpressionSegments,
                 licenseFileContents);

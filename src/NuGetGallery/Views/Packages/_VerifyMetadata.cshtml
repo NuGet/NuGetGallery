@@ -131,10 +131,17 @@
             </div>
             <!-- /ko -->
 
-            <!-- ko if: $data.LicenseFileContents -->
+            <!-- ko ifnot: $data.LicenseFileContentsMd -->
             <div class="verify-package-field common-licenses">
                 <label class="verify-package-field-heading">License file</label>
                 <pre class="license-file-contents custom-license-container" data-bind="text: $data.LicenseFileContents"></pre>
+                <span data-bind="html: $data.LicenseFileContentsMd"></span>
+            </div>
+            <!-- /ko -->
+            <!-- ko if: $data.LicenseFileContentsMd -->
+            <div class="verify-package-field common-licenses">
+                <label class="verify-package-field-heading">License file</label>
+                <span data-bind="html: $data.LicenseFileContentsMd"></span>
             </div>
             <!-- /ko -->
 
@@ -142,6 +149,7 @@
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">License URL</label>
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.LicenseUrl, Link: true }}"></div>
+                
             </div>
             <!-- /ko -->
 
