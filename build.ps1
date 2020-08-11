@@ -116,6 +116,7 @@ Invoke-BuildStep 'Creating artifacts' { `
     New-Package (Join-Path $PSScriptRoot "src\AccountDeleter\Gallery.AccountDeleter.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
     New-Package (Join-Path $PSScriptRoot "src\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
     New-Package (Join-Path $PSScriptRoot "src\GalleryTools\Gallery.GalleryTools.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
+    New-Package (Join-Path $PSScriptRoot "src\VerifyGitHubVulnerabilities\VerifyGitHubVulnerabilities.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "15"
 
     if (!$VerifyMicrosoftPackageVersion) { $VerifyMicrosoftPackageVersion = $SemanticVersion }
     New-Package (Join-Path $PSScriptRoot "src\VerifyMicrosoftPackage\VerifyMicrosoftPackage.nuspec") -Configuration $Configuration -BuildNumber $BuildNumber -Version $VerifyMicrosoftPackageVersion -Branch $Branch -MSBuildVersion "15"
