@@ -1,0 +1,193 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="..\..\sign.thirdparty.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1745A383-D0BE-484B-81EB-27B20F6AC6C5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGet.Services.Metadata.Catalog.Monitoring</RootNamespace>
+    <AssemblyName>NuGet.Services.Metadata.Catalog.Monitoring</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <RuntimeIdentifier>win</RuntimeIdentifier>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup>
+    <Authors>.NET Foundation</Authors>
+    <PackageLicenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/NuGet/NuGet.Services.Metadata</PackageProjectUrl>
+    <Description>Monitor the package metadata catalog.</Description>
+    <Copyright>Copyright .NET Foundation</Copyright>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Model\NonhijackedV2HttpMessageHandler.cs" />
+    <Compile Include="Model\PackageRegistrationAlternatePackageMetadata.cs" />
+    <Compile Include="Model\PackageRegistrationDeprecationMetadata.cs" />
+    <Compile Include="Model\PackageRegistrationIndexMetadata.cs" />
+    <Compile Include="Model\PackageRegistrationLeafMetadata.cs" />
+    <Compile Include="Model\PackageTimestampMetadata.cs" />
+    <Compile Include="Monitoring\AuditingStoragePackageStatusOutdatedCheckSource.cs" />
+    <Compile Include="Monitoring\DatabasePackageStatusOutdatedCheckSource.cs" />
+    <Compile Include="Monitoring\PackageStatusOutdatedCheck.cs" />
+    <Compile Include="Monitoring\PackageStatusOutdatedCheckSource.cs" />
+    <Compile Include="Notification\IMonitoringNotificationService.cs" />
+    <Compile Include="Status\IPackageMonitoringStatusService.cs" />
+    <Compile Include="Notification\LoggerMonitoringNotificationService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
+    <Compile Include="Providers\NonhijackedV2HttpHandlerResourceProvider.cs" />
+    <Compile Include="Providers\PackageRegistrationMetadataResourceDatabaseProvider.cs" />
+    <Compile Include="Providers\PackageRegistrationMetadataResourceV3Provider.cs" />
+    <Compile Include="Providers\PackageTimestampMetadataResourceDatabaseProvider.cs" />
+    <Compile Include="Resources\IPackageRegistrationMetadataResource.cs" />
+    <Compile Include="Resources\IPackageTimestampMetadataResource.cs" />
+    <Compile Include="Resources\PackageRegistrationMetadataResourceDatabaseFeed.cs" />
+    <Compile Include="Resources\PackageRegistrationMetadataResourceV3.cs" />
+    <Compile Include="Resources\PackageTimestampMetadataResourceDatabase.cs" />
+    <Compile Include="Status\PackageMonitoringStatusAccessConditionHelper.cs" />
+    <Compile Include="Status\PackageMonitoringStatusListItem.cs" />
+    <Compile Include="Status\PackageMonitoringStatusService.cs" />
+    <Compile Include="Status\PackageMonitoringStatus.cs" />
+    <Compile Include="Status\PackageState.cs" />
+    <Compile Include="Status\StatusDeserializationException.cs" />
+    <Compile Include="Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Utility\CommonLogger.cs" />
+    <Compile Include="Utility\ContainerBuilderExtensions.cs" />
+    <Compile Include="Utility\ILoggerExtensions.cs" />
+    <Compile Include="Utility\JsonSerializerUtility.cs" />
+    <Compile Include="Utility\NullableNuGetVersionConverter.cs" />
+    <Compile Include="Utility\LogEvents.cs" />
+    <Compile Include="Utility\ILoggerFactoryExtensions.cs" />
+    <Compile Include="Utility\SafeExceptionConverter.cs" />
+    <Compile Include="Validation\Result\ShouldRunTestResult.cs" />
+    <Compile Include="Validation\Test\Endpoint\AggregateEndpointCursor.cs" />
+    <Compile Include="Validation\Test\Endpoint\SearchEndpoint.cs" />
+    <Compile Include="Validation\Test\Endpoint\SearchEndpointConfiguration.cs" />
+    <Compile Include="Validation\Test\Exceptions\AggregateMetadataInconsistencyException.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationDeprecationValidator.cs" />
+    <Compile Include="Validation\Test\Search\SearchHasVersionValidator.cs" />
+    <Compile Include="Validation\ValidationCollector.cs" />
+    <Compile Include="Validation\Result\AggregateValidationResult.cs" />
+    <Compile Include="Validation\Result\PackageValidationResult.cs" />
+    <Compile Include="Validation\Result\TestResult.cs" />
+    <Compile Include="Validation\Result\ValidationResult.cs" />
+    <Compile Include="Validation\Test\Endpoint\CatalogEndpoint.cs" />
+    <Compile Include="Validation\Test\Endpoint\Endpoint.cs" />
+    <Compile Include="Validation\Test\Endpoint\EndpointConfiguration.cs" />
+    <Compile Include="Validation\Test\Endpoint\EndpointValidator.cs" />
+    <Compile Include="Validation\Test\Endpoint\IEndpoint.cs" />
+    <Compile Include="Validation\Test\AggregateValidator.cs" />
+    <Compile Include="Validation\Test\Endpoint\FlatContainerEndpoint.cs" />
+    <Compile Include="Validation\Test\Exceptions\MetadataFieldInconsistencyException.cs" />
+    <Compile Include="Validation\Test\Exceptions\MetadataInconsistencyException.cs" />
+    <Compile Include="Validation\Test\Exceptions\MissingPackageSignatureFileException.cs" />
+    <Compile Include="Validation\Test\Exceptions\TimestampComparisonException.cs" />
+    <Compile Include="Validation\Test\Exceptions\ValidationException.cs" />
+    <Compile Include="Validation\Test\FlatContainer\FlatContainerValidator.cs" />
+    <Compile Include="Validation\Test\FlatContainer\PackageIsRepositorySignedValidator.cs" />
+    <Compile Include="Validation\Test\Exceptions\MissingRepositorySignatureException.cs" />
+    <Compile Include="Validation\Test\IAggregateValidator.cs" />
+    <Compile Include="Validation\Test\IValidator.cs" />
+    <Compile Include="Validation\Test\IValidatorIdentity.cs" />
+    <Compile Include="Validation\Test\PackageValidator.cs" />
+    <Compile Include="Validation\Test\Endpoint\RegistrationEndpoint.cs" />
+    <Compile Include="Validation\Test\PackageValidatorContext.cs" />
+    <Compile Include="Validation\Test\PackageValidatorContextEnqueuer.cs" />
+    <Compile Include="Validation\Test\Catalog\PackageHasSignatureValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationExistsValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationIndexValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationVersionValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationListedValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationIdValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationRequireLicenseAcceptanceValidator.cs" />
+    <Compile Include="Validation\Test\Registration\RegistrationLeafValidator.cs" />
+    <Compile Include="Validation\Test\ValidationContext.cs" />
+    <Compile Include="Validation\Test\ValidationSourceRepositories.cs" />
+    <Compile Include="Validation\Test\ValidationSourceRepository.cs" />
+    <Compile Include="Validation\Test\Validator.cs" />
+    <Compile Include="Validation\Test\ValidatorIdentity.cs" />
+    <Compile Include="Validation\Test\ValidatorConfiguration.cs" />
+    <Compile Include="Validation\ValidationFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
+      <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
+      <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection">
+      <Version>4.4.0</Version>
+    </PackageReference>
+    <PackageReference Include="MicroBuild.Core">
+      <Version>0.3.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection">
+      <Version>2.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Build.Tasks.Pack">
+      <Version>4.8.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Storage">
+      <Version>2.75.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+    <SignType Condition="'$(SignType)' == ''">none</SignType>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
+  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+</Project>

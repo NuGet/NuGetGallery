@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Ng.Operations</id>
+    <version>$version$</version>
+    <title>Ng.Operations</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>Ng package, but without the service scripts. Intended for ops tools that are manually ran.</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\*.*" target="Ng"/>
+  </files>
+</package>

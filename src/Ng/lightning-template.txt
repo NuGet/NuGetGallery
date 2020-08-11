@@ -1,0 +1,35 @@
+﻿@Echo off
+
+:Top
+
+title [cursorFile]
+
+@echo starting
+
+start /w ng.exe lightning ^
+    -command strike ^
+    -indexFile "[indexFile]" ^
+    -cursorFile "[cursorFile]" ^
+    -contentBaseAddress "[contentBaseAddress]" ^
+    -galleryBaseAddress "[galleryBaseAddress]" ^
+    -storageBaseAddress "[storageBaseAddress]" ^
+    -storageAccountName "[storageAccountName]" ^
+    -storageKeyValue "[storageKeyValue]" ^
+    -storageContainer "[storageContainer]" ^
+    -compressedStorageBaseAddress "[compressedStorageBaseAddress]" ^
+    -compressedStorageAccountName "[compressedStorageAccountName]" ^
+    -compressedStorageKeyValue "[compressedStorageKeyValue]" ^
+    -compressedStorageContainer "[compressedStorageContainer]" ^
+    -semVer2StorageBaseAddress "[semVer2StorageBaseAddress]" ^
+    -semVer2StorageAccountName "[semVer2StorageAccountName]" ^
+    -semVer2StorageKeyValue "[semVer2StorageKeyValue]" ^
+    -semVer2StorageContainer "[semVer2StorageContainer]" ^
+    [optionalArguments]
+
+@echo finished
+
+If exist DONE[cursorFile] GOTO EOF
+
+Goto Top
+
+:EOF

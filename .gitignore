@@ -24,6 +24,8 @@ tools/
 .nuget/credprovider
 .nuget/.marker.v*
 nuget.exe
+functionaltests.*.xml
+AssemblyInfo.g.cs
 
 # Roslyn cache directories
 *.ide/
@@ -206,3 +208,8 @@ AssemblyInfo.*.cs
 /tests/Validation.Common.Tests/Validation.Common.Tests.nuget.props
 /tests/Validation.Common.Tests/Validation.Common.Tests.nuget.targets
 /tests/Validation.Helper.Tests/Validation.Helper.Tests.nuget.targets
+/tests/packages
+/tests/CatalogMetadataTests/CatalogMetadataTests.nuget.props
+*.lock.json
+/src/V3PerPackage/Settings.json
+artifacts/*

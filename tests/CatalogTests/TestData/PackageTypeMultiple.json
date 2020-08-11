@@ -1,0 +1,93 @@
+{
+  "@id": "http://example/data/2017.01.04.08.15.00/packagetypemultiple.0.1.0.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "PackageTypeMultiple",
+  "catalog:commitId": "4aee0ef4-a039-4460-bd5f-98f944e33289",
+  "catalog:commitTimeStamp": "2017-01-04T08:15:00Z",
+  "created": "2017-01-01T08:15:00Z",
+  "description": "PackageTypeMultiple",
+  "id": "PackageTypeMultiple",
+  "isPrerelease": false,
+  "lastEdited": "2017-01-02T08:15:00Z",
+  "listed": true,
+  "packageHash": "0HkAz8TNHlerRU1aG/Vh9Urh7DEZ6NamqGKT+CGLY1ImM9q/0vFWP0Q+Kouvq3NcW0uaoVHtL5ewCaxTa20Gdw==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 385,
+  "published": "2017-01-03T08:15:00Z",
+  "title": "PackageTypeMultiple",
+  "verbatimVersion": "0.1.0",
+  "version": "0.1.0",
+  "packageEntries": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/packagetypemultiple.0.1.0.json#PackageTypeMultiple.nuspec",
+      "@type": "PackageEntry",
+      "compressedLength": 235,
+      "fullName": "PackageTypeMultiple.nuspec",
+      "length": 489,
+      "name": "PackageTypeMultiple.nuspec"
+    }
+  ],
+  "packageTypes": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/packagetypemultiple.0.1.0.json#packagetypes/type1",
+      "@type": "PackageType",
+      "name": "type1"
+    },
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/packagetypemultiple.0.1.0.json#packagetypes/type2",
+      "@type": "PackageType",
+      "name": "type2"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "packageTypes": {
+      "@id": "packageType",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "vulnerabilities": {
+      "@id": "vulnerability",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    },
+    "reasons": {
+      "@container": "@set"
+    }
+  }
+}
