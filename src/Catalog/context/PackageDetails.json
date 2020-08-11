@@ -1,0 +1,19 @@
+﻿{
+    "@context": {
+        "@vocab": "http://schema.nuget.org/schema#",
+        "catalog": "http://schema.nuget.org/catalog#",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "dependencies" : { "@id" : "dependency", "@container" : "@set" },
+        "dependencyGroups" : { "@id" : "dependencyGroup", "@container" : "@set" },
+        "packageEntries": { "@id": "packageEntry", "@container": "@set" },
+        "packageTypes": { "@id": "packageType", "@container": "@set" },
+        "supportedFrameworks": { "@id": "supportedFramework", "@container": "@set" },
+        "tags": { "@id": "tag", "@container": "@set" },
+        "vulnerabilities": { "@id": "vulnerability", "@container": "@set" },
+        "published": { "@type": "xsd:dateTime" },
+        "created": { "@type": "xsd:dateTime" },
+        "lastEdited" : { "@type" : "xsd:dateTime" },
+        "catalog:commitTimeStamp" : { "@type" : "xsd:dateTime" },
+        "reasons" : { "@container" : "@set" }
+    }
+}

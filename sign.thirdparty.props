@@ -5,9 +5,13 @@
     <ThirdPartyBinaries Include="Antlr3.Runtime.dll" />
     <ThirdPartyBinaries Include="Autofac.dll" />
     <ThirdPartyBinaries Include="Autofac.Extensions.DependencyInjection.dll" />
+    <ThirdPartyBinaries Include="Autofac.Integration.WebApi.dll" />
     <ThirdPartyBinaries Include="Dapper.StrongName.dll" />
+    <ThirdPartyBinaries Include="dotNetRDF.dll" />
     <ThirdPartyBinaries Include="Elmah.dll" />
+    <ThirdPartyBinaries Include="HtmlAgilityPack.dll" />
     <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" />
+    <ThirdPartyBinaries Include="json-ld.net.StrongName.dll" />
     <ThirdPartyBinaries Include="lib\win32\x64\git2-572e4d8.dll" />
     <ThirdPartyBinaries Include="lib\win32\x86\git2-572e4d8.dll" />
     <ThirdPartyBinaries Include="LibGit2Sharp.dll" />
@@ -23,7 +27,9 @@
     <ThirdPartyBinaries Include="Serilog.Extensions.Logging.dll" />
     <ThirdPartyBinaries Include="Serilog.Sinks.ApplicationInsights.dll" />
     <ThirdPartyBinaries Include="Serilog.Sinks.Console.dll" />
+    <ThirdPartyBinaries Include="Serilog.Sinks.File.dll" />
     <ThirdPartyBinaries Include="SerilogTraceListener.dll" />
     <ThirdPartyBinaries Include="UAParser.dll" />
+    <ThirdPartyBinaries Include="VDS.Common.dll" />
   </ItemGroup>
 </Project>

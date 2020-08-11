@@ -1,0 +1,101 @@
+﻿{
+  "@id": "http://example/data/2017.01.04.08.15.00/emptydependencyidwithgroups.0.1.0.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "EmptyDependencyIdWithGroups",
+  "catalog:commitId": "4aee0ef4-a039-4460-bd5f-98f944e33289",
+  "catalog:commitTimeStamp": "2017-01-04T08:15:00Z",
+  "created": "2017-01-01T08:15:00Z",
+  "description": "EmptyDependencyIdWithGroups",
+  "id": "EmptyDependencyIdWithGroups",
+  "isPrerelease": false,
+  "lastEdited": "2017-01-02T08:15:00Z",
+  "listed": true,
+  "packageHash": "Y0eMlYdTHNz0F+wh/K1Jcf3MaC0QlbKPhpwnevt6yX63Po+coa/tXTYadfrbtoHUSFNSLLEP+OTqylRun6uAKQ==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 502,
+  "published": "2017-01-03T08:15:00Z",
+  "title": "EmptyDependencyIdWithGroups",
+  "verbatimVersion": "0.1.0",
+  "version": "0.1.0",
+  "dependencyGroups": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/emptydependencyidwithgroups.0.1.0.json#dependencygroup/.netframework4.5",
+      "@type": "PackageDependencyGroup",
+      "dependencies": [
+        {
+          "@id": "http://example/data/2017.01.04.08.15.00/emptydependencyidwithgroups.0.1.0.json#dependencygroup/.netframework4.5/newtonsoft.json",
+          "@type": "PackageDependency",
+          "id": "Newtonsoft.Json",
+          "range": "[10.0.1, )"
+        }
+      ],
+      "targetFramework": ".NETFramework4.5"
+    },
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/emptydependencyidwithgroups.0.1.0.json#dependencygroup/.netframework4.6",
+      "@type": "PackageDependencyGroup",
+      "targetFramework": ".NETFramework4.6"
+    }
+  ],
+  "packageEntries": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/emptydependencyidwithgroups.0.1.0.json#EmptyDependencyIdWithGroups.nuspec",
+      "@type": "PackageEntry",
+      "compressedLength": 300,
+      "fullName": "EmptyDependencyIdWithGroups.nuspec",
+      "length": 684,
+      "name": "EmptyDependencyIdWithGroups.nuspec"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "packageTypes": {
+      "@id": "packageType",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "vulnerabilities": {
+      "@id": "vulnerability",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    },
+    "reasons": {
+      "@container": "@set"
+    }
+  }
+}
