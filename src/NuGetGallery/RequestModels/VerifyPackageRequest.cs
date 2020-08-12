@@ -105,6 +105,7 @@ namespace NuGetGallery
         public string LicenseExpression { get; set; }
         public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; set; }
         public string LicenseFileContents { get; set; }
+        public string LicenseFileContentsHtml { get; set; }
         public string MinClientVersionDisplay { get; set; }
         public string ProjectUrl { get; set; }
         public string RepositoryUrl { get; set; }

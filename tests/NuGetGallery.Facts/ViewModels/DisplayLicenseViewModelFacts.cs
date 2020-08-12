@@ -124,7 +124,7 @@ namespace NuGetGallery.ViewModels
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments = null,
             string licenseFileContents = null)
         {
-            return new DisplayLicenseViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(
+            return new DisplayLicenseViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IMarkdownService>()).Create(
                 package,
                 licenseExpressionSegments,
                 licenseFileContents);

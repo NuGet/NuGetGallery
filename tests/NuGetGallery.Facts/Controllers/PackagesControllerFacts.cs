@@ -87,7 +87,8 @@ namespace NuGetGallery
             Mock<IPackageDeprecationService> deprecationService = null,
             Mock<IPackageRenameService> renameService = null,
             Mock<IABTestService> abTestService = null,
-            Mock<IIconUrlProvider> iconUrlProvider = null)
+            Mock<IIconUrlProvider> iconUrlProvider = null,
+            IMarkdownService markdownService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             PackageDependents packageDependents = new PackageDependents();
@@ -176,7 +177,15 @@ namespace NuGetGallery
 
             packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>();
 
-            var markdownService = new MarkdownService();
+            if (markdownService == null)
+            {
+                var mockMarkdownService = new Mock<IMarkdownService>();
+
+                mockMarkdownService.Setup(x => x.GetHtmlFromMarkdown(It.IsAny<string>()))
+                    .Returns((string s) => new RenderedMarkdownResult { Content = s });
+
+                markdownService = mockMarkdownService.Object;
+            }
 
             readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object, markdownService);
 
@@ -269,7 +278,8 @@ namespace NuGetGallery
                 deprecationService.Object,
                 renameService.Object,
                 abTestService.Object,
-                iconUrlProvider.Object);
+                iconUrlProvider.Object,
+                markdownService);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -1066,12 +1076,14 @@ namespace NuGetGallery
 
             private async Task<ActionResult> GetResultWithReadMe(string readMeHtml, bool hasReadMe)
             {
+                var markdownService = new MarkdownService();
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var fileService = new Mock<IPackageFileService>();
                 var controller = CreateController(
                     GetConfigurationService(),
+                    markdownService: markdownService,
                     packageService: packageService,
                     indexingService: indexingService,
                     packageFileService: fileService,
@@ -9261,11 +9273,11 @@ namespace NuGetGallery
 
                 readmeService
                     .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
-                    .ReturnsAsync(new RenderedReadMeResult { Content = html });
+                    .ReturnsAsync(new RenderedMarkdownResult { Content = html });
 
                 var result = await controller.PreviewReadMe(request);
 
-                var readmeResult = Assert.IsType<RenderedReadMeResult>(result.Data);
+                var readmeResult = Assert.IsType<RenderedMarkdownResult>(result.Data);
                 Assert.Equal(html, readmeResult.Content);
             }
 
@@ -9617,6 +9629,7 @@ namespace NuGetGallery
                 };
                 package.EmbeddedLicenseType = embeddedLicenseFileType;
 
+                var markdownService = new MarkdownService();
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
                 var controller = CreateController(
                     GetConfigurationService(),
