@@ -10,11 +10,13 @@ namespace NuGetGallery
 {
     public class DisplayLicenseViewModelFactory
     {
+        private readonly IMarkdownService _markdownService;
         private PackageViewModelFactory _packageViewModelFactory;
 
-        public DisplayLicenseViewModelFactory(IIconUrlProvider iconUrlProvider)
+        public DisplayLicenseViewModelFactory(IIconUrlProvider iconUrlProvider, IMarkdownService markdownService)
         {
             _packageViewModelFactory = new PackageViewModelFactory(iconUrlProvider);
+            _markdownService = markdownService;
         }
 
         public DisplayLicenseViewModel Create(
@@ -56,6 +58,12 @@ namespace NuGetGallery
             }
             viewModel.LicenseExpressionSegments = licenseExpressionSegments;
             viewModel.LicenseFileContents = licenseFileContents;
+
+            if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Markdown && licenseFileContents != null)
+            {
+                viewModel.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(licenseFileContents).Content;
+            }
+
 
             return viewModel;
         }
