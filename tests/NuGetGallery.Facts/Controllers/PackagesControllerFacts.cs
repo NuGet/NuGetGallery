@@ -176,7 +176,9 @@ namespace NuGetGallery
 
             packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>();
 
-            readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object);
+            var markdownService = new MarkdownService();
+
+            readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object, markdownService);
 
             if (contentObjectService == null)
             {
