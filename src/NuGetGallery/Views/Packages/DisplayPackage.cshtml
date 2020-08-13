@@ -301,7 +301,14 @@
                     </text>
                 )
             }
-
+            @if (Model.VersionRequestedWasNotFound)
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        The specified version @Model.VersionRequested was not found, you have been taken to version @(Model.Version).
+                    </text>
+                )
+            }
             @if (Model.HasNewerRelease)
             {
                 @ViewHelpers.AlertInfo(
