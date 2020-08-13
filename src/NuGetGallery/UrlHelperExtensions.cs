@@ -228,7 +228,7 @@ namespace NuGetGallery
             string version,
             bool relativeUrl = true)
         {
-            string normalized = NuGetVersionFormatter.Normalize(version);
+            string normalized = (version != null) ? NuGetVersionFormatter.Normalize(version) : version;
 
             string result = GetRouteLink(
                 url,
