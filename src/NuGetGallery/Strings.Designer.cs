@@ -1292,6 +1292,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This OData endpoint is disabled..
+        /// </summary>
+        public static string ODataDisabled {
+            get {
+                return ResourceManager.GetString("ODataDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parameters provided to this OData endpoint is not supported..
+        /// </summary>
+        public static string ODataParametersDisabled {
+            get {
+                return ResourceManager.GetString("ODataParametersDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You have successfully confirmed the organization email address..
         /// </summary>
         public static string OrganizationEmailConfirmed {
@@ -2549,6 +2567,15 @@ namespace NuGetGallery {
         public static string UploadPackage_InvalidReadmeFileExtension {
             get {
                 return ResourceManager.GetString("UploadPackage_InvalidReadmeFileExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to the name of &lt;readme&gt; element is case sensitive, must use the &lt;readme&gt;.
+        /// </summary>
+        public static string UploadPackage_InvalidReadmeName {
+            get {
+                return ResourceManager.GetString("UploadPackage_InvalidReadmeName", resourceCulture);
             }
         }
         

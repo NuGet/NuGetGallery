@@ -40,6 +40,16 @@ namespace NuGetGallery
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
 
+        private const string ODataV1GetAllFeatureName = GalleryPrefix + "ODataV1GetAll";
+        private const string ODataV1GetSpecificFeatureName = GalleryPrefix + "ODataV1GetSpecific";
+        private const string ODataV1FindPackagesByIdFeatureName = GalleryPrefix + "ODataV1FindPackagesById";
+        private const string ODataV1SearchFeatureName = GalleryPrefix + "ODataV1Search";
+
+        private const string ODataV2GetAllFeatureName = GalleryPrefix + "ODataV2GetAll";
+        private const string ODataV2GetSpecificFeatureName = GalleryPrefix + "ODataV2GetSpecific";
+        private const string ODataV2FindPackagesByIdFeatureName = GalleryPrefix + "ODataV2FindPackagesById";
+        private const string ODataV2SearchFeatureName = GalleryPrefix + "ODataV2Search";
+
         private readonly IFeatureFlagClient _client;
 
         public FeatureFlagService(IFeatureFlagClient client)
@@ -118,11 +128,6 @@ namespace NuGetGallery
             return _client.IsEnabled(ForceFlatContainerIconsFeatureName, defaultValue: false);
         }
 
-        private bool IsEnabled(string flight, User user, bool defaultValue)
-        {
-            return _client.IsEnabled(flight, user, defaultValue);
-        }
-
         public bool IsODataDatabaseReadOnlyEnabled()
         {
             return _client.IsEnabled(ODataReadOnlyDatabaseFeatureName, defaultValue: false);
@@ -196,6 +201,46 @@ namespace NuGetGallery
         public bool AreEmbeddedReadmesEnabled(User user)
         {
             return _client.IsEnabled(EmbeddedReadmeFlightName, user, defaultValue: false);
+        }
+
+        public bool IsODataV1GetAllEnabled()
+        {
+            return _client.IsEnabled(ODataV1GetAllFeatureName, defaultValue: true);
+        }
+
+        public bool IsODataV1GetSpecificNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV1GetSpecificFeatureName, defaultValue: true);
+        }
+
+        public bool IsODataV1FindPackagesByIdNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV1FindPackagesByIdFeatureName, defaultValue: true);
+        }
+
+        public bool IsODataV1SearchNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV1SearchFeatureName, defaultValue: true);
+        }
+
+        public bool IsODataV2GetAllNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV2GetAllFeatureName, defaultValue: true);
+        }
+
+        public bool IsODataV2GetSpecificNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV2GetSpecificFeatureName, defaultValue: true);
+        }
+
+        public bool IsODataV2FindPackagesByIdNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV2FindPackagesByIdFeatureName, defaultValue: true);
+        }
+
+        public bool IsODataV2SearchNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV2SearchFeatureName, defaultValue: true);
         }
     }
 }

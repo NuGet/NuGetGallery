@@ -79,6 +79,8 @@ namespace NuGetGallery.Controllers
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
             bool? customQuery = null;
 
+            var isNonHijackEnabled = _featureFlagService.IsODataV2GetAllNonHijackedEnabled();
+
             // Try the search service
             try
             {
@@ -129,15 +131,20 @@ namespace NuGetGallery.Controllers
                     customQuery = true;
                 }
             }
-            catch (ODataException ex) when (ex.InnerException != null && ex.InnerException is FormatException)
+            catch (ODataException ex) when (isNonHijackEnabled && ex.InnerException != null && ex.InnerException is FormatException)
             {
                 // Sometimes users make invalid requests. It's not exceptional behavior, don't trace.
             }
-            catch (Exception ex)
+            catch (Exception ex) when (isNonHijackEnabled)
             {
                 // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
                 // We don't want to break package restores. We do want to know if this happens, so here goes:
                 QuietLog.LogHandledException(ex);
+            }
+
+            if (!isNonHijackEnabled)
+            {
+                return BadRequest(Strings.ODataParametersDisabled);
             }
 
             // Reject only when try to reach database.
@@ -175,7 +182,8 @@ namespace NuGetGallery.Controllers
         public async Task<IHttpActionResult> Get(
             ODataQueryOptions<V2FeedPackage> options, 
             string id, 
-            string version)
+            string version,
+            [FromUri] bool allowHijack = true)
         {
             // We are defaulting to semVerLevel = "2.0.0" by design.
             // The client is requesting a specific package version and should support what it requests.
@@ -183,9 +191,11 @@ namespace NuGetGallery.Controllers
             var result = await GetCore(
                 options, 
                 id, 
-                version, 
-                semVerLevel: SemVerLevelKey.SemVerLevel2, 
-                return404NotFoundWhenNoResults: true);
+                version,
+                semVerLevel: SemVerLevelKey.SemVerLevel2,
+                allowHijack: allowHijack,
+                return404NotFoundWhenNoResults: true,
+                isNonHijackEnabled: _featureFlagService.IsODataV2GetSpecificNonHijackedEnabled());
 
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
@@ -221,7 +231,9 @@ namespace NuGetGallery.Controllers
                 id, 
                 version: null, 
                 semVerLevel: semVerLevel, 
-                return404NotFoundWhenNoResults: false);
+                allowHijack: true,
+                return404NotFoundWhenNoResults: false,
+                isNonHijackEnabled: _featureFlagService.IsODataV2FindPackagesByIdNonHijackedEnabled());
         }
 
         // /api/v2/FindPackagesById()/$count?semVerLevel=
@@ -243,7 +255,9 @@ namespace NuGetGallery.Controllers
             string id, 
             string version, 
             string semVerLevel,
-            bool return404NotFoundWhenNoResults)
+            bool allowHijack,
+            bool return404NotFoundWhenNoResults,
+            bool isNonHijackEnabled)
         {
             var packages = GetAll()
                 .Include(p => p.PackageRegistration)
@@ -266,60 +280,86 @@ namespace NuGetGallery.Controllers
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
             bool? customQuery = null;
 
-            // try the search service
-            try
+            if (allowHijack)
             {
-                var searchService = _searchServiceFactory.GetService();
-                var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                    searchService,
-                    GetTraditionalHttpContext().Request, 
-                    packages, 
-                    id, 
-                    version, 
-                    semVerLevel: semVerLevel);
-
-                // If intercepted, create a paged queryresult
-                if (searchAdaptorResult.ResultsAreProvidedBySearchService)
+                // try the search service
+                try
                 {
-                    customQuery = false;
-
-                    // Packages provided by search service
-                    packages = searchAdaptorResult.Packages;
-
-                    // Add explicit Take() needed to limit search hijack result set size if $top is specified
-                    var totalHits = packages.LongCount();
-
-                    if (totalHits == 0 && return404NotFoundWhenNoResults)
+                    if (allowHijack)
                     {
-                        _telemetryService.TrackODataCustomQuery(customQuery);
-                        return NotFound();
+                        var searchService = _searchServiceFactory.GetService();
+                        var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
+                            searchService,
+                            GetTraditionalHttpContext().Request,
+                            packages,
+                            id,
+                            version,
+                            semVerLevel: semVerLevel);
+
+                        // If intercepted, create a paged queryresult
+                        if (searchAdaptorResult.ResultsAreProvidedBySearchService)
+                        {
+                            customQuery = false;
+
+                            // Packages provided by search service
+                            packages = searchAdaptorResult.Packages;
+
+                            // Add explicit Take() needed to limit search hijack result set size if $top is specified
+                            var totalHits = packages.LongCount();
+
+                            if (totalHits == 0 && return404NotFoundWhenNoResults)
+                            {
+                                _telemetryService.TrackODataCustomQuery(customQuery);
+                                return NotFound();
+                            }
+
+                            var pagedQueryable = packages
+                                .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
+                                .ToV2FeedPackageQuery(
+                                    GetSiteRoot(),
+                                    _configurationService.Features.FriendlyLicenses,
+                                    semVerLevelKey);
+
+                            return TrackedQueryResult(
+                                options,
+                                pagedQueryable,
+                                MaxPageSize,
+                                totalHits,
+                                (o, s, resultCount) => SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s, semVerLevelKey),
+                                customQuery);
+                        }
+                        else
+                        {
+                            customQuery = true;
+                        }
                     }
-
-                    var pagedQueryable = packages
-                        .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                        .ToV2FeedPackageQuery(
-                            GetSiteRoot(), 
-                            _configurationService.Features.FriendlyLicenses, 
-                            semVerLevelKey);
-
-                    return TrackedQueryResult(
-                        options,
-                        pagedQueryable,
-                        MaxPageSize,
-                        totalHits,
-                        (o, s, resultCount) => SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s, semVerLevelKey),
-                        customQuery);
                 }
-                else
+                catch (Exception ex) when (isNonHijackEnabled)
                 {
-                    customQuery = true;
+                    // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
+                    // We don't want to break package restores. We do want to know if this happens, so here goes:
+                    QuietLog.LogHandledException(ex);
                 }
             }
-            catch (Exception ex)
+
+            // When non-hijacked queries are disabled, allow only one non-hijacked pattern: query for a specific ID and
+            // version without any fancy OData options. This enables some monitoring and testing and is known to produce
+            // a very fast SQL query.
+            var isSimpleLookup = !string.IsNullOrWhiteSpace(id)
+                && !string.IsNullOrWhiteSpace(version)
+                && options.RawValues.Expand == null
+                && options.RawValues.Filter == null
+                && options.RawValues.Format == null
+                && options.RawValues.InlineCount == null
+                && options.RawValues.OrderBy == null
+                && options.RawValues.Select == null
+                && options.RawValues.Skip == null
+                && options.RawValues.SkipToken == null
+                && options.RawValues.Top == null;
+
+            if (!isSimpleLookup && !isNonHijackEnabled)
             {
-                // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
-                // We don't want to break package restores. We do want to know if this happens, so here goes:
-                QuietLog.LogHandledException(ex);
+                return BadRequest(Strings.ODataParametersDisabled);
             }
 
             if (return404NotFoundWhenNoResults && !packages.Any())
@@ -440,6 +480,11 @@ namespace NuGetGallery.Controllers
             else
             {
                 customQuery = true;
+            }
+
+            if (!_featureFlagService.IsODataV2SearchNonHijackedEnabled())
+            {
+                return BadRequest(Strings.ODataParametersDisabled);
             }
 
             //Reject only when try to reach database.
