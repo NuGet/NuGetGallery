@@ -869,7 +869,7 @@ namespace NuGetGallery
                 model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
             }
 
-            if (normalized != null && !string.Equals(package.NormalizedVersion, normalized, StringComparison.InvariantCultureIgnoreCase))
+            if (normalized != null && !string.Equals(package.NormalizedVersion, normalized, StringComparison.OrdinalIgnoreCase))
             {
                 model.VersionRequested = normalized;
                 model.VersionRequestedWasNotFound = true;
