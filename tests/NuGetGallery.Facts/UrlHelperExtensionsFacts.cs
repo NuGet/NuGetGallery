@@ -30,7 +30,6 @@ namespace NuGetGallery
                 Assert.Null(fixedUrl);
             }
         }
-
     
         public class ThePackageBaseHelperMethod
             : TestContainer
@@ -53,8 +52,8 @@ namespace NuGetGallery
                 Assert.DoesNotContain("metadata", fixedUrl);
                 Assert.EndsWith(package.NormalizedVersion, fixedUrl);
             }
-
         }
+
         public class ThePackageHelperMethod
             : TestContainer
         {
@@ -76,7 +75,6 @@ namespace NuGetGallery
                 Assert.DoesNotContain("metadata", fixedUrl);
                 Assert.EndsWith(package.NormalizedVersion, fixedUrl);
             }
-
 
             [Theory]
             [InlineData("https://nuget.org", true, "/packages/id/1.0.0")]
