@@ -31,6 +31,30 @@ namespace NuGetGallery
             }
         }
 
+    
+        public class ThePackageBaseHelperMethod
+            : TestContainer
+        {
+            [Fact]
+            public void UsesNormalizedVersionInUrls()
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "TestPackageId"
+                    },
+                    NormalizedVersion = "1.0.0-alpha.1",
+                    Version = "1.0.0-alpha.1+metadata"
+                };
+
+                string fixedUrl = UrlHelperExtensions.Package(TestUtility.MockUrlHelper(), package.Id, package.Version);
+
+                Assert.DoesNotContain("metadata", fixedUrl);
+                Assert.EndsWith(package.NormalizedVersion, fixedUrl);
+            }
+
+        }
         public class ThePackageHelperMethod
             : TestContainer
         {
@@ -52,6 +76,7 @@ namespace NuGetGallery
                 Assert.DoesNotContain("metadata", fixedUrl);
                 Assert.EndsWith(package.NormalizedVersion, fixedUrl);
             }
+
 
             [Theory]
             [InlineData("https://nuget.org", true, "/packages/id/1.0.0")]
