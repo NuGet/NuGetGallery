@@ -355,6 +355,39 @@
             this.RequestsSent = new OwnerRequestsListViewModel(this, initialData.RequestsSent, false, true);
         }
 
+        function setupColumnSorting() {
+            $('.sortable').click(function () {
+
+                var table = $(this).parents('table').eq(0)
+                var rows = table.find('tr:gt(0)').toArray().sort(comparer($(this).index()))
+                this.asc = !this.asc
+                if (!this.asc) { rows = rows.reverse() }
+                for (var i = 0; i < rows.length; i++) { table.append(rows[i]) }
+
+                table.find('.sortable').each(function () {
+                    var currentText = $(this).text();
+                    var newText = currentText.replace(' ▲', '').replace(' ▼', '');
+                    $(this).text(newText);
+                });
+
+                var columnText = $(this).text();
+                $(this).text(columnText + " " + (this.asc ? "▼" : "▲"));
+
+            })
+            function comparer(index) {
+                return function (a, b) {
+                    var valA = getCellValue(a, index), valB = getCellValue(b, index)
+                    return $.isNumeric(valA) && $.isNumeric(valB) ? valA - valB : valA.toString().localeCompare(valB)
+                }
+            }
+            function getCellValue(row, index) {
+                var v = $(row).children('td').eq(index).text();
+                if (v)
+                    v = v.replace(',', '');
+                return v;
+            }
+        }
+
         // Immediately load initial expander data
         showInitialPackagesData("#listed-data", initialData.ListedPackages);
         showInitialPackagesData("#unlisted-data", initialData.UnlistedPackages);
@@ -365,6 +398,11 @@
         // Set up the data binding.
         var managePackagesViewModel = new ManagePackagesViewModel(initialData);
         ko.applyBindings(managePackagesViewModel, document.body);
+
+        setupColumnSorting();
+
+        
+
     });
 
 })();
