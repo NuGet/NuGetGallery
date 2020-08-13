@@ -303,7 +303,7 @@
             }
             @if (Model.VersionRequestedWasNotFound)
             {
-                @ViewHelpers.AlertInfo(
+                @ViewHelpers.AlertWarning(
                     @<text>
                         The specified version @Model.VersionRequested was not found, you have been taken to version @(Model.Version).
                     </text>
