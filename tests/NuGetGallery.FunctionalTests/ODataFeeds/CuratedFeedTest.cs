@@ -34,7 +34,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         public async Task SearchMicrosoftDotNetCuratedFeed()
         {
             var packageId = "microsoft.aspnet.webpages";
-            var requestUrl = UrlHelper.DotnetCuratedFeedUrl + @"Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30";
+            var requestUrl = UrlHelper.DotnetCuratedFeedUrl + @"Search()?searchTerm='packageid%3A" + packageId + "'";
 
             string responseText;
             using (var httpClient = new HttpClient())

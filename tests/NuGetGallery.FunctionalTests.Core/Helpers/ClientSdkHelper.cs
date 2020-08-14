@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using NuGet;
 using NuGet.Versioning;
@@ -69,35 +70,37 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Checks if the given package version is present in V2 and V3. This method bypasses the hijack.
         /// </summary>
-        private async Task<bool> CheckIfPackageVersionExistsInV2Async(string packageId, string version, bool? isListed)
+        private async Task<bool> CheckIfPackageVersionExistsInV2Async(string packageId, string version, bool? shouldBeListed)
         {
             var sourceUrl = UrlHelper.V2FeedRootUrl;
             var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
-            var filter = $"Id eq '{packageId}' and NormalizedVersion eq '{normalizedVersion}' and 1 eq 1";
-            if (isListed.HasValue)
-            {
-                filter += $" and Published {(isListed.Value ? "ne" : "eq")} datetime'1900-01-01T00:00:00'";
-            }
 
-            var url = UrlHelper.V2FeedRootUrl + $"/Packages/$count?$filter={Uri.EscapeDataString(filter)}";
+            var url = UrlHelper.V2FeedRootUrl + $"/Packages(Id='{packageId}',Version='{normalizedVersion}')?hijack=false";
             using (var httpClient = new System.Net.Http.HttpClient())
             {
                 return await VerifyWithRetryAsync(
                     $"Verifying that package {packageId} {version} exists on source {sourceUrl} (non-hijacked).",
                     async () =>
                     {
-                        var count = int.Parse(await httpClient.GetStringAsync(url));
-                        if (count == 0)
+                        using (var response = await httpClient.GetAsync(url))
                         {
-                            return false;
-                        }
-                        else if (count == 1)
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            Assert.False(true, $"The count returned by {url} was {count} and it should have been 0 or 1.");
+                            if (response.StatusCode == HttpStatusCode.NotFound)
+                            {
+                                return false;
+                            }
+                            else if (response.StatusCode == HttpStatusCode.OK)
+                            {
+                                if (shouldBeListed.HasValue)
+                                {
+                                    var responseString = await response.Content.ReadAsStringAsync();
+                                    var isActuallyListed = !responseString.Contains("<d:Published m:type=\"Edm.DateTime\">1900-01-01T00:00:00</d:Published>");
+                                    return shouldBeListed == isActuallyListed;
+                                }
+
+                                return true;
+                            }
+
+                            response.EnsureSuccessStatusCode();
                             return false;
                         }
                     });
