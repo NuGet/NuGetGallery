@@ -38,6 +38,7 @@
             this.CanEdit = packageItem.CanEdit;
             this.CanManageOwners = packageItem.CanManageOwners;
             this.CanDelete = packageItem.CanDelete;
+            this.VersionSortOrder = packageItem.VersionSortOrder;
 
             this.FormattedDownloadCount = ko.pureComputed(function () {
                 return ko.unwrap(this.DownloadCount).toLocaleString();
@@ -381,9 +382,16 @@
                 }
             }
             function getCellValue(row, index) {
-                var v = $(row).children('td').eq(index).text();
+                var td = $(row).children('td').eq(index);
+                var sortby = td.data('sortby');
+
+                if (sortby)
+                    return sortby;
+
+                var v = td.text();
                 if (v)
                     v = v.replace(',', '');
+
                 return v;
             }
         }
@@ -400,8 +408,6 @@
         ko.applyBindings(managePackagesViewModel, document.body);
 
         setupColumnSorting();
-
-        
 
     });
 

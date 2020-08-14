@@ -168,7 +168,7 @@
                         <td class="align-middle text-nowrap">
                             <span data-bind="text: FormattedDownloadCount"></span>
                         </td>
-                        <td class="align-middle text-nowrap">
+                        <td class="align-middle text-nowrap" data-bind="attr: { 'data-sortby': VersionSortOrder }">
                             <span data-bind="text: LatestVersion"></span>
                         </td>
                         <td class="text-right align-middle package-controls">
@@ -352,7 +352,8 @@
             CanDelete = p.CanUnlistOrRelist,
             p.CanEditRequiredSigner,
             p.ShowRequiredSigner,
-            p.ShowTextBox
+            p.ShowTextBox,
+            p.VersionSortOrder
         };
     }
 
