@@ -329,6 +329,26 @@ namespace NuGetGallery.Controllers
                 }
             }
 
+            // When non-hijacked queries are disabled, allow only one non-hijacked pattern: query for a specific ID and
+            // version without any fancy OData options. This enables some monitoring and testing and is known to produce
+            // a very fast SQL query based on an optimized index.
+            var isSimpleLookup = !string.IsNullOrWhiteSpace(id)
+                && !string.IsNullOrWhiteSpace(version)
+                && options.RawValues.Expand == null
+                && options.RawValues.Filter == null
+                && options.RawValues.Format == null
+                && options.RawValues.InlineCount == null
+                && options.RawValues.OrderBy == null
+                && options.RawValues.Select == null
+                && options.RawValues.Skip == null
+                && options.RawValues.SkipToken == null
+                && options.RawValues.Top == null;
+
+            if (!hijack && !isSimpleLookup)
+            {
+                return BadRequest(Strings.ODataParametersDisabled);
+            }
+
             if (return404NotFoundWhenNoResults && !packages.Any())
             {
                 _telemetryService.TrackODataCustomQuery(customQuery);
