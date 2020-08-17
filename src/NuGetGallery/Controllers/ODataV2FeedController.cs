@@ -186,7 +186,7 @@ namespace NuGetGallery.Controllers
                 id, 
                 version, 
                 semVerLevel: SemVerLevelKey.SemVerLevel2, 
-                hijack: hijack,
+                allowHijack: hijack,
                 return404NotFoundWhenNoResults: true);
 
             return result.FormattedAsSingleResult<V2FeedPackage>();
@@ -223,7 +223,7 @@ namespace NuGetGallery.Controllers
                 id, 
                 version: null, 
                 semVerLevel: semVerLevel, 
-                hijack: true,
+                allowHijack: true,
                 return404NotFoundWhenNoResults: false);
         }
 
@@ -246,7 +246,7 @@ namespace NuGetGallery.Controllers
             string id, 
             string version, 
             string semVerLevel,
-            bool hijack,
+            bool allowHijack,
             bool return404NotFoundWhenNoResults)
         {
             var packages = GetAll()
@@ -270,7 +270,7 @@ namespace NuGetGallery.Controllers
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
             bool? customQuery = null;
 
-            if (hijack)
+            if (allowHijack)
             {
                 // try the search service
                 try
@@ -344,7 +344,7 @@ namespace NuGetGallery.Controllers
                 && options.RawValues.SkipToken == null
                 && options.RawValues.Top == null;
 
-            if (!hijack && !isSimpleLookup)
+            if (!allowHijack && !isSimpleLookup)
             {
                 return BadRequest(Strings.ODataParametersDisabled);
             }
