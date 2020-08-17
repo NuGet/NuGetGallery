@@ -68,7 +68,7 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// Checks if the given package version is present in V2 and V3. This method bypasses the hijack.
+        /// Checks if the given package version is present in V2. This method bypasses the hijack.
         /// </summary>
         private async Task<bool> CheckIfPackageVersionExistsInV2Async(string packageId, string version, bool? shouldBeListed)
         {
