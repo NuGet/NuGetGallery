@@ -585,9 +585,11 @@ namespace NuGetGallery
                 .ToList();
 
             for (int i = 0; i < listedPackages.Count; i++)
+            {
                 listedPackages[i].VersionSortOrder = i;
+            }
 
-            listedPackages.Sort((x, y) => x.Id.CompareTo(y.Id));
+            listedPackages.Sort((x, y) => string.Compare(x.Id,y.Id, StringComparison.OrdinalIgnoreCase));
 
             return listedPackages;
         }
