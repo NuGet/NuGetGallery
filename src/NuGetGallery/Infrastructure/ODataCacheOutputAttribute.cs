@@ -46,10 +46,9 @@ namespace NuGetGallery
             {
                 // Don't cache the non-hijacked ID+version lookup pattern.
                 if (actionContext.ActionArguments.TryGetValue("hijack", out var hijackObj)
-                    && hijackObj is bool hijack
-                    && !hijack)
+                    && hijackObj is bool hijack)
                 {
-                    return false;
+                    return hijack;
                 }
             }
 
