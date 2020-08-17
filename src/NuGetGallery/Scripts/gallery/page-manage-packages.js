@@ -359,11 +359,15 @@
         function setupColumnSorting() {
             $('.sortable').click(function () {
 
-                var table = $(this).parents('table').eq(0)
-                var rows = table.find('tr:gt(0)').toArray().sort(comparer($(this).index()))
-                this.asc = !this.asc
-                if (!this.asc) { rows = rows.reverse() }
-                for (var i = 0; i < rows.length; i++) { table.append(rows[i]) }
+                var table = $(this).parents('table').eq(0);
+                var rows = table.find('tr:gt(0)').toArray().sort(comparer($(this).index()));
+                this.asc = !this.asc;
+                if (!this.asc) {
+                    rows = rows.reverse();
+                }
+                for (var i = 0; i < rows.length; i++) {
+                    table.append(rows[i]);
+                }
 
                 table.find('.sortable').each(function () {
                     var currentText = $(this).text();
@@ -377,21 +381,25 @@
             })
             function comparer(index) {
                 return function (a, b) {
-                    var valA = getCellValue(a, index), valB = getCellValue(b, index)
-                    return $.isNumeric(valA) && $.isNumeric(valB) ? valB - valA : valA.toString().localeCompare(valB)
+                    var valA = getCellValue(a, index), valB = getCellValue(b, index);
+                    return $.isNumeric(valA) && $.isNumeric(valB) ? valB - valA : valA.toString().localeCompare(valB);
                 }
             }
             function getCellValue(row, index) {
                 var td = $(row).children('td').eq(index);
+
+                // check for the data-sortby attribute, if found, use that data to sort by
                 var sortby = td.data('sortby');
 
-                if (sortby)
+                if (sortby) {
                     return sortby;
+                }
 
+                // grab the text inside the td. Remove commas in case it's a number like 43,000
                 var v = td.text();
-                if (v)
+                if (v) {
                     v = v.replace(',', '');
-
+                }
                 return v;
             }
         }
