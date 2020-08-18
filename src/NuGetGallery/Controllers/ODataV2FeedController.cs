@@ -344,9 +344,14 @@ namespace NuGetGallery.Controllers
                 && options.RawValues.SkipToken == null
                 && options.RawValues.Top == null;
 
-            if (!allowHijack && !isSimpleLookup)
+            if (!allowHijack)
             {
-                return BadRequest(Strings.ODataParametersDisabled);
+                if (!isSimpleLookup)
+                {
+                    return BadRequest(Strings.ODataParametersDisabled);
+                }
+
+                customQuery = true;
             }
 
             if (return404NotFoundWhenNoResults && !packages.Any())
