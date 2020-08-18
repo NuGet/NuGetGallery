@@ -64,7 +64,7 @@ namespace NuGetGallery.FunctionalTests
             string version,
             string timestampPropertyName)
         {
-            var url = GetPackagesAppearInFeedInOrderUrl(packageId, version, timestampPropertyName);
+            var url = $"{UrlHelper.V2FeedRootUrl}/Packages(Id='{packageId}',Version='{version}')?hijack=false";
             WriteLine($"Fetching URL: {url}");
             var packageResponse = await GetPackageDataInResponse(url, packageId, version);
 
@@ -89,13 +89,6 @@ namespace NuGetGallery.FunctionalTests
             var timestamp = DateTime.Parse(packageResponse.Substring(timestampStartIndex, timestampLength));
             WriteLine($"'{timestampPropertyName}' timestamp of package '{packageId}' with version '{version}' is '{timestamp}'");
             return timestamp;
-        }
-
-        private static string GetPackagesAppearInFeedInOrderUrl(string packageId, string version, string timestampPropertyName)
-        {
-            return $"{UrlHelper.V2FeedRootUrl}/Packages?" +
-                $"$filter=Id eq '{packageId}' and NormalizedVersion eq '{version}' and 1 eq 1&" +
-                $"$select={timestampPropertyName}";
         }
 
         public async Task<string> GetPackageDataInResponse(string url, string packageId, string version)

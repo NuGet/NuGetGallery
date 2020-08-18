@@ -40,6 +40,22 @@ namespace NuGetGallery
             ServerTimeSpan = serverTimeSpan;
         }
 
+        protected override bool IsCachingAllowed(HttpActionContext actionContext, bool anonymousOnly)
+        {
+            if (_endpoint == ODataCachedEndpoint.GetSpecificPackage)
+            {
+                // Don't cache the non-hijacked ID+version lookup pattern.
+                if (actionContext.ActionArguments.TryGetValue("hijack", out var hijackObj)
+                    && hijackObj is bool hijack
+                    && !hijack)
+                {
+                    return false;
+                }
+            }
+
+            return base.IsCachingAllowed(actionContext, anonymousOnly);
+        }
+
         /// <summary>
         /// This setting determines how frequently the cache duration setting should be checked. Since the OData
         /// endpoints get a lot of traffic, we don't want to check every time. The 60 seconds here is picked to mimic

@@ -175,7 +175,8 @@ namespace NuGetGallery.Controllers
         public async Task<IHttpActionResult> Get(
             ODataQueryOptions<V2FeedPackage> options, 
             string id, 
-            string version)
+            string version,
+            [FromUri] bool hijack = true)
         {
             // We are defaulting to semVerLevel = "2.0.0" by design.
             // The client is requesting a specific package version and should support what it requests.
@@ -185,6 +186,7 @@ namespace NuGetGallery.Controllers
                 id, 
                 version, 
                 semVerLevel: SemVerLevelKey.SemVerLevel2, 
+                allowHijack: hijack,
                 return404NotFoundWhenNoResults: true);
 
             return result.FormattedAsSingleResult<V2FeedPackage>();
@@ -221,6 +223,7 @@ namespace NuGetGallery.Controllers
                 id, 
                 version: null, 
                 semVerLevel: semVerLevel, 
+                allowHijack: true,
                 return404NotFoundWhenNoResults: false);
         }
 
@@ -243,6 +246,7 @@ namespace NuGetGallery.Controllers
             string id, 
             string version, 
             string semVerLevel,
+            bool allowHijack,
             bool return404NotFoundWhenNoResults)
         {
             var packages = GetAll()
@@ -266,60 +270,88 @@ namespace NuGetGallery.Controllers
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
             bool? customQuery = null;
 
-            // try the search service
-            try
+            if (allowHijack)
             {
-                var searchService = _searchServiceFactory.GetService();
-                var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                    searchService,
-                    GetTraditionalHttpContext().Request, 
-                    packages, 
-                    id, 
-                    version, 
-                    semVerLevel: semVerLevel);
-
-                // If intercepted, create a paged queryresult
-                if (searchAdaptorResult.ResultsAreProvidedBySearchService)
+                // try the search service
+                try
                 {
-                    customQuery = false;
+                    var searchService = _searchServiceFactory.GetService();
+                    var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
+                        searchService,
+                        GetTraditionalHttpContext().Request,
+                        packages,
+                        id,
+                        version,
+                        semVerLevel: semVerLevel);
 
-                    // Packages provided by search service
-                    packages = searchAdaptorResult.Packages;
-
-                    // Add explicit Take() needed to limit search hijack result set size if $top is specified
-                    var totalHits = packages.LongCount();
-
-                    if (totalHits == 0 && return404NotFoundWhenNoResults)
+                    // If intercepted, create a paged queryresult
+                    if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                     {
-                        _telemetryService.TrackODataCustomQuery(customQuery);
-                        return NotFound();
+                        customQuery = false;
+
+                        // Packages provided by search service
+                        packages = searchAdaptorResult.Packages;
+
+                        // Add explicit Take() needed to limit search hijack result set size if $top is specified
+                        var totalHits = packages.LongCount();
+
+                        if (totalHits == 0 && return404NotFoundWhenNoResults)
+                        {
+                            _telemetryService.TrackODataCustomQuery(customQuery);
+                            return NotFound();
+                        }
+
+                        var pagedQueryable = packages
+                            .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
+                            .ToV2FeedPackageQuery(
+                                GetSiteRoot(),
+                                _configurationService.Features.FriendlyLicenses,
+                                semVerLevelKey);
+
+                        return TrackedQueryResult(
+                            options,
+                            pagedQueryable,
+                            MaxPageSize,
+                            totalHits,
+                            (o, s, resultCount) => SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s, semVerLevelKey),
+                            customQuery);
                     }
-
-                    var pagedQueryable = packages
-                        .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                        .ToV2FeedPackageQuery(
-                            GetSiteRoot(), 
-                            _configurationService.Features.FriendlyLicenses, 
-                            semVerLevelKey);
-
-                    return TrackedQueryResult(
-                        options,
-                        pagedQueryable,
-                        MaxPageSize,
-                        totalHits,
-                        (o, s, resultCount) => SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s, semVerLevelKey),
-                        customQuery);
+                    else
+                    {
+                        customQuery = true;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    customQuery = true;
+                    // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
+                    // We don't want to break package restores. We do want to know if this happens, so here goes:
+                    QuietLog.LogHandledException(ex);
                 }
             }
-            catch (Exception ex)
+
+            // When non-hijacked queries are disabled, allow only one non-hijacked pattern: query for a specific ID and
+            // version without any fancy OData options. This enables some monitoring and testing and is known to produce
+            // a very fast SQL query based on an optimized index.
+            var isSimpleLookup = !string.IsNullOrWhiteSpace(id)
+                && !string.IsNullOrWhiteSpace(version)
+                && options.RawValues.Expand == null
+                && options.RawValues.Filter == null
+                && options.RawValues.Format == null
+                && options.RawValues.InlineCount == null
+                && options.RawValues.OrderBy == null
+                && options.RawValues.Select == null
+                && options.RawValues.Skip == null
+                && options.RawValues.SkipToken == null
+                && options.RawValues.Top == null;
+
+            if (!allowHijack)
             {
-                // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
-                // We don't want to break package restores. We do want to know if this happens, so here goes:
-                QuietLog.LogHandledException(ex);
+                if (!isSimpleLookup)
+                {
+                    return BadRequest(Strings.ODataParametersDisabled);
+                }
+
+                customQuery = true;
             }
 
             if (return404NotFoundWhenNoResults && !packages.Any())
