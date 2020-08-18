@@ -1030,14 +1030,14 @@ The {1} Team</value>
   </data>
   <data name="UploadPackage_FileDoesNotExist" xml:space="preserve">
     <value>The {0} file '{1}' does not exist in the package.</value>
-    <comment>{0} is the type of file ('license', 'icon', etc.), {1} is the file name specified in the .nuspec</comment>
+    <comment>{0} is the type of file ('license', 'icon', 'readme', etc.), {1} is the file name specified in the .nuspec</comment>
   </data>
   <data name="UploadPackage_LicenseMustBePlainText" xml:space="preserve">
     <value>The license file must be plain text using UTF-8 encoding.</value>
   </data>
   <data name="UploadPackage_FileTooLong" xml:space="preserve">
     <value>The {0} file cannot be larger than {1}.</value>
-    <comment>{0} is the file type ('license', 'icon', etc.), {1} is the string representation max allowed license file size (in whatever units the caller chooses)</comment>
+    <comment>{0} is the file type ('license', 'icon', 'readme', etc.), {1} is the string representation max allowed license file size (in whatever units the caller chooses)</comment>
   </data>
   <data name="UploadPackage_NodeContainsChildren" xml:space="preserve">
     <value>The {0} node cannot contain child nodes.</value>
@@ -1161,5 +1161,24 @@ The {1} Team</value>
   </data>
   <data name="PackageUploadCancelled" xml:space="preserve">
     <value>The package upload failed due to the client disconnecting.</value>
+  </data>
+  <data name="UploadPackage_EmbeddedReadmeNotAccepted" xml:space="preserve">
+    <value>The &lt;readme&gt; element is not currently supported.</value>
+  </data>
+  <data name="UploadPackage_InvalidReadmeFileExtension" xml:space="preserve">
+    <value>The readme file has an invalid extension '{0}'. Extension must be one of the following: {1}.</value>
+    <comment>{0} is the readme file extension specified in the .nuspec, {1} is the list of allowed extensions</comment>
+  </data>
+  <data name="UploadPackage_ReadmeFileType" xml:space="preserve">
+    <value>readme</value>
+  </data>
+  <data name="UploadPackage_ReadmeMustBePlainText" xml:space="preserve">
+    <value>The readme file must be plain text using UTF-8 encoding.</value>
+  </data>
+  <data name="UploadPackage_InvalidReadmeName" xml:space="preserve">
+    <value>the name of &lt;readme&gt; element is case sensitive, must use the &lt;readme&gt;</value>
+  </data>
+  <data name="ODataParametersDisabled" xml:space="preserve">
+    <value>The combination of parameters provided to this OData endpoint is not supported.</value>
   </data>
 </root>

@@ -2856,8 +2856,8 @@ namespace NuGetGallery
 
                 JArray result = JArray.Parse(contentResult.Content);
 
-                Assert.True((string)result[3]["Gallery"] == "/packages/B/1.1", "unexpected content result[3].Gallery");
-                Assert.True((int)result[2]["Downloads"] == 5, "unexpected content result[2].Downloads");
+                Assert.Equal("/packages/B/1.1.0", (string)result[3]["Gallery"]);
+                Assert.Equal(5, (int)result[2]["Downloads"]);
             }
 
             [Fact]

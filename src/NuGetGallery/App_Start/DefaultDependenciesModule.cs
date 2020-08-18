@@ -339,6 +339,10 @@ namespace NuGetGallery
                 .As<ISymbolPackageService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageMetadataValidationService>()
+                .As<IPackageMetadataValidationService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageUploadService>()
                 .AsSelf()
                 .As<IPackageUploadService>()

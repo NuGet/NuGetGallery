@@ -27,6 +27,49 @@ namespace NuGetGallery
         public class OnActionExecutedAsync : Facts
         {
             [Theory]
+            [InlineData(ODataCachedEndpoint.GetSpecificPackage, true)]
+            [InlineData(ODataCachedEndpoint.FindPackagesById, true)]
+            [InlineData(ODataCachedEndpoint.FindPackagesById, false)]
+            public async Task CacheHijackFalseOrNonGetSpecificPackage(ODataCachedEndpoint endpoint, bool hijack)
+            {
+                ActionContext.ActionArguments["hijack"] = hijack;
+                var target = new ODataCacheOutputAttribute(endpoint, 100);
+                target.OnActionExecuting(ActionContext);
+
+                var before = DateTimeOffset.Now;
+                await target.OnActionExecutedAsync(ActionExecutedContext, CancellationToken.None);
+                var after = DateTimeOffset.Now;
+
+                Cache.Verify(
+                    x => x.Add(
+                        It.IsAny<string>(),
+                        It.IsAny<object>(),
+                        It.IsAny<DateTimeOffset>(),
+                        null),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotCacheHijackTrueAndGetSpecificPackage()
+            {
+                ActionContext.ActionArguments["hijack"] = false;
+                var target = new ODataCacheOutputAttribute(ODataCachedEndpoint.GetSpecificPackage, 100);
+                target.OnActionExecuting(ActionContext);
+
+                var before = DateTimeOffset.Now;
+                await target.OnActionExecutedAsync(ActionExecutedContext, CancellationToken.None);
+                var after = DateTimeOffset.Now;
+
+                Cache.Verify(
+                    x => x.Add(
+                        It.IsAny<string>(),
+                        It.IsAny<object>(),
+                        It.IsAny<DateTimeOffset>(),
+                        null),
+                    Times.Never);
+            }
+
+            [Theory]
             [MemberData(nameof(CacheEndpointTestData))]
             public async Task ObservesConfiguredValue(ODataCachedEndpoint endpoint)
             {

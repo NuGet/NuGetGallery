@@ -1,2 +1,6 @@
 # Documentation
-Documentation for building, deploying, and managing a NuGet Gallery instance
+
+You can find documentation for:
+
+1. [Building, deploying, and managing a NuGet Gallery instance](Deploying/README.md)
+1. [Using Azure Active Directory authentication](Using-AAD.md)

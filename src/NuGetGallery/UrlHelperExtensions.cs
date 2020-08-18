@@ -228,6 +228,8 @@ namespace NuGetGallery
             string version,
             bool relativeUrl = true)
         {
+            string normalized = (version != null) ? NuGetVersionFormatter.Normalize(version) : version;
+
             string result = GetRouteLink(
                 url,
                 RouteName.DisplayPackage,
@@ -235,7 +237,7 @@ namespace NuGetGallery
                 routeValues: new RouteValueDictionary
                 {
                     { "id", id },
-                    { "version", version }
+                    { "version", normalized }
                 });
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions

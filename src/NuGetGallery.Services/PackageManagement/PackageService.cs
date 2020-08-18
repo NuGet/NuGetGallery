@@ -21,6 +21,8 @@ namespace NuGetGallery
 {
     public class PackageService : CorePackageService, IPackageService
     {
+        private const string MarkdownFileExtension = ".md";
+
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
@@ -690,6 +692,7 @@ namespace NuGetGallery
             package.EmbeddedLicenseType = GetEmbeddedLicenseType(packageMetadata);
             package.LicenseExpression = GetLicenseExpression(packageMetadata);
             package.HasEmbeddedIcon = !string.IsNullOrWhiteSpace(packageMetadata.IconFile);
+            package.EmbeddedReadmeType = GetEmbeddedReadmeType(packageMetadata);
 
             return package;
         }
@@ -721,7 +724,6 @@ namespace NuGetGallery
 
         private static EmbeddedLicenseFileType GetEmbeddedLicenseType(string licenseFileName)
         {
-            const string MarkdownFileExtension = ".md";
             const string TextFileExtension = ".txt";
 
             var extension = Path.GetExtension(licenseFileName);
@@ -737,6 +739,23 @@ namespace NuGetGallery
             }
 
             throw new ArgumentException($"Invalid file name: {licenseFileName}");
+        }
+
+        private static EmbeddedReadmeFileType GetEmbeddedReadmeType(PackageMetadata packageMetadata)
+        {
+            if (packageMetadata.ReadmeFile == null)
+            {
+                return EmbeddedReadmeFileType.Absent;
+            }
+
+            var extension = Path.GetExtension(packageMetadata.ReadmeFile);
+
+            if (MarkdownFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase) || string.Empty == extension)
+            {
+                return EmbeddedReadmeFileType.Markdown;
+            }
+
+            throw new ArgumentException($"The file name for the package readme must have the \"md\" file extension: {packageMetadata.ReadmeFile}");
         }
 
         private static void ValidateSupportedFrameworks(string[] supportedFrameworks)

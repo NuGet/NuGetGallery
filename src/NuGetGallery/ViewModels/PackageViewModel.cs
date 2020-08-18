@@ -15,6 +15,8 @@ namespace NuGetGallery
         public bool LatestStableVersionSemVer2 { get; set; }
         public bool DevelopmentDependency { get; set; }
         public bool Prerelease { get; set; }
+        public string VersionRequested { get; set; }
+        public bool VersionRequestedWasNotFound { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
         public bool FailedValidation { get; set; }
