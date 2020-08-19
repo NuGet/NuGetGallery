@@ -34,8 +34,8 @@
 
                 this.search = function () {
                     $self.doneSearching = ko.observable(false);
-                    $.ajax({
-                        url: '@Url.Action("Search", "DeleteAccount", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
+                    $.get({
+                        url: '@Url.Action("Search", "DeleteAccount", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery().trim()),
                             cache: false,
                             dataType: 'json',
                             success: function(data) {
@@ -45,7 +45,7 @@
                                 $self.searchResults(data);
                             }
                         })
-                        .error(function(jqXhr, textStatus, errorThrown) {
+                        .fail(function(jqXhr, textStatus, errorThrown) {
                             alert("Error: " + errorThrown);
                         })
                         .always(function () {
@@ -58,7 +58,7 @@
                 this.searchResults = ko.observableArray([]);
             };
 
-            ko.applyBindings(new viewModel(), $('#stage').get(0));
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
         });
     </script>
 }

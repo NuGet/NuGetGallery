@@ -100,15 +100,14 @@
                         galleryUsername: $self.newGalleryUsername()
                     };
 
-                    $.ajax({
+                    $.post({
                         url: url,
-                        type: 'POST',
                         cache: false,
                         dataType: 'json',
                         data: window.nuget.addAjaxAntiForgeryToken(model),
                         success: success
                     })
-                    .error(error);
+                    .fail(error);
                 };
             }
             function EditAdminViewModel() {
@@ -124,15 +123,14 @@
                         galleryUsername: $self.editGalleryUsername
                     };
 
-                    $.ajax({
+                    $.post({
                         url: url,
-                        type: 'POST',
                         cache: false,
                         dataType: 'json',
                         data: window.nuget.addAjaxAntiForgeryToken(model),
                         success: success
                     })
-                    .error(error);
+                    .fail(error);
                 };
             }
 
@@ -184,9 +182,8 @@
                     }
 
                     if (confirm(confirmationText)) {
-                        $.ajax({
+                        $.post({
                             url: url,
-                            type: 'POST',
                             cache: false,
                             dataType: 'json',
                             data: window.nuget.addAjaxAntiForgeryToken(model),
@@ -194,7 +191,7 @@
                                 $self.refresh();
                             }
                         })
-                        .error(function (jqXhr, textStatus, errorThrown) {
+                        .fail(function (jqXhr, textStatus, errorThrown) {
                             alert("Error: " + errorThrown);
                         });
                     }
@@ -203,9 +200,8 @@
                 this.refresh = function () {
                     var url = '@Url.Action("GetAdmins")';
 
-                    $.ajax({
+                    $.get({
                         url: url,
-                        type: 'GET',
                         cache: false,
                         dataType: 'json',
                         success: function (data) {
@@ -213,7 +209,7 @@
                             $self.styleButtons();
                         }
                     })
-                    .error(function (jqXhr, textStatus, errorThrown) {
+                    .fail(function (jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };

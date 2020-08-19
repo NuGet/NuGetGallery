@@ -83,25 +83,24 @@
                         subscriptions.push(checkbox.value);
                     });
                     
-                    $.ajax({
+                    $.post({
                         url: '@Url.Action("Update", "SecurityPolicy", new { area = "Admin" })',
                         cache: false,
                         dataType: 'json',
-                        type: 'POST',
                         data: window.nuget.addAjaxAntiForgeryToken({ subscriptionsJson: subscriptions }),
                         success: function (data) {
                             $self.changeTracker(false);
                             $self.message("Security policies updated!");
                         }
                     })
-                    .error(function(jqXhr, textStatus, errorThrown) {
+                    .fail(function(jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 },
 
                 this.search = function () {
                     $self.message("");
-                    $.ajax({
+                    $.get({
                         url: '@Url.Action("Search", "SecurityPolicy", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
                         cache: false,
                         dataType: 'json',
@@ -124,7 +123,7 @@
                             $self.searchNotFoundResults(data.UsersNotFound);
                         }
                     })
-                    .error(function(jqXhr, textStatus, errorThrown) {
+                    .fail(function(jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -180,7 +179,7 @@
                 }
             };
 
-            ko.applyBindings(new viewModel(), $('#stage').get(0));
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
         });
     </script>
 }

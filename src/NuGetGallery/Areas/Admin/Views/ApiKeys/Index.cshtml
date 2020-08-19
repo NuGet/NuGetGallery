@@ -105,11 +105,10 @@
                     $self.selectAllRevocableApiKeys(false);
                     $self.Error(null);
 
-                    $.ajax({
+                    $.post({
                         url: '@Url.Action("Verify", "ApiKeys", new {area = "Admin"})',
                         cache: false,
                         dataType: 'json',
-                        type: 'POST',
                         data: window.nuget.addAjaxAntiForgeryToken({ verifyQuery: $self.verifyQuery() }),
                         success: function(data) {
                             for (var i = 0; i < data.length; i++) {
@@ -172,7 +171,7 @@
                 });
             };
 
-            ko.applyBindings(new viewModel(), $('#stage').get(0));
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
         });
     </script>
 }
