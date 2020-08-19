@@ -88,9 +88,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Autofac">
-      <Version>4.6.2</Version>
-    </PackageReference>
     <PackageReference Include="CsvHelper">
       <Version>7.1.1</Version>
     </PackageReference>
