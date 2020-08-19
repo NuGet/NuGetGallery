@@ -149,7 +149,6 @@
     <Compile Include="Helpers\FeedPackageDetails.cs" />
     <Compile Include="Helpers\FeedPackageIdentity.cs" />
     <Compile Include="Helpers\ParallelAsync.cs" />
-    <Compile Include="Helpers\UriUtils.cs" />
     <Compile Include="Helpers\NuGetVersionUtility.cs" />
     <Compile Include="Persistence\ByteArrayStorageContent.cs" />
     <Compile Include="Persistence\AzureCloudBlockBlob.cs" />

@@ -223,7 +223,6 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
         private static void RegisterV2ResourceProviders(this ContainerBuilder builder)
         {
-            builder.RegisterResourceProvider<NonhijackableV2HttpHandlerResourceProvider>(FeedType.HttpV2);
             builder.RegisterResourceProvider<PackageTimestampMetadataResourceDatabaseProvider>(FeedType.HttpV2);
             builder.RegisterResourceProvider<PackageRegistrationMetadataResourceDatabaseFeedProvider>(FeedType.HttpV2);
         }
