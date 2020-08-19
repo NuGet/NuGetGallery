@@ -1571,6 +1571,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The readme is not editable with the package has the embedded readme.
+        /// </summary>
+        public static string ReadmeNotEditableWithEmbeddedReadme {
+            get {
+                return ResourceManager.GetString("ReadmeNotEditableWithEmbeddedReadme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Documentation file must end with a Markdown extension &apos;{0}&apos;..
         /// </summary>
         public static string ReadMePostedFileExtensionInvalid {
