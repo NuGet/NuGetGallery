@@ -91,6 +91,15 @@
                 Id = "paket-cli",
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
+            },
+
+            new PackageManagerViewModel("F# Interactive", "https://docs.microsoft.com/en-us/dotnet/fsharp/tutorials/fsharp-interactive/#scripting-with-f")
+            {
+                Id = "fsharp-interactive",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("#r \"nuget: {0}, Version={1}\"", Model.Id, Model.Version),
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = string.Format("Until F# 5.0 releases, you will need to launch `dotnet fsi` with the `--langversion:preview` argument in order to use package management.")
             }
         };
     }
