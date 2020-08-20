@@ -1708,7 +1708,8 @@ namespace NuGetGallery
                 ReportMyPackageReasons,
                 Url,
                 await _readMeService.GetReadMeMdAsync(package),
-                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration));
+                _featureFlagService.IsManageDeprecationEnabled(currentUser, package.PackageRegistration),
+                package.HasReadMe && package.EmbeddedReadmeType != EmbeddedReadmeFileType.Absent);
 
             if (!model.CanEdit && !model.CanManageOwners && !model.CanUnlistOrRelist)
             {

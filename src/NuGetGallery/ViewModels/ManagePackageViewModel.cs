@@ -16,6 +16,7 @@ namespace NuGetGallery
         public IReadOnlyDictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
         public IReadOnlyDictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
         public bool IsManageDeprecationEnabled { get; set; }
+        public bool IsReadmeFileUploaded { get; set; }
         public IReadOnlyDictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
 
         /// <remarks>
