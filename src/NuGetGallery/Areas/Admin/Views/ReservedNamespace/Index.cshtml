@@ -10,10 +10,10 @@
         @ViewHelpers.AlertInfo(@<text><span class="message" data-bind="text: message"></span></text>)
     </div>
     <h2>Reserve Namespace</h2>
-    <form data-bind="submit: prefixSearch">
+    <form>
         <div class="form-horizontal">
             <input type="text" placeholder="Search for a prefix" autocomplete="on" autofocus data-bind="value: prefixSearchQuery" />
-            <input type="submit" value="Search Prefix" title="Search Prefix" />
+            <input type="button" value="Search Prefix" title="Search Prefix" data-bind="click: prefixSearch" />
         </div>
     </form><br />
 
@@ -96,7 +96,7 @@
                 this.prefixSearch = function () {
                     $self.message("");
                     $self.newOwner("");
-                    $.get({
+                    $.ajax({
                         url: '@Url.Action("SearchPrefix", "ReservedNamespace", new {area = "Admin"})?query=' + encodeURIComponent($self.prefixSearchQuery()),
                         cache: false,
                         dataType: 'json',
@@ -117,7 +117,7 @@
                             }
                         }
                     })
-                    .fail(function(jqXhr, textStatus, errorThrown) {
+                    .error(function(jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -132,10 +132,11 @@
                         ? '@Url.Action("AddNamespace", "ReservedNamespace", new { area = "Admin" })'
                         : '@Url.Action("RemoveNamespace", "ReservedNamespace", new { area = "Admin" })';
                     $self.message("");
-                    $.post({
+                    $.ajax({
                         url: url,
                         cache: false,
                         dataType: 'json',
+                        type: 'POST',
                         data: window.nuget.addAjaxAntiForgeryToken(prefixToModify),
                         success: function (data) {
                             if (data.success) {
@@ -147,7 +148,7 @@
                             }
                         }
                     })
-                    .fail(function (jqXhr, textStatus, errorThrown) {
+                    .error(function (jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -160,10 +161,11 @@
                     };
 
                     $self.message("");
-                    $.post({
+                    $.ajax({
                         url: '@Url.Action("AddOwner", "ReservedNamespace", new { area = "Admin" })',
                         cache: false,
                         dataType: 'json',
+                        type: 'POST',
                         data: window.nuget.addAjaxAntiForgeryToken(obj),
                         success: function (data) {
                             if (data.success) {
@@ -176,7 +178,7 @@
                             }
                         }
                     })
-                    .fail(function (jqXhr, textStatus, errorThrown) {
+                    .error(function (jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -192,10 +194,11 @@
                     };
 
                     $self.message("");
-                    $.post({
+                    $.ajax({
                         url: '@Url.Action("RemoveOwner", "ReservedNamespace", new { area = "Admin" })',
                         cache: false,
                         dataType: 'json',
+                        type: 'POST',
                         data: window.nuget.addAjaxAntiForgeryToken(obj),
                         success: function (data) {
                             if (data.success) {
@@ -207,7 +210,7 @@
                             }
                         }
                     })
-                    .fail(function (jqXhr, textStatus, errorThrown) {
+                    .error(function (jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -225,7 +228,7 @@
                 };
             };
 
-            ko.applyBindings(new viewModel(), $('.main-container').get(0));
+            ko.applyBindings(new viewModel(), $('#stage').get(0));
         });
     </script>
 }
