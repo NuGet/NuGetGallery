@@ -1344,6 +1344,9 @@ img.reserved-indicator-icon {
   margin-left: 10px;
   margin-right: 10px;
 }
+.page-list-packages .advanced-search-panel #reset-advanced-search {
+  color: #286090;
+}
 @media (min-width: 768px) {
   .page-list-packages .text-align-right {
     text-align: right;
