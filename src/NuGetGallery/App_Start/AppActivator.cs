@@ -132,7 +132,7 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/jquery-3.4.1.js")
                 .Include("~/Scripts/gallery/jquery.validate-1.16.0.js")
                 .Include("~/Scripts/gallery/jquery.validate.unobtrusive-3.2.6.js")
-                .Include("~/Scripts/gallery/knockout-3.4.2.js")
+                .Include("~/Scripts/gallery/knockout-3.5.1.js")
                 .Include("~/Scripts/gallery/bootstrap.js")
                 .Include("~/Scripts/gallery/moment-2.18.1.js")
                 .Include("~/Scripts/gallery/common.js")
