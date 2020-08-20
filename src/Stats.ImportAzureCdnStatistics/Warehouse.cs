@@ -226,11 +226,6 @@ namespace Stats.ImportAzureCdnStatistics
 
                         FillDataRow(dataRow, key.dateId, key.timeId, packageId, key.operationId, key.platformId, key.clientId, key.userAgentId, logFileNameId, downloadCount);
                         factsDataTable.Rows.Add(dataRow);
-
-                        _logger.LogDebug("Inserted 1 row into factsDataTable, which counts for {DownloadCount} downloads, with the dimension Ids (" +
-                            "dateId: {DateId}, timeId: {TimeId}, packageId: {PackageId}, operationId: {OperationId}, platformId: {PlatformId}, clientId: {ClientId}, " +
-                            "userAgentId: {UserAgentId}, logFileNameId: {LogFileNameId}).", downloadCount, key.dateId, key.timeId, packageId, key.operationId,
-                            key.platformId, key.clientId, key.userAgentId, logFileNameId);
                     }
                 }
             }
