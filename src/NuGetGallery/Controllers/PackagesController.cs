@@ -2624,7 +2624,7 @@ namespace NuGetGallery
                 
                 if (formData.Edit != null)
                 {
-                    if (package.HasReadMe && package.EmbeddedReadmeType != EmbeddedReadmeFileType.Absent)
+                    if (_readMeService.HasReadMeSource(formData.Edit.ReadMe) && package.HasReadMe && package.EmbeddedReadmeType != EmbeddedReadmeFileType.Absent)
                     {
                         return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.ReadmeNotEditableWithEmbeddedReadme) });
                     }
