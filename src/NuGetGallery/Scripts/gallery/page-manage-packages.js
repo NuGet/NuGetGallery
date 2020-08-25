@@ -395,12 +395,7 @@
                     return sortby;
                 }
 
-                // grab the text inside the td. Remove commas in case it's a number like 43,000
-                var v = td.text();
-                if (v) {
-                    v = v.replace(',', '');
-                }
-                return v;
+                return td.text();
             }
         }
 
