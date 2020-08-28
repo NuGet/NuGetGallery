@@ -151,5 +151,10 @@ namespace NuGetGallery
         /// Whether the user is able to publish the package with an embedded readme file.
         /// </summary>
         bool AreEmbeddedReadmesEnabled(User user);
+
+        /// <summary>
+        /// Whether rendering licence Markdown content to HTML is enabled
+        /// </summary>
+        bool IsLicenceMdRenderingEnabled(User user);
     }
 }

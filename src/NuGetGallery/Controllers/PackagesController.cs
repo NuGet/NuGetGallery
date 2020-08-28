@@ -202,7 +202,7 @@ namespace NuGetGallery
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
             _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider);
-            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService);
+            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
             _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider);
             _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider);
@@ -619,9 +619,12 @@ namespace NuGetGallery
 
             var licence = packageContentData?.PackageMetadata?.LicenseMetadata?.License;
 
-            if (licence != null)
-                if (Path.GetExtension(licence).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
-                    model.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(packageContentData.LicenseFileContents, 2).Content;
+            if (_featureFlagService.IsLicenceMdRenderingEnabled(currentUser) &&
+                licence != null && 
+                Path.GetExtension(licence).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
+            {
+                model.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(packageContentData.LicenseFileContents, 2).Content;
+            }
 
             model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
 
@@ -1113,7 +1116,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = _displayLicenseViewModelFactory.Create(package, licenseExpressionSegments, licenseFileContents);
+            var model = _displayLicenseViewModelFactory.Create(package, licenseExpressionSegments, licenseFileContents, GetCurrentUser());
 
             return View(model);
         }

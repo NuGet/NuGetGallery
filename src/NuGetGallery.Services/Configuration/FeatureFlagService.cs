@@ -39,6 +39,7 @@ namespace NuGetGallery
         private const string UsabillaOnEveryPageFeatureName = GalleryPrefix + "UsabillaEveryPage";
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
+        private const string LicenceMdRenderingFlightName = GalleryPrefix + "LicenceMdRendering";
 
         private readonly IFeatureFlagClient _client;
 
@@ -196,6 +197,11 @@ namespace NuGetGallery
         public bool AreEmbeddedReadmesEnabled(User user)
         {
             return _client.IsEnabled(EmbeddedReadmeFlightName, user, defaultValue: false);
+        }
+
+        public bool IsLicenceMdRenderingEnabled(User user)
+        {
+            return _client.IsEnabled(LicenceMdRenderingFlightName, user, defaultValue: false);
         }
     }
 }
