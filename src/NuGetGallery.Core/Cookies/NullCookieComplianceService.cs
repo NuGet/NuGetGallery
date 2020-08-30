@@ -28,5 +28,11 @@ namespace NuGetGallery.Cookies
         public override IEnumerable<string> GetConsentScripts(HttpRequestBase request, string locale = null) => EmptyStringArray;
 
         public override IEnumerable<string> GetConsentStylesheets(HttpRequestBase request, string locale = null) => EmptyStringArray;
+
+        public override bool CanWriteAnalyticsCookies(HttpRequestBase request) => false;
+
+        public override bool CanWriteSocialMediaCookies(HttpRequestBase request) => false;
+
+        public override bool CanWriteAdvertisingCookies(HttpRequestBase request) => false;
     }
 }

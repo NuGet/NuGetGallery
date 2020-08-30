@@ -46,6 +46,12 @@ namespace NuGetGallery.Cookies
         /// </summary>
         IEnumerable<string> GetConsentScripts(HttpRequestBase request, string locale = null);
 
+        bool CanWriteAnalyticsCookies(HttpRequestBase request);
+
+        bool CanWriteSocialMediaCookies(HttpRequestBase request);
+
+        bool CanWriteAdvertisingCookies(HttpRequestBase request);
+
         #endregion
     }
 }
