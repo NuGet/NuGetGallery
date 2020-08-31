@@ -9,14 +9,14 @@
     "NuGetGallery.ShowEnable2FADialog": "Enabled",
     "NuGetGallery.Get2FADismissFeedback": "Disabled",
     "NuGetGallery.UsabillaEveryPage": "Enabled",
-    "NuGetGallery.ODataV1GetAll": "Enabled",
-    "NuGetGallery.ODataV1GetSpecific": "Enabled",
-    "NuGetGallery.ODataV1FindPackagesById": "Enabled",
-    "NuGetGallery.ODataV1Search": "Enabled",
-    "NuGetGallery.ODataV2GetAll": "Enabled",
-    "NuGetGallery.ODataV2GetSpecific": "Enabled",
-    "NuGetGallery.ODataV2FindPackagesById": "Enabled",
-    "NuGetGallery.ODataV2Search": "Enabled"
+    "NuGetGallery.ODataV1GetAllNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1GetSpecificNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1FindPackagesByIdNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1SearchNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2GetAllNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2GetSpecificNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2FindPackagesByIdNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2SearchNonHijacked": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

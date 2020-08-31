@@ -40,15 +40,15 @@ namespace NuGetGallery
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
 
-        private const string ODataV1GetAllFeatureName = GalleryPrefix + "ODataV1GetAll";
-        private const string ODataV1GetSpecificFeatureName = GalleryPrefix + "ODataV1GetSpecific";
-        private const string ODataV1FindPackagesByIdFeatureName = GalleryPrefix + "ODataV1FindPackagesById";
-        private const string ODataV1SearchFeatureName = GalleryPrefix + "ODataV1Search";
+        private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
+        private const string ODataV1GetSpecificNonHijackedFeatureName = GalleryPrefix + "ODataV1GetSpecificNonHijacked";
+        private const string ODataV1FindPackagesByIdNonHijackedFeatureName = GalleryPrefix + "ODataV1FindPackagesByIdNonHijacked";
+        private const string ODataV1SearchNonHijackedFeatureName = GalleryPrefix + "ODataV1SearchNonHijacked";
 
-        private const string ODataV2GetAllFeatureName = GalleryPrefix + "ODataV2GetAll";
-        private const string ODataV2GetSpecificFeatureName = GalleryPrefix + "ODataV2GetSpecific";
-        private const string ODataV2FindPackagesByIdFeatureName = GalleryPrefix + "ODataV2FindPackagesById";
-        private const string ODataV2SearchFeatureName = GalleryPrefix + "ODataV2Search";
+        private const string ODataV2GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV2GetAllNonHijacked";
+        private const string ODataV2GetSpecificNonHijackedFeatureName = GalleryPrefix + "ODataV2GetSpecificNonHijacked";
+        private const string ODataV2FindPackagesByIdNonHijackedFeatureName = GalleryPrefix + "ODataV2FindPackagesByIdNonHijacked";
+        private const string ODataV2SearchNonHijackedFeatureName = GalleryPrefix + "ODataV2SearchNonHijacked";
 
         private readonly IFeatureFlagClient _client;
 
@@ -205,42 +205,42 @@ namespace NuGetGallery
 
         public bool IsODataV1GetAllEnabled()
         {
-            return _client.IsEnabled(ODataV1GetAllFeatureName, defaultValue: true);
+            return _client.IsEnabled(ODataV1GetAllNonHijackedFeatureName, defaultValue: true);
         }
 
         public bool IsODataV1GetSpecificNonHijackedEnabled()
         {
-            return _client.IsEnabled(ODataV1GetSpecificFeatureName, defaultValue: true);
+            return _client.IsEnabled(ODataV1GetSpecificNonHijackedFeatureName, defaultValue: true);
         }
 
         public bool IsODataV1FindPackagesByIdNonHijackedEnabled()
         {
-            return _client.IsEnabled(ODataV1FindPackagesByIdFeatureName, defaultValue: true);
+            return _client.IsEnabled(ODataV1FindPackagesByIdNonHijackedFeatureName, defaultValue: true);
         }
 
         public bool IsODataV1SearchNonHijackedEnabled()
         {
-            return _client.IsEnabled(ODataV1SearchFeatureName, defaultValue: true);
+            return _client.IsEnabled(ODataV1SearchNonHijackedFeatureName, defaultValue: true);
         }
 
         public bool IsODataV2GetAllNonHijackedEnabled()
         {
-            return _client.IsEnabled(ODataV2GetAllFeatureName, defaultValue: true);
+            return _client.IsEnabled(ODataV2GetAllNonHijackedFeatureName, defaultValue: true);
         }
 
         public bool IsODataV2GetSpecificNonHijackedEnabled()
         {
-            return _client.IsEnabled(ODataV2GetSpecificFeatureName, defaultValue: true);
+            return _client.IsEnabled(ODataV2GetSpecificNonHijackedFeatureName, defaultValue: true);
         }
 
         public bool IsODataV2FindPackagesByIdNonHijackedEnabled()
         {
-            return _client.IsEnabled(ODataV2FindPackagesByIdFeatureName, defaultValue: true);
+            return _client.IsEnabled(ODataV2FindPackagesByIdNonHijackedFeatureName, defaultValue: true);
         }
 
         public bool IsODataV2SearchNonHijackedEnabled()
         {
-            return _client.IsEnabled(ODataV2SearchFeatureName, defaultValue: true);
+            return _client.IsEnabled(ODataV2SearchNonHijackedFeatureName, defaultValue: true);
         }
     }
 }
