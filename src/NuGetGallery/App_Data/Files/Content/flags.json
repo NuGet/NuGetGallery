@@ -8,7 +8,15 @@
     "NuGetGallery.ODataCacheDurations": "Enabled",
     "NuGetGallery.ShowEnable2FADialog": "Enabled",
     "NuGetGallery.Get2FADismissFeedback": "Disabled",
-    "NuGetGallery.UsabillaEveryPage": "Enabled"
+    "NuGetGallery.UsabillaEveryPage": "Enabled",
+    "NuGetGallery.ODataV1GetAll": "Enabled",
+    "NuGetGallery.ODataV1GetSpecific": "Enabled",
+    "NuGetGallery.ODataV1FindPackagesById": "Enabled",
+    "NuGetGallery.ODataV1Search": "Enabled",
+    "NuGetGallery.ODataV2GetAll": "Enabled",
+    "NuGetGallery.ODataV2GetSpecific": "Enabled",
+    "NuGetGallery.ODataV2FindPackagesById": "Enabled",
+    "NuGetGallery.ODataV2Search": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

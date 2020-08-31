@@ -354,7 +354,7 @@ namespace NuGetGallery.Controllers
                 && options.RawValues.SkipToken == null
                 && options.RawValues.Top == null;
 
-            if (!allowHijack)
+            if (!allowHijack || !isNonHijackEnabled)
             {
                 if (!isSimpleLookup)
                 {
