@@ -94,7 +94,7 @@
                             $self.message("Security policies updated!");
                         }
                     })
-                    .error(function(jqXhr, textStatus, errorThrown) {
+                    .fail(function(jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 },
@@ -124,7 +124,7 @@
                             $self.searchNotFoundResults(data.UsersNotFound);
                         }
                     })
-                    .error(function(jqXhr, textStatus, errorThrown) {
+                    .fail(function(jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -180,7 +180,7 @@
                 }
             };
 
-            ko.applyBindings(new viewModel(), $('#stage').get(0));
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
         });
     </script>
 }

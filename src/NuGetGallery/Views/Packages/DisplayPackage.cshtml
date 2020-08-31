@@ -301,7 +301,14 @@
                     </text>
                 )
             }
-
+            @if (Model.VersionRequestedWasNotFound)
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        The specified version @Model.VersionRequested was not found. You have been taken to version @(Model.Version).
+                    </text>
+                )
+            }
             @if (Model.HasNewerRelease)
             {
                 @ViewHelpers.AlertInfo(
@@ -949,7 +956,7 @@
                             linkText: "Reflow package",
                             actionName: "Reflow",
                             controllerName: "Packages",
-                            role: string.Empty,
+                            role: "button",
                             formValues: new Dictionary<string, string>
                             {
                                 { "id", Model.Id },

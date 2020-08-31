@@ -87,8 +87,8 @@ namespace NuGetGallery.LoadTests
         [TestCategory("P0Tests")]
         public async Task PackagesApiTest()
         {
-            string packageId = "newtonsoft.json";
-            string url = UrlHelper.V2FeedRootUrl + @"Packages()?$filter=tolower(Id) eq '" + packageId + "'&$orderby=Id";
+            string packageId = "Newtonsoft.Json";
+            string url = UrlHelper.V2FeedRootUrl + $"Packages()?$filter=Id eq '{packageId}'";
             string expectedText = @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId;
             var odataHelper = new ODataHelper();
             var containsResponseText = await odataHelper.ContainsResponseTextIgnoreCase(url, expectedText);
@@ -168,7 +168,7 @@ namespace NuGetGallery.LoadTests
         public async Task SearchMicrosoftDotNetCuratedFeed()
         {
             var packageId = "microsoft.aspnet.webpages";
-            var requestUrl = UrlHelper.DotnetCuratedFeedUrl + @"Packages()?$filter=tolower(Id)%20eq%20'" + packageId + "'&$orderby=Id&$skip=0&$top=30";
+            var requestUrl = UrlHelper.DotnetCuratedFeedUrl + @"Search()?searchTerm='packageid%3A" + packageId + "'";
 
             string responseText;
             using (var httpClient = new HttpClient())

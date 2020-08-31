@@ -54,7 +54,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         {
             using (var httpClient = new HttpClient())
             {
-                var requestUrl = UrlHelper.DotnetCuratedFeedUrl + "Packages";
+                var requestUrl = UrlHelper.DotnetCuratedFeedUrl + "FindPackagesById()?id='AutoMapper'";
 
                 string responseText;
                 using (var response = await httpClient.GetAsync(requestUrl))

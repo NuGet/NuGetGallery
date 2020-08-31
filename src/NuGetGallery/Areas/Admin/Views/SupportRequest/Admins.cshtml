@@ -108,7 +108,7 @@
                         data: window.nuget.addAjaxAntiForgeryToken(model),
                         success: success
                     })
-                    .error(error);
+                    .fail(error);
                 };
             }
             function EditAdminViewModel() {
@@ -132,7 +132,7 @@
                         data: window.nuget.addAjaxAntiForgeryToken(model),
                         success: success
                     })
-                    .error(error);
+                    .fail(error);
                 };
             }
 
@@ -194,7 +194,7 @@
                                 $self.refresh();
                             }
                         })
-                        .error(function (jqXhr, textStatus, errorThrown) {
+                        .fail(function (jqXhr, textStatus, errorThrown) {
                             alert("Error: " + errorThrown);
                         });
                     }
@@ -213,7 +213,7 @@
                             $self.styleButtons();
                         }
                     })
-                    .error(function (jqXhr, textStatus, errorThrown) {
+                    .fail(function (jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };

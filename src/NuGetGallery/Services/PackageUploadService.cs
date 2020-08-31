@@ -47,7 +47,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(diagnosticsService));
             }
             _vulnerabilityService = vulnerabilityService ?? throw new ArgumentNullException(nameof(vulnerabilityService));
-            _metadataValidationService = metadataValidationService ?? throw new ArgumentNullException(nameof(metadataValidationService));       
+            _metadataValidationService = metadataValidationService ?? throw new ArgumentNullException(nameof(metadataValidationService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(
@@ -189,16 +189,32 @@ namespace NuGetGallery
                         // validation pipeline that would normally store the license file, so we'll do it ourselves here.
                         await _coreLicenseFileService.ExtractAndSaveLicenseFileAsync(package, packageFile);
                     }
+
+                    var isReadmeFileExtractedAndSaved = false;
+                    if (package.HasReadMe && package.EmbeddedReadmeType != EmbeddedReadmeFileType.Absent)
+                    {
+                        await _packageFileService.ExtractAndSaveReadmeFileAsync(package, packageFile);
+                        isReadmeFileExtractedAndSaved = true;
+                    }
+
                     try
                     {
                         packageFile.Seek(0, SeekOrigin.Begin);
                         await _packageFileService.SavePackageFileAsync(package, packageFile);
                     }
-                    catch when (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+                    catch when (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent || isReadmeFileExtractedAndSaved)
                     {
-                        await _coreLicenseFileService.DeleteLicenseFileAsync(
-                            package.PackageRegistration.Id,
-                            package.NormalizedVersion);
+                        if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+                        {
+                            await _coreLicenseFileService.DeleteLicenseFileAsync(
+                                package.PackageRegistration.Id,
+                                package.NormalizedVersion);
+                        }
+
+                        if (isReadmeFileExtractedAndSaved)
+                        {
+                            await _packageFileService.DeleteReadMeMdFileAsync(package);
+                        }
                         throw;
                     }
                 }
@@ -237,6 +253,7 @@ namespace NuGetGallery
                     await _coreLicenseFileService.DeleteLicenseFileAsync(
                         package.PackageRegistration.Id,
                         package.NormalizedVersion);
+                    await _packageFileService.DeleteReadMeMdFileAsync(package);
                 }
 
                 return ReturnConflictOrThrow(ex);

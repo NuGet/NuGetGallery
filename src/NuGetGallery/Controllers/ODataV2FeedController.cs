@@ -183,7 +183,7 @@ namespace NuGetGallery.Controllers
             ODataQueryOptions<V2FeedPackage> options, 
             string id, 
             string version,
-            [FromUri] bool allowHijack = true)
+            [FromUri] bool hijack = true)
         {
             // We are defaulting to semVerLevel = "2.0.0" by design.
             // The client is requesting a specific package version and should support what it requests.
@@ -193,7 +193,7 @@ namespace NuGetGallery.Controllers
                 id, 
                 version,
                 semVerLevel: SemVerLevelKey.SemVerLevel2,
-                allowHijack: allowHijack,
+                allowHijack: hijack,
                 return404NotFoundWhenNoResults: true,
                 isNonHijackEnabled: _featureFlagService.IsODataV2GetSpecificNonHijackedEnabled());
 
@@ -285,56 +285,53 @@ namespace NuGetGallery.Controllers
                 // try the search service
                 try
                 {
-                    if (allowHijack)
+                    var searchService = _searchServiceFactory.GetService();
+                    var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
+                        searchService,
+                        GetTraditionalHttpContext().Request,
+                        packages,
+                        id,
+                        version,
+                        semVerLevel: semVerLevel);
+
+                    // If intercepted, create a paged queryresult
+                    if (searchAdaptorResult.ResultsAreProvidedBySearchService)
                     {
-                        var searchService = _searchServiceFactory.GetService();
-                        var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                            searchService,
-                            GetTraditionalHttpContext().Request,
-                            packages,
-                            id,
-                            version,
-                            semVerLevel: semVerLevel);
+                        customQuery = false;
 
-                        // If intercepted, create a paged queryresult
-                        if (searchAdaptorResult.ResultsAreProvidedBySearchService)
+                        // Packages provided by search service
+                        packages = searchAdaptorResult.Packages;
+
+                        // Add explicit Take() needed to limit search hijack result set size if $top is specified
+                        var totalHits = packages.LongCount();
+
+                        if (totalHits == 0 && return404NotFoundWhenNoResults)
                         {
-                            customQuery = false;
-
-                            // Packages provided by search service
-                            packages = searchAdaptorResult.Packages;
-
-                            // Add explicit Take() needed to limit search hijack result set size if $top is specified
-                            var totalHits = packages.LongCount();
-
-                            if (totalHits == 0 && return404NotFoundWhenNoResults)
-                            {
-                                _telemetryService.TrackODataCustomQuery(customQuery);
-                                return NotFound();
-                            }
-
-                            var pagedQueryable = packages
-                                .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
-                                .ToV2FeedPackageQuery(
-                                    GetSiteRoot(),
-                                    _configurationService.Features.FriendlyLicenses,
-                                    semVerLevelKey);
-
-                            return TrackedQueryResult(
-                                options,
-                                pagedQueryable,
-                                MaxPageSize,
-                                totalHits,
-                                (o, s, resultCount) => SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s, semVerLevelKey),
-                                customQuery);
+                            _telemetryService.TrackODataCustomQuery(customQuery);
+                            return NotFound();
                         }
-                        else
-                        {
-                            customQuery = true;
-                        }
+
+                        var pagedQueryable = packages
+                            .Take(options.Top != null ? Math.Min(options.Top.Value, MaxPageSize) : MaxPageSize)
+                            .ToV2FeedPackageQuery(
+                                GetSiteRoot(),
+                                _configurationService.Features.FriendlyLicenses,
+                                semVerLevelKey);
+
+                        return TrackedQueryResult(
+                            options,
+                            pagedQueryable,
+                            MaxPageSize,
+                            totalHits,
+                            (o, s, resultCount) => SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s, semVerLevelKey),
+                            customQuery);
+                    }
+                    else
+                    {
+                        customQuery = true;
                     }
                 }
-                catch (Exception ex) when (isNonHijackEnabled)
+                catch (Exception ex)
                 {
                     // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
                     // We don't want to break package restores. We do want to know if this happens, so here goes:
@@ -344,7 +341,7 @@ namespace NuGetGallery.Controllers
 
             // When non-hijacked queries are disabled, allow only one non-hijacked pattern: query for a specific ID and
             // version without any fancy OData options. This enables some monitoring and testing and is known to produce
-            // a very fast SQL query.
+            // a very fast SQL query based on an optimized index.
             var isSimpleLookup = !string.IsNullOrWhiteSpace(id)
                 && !string.IsNullOrWhiteSpace(version)
                 && options.RawValues.Expand == null
@@ -357,9 +354,14 @@ namespace NuGetGallery.Controllers
                 && options.RawValues.SkipToken == null
                 && options.RawValues.Top == null;
 
-            if (!isSimpleLookup && !isNonHijackEnabled)
+            if (!allowHijack)
             {
-                return BadRequest(Strings.ODataParametersDisabled);
+                if (!isSimpleLookup)
+                {
+                    return BadRequest(Strings.ODataParametersDisabled);
+                }
+
+                customQuery = true;
             }
 
             if (return404NotFoundWhenNoResults && !packages.Any())

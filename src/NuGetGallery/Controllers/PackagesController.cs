@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
+using System.Windows.Forms;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
@@ -343,6 +344,8 @@ namespace NuGetGallery
             verifyRequest.IsSymbolsPackage = false;
             verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
             verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
+            verifyRequest.ReadmeFileContents = await GetReadmeFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+
             model.InProgressUpload = verifyRequest;
             return View(model);
         }
@@ -613,6 +616,7 @@ namespace NuGetGallery
             model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = packageContentData.LicenseFileContents;
             model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
+            model.ReadmeFileContents = packageContentData.ReadmeFileContents;
 
             if (packageContentData.EmbeddedIconInformation != null)
             {
@@ -635,13 +639,15 @@ namespace NuGetGallery
                 IReadOnlyList<IValidationMessage> warnings,
                 string licenseFileContents,
                 IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments,
-                EmbeddedIconInformation embeddedIconInformation)
+                EmbeddedIconInformation embeddedIconInformation,
+                string readmeFileContents)
             {
                 PackageMetadata = packageMetadata;
                 Warnings = warnings;
                 LicenseFileContents = licenseFileContents;
                 LicenseExpressionSegments = licenseExpressionSegments;
                 EmbeddedIconInformation = embeddedIconInformation;
+                ReadmeFileContents = readmeFileContents;
             }
 
             public JsonResult ErrorResult { get; }
@@ -650,6 +656,7 @@ namespace NuGetGallery
             public string LicenseFileContents { get; }
             public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; }
             public EmbeddedIconInformation EmbeddedIconInformation { get; }
+            public string ReadmeFileContents { get; }
         }
 
         private class EmbeddedIconInformation
@@ -673,6 +680,7 @@ namespace NuGetGallery
             IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
             PackageMetadata packageMetadata = null;
             EmbeddedIconInformation embeddedIconInformation = null;
+            string readmeFileContents = null;
 
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -720,6 +728,7 @@ namespace NuGetGallery
                     licenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
                     licenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
                     embeddedIconInformation = await GetEmbeddedIconOrNullAsync(packageMetadata, packageArchiveReader);
+                    readmeFileContents = await GetReadmeFileContentsOrNullAsync(packageMetadata, packageArchiveReader);          
                 }
                 catch (Exception ex)
                 {
@@ -730,7 +739,7 @@ namespace NuGetGallery
                 }
             }
 
-            return new PackageContentData(packageMetadata, warnings, licenseFileContents, licenseExpressionSegments, embeddedIconInformation);
+            return new PackageContentData(packageMetadata, warnings, licenseFileContents, licenseExpressionSegments, embeddedIconInformation, readmeFileContents);
         }
 
         private IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> GetLicenseExpressionSegmentsOrNull(LicenseMetadata licenseMetadata)
@@ -786,6 +795,18 @@ namespace NuGetGallery
             }
 
             return new EmbeddedIconInformation(imageContentType, imageData);
+        }
+
+        private async Task<string> GetReadmeFileContentsOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
+        {
+            if (string.IsNullOrWhiteSpace(packageMetadata.ReadmeFile))
+            {
+                return null;
+            }
+
+            var readmeFilename = FileNameHelper.GetZipEntryPath(packageMetadata.ReadmeFile);
+            var readmeResult = await _readMeService.GetReadMeHtmlAsync(readmeFilename, packageArchiveReader, Encoding.UTF8);
+            return readmeResult?.Content;
         }
 
         private static async Task<byte[]> ReadPackageFile(PackageArchiveReader packageArchiveReader, string filename)
@@ -867,6 +888,12 @@ namespace NuGetGallery
             if (model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
                 model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
+            }
+
+            if (normalized != null && !string.Equals(package.NormalizedVersion, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                model.VersionRequested = normalized;
+                model.VersionRequestedWasNotFound = true;
             }
 
             if (!string.IsNullOrWhiteSpace(package.LicenseExpression))
@@ -2594,9 +2621,14 @@ namespace NuGetGallery
                 {
                     return afterValidationJsonResult;
                 }
-
+                
                 if (formData.Edit != null)
                 {
+                    if (_readMeService.HasReadMeSource(formData.Edit.ReadMe) && package.HasReadMe && package.EmbeddedReadmeType != EmbeddedReadmeFileType.Absent)
+                    {
+                        return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.ReadmeNotEditableWithEmbeddedReadme) });
+                    }
+
                     try
                     {
                         if (await _readMeService.SaveReadMeMdIfChanged(

@@ -10,10 +10,10 @@
         @ViewHelpers.AlertInfo(@<text><span class="message" data-bind="text: message"></span></text>)
     </div>
     <h2>Reserve Namespace</h2>
-    <form>
+    <form data-bind="submit: prefixSearch">
         <div class="form-horizontal">
             <input type="text" placeholder="Search for a prefix" autocomplete="on" autofocus data-bind="value: prefixSearchQuery" />
-            <input type="button" value="Search Prefix" title="Search Prefix" data-bind="click: prefixSearch" />
+            <input type="submit" value="Search Prefix" title="Search Prefix" />
         </div>
     </form><br />
 
@@ -117,7 +117,7 @@
                             }
                         }
                     })
-                    .error(function(jqXhr, textStatus, errorThrown) {
+                    .fail(function(jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -148,7 +148,7 @@
                             }
                         }
                     })
-                    .error(function (jqXhr, textStatus, errorThrown) {
+                    .fail(function (jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -178,7 +178,7 @@
                             }
                         }
                     })
-                    .error(function (jqXhr, textStatus, errorThrown) {
+                    .fail(function (jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -210,7 +210,7 @@
                             }
                         }
                     })
-                    .error(function (jqXhr, textStatus, errorThrown) {
+                    .fail(function (jqXhr, textStatus, errorThrown) {
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -228,7 +228,7 @@
                 };
             };
 
-            ko.applyBindings(new viewModel(), $('#stage').get(0));
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
         });
     </script>
 }

@@ -251,6 +251,12 @@
                 </div>
             </div>
             <!-- /ko -->
+            <!-- ko if: $data.ReadmeFileContents -->
+            <div class="verify-package-field readme">
+                <label class="verify-package-field-heading">Readme File</label>
+                <div class="readme-container" data-bind="html: $data.ReadmeFileContents"></div>
+            </div>
+            <!-- /ko -->
             <!-- /ko -->
         </div>
     </div>

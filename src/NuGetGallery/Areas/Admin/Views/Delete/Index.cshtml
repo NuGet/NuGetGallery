@@ -80,7 +80,7 @@
                                 $self.searchResults(data);
                             }
                         })
-                        .error(function(jqXhr, textStatus, errorThrown) {
+                        .fail(function(jqXhr, textStatus, errorThrown) {
                             alert("Error: " + errorThrown);
                         })
                         .always(function () {
@@ -123,7 +123,7 @@
                 });
             };
 
-            ko.applyBindings(new viewModel(), $('#stage').get(0));
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
         });
     </script>
     @Scripts.Render("~/Scripts/gallery/page-delete-package.min.js")

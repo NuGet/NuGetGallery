@@ -255,6 +255,11 @@
                 $(reportContainerElement).attr("data-bind", "template: { name: 'verify-metadata-template', data: data }");
                 $("#verify-package-container").append(reportContainerElement);
                 ko.applyBindings({ data: model }, reportContainerElement);
+                if (model.ReadmeFileContents) {
+                    $('#import-readme-container').addClass('hidden');
+                } else {
+                    $('#import-readme-container').removeClass('hidden');
+                }
 
                 var submitContainerElement = document.createElement("div");
                 $(submitContainerElement).attr("id", "submit-block");
