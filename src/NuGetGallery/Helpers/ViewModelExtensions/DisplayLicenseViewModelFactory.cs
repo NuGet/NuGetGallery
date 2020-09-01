@@ -64,7 +64,7 @@ namespace NuGetGallery
             viewModel.LicenseExpressionSegments = licenseExpressionSegments;
             viewModel.LicenseFileContents = licenseFileContents;
 
-            if (_featureFlagService.IsLicenceMdRenderingEnabled(currentUser) && 
+            if (_featureFlagService.IsLicenseMdRenderingEnabled(currentUser) && 
                 package.EmbeddedLicenseType == EmbeddedLicenseFileType.Markdown && 
                 licenseFileContents != null)
             {

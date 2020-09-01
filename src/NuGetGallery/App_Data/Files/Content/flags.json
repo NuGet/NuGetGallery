@@ -53,8 +53,8 @@
       "Accounts": [],
       "Domains": []
     },
-    "NuGetGallery.LicenceMdRendering": {
-      "All": false,
+    "NuGetGallery.LicenseMdRendering": {
+      "All": true,
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []

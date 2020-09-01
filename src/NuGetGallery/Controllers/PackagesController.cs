@@ -617,11 +617,11 @@ namespace NuGetGallery
             model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = packageContentData.LicenseFileContents;
 
-            var licence = packageContentData?.PackageMetadata?.LicenseMetadata?.License;
+            var license = packageContentData?.PackageMetadata?.LicenseMetadata?.License;
 
-            if (_featureFlagService.IsLicenceMdRenderingEnabled(currentUser) &&
-                licence != null && 
-                Path.GetExtension(licence).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
+            if (_featureFlagService.IsLicenseMdRenderingEnabled(currentUser) &&
+                license != null && 
+                Path.GetExtension(license).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
             {
                 model.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(packageContentData.LicenseFileContents, 2).Content;
             }
