@@ -207,11 +207,13 @@ namespace NuGetGallery.Controllers
             }
             catch (Exception ex) when (isNonHijackEnabled)
             {
-                // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
-                // We don't want to break package restores. We do want to know if this happens, so here goes:
+                // Swallowing exception intentionally if we are allowing a fallback to database. If non-hijacked
+                // queries are disabled, let the exception bubble out and the client will retry.
                 QuietLog.LogHandledException(ex);
             }
 
+            // If we've reached this point, the hijack to the search service has failed or is not applicable. If
+            // non-hijacked queries are disabled, stop here.
             if (!isNonHijackEnabled)
             {
                 return BadRequest(Strings.ODataParametersDisabled);
