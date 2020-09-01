@@ -195,6 +195,6 @@ namespace NuGetGallery
         /// <summary>
         /// Whether rendering licence Markdown content to HTML is enabled
         /// </summary>
-        bool IsLicenceMdRenderingEnabled(User user);
+        bool IsLicenseMdRenderingEnabled(User user);
     }
 }
