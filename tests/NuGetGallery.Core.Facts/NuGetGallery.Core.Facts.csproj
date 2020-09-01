@@ -99,6 +99,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SemVerLevelKeyFacts.cs" />
     <Compile Include="Services\AccessConditionWrapperFacts.cs" />
+    <Compile Include="Services\CloudBlobClientFactoryFacts.cs" />
+    <Compile Include="Services\CloudStorageAccountFactoryFacts.cs" />
     <Compile Include="Services\CoreLicenseFileServiceFacts.cs" />
     <Compile Include="Services\CoreSymbolPackageServiceFacts.cs" />
     <Compile Include="Services\FileUriPermissionsFacts.cs" />

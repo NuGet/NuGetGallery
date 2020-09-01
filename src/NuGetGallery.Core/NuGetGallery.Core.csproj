@@ -183,11 +183,13 @@
     <Compile Include="SemVerLevelKey.cs" />
     <Compile Include="Services\AccessConditionWrapper.cs" />
     <Compile Include="Services\BlobResultSegmentWrapper.cs" />
+    <Compile Include="Services\CloudBlobClientFactory.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobCoreFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
+    <Compile Include="Services\CloudStorageAccountFactory.cs" />
     <Compile Include="Services\CoreLicenseFileService.cs" />
     <Compile Include="Services\CorePackageFileService.cs" />
     <Compile Include="Services\CoreSymbolPackageService.cs" />

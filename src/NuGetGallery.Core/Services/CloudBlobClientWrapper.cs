@@ -2,30 +2,55 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
     public class CloudBlobClientWrapper : ICloudBlobClient
     {
-        private readonly string _storageConnectionString;
-        private readonly BlobRequestOptions _defaultRequestOptions;
-        private readonly bool _readAccessGeoRedundant;
-        private CloudBlobClient _blobClient;
+        private CloudBlobClient _cloudBlobClient;
 
         public CloudBlobClientWrapper(string storageConnectionString, bool readAccessGeoRedundant)
         {
-            _storageConnectionString = storageConnectionString;
-            _readAccessGeoRedundant = readAccessGeoRedundant;
+            _cloudBlobClient = CloudBlobClientFactory.CreateCloudBlobClient(storageConnectionString);
+
+            if (readAccessGeoRedundant)
+            {
+                _cloudBlobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+            }
         }
 
         public CloudBlobClientWrapper(string storageConnectionString, BlobRequestOptions defaultRequestOptions)
         {
-            _storageConnectionString = storageConnectionString;
-            _defaultRequestOptions = defaultRequestOptions;
+            _cloudBlobClient = CloudBlobClientFactory.CreateCloudBlobClient(storageConnectionString);
+
+            if (defaultRequestOptions != null)
+            {
+                _cloudBlobClient.DefaultRequestOptions = defaultRequestOptions;
+            }
+        }
+
+        public CloudBlobClientWrapper(string sasToken, string storageAccountName, bool readAccessGeoRedundant)
+        {
+            _cloudBlobClient = CloudBlobClientFactory.CreateCloudBlobClient(sasToken, storageAccountName);
+
+            if (readAccessGeoRedundant)
+            {
+                _cloudBlobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+            }
+        }
+
+        public CloudBlobClientWrapper(string sasToken, string storageAccountName, BlobRequestOptions defaultRequestOptions)
+        {
+            _cloudBlobClient = CloudBlobClientFactory.CreateCloudBlobClient(sasToken, storageAccountName);
+
+            if (defaultRequestOptions != null)
+            {
+                _cloudBlobClient.DefaultRequestOptions = defaultRequestOptions;
+            }
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
@@ -51,21 +76,7 @@ namespace NuGetGallery
 
         public ICloudBlobContainer GetContainerReference(string containerAddress)
         {
-            if (_blobClient == null)
-            {
-                _blobClient = CloudStorageAccount.Parse(_storageConnectionString).CreateCloudBlobClient();
-
-                if (_readAccessGeoRedundant)
-                {
-                    _blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
-                }
-                else if (_defaultRequestOptions != null)
-                {
-                    _blobClient.DefaultRequestOptions = _defaultRequestOptions;
-                }
-            }
-
-            return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
+            return new CloudBlobContainerWrapper(_cloudBlobClient.GetContainerReference(containerAddress));
         }
     }
 }
