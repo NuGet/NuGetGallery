@@ -369,7 +369,6 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<MarkdownService>()
-                .AsSelf()
                 .As<IMarkdownService>()
                 .InstancePerLifetimeScope();
 
