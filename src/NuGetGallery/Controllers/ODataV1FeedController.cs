@@ -54,6 +54,11 @@ namespace NuGetGallery.Controllers
         [CacheOutput(NoCache = true)]
         public IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options)
         {
+            if (!_featureFlagService.IsODataV1GetAllEnabled())
+            {
+                return BadRequest(Strings.ODataDisabled);
+            }
+
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Packages,
                 _configurationService.Current.IsODataFilterEnabled, nameof(Get)))
             {
@@ -94,7 +99,12 @@ namespace NuGetGallery.Controllers
             ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V1FeedPackage> options, string id, string version)
         {
-            var result = await GetCore(options, id, version, return404NotFoundWhenNoResults: true);
+            var result = await GetCore(
+                options,
+                id,
+                version,
+                return404NotFoundWhenNoResults: true,
+                isNonHijackEnabled: _featureFlagService.IsODataV1GetSpecificNonHijackedEnabled());
             return result.FormattedAsSingleResult<V1FeedPackage>();
         }
 
@@ -108,7 +118,12 @@ namespace NuGetGallery.Controllers
             ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V1FeedPackage> options, [FromODataUri]string id)
         {
-            return await GetCore(options, id, version: null, return404NotFoundWhenNoResults: false);
+            return await GetCore(
+                options,
+                id,
+                version: null,
+                return404NotFoundWhenNoResults: false,
+                isNonHijackEnabled: _featureFlagService.IsODataV1FindPackagesByIdNonHijackedEnabled());
         }
 
         // /api/v1/FindPackagesById()/$count?id=
@@ -123,7 +138,12 @@ namespace NuGetGallery.Controllers
             return result.FormattedAsCountResult<V1FeedPackage>();
         }
 
-        private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V1FeedPackage> options, string id, string version, bool return404NotFoundWhenNoResults)
+        private async Task<IHttpActionResult> GetCore(
+            ODataQueryOptions<V1FeedPackage> options,
+            string id,
+            string version,
+            bool return404NotFoundWhenNoResults,
+            bool isNonHijackEnabled)
         {
             var packages = GetAll()
                 .Include(p => p.PackageRegistration)
@@ -185,11 +205,18 @@ namespace NuGetGallery.Controllers
                     customQuery = true;
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (isNonHijackEnabled)
             {
-                // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
-                // We don't want to break package restores. We do want to know if this happens, so here goes:
+                // Swallowing exception intentionally if we are allowing a fallback to database. If non-hijacked
+                // queries are disabled, let the exception bubble out and the client will retry.
                 QuietLog.LogHandledException(ex);
+            }
+
+            // If we've reached this point, the hijack to the search service has failed or is not applicable. If
+            // non-hijacked queries are disabled, stop here.
+            if (!isNonHijackEnabled)
+            {
+                return BadRequest(Strings.ODataParametersDisabled);
             }
 
             if (return404NotFoundWhenNoResults && !packages.Any())
@@ -290,6 +317,11 @@ namespace NuGetGallery.Controllers
             else
             {
                 customQuery = true;
+            }
+
+            if (!_featureFlagService.IsODataV1SearchNonHijackedEnabled())
+            {
+                return BadRequest(Strings.ODataParametersDisabled);
             }
 
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Search,

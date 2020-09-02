@@ -15,12 +15,11 @@ namespace NuGetGallery.TestUtils.Infrastructure
             IReadOnlyEntityRepository<Package> repo,
             IGalleryConfigurationService configuration,
             ISearchService searchService)
-            : base(
+            : this(
                   repo,
-                  Mock.Of<IEntityRepository<Package>>(),
-                  configuration, GetSearchServiceFactory(searchService),
-                  Mock.Of<ITelemetryService>(),
-                  GetFeatureFlagService())
+                  configuration,
+                  searchService,
+                  Mock.Of<ITelemetryService>())
         {
         }
 
@@ -29,13 +28,28 @@ namespace NuGetGallery.TestUtils.Infrastructure
             IGalleryConfigurationService configuration,
             ISearchService searchService,
             ITelemetryService telemetryService)
+            : this(
+                  repo,
+                  configuration,
+                  searchService,
+                  telemetryService,
+                  GetFeatureFlagService())
+        {
+        }
+
+        public TestableV2Feed(
+            IReadOnlyEntityRepository<Package> repo,
+            IGalleryConfigurationService configuration,
+            ISearchService searchService,
+            ITelemetryService telemetryService,
+            IFeatureFlagService featureFlagService)
             : base(
                   repo,
                   Mock.Of<IEntityRepository<Package>>(),
                   configuration,
                   GetSearchServiceFactory(searchService),
                   telemetryService,
-                  GetFeatureFlagService())
+                  featureFlagService)
         {
         }
 
@@ -58,7 +72,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
         private static IFeatureFlagService GetFeatureFlagService()
         {
             var featureFlag = new Mock<IFeatureFlagService>();
-            featureFlag.Setup(ff => ff.IsODataDatabaseReadOnlyEnabled()).Returns(true);
+            featureFlag.SetReturnsDefault(true);
 
             return featureFlag.Object;
         }

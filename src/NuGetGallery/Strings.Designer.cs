@@ -1292,6 +1292,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This OData endpoint is disabled..
+        /// </summary>
+        public static string ODataDisabled {
+            get {
+                return ResourceManager.GetString("ODataDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The combination of parameters provided to this OData endpoint is not supported..
         /// </summary>
         public static string ODataParametersDisabled {
