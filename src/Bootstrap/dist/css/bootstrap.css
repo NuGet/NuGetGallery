@@ -571,12 +571,18 @@ a.text-danger:focus {
   color: #fff;
   background-color: #337ab7;
 }
+.bg-primary a {
+  color: #286090;
+}
 a.bg-primary:hover,
 a.bg-primary:focus {
   background-color: #286090;
 }
 .bg-success {
   background-color: #dff0d8;
+}
+.bg-success a {
+  color: #286090;
 }
 a.bg-success:hover,
 a.bg-success:focus {
@@ -585,6 +591,9 @@ a.bg-success:focus {
 .bg-info {
   background-color: #d9edf7;
 }
+.bg-info a {
+  color: #286090;
+}
 a.bg-info:hover,
 a.bg-info:focus {
   background-color: #afd9ee;
@@ -592,12 +601,18 @@ a.bg-info:focus {
 .bg-warning {
   background-color: #fcf8e3;
 }
+.bg-warning a {
+  color: #286090;
+}
 a.bg-warning:hover,
 a.bg-warning:focus {
   background-color: #f7ecb5;
 }
 .bg-danger {
   background-color: #f2dede;
+}
+.bg-danger a {
+  color: #286090;
 }
 a.bg-danger:hover,
 a.bg-danger:focus {

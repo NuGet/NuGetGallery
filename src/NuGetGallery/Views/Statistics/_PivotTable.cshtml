@@ -60,10 +60,14 @@
                             </tr>
                         </thead>
                         <tbody data-bind="foreach: ShownRows">
-                            <tr data-bind="template: { name: 'rows-template', foreach: $data}"></tr>
+                            <tr data-bind="template: { name: 'rows-template', foreach: $data }"></tr>
                         </tbody>
-                        <tbody data-bind="foreach: HiddenRows" class="collapse" id="hidden-rows"></tbody>
-
+                        <tbody data-bind="foreach: HiddenRows" class="collapse" id="hidden-rows">
+                            <!--
+                            There must be some content (even if it is just whitespace or a comment) in data bound elements, as of Knockout 3.5.0.
+                            See https://github.com/knockout/knockout/issues/2446.
+                            -->
+                        </tbody>
                     </table>
                     <!-- ko if: $data.reportSize > 6 -->
                     <button data-bind="if: $data.reportSize > 6, click: $data.SetupHiddenRows" type="button" data-toggle="collapse" class="btn btn-link btn-expander icon-link" data-target="#hidden-rows"

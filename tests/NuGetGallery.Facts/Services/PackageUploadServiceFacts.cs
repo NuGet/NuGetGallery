@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -618,6 +617,115 @@ namespace NuGetGallery
                     lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
                     expectedLicenseDelete ? Times.Once() : Times.Never());
             }
+
+            [Theory]
+            [InlineData(PackageStatus.Validating, false)]
+            [InlineData(PackageStatus.Available, true)]
+            public async Task SavesReadmeFileWhenPackageIsAvailable(PackageStatus packageStatus, bool expectedReadmeSave)
+            {
+                _package.PackageStatusKey = packageStatus;
+                _package.HasReadMe = true;
+                _package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
+
+                _packageFile = GeneratePackageWithUserContent(readmeFilename: "read.md", readmeFileContents: "readme test").Object.GetStream();
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _packageFileService.Verify(
+                    lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile),
+                    expectedReadmeSave ? Times.Once() : Times.Never());
+            }
+
+            [Fact]
+            public async Task ResetsPackageStreamAfterSavingReadmeFile()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+                _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
+                _package.HasReadMe = true;
+                _package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
+
+                _packageFile = GeneratePackageWithUserContent(licenseFilename: "license.txt", licenseFileContents: "some license", readmeFilename: "read.md", readmeFileContents: "readme test").Object.GetStream();
+
+                _licenseFileService
+                    .Setup(lfs => lfs.ExtractAndSaveLicenseFileAsync(_package, _packageFile))
+                    .Callback<Package, Stream>((_, stream) => stream.Position = 42)
+                    .Returns(Task.CompletedTask);
+
+                _packageFileService
+                    .Setup(lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile))
+                    .Callback<Package, Stream>((_, stream) => stream.Position = 42)
+                    .Returns(Task.CompletedTask);
+
+                _packageFileService
+                    .Setup(pfs => pfs.SavePackageFileAsync(_package, _packageFile))
+                    .Callback<Package, Stream>((_, stream) => Assert.Equal(0, stream.Position))
+                    .Returns(Task.CompletedTask);
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _licenseFileService.Verify(lfs => lfs.ExtractAndSaveLicenseFileAsync(_package, _packageFile), Times.Once);
+                _packageFileService.Verify(lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile), Times.Once);
+                _packageFileService.Verify(pfs => pfs.SavePackageFileAsync(_package, _packageFile), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Validating, false)]
+            [InlineData(PackageStatus.Available, true)]
+            public async Task CleansUpReadmeIfBlobSaveFails(PackageStatus packageStatus, bool expectedReadmeDelete)
+            {
+                _package.PackageStatusKey = packageStatus;
+                _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
+                _package.NormalizedVersion = "3.2.1";
+                _package.HasReadMe = true;
+                _package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
+
+                _packageFile = GeneratePackageWithUserContent(licenseFilename: "license.txt", licenseFileContents: "some license", readmeFilename: "read.md", readmeFileContents: "readme test").Object.GetStream();
+
+                _packageFileService
+                    .Setup(pfs => pfs.SavePackageFileAsync(_package, It.IsAny<Stream>()))
+                    .ThrowsAsync(new Exception());
+                _packageFileService
+                    .Setup(pfs => pfs.SaveValidationPackageFileAsync(_package, It.IsAny<Stream>()))
+                    .ThrowsAsync(new Exception());
+
+                await Assert.ThrowsAsync<Exception>(() => _target.CommitPackageAsync(_package, _packageFile));
+
+                _licenseFileService.Verify(
+                    lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion),
+                    expectedReadmeDelete ? Times.Once() : Times.Never());
+
+                _packageFileService.Verify(
+                    lfs => lfs.DeleteReadMeMdFileAsync(_package),
+                    expectedReadmeDelete ? Times.Once() : Times.Never());
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Validating, false)]
+            [InlineData(PackageStatus.Available, true)]
+            public async Task CleansUpReadmeIfDbUpdateFails(PackageStatus packageStatus, bool expectedFileDelete)
+            {
+                _package.PackageStatusKey = packageStatus;
+                _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
+                _package.NormalizedVersion = "3.2.1";
+                _package.HasReadMe = true;
+                _package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
+
+                _packageFile = GeneratePackageWithUserContent(licenseFilename: "license.txt", licenseFileContents: "some license", readmeFilename: "read.md", readmeFileContents: "readme test").Object.GetStream();
+
+                _entitiesContext
+                    .Setup(ec => ec.SaveChangesAsync())
+                    .ThrowsAsync(new Exception());
+
+                await Assert.ThrowsAsync<Exception>(() => _target.CommitPackageAsync(_package, _packageFile));
+
+                _licenseFileService.Verify(
+                    lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
+                    expectedFileDelete ? Times.Once() : Times.Never());
+
+                _packageFileService.Verify(
+                    lfs => lfs.DeleteReadMeMdFileAsync(_package),
+                    expectedFileDelete ? Times.Once() : Times.Never());
+            }
         }
 
         public abstract class FactsBase
@@ -726,6 +834,9 @@ namespace NuGetGallery
                 byte[] licenseFileBinaryContents = null,
                 string iconFilename = null,
                 byte[] iconFileBinaryContents = null,
+                string readmeFilename = null,
+                string readmeFileContents = null,
+                byte[] readmeFileBinaryContents = null,
                 IReadOnlyList<string> entryNames = null)
             {
                 var packageStream = GeneratePackageStream(
@@ -742,6 +853,9 @@ namespace NuGetGallery
                     licenseFileBinaryContents: licenseFileBinaryContents,
                     iconFilename: iconFilename,
                     iconFileBinaryContents: iconFileBinaryContents,
+                    readmeFilename: readmeFilename,
+                    readmeFileContents: readmeFileContents,
+                    readmeFileBinaryContents: readmeFileBinaryContents,
                     entryNames: entryNames);
 
                 return PackageServiceUtility.CreateNuGetPackage(packageStream);
@@ -761,6 +875,9 @@ namespace NuGetGallery
                 byte[] licenseFileBinaryContents = null,
                 string iconFilename = null,
                 byte[] iconFileBinaryContents = null,
+                string readmeFilename = null,
+                string readmeFileContents = null,
+                byte[] readmeFileBinaryContents = null,
                 IReadOnlyList<string> entryNames = null)
             {
                 return PackageServiceUtility.CreateNuGetPackageStream(
@@ -774,13 +891,15 @@ namespace NuGetGallery
                     iconUrl: iconUrl,
                     licenseExpression: licenseExpression,
                     licenseFilename: licenseFilename,
-                    licenseFileContents: GetBinaryLicenseFileContents(licenseFileBinaryContents, licenseFileContents),
+                    licenseFileContents: GetBinaryFileContents(licenseFileBinaryContents, licenseFileContents),
                     iconFilename: iconFilename,
                     iconFileBinaryContents: iconFileBinaryContents,
+                    readmeFilename: readmeFilename,
+                    readmeFileContents: GetBinaryFileContents(readmeFileBinaryContents, readmeFileContents),
                     entryNames: entryNames);
             }
 
-            private static byte[] GetBinaryLicenseFileContents(byte[] binaryContents, string stringContents)
+            private static byte[] GetBinaryFileContents(byte[] binaryContents, string stringContents)
             {
                 if (binaryContents != null)
                 {

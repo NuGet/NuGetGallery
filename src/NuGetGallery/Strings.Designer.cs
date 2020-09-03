@@ -1292,6 +1292,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This OData endpoint is disabled..
+        /// </summary>
+        public static string ODataDisabled {
+            get {
+                return ResourceManager.GetString("ODataDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The combination of parameters provided to this OData endpoint is not supported..
         /// </summary>
         public static string ODataParametersDisabled {
@@ -1567,6 +1576,15 @@ namespace NuGetGallery {
         public static string ReadMeMaxLengthExceeded {
             get {
                 return ResourceManager.GetString("ReadMeMaxLengthExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The readme is not editable with the package has the embedded readme.
+        /// </summary>
+        public static string ReadmeNotEditableWithEmbeddedReadme {
+            get {
+                return ResourceManager.GetString("ReadmeNotEditableWithEmbeddedReadme", resourceCulture);
             }
         }
         

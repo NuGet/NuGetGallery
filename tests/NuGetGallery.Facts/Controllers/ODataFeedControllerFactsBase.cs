@@ -57,14 +57,19 @@ namespace NuGetGallery.Controllers
             ITelemetryService telemetryService,
             IFeatureFlagService featureFlagService);
 
-        protected TController CreateTestableODataFeedController(HttpRequestMessage request)
+        protected TController CreateTestableODataFeedController(
+            HttpRequestMessage request,
+            Mock<IFeatureFlagService> featureFlagService)
         {
             var searchService = new Mock<ISearchService>().Object;
             var configurationService = new TestGalleryConfigurationService();
             configurationService.Current.SiteRoot = _siteRoot;
             var telemetryService = new Mock<ITelemetryService>();
-            var featureFlagService = new Mock<IFeatureFlagService>();
-            featureFlagService.Setup(ff => ff.IsODataDatabaseReadOnlyEnabled()).Returns(true);
+            if (featureFlagService == null)
+            {
+                featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.SetReturnsDefault(true);
+            }
             var readWritePackagesRepositoryMock = new Mock<IEntityRepository<Package>>();
 
             var controller = CreateController(
@@ -146,22 +151,24 @@ namespace NuGetGallery.Controllers
 
         protected IHttpActionResult GetActionResult<TFeedPackage>(
            Func<TController, ODataQueryOptions<TFeedPackage>, IHttpActionResult> controllerAction,
-           string requestPath)
+           string requestPath,
+           Mock<IFeatureFlagService> featureFlagService = null)
            where TFeedPackage : class
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_siteRoot}{requestPath}");
-            var controller = CreateTestableODataFeedController(request);
+            var controller = CreateTestableODataFeedController(request, featureFlagService);
 
             return controllerAction(controller, new ODataQueryOptions<TFeedPackage>(CreateODataQueryContext<TFeedPackage>(), request));
         }
 
         protected async Task<IHttpActionResult> GetActionResultAsync<TFeedPackage>(
            Func<TController, ODataQueryOptions<TFeedPackage>, Task<IHttpActionResult>> asyncControllerAction,
-           string requestPath)
+           string requestPath,
+           Mock<IFeatureFlagService> featureFlagService = null)
            where TFeedPackage : class
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_siteRoot}{requestPath}");
-            var controller = CreateTestableODataFeedController(request);
+            var controller = CreateTestableODataFeedController(request, featureFlagService);
 
             return await asyncControllerAction(controller,
                 new ODataQueryOptions<TFeedPackage>(CreateODataQueryContext<TFeedPackage>(), request));

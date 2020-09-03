@@ -692,6 +692,7 @@ namespace NuGetGallery
             package.EmbeddedLicenseType = GetEmbeddedLicenseType(packageMetadata);
             package.LicenseExpression = GetLicenseExpression(packageMetadata);
             package.HasEmbeddedIcon = !string.IsNullOrWhiteSpace(packageMetadata.IconFile);
+            package.HasReadMe = !string.IsNullOrWhiteSpace(packageMetadata.ReadmeFile);
             package.EmbeddedReadmeType = GetEmbeddedReadmeType(packageMetadata);
 
             return package;
@@ -750,7 +751,7 @@ namespace NuGetGallery
 
             var extension = Path.GetExtension(packageMetadata.ReadmeFile);
 
-            if (MarkdownFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase) || string.Empty == extension)
+            if (MarkdownFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase))
             {
                 return EmbeddedReadmeFileType.Markdown;
             }

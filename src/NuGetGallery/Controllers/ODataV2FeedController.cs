@@ -79,6 +79,8 @@ namespace NuGetGallery.Controllers
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
             bool? customQuery = null;
 
+            var isNonHijackEnabled = _featureFlagService.IsODataV2GetAllNonHijackedEnabled();
+
             // Try the search service
             try
             {
@@ -129,15 +131,20 @@ namespace NuGetGallery.Controllers
                     customQuery = true;
                 }
             }
-            catch (ODataException ex) when (ex.InnerException != null && ex.InnerException is FormatException)
+            catch (ODataException ex) when (isNonHijackEnabled && ex.InnerException != null && ex.InnerException is FormatException)
             {
                 // Sometimes users make invalid requests. It's not exceptional behavior, don't trace.
             }
-            catch (Exception ex)
+            catch (Exception ex) when (isNonHijackEnabled)
             {
                 // Swallowing Exception intentionally. If *anything* goes wrong in search, just fall back to the database.
                 // We don't want to break package restores. We do want to know if this happens, so here goes:
                 QuietLog.LogHandledException(ex);
+            }
+
+            if (!isNonHijackEnabled)
+            {
+                return BadRequest(Strings.ODataParametersDisabled);
             }
 
             // Reject only when try to reach database.
@@ -184,10 +191,11 @@ namespace NuGetGallery.Controllers
             var result = await GetCore(
                 options, 
                 id, 
-                version, 
-                semVerLevel: SemVerLevelKey.SemVerLevel2, 
+                version,
+                semVerLevel: SemVerLevelKey.SemVerLevel2,
                 allowHijack: hijack,
-                return404NotFoundWhenNoResults: true);
+                return404NotFoundWhenNoResults: true,
+                isNonHijackEnabled: _featureFlagService.IsODataV2GetSpecificNonHijackedEnabled());
 
             return result.FormattedAsSingleResult<V2FeedPackage>();
         }
@@ -224,7 +232,8 @@ namespace NuGetGallery.Controllers
                 version: null, 
                 semVerLevel: semVerLevel, 
                 allowHijack: true,
-                return404NotFoundWhenNoResults: false);
+                return404NotFoundWhenNoResults: false,
+                isNonHijackEnabled: _featureFlagService.IsODataV2FindPackagesByIdNonHijackedEnabled());
         }
 
         // /api/v2/FindPackagesById()/$count?semVerLevel=
@@ -247,7 +256,8 @@ namespace NuGetGallery.Controllers
             string version, 
             string semVerLevel,
             bool allowHijack,
-            bool return404NotFoundWhenNoResults)
+            bool return404NotFoundWhenNoResults,
+            bool isNonHijackEnabled)
         {
             var packages = GetAll()
                 .Include(p => p.PackageRegistration)
@@ -344,7 +354,7 @@ namespace NuGetGallery.Controllers
                 && options.RawValues.SkipToken == null
                 && options.RawValues.Top == null;
 
-            if (!allowHijack)
+            if (!allowHijack || !isNonHijackEnabled)
             {
                 if (!isSimpleLookup)
                 {
@@ -472,6 +482,11 @@ namespace NuGetGallery.Controllers
             else
             {
                 customQuery = true;
+            }
+
+            if (!_featureFlagService.IsODataV2SearchNonHijackedEnabled())
+            {
+                return BadRequest(Strings.ODataParametersDisabled);
             }
 
             //Reject only when try to reach database.
