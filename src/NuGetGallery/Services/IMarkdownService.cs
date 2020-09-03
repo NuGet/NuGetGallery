@@ -5,7 +5,19 @@ namespace NuGetGallery
 {
     public interface IMarkdownService
     {
-        RenderedMarkdownResult GetHtmlFromMarkdown(string readMeMd);
-        RenderedMarkdownResult GetHtmlFromMarkdown(string readMeMd, int incrementHeadersBy);
+        /// <summary>
+        /// Returns HTML from the supplied markdown
+        /// </summary>
+        /// <param name="markdownString">markdown input</param>
+        /// <returns>HTML data</returns>
+        RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString);
+
+        /// <summary>
+        /// Returns HTML from the supplied markdown
+        /// </summary>
+        /// <param name="markdownString">markdown input</param>
+        /// <param name="incrementHeadersBy">headers can be incremented by this value, eg if 2 supplied then h1 will become h3</param>
+        /// <returns>HTML data</returns>
+        RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString, int incrementHeadersBy);
     }
 }

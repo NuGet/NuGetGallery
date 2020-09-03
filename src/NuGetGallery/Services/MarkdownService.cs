@@ -16,12 +16,12 @@ namespace NuGetGallery
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex CommonMarkLinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
 
-        public RenderedMarkdownResult GetHtmlFromMarkdown(string readMeMd)
+        public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString)
         {
-            return GetHtmlFromMarkdown(readMeMd, 1);
+            return GetHtmlFromMarkdown(markdownString, 1);
         }
 
-        public RenderedMarkdownResult GetHtmlFromMarkdown(string readMeMd, int incrementHeadersBy)
+        public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString, int incrementHeadersBy)
         {
             var output = new RenderedMarkdownResult()
             {
@@ -29,7 +29,7 @@ namespace NuGetGallery
                 Content = ""
             };
 
-            var readmeWithoutBom = readMeMd.StartsWith("\ufeff") ? readMeMd.Replace("\ufeff", "") : readMeMd;
+            var readmeWithoutBom = markdownString.StartsWith("\ufeff") ? markdownString.Replace("\ufeff", "") : markdownString;
 
             // HTML encode markdown, except for block quotes, to block inline html.
             var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readmeWithoutBom), "> ");
