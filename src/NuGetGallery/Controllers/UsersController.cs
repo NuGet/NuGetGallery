@@ -589,7 +589,7 @@ namespace NuGetGallery
                 listedPackages[i].VersionSortOrder = i;
             }
 
-            listedPackages.Sort((x, y) => string.Compare(x.Id,y.Id, StringComparison.OrdinalIgnoreCase));
+            listedPackages.Sort((x, y) => string.Compare(x.Id, y.Id, StringComparison.OrdinalIgnoreCase));
 
             return listedPackages;
         }
