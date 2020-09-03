@@ -391,7 +391,7 @@
                 // check for the data-sortby attribute, if found, use that data to sort by
                 var sortby = td.data('sortby');
 
-                if (sortby) {
+                if (typeof sortby !== 'undefined') {
                     return sortby;
                 }
 
