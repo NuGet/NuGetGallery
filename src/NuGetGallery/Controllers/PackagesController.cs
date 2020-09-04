@@ -897,8 +897,8 @@ namespace NuGetGallery
             // If the normalized version is actually a SemVer but does not match the resolved package version, show a
             // warning. It's possible that the normalized version is not a SemVer string (like "absoluteLatest").
             if (normalized != null
-                && NuGetVersion.TryParse(normalized, out var parsed)
-                && !string.Equals(package.NormalizedVersion, normalized, StringComparison.OrdinalIgnoreCase))
+                && !string.Equals(package.NormalizedVersion, normalized, StringComparison.OrdinalIgnoreCase)
+                && NuGetVersion.TryParse(normalized, out var parsed))
             {
                 model.VersionRequested = normalized;
                 model.VersionRequestedWasNotFound = true;
