@@ -896,6 +896,7 @@ namespace NuGetGallery
                 // The page should select the first package that is IsLatestSemVer2
                 Assert.Equal(latestPackage.NormalizedVersion, model.Version);
                 Assert.True(model.LatestVersionSemVer2);
+                Assert.False(model.VersionRequestedWasNotFound);
 
                 deprecationService.Verify();
             }

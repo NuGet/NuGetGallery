@@ -828,6 +828,10 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
+            // Attempt to normalize the version but allow version strings that are not actually SemVer strings. For
+            // example, "absoluteLatest" is allowed as the version string as a reference to the absolute latest version
+            // including prerelease versions. In this case, the resulting normalized version will be left as the
+            // original string.
             string normalized = NuGetVersionFormatter.Normalize(version);
             if (!string.Equals(version, normalized))
             {
@@ -890,7 +894,11 @@ namespace NuGetGallery
                 model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
             }
 
-            if (normalized != null && !string.Equals(package.NormalizedVersion, normalized, StringComparison.OrdinalIgnoreCase))
+            // If the normalized version is actually a SemVer but does not match the resolved package version, show a
+            // warning. It's possible that the normalized version is not a SemVer string (like "absoluteLatest").
+            if (normalized != null
+                && !string.Equals(package.NormalizedVersion, normalized, StringComparison.OrdinalIgnoreCase)
+                && NuGetVersion.TryParse(normalized, out var parsed))
             {
                 model.VersionRequested = normalized;
                 model.VersionRequestedWasNotFound = true;
