@@ -341,6 +341,9 @@ img.reserved-indicator-icon {
   z-index: 99999;
   right: 0;
 }
+.sortable {
+  cursor: pointer;
+}
 .modal-backdrop.in {
   opacity: 0.8 !important;
   position: fixed;

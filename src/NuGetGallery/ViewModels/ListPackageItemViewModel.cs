@@ -25,6 +25,7 @@ namespace NuGetGallery
         public string ShortDescription { get; private set; }
         public bool IsDescriptionTruncated { get; set; }
         public bool? IsVerified { get; set; }
+        public int VersionSortOrder { get; set; }
         public string SignatureInformation
         {
             get
