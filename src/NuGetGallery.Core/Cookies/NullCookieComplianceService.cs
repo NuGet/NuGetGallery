@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace NuGetGallery.Cookies
@@ -29,10 +30,10 @@ namespace NuGetGallery.Cookies
 
         public override IEnumerable<string> GetConsentStylesheets(HttpRequestBase request, string locale = null) => EmptyStringArray;
 
-        public override bool CanWriteAnalyticsCookies(HttpRequestBase request) => false;
+        public override Task<bool> CanWriteAnalyticsCookies(HttpRequestBase request) => Task.FromResult(false);
 
-        public override bool CanWriteSocialMediaCookies(HttpRequestBase request) => false;
+        public override Task<bool> CanWriteSocialMediaCookies(HttpRequestBase request) => Task.FromResult(false);
 
-        public override bool CanWriteAdvertisingCookies(HttpRequestBase request) => false;
+        public override Task<bool> CanWriteAdvertisingCookies(HttpRequestBase request) => Task.FromResult(false);
     }
 }

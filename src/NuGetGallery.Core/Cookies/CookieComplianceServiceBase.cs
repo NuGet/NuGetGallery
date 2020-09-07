@@ -48,10 +48,10 @@ namespace NuGetGallery.Cookies
 
         public abstract IEnumerable<string> GetConsentStylesheets(HttpRequestBase request, string locale = null);
 
-        public abstract bool CanWriteAnalyticsCookies(HttpRequestBase request);
+        public abstract Task<bool> CanWriteAnalyticsCookies(HttpRequestBase request);
 
-        public abstract bool CanWriteSocialMediaCookies(HttpRequestBase request);
+        public abstract Task<bool> CanWriteSocialMediaCookies(HttpRequestBase request);
 
-        public abstract bool CanWriteAdvertisingCookies(HttpRequestBase request);
+        public abstract Task<bool> CanWriteAdvertisingCookies(HttpRequestBase request);
     }
 }
