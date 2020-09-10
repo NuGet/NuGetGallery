@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
@@ -521,16 +522,12 @@ namespace NuGetGallery
             var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
 
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
-            var listedPackages = packages
-                .Where(p => p.Listed && p.PackageStatusKey == PackageStatus.Available)
-                .Select(p => _listPackageItemRequiredSignerViewModelFactory.Create(p, currentUser, wasAADLoginOrMultiFactorAuthenticated))
-                .OrderBy(p => p.Id)
-                .ToList();
-            var unlistedPackages = packages
-                .Where(p => !p.Listed || p.PackageStatusKey != PackageStatus.Available)
-                .Select(p => _listPackageItemRequiredSignerViewModelFactory.Create(p, currentUser, wasAADLoginOrMultiFactorAuthenticated))
-                .OrderBy(p => p.Id)
-                .ToList();
+
+            var listedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
+                p => p.Listed && p.PackageStatusKey == PackageStatus.Available);
+            
+            var unlistedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
+                p => !p.Listed || p.PackageStatusKey != PackageStatus.Available);
 
             // find all received ownership requests
             var userReceived = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
@@ -565,6 +562,36 @@ namespace NuGetGallery
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false
             };
             return View(model);
+        }
+
+        /// <summary>
+        /// Returns all packages based on the predicate, with the VersionSortOrder populated
+        /// </summary>
+        /// <param name="packages"></param>
+        /// <param name="currentUser"></param>
+        /// <param name="wasAADLoginOrMultiFactorAuthenticated"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        private List<ListPackageItemRequiredSignerViewModel> GetPackages(
+            IEnumerable<Package> packages,
+            User currentUser,
+            bool wasAADLoginOrMultiFactorAuthenticated,
+            Func<Package, bool> predicate)
+        {
+            var listedPackages = packages
+                .Where(p => predicate(p))
+                .Select(p => _listPackageItemRequiredSignerViewModelFactory.Create(p, currentUser, wasAADLoginOrMultiFactorAuthenticated))
+                .OrderBy(p => NuGetVersion.Parse(p.FullVersion))
+                .ToList();
+
+            for (int i = 0; i < listedPackages.Count; i++)
+            {
+                listedPackages[i].VersionSortOrder = i;
+            }
+
+            listedPackages.Sort((x, y) => string.Compare(x.Id, y.Id, StringComparison.OrdinalIgnoreCase));
+
+            return listedPackages;
         }
 
         [HttpGet]
