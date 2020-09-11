@@ -42,13 +42,8 @@
     <Compile Include="Storage\CertificateStoreTests.cs" />
     <Compile Include="Storage\ValidatorStatusExtensionsFacts.cs" />
     <Compile Include="Support\CertificateIntegrationTestFixture.cs" />
-    <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\ExtensionMethods.cs" />
-    <Compile Include="Support\RecordingLogger.cs" />
     <Compile Include="Support\X509V3CertificateGeneratorExtensions.cs" />
-    <Compile Include="Support\XunitLogger.cs" />
-    <Compile Include="Support\XunitLoggerFactoryExtensions.cs" />
-    <Compile Include="Support\XunitLoggerProvider.cs" />
     <Compile Include="TestData\TestResources.cs" />
   </ItemGroup>
   <ItemGroup>

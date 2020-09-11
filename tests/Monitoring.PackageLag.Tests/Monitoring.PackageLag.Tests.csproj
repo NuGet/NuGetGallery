@@ -54,9 +54,9 @@
       <Project>{b5147169-e941-4cf8-9fcd-1c123acd3149}</Project>
       <Name>Monitoring.PackageLag</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj">
-      <Project>{b4b7564a-965b-447b-927f-6749e2c08880}</Project>
-      <Name>Validation.PackageSigning.Core.Tests</Name>
+    <ProjectReference Include="..\TestUtil\TestUtil.csproj">
+      <Project>{c3f84bad-acfa-4ae3-8286-d12f5a5bbc62}</Project>
+      <Name>TestUtil</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
