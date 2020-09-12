@@ -2,10 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net;
-using System.Security.Claims;
-using System.Threading;
 using System.Web;
 using System.Web.Mvc;
+using System.Threading;
+using System.Security.Claims;
 using Microsoft.Owin;
 using NuGet.Services.Entities;
 
@@ -94,7 +94,23 @@ namespace NuGetGallery
                 }
             }
 
+            SetCookieCompliance(filterContext);
+
             base.OnActionExecuting(filterContext);
+        }
+
+        private void SetCookieCompliance(ActionExecutingContext filterContext)
+        {
+            if (filterContext.HttpContext?.Items["CanWriteAnalyticsCookies"] == null
+                || (bool)filterContext.HttpContext.Items["CanWriteAnalyticsCookies"] == false)
+            {
+                ViewBag.CanWriteAnalyticsCookies = false;
+                NuGetContext.CookieComplianceService.ExpireAnalyticsCookies(filterContext.HttpContext);
+            }
+            else
+            {
+                ViewBag.CanWriteAnalyticsCookies = true;
+            }
         }
     }
 }

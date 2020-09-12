@@ -26,15 +26,6 @@ namespace NuGetGallery
 
         public User CurrentUser { get { return _currentUser.Value; } }
 
-        private ICookieComplianceService CookieComplianceService { get; }
-
-        public CookieConsentMessage GetCookieConsentMessage(HttpRequestBase request)
-        {
-            if (CookieComplianceService.NeedsConsentForNonEssentialCookies(request))
-            {
-                return CookieComplianceService.GetConsentMessage(request);
-            }
-            return null;
-        }
+        public ICookieComplianceService CookieComplianceService { get; }
     }
 }

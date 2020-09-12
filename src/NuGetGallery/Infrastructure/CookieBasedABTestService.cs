@@ -3,6 +3,7 @@
 
 using System;
 using System.Web;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using NuGetGallery.Cookies;
@@ -42,18 +43,18 @@ namespace NuGetGallery
             _lazyEnrollment = new Lazy<ABTestEnrollment>(DetermineEnrollment);
         }
 
-        public bool IsPreviewSearchEnabled(User user)
+        public async Task<bool> IsPreviewSearchEnabled(User user)
         {
-            return IsActive(
+            return await IsActive(
                 nameof(Enrollment.PreviewSearchBucket),
                 user,
                 enrollment => enrollment.PreviewSearchBucket,
                 config => config.PreviewSearchPercentage);
         }
 
-        public bool IsPackageDependendentsABEnabled(User user)
+        public async Task<bool> IsPackageDependendentsABEnabled(User user)
         {
-            var isActive = IsActive(
+            var isActive = await IsActive(
                 nameof(Enrollment.PackageDependentBucket),
                 user,
                 enrollment => enrollment.PackageDependentBucket,
@@ -97,7 +98,7 @@ namespace NuGetGallery
             return enrollment;
         }
 
-        private bool IsActive(
+        private async Task<bool> IsActive(
             string name,
             User user,
             Func<ABTestEnrollment, int> getTestBucket,
@@ -108,7 +109,7 @@ namespace NuGetGallery
             const string inactive = "inactive";
             const string active = "active";
 
-            if (!_cookieComplianceService.CanWriteNonEssentialCookies(_httpContext.Request))
+            if (!await _cookieComplianceService.CanWriteAnalyticsCookies(_httpContext.Request))
             {
                 _logger.LogInformation(
                     "A/B test {Name} is {TestStatus} for an {AuthStatus} user due to no cookie consent.",

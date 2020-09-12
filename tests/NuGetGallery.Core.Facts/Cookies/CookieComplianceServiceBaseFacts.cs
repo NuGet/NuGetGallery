@@ -12,6 +12,7 @@ namespace NuGetGallery.Cookies
 {
     public class CookieComplianceServiceBaseFacts
     {
+        /*
         [Fact]
         public void Domain_ThrowsInvalidOperationExceptionIfNotInitialized()
         {
@@ -67,6 +68,6 @@ namespace NuGetGallery.Cookies
         {
             public new IDiagnosticsSource Diagnostics => base.Diagnostics;
             public new string Domain => base.Domain;
-        }
+        }*/
     }
 }

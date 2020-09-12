@@ -878,7 +878,7 @@ namespace NuGetGallery
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser) && 
-                _abTestService.IsPackageDependendentsABEnabled(currentUser);
+                await _abTestService.IsPackageDependendentsABEnabled(currentUser);
            
             if (model.IsPackageDependentsEnabled)
             {
@@ -1159,7 +1159,7 @@ namespace NuGetGallery
 
             SearchResults results;
 
-            var isPreviewSearchEnabled = _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
+            var isPreviewSearchEnabled = await _abTestService.IsPreviewSearchEnabled(GetCurrentUser());
             var searchService = isPreviewSearchEnabled ? _searchServiceFactory.GetPreviewService() : _searchServiceFactory.GetService();
             var isAdvancedSearchFlightEnabled = _featureFlagService.IsAdvancedSearchEnabled(GetCurrentUser());
 

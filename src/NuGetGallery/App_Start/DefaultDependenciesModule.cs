@@ -1463,6 +1463,10 @@ namespace NuGetGallery
             CookieComplianceServiceBase service = null;
             if (configuration.Current.IsHosted)
             {
+                service = GetAddInServices<ICookieComplianceService>()
+                    .FirstOrDefault() as CookieComplianceServiceBase;
+
+                /*
                 var siteName = configuration.GetSiteRoot(true);
                 service = GetAddInServices<ICookieComplianceService>(sp =>
                 {
@@ -1474,7 +1478,7 @@ namespace NuGetGallery
                 {
                     // Initialize the service on App_Start to avoid any performance degradation during initial requests.
                     HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
-                }
+                }*/
             }
 
             builder.RegisterInstance(service ?? new NullCookieComplianceService())

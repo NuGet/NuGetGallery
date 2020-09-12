@@ -13,7 +13,6 @@ namespace NuGetGallery.Views
     public abstract class NuGetViewBase : WebViewPage
     {
         private readonly Lazy<NuGetContext> _nugetContext;
-        private readonly Lazy<CookieConsentMessage> _cookieConsentMessage;
 
         public NuGetContext NuGetContext
         {
@@ -32,17 +31,11 @@ namespace NuGetGallery.Views
 
         public Lazy<IContentObjectService> ContentObjectService => new Lazy<IContentObjectService>(() => DependencyResolver.Current.GetService<IContentObjectService>());
 
-        public CookieConsentMessage CookieConsentMessage
-        {
-            get { return _cookieConsentMessage.Value; }
-        }
-
         public bool ShowAuthInHeader => true;
 
         protected NuGetViewBase()
         {
             _nugetContext = new Lazy<NuGetContext>(GetNuGetContextThunk(this));
-            _cookieConsentMessage = new Lazy<CookieConsentMessage>(() => NuGetContext.GetCookieConsentMessage(Request));
         }
 
         internal static Func<NuGetContext> GetNuGetContextThunk(WebViewPage self)
@@ -68,7 +61,6 @@ namespace NuGetGallery.Views
     public abstract class NuGetViewBase<T> : WebViewPage<T>
     {
         private readonly Lazy<NuGetContext> _nugetContext;
-        private readonly Lazy<CookieConsentMessage> _cookieConsentMessage;
 
         public NuGetContext NuGetContext
         {
@@ -87,11 +79,6 @@ namespace NuGetGallery.Views
 
         public Lazy<IContentObjectService> ContentObjectService => new Lazy<IContentObjectService>(() => DependencyResolver.Current.GetService<IContentObjectService>());
 
-        public CookieConsentMessage CookieConsentMessage
-        {
-            get { return _cookieConsentMessage.Value; }
-        }
-
         public bool ShowAuthInHeader => true;
 
         public bool LinkOpenSearchXml => true;
@@ -99,7 +86,6 @@ namespace NuGetGallery.Views
         protected NuGetViewBase()
         {
             _nugetContext = new Lazy<NuGetContext>(NuGetViewBase.GetNuGetContextThunk(this));
-            _cookieConsentMessage = new Lazy<CookieConsentMessage>(() => NuGetContext.GetCookieConsentMessage(Request));
         }
 
         protected override void InitializePage()

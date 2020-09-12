@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -25,7 +26,7 @@ namespace NuGetGallery
             [InlineData(50, 51, true)]
             [InlineData(99, 100, true)]
             [InlineData(100, 100, true)]
-            public void ComparesEnrollmentToConfig(int enrollment, int config, bool enabled)
+            public async Task ComparesEnrollmentToConfig(int enrollment, int config, bool enabled)
             {
                 InitializedEnrollment = new ABTestEnrollment(
                     ABTestEnrollmentState.FirstHit,
@@ -34,30 +35,30 @@ namespace NuGetGallery
                     packageDependentBucket: 42);
                 Configuration.Setup(x => x.PreviewSearchPercentage).Returns(config);
 
-                var result = Target.IsPreviewSearchEnabled(User);
+                var result = await Target.IsPreviewSearchEnabled(User);
 
                 Assert.Equal(enabled, result);
             }
 
-            protected override bool RunTest(User user)
+            protected override async Task<bool> RunTest(User user)
             {
-                return Target.IsPreviewSearchEnabled(user);
+                return await Target.IsPreviewSearchEnabled(user);
             }
         }
 
         public abstract class BaseSerializationFacts : Facts
         {
             [Fact]
-            public void ReturnsFalseWhenCookieConsentIsNotGiven()
+            public async Task ReturnsFalseWhenCookieConsentIsNotGiven()
             {
                 CookieComplianceService
-                    .Setup(x => x.CanWriteNonEssentialCookies(It.IsAny<HttpRequestBase>()))
-                    .Returns(false);
+                    .Setup(x => x.CanWriteAnalyticsCookies(It.IsAny<HttpRequestBase>()))
+                    .Returns(Task.FromResult(false));
 
-                var result = RunTest(User);
+                var result = await RunTest(User);
 
                 Assert.False(result, "The test should not be enabled.");
-                CookieComplianceService.Verify(x => x.CanWriteNonEssentialCookies(HttpContext.Object.Request), Times.Once);
+                CookieComplianceService.Verify(x => x.CanWriteAnalyticsCookies(HttpContext.Object.Request), Times.Once);
                 Assert.Empty(ResponseCookies);
                 EnrollmentFactory.Verify(x => x.Initialize(), Times.Never);
                 ABTestEnrollment outEnrollment;
@@ -65,13 +66,13 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void ReturnsFalseWhenUserIsNotInFlight()
+            public async Task ReturnsFalseWhenUserIsNotInFlight()
             {
                 FeatureFlagService
                     .Setup(x => x.IsABTestingEnabled(It.IsAny<User>()))
                     .Returns(false);
 
-                var result = RunTest(User);
+                var result = await RunTest(User);
 
                 Assert.False(result, "The test should not be enabled.");
                 FeatureFlagService.Verify(x => x.IsABTestingEnabled(User), Times.Once);
@@ -82,9 +83,9 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void InitializesWhenCookieIsMissing()
+            public async Task InitializesWhenCookieIsMissing()
             {
-                var result = RunTest(User);
+                var result = await RunTest(User);
 
                 Assert.True(result, "The test should be enabled.");
                 Assert.Contains(CookieName, ResponseCookies.Keys.Cast<string>());
@@ -97,11 +98,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void DeserializesWhenCookieIsPresentAndValid()
+            public async Task DeserializesWhenCookieIsPresentAndValid()
             {
                 RequestCookies.Add(new HttpCookie(CookieName, SerializedEnrollment));
 
-                var result = RunTest(User);
+                var result = await RunTest(User);
 
                 Assert.True(result, "The test should be enabled.");
                 Assert.Empty(ResponseCookies.Keys.Cast<string>());
@@ -111,14 +112,14 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void InitializesWhenCookieIsPresentAndInvalid()
+            public async Task InitializesWhenCookieIsPresentAndInvalid()
             {
                 RequestCookies.Add(new HttpCookie(CookieName, SerializedEnrollment));
                 EnrollmentFactory
                     .Setup(x => x.TryDeserialize(It.IsAny<string>(), out OutEnrollment))
                     .Returns(false);
 
-                var result = RunTest(User);
+                var result = await RunTest(User);
 
                 Assert.True(result, "The test should be enabled.");
                 Assert.Contains(CookieName, ResponseCookies.Keys.Cast<string>());
@@ -133,7 +134,7 @@ namespace NuGetGallery
             /// <summary>
             /// Run the test. The caller expects the method to return true.
             /// </summary>
-            protected abstract bool RunTest(User user);
+            protected abstract Task<bool> RunTest(User user);
         }
 
         public abstract class Facts

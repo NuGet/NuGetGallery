@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Web;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.Cookies
 {
@@ -13,46 +12,36 @@ namespace NuGetGallery.Cookies
     public interface ICookieComplianceService
     {
         /// <summary>
-        /// Determine if consent is still needed for writing non-essential cookies.
+        /// Determine whether it's allowed to write analytics cookies.
         /// </summary>
-        /// <returns>True if consent is needed, false if consent is already provided or not required.</returns>
-        bool NeedsConsentForNonEssentialCookies(HttpRequestBase request);
-
-        /// <summary>
-        /// Determine if non-essential cookies can be written.
-        /// </summary>
-        /// <returns>True if non-essential cookies can be written, false otherwise.</returns>
-        bool CanWriteNonEssentialCookies(HttpRequestBase request);
-
-        /// <summary>
-        /// Get the cookie consent banner message and resources. This API is an alternative to the default
-        /// rendering APIs below and can be used to customize the UI. Note that the messaging must remain intact.
-        /// </summary>
-        CookieConsentMessage GetConsentMessage(HttpRequestBase request, string locale = null);
-
-        #region Default CookieConsent rendering
-
-        /// <summary>
-        /// Get the default HTML markup for the cookie consent banner.
-        /// </summary>
-        string GetConsentMarkup(HttpRequestBase request, string locale = null);
-
-        /// <summary>
-        /// Get the default CSS links for the cookie consent banner.
-        /// </summary>
-        IEnumerable<string> GetConsentStylesheets(HttpRequestBase request, string locale = null);
-
-        /// <summary>
-        /// Get the default Javascript links for the cookie consent banner.
-        /// </summary>
-        IEnumerable<string> GetConsentScripts(HttpRequestBase request, string locale = null);
-
+        /// <returns>True if it's allowed.</returns>
         Task<bool> CanWriteAnalyticsCookies(HttpRequestBase request);
 
+        /// <summary>
+        /// Determine whether it's allowed to write social media cookies.
+        /// </summary>
+        /// <returns>True if it's allowed</returns>
         Task<bool> CanWriteSocialMediaCookies(HttpRequestBase request);
 
+        /// <summary>
+        /// Determine whether it's allowed to write advertising cookies.
+        /// </summary>
+        /// <returns>True if it's allowed.</returns>
         Task<bool> CanWriteAdvertisingCookies(HttpRequestBase request);
 
-        #endregion
+        /// <summary>
+        /// Expire analytics cookies.
+        /// </summary>
+        void ExpireAnalyticsCookies(HttpContextBase httpContextBase);
+
+        /// <summary>
+        /// Expire social media cookies.
+        /// </summary>
+        void ExpireSocialMediaCookies(HttpContextBase httpContextBase);
+
+        /// <summary>
+        /// Expire advertising cookies.
+        /// </summary>
+        void ExpireAdvertisingCookies(HttpContextBase httpContextBase);
     }
 }
