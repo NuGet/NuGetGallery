@@ -780,6 +780,7 @@ namespace NuGetGallery
 
             var context = new Mock<HttpContextBase>();
             context.SetupGet(s => s.Request).Returns(request.Object);
+            context.SetupGet(s => s.Items).Returns(new Dictionary<object, object>());
 
             var controller = new StatisticsController(aggregateStatsService.Object);
             controller.ControllerContext = new ControllerContext(context.Object, new RouteData(), controller);
@@ -788,4 +789,3 @@ namespace NuGetGallery
         }
     }
 }
-

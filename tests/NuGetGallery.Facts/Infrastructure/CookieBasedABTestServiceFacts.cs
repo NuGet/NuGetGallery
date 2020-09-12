@@ -171,7 +171,7 @@ namespace NuGetGallery
 
                 HttpContext.Setup(x => x.Request.Cookies).Returns(() => RequestCookies);
                 HttpContext.Setup(x => x.Response.Cookies).Returns(() => ResponseCookies);
-                CookieComplianceService.SetReturnsDefault(true);
+                CookieComplianceService.SetReturnsDefault(Task.FromResult(true));
                 FeatureFlagService.SetReturnsDefault(true);
 
                 EnrollmentFactory.Setup(x => x.Initialize()).Returns(() => InitializedEnrollment);
