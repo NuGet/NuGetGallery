@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
-using NuGetGallery.Cookies;
 
 namespace NuGetGallery.Views
 {

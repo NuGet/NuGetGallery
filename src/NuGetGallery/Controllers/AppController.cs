@@ -8,12 +8,14 @@ using System.Threading;
 using System.Security.Claims;
 using Microsoft.Owin;
 using NuGet.Services.Entities;
+using NuGetGallery.Cookies;
 
 namespace NuGetGallery
 {
     public abstract partial class AppController
         : Controller
     {
+        private ICookieComplianceService _cookieComplianceService;
         private IOwinContext _overrideContext;
 
         public IOwinContext OwinContext => _overrideContext ?? HttpContext.GetOwinContext();
@@ -30,9 +32,16 @@ namespace NuGetGallery
             _overrideContext = owinContext;
         }
 
+        public void SetCookieComplianceService(ICookieComplianceService cookieComplianceService)
+        {
+            _cookieComplianceService = cookieComplianceService;
+        }
+
         protected AppController()
         {
             NuGetContext = new NuGetContext(this);
+
+            _cookieComplianceService = GetService<ICookieComplianceService>();
         }
 
         protected internal virtual T GetService<T>()
@@ -94,18 +103,27 @@ namespace NuGetGallery
                 }
             }
 
-            SetCookieCompliance(filterContext);
-
             base.OnActionExecuting(filterContext);
         }
 
-        private void SetCookieCompliance(ActionExecutingContext filterContext)
+        /// <summary>
+        /// Called after the action method is invoked.
+        /// </summary>
+        /// <param name="filterContext">Information about the current request and action.</param>
+        protected override void OnActionExecuted(ActionExecutedContext filterContext)
+        {
+            SetCookieCompliance(filterContext);
+
+            base.OnActionExecuted(filterContext);
+        }
+
+        private void SetCookieCompliance(ActionExecutedContext filterContext)
         {
             if (filterContext.HttpContext?.Items["CanWriteAnalyticsCookies"] == null
                 || (bool)filterContext.HttpContext.Items["CanWriteAnalyticsCookies"] == false)
             {
                 ViewBag.CanWriteAnalyticsCookies = false;
-                NuGetContext.CookieComplianceService.ExpireAnalyticsCookies(filterContext.HttpContext);
+                _cookieComplianceService.ExpireAnalyticsCookies(filterContext.HttpContext);
             }
             else
             {

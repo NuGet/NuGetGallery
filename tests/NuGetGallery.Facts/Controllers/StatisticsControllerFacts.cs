@@ -13,6 +13,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Cookies;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -723,6 +724,7 @@ namespace NuGetGallery
                 request.Setup(r => r.UserLanguages).Returns(new string[] { "vi-VN" });
 
                 var controller = CreateController(aggregateStatsService, request);
+                controller.SetCookieComplianceService(Mock.Of<ICookieComplianceService>());
 
                 // Act
 
