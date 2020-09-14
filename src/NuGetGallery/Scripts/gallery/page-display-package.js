@@ -85,6 +85,11 @@ $(function () {
             setTimeout(function () {
                 copyButton.popover('destroy');
             }, 1000);
+            window.nuget.sendMetric("CopyInstallCommand", 1, {
+                ButtonId: id,
+                PackageId: packageId,
+                PackageVersion: packageVersion
+            });
         });
     }  
 
