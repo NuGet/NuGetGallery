@@ -38,10 +38,6 @@
                         !String.IsNullOrEmpty(this.Config.Current.ExternalTermsOfUseUrl) ||
                         !String.IsNullOrEmpty(this.Config.Current.ExternalPrivacyPolicyUrl))
                     {
-
-
-
-
                         <div class="col-md-12 footer-release-info">
                             <p>
                                 @if (!String.IsNullOrEmpty(this.Config.Current.ExternalBrandingMessage))
@@ -56,17 +52,9 @@
                                     }
                                 }
 
-
-
-
-
-
-                                <!-- Comment -->
                                 <a href="@Url.About()">About</a> -
                                 <a href="@Url.Terms()">Terms of Use</a> -
                                 <a href="@Url.Privacy()" id="footer-privacy-policy-link">Privacy Policy</a>
-
-
                                 @if (!String.IsNullOrEmpty(this.Config.Current.TrademarksUrl))
                                 {
                                     @:- <a href="@this.Config.Current.TrademarksUrl">Trademarks</a>
@@ -85,21 +73,12 @@
                             </a>
                         </div>
 
-
-
                         <div class="col-md-11 footer-release-info">
                             <p>
                                 &copy; @DateTime.UtcNow.Year .NET Foundation -
-
-
-
-
-
-                                <!-- Comment -->
                                 <a href="@Url.About()">About</a> -
                                 <a href="@Url.Terms()">Terms of Use</a> -
                                 <a href="@Url.Privacy()" id="footer-privacy-policy-link">Privacy Policy</a>
-
                                 @if (!String.IsNullOrEmpty(this.Config.Current.TrademarksUrl))
                                 {
                                     @:- <a href="@this.Config.Current.TrademarksUrl">Trademarks</a>

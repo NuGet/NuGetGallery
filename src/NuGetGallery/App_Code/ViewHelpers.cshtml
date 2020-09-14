@@ -221,16 +221,6 @@
     }
 }
 
-
-
-
-
-
-
-
-
-
-
 @helper InstrumentationScript(dynamic viewBag)
 {
     // Get instrumentation keys
@@ -321,18 +311,12 @@
 @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
 }
 
-
-
-
-
-
-
-
-
 @helper CookieComplianceScript()
 {
     <script src="https://consentdeliveryfd.azurefd.net/mscc/lib/v2/wcp-consent.js"></script>
     <script>
+        'use strict';
+        var WcpSiteConsent;
         WcpConsent.init("en-US", "cookie-banner", function (err, _siteConsent) {
             if (err != undefined) {
                 return error;
@@ -346,12 +330,6 @@
         }
     </script>
 }
-
-
-
-
-
-
 
 @helper AnalyticsScript(dynamic viewBag)
 {
@@ -381,16 +359,6 @@
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
 
 @helper UsabillaButton(UrlHelper url, dynamic viewBag)
 {
@@ -422,13 +390,6 @@ window.nuget.enableUsabilla('@obfuscatedPath');
 </script>
     }
 }
-
-
-
-
-
-
-
 
 @helper AccordionBar(
     string groupName,

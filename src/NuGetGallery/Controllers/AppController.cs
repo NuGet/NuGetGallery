@@ -123,6 +123,7 @@ namespace NuGetGallery
                 || (bool)filterContext.HttpContext.Items["CanWriteAnalyticsCookies"] == false)
             {
                 ViewBag.CanWriteAnalyticsCookies = false;
+
                 _cookieComplianceService.ExpireAnalyticsCookies(filterContext.HttpContext);
             }
             else
