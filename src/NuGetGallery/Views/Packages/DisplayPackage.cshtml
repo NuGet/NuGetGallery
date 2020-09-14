@@ -1146,6 +1146,8 @@
     </style>
 
     <script type="text/javascript">
+        var packageId = @Html.ToJson(Model.Id);
+        var packageVersion = @Html.ToJson(Model.Version);
         var packageManagers = @Html.ToJson(packageManagers.Select(pm => pm.Id).ToList());
     </script>
 
