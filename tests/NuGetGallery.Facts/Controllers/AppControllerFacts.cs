@@ -2,10 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net;
+using System.Web;
 using System.Web.Mvc;
-using NuGet.Services.Entities;
-using NuGetGallery.Framework;
+using System.Reflection;
+using System.Collections.Generic;
+using Moq;
 using Xunit;
+using NuGetGallery.Cookies;
+using NuGetGallery.Framework;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Controllers
 {
@@ -54,6 +59,76 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 Assert.Equal(JsonRequestBehavior.DenyGet, output.JsonRequestBehavior);
+            }
+        }
+
+        public class TheOnActionExecutedMethod : TestContainer
+        {
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void SetViewBagGivenHttpContextItemsWithCanWriteAnalyticsCookies(bool canWriteAnalyticsCookies)
+            {
+                // Arrange
+                var controller = GetController<TestableAppController>();
+                var cookieComplianceService = new Mock<ICookieComplianceService>();
+                cookieComplianceService.Setup(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
+                controller.SetCookieComplianceService(cookieComplianceService.Object);
+
+                var httpContext = new Mock<HttpContextBase>();
+                var items = new Dictionary<string, bool>
+                {
+                    ["CanWriteAnalyticsCookies"] = canWriteAnalyticsCookies
+                };
+                httpContext.Setup(c => c.Items).Returns(items);
+
+                // Act
+                InvokeOnActionExecutedMethod(controller.ControllerContext, httpContext.Object, controller);
+
+                // Assert
+                Assert.Equal(canWriteAnalyticsCookies, controller.ViewBag.CanWriteAnalyticsCookies);
+                if (canWriteAnalyticsCookies)
+                {
+                    cookieComplianceService.Verify(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Never);
+                } else
+                {
+                    cookieComplianceService.Verify(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Once);
+                }
+            }
+
+            [Fact]
+            public void SetViewBagGivenHttpContextItemsWithNoCanWriteAnalyticsCookies()
+            {
+                // Arrange
+                var controller = GetController<TestableAppController>();
+                var cookieComplianceService = new Mock<ICookieComplianceService>();
+                cookieComplianceService.Setup(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
+                controller.SetCookieComplianceService(cookieComplianceService.Object);
+
+                var httpContext = new Mock<HttpContextBase>();
+                var items = new Dictionary<string, bool>();
+                httpContext.Setup(c => c.Items).Returns(items);
+
+                // Act
+                InvokeOnActionExecutedMethod(controller.ControllerContext, httpContext.Object, controller);
+
+                // Assert
+                Assert.False(controller.ViewBag.CanWriteAnalyticsCookies);
+                cookieComplianceService.Verify(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Once);
+            }
+
+            private void InvokeOnActionExecutedMethod(ControllerContext controllerContext, HttpContextBase httpContext, AppController controller)
+            {
+                var actionExecutedContext = new ActionExecutedContext(controllerContext,
+                  Mock.Of<ActionDescriptor>(), false, null)
+                {
+                    HttpContext = httpContext
+                };
+
+                MethodInfo onActionExecuted = controller.GetType().GetMethod(
+                  "OnActionExecuted", BindingFlags.Instance | BindingFlags.NonPublic);
+
+                onActionExecuted.Invoke(controller, new object[] { actionExecutedContext });
             }
         }
 

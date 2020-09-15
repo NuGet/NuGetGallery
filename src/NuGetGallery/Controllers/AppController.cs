@@ -7,8 +7,8 @@ using System.Web.Mvc;
 using System.Threading;
 using System.Security.Claims;
 using Microsoft.Owin;
-using NuGet.Services.Entities;
 using NuGetGallery.Cookies;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {

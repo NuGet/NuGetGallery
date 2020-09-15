@@ -22,6 +22,5 @@ namespace NuGetGallery.Cookies
         public abstract void ExpireSocialMediaCookies(HttpContextBase httpContextBase);
 
         public abstract void ExpireAdvertisingCookies(HttpContextBase httpContextBase);
-
     }
 }

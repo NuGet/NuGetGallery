@@ -78,7 +78,6 @@
     <Compile Include="Auditing\ScopeAuditRecordTests.cs" />
     <Compile Include="Auditing\UserAuditRecordTests.cs" />
     <Compile Include="Certificates\CertificateFileFacts.cs" />
-    <Compile Include="Cookies\CookieComplianceServiceBaseFacts.cs" />
     <Compile Include="Features\FeatureFlagClientExtensionsFacts.cs" />
     <Compile Include="Features\EditableFeatureFlagFileStorageServiceFacts.cs" />
     <Compile Include="GitHub\GitHubUsageConfigurationFacts.cs" />
