@@ -108,7 +108,6 @@
     <Compile Include="Authentication\MicrosoftClaims.cs" />
     <Compile Include="Certificates\CertificateFile.cs" />
     <Compile Include="Cookies\CookieComplianceServiceBase.cs" />
-    <Compile Include="Cookies\CookieConsentMessage.cs" />
     <Compile Include="Cookies\ICookieComplianceService.cs" />
     <Compile Include="Cookies\NullCookieComplianceService.cs" />
     <Compile Include="CoreConstants.cs" />
