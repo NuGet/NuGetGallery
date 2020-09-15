@@ -119,8 +119,8 @@ namespace NuGetGallery
 
         private void SetCookieCompliance(ActionExecutedContext filterContext)
         {
-            if (filterContext.HttpContext?.Items["CanWriteAnalyticsCookies"] == null
-                || (bool)filterContext.HttpContext.Items["CanWriteAnalyticsCookies"] == false)
+            if (filterContext.HttpContext?.Items[ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] == null
+                || (bool)filterContext.HttpContext.Items[ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] == false)
             {
                 ViewBag.CanWriteAnalyticsCookies = false;
 

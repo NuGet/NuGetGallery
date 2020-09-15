@@ -32,11 +32,11 @@ namespace NuGetGallery.Modules
             var request = new HttpRequestWrapper(context.Request);
             if (await CookieComplianceService.CanWriteAnalyticsCookies(request))
             {
-                context.Items.Add("CanWriteAnalyticsCookies", true);
+                context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, true);
             }
             else
             {
-                context.Items.Add("CanWriteAnalyticsCookies", false);
+                context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, false);
             }
         }
     }
