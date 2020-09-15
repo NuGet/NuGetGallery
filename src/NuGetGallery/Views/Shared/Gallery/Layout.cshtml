@@ -44,8 +44,8 @@
     </div>
     @ViewHelpers.UsabillaButton(Url, ViewBag)
     @Html.Partial("Gallery/Footer")
-    @ViewHelpers.CookieComplianceScript()
     @Scripts.Render("~/Scripts/gallery/site.min.js")
+    @ViewHelpers.CookieComplianceScript()
     @RenderSection("BottomScripts", required: false)
     @ViewHelpers.UsabillaScript(ViewBag)
 </body>
