@@ -1,0 +1,51 @@
+[*.cs]
+
+# Suggest performance, usage, and naming diagnostics.
+dotnet_analyzer_diagnostic.category-design.severity = none
+dotnet_analyzer_diagnostic.category-globalization.severity = none
+dotnet_analyzer_diagnostic.category-naming.severity = none
+dotnet_analyzer_diagnostic.category-performance.severity = none
+dotnet_analyzer_diagnostic.category-reliability.severity = none
+dotnet_analyzer_diagnostic.category-security.severity = warning
+dotnet_analyzer_diagnostic.category-usage.severity = none
+
+# Supress "Do not declare static members on generic types"
+dotnet_diagnostic.CA1000.severity = none
+
+dotnet_diagnostic.CA1016.severity = none
+
+# Suggest "Modify 'X' to catch a more specific allowed exception type, or rethrow the exception"
+dotnet_diagnostic.CA1031.severity = suggestion
+
+# Suggest "Implement standard exception constructors"
+dotnet_diagnostic.CA1032.severity = suggestion
+
+# Suppress "Do not nest type"
+dotnet_diagnostic.CA1034.severity = none
+
+# Suggest "Provide a message for the ObsoleteAttribute that marks X as Obsolete"
+dotnet_diagnostic.CA1041.severity = suggestion
+
+# Suppress "Do not declare visible instance fields"
+dotnet_diagnostic.CA1051.severity = none
+
+# Suppress "The 'X' is a static holder type but is neither static nor NotInheritable"
+dotnet_diagnostic.CA1052.severity = none
+
+# Suggest "URI parameters should not be strings"
+dotnet_diagnostic.CA1054.severity = suggestion
+
+# Suggest "Change the type of property 'X' from 'string' to 'System.Uri'"
+dotnet_diagnostic.CA1056.severity = suggestion
+
+# Suppress "Validate arguments of public methods"
+dotnet_diagnostic.CA1062.severity = none
+
+# Suggest "Implement IDisposable correctly"
+dotnet_diagnostic.CA1063.severity = suggestion
+
+# Suggest "Normalize strings to uppercase"
+dotnet_diagnostic.CA1308.severity = suggestion
+
+# Suppress "Consider calling ConfigureAwait on the awaited task"
+dotnet_diagnostic.CA2007.severity = none
