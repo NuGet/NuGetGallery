@@ -797,6 +797,10 @@ img.reserved-indicator-icon {
 .page-api-keys .upsert-api-key .glob-pattern-hint .panel-body {
   height: 282px;
 }
+.page-api-keys .upsert-api-key .required:after {
+  color: red;
+  content: " *";
+}
 .page-api-keys .add-api-key {
   padding: 20px 0;
   border-top: 1px solid #dbdbdb;
