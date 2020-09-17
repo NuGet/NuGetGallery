@@ -49,3 +49,21 @@ dotnet_diagnostic.CA1308.severity = suggestion
 
 # Suppress "Consider calling ConfigureAwait on the awaited task"
 dotnet_diagnostic.CA2007.severity = none
+
+# CA1033: Interface methods should be callable by child types
+dotnet_diagnostic.CA1033.severity = suggestion
+
+# IDE0001: Simplify Names
+dotnet_diagnostic.IDE0001.severity = none
+
+# CA2200: Rethrow to preserve stack details
+dotnet_diagnostic.CA2200.severity = suggestion
+
+# CA1507: Use nameof to express symbol names
+dotnet_diagnostic.CA1507.severity = suggestion
+
+# CA2237: Mark ISerializable types with serializable
+dotnet_diagnostic.CA2237.severity = suggestion
+
+# CA2229: Implement serialization constructors
+dotnet_diagnostic.CA2229.severity = warning
