@@ -110,6 +110,7 @@ namespace NuGetGallery
                 const string sortOrder = GalleryConstants.SearchSortNames.Relevance;
                 const string context = "someContext";
                 const string semVerLevel = "someSemVer";
+                const bool includeTestData = true;
 
                 var searchFilter = SearchAdaptor.GetSearchFilter(
                     query,
@@ -118,7 +119,8 @@ namespace NuGetGallery
                     packageType,
                     sortOrder,
                     context,
-                    semVerLevel);
+                    semVerLevel,
+                    includeTestData);
 
                 Assert.Equal(query, searchFilter.SearchTerm);
                 Assert.Equal((page - 1) * GalleryConstants.DefaultPackageListPageSize, searchFilter.Skip);
@@ -128,6 +130,7 @@ namespace NuGetGallery
                 Assert.Equal(semVerLevel, searchFilter.SemVerLevel);
                 Assert.Equal(string.Empty, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
+                Assert.Equal(includeTestData, searchFilter.IncludeTestData);
             }
 
             [Fact]
@@ -140,7 +143,8 @@ namespace NuGetGallery
                     packageType: null,
                     sortOrder: null,
                     context: null,
-                    semVerLevel: null);
+                    semVerLevel: null,
+                    includeTestData: true);
 
                 Assert.Null(searchFilter.SearchTerm);
                 Assert.Equal(0, searchFilter.Skip);
@@ -150,6 +154,7 @@ namespace NuGetGallery
                 Assert.Null(searchFilter.SemVerLevel);
                 Assert.Equal(string.Empty, searchFilter.PackageType);
                 Assert.Equal(SortOrder.Relevance, searchFilter.SortOrder);
+                Assert.True(searchFilter.IncludeTestData);
             }
 
             [Theory]
@@ -163,16 +168,18 @@ namespace NuGetGallery
                    packageType: "Dependency",
                    sortOrder: SortNames[sortOrder],
                    context: string.Empty,
-                   semVerLevel: "SomeSemVer");
+                   semVerLevel: "SomeSemVer",
+                   includeTestData: true);
 
                 Assert.Equal(string.Empty, searchFilter.SearchTerm);
                 Assert.Equal(0, searchFilter.Skip);
                 Assert.Equal(GalleryConstants.DefaultPackageListPageSize, searchFilter.Take);
-                Assert.Equal(true, searchFilter.IncludePrerelease);
+                Assert.True(searchFilter.IncludePrerelease);
                 Assert.Equal(string.Empty, searchFilter.Context);
                 Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
                 Assert.Equal("Dependency", searchFilter.PackageType);
                 Assert.Equal(sortOrder, searchFilter.SortOrder);
+                Assert.True(searchFilter.IncludeTestData);
             }
 
             [Theory]
@@ -186,16 +193,18 @@ namespace NuGetGallery
                        packageType: "Dependency",
                        sortOrder: SortNames[sortOrder].ToUpper(),
                        context: string.Empty,
-                       semVerLevel: "SomeSemVer");
+                       semVerLevel: "SomeSemVer",
+                       includeTestData: true);
 
                 Assert.Equal(string.Empty, searchFilter.SearchTerm);
                 Assert.Equal(0, searchFilter.Skip);
                 Assert.Equal(GalleryConstants.DefaultPackageListPageSize, searchFilter.Take);
-                Assert.Equal(true, searchFilter.IncludePrerelease);
+                Assert.True(searchFilter.IncludePrerelease);
                 Assert.Equal(string.Empty, searchFilter.Context);
                 Assert.Equal("SomeSemVer", searchFilter.SemVerLevel);
                 Assert.Equal("Dependency", searchFilter.PackageType);
                 Assert.Equal(sortOrder, searchFilter.SortOrder);
+                Assert.True(searchFilter.IncludeTestData);
             }
         }
 

@@ -58,7 +58,8 @@ namespace NuGetGallery.Infrastructure.Search
             bool explain = false,
             bool getAllVersions = false,
             string supportedFramework = null,
-            string semVerLevel = null)
+            string semVerLevel = null,
+            bool includeTestData = false)
         {
             IDictionary<string, string> nameValue = new Dictionary<string, string>();
             nameValue.Add("q", query);
@@ -108,6 +109,11 @@ namespace NuGetGallery.Infrastructure.Search
             if (countOnly)
             {
                 nameValue.Add("countOnly", "true");
+            }
+
+            if (includeTestData)
+            {
+                nameValue.Add("testData", "true");
             }
 
             var qs = new FormUrlEncodedContent(nameValue);
