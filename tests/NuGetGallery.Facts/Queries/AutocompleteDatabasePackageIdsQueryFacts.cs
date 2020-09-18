@@ -60,7 +60,7 @@ namespace NuGetGallery.Queries
             [InlineData("1.0.0-beta")]
             public async void WithValidSemVerLevelReturnIdsWhosePackagesSemVerLevelCompliant(string semVerLevel)
             {
-                var queryResult = await _packageIdsQuery.Execute("nuget", null, semVerLevel);
+                var queryResult = await _packageIdsQuery.Execute("nuget", null, null, semVerLevel);
 
                 var allIdsAreFromPackagesWithSemVerLevelCompliant = queryResult.All(id =>
                 {

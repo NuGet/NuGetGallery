@@ -114,7 +114,8 @@ namespace NuGetGallery
                 packageType: null,
                 sortOrder: null,
                 context: SearchFilter.UISearchContext,
-                semVerLevel: SemVerLevelKey.SemVerLevel2);
+                semVerLevel: SemVerLevelKey.SemVerLevel2,
+                includeTestData: false);
 
             searchFilter.Take = 10;
 
