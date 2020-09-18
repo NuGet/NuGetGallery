@@ -24,6 +24,7 @@ namespace NuGetGallery.Infrastructure.Search
         /// <param name="getAllVersions">GetAllVersions</param>
         /// <param name="supportedFramework">SupportedFramework</param>
         /// <param name="semVerLevel">SemVerLevel</param>
+        /// <param name="includeTestData">Whether or not to include test data in the results.</param>
         /// <returns></returns>
         Task<ServiceResponse<SearchModels.SearchResults>> Search(
             string query,
@@ -38,7 +39,8 @@ namespace NuGetGallery.Infrastructure.Search
             bool explain,
             bool getAllVersions,
             string supportedFramework,
-            string semVerLevel);
+            string semVerLevel,
+            bool includeTestData);
 
         /// <summary>
         /// Returns the search diag.

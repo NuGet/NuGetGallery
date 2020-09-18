@@ -30,9 +30,10 @@ namespace NuGetGallery
         public async Task<IReadOnlyList<string>> RunServiceQuery(
             string queryString, 
             bool? includePrerelease,
+            bool? includeTestData,
             string semVerLevel = null)
         {
-            queryString = BuildQueryString(queryString, includePrerelease, semVerLevel);
+            queryString = BuildQueryString(queryString, includePrerelease, includeTestData, semVerLevel);
             var result = await ExecuteQuery(queryString);
             var resultObject = JObject.Parse(result);
 
@@ -45,9 +46,18 @@ namespace NuGetGallery
             return await response.Content.ReadAsStringAsync();
         }
 
-        internal string BuildQueryString(string queryString, bool? includePrerelease, string semVerLevel = null)
+        internal string BuildQueryString(
+            string queryString,
+            bool? includePrerelease,
+            bool? includeTestData,
+            string semVerLevel = null)
         {
             queryString += $"&prerelease={includePrerelease ?? false}";
+
+            if (includeTestData == true)
+            {
+                queryString += "&testData=true";
+            }
 
             NuGetVersion semVerLevelVersion;
             if (!string.IsNullOrEmpty(semVerLevel) && NuGetVersion.TryParse(semVerLevel, out semVerLevelVersion))

@@ -37,6 +37,8 @@ namespace NuGetGallery
 
         public bool IncludeAllVersions { get; set; }
 
+        public bool IncludeTestData { get; set; }
+
         /// <summary>
         /// Constructs a new search filter
         /// </summary>

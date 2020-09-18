@@ -34,11 +34,11 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             string sortBy = "",
             bool expectDescending = true)
         {
-            var sortByParam = string.IsNullOrEmpty(sortBy) ? string.Empty : $"&sortBy={sortBy}";
             // Arrange
+            var sortByParam = string.IsNullOrEmpty(sortBy) ? string.Empty : $"&sortBy={sortBy}";
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?q=owner%3A{Constants.TestAccount}{sortByParam}");
+                $"/packages?testData=true&q=owner%3A{Constants.TestAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -61,11 +61,11 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
         [InlineData("cReAtEd-DeSc")]
         public async Task MakeSureLastUpdatedSortingWorks(string sortBy)
         {
-            var sortByParam = string.IsNullOrEmpty(sortBy) ? string.Empty : $"&sortBy={sortBy}";
             // Arrange
+            var sortByParam = string.IsNullOrEmpty(sortBy) ? string.Empty : $"&sortBy={sortBy}";
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?q=owner%3A{Constants.TestAccount}{sortByParam}");
+                $"/packages?testData=true&q=owner%3A{Constants.TestAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -93,11 +93,11 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             string id,
             string packageType = "")
         {
-            var packageTypeParam = string.IsNullOrEmpty(packageType) ? string.Empty : $"&packageType={packageType}";
             // Arrange
+            var packageTypeParam = string.IsNullOrEmpty(packageType) ? string.Empty : $"&packageType={packageType}";
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?q=packageid%3A{Uri.EscapeUriString(id)}+owner%3A{Constants.TestAccount}{packageTypeParam}");
+                $"/packages?testData=true&q=packageid%3A{Uri.EscapeUriString(id)}+owner%3A{Constants.TestAccount}{packageTypeParam}");
 
             // Act
             using (var httpClient = new HttpClient())

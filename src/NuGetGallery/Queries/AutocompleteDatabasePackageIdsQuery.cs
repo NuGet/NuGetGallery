@@ -23,6 +23,7 @@ namespace NuGetGallery
         public Task<IReadOnlyList<string>> Execute(
             string partialId,
             bool? includePrerelease = false,
+            bool? includeTestData = false, // ignored on this implementation
             string semVerLevel = null)
         {
             var query = _packageRepository.GetAll()
