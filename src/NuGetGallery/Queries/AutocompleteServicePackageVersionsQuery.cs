@@ -20,6 +20,7 @@ namespace NuGetGallery
         public async Task<IReadOnlyList<string>> Execute(
             string id, 
             bool? includePrerelease,
+            bool? includeTestData,
             string semVerLevel = null)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -27,7 +28,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(id));
             }
 
-            return await RunServiceQuery("id=" + Uri.EscapeUriString(id), includePrerelease, semVerLevel);
+            return await RunServiceQuery(
+                "id=" + Uri.EscapeUriString(id),
+                includePrerelease,
+                includeTestData,
+                semVerLevel);
         }
     }
 }
