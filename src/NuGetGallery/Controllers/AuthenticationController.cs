@@ -489,6 +489,8 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="returnUrl">The url to return upon credential replacement</param>
         /// <returns><see cref="ActionResult"/> for returnUrl</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl)
         {
             var user = GetCurrentUser();
@@ -535,6 +537,7 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA3147:Mark Verb Handlers With Validate Antiforgery Token", Justification = "<Pending>")]
         public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl, string error = null, string errorDescription = null)
         {
             // Extract the external login info

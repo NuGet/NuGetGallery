@@ -63,10 +63,9 @@ namespace NuGetGallery
             }
         }
 
-        [SuppressMessage("Microsoft.Security.Cryptography", "CA5354:SHA1CannotBeUsed", Justification = @"SHA1 thumbprint is only used to distinguish certificates in the Gallery view.")]
         private static string GetSha1Thumbprint(MemoryStream stream)
         {
-            using (var hashAlgorithm = SHA1.Create())
+            using (var hashAlgorithm = SHA256.Create())
             {
                 return GetThumbprint(stream, hashAlgorithm);
             }

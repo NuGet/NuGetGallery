@@ -26,6 +26,7 @@ namespace NuGetGallery
             _connectionFactory = galleryDbConnectionFactory;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "<Pending>")]
         public Task<AggregateStats> GetAggregateStats()
         {
             var connection = Task.Run(() => _connectionFactory.CreateAsync()).Result;

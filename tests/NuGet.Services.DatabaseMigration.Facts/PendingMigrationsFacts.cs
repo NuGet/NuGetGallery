@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity.Migrations.Design;
 using System.Data.SqlClient;
 using System.Linq;
@@ -44,7 +45,8 @@ namespace NuGet.Services.DatabaseMigration.Facts
                 await sqlConnection.OpenAsync();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"ALTER DATABASE {_dbName} SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE {_dbName};";
+                    sqlCommand.Parameters.Add("@dbName", SqlDbType.NChar).Value = _dbName;
+                    sqlCommand.CommandText = $"ALTER DATABASE @dbName SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE @dbName;";
                     await sqlCommand.ExecuteNonQueryAsync();
                 }
             }

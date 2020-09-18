@@ -14,8 +14,6 @@ namespace NuGetGallery
     public partial class StatisticsController
         : AppController
     {
-        private const string AllPackageSet = "all";
-
         private readonly IStatisticsService _statisticsService = null;
         private readonly IAggregateStatsService _aggregateStatsService = null;
 
@@ -67,7 +65,7 @@ namespace NuGetGallery
 
         //
         // GET: /stats
-
+        [HttpGet]
         public virtual async Task<ActionResult> Index()
         {
             if (_statisticsService == NullStatisticsService.Instance)
@@ -103,7 +101,7 @@ namespace NuGetGallery
 
         //
         // GET: /stats/packages
-
+        [HttpGet]
         public virtual async Task<ActionResult> Packages()
         {
             if (_statisticsService == NullStatisticsService.Instance)
@@ -134,7 +132,7 @@ namespace NuGetGallery
 
         //
         // GET: /stats/packageversions
-
+        [HttpGet]
         public virtual async Task<ActionResult> PackageVersions()
         {
             if (_statisticsService == NullStatisticsService.Instance)
@@ -165,7 +163,7 @@ namespace NuGetGallery
 
         //
         // GET: /stats/packages/{id}
-
+        [HttpGet]
         public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string[] groupby)
         {
             if (_statisticsService == NullStatisticsService.Instance)
@@ -186,7 +184,7 @@ namespace NuGetGallery
 
         //
         // GET: /stats/reports/packages/{id}
-
+        [HttpGet]
         public virtual async Task<JsonResult> PackageDownloadsByVersionReport(string id, string[] groupby)
         {
             if (_statisticsService == NullStatisticsService.Instance)
@@ -206,7 +204,7 @@ namespace NuGetGallery
 
         //
         // GET: /stats/packages/{id}/{version}
-
+        [HttpGet]
         public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version, string[] groupby)
         {
             if (_statisticsService == NullStatisticsService.Instance)
@@ -227,7 +225,7 @@ namespace NuGetGallery
 
         //
         // GET: /stats/reports/packages/{id}/{version}
-
+        [HttpGet]
         public virtual async Task<ActionResult> PackageDownloadsDetailReport(string id, string version, string[] groupby)
         {
             if (_statisticsService == NullStatisticsService.Instance)

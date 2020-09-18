@@ -153,6 +153,7 @@ namespace NuGetGallery
 
         protected abstract Task SendNewAccountEmailAsync(User account);
 
+        [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual async Task<ActionResult> Confirm(string accountName, string token)
         {
@@ -380,6 +381,7 @@ namespace NuGetGallery
 
         protected abstract DeleteAccountViewModel GetDeleteAccountViewModel(TUser account);
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA3147:Mark Verb Handlers With Validate Antiforgery Token", Justification = "<Pending>")]
         public abstract Task<ActionResult> RequestAccountDeletion(string accountName = null);
 
         protected List<DeleteAccountListPackageItemViewModel> GetOwnedPackagesViewModels(User account)

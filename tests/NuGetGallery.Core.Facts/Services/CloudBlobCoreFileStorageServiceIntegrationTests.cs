@@ -183,7 +183,7 @@ namespace NuGetGallery
             var expectedContent = "Hello, world.";
             var bytes = Encoding.UTF8.GetBytes(expectedContent);
             string expectedContentMD5;
-            using (var md5 = MD5.Create())
+            using (var md5 = SHA256.Create())
             {
                 expectedContentMD5 = Convert.ToBase64String(md5.ComputeHash(bytes));
             }
