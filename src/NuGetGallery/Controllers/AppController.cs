@@ -124,7 +124,7 @@ namespace NuGetGallery
             {
                 ViewBag.CanWriteAnalyticsCookies = false;
 
-                _cookieComplianceService.ExpireAnalyticsCookies(filterContext.HttpContext);
+                // _cookieComplianceService.ExpireAnalyticsCookies(filterContext.HttpContext);
             }
             else
             {

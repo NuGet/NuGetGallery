@@ -1666,7 +1666,7 @@ namespace NuGetGallery
 
                 abTestService
                    .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(Task.FromResult(false));
+                   .Returns(false);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1713,7 +1713,7 @@ namespace NuGetGallery
 
                 abTestService
                    .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(Task.FromResult(false));
+                   .Returns(false);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1767,7 +1767,7 @@ namespace NuGetGallery
 
                 abTestService
                    .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(Task.FromResult(true));
+                   .Returns(true);
 
                 httpContext
                     .Setup(c => c.Cache)
@@ -1831,7 +1831,7 @@ namespace NuGetGallery
 
                 abTestService
                    .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(Task.FromResult(true));
+                   .Returns(true);
                 httpContext
                     .Setup(c => c.Cache)
                     .Returns(_cache);
@@ -1903,7 +1903,7 @@ namespace NuGetGallery
                     .Returns(cacheConfiguration);
                 abTestService
                    .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(Task.FromResult(true));
+                   .Returns(true);
                 httpContext
                     .Setup(c => c.Cache)
                     .Returns(_cache);
@@ -1966,7 +1966,7 @@ namespace NuGetGallery
 
                 abTestService
                    .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(Task.FromResult(true));
+                   .Returns(true);
 
                 httpContext
                     .Setup(c => c.Cache)
@@ -4783,7 +4783,7 @@ namespace NuGetGallery
                 var abTestService = new Mock<IABTestService>();
                 abTestService
                     .Setup(x => x.IsPreviewSearchEnabled(It.IsAny<User>()))
-                    .Returns(Task.FromResult(true));
+                    .Returns(true);
 
                 var searchService = new Mock<ISearchService>();
                 var previewSearchService = new Mock<ISearchService>();
@@ -4815,7 +4815,7 @@ namespace NuGetGallery
                 var abTestService = new Mock<IABTestService>();
                 abTestService
                     .Setup(x => x.IsPreviewSearchEnabled(It.IsAny<User>()))
-                    .Returns(Task.FromResult(true));
+                    .Returns(true);
 
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.Cache).Returns(_cache);
@@ -5008,7 +5008,7 @@ namespace NuGetGallery
                 var abTestService = new Mock<IABTestService>();
                 abTestService
                     .Setup(x => x.IsPreviewSearchEnabled(It.IsAny<User>()))
-                    .Returns(Task.FromResult(preview));
+                    .Returns(preview);
 
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.Cache).Returns(_cache);

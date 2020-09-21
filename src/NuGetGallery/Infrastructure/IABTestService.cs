@@ -11,11 +11,11 @@ namespace NuGetGallery
         /// <summary>
         /// Whether or not the user should see the preview search implementation.
         /// </summary>
-        Task<bool> IsPreviewSearchEnabled(User user);
+        bool IsPreviewSearchEnabled(User user);
 
         /// <summary>
         /// Whether or not the user should see the reverse dependencies implementation.
         /// </summary>
-        Task<bool> IsPackageDependendentsABEnabled(User user);
+        bool IsPackageDependendentsABEnabled(User user);
     }
 }

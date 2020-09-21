@@ -318,7 +318,7 @@
         'use strict';
         var WcpSiteConsent;
         WcpConsent.init("en-US", "cookie-banner", function (err, _siteConsent) {
-            if (err != undefined) {
+            if (err !== undefined) {
                 return error;
             } else {
                 WcpSiteConsent = _siteConsent;  // WcpSiteConsent is used to get the current consent

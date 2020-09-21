@@ -30,7 +30,7 @@ namespace NuGetGallery.Modules
             var context = ((HttpApplication)sender).Context;
 
             var request = new HttpRequestWrapper(context.Request);
-            if (await CookieComplianceService.CanWriteAnalyticsCookies(request))
+            if (await CookieComplianceService.CanWriteAnalyticsCookiesAsync(request))
             {
                 context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, true);
             }

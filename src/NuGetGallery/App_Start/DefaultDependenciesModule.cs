@@ -1460,7 +1460,7 @@ namespace NuGetGallery
 
         private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
         {
-            CookieComplianceServiceBase service = null;
+            ICookieComplianceService service = null;
             if (configuration.Current.IsHosted)
             {
                 var siteName = configuration.GetSiteRoot(true);
@@ -1468,7 +1468,7 @@ namespace NuGetGallery
                 {
                     sp.ComposeExportedValue("Domain", siteName);
                     sp.ComposeExportedValue<IDiagnosticsService>(diagnostics);
-                }).FirstOrDefault() as CookieComplianceServiceBase;
+                }).FirstOrDefault();
             }
 
             builder.RegisterInstance(service ?? new NullCookieComplianceService())

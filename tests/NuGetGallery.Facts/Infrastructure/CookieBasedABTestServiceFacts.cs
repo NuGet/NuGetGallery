@@ -2,15 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Web;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NuGet.Services.Entities;
-using NuGetGallery.Cookies;
-using NuGetGallery.Services;
 using Xunit;
+using NuGet.Services.Entities;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -26,7 +24,7 @@ namespace NuGetGallery
             [InlineData(50, 51, true)]
             [InlineData(99, 100, true)]
             [InlineData(100, 100, true)]
-            public async Task ComparesEnrollmentToConfig(int enrollment, int config, bool enabled)
+            public void ComparesEnrollmentToConfig(int enrollment, int config, bool enabled)
             {
                 InitializedEnrollment = new ABTestEnrollment(
                     ABTestEnrollmentState.FirstHit,
@@ -35,44 +33,27 @@ namespace NuGetGallery
                     packageDependentBucket: 42);
                 Configuration.Setup(x => x.PreviewSearchPercentage).Returns(config);
 
-                var result = await Target.IsPreviewSearchEnabled(User);
+                var result = Target.IsPreviewSearchEnabled(User);
 
                 Assert.Equal(enabled, result);
             }
 
-            protected override async Task<bool> RunTest(User user)
+            protected override bool RunTest(User user)
             {
-                return await Target.IsPreviewSearchEnabled(user);
+                return Target.IsPreviewSearchEnabled(user);
             }
         }
 
         public abstract class BaseSerializationFacts : Facts
         {
             [Fact]
-            public async Task ReturnsFalseWhenCookieConsentIsNotGiven()
-            {
-                CookieComplianceService
-                    .Setup(x => x.CanWriteAnalyticsCookies(It.IsAny<HttpRequestBase>()))
-                    .Returns(Task.FromResult(false));
-
-                var result = await RunTest(User);
-
-                Assert.False(result, "The test should not be enabled.");
-                CookieComplianceService.Verify(x => x.CanWriteAnalyticsCookies(HttpContext.Object.Request), Times.Once);
-                Assert.Empty(ResponseCookies);
-                EnrollmentFactory.Verify(x => x.Initialize(), Times.Never);
-                ABTestEnrollment outEnrollment;
-                EnrollmentFactory.Verify(x => x.TryDeserialize(It.IsAny<string>(), out outEnrollment), Times.Never);
-            }
-
-            [Fact]
-            public async Task ReturnsFalseWhenUserIsNotInFlight()
+            public void ReturnsFalseWhenUserIsNotInFlight()
             {
                 FeatureFlagService
                     .Setup(x => x.IsABTestingEnabled(It.IsAny<User>()))
                     .Returns(false);
 
-                var result = await RunTest(User);
+                var result = RunTest(User);
 
                 Assert.False(result, "The test should not be enabled.");
                 FeatureFlagService.Verify(x => x.IsABTestingEnabled(User), Times.Once);
@@ -83,9 +64,9 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task InitializesWhenCookieIsMissing()
+            public void InitializesWhenCookieIsMissing()
             {
-                var result = await RunTest(User);
+                var result = RunTest(User);
 
                 Assert.True(result, "The test should be enabled.");
                 Assert.Contains(CookieName, ResponseCookies.Keys.Cast<string>());
@@ -98,11 +79,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task DeserializesWhenCookieIsPresentAndValid()
+            public void DeserializesWhenCookieIsPresentAndValid()
             {
                 RequestCookies.Add(new HttpCookie(CookieName, SerializedEnrollment));
 
-                var result = await RunTest(User);
+                var result = RunTest(User);
 
                 Assert.True(result, "The test should be enabled.");
                 Assert.Empty(ResponseCookies.Keys.Cast<string>());
@@ -112,14 +93,14 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task InitializesWhenCookieIsPresentAndInvalid()
+            public void InitializesWhenCookieIsPresentAndInvalid()
             {
                 RequestCookies.Add(new HttpCookie(CookieName, SerializedEnrollment));
                 EnrollmentFactory
                     .Setup(x => x.TryDeserialize(It.IsAny<string>(), out OutEnrollment))
                     .Returns(false);
 
-                var result = await RunTest(User);
+                var result = RunTest(User);
 
                 Assert.True(result, "The test should be enabled.");
                 Assert.Contains(CookieName, ResponseCookies.Keys.Cast<string>());
@@ -134,7 +115,7 @@ namespace NuGetGallery
             /// <summary>
             /// Run the test. The caller expects the method to return true.
             /// </summary>
-            protected abstract Task<bool> RunTest(User user);
+            protected abstract bool RunTest(User user);
         }
 
         public abstract class Facts
@@ -148,7 +129,6 @@ namespace NuGetGallery
                 EnrollmentFactory = new Mock<IABTestEnrollmentFactory>();
                 ContentObjectService = new Mock<IContentObjectService>();
                 Configuration = new Mock<IABTestConfiguration>();
-                CookieComplianceService = new Mock<ICookieComplianceService>();
                 TelemetryService = new Mock<ITelemetryService>();
                 Logger = new Mock<ILogger<CookieBasedABTestService>>();
 
@@ -171,7 +151,6 @@ namespace NuGetGallery
 
                 HttpContext.Setup(x => x.Request.Cookies).Returns(() => RequestCookies);
                 HttpContext.Setup(x => x.Response.Cookies).Returns(() => ResponseCookies);
-                CookieComplianceService.SetReturnsDefault(Task.FromResult(true));
                 FeatureFlagService.SetReturnsDefault(true);
 
                 EnrollmentFactory.Setup(x => x.Initialize()).Returns(() => InitializedEnrollment);
@@ -190,7 +169,6 @@ namespace NuGetGallery
                     FeatureFlagService.Object,
                     EnrollmentFactory.Object,
                     ContentObjectService.Object,
-                    CookieComplianceService.Object,
                     TelemetryService.Object,
                     Logger.Object);
             }
@@ -200,7 +178,6 @@ namespace NuGetGallery
             public Mock<IABTestEnrollmentFactory> EnrollmentFactory { get; }
             public Mock<IContentObjectService> ContentObjectService { get; }
             public Mock<IABTestConfiguration> Configuration { get; }
-            public Mock<ICookieComplianceService> CookieComplianceService { get; }
             public Mock<ITelemetryService> TelemetryService { get; }
             public Mock<ILogger<CookieBasedABTestService>> Logger { get; }
             public User User { get; }
