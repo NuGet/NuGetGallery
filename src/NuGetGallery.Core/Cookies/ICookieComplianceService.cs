@@ -15,33 +15,18 @@ namespace NuGetGallery.Cookies
         /// Determine whether it's allowed to write analytics cookies.
         /// </summary>
         /// <returns>True if it's allowed.</returns>
-        Task<bool> CanWriteAnalyticsCookies(HttpRequestBase request);
+        Task<bool> CanWriteAnalyticsCookiesAsync(HttpRequestBase request);
 
         /// <summary>
         /// Determine whether it's allowed to write social media cookies.
         /// </summary>
         /// <returns>True if it's allowed</returns>
-        Task<bool> CanWriteSocialMediaCookies(HttpRequestBase request);
+        Task<bool> CanWriteSocialMediaCookiesAsync(HttpRequestBase request);
 
         /// <summary>
         /// Determine whether it's allowed to write advertising cookies.
         /// </summary>
         /// <returns>True if it's allowed.</returns>
-        Task<bool> CanWriteAdvertisingCookies(HttpRequestBase request);
-
-        /// <summary>
-        /// Expire analytics cookies.
-        /// </summary>
-        void ExpireAnalyticsCookies(HttpContextBase httpContextBase);
-
-        /// <summary>
-        /// Expire social media cookies.
-        /// </summary>
-        void ExpireSocialMediaCookies(HttpContextBase httpContextBase);
-
-        /// <summary>
-        /// Expire advertising cookies.
-        /// </summary>
-        void ExpireAdvertisingCookies(HttpContextBase httpContextBase);
+        Task<bool> CanWriteAdvertisingCookiesAsync(HttpRequestBase request);
     }
 }

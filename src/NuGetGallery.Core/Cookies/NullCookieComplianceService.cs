@@ -9,18 +9,12 @@ namespace NuGetGallery.Cookies
     /// <summary>
     /// Default, no-op instance of the cookie compliance service, used when no shim is registered.
     /// </summary>
-    public class NullCookieComplianceService : CookieComplianceServiceBase
+    public class NullCookieComplianceService : ICookieComplianceService
     {
-        public override Task<bool> CanWriteAnalyticsCookies(HttpRequestBase request) => Task.FromResult(false);
+        public Task<bool> CanWriteAnalyticsCookiesAsync(HttpRequestBase request) => Task.FromResult(false);
 
-        public override Task<bool> CanWriteSocialMediaCookies(HttpRequestBase request) => Task.FromResult(false);
+        public Task<bool> CanWriteSocialMediaCookiesAsync(HttpRequestBase request) => Task.FromResult(false);
 
-        public override Task<bool> CanWriteAdvertisingCookies(HttpRequestBase request) => Task.FromResult(false);
-
-        public override void ExpireAnalyticsCookies(HttpContextBase httpContextBase) { }
-
-        public override void ExpireSocialMediaCookies(HttpContextBase httpContextBase) { }
-
-        public override void ExpireAdvertisingCookies(HttpContextBase httpContextBase) { }
+        public Task<bool> CanWriteAdvertisingCookiesAsync(HttpRequestBase request) => Task.FromResult(false);
     }
 }
