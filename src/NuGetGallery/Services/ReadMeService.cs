@@ -169,13 +169,6 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Get converted HTML for readme.md string content.
-        /// </summary>
-        /// <param name="readMeMd">ReadMe.md content.</param>
-        /// <returns>HTML content.</returns>
-        
-
-        /// <summary>
         /// Get readme.md content from a ReadMeRequest object.
         /// </summary>
         /// <param name="readMeRequest">ReadMe request from Verify or Edit package page.</param>

@@ -17,7 +17,6 @@ namespace NuGetGallery
                 _markdownService = new MarkdownService();
             }
 
-
             [Theory]
             [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>")]
             [InlineData("<img src=\"javascript:alert('test');\">", "<p>&lt;img src=&quot;javascript:alert('test');&quot;&gt;</p>")]
