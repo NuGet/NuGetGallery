@@ -21,6 +21,7 @@ namespace NuGetGallery
             private readonly Encoding _encoding;
             private readonly Mock<IPackageFileService> _packageFileService;
             private readonly Mock<IEntitiesContext> _entitiesContext;
+            private readonly Mock<IMarkdownService> _markdownService;
             private readonly ReadMeService _target;
 
             public TheSaveReadMeMdIfChangedMethod()
@@ -42,11 +43,12 @@ namespace NuGetGallery
 
                 _packageFileService = new Mock<IPackageFileService>();
                 _entitiesContext = new Mock<IEntitiesContext>();
+                _markdownService = new Mock<IMarkdownService>();
 
                 _target = new ReadMeService(
                     _packageFileService.Object,
-                    _entitiesContext.Object, 
-                    new MarkdownService());
+                    _entitiesContext.Object,
+                    _markdownService.Object);
             }
 
             [Theory]
@@ -254,8 +256,6 @@ namespace NuGetGallery
         
         public class TheGetReadMeHtmlAsyncMethod
         {
-           
-
             [Fact]
             public async Task WhenReadMeDoesNotExistReturnsNull()
             {
@@ -269,8 +269,6 @@ namespace NuGetGallery
                 // Act & Assert
                 Assert.Null((await readMeService.GetReadMeHtmlAsync(package)).Content);
             }
-
-         
         }
 
         public class TheGetReadMeMdAsyncMethod

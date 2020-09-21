@@ -88,7 +88,7 @@ namespace NuGetGallery
             Mock<IPackageRenameService> renameService = null,
             Mock<IABTestService> abTestService = null,
             Mock<IIconUrlProvider> iconUrlProvider = null,
-            IMarkdownService markdownService = null)
+            Mock<IMarkdownService> markdownService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             PackageDependents packageDependents = new PackageDependents();
@@ -182,12 +182,16 @@ namespace NuGetGallery
                 var mockMarkdownService = new Mock<IMarkdownService>();
 
                 mockMarkdownService.Setup(x => x.GetHtmlFromMarkdown(It.IsAny<string>()))
-                    .Returns((string s) => new RenderedMarkdownResult { Content = s });
+                    .Returns((string markdown) => new RenderedMarkdownResult { Content = mockGetHtml(markdown) });
 
-                markdownService = mockMarkdownService.Object;
+                mockMarkdownService.Setup(x => x.GetHtmlFromMarkdown(It.IsAny<string>(), It.IsAny<int>()))
+                    .Returns((string markdown, int h) => new RenderedMarkdownResult { Content = mockGetHtml(markdown) });
+
+                markdownService = mockMarkdownService;
             }
 
-            readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object, markdownService);
+            readMeService = readMeService ?? new ReadMeService(
+                packageFileService.Object, entitiesContext.Object, markdownService.Object);
 
             if (contentObjectService == null)
             {
@@ -279,7 +283,7 @@ namespace NuGetGallery
                 renameService.Object,
                 abTestService.Object,
                 iconUrlProvider.Object,
-                markdownService);
+                markdownService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -303,6 +307,21 @@ namespace NuGetGallery
             }
 
             return controller.Object;
+        }
+
+        private static string mockGetHtml(string markdown)
+        {
+            if (markdown == null) 
+            {
+                return null;
+            }
+
+            if (markdown.StartsWith("#"))
+            {
+                return "<h2>" + markdown.Trim('#', ' ') + "</h2>";
+            }
+
+            return markdown;
         }
 
         private static Mock<ISymbolPackageUploadService> GetValidSymbolPackageUploadService(string packageId,
@@ -1077,14 +1096,12 @@ namespace NuGetGallery
 
             private async Task<ActionResult> GetResultWithReadMe(string readMeHtml, bool hasReadMe)
             {
-                var markdownService = new MarkdownService();
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
                 var fileService = new Mock<IPackageFileService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    markdownService: markdownService,
                     packageService: packageService,
                     indexingService: indexingService,
                     packageFileService: fileService,
@@ -9630,7 +9647,6 @@ namespace NuGetGallery
                 };
                 package.EmbeddedLicenseType = embeddedLicenseFileType;
 
-                var markdownService = new MarkdownService();
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns(package);
                 var controller = CreateController(
                     GetConfigurationService(),
