@@ -43,7 +43,7 @@ namespace NuGetGallery.Cookies
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            GoogleAnalyticsCookies.ToList().ForEach(cookie => ExpireCookieByName(httpContext, PrimaryDomain));
+            GoogleAnalyticsCookies.ToList().ForEach(cookie => ExpireCookieByName(httpContext, cookie, PrimaryDomain));
             ApplicationInsightsCookies.ToList().ForEach(cookie => ExpireCookieByName(httpContext, cookie));
         }
 
@@ -57,7 +57,6 @@ namespace NuGetGallery.Cookies
             if (request.Cookies[cookieName] != null)
             {
                 response.Cookies[cookieName].Expires = CookieExpirationTime;
-                response.Cookies[cookieName].Secure = false;
 
                 if (domain != null)
                 {

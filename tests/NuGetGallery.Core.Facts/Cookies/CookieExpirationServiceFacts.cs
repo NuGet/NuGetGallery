@@ -69,7 +69,6 @@ namespace NuGetGallery.Cookies
             Assert.Equal(primaryDomain, _gatCookie.Domain);
             Assert.Null(httpContext.Response.Cookies["ai_user"].Domain);
             Assert.Null(httpContext.Response.Cookies["ai_session"].Domain);
-            Assert.Null(httpContext.Response.Cookies["nugetab"].Domain);
         }
 
         [Theory]
