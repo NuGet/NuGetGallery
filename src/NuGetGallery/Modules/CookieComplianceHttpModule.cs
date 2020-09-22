@@ -9,7 +9,7 @@ using NuGetGallery.Cookies;
 
 namespace NuGetGallery.Modules
 {
-    public class AsyncSetCookieComplianceModule : IHttpModule
+    public class CookieComplianceHttpModule : IHttpModule
     {
         internal ICookieComplianceService CookieComplianceService;
 
@@ -25,12 +25,28 @@ namespace NuGetGallery.Modules
             context.AddOnBeginRequestAsync(eventHandlerTaskAsyncHelper.BeginEventHandler, eventHandlerTaskAsyncHelper.EndEventHandler);
         }
 
-        internal async Task SetCookieComplianceAsync(object sender, EventArgs e)
+        private async Task SetCookieComplianceAsync(object sender, EventArgs e)
         {
-            var context = ((HttpApplication)sender).Context;
+            var httpApplication = sender as HttpApplication;
+            if (httpApplication == null)
+            {
+                return;
+            }
 
-            var request = new HttpRequestWrapper(context.Request);
-            if (await CookieComplianceService.CanWriteAnalyticsCookiesAsync(request))
+            var context = httpApplication.Context;
+            if (context == null)
+            {
+                return;
+            }
+
+            var request = context.Request;
+            if (request == null)
+            {
+                return;
+            }
+
+            var requestWrapper = new HttpRequestWrapper(request);
+            if (await CookieComplianceService.CanWriteAnalyticsCookiesAsync(requestWrapper))
             {
                 context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, true);
             }

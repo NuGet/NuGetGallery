@@ -302,7 +302,7 @@
     <Compile Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.designer.cs">
       <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
     </Compile>
-    <Compile Include="Modules\AsyncSetCookieComplianceModule.cs" />
+    <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="Services\IPackageMetadataValidationService.cs" />
     <Compile Include="Services\PackageMetadataValidationService.cs" />
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
