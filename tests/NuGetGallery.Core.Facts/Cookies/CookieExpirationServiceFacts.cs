@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using Moq;
 using Xunit;
 
-namespace NuGet.Shim.CookieCompliance.Test
+namespace NuGetGallery.Cookies
 {
     public class CookieExpirationServiceFacts
     {
@@ -42,7 +42,6 @@ namespace NuGet.Shim.CookieCompliance.Test
                 { "_gat", "gat_value" },
                 { "ai_user", "ai_user_value" },
                 { "ai_session", "ai_session_value" },
-                { "nugetab", "nugetab_value" },
             };
 
             var httpContext = GetHttpContext(cookies);

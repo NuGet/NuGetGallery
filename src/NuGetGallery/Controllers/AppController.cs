@@ -15,7 +15,8 @@ namespace NuGetGallery
     public abstract partial class AppController
         : Controller
     {
-        private ICookieComplianceService _cookieComplianceService;
+        private ICookieExpirationService _cookieExpirationService;
+
         private IOwinContext _overrideContext;
 
         public IOwinContext OwinContext => _overrideContext ?? HttpContext.GetOwinContext();
@@ -32,16 +33,16 @@ namespace NuGetGallery
             _overrideContext = owinContext;
         }
 
-        public void SetCookieComplianceService(ICookieComplianceService cookieComplianceService)
+        public void SetCookieExpirationService(ICookieExpirationService cookieExpirationService)
         {
-            _cookieComplianceService = cookieComplianceService;
+            _cookieExpirationService = cookieExpirationService;
         }
 
         protected AppController()
         {
             NuGetContext = new NuGetContext(this);
 
-            _cookieComplianceService = GetService<ICookieComplianceService>();
+            _cookieExpirationService = GetService<ICookieExpirationService>();
         }
 
         protected internal virtual T GetService<T>()
@@ -124,7 +125,7 @@ namespace NuGetGallery
             {
                 ViewBag.CanWriteAnalyticsCookies = false;
 
-                // _cookieComplianceService.ExpireAnalyticsCookies(filterContext.HttpContext);
+                _cookieExpirationService.ExpireAnalyticsCookies(filterContext.HttpContext);
             }
             else
             {

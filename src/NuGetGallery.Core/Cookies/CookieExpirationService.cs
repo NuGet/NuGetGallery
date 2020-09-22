@@ -1,13 +1,12 @@
-﻿//-----------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-//-----------------------------------------------------------------------------
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Web;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace NuGet.Shim.CookieCompliance
+namespace NuGetGallery.Cookies
 {
     public class CookieExpirationService : ICookieExpirationService
     {
@@ -44,14 +43,14 @@ namespace NuGet.Shim.CookieCompliance
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            GoogleAnalyticsCookies.ToList().ForEach(cookie => ExpireCookieByName(httpContext, cookie));
+            GoogleAnalyticsCookies.ToList().ForEach(cookie => ExpireCookieByName(httpContext, PrimaryDomain));
             ApplicationInsightsCookies.ToList().ForEach(cookie => ExpireCookieByName(httpContext, cookie));
         }
 
         public void ExpireSocialMediaCookies(HttpContextBase httpContext) { }
         public void ExpireAdvertisingCookies(HttpContextBase httpContext) { }
 
-        internal void ExpireCookieByName(HttpContextBase httpContext, string cookieName, string domain = null)
+        public void ExpireCookieByName(HttpContextBase httpContext, string cookieName, string domain = null)
         {
             var request = httpContext.Request;
             var response = httpContext.Response;
@@ -67,7 +66,7 @@ namespace NuGet.Shim.CookieCompliance
             }
         }
 
-        internal string GetPrimaryDomain(string domain)
+        public string GetPrimaryDomain(string domain)
         {
             var index1 = domain.LastIndexOf('.');
             if (index1 < 0)

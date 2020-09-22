@@ -6,11 +6,11 @@ using System.Web;
 using System.Web.Mvc;
 using System.Reflection;
 using System.Collections.Generic;
-using Moq;
-using Xunit;
 using NuGetGallery.Cookies;
 using NuGetGallery.Framework;
 using NuGet.Services.Entities;
+using Moq;
+using Xunit;
 
 namespace NuGetGallery.Controllers
 {
@@ -70,10 +70,8 @@ namespace NuGetGallery.Controllers
             public void SetViewBagGivenHttpContextItemsWithCanWriteAnalyticsCookies(bool canWriteAnalyticsCookies)
             {
                 // Arrange
-                var controller = GetController<TestableAppController>();
-                var cookieComplianceService = new Mock<ICookieComplianceService>();
-                // cookieComplianceService.Setup(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
-                controller.SetCookieComplianceService(cookieComplianceService.Object);
+                var cookieExpirationService = GetMock<ICookieExpirationService>();
+                cookieExpirationService.Setup(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
 
                 var httpContext = new Mock<HttpContextBase>();
                 var items = new Dictionary<string, bool>
@@ -82,40 +80,44 @@ namespace NuGetGallery.Controllers
                 };
                 httpContext.Setup(c => c.Items).Returns(items);
 
+                var controller = GetController<TestableAppController>();
+                controller.SetCookieExpirationService(cookieExpirationService.Object);
+
                 // Act
                 InvokeOnActionExecutedMethod(controller.ControllerContext, httpContext.Object, controller);
 
                 // Assert
                 Assert.Equal(canWriteAnalyticsCookies, controller.ViewBag.CanWriteAnalyticsCookies);
-                /* if (canWriteAnalyticsCookies)
+                if (canWriteAnalyticsCookies)
                 {
-                    cookieComplianceService.Verify(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Never);
+                    cookieExpirationService.Verify(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Never);
                 }
                 else
                 {
-                    cookieComplianceService.Verify(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Once);
-                }*/
+                    cookieExpirationService.Verify(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Once);
+                }
             }
 
             [Fact]
-            public void SetViewBagGivenHttpContextItemsWithNoCanWriteAnalyticsCookies()
+            public void SetViewBagGivenHttpContextItemsWithNullCanWriteAnalyticsCookies()
             {
                 // Arrange
-                var controller = GetController<TestableAppController>();
-                var cookieComplianceService = new Mock<ICookieComplianceService>();
-                // cookieComplianceService.Setup(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
-                controller.SetCookieComplianceService(cookieComplianceService.Object);
+                var cookieExpirationService = GetMock<ICookieExpirationService>();
+                cookieExpirationService.Setup(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
 
                 var httpContext = new Mock<HttpContextBase>();
                 var items = new Dictionary<string, bool>();
                 httpContext.Setup(c => c.Items).Returns(items);
+
+                var controller = GetController<TestableAppController>();
+                controller.SetCookieExpirationService(cookieExpirationService.Object);
 
                 // Act
                 InvokeOnActionExecutedMethod(controller.ControllerContext, httpContext.Object, controller);
 
                 // Assert
                 Assert.False(controller.ViewBag.CanWriteAnalyticsCookies);
-                // cookieComplianceService.Verify(c => c.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Once);
+                cookieExpirationService.Verify(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Once);
             }
 
             private void InvokeOnActionExecutedMethod(ControllerContext controllerContext, HttpContextBase httpContext, AppController controller)

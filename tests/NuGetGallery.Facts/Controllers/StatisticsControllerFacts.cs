@@ -724,7 +724,7 @@ namespace NuGetGallery
                 request.Setup(r => r.UserLanguages).Returns(new string[] { "vi-VN" });
 
                 var controller = CreateController(aggregateStatsService, request);
-                controller.SetCookieComplianceService(Mock.Of<ICookieComplianceService>());
+                controller.SetCookieExpirationService(Mock.Of<ICookieExpirationService>());
 
                 // Act
 
