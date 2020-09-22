@@ -42,9 +42,14 @@
     .available-packages {
       .panel-body {
         overflow: auto;
-        min-height: 180px;
         padding-top: 0;
         padding-bottom: 0;
+        @media (max-width: @screen-sm-min) {
+          min-height: 200px;
+        }
+        @media (min-width: @screen-sm-min) {
+          min-height: auto;
+        }
       }
     }
 

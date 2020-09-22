@@ -790,9 +790,18 @@ img.reserved-indicator-icon {
 }
 .page-api-keys .upsert-api-key .available-packages .panel-body {
   overflow: auto;
-  min-height: 180px;
   padding-top: 0;
   padding-bottom: 0;
+}
+@media (max-width: 768px) {
+  .page-api-keys .upsert-api-key .available-packages .panel-body {
+    min-height: 200px;
+  }
+}
+@media (min-width: 768px) {
+  .page-api-keys .upsert-api-key .available-packages .panel-body {
+    min-height: auto;
+  }
 }
 .page-api-keys .upsert-api-key .glob-pattern-hint table {
   margin-bottom: 0;
