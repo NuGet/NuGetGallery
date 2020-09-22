@@ -42,15 +42,36 @@
     .available-packages {
       .panel-body {
         overflow: auto;
-        height: 204px;
+        min-height: 180px;
         padding-top: 0;
         padding-bottom: 0;
       }
     }
 
     .glob-pattern-hint {
-      .panel-body {
-        height: 282px;
+      table {
+        margin-bottom: 0;
+      }
+    }
+
+    .select-packages-form {
+      @media (min-width: @screen-sm-min) {
+        display: flex;
+      }
+    }
+
+    .select-packages-inputs {
+      display: flex;
+      flex-direction: column;
+
+      .available-packages-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .available-packages {
+          flex: 1;
+        }
       }
     }
 
