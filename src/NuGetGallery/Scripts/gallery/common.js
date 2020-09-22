@@ -635,5 +635,17 @@
                 skippedToContent.focus();
             }
         });
+
+        WcpConsent.init("en-US", "cookie-banner", function (err, _siteConsent) {
+            if (err !== undefined) {
+                return error;
+            } else {
+                window.nuget.wcpSiteConsent = _siteConsent;  // wcpSiteConsent is used to get the current consent
+            }
+        });
+
+        if (window.nuget.wcpSiteConsent.isConsentRequired) {
+            $("#footer-privacy-policy-link").after(" - <a class='button' href = 'javascript: window.nuget.wcpSiteConsent.manageConsent()' > Manage Cookies</a >")
+        }
     });
 }());

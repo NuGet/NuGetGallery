@@ -314,21 +314,6 @@
 @helper CookieComplianceScript()
 {
     <script src="https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"></script>
-    <script>
-        'use strict';
-        var WcpSiteConsent;
-        WcpConsent.init("en-US", "cookie-banner", function (err, _siteConsent) {
-            if (err !== undefined) {
-                return error;
-            } else {
-                WcpSiteConsent = _siteConsent;  // WcpSiteConsent is used to get the current consent
-            }
-        });
-
-        if (WcpSiteConsent.isConsentRequired) {
-            $("#footer-privacy-policy-link").after(" - <a class='button' href = 'javascript: WcpSiteConsent.manageConsent()' > Manage Cookies</a >")
-        }
-    </script>
 }
 
 @helper AnalyticsScript(dynamic viewBag)

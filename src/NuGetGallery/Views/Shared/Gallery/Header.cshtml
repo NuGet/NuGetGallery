@@ -8,6 +8,8 @@
     var rawErrorMessage = TempData.ContainsKey("RawErrorMessage") ? TempData["RawErrorMessage"].ToString() : null;
 }
 
+<div id="cookie-banner"></div>
+
 @if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
 {
     <div class="container-fluid banner banner-bright text-center">
@@ -19,8 +21,6 @@
         </div>
     </div>
 }
-
-<div id="cookie-banner"></div>
 
 @helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
 {
