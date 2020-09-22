@@ -1,6 +1,6 @@
 [*.cs]
 
-# Suggest performance, usage, naming, maintainability, style diagnostics.
+# Suppress performance, usage, naming, maintainability, style diagnostics.
 dotnet_analyzer_diagnostic.category-design.severity = none
 dotnet_analyzer_diagnostic.category-globalization.severity = none
 dotnet_analyzer_diagnostic.category-naming.severity = none
@@ -10,6 +10,8 @@ dotnet_analyzer_diagnostic.category-security.severity = warning
 dotnet_analyzer_diagnostic.category-usage.severity = none
 dotnet_analyzer_diagnostic.category-Maintainability.severity = none
 dotnet_analyzer_diagnostic.category-Style.severity = none
+
+# Addtional suppress to be compatible with different version among VS2019
 
 # CA1001: Types that own disposable fields should be disposable
 dotnet_diagnostic.CA1001.severity = none

@@ -1,7 +1,7 @@
 <Project>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers">
-    <Version>2.9.10</Version>
+    <Version>3.3.0</Version>
     <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     <PrivateAssets>all</PrivateAssets>
     </PackageReference>

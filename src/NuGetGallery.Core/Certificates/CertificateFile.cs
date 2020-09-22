@@ -65,7 +65,9 @@ namespace NuGetGallery
 
         private static string GetSha1Thumbprint(MemoryStream stream)
         {
-            using (var hashAlgorithm = SHA256.Create())
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
+            using (var hashAlgorithm = SHA1.Create())
+#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
             {
                 return GetThumbprint(stream, hashAlgorithm);
             }

@@ -5,7 +5,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyVersion("1.0.0")]
 [assembly: AssemblyTitle("NuGet.Services.Entities")]
 [assembly: AssemblyProduct("NuGet.Services.Entities")]
 [assembly: ComVisible(false)]

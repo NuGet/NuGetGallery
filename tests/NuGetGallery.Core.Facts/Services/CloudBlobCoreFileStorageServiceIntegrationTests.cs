@@ -183,10 +183,12 @@ namespace NuGetGallery
             var expectedContent = "Hello, world.";
             var bytes = Encoding.UTF8.GetBytes(expectedContent);
             string expectedContentMD5;
-            using (var md5 = SHA256.Create())
+#pragma warning disable CA5351  
+            using (var md5 = MD5.Create())
             {
                 expectedContentMD5 = Convert.ToBase64String(md5.ComputeHash(bytes));
             }
+#pragma warning disable CA5351 
 
             var container = _clientA.GetContainerReference(folderName);
             var file = container.GetBlobReference(fileName);

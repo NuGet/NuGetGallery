@@ -381,8 +381,9 @@ namespace NuGetGallery
 
         protected abstract DeleteAccountViewModel GetDeleteAccountViewModel(TUser account);
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA3147:Mark Verb Handlers With Validate Antiforgery Token", Justification = "<Pending>")]
+#pragma warning disable CA3147 // No need to Validate Antiforgery Token for abstract function
         public abstract Task<ActionResult> RequestAccountDeletion(string accountName = null);
+#pragma warning restore CA3147 // No need to Validate Antiforgery Token for abstract function
 
         protected List<DeleteAccountListPackageItemViewModel> GetOwnedPackagesViewModels(User account)
         {

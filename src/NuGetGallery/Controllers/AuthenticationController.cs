@@ -489,8 +489,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="returnUrl">The url to return upon credential replacement</param>
         /// <returns><see cref="ActionResult"/> for returnUrl</returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpGet]
         public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl)
         {
             var user = GetCurrentUser();
