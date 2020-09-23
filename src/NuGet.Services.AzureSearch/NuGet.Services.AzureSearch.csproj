@@ -201,6 +201,7 @@
     <Compile Include="SearchService\SearchStatusOptions.cs" />
     <Compile Include="SearchService\SearchStatusService.cs" />
     <Compile Include="SearchService\ParsedQuery.cs" />
+    <Compile Include="SearchService\SearchText.cs" />
     <Compile Include="SearchService\SearchTextBuilder.cs" />
     <Compile Include="AzureSearchTelemetryService.cs" />
     <Compile Include="SearchService\SecretRefresher.cs" />

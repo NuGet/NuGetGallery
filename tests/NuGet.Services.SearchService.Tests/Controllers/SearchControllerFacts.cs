@@ -149,6 +149,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.False(lastRequest.CountOnly);
                 Assert.False(lastRequest.IncludePrerelease);
                 Assert.False(lastRequest.IncludeSemVer2);
+                Assert.False(lastRequest.IncludeTestData);
                 Assert.Null(lastRequest.Query);
                 Assert.True(lastRequest.LuceneQuery);
                 Assert.False(lastRequest.ShowDebug);
@@ -300,6 +301,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Equal(20, lastRequest.Take);
                 Assert.False(lastRequest.IncludePrerelease);
                 Assert.False(lastRequest.IncludeSemVer2);
+                Assert.False(lastRequest.IncludeTestData);
                 Assert.Null(lastRequest.Query);
                 Assert.Null(lastRequest.PackageType);
                 Assert.False(lastRequest.ShowDebug);
@@ -402,6 +404,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Assert.Equal(20, lastRequest.Take);
                 Assert.False(lastRequest.IncludePrerelease);
                 Assert.False(lastRequest.IncludeSemVer2);
+                Assert.False(lastRequest.IncludeTestData);
                 Assert.Null(lastRequest.Query);
                 Assert.False(lastRequest.ShowDebug);
                 Assert.Null(lastRequest.PackageType);

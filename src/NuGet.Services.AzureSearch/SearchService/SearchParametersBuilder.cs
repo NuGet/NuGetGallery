@@ -139,14 +139,14 @@ namespace NuGet.Services.AzureSearch.SearchService
         private void ApplySearchIndexFilter(
             SearchParameters searchParameters,
             SearchRequest request,
-            bool excludePackagesHiddenByDefault,
+            bool isDefaultSearch,
             string packageType)
         {
             var searchFilters = GetSearchFilters(request);
 
             var filterString = $"{IndexFields.Search.SearchFilters} eq '{DocumentUtilities.GetSearchFilterString(searchFilters)}'";
 
-            if (excludePackagesHiddenByDefault)
+            if (isDefaultSearch)
             {
                 filterString += $" and ({IndexFields.Search.IsExcludedByDefault} eq false or {IndexFields.Search.IsExcludedByDefault} eq null)";
             }

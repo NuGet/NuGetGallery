@@ -10,6 +10,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public bool IncludePrerelease { get; set; }
         public bool IncludeSemVer2 { get; set; }
         public string Query { get; set; }
+        public bool IncludeTestData { get; set; }
         public bool ShowDebug { get; set; }
     }
 }

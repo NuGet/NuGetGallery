@@ -14,7 +14,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public partial class SearchTextBuilder : ISearchTextBuilder
     {
-        public const string MatchAllDocumentsQuery = "*";
+        private readonly SearchText MatchAllDocumentsIncludingTestData = new SearchText("*", isDefaultSearch: true);
+
         private static readonly char[] PackageIdSeparators = new[] { '.', '-', '_' };
         private static readonly char[] TokenizationSeparators = new[] { '.', '-', '_', ',' };
         private static readonly Regex TokenizePackageIdRegex = new Regex(
@@ -55,19 +56,22 @@ namespace NuGet.Services.AzureSearch.SearchService
                 query = "packageid:" + query.Substring(3);
             }
 
-            return GetParsedQuery(query);
+            // We must include test data when we are querying the hijack index since the owners field is not
+            // available in that index. The hijack index is queried when "ignoreFilter=true". Otherwise, the search
+            // index is queried and which means it is possible to filter out test data.
+            return GetParsedQuery(query, request.IncludeTestData || request.IgnoreFilter);
         }
 
         public ParsedQuery ParseV3Search(V3SearchRequest request)
         {
-            return GetParsedQuery(request.Query);
+            return GetParsedQuery(request.Query, request.IncludeTestData);
         }
 
-        public string Autocomplete(AutocompleteRequest request)
+        public SearchText Autocomplete(AutocompleteRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Query))
             {
-                return MatchAllDocumentsQuery;
+                return GetMatchAllDocuments(request.IncludeTestData);
             }
 
             // Query package ids. If autocompleting package ids, allow prefix matches.
@@ -93,7 +97,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     builder.AppendScopedTerm(
                         fieldName: IndexFields.TokenizedPackageId,
                         term: piece,
-                        required: true,
+                        prefix: TermPrefix.And,
                         prefixSearch: true);
                 }
 
@@ -110,27 +114,31 @@ namespace NuGet.Services.AzureSearch.SearchService
                     prefixSearch: false);
             }
 
+            if (!request.IncludeTestData)
+            {
+                ExcludeTestData(builder);
+            }
 
-            return builder.ToString();
+            return new SearchText(builder.ToString(), isDefaultSearch: false);
         }
 
-        private ParsedQuery GetParsedQuery(string query)
+        private ParsedQuery GetParsedQuery(string query, bool includeTestData)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
-                return new ParsedQuery(new Dictionary<QueryField, HashSet<string>>());
+                return new ParsedQuery(new Dictionary<QueryField, HashSet<string>>(), includeTestData);
             }
 
             var grouping = _parser.ParseQuery(query.Trim(), skipWhiteSpace: true);
 
-            return new ParsedQuery(grouping);
+            return new ParsedQuery(grouping, includeTestData);
         }
 
-        public string Build(ParsedQuery parsed)
+        public SearchText Build(ParsedQuery parsed)
         {
             if (!parsed.Grouping.Any())
             {
-                return MatchAllDocumentsQuery;
+                return GetMatchAllDocuments(parsed.IncludeTestData);
             }
 
             var scopedTerms = parsed.Grouping.Where(g => g.Key != QueryField.Any && g.Key != QueryField.Invalid).ToList();
@@ -143,7 +151,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             var hasUnscopedTerms = unscopedTerms != null && unscopedTerms.Count > 0;
             if (scopedTerms.Count == 0 && !hasUnscopedTerms)
             {
-                return MatchAllDocumentsQuery;
+                return GetMatchAllDocuments(parsed.IncludeTestData);
             }
 
             // Add the terms that are scoped to specific fields.
@@ -166,7 +174,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 }
                 else
                 {
-                    builder.AppendScopedTerm(fieldName, values.First(), required: requireScopedTerms);
+                    builder.AppendScopedTerm(fieldName, values.First(), prefix: requireScopedTerms ? TermPrefix.And : TermPrefix.None);
                 }
             }
 
@@ -199,7 +207,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                         builder.AppendScopedTerm(
                             fieldName: IndexFields.PackageId,
                             term: lastUnscopedTerm,
-                            required: false,
+                            prefix: TermPrefix.None,
                             prefixSearch: true,
                             boost: _options.Value.PrefixMatchBoost);
                     }
@@ -212,7 +220,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                         builder.AppendScopedTerm(
                             fieldName: IndexFields.TokenizedPackageId,
                             term: lastUnscopedTerm,
-                            required: false,
+                            prefix: TermPrefix.None,
                             prefixSearch: true,
                             boost: boost);
                     }
@@ -229,13 +237,19 @@ namespace NuGet.Services.AzureSearch.SearchService
                 builder.AppendExactMatchPackageIdBoost(unscopedTerms[0], _options.Value.ExactMatchBoost);
             }
 
-            var result = builder.ToString();
-            if (string.IsNullOrWhiteSpace(result))
+            if (!parsed.IncludeTestData)
             {
-                return MatchAllDocumentsQuery;
+                ExcludeTestData(builder);
             }
 
-            return result;
+            var result = builder.ToString();
+
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                return GetMatchAllDocuments(parsed.IncludeTestData);
+            }
+
+            return new SearchText(result, isDefaultSearch: false);
         }
 
         private static IEnumerable<string> ProcessFieldValues(QueryField field, IEnumerable<string> values)
@@ -305,6 +319,37 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             return TokenizationSeparators.Any(separator => input[0] == separator);
+        }
+
+        private void ExcludeTestData(AzureSearchTextBuilder builder)
+        {
+            if (_options.Value.TestOwners != null)
+            {
+                foreach (var owner in _options.Value.TestOwners)
+                {
+                    builder.AppendScopedTerm(IndexFields.Search.Owners, owner, prefix: TermPrefix.Not);
+                }
+            }
+        }
+
+        private SearchText GetMatchAllDocuments(bool includeTestData)
+        {
+            if (includeTestData
+                || _options.Value.TestOwners == null
+                || _options.Value.TestOwners.Count == 0)
+            {
+                return MatchAllDocumentsIncludingTestData;
+            }
+
+            var builder = new AzureSearchTextBuilder();
+
+            // We can't use '*' to match all documents here since it doesn't work in conjunction with any other terms.
+            // Instead, we match all documents by finding every doument that has a package ID (which is all documents).
+            builder.AppendVerbatim($"{IndexFields.PackageId}:/.*/");
+
+            ExcludeTestData(builder);
+
+            return new SearchText(builder.ToString(), isDefaultSearch: true);
         }
     }
 }

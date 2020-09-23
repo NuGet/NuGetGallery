@@ -44,8 +44,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             var text = _textBuilder.Build(parsed);
-            var parameters = _parametersBuilder.V3Search(request, IsEmptySearchQuery(text));
-            return IndexOperation.Search(text, parameters);
+            var parameters = _parametersBuilder.V3Search(request, text.IsDefaultSearch);
+            return IndexOperation.Search(text.Value, parameters);
         }
 
         public IndexOperation V2SearchWithSearchIndex(V2SearchRequest request)
@@ -65,8 +65,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             var text = _textBuilder.Build(parsed);
-            var parameters = _parametersBuilder.V2Search(request, IsEmptySearchQuery(text));
-            return IndexOperation.Search(text, parameters);
+            var parameters = _parametersBuilder.V2Search(request, text.IsDefaultSearch);
+            return IndexOperation.Search(text.Value, parameters);
         }
 
         public IndexOperation V2SearchWithHijackIndex(V2SearchRequest request)
@@ -85,8 +85,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             var text = _textBuilder.Build(parsed);
-            var parameters = _parametersBuilder.V2Search(request, IsEmptySearchQuery(text));
-            return IndexOperation.Search(text, parameters);
+            var parameters = _parametersBuilder.V2Search(request, text.IsDefaultSearch);
+            return IndexOperation.Search(text.Value, parameters);
         }
 
         public IndexOperation Autocomplete(AutocompleteRequest request)
@@ -97,8 +97,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             var text = _textBuilder.Autocomplete(request);
-            var parameters = _parametersBuilder.Autocomplete(request, IsEmptySearchQuery(text));
-            return IndexOperation.Search(text, parameters);
+            var parameters = _parametersBuilder.Autocomplete(request, text.IsDefaultSearch);
+            return IndexOperation.Search(text.Value, parameters);
         }
 
         private bool TryGetSearchDocumentByKey(
@@ -189,11 +189,6 @@ namespace NuGet.Services.AzureSearch.SearchService
         private static bool PagedToFirstItem(SearchRequest request)
         {
             return request.Skip <= 0 && request.Take >= 1;
-        }
-
-        private static bool IsEmptySearchQuery(string parsedText)
-        {
-            return parsedText.Equals(SearchTextBuilder.MatchAllDocumentsQuery);
         }
     }
 }
