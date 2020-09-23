@@ -247,7 +247,7 @@ namespace CatalogTests.Helpers
                         test.FeedPackageDetails
                     });
 
-                    NupkgMetadata nupkgMetadata = GetNupkgMetadata("Newtonsoft.Json.9.0.2-beta1.nupkg");
+                    NupkgMetadata nupkgMetadata = GetNupkgMetadata("Newtonsoft.Json.9.0.2-beta1.nupkg.testdata");
 
                     var deprecationItem = GetPackageDeprecationItemFromState(deprecationState);
                     var vulnerabilities = CreateTestPackageVulnerabilityItems(vulnerabilityCount);

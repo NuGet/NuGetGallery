@@ -162,9 +162,9 @@ namespace CatalogTests.Helpers
 
         private static CatalogItem CreateCatalogItem(string packageName)
         {
-            var path = Path.GetFullPath(Path.Combine("TestData", $"{packageName}.nupkg"));
+            var path = Path.GetFullPath(Path.Combine("TestData", $"{packageName}.nupkg.testdata"));
 
-            using (var packageStream = TestHelper.GetStream($"{packageName}.nupkg"))
+            using (var packageStream = TestHelper.GetStream($"{packageName}.nupkg.testdata"))
             {
                 var createdDate = new DateTime(2017, 1, 1, 8, 15, 0, DateTimeKind.Utc);
                 var lastEditedDate = new DateTime(2017, 1, 2, 8, 15, 0, DateTimeKind.Utc);

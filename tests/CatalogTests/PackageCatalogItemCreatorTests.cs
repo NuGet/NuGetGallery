@@ -259,7 +259,7 @@ namespace CatalogTests
                         });
 
                     test.Blob.Setup(x => x.GetStreamAsync(It.IsAny<CancellationToken>()))
-                        .ReturnsAsync(TestHelper.GetStream(test.PackageFileName));
+                        .ReturnsAsync(TestHelper.GetStream(test.PackageFileName + ".testdata"));
 
                     test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
                         .Returns(Task.FromResult(0));
@@ -307,7 +307,7 @@ namespace CatalogTests
                         });
 
                     test.Blob.Setup(x => x.GetStreamAsync(It.IsAny<CancellationToken>()))
-                        .ReturnsAsync(TestHelper.GetStream(test.PackageFileName));
+                        .ReturnsAsync(TestHelper.GetStream(test.PackageFileName + ".testdata"));
 
                     test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
                         .Returns(Task.FromResult(0));
@@ -387,7 +387,7 @@ namespace CatalogTests
                     PackageVersion,
                     PackageVersion);
 
-                var stream = TestHelper.GetStream(PackageFileName);
+                var stream = TestHelper.GetStream(PackageFileName + ".testdata");
 
                 Handler.SetAction(
                     PackageUri.PathAndQuery,

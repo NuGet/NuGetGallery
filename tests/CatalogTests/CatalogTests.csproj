@@ -132,166 +132,166 @@
     <None Include="TestData\DependencyMissingId.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\DependencyMissingId.0.1.0.nupkg">
+    <None Include="TestData\DependencyMissingId.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\EmptyDependenciesElement.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\EmptyDependenciesElement.0.1.0.nupkg">
+    <None Include="TestData\EmptyDependenciesElement.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\EmptyDependencyId.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\EmptyDependencyId.0.1.0.nupkg">
+    <None Include="TestData\EmptyDependencyId.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\EmptyDependencyIdWithGroups.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\EmptyDependencyIdWithGroups.0.1.0.nupkg">
+    <None Include="TestData\EmptyDependencyIdWithGroups.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\EmptyDependencyVersionRange.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\EmptyDependencyVersionRange.0.1.0.nupkg">
+    <None Include="TestData\EmptyDependencyVersionRange.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\InvalidDependencyVersionRange.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\InvalidDependencyVersionRange.0.1.0.nupkg">
+    <None Include="TestData\InvalidDependencyVersionRange.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\MissingDependencyVersionRange.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\MissingDependencyVersionRange.0.1.0.nupkg">
+    <None Include="TestData\MissingDependencyVersionRange.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\Newtonsoft.Json.9.0.2-beta1.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\Newtonsoft.Json.9.0.2-beta1.nupkg">
+    <None Include="TestData\Newtonsoft.Json.9.0.2-beta1.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\OneValidDependencyOneEmptyId.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\OneValidDependencyOneEmptyId.0.1.0.nupkg">
+    <None Include="TestData\OneValidDependencyOneEmptyId.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\OneValidDependencyOneEmptyIdWithGroups.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\OneValidDependencyOneEmptyIdWithGroups.0.1.0.nupkg">
+    <None Include="TestData\OneValidDependencyOneEmptyIdWithGroups.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeCollapseDuplicate.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeCollapseDuplicate.nupkg">
+    <None Include="TestData\PackageTypeCollapseDuplicate.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeMultiple.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeMultiple.nupkg">
+    <None Include="TestData\PackageTypeMultiple.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeMultipleTypesNodes.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeMultipleTypesNodes.nupkg">
+    <None Include="TestData\PackageTypeMultipleTypesNodes.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeSameTypeDifferentCase.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeSameTypeDifferentCase.nupkg">
+    <None Include="TestData\PackageTypeSameTypeDifferentCase.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeSameTypeDifferentVersionType.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeSameTypeDifferentVersionType.nupkg">
+    <None Include="TestData\PackageTypeSameTypeDifferentVersionType.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeSameTypeTwoVersion.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeSameTypeTwoVersion.nupkg">
+    <None Include="TestData\PackageTypeSameTypeTwoVersion.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeSingle.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeSingle.nupkg">
+    <None Include="TestData\PackageTypeSingle.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeSingleWithVersion.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeSingleWithVersion.nupkg">
+    <None Include="TestData\PackageTypeSingleWithVersion.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeWhiteSpace.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeWhiteSpace.nupkg">
+    <None Include="TestData\PackageTypeWhiteSpace.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\PackageTypeWhiteSpaceVersion.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\PackageTypeWhiteSpaceVersion.nupkg">
+    <None Include="TestData\PackageTypeWhiteSpaceVersion.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.IconAndIconUrl.0.4.2.nupkg">
+    <None Include="TestData\TestPackage.IconAndIconUrl.0.4.2.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.IconOnlyEmptyType.0.4.2.nupkg">
+    <None Include="TestData\TestPackage.IconOnlyEmptyType.0.4.2.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.IconOnlyFileType.0.4.2.nupkg">
+    <None Include="TestData\TestPackage.IconOnlyFileType.0.4.2.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.IconOnlyInvalidType.0.4.2.nupkg">
+    <None Include="TestData\TestPackage.IconOnlyInvalidType.0.4.2.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.IconOnlyNoType.0.4.2.nupkg">
+    <None Include="TestData\TestPackage.IconOnlyNoType.0.4.2.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.LicenseExpression.0.1.0.nupkg">
+    <None Include="TestData\TestPackage.LicenseExpression.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.LicenseFile.0.1.0.nupkg">
+    <None Include="TestData\TestPackage.LicenseFile.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.LicenseExpressionAndUrl.0.1.0.nupkg">
+    <None Include="TestData\TestPackage.LicenseExpressionAndUrl.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.LicenseFileAndUrl.0.1.0.nupkg">
+    <None Include="TestData\TestPackage.LicenseFileAndUrl.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\TestPackage.SemVer2.1.0.0-alpha.1.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\TestPackage.SemVer2.1.0.0-alpha.1.nupkg">
+    <None Include="TestData\TestPackage.SemVer2.1.0.0-alpha.1.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\WhitespaceDependencyId.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\WhitespaceDependencyId.0.1.0.nupkg">
+    <None Include="TestData\WhitespaceDependencyId.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestData\WhitespaceDependencyVersionRange.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="TestData\WhitespaceDependencyVersionRange.0.1.0.nupkg">
+    <None Include="TestData\WhitespaceDependencyVersionRange.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

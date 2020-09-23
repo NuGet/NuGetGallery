@@ -90,14 +90,14 @@ namespace CatalogTests.Helpers
 
         private static MemoryStream GetPackageStream()
         {
-            return TestHelper.GetStream("Newtonsoft.Json.9.0.2-beta1.nupkg");
+            return TestHelper.GetStream("Newtonsoft.Json.9.0.2-beta1.nupkg.testdata");
         }
 
         [Fact]
         public void GetNupkgMetadataWithLicenseUrl_ReturnsLicenseUrl()
         {
             // Arrange
-            var stream = TestHelper.GetStream("Newtonsoft.Json.9.0.2-beta1.nupkg");
+            var stream = TestHelper.GetStream("Newtonsoft.Json.9.0.2-beta1.nupkg.testdata");
             var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
             var baseUrl = "http://example/";
             var uriNodeName = new Uri(String.Concat(baseUrl, "newtonsoft.json.9.0.2-beta1.json"));
@@ -121,10 +121,10 @@ namespace CatalogTests.Helpers
         }
 
         [Theory]
-        [InlineData("TestPackage.LicenseExpression.0.1.0.nupkg", "licenseExpression", "MIT", 0)]
-        [InlineData("TestPackage.LicenseFile.0.1.0.nupkg", "licenseFile", "license.txt", 0)]
-        [InlineData("TestPackage.LicenseExpressionAndUrl.0.1.0.nupkg", "licenseExpression", "MIT", 1)]
-        [InlineData("TestPackage.LicenseFileAndUrl.0.1.0.nupkg", "licenseFile", "license.txt", 1)]
+        [InlineData("TestPackage.LicenseExpression.0.1.0.nupkg.testdata", "licenseExpression", "MIT", 0)]
+        [InlineData("TestPackage.LicenseFile.0.1.0.nupkg.testdata", "licenseFile", "license.txt", 0)]
+        [InlineData("TestPackage.LicenseExpressionAndUrl.0.1.0.nupkg.testdata", "licenseExpression", "MIT", 1)]
+        [InlineData("TestPackage.LicenseFileAndUrl.0.1.0.nupkg.testdata", "licenseFile", "license.txt", 1)]
         public void GetNupkgMetadataWithLicenseType_ReturnsLicense(string packageName, string licenseType, string licenseContent, int expectedLicenseUrlNumber)
         {
             // Arrange
@@ -150,18 +150,18 @@ namespace CatalogTests.Helpers
         }
 
         [Theory]
-        [InlineData("TestPackage.IconAndIconUrl.0.4.2.nupkg", true, true)]
-        [InlineData("TestPackage.IconOnlyEmptyType.0.4.2.nupkg", false, false)]
-        [InlineData("TestPackage.IconOnlyFileType.0.4.2.nupkg", true, false)]
-        [InlineData("TestPackage.IconOnlyInvalidType.0.4.2.nupkg", false, false)]
-        [InlineData("TestPackage.IconOnlyNoType.0.4.2.nupkg", true, false)]
+        [InlineData("TestPackage.IconAndIconUrl.0.4.2.nupkg.testdata", true, true)]
+        [InlineData("TestPackage.IconOnlyEmptyType.0.4.2.nupkg.testdata", false, false)]
+        [InlineData("TestPackage.IconOnlyFileType.0.4.2.nupkg.testdata", true, false)]
+        [InlineData("TestPackage.IconOnlyInvalidType.0.4.2.nupkg.testdata", false, false)]
+        [InlineData("TestPackage.IconOnlyNoType.0.4.2.nupkg.testdata", true, false)]
         public void GetNupkgMetadataWithIcon_ProcessesCorrectly(string packageFilename, bool expectedIconMetadata, bool expectedIconUrlMetadata)
         {
             // Arrange
             var stream = TestHelper.GetStream(packageFilename);
             var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
             var baseUrl = "http://example/";
-            var packageIdVersion = packageFilename.Replace(".nupkg", "").ToLowerInvariant();
+            var packageIdVersion = packageFilename.Replace(".nupkg.testdata", "").ToLowerInvariant();
             var uriNodeName = new Uri(string.Concat(baseUrl, packageIdVersion, ".json"));
 
             // Act

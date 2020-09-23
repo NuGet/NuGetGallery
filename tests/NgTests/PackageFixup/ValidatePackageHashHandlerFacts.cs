@@ -35,7 +35,7 @@ namespace NgTests.PackageFixup
                 "/packages/testunsigned.1.0.0.nupkg",
                 request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StreamContent(File.OpenRead("Packages\\TestUnsigned.1.0.0.nupkg"))
+                    Content = new StreamContent(File.OpenRead("Packages\\TestUnsigned.1.0.0.nupkg.testdata"))
                 }
             ));
 
