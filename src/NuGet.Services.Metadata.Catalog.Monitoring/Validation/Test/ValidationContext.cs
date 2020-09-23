@@ -125,8 +125,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                         Package.Id,
                         queryUri.AbsoluteUri);
 
+#pragma warning disable CS0618 // Type or member is obsolete
                     var rawSearchResource = new RawSearchResourceV3(_httpSourceResource.HttpSource, new[] { queryUri });
                     var packageSearchResource = new PackageSearchResourceV3(rawSearchResource);
+#pragma warning restore CS0618 // Type or member is obsolete
+
                     return packageSearchResource.SearchAsync(
                         searchTerm: $"packageid:{Package.Id}",
                         filter: new SearchFilter(includePrerelease: true),

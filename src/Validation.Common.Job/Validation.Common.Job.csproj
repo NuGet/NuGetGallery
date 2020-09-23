@@ -113,7 +113,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>5.0.0-preview1.5707</Version>
+      <Version>5.8.0-preview.3.6823</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.ServiceBus">
       <Version>2.75.0</Version>

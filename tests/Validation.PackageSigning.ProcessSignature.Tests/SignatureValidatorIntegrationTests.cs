@@ -43,20 +43,25 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
     {
         // NU3018
         private const string AuthorPrimaryCertificateUntrustedMessage = "The author primary signature found a chain building issue: " +
+            "UntrustedRoot: " +
             "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.";
         private const string AuthorPrimaryCertificateRevocationOfflineMessage = "NU3018: The author primary signature found a chain building issue: " +
             "The revocation function was unable to check revocation because the revocation server could not be reached.";
         private const string AuthorPrimaryCertificateRevocationUnknownMessage = "NU3018: The author primary signature found a chain building issue: " +
+            "RevocationStatusUnknown: " +
             "The revocation function was unable to check revocation for the certificate.";
         private const string RepositoryCounterCertificateRevocationOfflineMessage = "NU3018: The repository countersignature found a chain building issue: " +
             "The revocation function was unable to check revocation because the revocation server could not be reached.";
         private const string RepositoryCounterCertificateRevocationUnknownMessage = "NU3018: The repository countersignature found a chain building issue: " +
+            "RevocationStatusUnknown: " +
             "The revocation function was unable to check revocation for the certificate.";
 
         // NU3028
         private const string AuthorPrimaryTimestampCertificateUntrustedMessage = "The author primary signature's timestamp found a chain building issue: " +
+            "UntrustedRoot: " +
             "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.";
         private const string AuthorPrimaryTimestampCertificateRevocationUnknownMessage = "NU3028: The author primary signature's timestamp found a chain building issue: " +
+            "RevocationStatusUnknown: " +
             "The revocation function was unable to check revocation for the certificate.";
         private const string AuthorPrimaryTimestampCertificateRevocationOfflineMessage = "NU3028: The author primary signature's timestamp found a chain building issue: " +
             "The revocation function was unable to check revocation because the revocation server could not be reached.";
@@ -286,6 +291,142 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var clientIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
                 Assert.Equal("NU3028", clientIssue.ClientCode);
                 Assert.Equal(AuthorPrimaryTimestampCertificateUntrustedMessage, clientIssue.ClientMessage);
+            }
+        }
+
+        [AdminOnlyFact]
+        public async Task AcceptsAuthorSignatureWithIncorrectTimestampAuthorityCertificateHash()
+        {
+            // Arrange
+            // Trusted timestamps place the timestamp authority's signing certificate's SHA-1 hash in
+            // a "signing-certificate" attribute. We do not verify this SHA-1 hash, therefore, packages
+            // with an incorrect hash should pass validation.
+            var options = new TimestampServiceOptions
+            {
+                SigningCertificateUsage = SigningCertificateUsage.V1,
+                SigningCertificateV1Hash = new byte[20]
+            };
+
+            using (var timestampService = await _fixture.CreateCustomTimestampServiceAsync(options))
+            {
+                var packageBytes = await _fixture.GenerateAuthorSignedPackageBytesAsync(
+                    TestResources.SignedPackageLeaf1,
+                    await _fixture.GetSigningCertificateAsync(),
+                    timestampService.Url,
+                    _output);
+
+                TestUtility.RequireSignedPackage(
+                    _corePackageService,
+                    TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
+                    await _fixture.GetSigningCertificateThumbprintAsync());
+
+                _packageStream = new MemoryStream(packageBytes);
+
+                _message = new SignatureValidationMessage(
+                    TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
+                    new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                    Guid.NewGuid());
+
+                var result = await _target.ValidateAsync(
+                       _packageKey,
+                       _packageStream,
+                       _message,
+                       _token);
+
+                // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
+            }
+        }
+
+        [AdminOnlyFact]
+        public async Task AcceptsRepositorySignatureWithIncorrectTimestampAuthorityCertificateHash()
+        {
+            // Arrange
+            // Trusted timestamps place the timestamp authority's signing certificate's SHA-1 hash in
+            // a "signing-certificate" attribute. We do not verify this SHA-1 hash, therefore, packages
+            // with an incorrect hash should pass validation.
+            var options = new TimestampServiceOptions
+            {
+                SigningCertificateUsage = SigningCertificateUsage.V1,
+                SigningCertificateV1Hash = new byte[20]
+            };
+
+            using (var timestampService = await _fixture.CreateCustomTimestampServiceAsync(options))
+            {
+                var certificate = await _fixture.GetSigningCertificateAsync();
+                _packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                    TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                    certificate,
+                    timestampService.Url,
+                    _output);
+
+                // Initialize the subject of testing.
+                TestUtility.RequireUnsignedPackage(
+                    _corePackageService,
+                    TestResources.UnsignedPackageId,
+                    TestResources.UnsignedPackageVersion);
+
+                _message = _unsignedPackageMessage;
+
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                // Act
+                var result = await target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _token);
+
+                // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
+                Assert.Null(result.NupkgUri);
+            }
+        }
+
+        [AdminOnlyFact]
+        public async Task AcceptsRepositoryCounterSignatureWithIncorrectTimestampAuthorityCertificateHash()
+        {
+            // Arrange
+            // Trusted timestamps place the timestamp authority's signing certificate's SHA-1 hash in
+            // a "signing-certificate" attribute. We do not verify this SHA-1 hash, therefore, packages
+            // with an incorrect hash should pass validation.
+            var options = new TimestampServiceOptions
+            {
+                SigningCertificateUsage = SigningCertificateUsage.V1,
+                SigningCertificateV1Hash = new byte[20]
+            };
+
+            using (var timestampService = await _fixture.CreateCustomTimestampServiceAsync(options))
+            {
+                var certificate = await _fixture.GetSigningCertificateAsync();
+                _packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                    await GetAuthorSignedPackageStream1Async(),
+                    certificate,
+                    timestampService.Url,
+                    _output);
+
+                // Initialize the subject of testing.
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                // Act
+                var result = await target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _token);
+
+                // Assert
+                VerifyPackageSigningStatus(
+                    result,
+                    ValidationStatus.Succeeded,
+                    PackageSigningStatus.Valid,
+                    repositorySigned: true);
             }
         }
 
