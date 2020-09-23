@@ -180,10 +180,10 @@ namespace NgTests.Validation
         {
             public static readonly PackageIdentity PackageIdentity = new PackageIdentity("TestPackage", new NuGetVersion("1.0.0"));
 
-            public const string UnsignedPackageResource = "Packages\\TestUnsigned.1.0.0.nupkg";
-            public const string AuthorSignedPackageResource = "Packages\\TestSigned.leaf-1.1.0.0.nupkg";
-            public const string RepoSignedPackageResource = "Packages\\TestRepoSigned.leaf-1.1.0.0.nupkg";
-            public const string AuthorAndRepoSignedPackageResource = "Packages\\TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg";
+            public const string UnsignedPackageResource = "Packages\\TestUnsigned.1.0.0.nupkg.testdata";
+            public const string AuthorSignedPackageResource = "Packages\\TestSigned.leaf-1.1.0.0.nupkg.testdata";
+            public const string RepoSignedPackageResource = "Packages\\TestRepoSigned.leaf-1.1.0.0.nupkg.testdata";
+            public const string AuthorAndRepoSignedPackageResource = "Packages\\TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg.testdata";
 
             public static readonly DateTime PackageCreationTime = DateTime.UtcNow;
 

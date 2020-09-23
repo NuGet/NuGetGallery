@@ -13,17 +13,17 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private const string ResourcePrefix = "Validation.PackageSigning.ProcessSignature.Tests.TestData.";
         public const string SignedPackageLeafId = "TestSigned.leaf";
         public const string SignedPackageLeaf1Version = "1.1.0";
-        public const string SignedPackageLeaf1 = "TestSigned.leaf-1.1.0.0.nupkg";
-        public const string SignedPackageLeaf2 = "TestSigned.leaf-2.2.0.0.nupkg";
+        public const string SignedPackageLeaf1 = "TestSigned.leaf-1.1.0.0.nupkg.testdata";
+        public const string SignedPackageLeaf2 = "TestSigned.leaf-2.2.0.0.nupkg.testdata";
         public const string UnsignedPackageId = "TestUnsigned";
         public const string UnsignedPackageVersion = "1.0.0";
-        public const string UnsignedPackage = "TestUnsigned.1.0.0.nupkg";
-        public const string Zip64Package = "Zip64Package.1.0.0.nupkg";
+        public const string UnsignedPackage = "TestUnsigned.1.0.0.nupkg.testdata";
+        public const string Zip64Package = "Zip64Package.1.0.0.nupkg.testdata";
         public const string RepoSignedPackageLeafId = "TestRepoSigned.leaf";
-        public const string RepoSignedPackageLeaf1 = "TestRepoSigned.leaf-1.1.0.0.nupkg";
+        public const string RepoSignedPackageLeaf1 = "TestRepoSigned.leaf-1.1.0.0.nupkg.testdata";
         public const string RepoSignedPackageLeaf1Version = "1.1.0.0";
         public const string AuthorAndRepoSignedPackageLeafId = "TestAuthorAndRepoSigned.leaf";
-        public const string AuthorAndRepoSignedPackageLeaf1 = "TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg";
+        public const string AuthorAndRepoSignedPackageLeaf1 = "TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg.testdata";
         public const string AuthorAndRepoSignedPackageLeaf1Version = "1.1.0.0";
 
         /// <summary>

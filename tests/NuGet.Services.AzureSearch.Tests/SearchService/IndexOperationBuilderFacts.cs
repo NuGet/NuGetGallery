@@ -514,11 +514,11 @@ namespace NuGet.Services.AzureSearch.SearchService
                 V3SearchRequest = new V3SearchRequest { Skip = 0, Take = 20 };
                 Text = "";
                 Parameters = new SearchParameters();
-                ParsedQuery = new ParsedQuery(new Dictionary<QueryField, HashSet<string>>());
+                ParsedQuery = new ParsedQuery(new Dictionary<QueryField, HashSet<string>>(), includeTestData: false);
 
                 TextBuilder
                     .Setup(x => x.Autocomplete(It.IsAny<AutocompleteRequest>()))
-                    .Returns(() => Text);
+                    .Returns(() => new SearchText(Text, isDefaultSearch: false));
                 TextBuilder
                     .Setup(x => x.ParseV2Search(It.IsAny<V2SearchRequest>()))
                     .Returns(() => ParsedQuery);
@@ -527,7 +527,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     .Returns(() => ParsedQuery);
                 TextBuilder
                     .Setup(x => x.Build(It.IsAny<ParsedQuery>()))
-                    .Returns(() => Text);
+                    .Returns(() => new SearchText(Text, isDefaultSearch: false));
                 ParametersBuilder
                     .Setup(x => x.Autocomplete(It.IsAny<AutocompleteRequest>(), It.IsAny<bool>()))
                     .Returns(() => Parameters);

@@ -21,7 +21,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var actual = _target.Build(parsed);
 
-                Assert.Equal(expected, actual);
+                Assert.Equal(expected, actual.Value);
             }
 
             [Theory]
@@ -37,7 +37,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var actual = _target.Build(parsed);
 
-                Assert.Equal(expected, actual);
+                Assert.Equal(expected, actual.Value);
             }
 
             [Theory]
@@ -69,6 +69,31 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.Equal("Query terms cannot exceed 32768 bytes.", e.Message);
             }
+
+            [Theory]
+            [InlineData("foo", false, false, "foo tokenizedPackageId:foo*^20 -owners:TestUserA -owners:TestUserB")]
+            [InlineData("", false, false, "packageId:/.*/ -owners:TestUserA -owners:TestUserB")]
+            [InlineData("foo", true, false, "foo tokenizedPackageId:foo*^20")]
+            [InlineData("", true, false, "*")]
+            [InlineData("foo", false, true, "foo tokenizedPackageId:foo*^20")]
+            [InlineData("", false, true, "*")]
+            [InlineData("foo", true, true, "foo tokenizedPackageId:foo*^20")]
+            [InlineData("", true, true, "*")]
+            public void CanExcludeTestData(string query, bool ignoreFilter, bool includeTestData, string expected)
+            {
+                _config.TestOwners = new List<string> { "TestUserA", "TestUserB" };
+                var request = new V2SearchRequest
+                {
+                    Query = query,
+                    IgnoreFilter = ignoreFilter,
+                    IncludeTestData = includeTestData,
+                };
+                var parsed = _target.ParseV2Search(request);
+
+                var actual = _target.Build(parsed);
+
+                Assert.Equal(expected, actual.Value);
+            }
         }
 
         public class V3Search : FactsBase
@@ -81,7 +106,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var actual = _target.Build(parsed);
 
-                Assert.Equal(expected, actual);
+                Assert.Equal(expected, actual.Value);
             }
 
             [Theory]
@@ -113,6 +138,26 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Assert.Equal("Query terms cannot exceed 32768 bytes.", e.Message);
             }
+
+            [Theory]
+            [InlineData("foo", false, "foo tokenizedPackageId:foo*^20 -owners:TestUserA -owners:TestUserB")]
+            [InlineData("", false, "packageId:/.*/ -owners:TestUserA -owners:TestUserB")]
+            [InlineData("foo", true, "foo tokenizedPackageId:foo*^20")]
+            [InlineData("", true, "*")]
+            public void CanExcludeTestData(string query, bool includeTestData, string expected)
+            {
+                _config.TestOwners = new List<string> { "TestUserA", "TestUserB" };
+                var request = new V3SearchRequest
+                {
+                    Query = query,
+                    IncludeTestData = includeTestData,
+                };
+                var parsed = _target.ParseV3Search(request);
+
+                var actual = _target.Build(parsed);
+
+                Assert.Equal(expected, actual.Value);
+            }
         }
 
         public class Autocomplete : FactsBase
@@ -125,7 +170,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             [InlineData("Hello world ", "packageId:Hello\\ world* +tokenizedPackageId:Hello\\ world*")]
             [InlineData("Hello.world", "packageId:Hello.world* +tokenizedPackageId:Hello* +tokenizedPackageId:world* packageId:Hello.world^1000")]
             [InlineData("Foo.BarBaz", "packageId:Foo.BarBaz* +tokenizedPackageId:Foo* +tokenizedPackageId:BarBaz* packageId:Foo.BarBaz^1000")]
-            public void PackageIdAutocomplete(string input, string expected)
+            public void PackageIdsAutocomplete(string input, string expected)
             {
                 var request = new AutocompleteRequest
                 {
@@ -135,7 +180,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var actual = _target.Autocomplete(request);
 
-                Assert.Equal(expected, actual);
+                Assert.Equal(expected, actual.Value);
             }
 
             [Theory]
@@ -151,19 +196,58 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var actual = _target.Autocomplete(request);
 
-                Assert.Equal(expected, actual);
+                Assert.Equal(expected, actual.Value);
+            }
+
+            [Theory]
+            [InlineData("Test", false, "packageId:Test* +tokenizedPackageId:Test* packageId:Test^1000 -owners:TestUserA -owners:TestUserB")]
+            [InlineData("", false, "packageId:/.*/ -owners:TestUserA -owners:TestUserB")]
+            [InlineData("Test", true, "packageId:Test* +tokenizedPackageId:Test* packageId:Test^1000")]
+            [InlineData("", true, "*")]
+            public void PackageIdsCanExcludeTestData(string query, bool includeTestData, string expected)
+            {
+                _config.TestOwners = new List<string> { "TestUserA", "TestUserB" };
+                var request = new AutocompleteRequest
+                {
+                    Query = query,
+                    Type = AutocompleteRequestType.PackageIds,
+                    IncludeTestData = includeTestData,
+                };
+
+                var actual = _target.Autocomplete(request);
+
+                Assert.Equal(expected, actual.Value);
+            }
+
+            [Theory]
+            [InlineData("Test", false, "packageId:Test -owners:TestUserA -owners:TestUserB")]
+            [InlineData("Test", true, "packageId:Test")]
+            public void PackageVersionsCanExcludeTestData(string query, bool includeTestData, string expected)
+            {
+                _config.TestOwners = new List<string> { "TestUserA", "TestUserB" };
+                var request = new AutocompleteRequest
+                {
+                    Query = query,
+                    Type = AutocompleteRequestType.PackageVersions,
+                    IncludeTestData = includeTestData,
+                };
+
+                var actual = _target.Autocomplete(request);
+
+                Assert.Equal(expected, actual.Value);
             }
         }
 
         public class FactsBase
         {
             protected readonly SearchTextBuilder _target;
+            protected readonly SearchServiceConfiguration _config;
 
             public FactsBase()
             {
-                var config = new SearchServiceConfiguration { MatchAllTermsBoost = 2.0f };
+                _config = new SearchServiceConfiguration { MatchAllTermsBoost = 2.0f };
                 var options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
-                options.Setup(o => o.Value).Returns(config);
+                options.Setup(o => o.Value).Returns(_config);
 
                 _target = new SearchTextBuilder(options.Object);
             }

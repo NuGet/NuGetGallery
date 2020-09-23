@@ -30,7 +30,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         /// </summary>
         /// <param name="parsed">The parsed query.</param>
         /// <returns>The Lucene search text to pass to Azure Search.</returns>
-        string Build(ParsedQuery parsed);
+        SearchText Build(ParsedQuery parsed);
 
         /// <summary>
         /// Map an autocomplete request to Azure Search.
@@ -38,6 +38,6 @@ namespace NuGet.Services.AzureSearch.SearchService
         /// <param name="request">The autocomplete request.</param>
         /// <returns>The Azure Search query.</returns>
         /// <exception cref="InvalidSearchRequestException">Thrown on invalid autocomplete requests.</exception>
-        string Autocomplete(AutocompleteRequest request);
+        SearchText Autocomplete(AutocompleteRequest request);
     }
 }

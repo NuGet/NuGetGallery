@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Specialized;
-using System.Web;
 
 namespace BasicSearchTests.FunctionalTests.Core.TestSupport
 {
@@ -28,9 +27,8 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
 
         protected override NameValueCollection GetQueryString()
         {
-            var queryString = HttpUtility.ParseQueryString(string.Empty);
-            queryString["q"] = Query;
-            queryString["prerelease"] = Prerelease.ToString();
+            var queryString = base.GetQueryString();
+
             queryString["ignoreFilter"] = IgnoreFilter.ToString();
             queryString["CountOnly"] = CountOnly.ToString();
 

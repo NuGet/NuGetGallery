@@ -89,7 +89,6 @@
     <Compile Include="PackageMonitoringStatusTestUtility.cs" />
     <Compile Include="Infrastructure\TestLoggerFactory.cs" />
     <Compile Include="Infrastructure\TestLogger.cs" />
-    <Compile Include="UriUtilsTests.cs" />
     <Compile Include="PackageTimestampMetadataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SortingIdVersionCollectorTests.cs" />
@@ -127,7 +126,7 @@
     <Compile Include="Validation\ValidatorTestUtility.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\CatalogTests\TestData\TestPackage.SemVer2.1.0.0-alpha.1.nupkg">
+    <None Include="..\CatalogTests\TestData\TestPackage.SemVer2.1.0.0-alpha.1.nupkg.testdata">
       <Link>Packages\TestPackage.SemVer2.1.0.0-alpha.1.nupkg</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -140,16 +139,16 @@
     <None Include="Packages\OtherPackage.1.0.0.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Packages\TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg">
+    <None Include="Packages\TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg.testdata">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Packages\TestRepoSigned.leaf-1.1.0.0.nupkg">
+    <None Include="Packages\TestRepoSigned.leaf-1.1.0.0.nupkg.testdata">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Packages\TestSigned.leaf-1.1.0.0.nupkg">
+    <None Include="Packages\TestSigned.leaf-1.1.0.0.nupkg.testdata">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Packages\TestUnsigned.1.0.0.nupkg">
+    <None Include="Packages\TestUnsigned.1.0.0.nupkg.testdata">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Packages\UnlistedPackage.1.0.0.zip">

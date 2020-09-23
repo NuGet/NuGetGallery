@@ -9,6 +9,13 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public partial class SearchTextBuilder
     {
+        private enum TermPrefix
+        {
+            None, // Default Lucene behavior, essentially "OR"
+            And, // "AND" / "&&" / "+"
+            Not, // "NOT" / "!" / "-"
+        }
+
         /// <summary>
         /// Used to build Azure Search Service queries.
         /// </summary>
@@ -51,6 +58,15 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 _result = new StringBuilder();
                 _clauses = 0;
+            }
+
+            /// <summary>
+            /// Appends the provided value as-is, without any escaping, prefixing or suffixing.
+            /// </summary>
+            /// <param name="value">The value to append</param>
+            public void AppendVerbatim(string value)
+            {
+                _result.Append(value);
             }
 
             /// <summary>
@@ -137,7 +153,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             public void AppendScopedTerm(
                 string fieldName,
                 string term,
-                bool required = false,
+                TermPrefix prefix = TermPrefix.None,
                 bool prefixSearch = false,
                 double boost = 1.0)
             {
@@ -147,9 +163,14 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 AppendSpaceIfNotEmpty();
 
-                if (required)
+                switch (prefix)
                 {
-                    _result.Append('+');
+                    case TermPrefix.And:
+                        _result.Append('+');
+                        break;
+                    case TermPrefix.Not:
+                        _result.Append('-');
+                        break;
                 }
 
                 _result.Append(fieldName);

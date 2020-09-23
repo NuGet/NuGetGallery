@@ -98,12 +98,12 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TestData\TestUnsigned.1.0.0.nupkg" />
-    <EmbeddedResource Include="TestData\TestSigned.leaf-1.1.0.0.nupkg" />
-    <EmbeddedResource Include="TestData\TestSigned.leaf-2.2.0.0.nupkg" />
-    <EmbeddedResource Include="TestData\Zip64Package.1.0.0.nupkg" />
-    <EmbeddedResource Include="TestData\TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg" />
-    <EmbeddedResource Include="TestData\TestRepoSigned.leaf-1.1.0.0.nupkg" />
+    <EmbeddedResource Include="TestData\TestUnsigned.1.0.0.nupkg.testdata" />
+    <EmbeddedResource Include="TestData\TestSigned.leaf-1.1.0.0.nupkg.testdata" />
+    <EmbeddedResource Include="TestData\TestSigned.leaf-2.2.0.0.nupkg.testdata" />
+    <EmbeddedResource Include="TestData\Zip64Package.1.0.0.nupkg.testdata" />
+    <EmbeddedResource Include="TestData\TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg.testdata" />
+    <EmbeddedResource Include="TestData\TestRepoSigned.leaf-1.1.0.0.nupkg.testdata" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

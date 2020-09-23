@@ -85,6 +85,7 @@ namespace NuGet.Services.SearchService.Controllers
             string sortBy = null,
             bool? luceneQuery = true,
             string packageType = null,
+            bool? testData = false,
             bool? debug = false)
         {
             await EnsureInitializedAsync();
@@ -101,6 +102,7 @@ namespace NuGet.Services.SearchService.Controllers
                 SortBy = GetSortBy(sortBy),
                 LuceneQuery = luceneQuery ?? true,
                 PackageType = packageType,
+                IncludeTestData = testData ?? false,
                 ShowDebug = debug ?? false,
             };
 
@@ -115,6 +117,7 @@ namespace NuGet.Services.SearchService.Controllers
             string semVerLevel = null,
             string q = null,
             string packageType = null,
+            bool? testData = false,
             bool? debug = false)
         {
             await EnsureInitializedAsync();
@@ -127,6 +130,7 @@ namespace NuGet.Services.SearchService.Controllers
                 IncludeSemVer2 = GetIncludeSemVer2(semVerLevel),
                 Query = q,
                 PackageType = packageType,
+                IncludeTestData = testData ?? false,
                 ShowDebug = debug ?? false,
             };
 
@@ -142,6 +146,7 @@ namespace NuGet.Services.SearchService.Controllers
             string q = null,
             string id = null,
             string packageType = null,
+            bool? testData = false,
             bool? debug = false)
         {
             await EnsureInitializedAsync();
@@ -160,6 +165,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Query = q ?? id,
                 Type = type,
                 PackageType = packageType,
+                IncludeTestData = testData ?? false,
                 ShowDebug = debug ?? false,
             };
 

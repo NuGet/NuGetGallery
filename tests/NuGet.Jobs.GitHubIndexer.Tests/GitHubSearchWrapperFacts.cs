@@ -35,7 +35,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
 
             mockConnection
                 .Setup(x => x.Get<SearchRepositoryResult>(It.IsAny<Uri>(), It.IsAny<IDictionary<string, string>>(), It.IsAny<string>()))
-                .Returns(async (Uri uri, IDictionary<string, string> parameters, string accepts) =>
+                .ReturnsAsync((Uri uri, IDictionary<string, string> parameters, string accepts) =>
                 {
                     return mockApiResponse.Object;
                 });

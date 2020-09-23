@@ -140,6 +140,7 @@ countOnly    | boolean | `true` to return only the total count and no metadata
 sortBy       | string  | Sort results using a specified ordering
 packageType  | string  | Filter results to those with the specified package type
 luceneQuery  | bool    | `true` to treat a `q` starting with `id:` like `packageid:` (yes, it's silly, see [#7366](https://github.com/NuGet/NuGetGallery/issues/7366))
+testData     | bool    | `true` to include packages owned by nuget.org test accounts
 debug        | bool    | `true` to shows the raw Azure Search document and other diagnostic information
 
 If no `q` is provided, all packages should be returned, within the boundaries imposed by skip and take.
@@ -181,6 +182,11 @@ For `title-asc` and `title-desc`, a package's ID is used if the package has no e
 `title` is no longer prominently shown in NuGet experiences, this sorting order is only maintained for legacy reasons.
 
 The `packageType` parameter is a free form input. It defaults to an empty string, which means no filter. If there are no packages with the specified packageType in a request, an empty `data` array will be returned.
+
+Test data may be always returned (i.e. the `testData` parameter is ignored) for certain optimized queries. For example,
+performing a `packageid:BaseTestPackage` query with `testData=false` will still return a result because internally this
+query is implemented as a document lookup rather than a full Lucene search. Also, test data cannot be filtered out when
+`ignoreFilter=true` because the owners field is not populated in the hijack index.
 
 #### Response
 

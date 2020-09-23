@@ -42,13 +42,8 @@
     <Compile Include="Storage\CertificateStoreTests.cs" />
     <Compile Include="Storage\ValidatorStatusExtensionsFacts.cs" />
     <Compile Include="Support\CertificateIntegrationTestFixture.cs" />
-    <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\ExtensionMethods.cs" />
-    <Compile Include="Support\RecordingLogger.cs" />
     <Compile Include="Support\X509V3CertificateGeneratorExtensions.cs" />
-    <Compile Include="Support\XunitLogger.cs" />
-    <Compile Include="Support\XunitLoggerFactoryExtensions.cs" />
-    <Compile Include="Support\XunitLoggerProvider.cs" />
     <Compile Include="TestData\TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -73,8 +68,14 @@
     <PackageReference Include="Moq">
       <Version>4.13.1</Version>
     </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.2</Version>
+    </PackageReference>
+    <PackageReference Include="System.Threading.Tasks.Extensions">
+      <Version>4.5.4</Version>
+    </PackageReference>
     <PackageReference Include="Test.Utility">
-      <Version>4.8.0-preview4.5289</Version>
+      <Version>5.8.0-preview.3.6823</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.4.1</Version>

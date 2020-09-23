@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
@@ -17,5 +18,6 @@ namespace NuGet.Services.AzureSearch.SearchService
         public TimeSpan SecretRefreshFrequency { get; set; } = TimeSpan.FromHours(12);
         public TimeSpan SecretRefreshFailureRetryFrequency { get; set; } = TimeSpan.FromMinutes(5);
         public string DeploymentLabel { get; set; }
+        public List<string> TestOwners { get; set; } = new List<string>();
     }
 }

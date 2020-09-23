@@ -12,6 +12,7 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
 
         public string Query { get; set; }
         public bool Prerelease { get; set; }
+        public bool IncludeTestData { get; set; } = true;
 
         public QueryBuilder(string endpoint)
         {
@@ -23,6 +24,12 @@ namespace BasicSearchTests.FunctionalTests.Core.TestSupport
             var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
             queryString["q"] = Query;
             queryString["prerelease"] = Prerelease.ToString();
+            
+            if (IncludeTestData)
+            {
+                queryString["testData"] = "true";
+            }
+
             return queryString;
         }
 
