@@ -11,16 +11,12 @@ namespace NuGetGallery.Modules
 {
     public class CookieComplianceHttpModule : IHttpModule
     {
-        internal ICookieComplianceService CookieComplianceService;
-
         public void Dispose()
         {
         }
 
         public void Init(HttpApplication context)
         {
-            CookieComplianceService = DependencyResolver.Current.GetService<ICookieComplianceService>();
-
             var eventHandlerTaskAsyncHelper = new EventHandlerTaskAsyncHelper(SetCookieComplianceAsync);
             context.AddOnBeginRequestAsync(eventHandlerTaskAsyncHelper.BeginEventHandler, eventHandlerTaskAsyncHelper.EndEventHandler);
         }
@@ -46,7 +42,8 @@ namespace NuGetGallery.Modules
             }
 
             var requestWrapper = new HttpRequestWrapper(request);
-            if (await CookieComplianceService.CanWriteAnalyticsCookiesAsync(requestWrapper))
+            var cookieComplianceService = DependencyResolver.Current.GetService<ICookieComplianceService>();
+            if (await cookieComplianceService.CanWriteAnalyticsCookiesAsync(requestWrapper))
             {
                 context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, true);
             }
