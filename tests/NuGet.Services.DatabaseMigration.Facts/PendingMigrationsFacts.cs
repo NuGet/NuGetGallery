@@ -46,7 +46,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.Parameters.Add("@dbName", SqlDbType.NChar).Value = _dbName;
-                    sqlCommand.CommandText = $"ALTER DATABASE @dbName SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE @dbName;";
+                    sqlCommand.CommandText = "ALTER DATABASE @dbName SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE @dbName;";
                     await sqlCommand.ExecuteNonQueryAsync();
                 }
             }
