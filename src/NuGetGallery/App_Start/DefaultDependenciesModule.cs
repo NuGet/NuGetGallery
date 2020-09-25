@@ -477,7 +477,7 @@ namespace NuGetGallery
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
-            RegisterCookieComplianceService(builder, configuration, diagnosticsService);
+            RegisterCookieComplianceService(configuration, diagnosticsService);
 
             RegisterABTestServices(builder);
 
@@ -1463,7 +1463,7 @@ namespace NuGetGallery
                 .SingleInstance();
         }
 
-        private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
+        private static void RegisterCookieComplianceService(ConfigurationService configuration, DiagnosticsService diagnostics)
         {
             ICookieComplianceService service = null;
             if (configuration.Current.IsHosted)
@@ -1471,15 +1471,11 @@ namespace NuGetGallery
                 var siteName = configuration.GetSiteRoot(true);
                 service = GetAddInServices<ICookieComplianceService>(sp =>
                 {
-                    sp.ComposeExportedValue("Domain", siteName);
                     sp.ComposeExportedValue<IDiagnosticsService>(diagnostics);
                 }).FirstOrDefault();
             }
 
-            builder.RegisterInstance(service ?? new NullCookieComplianceService())
-                .AsSelf()
-                .As<ICookieComplianceService>()
-                .SingleInstance();
+            CookieComplianceService.Initialize(service ?? new NullCookieComplianceService());
         }
     }
 }

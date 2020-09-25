@@ -107,6 +107,7 @@
     <Compile Include="Authentication\CredentialTypeInfo.cs" />
     <Compile Include="Authentication\MicrosoftClaims.cs" />
     <Compile Include="Certificates\CertificateFile.cs" />
+    <Compile Include="Cookies\CookieComplianceService.cs" />
     <Compile Include="Cookies\CookieExpirationService.cs" />
     <Compile Include="Cookies\ICookieComplianceService.cs" />
     <Compile Include="Cookies\ICookieExpirationService.cs" />

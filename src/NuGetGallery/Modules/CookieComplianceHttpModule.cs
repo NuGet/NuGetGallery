@@ -3,7 +3,6 @@
 
 using System;
 using System.Web;
-using System.Web.Mvc;
 using System.Threading.Tasks;
 using NuGetGallery.Cookies;
 
@@ -42,8 +41,7 @@ namespace NuGetGallery.Modules
             }
 
             var requestWrapper = new HttpRequestWrapper(request);
-            var cookieComplianceService = DependencyResolver.Current.GetService<ICookieComplianceService>();
-            if (await cookieComplianceService.CanWriteAnalyticsCookiesAsync(requestWrapper))
+            if (await CookieComplianceService.Instance.CanWriteAnalyticsCookiesAsync(requestWrapper))
             {
                 context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, true);
             }
