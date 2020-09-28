@@ -39,7 +39,15 @@ namespace NuGetGallery.OData
             { GalleryConstants.SearchSortNames.TotalDownloadsDesc, SortOrder.TotalDownloadsDescending },
         };
 
-        public static SearchFilter GetSearchFilter(string q, int page, bool includePrerelease, string packageType, string sortOrder, string context, string semVerLevel)
+        public static SearchFilter GetSearchFilter(
+            string q,
+            int page,
+            bool includePrerelease,
+            string packageType,
+            string sortOrder,
+            string context,
+            string semVerLevel,
+            bool includeTestData)
         {
             page = page < 1 ? 1 : page; // pages are 1-based. 
             packageType = packageType ?? string.Empty;
@@ -52,6 +60,7 @@ namespace NuGetGallery.OData
                 IncludePrerelease = includePrerelease,
                 SemVerLevel = semVerLevel,
                 PackageType = packageType,
+                IncludeTestData = includeTestData,
             };
 
             if (sortOrder == null || !SortOrders.TryGetValue(sortOrder, out var sortOrderValue))

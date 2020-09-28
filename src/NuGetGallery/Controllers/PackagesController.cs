@@ -951,7 +951,8 @@ namespace NuGetGallery
                             packageType: null,
                             sortOrder: null,
                             context: SearchFilter.ODataSearchContext,
-                            semVerLevel: SemVerLevelKey.SemVerLevel2);
+                            semVerLevel: SemVerLevelKey.SemVerLevel2,
+                            includeTestData: true);
 
                         searchFilter.IncludeAllVersions = true;
 
@@ -1150,6 +1151,7 @@ namespace NuGetGallery
             var page = searchAndListModel.Page;
             var q = searchAndListModel.Q;
             var includePrerelease = searchAndListModel.Prerel ?? true;
+            var includeTestData = searchAndListModel.TestData ?? false;
 
             if (page < 1)
             {
@@ -1206,7 +1208,8 @@ namespace NuGetGallery
                         packageType: searchAndListModel.PackageType,
                         sortOrder: searchAndListModel.SortBy,
                         context: SearchFilter.UISearchContext,
-                        semVerLevel: SemVerLevelKey.SemVerLevel2);
+                        semVerLevel: SemVerLevelKey.SemVerLevel2,
+                        includeTestData: includeTestData);
 
                     results = await searchService.Search(searchFilter);
 
@@ -1234,7 +1237,8 @@ namespace NuGetGallery
                     packageType: searchAndListModel.PackageType,
                     sortOrder: searchAndListModel.SortBy,
                     context: SearchFilter.UISearchContext,
-                    semVerLevel: SemVerLevelKey.SemVerLevel2);
+                    semVerLevel: SemVerLevelKey.SemVerLevel2,
+                    includeTestData: includeTestData);
 
                 results = await searchService.Search(searchFilter);
             }

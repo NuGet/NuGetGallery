@@ -35,21 +35,27 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [InlineData("someQueryString", true, null, "?someQueryString&prerelease=True")]
-        [InlineData("someQueryString", true, "1.0.0-beta.20.5", "?someQueryString&prerelease=True&semVerLevel=1.0.0-beta.20.5")]
-        [InlineData("someQueryString", true, "1.0.1+security.patch.2349", "?someQueryString&prerelease=True&semVerLevel=1.0.1+security.patch.2349")]
-        [InlineData("&someQueryString", false, "1.0.0-beta.20.5", "?someQueryString&prerelease=False&semVerLevel=1.0.0-beta.20.5")]
-        [InlineData("someQueryString", null, "1.0.0-beta.20.5", "?someQueryString&prerelease=False&semVerLevel=1.0.0-beta.20.5")]
-        [InlineData("", null, "1.0.0-beta.20.5", "?prerelease=False&semVerLevel=1.0.0-beta.20.5")]
-        [InlineData(null, null, "1.0.0-beta.20.5", "?prerelease=False&semVerLevel=1.0.0-beta.20.5")]
-        [InlineData("someQueryString", true, "", "?someQueryString&prerelease=True")]
-        public void BuildQueryStringReturnsTheExpectedString(string queryString, bool? includePrerelease, string semVerLevel, string expectedResult)
+        [InlineData("someQueryString", true, null, null, "?someQueryString&prerelease=True")]
+        [InlineData("someQueryString", true, null, "1.0.0-beta.20.5", "?someQueryString&prerelease=True&semVerLevel=1.0.0-beta.20.5")]
+        [InlineData("someQueryString", true, null, "1.0.1+security.patch.2349", "?someQueryString&prerelease=True&semVerLevel=1.0.1+security.patch.2349")]
+        [InlineData("&someQueryString", false, null, "1.0.0-beta.20.5", "?someQueryString&prerelease=False&semVerLevel=1.0.0-beta.20.5")]
+        [InlineData("someQueryString", null, null, "1.0.0-beta.20.5", "?someQueryString&prerelease=False&semVerLevel=1.0.0-beta.20.5")]
+        [InlineData("", null, null, "1.0.0-beta.20.5", "?prerelease=False&semVerLevel=1.0.0-beta.20.5")]
+        [InlineData(null, null, null, "1.0.0-beta.20.5", "?prerelease=False&semVerLevel=1.0.0-beta.20.5")]
+        [InlineData("someQueryString", true, null, "", "?someQueryString&prerelease=True")]
+        [InlineData("someQueryString", true, true, "", "?someQueryString&prerelease=True&testData=true")]
+        public void BuildQueryStringReturnsTheExpectedString(
+            string queryString,
+            bool? includePrerelease,
+            bool? includeTestData,
+            string semVerLevel,
+            string expectedResult)
         {
             // Arrange
             var autocompleteServiceQuery = TestAutocompleteServiceQuery.Instance(_baseAddress, queryString);
 
             // Act
-            var result = autocompleteServiceQuery.BuildQueryString(queryString, includePrerelease, semVerLevel);
+            var result = autocompleteServiceQuery.BuildQueryString(queryString, includePrerelease, includeTestData, semVerLevel);
 
             // Assert
             Assert.Equal(expectedResult, result);

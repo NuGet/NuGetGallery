@@ -90,7 +90,7 @@ namespace NuGetGallery.Queries
             [InlineData("1.0.0-beta")]
             public async void ValidPackageIdWithSemVerLevelReturnVersionsWhosePackagesHaveSemVerLevelCompliant(string semVerLevel)
             {
-                var queryResult = await _packageVersionsQuery.Execute("nuget", null, semVerLevel);
+                var queryResult = await _packageVersionsQuery.Execute("nuget", null, null, semVerLevel);
                 
                 var allVersionsAreFromPackagesWithSemVerLevelCompliant = queryResult.All(version =>
                 {

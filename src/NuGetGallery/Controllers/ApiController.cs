@@ -1019,11 +1019,16 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> GetPackageIds(
             string partialId,
             bool? includePrerelease,
+            bool? testData,
             string semVerLevel = null)
         {
             return new JsonResult
             {
-                Data = await _autocompletePackageIdsQuery.Execute(partialId, includePrerelease, semVerLevel),
+                Data = await _autocompletePackageIdsQuery.Execute(
+                    partialId,
+                    includePrerelease,
+                    testData,
+                    semVerLevel),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
@@ -1033,11 +1038,16 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> GetPackageVersions(
             string id,
             bool? includePrerelease,
+            bool? testData,
             string semVerLevel = null)
         {
             return new JsonResult
             {
-                Data = await _autocompletePackageVersionsQuery.Execute(id, includePrerelease, semVerLevel),
+                Data = await _autocompletePackageVersionsQuery.Execute(
+                    id,
+                    includePrerelease,
+                    testData,
+                    semVerLevel),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }

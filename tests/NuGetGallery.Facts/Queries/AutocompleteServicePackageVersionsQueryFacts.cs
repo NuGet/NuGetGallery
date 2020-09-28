@@ -52,7 +52,7 @@ namespace NuGetGallery
         public async Task ExecuteThrowsForEmptyId()
         {
             var query = new AutocompleteServicePackageVersionsQuery(GetConfiguration(), GetResilientSearchClient());
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await query.Execute(string.Empty, false));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await query.Execute(string.Empty, false, false));
             Assert.Empty(_testHandler.Requests);
         }
 
@@ -60,24 +60,32 @@ namespace NuGetGallery
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
             var query = new AutocompleteServicePackageVersionsQuery(GetConfiguration(), GetResilientSearchClient());
-            var result = await query.Execute("newtonsoft.json", false);
+            var result = await query.Execute("newtonsoft.json", false, false);
             Assert.True(result.Any());
             var request = Assert.Single(_testHandler.Requests);
             Assert.Equal("https://example/autocomplete?id=newtonsoft.json&prerelease=False", request.RequestUri.AbsoluteUri);
         }
 
         [Theory]
-        [InlineData(true, null, "?id=Newtonsoft.Json&prerelease=True")]
-        [InlineData(true, "2.0.0", "?id=Newtonsoft.Json&prerelease=True&semVerLevel=2.0.0")]
-        [InlineData(false, null, "?id=Newtonsoft.Json&prerelease=False")]
-        [InlineData(false, "2.0.0", "?id=Newtonsoft.Json&prerelease=False&semVerLevel=2.0.0")]
-        public void PackageVersionsQueryBuildsCorrectQueryString(bool includePrerelease, string semVerLevel, string expectedQueryString)
+        [InlineData(true, false, null, "?id=Newtonsoft.Json&prerelease=True")]
+        [InlineData(true, false, "2.0.0", "?id=Newtonsoft.Json&prerelease=True&semVerLevel=2.0.0")]
+        [InlineData(false, false, null, "?id=Newtonsoft.Json&prerelease=False")]
+        [InlineData(false, false, "2.0.0", "?id=Newtonsoft.Json&prerelease=False&semVerLevel=2.0.0")]
+        [InlineData(true, true, null, "?id=Newtonsoft.Json&prerelease=True&testData=true")]
+        [InlineData(true, true, "2.0.0", "?id=Newtonsoft.Json&prerelease=True&testData=true&semVerLevel=2.0.0")]
+        [InlineData(false, true, null, "?id=Newtonsoft.Json&prerelease=False&testData=true")]
+        [InlineData(false, true, "2.0.0", "?id=Newtonsoft.Json&prerelease=False&testData=true&semVerLevel=2.0.0")]
+        public void PackageVersionsQueryBuildsCorrectQueryString(
+            bool includePrerelease,
+            bool includeTestData,
+            string semVerLevel,
+            string expectedQueryString)
         {
             // Arrange
             var query = new AutocompleteServicePackageVersionsQuery(GetConfiguration(), GetResilientSearchClient());
 
             // Act
-            var actualQueryString = query.BuildQueryString("id=Newtonsoft.Json", includePrerelease, semVerLevel);
+            var actualQueryString = query.BuildQueryString("id=Newtonsoft.Json", includePrerelease, includeTestData, semVerLevel);
 
             // Assert
             Assert.Equal(expectedQueryString, actualQueryString);
