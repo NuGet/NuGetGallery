@@ -86,7 +86,7 @@ namespace NuGetGallery.Cookies
             }
         }
 
-        public string GetRootDomain(string domain)
+        private string GetRootDomain(string domain)
         {
             var index1 = domain.LastIndexOf('.');
             if (index1 < 0)

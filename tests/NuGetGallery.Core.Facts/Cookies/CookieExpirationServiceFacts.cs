@@ -218,22 +218,5 @@ namespace NuGetGallery.Cookies
 
             return httpContext.Object;
         }
-
-        [Theory]
-        [InlineData("test", "test")]
-        [InlineData("domain.test", "domain.test")]
-        [InlineData("subdomain.domain.test", "domain.test")]
-        [InlineData("subdomain.subdomain.domain.test", "domain.test")]
-        public void GetRootDomain(string domain, string expectedRootDomain)
-        {
-            // Arrange
-            var cookieExpirationService = new CookieExpirationService("AnyDomain");
-
-            // Act
-            var result = cookieExpirationService.GetRootDomain(domain);
-
-            // Assert
-            Assert.Equal(expectedRootDomain, result);
-        }
     }
 }
