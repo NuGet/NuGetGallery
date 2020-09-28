@@ -15,8 +15,20 @@ namespace NuGetGallery.Cookies
         public void CreateCookieExpirationService_ThrowsIfDomainNull()
         {
             // Arrange, Act & Assert
-            var exception = Assert.Throws<ArgumentNullException>(() => new CookieExpirationService(domain: null));
+            var exception = Assert.Throws<ArgumentException>(() => new CookieExpirationService(domain: null));
+
             Assert.Equal("domain", exception.ParamName);
+            Assert.Contains("The argument cannot be null or empty", exception.Message);
+        }
+
+        [Fact]
+        public void CreateCookieExpirationService_ThrowsIfDomainEmpty()
+        {
+            // Arrange, Act & Assert
+            var exception = Assert.Throws<ArgumentException>(() => new CookieExpirationService(domain: ""));
+
+            Assert.Equal("domain", exception.ParamName);
+            Assert.Contains("The argument cannot be null or empty", exception.Message);
         }
 
         public class TheExpireAnalyticsCookiesMethod
