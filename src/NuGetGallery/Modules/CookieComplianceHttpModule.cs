@@ -4,6 +4,7 @@
 using System;
 using System.Web;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGetGallery.Cookies;
 
 namespace NuGetGallery.Modules
@@ -40,8 +41,18 @@ namespace NuGetGallery.Modules
                 return;
             }
 
-            var requestWrapper = new HttpRequestWrapper(request);
-            if (await CookieComplianceService.Instance.CanWriteAnalyticsCookiesAsync(requestWrapper))
+            var canWriteAnalyticsCookies = false;
+            try
+            {
+                var requestWrapper = new HttpRequestWrapper(request);
+                canWriteAnalyticsCookies = await CookieComplianceService.Instance?.CanWriteAnalyticsCookiesAsync(requestWrapper);
+            }
+            catch (Exception exception)
+            {
+                CookieComplianceService.Logger?.LogError(0, exception, "Cookie compliance check failed in the module: {ModuleName}", nameof(CookieComplianceHttpModule));
+            }
+
+            if (canWriteAnalyticsCookies)
             {
                 context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, true);
             }

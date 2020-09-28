@@ -28,12 +28,17 @@ namespace NuGetGallery.Cookies
         };
 
         private readonly string Domain;
-        private readonly string PrimaryDomain;
+        private readonly string RootDomain;
 
         public CookieExpirationService(string domain)
         {
-            Domain = domain ?? throw new ArgumentNullException(nameof(domain));
-            PrimaryDomain = GetPrimaryDomain(Domain);
+            if (string.IsNullOrEmpty(domain))
+            {
+                throw new ArgumentException(CoreStrings.ArgumentCannotBeNullOrEmpty, nameof(domain));
+            }
+
+            Domain = domain;
+            RootDomain = GetRootDomain(Domain);
         }
 
         public void ExpireAnalyticsCookies(HttpContextBase httpContext)
@@ -43,8 +48,8 @@ namespace NuGetGallery.Cookies
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            GoogleAnalyticsCookies.ToList().ForEach(cookie => ExpireCookieByName(httpContext, cookie, PrimaryDomain));
-            ApplicationInsightsCookies.ToList().ForEach(cookie => ExpireCookieByName(httpContext, cookie));
+            GoogleAnalyticsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName));
+            ApplicationInsightsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName));
         }
 
         public void ExpireSocialMediaCookies(HttpContextBase httpContext) { }
@@ -52,11 +57,27 @@ namespace NuGetGallery.Cookies
 
         public void ExpireCookieByName(HttpContextBase httpContext, string cookieName, string domain = null)
         {
+            if (httpContext == null)
+            {
+                throw new ArgumentNullException(nameof(httpContext));
+            }
+
+            if (string.IsNullOrEmpty(cookieName))
+            {
+                throw new ArgumentException(CoreStrings.ArgumentCannotBeNullOrEmpty, nameof(cookieName));
+            }
+
             var request = httpContext.Request;
             var response = httpContext.Response;
+            if (request == null || response == null || request.Cookies == null || response.Cookies == null)
+            {
+                return;
+            }
+
             if (request.Cookies[cookieName] != null)
             {
                 response.Cookies[cookieName].Expires = CookieExpirationTime;
+                response.Cookies[cookieName].Secure = false;
 
                 if (domain != null)
                 {
@@ -65,7 +86,7 @@ namespace NuGetGallery.Cookies
             }
         }
 
-        public string GetPrimaryDomain(string domain)
+        public string GetRootDomain(string domain)
         {
             var index1 = domain.LastIndexOf('.');
             if (index1 < 0)

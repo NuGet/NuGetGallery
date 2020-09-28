@@ -78,6 +78,7 @@
     <Compile Include="Auditing\ScopeAuditRecordTests.cs" />
     <Compile Include="Auditing\UserAuditRecordTests.cs" />
     <Compile Include="Certificates\CertificateFileFacts.cs" />
+    <Compile Include="Cookies\CookieComplianceServiceFacts.cs" />
     <Compile Include="Cookies\CookieExpirationServiceFacts.cs" />
     <Compile Include="Features\FeatureFlagClientExtensionsFacts.cs" />
     <Compile Include="Features\EditableFeatureFlagFileStorageServiceFacts.cs" />

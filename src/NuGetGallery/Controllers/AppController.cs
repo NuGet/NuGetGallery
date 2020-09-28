@@ -33,6 +33,9 @@ namespace NuGetGallery
             _overrideContext = owinContext;
         }
 
+        /// <summary>
+        /// This method is used for the unit test.
+        /// </summary>
         public void SetCookieExpirationService(ICookieExpirationService cookieExpirationService)
         {
             _cookieExpirationService = cookieExpirationService;

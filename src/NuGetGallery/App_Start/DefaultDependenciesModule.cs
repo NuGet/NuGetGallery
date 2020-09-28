@@ -442,10 +442,9 @@ namespace NuGetGallery
                 .As<IPackageVulnerabilityService>()
                 .InstancePerLifetimeScope();
 
-            var siteName = configuration.GetSiteRoot(true);
-            builder.Register(c => new CookieExpirationService(siteName))
+            builder.Register(c => new CookieExpirationService(domain: configuration.GetSiteRoot(true)))
                 .As<ICookieExpirationService>()
-                .InstancePerLifetimeScope();
+                .SingleInstance();
 
             services.AddHttpClient();
             services.AddScoped<IGravatarProxyService, GravatarProxyService>();
@@ -477,7 +476,7 @@ namespace NuGetGallery
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
-            RegisterCookieComplianceService(configuration, diagnosticsService);
+            RegisterCookieComplianceService(configuration, loggerFactory);
 
             RegisterABTestServices(builder);
 
@@ -1463,19 +1462,21 @@ namespace NuGetGallery
                 .SingleInstance();
         }
 
-        private static void RegisterCookieComplianceService(ConfigurationService configuration, DiagnosticsService diagnostics)
+        private static void RegisterCookieComplianceService(ConfigurationService configuration, ILoggerFactory loggerFactory)
         {
+            var logger = loggerFactory.CreateLogger("CookieComplianceService");
+
             ICookieComplianceService service = null;
             if (configuration.Current.IsHosted)
             {
                 var siteName = configuration.GetSiteRoot(true);
                 service = GetAddInServices<ICookieComplianceService>(sp =>
                 {
-                    sp.ComposeExportedValue<IDiagnosticsService>(diagnostics);
+                    sp.ComposeExportedValue<ILogger>(logger);
                 }).FirstOrDefault();
             }
 
-            CookieComplianceService.Initialize(service ?? new NullCookieComplianceService());
+            CookieComplianceService.Initialize(service ?? new NullCookieComplianceService(), logger);
         }
     }
 }
