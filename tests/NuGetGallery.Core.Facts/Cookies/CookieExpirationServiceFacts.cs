@@ -174,9 +174,9 @@ namespace NuGetGallery.Cookies
                 var cookieName = "AnyCookieName";
                 var cookieValue = "AnyCookieValue";
                 var cookies = new Dictionary<string, string>
-            {
-                { cookieName, cookieValue}
-            };
+                {
+                    { cookieName, cookieValue}
+                };
                 var httpContext = GetHttpContext(cookies);
                 var cookieExpirationService = new CookieExpirationService("AnyDomain");
 
