@@ -636,9 +636,9 @@
             }
         });
 
-        WcpConsent.init("en-US", "cookie-banner", function (err, _siteConsent) {
+        window.WcpConsent && WcpConsent.init("en-US", "cookie-banner", function (err, _siteConsent) {
             if (err !== undefined) {
-                return error;
+                console.log("Error initializing WcpConsent: " + err);
             } else {
                 window.nuget.wcpSiteConsent = _siteConsent;  // wcpSiteConsent is used to get the current consent
             }
