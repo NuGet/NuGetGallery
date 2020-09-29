@@ -52,14 +52,7 @@ namespace NuGetGallery.Modules
                 CookieComplianceService.Logger?.LogError(0, exception, "Cookie compliance check failed in the module: {ModuleName}", nameof(CookieComplianceHttpModule));
             }
 
-            if (canWriteAnalyticsCookies)
-            {
-                context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, true);
-            }
-            else
-            {
-                context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, false);
-            }
+            context.Items.Add(ServicesConstants.CookieComplianceCanWriteAnalyticsCookies, canWriteAnalyticsCookies);
         }
     }
 }

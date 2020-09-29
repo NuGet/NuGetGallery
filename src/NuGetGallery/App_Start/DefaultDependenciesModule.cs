@@ -442,7 +442,7 @@ namespace NuGetGallery
                 .As<IPackageVulnerabilityService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new CookieExpirationService(domain: configuration.GetSiteRoot(true)))
+            builder.Register(c => new CookieExpirationService(domain: configuration.GetSiteRoot(useHttps: true)))
                 .As<ICookieExpirationService>()
                 .SingleInstance();
 
@@ -1464,7 +1464,7 @@ namespace NuGetGallery
 
         private static void RegisterCookieComplianceService(ConfigurationService configuration, ILoggerFactory loggerFactory)
         {
-            var logger = loggerFactory.CreateLogger("CookieComplianceService");
+            var logger = loggerFactory.CreateLogger(nameof(CookieComplianceService));
 
             ICookieComplianceService service = null;
             if (configuration.Current.IsHosted)

@@ -27,8 +27,8 @@ namespace NuGetGallery.Cookies
             "ai_session",
         };
 
-        private readonly string Domain;
-        private readonly string RootDomain;
+        private readonly string _domain;
+        private readonly string _rootDomain;
 
         public CookieExpirationService(string domain)
         {
@@ -37,8 +37,8 @@ namespace NuGetGallery.Cookies
                 throw new ArgumentException(CoreStrings.ArgumentCannotBeNullOrEmpty, nameof(domain));
             }
 
-            Domain = domain;
-            RootDomain = GetRootDomain(Domain);
+            _domain = domain;
+            _rootDomain = GetRootDomain(_domain);
         }
 
         public void ExpireAnalyticsCookies(HttpContextBase httpContext)
@@ -48,7 +48,7 @@ namespace NuGetGallery.Cookies
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            GoogleAnalyticsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName, RootDomain));
+            GoogleAnalyticsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName, _rootDomain));
             ApplicationInsightsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName));
         }
 
