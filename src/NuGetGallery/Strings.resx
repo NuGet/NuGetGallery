@@ -1187,4 +1187,16 @@ The {1} Team</value>
   <data name="ReadmeNotEditableWithEmbeddedReadme" xml:space="preserve">
     <value>The readme is not editable with the package has the embedded readme</value>
   </data>
+  <data name="UploadPackage_LearMore_PackagingLicense" xml:space="preserve">
+    <value>Learn more about including a license within the package</value>
+  </data>
+  <data name="UploadPackage_LearnMore_IconUrlDeprecation" xml:space="preserve">
+    <value>Learn more about icon URL deprecation</value>
+  </data>
+  <data name="UploadPackage_LearnMore_InvalidLicenseUrlEncoding" xml:space="preserve">
+    <value>Learn more about invalid license URL encoding</value>
+  </data>
+  <data name="UploadPackage_LearnMore_LicenseUrlDreprecation" xml:space="preserve">
+    <value>Learn more about license URL deprecation</value>
+  </data>
 </root>

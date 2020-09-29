@@ -9,7 +9,7 @@ namespace NuGetGallery
     /// </summary>
     public class InvalidUrlEncodingForLicenseUrlValidationMessage : IValidationMessage
     {
-        private string DetailsLink => $"<a href=\"https://aka.ms/malformedNuGetLicenseUrl\">{Strings.UploadPackage_LearnMore}</a>.";
+        private string DetailsLink => $"<a href=\"https://aka.ms/malformedNuGetLicenseUrl\" aria-label= \"{Strings.UploadPackage_LearnMore_InvalidLicenseUrlEncoding}\">{Strings.UploadPackage_LearnMore}</a>.";
         private string DetailsPlainText => "https://aka.ms/malformedNuGetLicenseUrl";
 
         private string BaseMessage => Strings.UploadPackage_MalformedLicenseUrl;
