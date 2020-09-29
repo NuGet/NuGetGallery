@@ -1,4 +1,4 @@
 # Don't run ESLint on external script files.
-/src/NuGetGallery/Scripts/gallery/jquery-3.4.1.js
-/src/NuGetGallery/Scripts/gallery/knockout-3.5.1.js
-/src/NuGetGallery/Scripts/gallery/moment-2.18.1.js
+src/NuGetGallery/Scripts/gallery/jquery-3.4.1.js
+src/NuGetGallery/Scripts/gallery/knockout-3.5.1.js
+src/NuGetGallery/Scripts/gallery/moment-2.18.1.js
