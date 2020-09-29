@@ -13,9 +13,6 @@
   ],
   "homepage": "https://getbootstrap.com/",
   "author": "Twitter, Inc.",
-  "scripts": {
-    "test": "grunt test"
-  },
   "style": "dist/css/bootstrap.css",
   "less": "less/bootstrap.less",
   "main": "./dist/js/npm",
