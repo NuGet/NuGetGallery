@@ -4,9 +4,8 @@
 using System;
 using System.Web;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Entities;
-using NuGetGallery.Cookies;
 using NuGetGallery.Services;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -18,7 +17,6 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IABTestEnrollmentFactory _enrollmentFactory;
         private readonly IContentObjectService _contentObjectService;
-        private readonly ICookieComplianceService _cookieComplianceService;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<CookieBasedABTestService> _logger;
         private readonly Lazy<ABTestEnrollment> _lazyEnrollment;
@@ -28,7 +26,6 @@ namespace NuGetGallery
             IFeatureFlagService featureFlagService,
             IABTestEnrollmentFactory enrollmentFactory,
             IContentObjectService contentObjectService,
-            ICookieComplianceService cookieComplianceService,
             ITelemetryService telemetryService,
             ILogger<CookieBasedABTestService> logger)
         {
@@ -36,7 +33,6 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _enrollmentFactory = enrollmentFactory ?? throw new ArgumentNullException(nameof(enrollmentFactory));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
-            _cookieComplianceService = cookieComplianceService ?? throw new ArgumentNullException(nameof(cookieComplianceService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _lazyEnrollment = new Lazy<ABTestEnrollment>(DetermineEnrollment);
@@ -107,17 +103,6 @@ namespace NuGetGallery
             var authStatus = isAuthenticated ? "authenticated" : "anonymous";
             const string inactive = "inactive";
             const string active = "active";
-
-            if (!_cookieComplianceService.CanWriteNonEssentialCookies(_httpContext.Request))
-            {
-                _logger.LogInformation(
-                    "A/B test {Name} is {TestStatus} for an {AuthStatus} user due to no cookie consent.",
-                    name,
-                    inactive,
-                    authStatus);
-
-                return false;
-            }
 
             if (!_featureFlagService.IsABTestingEnabled(user))
             {
