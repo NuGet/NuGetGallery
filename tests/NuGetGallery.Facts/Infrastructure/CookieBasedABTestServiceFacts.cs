@@ -2,13 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Web;
 using System.Linq;
+using System.Web;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 using NuGet.Services.Entities;
+using NuGetGallery.Cookies;
 using NuGetGallery.Services;
+using Xunit;
 
 namespace NuGetGallery
 {
@@ -46,6 +47,23 @@ namespace NuGetGallery
 
         public abstract class BaseSerializationFacts : Facts
         {
+            [Fact]
+            public void ReturnsFalseWhenCookieConsentIsNotGiven()
+            {
+                CookieComplianceService
+                    .Setup(x => x.CanWriteNonEssentialCookies(It.IsAny<HttpRequestBase>()))
+                    .Returns(false);
+
+                var result = RunTest(User);
+
+                Assert.False(result, "The test should not be enabled.");
+                CookieComplianceService.Verify(x => x.CanWriteNonEssentialCookies(HttpContext.Object.Request), Times.Once);
+                Assert.Empty(ResponseCookies);
+                EnrollmentFactory.Verify(x => x.Initialize(), Times.Never);
+                ABTestEnrollment outEnrollment;
+                EnrollmentFactory.Verify(x => x.TryDeserialize(It.IsAny<string>(), out outEnrollment), Times.Never);
+            }
+
             [Fact]
             public void ReturnsFalseWhenUserIsNotInFlight()
             {
@@ -129,6 +147,7 @@ namespace NuGetGallery
                 EnrollmentFactory = new Mock<IABTestEnrollmentFactory>();
                 ContentObjectService = new Mock<IContentObjectService>();
                 Configuration = new Mock<IABTestConfiguration>();
+                CookieComplianceService = new Mock<ICookieComplianceService>();
                 TelemetryService = new Mock<ITelemetryService>();
                 Logger = new Mock<ILogger<CookieBasedABTestService>>();
 
@@ -151,6 +170,7 @@ namespace NuGetGallery
 
                 HttpContext.Setup(x => x.Request.Cookies).Returns(() => RequestCookies);
                 HttpContext.Setup(x => x.Response.Cookies).Returns(() => ResponseCookies);
+                CookieComplianceService.SetReturnsDefault(true);
                 FeatureFlagService.SetReturnsDefault(true);
 
                 EnrollmentFactory.Setup(x => x.Initialize()).Returns(() => InitializedEnrollment);
@@ -169,6 +189,7 @@ namespace NuGetGallery
                     FeatureFlagService.Object,
                     EnrollmentFactory.Object,
                     ContentObjectService.Object,
+                    CookieComplianceService.Object,
                     TelemetryService.Object,
                     Logger.Object);
             }
@@ -178,6 +199,7 @@ namespace NuGetGallery
             public Mock<IABTestEnrollmentFactory> EnrollmentFactory { get; }
             public Mock<IContentObjectService> ContentObjectService { get; }
             public Mock<IABTestConfiguration> Configuration { get; }
+            public Mock<ICookieComplianceService> CookieComplianceService { get; }
             public Mock<ITelemetryService> TelemetryService { get; }
             public Mock<ILogger<CookieBasedABTestService>> Logger { get; }
             public User User { get; }

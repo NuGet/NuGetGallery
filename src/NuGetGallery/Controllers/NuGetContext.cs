@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
+using NuGetGallery.Cookies;
 
 namespace NuGetGallery
 {
@@ -15,6 +17,7 @@ namespace NuGetGallery
         public NuGetContext(AppController ctrl)
         {
             Config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
+            CookieComplianceService = DependencyResolver.Current.GetService<ICookieComplianceService>();
 
             _currentUser = new Lazy<User>(() => ctrl.OwinContext.GetCurrentUser());
         }
@@ -22,5 +25,16 @@ namespace NuGetGallery
         public IGalleryConfigurationService Config { get; internal set; }
 
         public User CurrentUser { get { return _currentUser.Value; } }
+
+        private ICookieComplianceService CookieComplianceService { get; }
+
+        public CookieConsentMessage GetCookieConsentMessage(HttpRequestBase request)
+        {
+            if (CookieComplianceService.NeedsConsentForNonEssentialCookies(request))
+            {
+                return CookieComplianceService.GetConsentMessage(request);
+            }
+            return null;
+        }
     }
 }
