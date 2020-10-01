@@ -221,7 +221,7 @@
     }
 }
 
-@helper InstrumentationScript(dynamic viewBag)
+@helper InstrumentationScript()
 {
     // Get instrumentation keys
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
@@ -231,8 +231,8 @@
 
     if (!string.IsNullOrEmpty(iKey) || !string.IsNullOrEmpty(tenantKey))
     {
-        bool canWriteAnalyticsCookies = viewBag.CanWriteAnalyticsCookies ?? false;
-        if (canWriteAnalyticsCookies)
+        var cookieService = DependencyResolver.Current.GetService<ICookieComplianceService>();
+        if (cookieService.CanWriteNonEssentialCookies(Request))
         {
             if (!string.IsNullOrEmpty(tenantKey))
             {
@@ -311,12 +311,7 @@
 @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
 }
 
-@helper CookieComplianceScript()
-{
-    <script src="https://wcpstatic.microsoft.com/mscc/lib/v2/wcp-consent.js"></script>
-}
-
-@helper AnalyticsScript(dynamic viewBag)
+@helper AnalyticsScript()
 {
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
     if (config != null)
@@ -324,8 +319,8 @@
         var propertyId = config.Current.GoogleAnalyticsPropertyId;
         if (!string.IsNullOrEmpty(propertyId))
         {
-            bool canWriteAnalyticsCookies = viewBag.CanWriteAnalyticsCookies ?? false;
-            if (canWriteAnalyticsCookies)
+            var cookieService = DependencyResolver.Current.GetService<ICookieComplianceService>();
+            if (cookieService.CanWriteNonEssentialCookies(Request))
             {
                 var obfuscatedRequest = ObfuscationHelper.ObfuscateRequestUrl(new HttpContextWrapper(HttpContext.Current), RouteTable.Routes);
                 <script>
@@ -345,9 +340,9 @@
     }
 }
 
-@helper UsabillaButton(UrlHelper url, dynamic viewBag)
+@helper UsabillaButton(UrlHelper url)
 {
-    if (GetUsabillaButtonIdOrNull(viewBag) != null)
+    if (GetUsabillaButtonIdOrNull() != null)
     {
 <div class="usabilla-button" id="usabilla-button" style="display: none">
     <a tabindex="0" id="usbl-integrated-button" href="#" role="button">
@@ -358,9 +353,9 @@
     }
 }
 
-@helper UsabillaScript(dynamic viewBag)
+@helper UsabillaScript()
 {
-    var buttonId = GetUsabillaButtonIdOrNull(viewBag);
+    var buttonId = GetUsabillaButtonIdOrNull();
     if (buttonId != null)
     {
         var obfuscatedPath = ObfuscationHelper.ObfuscateRequestUrl(new HttpContextWrapper(HttpContext.Current), RouteTable.Routes);
@@ -725,7 +720,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
 @functions
 {
-    public static string GetUsabillaButtonIdOrNull(dynamic viewBag)
+    public static string GetUsabillaButtonIdOrNull()
     {
         var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
         if (config != null)
@@ -736,11 +731,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
                 var featureFlagService = DependencyResolver.Current.GetService<IFeatureFlagService>();
                 if (featureFlagService.IsUsabillaButtonEnabledOnEveryPage())
                 {
-                    bool canWriteAnalyticsCookies = viewBag.CanWriteAnalyticsCookies ?? false;
-                    if (canWriteAnalyticsCookies)
-                    {
-                        return buttonId;
-                    }
+                    return buttonId;
                 }
             }
         }
