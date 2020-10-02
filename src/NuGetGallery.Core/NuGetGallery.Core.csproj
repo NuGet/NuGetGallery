@@ -283,7 +283,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>5.0.0-preview1.5665</Version>
+      <Version>5.8.0-preview.3.6823</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>9.3.3</Version>

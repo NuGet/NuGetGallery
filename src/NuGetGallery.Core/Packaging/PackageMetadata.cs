@@ -276,7 +276,7 @@ namespace NuGetGallery.Packaging
             return new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),
-                nuspecReader.GetFrameworkReferenceGroups(),
+                nuspecReader.GetFrameworkAssemblyGroups(),
                 nuspecReader.GetPackageTypes(),
                 nuspecReader.GetMinClientVersion(),
                 nuspecReader.GetRepositoryMetadata(),
