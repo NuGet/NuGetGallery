@@ -63,7 +63,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
 
                 if (!String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.PrivacyPolicyUrl))
                 {
-                    var validationPrivacyPolicyUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{GalleryConfiguration.Instance.Branding.PrivacyPolicyUrl}"">");
+                    var validationPrivacyPolicyUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{GalleryConfiguration.Instance.Branding.PrivacyPolicyUrl}"" id=""footer-privacy-policy-link"">");
                     pageRequest.ValidateResponse += validationPrivacyPolicyUrl.Validate;
                 }
 
