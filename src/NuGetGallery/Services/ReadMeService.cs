@@ -9,9 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
-using CommonMark;
-using CommonMark.Syntax;
-using NuGet.Packaging;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
