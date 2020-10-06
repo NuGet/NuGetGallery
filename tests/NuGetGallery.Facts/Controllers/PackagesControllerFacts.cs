@@ -176,7 +176,9 @@ namespace NuGetGallery
 
             packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>();
 
-            readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object);
+            var markdownService = new MarkdownService();
+
+            readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object, markdownService);
 
             if (contentObjectService == null)
             {
@@ -9260,11 +9262,11 @@ namespace NuGetGallery
 
                 readmeService
                     .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
-                    .ReturnsAsync(new RenderedReadMeResult { Content = html });
+                    .ReturnsAsync(new RenderedMarkdownResult { Content = html });
 
                 var result = await controller.PreviewReadMe(request);
 
-                var readmeResult = Assert.IsType<RenderedReadMeResult>(result.Data);
+                var readmeResult = Assert.IsType<RenderedMarkdownResult>(result.Data);
                 Assert.Equal(html, readmeResult.Content);
             }
 

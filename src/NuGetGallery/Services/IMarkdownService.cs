@@ -3,10 +3,9 @@
 
 namespace NuGetGallery
 {
-    public class RenderedReadMeResult
+    public interface IMarkdownService
     {
-        public string Content { get; set; }
-        
-        public bool ImagesRewritten { get; set; }
+        RenderedMarkdownResult GetHtmlFromMarkdown(string readMeMd);
+        RenderedMarkdownResult GetHtmlFromMarkdown(string readMeMd, int incrementHeadersBy);
     }
 }

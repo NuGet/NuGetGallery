@@ -303,7 +303,9 @@
       <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
+    <Compile Include="Services\IMarkdownService.cs" />
     <Compile Include="Services\IPackageMetadataValidationService.cs" />
+    <Compile Include="Services\MarkdownService.cs" />
     <Compile Include="Services\PackageMetadataValidationService.cs" />
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
@@ -515,7 +517,7 @@
     <Compile Include="Services\PackageRenameService.cs" />
     <Compile Include="Services\PackageShouldNotBeSignedUserFixableValidationMessage.cs" />
     <Compile Include="Services\PlainTextOnlyValidationMessage.cs" />
-    <Compile Include="Services\RenderedReadMeResult.cs" />
+    <Compile Include="Services\RenderedMarkdownResult.cs" />
     <Compile Include="Services\SearchSideBySideService.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
     <Compile Include="Services\FlatContainerContentFileMetadataService.cs" />
