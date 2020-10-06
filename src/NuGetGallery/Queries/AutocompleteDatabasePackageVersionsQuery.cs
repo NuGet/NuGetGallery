@@ -22,6 +22,7 @@ namespace NuGetGallery
         public Task<IReadOnlyList<string>> Execute(
             string id,
             bool? includePrerelease = false,
+            bool? includeTestData = false, // ignored on this implementation
             string semVerLevel = null)
         {
             if (string.IsNullOrWhiteSpace(id))

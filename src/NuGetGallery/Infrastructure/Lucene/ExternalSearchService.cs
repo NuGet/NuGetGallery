@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -71,7 +70,8 @@ namespace NuGetGallery.Infrastructure.Search
                 explain: false,
                 getAllVersions: filter.IncludeAllVersions,
                 supportedFramework: filter.SupportedFramework,
-                semVerLevel: filter.SemVerLevel);
+                semVerLevel: filter.SemVerLevel,
+                includeTestData: filter.IncludeTestData);
 
             SearchResults results = null;
             if (result.IsSuccessStatusCode)

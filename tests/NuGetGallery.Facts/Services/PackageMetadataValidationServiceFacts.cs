@@ -67,13 +67,13 @@ namespace NuGetGallery
             return packageMetadataValidationService.Object;
         }
 
-        public class TheValidateMetadatabeforeUploadAsyn : FactsBase
+        public class TheValidateMetadataBeforeUploadAsync : FactsBase
         {
             private Mock<TestPackageReader> _nuGetPackage;
             private PackageRegistration _packageRegistration;
             private User _currentUser;
 
-            public TheValidateMetadatabeforeUploadAsyn()
+            public TheValidateMetadataBeforeUploadAsync()
             {
                 _nuGetPackage = GeneratePackage(isSigned: true);
                 _packageRegistration = _package.PackageRegistration;
@@ -611,7 +611,7 @@ namespace NuGetGallery
             [InlineData("Vim WITH Font-exception-2.0", true)] // we are not checking if license expression make sense
             [InlineData("Vim with Font-exception-2.0", false)]
             [InlineData("Vim With Font-exception-2.0", false)]
-            [InlineData("(EUPL-1.1+ OR (SPL-1.0 WITH Nokia-Qt-exception-1.1) AND Sleepycat)", true)]
+            [InlineData("(EUPL-1.1+ OR (SPL-1.0 WITH Font-exception-2.0) AND Sleepycat)", true)]
             public async Task ChecksLicenseExpressionCorrectness(string licenseExpression, bool expectedSuccess)
             {
                 _nuGetPackage = GeneratePackageWithUserContent(licenseUrl: GetLicenseExpressionDeprecationUrl(licenseExpression), licenseExpression: licenseExpression, licenseFilename: null);

@@ -2589,11 +2589,47 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn more about Packaging License within the nupkg.
+        /// </summary>
+        public static string UploadPackage_LearMore_PackagingLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearMore_PackagingLicense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Learn more.
         /// </summary>
         public static string UploadPackage_LearnMore {
             get {
                 return ResourceManager.GetString("UploadPackage_LearnMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about Icon Url deprecation.
+        /// </summary>
+        public static string UploadPackage_LearnMore_IconUrlDeprecation {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_IconUrlDeprecation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about Invalid License Url encoding.
+        /// </summary>
+        public static string UploadPackage_LearnMore_InvalidLicenseUrlEncoding {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_InvalidLicenseUrlEncoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about License Url deprecation.
+        /// </summary>
+        public static string UploadPackage_LearnMore_LicenseUrlDreprecation {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_LicenseUrlDreprecation", resourceCulture);
             }
         }
         

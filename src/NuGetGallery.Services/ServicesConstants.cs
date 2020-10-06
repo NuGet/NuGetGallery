@@ -46,6 +46,11 @@ namespace NuGetGallery
 
         public const string ApiKeyHeaderName = "X-NuGet-ApiKey";
 
+        /// <summary>
+        /// Parameter for passing the cookie compliance permission.
+        /// </summary>
+        public const string CookieComplianceCanWriteAnalyticsCookies = "CanWriteAnalyticsCookies";
+
         public static class ContentNames
         {
             public static readonly string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";

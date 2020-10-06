@@ -51,7 +51,7 @@ namespace NuGetGallery
         public async Task ExecuteReturns30ResultsForEmptyQuery()
         {
             var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient());
-            var result = await query.Execute("", false);
+            var result = await query.Execute("", false, false);
 
             Assert.True(result.Count() == 30);
             var request = Assert.Single(_testHandler.Requests);
@@ -62,7 +62,7 @@ namespace NuGetGallery
         public async Task ExecuteReturns30ResultsForNullQuery()
         {
             var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient());
-            var result = await query.Execute(null, false);
+            var result = await query.Execute(null, false, false);
             Assert.True(result.Count() == 30);
             var request = Assert.Single(_testHandler.Requests);
             Assert.Equal("https://example/autocomplete?take=30&q=&prerelease=False", request.RequestUri.AbsoluteUri);
@@ -72,24 +72,32 @@ namespace NuGetGallery
         public async Task ExecuteReturnsResultsForSpecificQuery()
         {
             var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient());
-            var result = await query.Execute("jquery", false);
+            var result = await query.Execute("jquery", false, false);
             Assert.Contains("jquery", result, StringComparer.OrdinalIgnoreCase);
             var request = Assert.Single(_testHandler.Requests);
             Assert.Equal("https://example/autocomplete?take=30&q=jquery&prerelease=False", request.RequestUri.AbsoluteUri);
         }
 
         [Theory]
-        [InlineData(true, null, "?take=30&q=Json&prerelease=True")]
-        [InlineData(true, "2.0.0", "?take=30&q=Json&prerelease=True&semVerLevel=2.0.0")]
-        [InlineData(false, null, "?take=30&q=Json&prerelease=False")]
-        [InlineData(false, "2.0.0", "?take=30&q=Json&prerelease=False&semVerLevel=2.0.0")]
-        public void PackageIdQueryBuildsCorrectQueryString(bool includePrerelease, string semVerLevel, string expectedQueryString)
+        [InlineData(true, false, null, "?take=30&q=Json&prerelease=True")]
+        [InlineData(true, false, "2.0.0", "?take=30&q=Json&prerelease=True&semVerLevel=2.0.0")]
+        [InlineData(false, false, null, "?take=30&q=Json&prerelease=False")]
+        [InlineData(false, false, "2.0.0", "?take=30&q=Json&prerelease=False&semVerLevel=2.0.0")]
+        [InlineData(true, true, null, "?take=30&q=Json&prerelease=True&testData=true")]
+        [InlineData(true, true, "2.0.0", "?take=30&q=Json&prerelease=True&testData=true&semVerLevel=2.0.0")]
+        [InlineData(false, true, null, "?take=30&q=Json&prerelease=False&testData=true")]
+        [InlineData(false, true, "2.0.0", "?take=30&q=Json&prerelease=False&testData=true&semVerLevel=2.0.0")]
+        public void PackageIdQueryBuildsCorrectQueryString(
+            bool includePrerelease,
+            bool includeTestData,
+            string semVerLevel,
+            string expectedQueryString)
         {
             // Arrange
             var query = new AutocompleteServicePackageIdsQuery(GetConfiguration(), GetResilientSearchClient());
 
             // Act
-            var actualQueryString = query.BuildQueryString("take=30&q=Json", includePrerelease, semVerLevel);
+            var actualQueryString = query.BuildQueryString("take=30&q=Json", includePrerelease, includeTestData, semVerLevel);
 
             // Assert
             Assert.Equal(expectedQueryString, actualQueryString);
