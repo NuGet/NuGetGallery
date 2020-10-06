@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
-using Microsoft.Data.OData;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
@@ -54,7 +53,21 @@ namespace NuGetGallery.Controllers
         [CacheOutput(NoCache = true)]
         public IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options)
         {
-            if (!_featureFlagService.IsODataV1GetAllEnabled())
+            return Get(options, _featureFlagService.IsODataV1GetAllEnabled());
+        }
+
+        // /api/v1/Packages/$count
+        [HttpGet]
+        [CacheOutput(NoCache = true)]
+        public IHttpActionResult GetCount(ODataQueryOptions<V1FeedPackage> options)
+        {
+            return Get(options, _featureFlagService.IsODataV1GetAllCountEnabled())
+                .FormattedAsCountResult<V1FeedPackage>();
+        }
+
+        private IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options, bool isNonHijackEnabled)
+        {
+            if (!isNonHijackEnabled)
             {
                 return BadRequest(Strings.ODataDisabled);
             }
@@ -71,7 +84,7 @@ namespace NuGetGallery.Controllers
             {
                 return BadRequest("Invalid OrderBy parameter");
             }
-            
+
             var queryable = GetAll()
                             .Where(p => !p.IsPrerelease && p.PackageStatusKey == PackageStatus.Available)
                             .Where(SemVerLevelKey.IsUnknownPredicate())
@@ -80,14 +93,6 @@ namespace NuGetGallery.Controllers
                             .ToV1FeedPackageQuery(_configurationService.GetSiteRoot(UseHttps()));
 
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery: true);
-        }
-
-        // /api/v1/Packages/$count
-        [HttpGet]
-        [CacheOutput(NoCache = true)]
-        public IHttpActionResult GetCount(ODataQueryOptions<V1FeedPackage> options)
-        {
-            return Get(options).FormattedAsCountResult<V1FeedPackage>();
         }
 
         // /api/v1/Packages(Id=,Version=)
@@ -118,12 +123,10 @@ namespace NuGetGallery.Controllers
             ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V1FeedPackage> options, [FromODataUri]string id)
         {
-            return await GetCore(
+            return await FindPackagesById(
                 options,
                 id,
-                version: null,
-                return404NotFoundWhenNoResults: false,
-                isNonHijackEnabled: _featureFlagService.IsODataV1FindPackagesByIdNonHijackedEnabled());
+                _featureFlagService.IsODataV1FindPackagesByIdNonHijackedEnabled());
         }
 
         // /api/v1/FindPackagesById()/$count?id=
@@ -132,10 +135,26 @@ namespace NuGetGallery.Controllers
             ODataCachedEndpoint.FindPackagesByIdCount,
             serverTimeSpan: ODataCacheConfiguration.DefaultFindPackagesByIdCountCacheTimeInSeconds,
             NoCache = true)]
-        public async Task<IHttpActionResult> FindPackagesByIdCount(ODataQueryOptions<V1FeedPackage> options, [FromODataUri]string id)
+        public async Task<IHttpActionResult> FindPackagesByIdCount(ODataQueryOptions<V1FeedPackage> options, [FromODataUri] string id)
         {
-            var result = await FindPackagesById(options, id);
-            return result.FormattedAsCountResult<V1FeedPackage>();
+            return (await FindPackagesById(
+                options,
+                id,
+                _featureFlagService.IsODataV1FindPackagesByIdCountNonHijackedEnabled()))
+                .FormattedAsCountResult<V1FeedPackage>();
+        }
+
+        private async Task<IHttpActionResult> FindPackagesById(
+            ODataQueryOptions<V1FeedPackage> options,
+            string id,
+            bool isNonHijackEnabled)
+        {
+            return await GetCore(
+                options,
+                id,
+                version: null,
+                return404NotFoundWhenNoResults: false,
+                isNonHijackEnabled: isNonHijackEnabled);
         }
 
         private async Task<IHttpActionResult> GetCore(
@@ -254,6 +273,38 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "")
         {
+            return await Search(
+                options,
+                searchTerm,
+                targetFramework,
+                _featureFlagService.IsODataV1SearchNonHijackedEnabled());
+        }
+
+        // /api/v1/Search()/$count?searchTerm=&targetFramework=&includePrerelease=
+        [HttpGet]
+        [ODataCacheOutput(
+            ODataCachedEndpoint.Search,
+            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
+            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
+        public async Task<IHttpActionResult> SearchCount(
+            ODataQueryOptions<V1FeedPackage> options,
+            [FromODataUri]string searchTerm = "",
+            [FromODataUri]string targetFramework = "")
+        {
+            return (await Search(
+                options,
+                searchTerm,
+                targetFramework,
+                _featureFlagService.IsODataV1SearchCountNonHijackedEnabled()))
+                .FormattedAsCountResult<V1FeedPackage>();
+        }
+
+        private async Task<IHttpActionResult> Search(
+            ODataQueryOptions<V1FeedPackage> options,
+            string searchTerm,
+            string targetFramework,
+            bool isNonHijackEnabled)
+        {
             // Handle OData-style |-separated list of frameworks.
             string[] targetFrameworkList = (targetFramework ?? "").Split(new[] { '\'', '|' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -288,7 +339,7 @@ namespace NuGetGallery.Controllers
                 packages,
                 searchTerm,
                 targetFramework,
-                includePrerelease: false, 
+                includePrerelease: false,
                 semVerLevel: null);
 
             // Packages provided by search service (even when not hijacked)
@@ -319,7 +370,7 @@ namespace NuGetGallery.Controllers
                 customQuery = true;
             }
 
-            if (!_featureFlagService.IsODataV1SearchNonHijackedEnabled())
+            if (!isNonHijackEnabled)
             {
                 return BadRequest(Strings.ODataParametersDisabled);
             }
@@ -333,21 +384,6 @@ namespace NuGetGallery.Controllers
             // If not, just let OData handle things
             var queryable = query.ToV1FeedPackageQuery(GetSiteRoot());
             return TrackedQueryResult(options, queryable, MaxPageSize, customQuery);
-        }
-
-        // /api/v1/Search()/$count?searchTerm=&targetFramework=&includePrerelease=
-        [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.Search,
-            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
-        public async Task<IHttpActionResult> SearchCount(
-            ODataQueryOptions<V1FeedPackage> options,
-            [FromODataUri]string searchTerm = "",
-            [FromODataUri]string targetFramework = "")
-        {
-            var searchResults = await Search(options, searchTerm, targetFramework);
-            return searchResults.FormattedAsCountResult<V1FeedPackage>();
         }
 
         [HttpGet]
