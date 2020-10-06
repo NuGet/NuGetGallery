@@ -61,7 +61,7 @@ namespace NuGetGallery.Controllers
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri]string semVerLevel = null)
         {
-            return await Get(
+            return await GetAsync(
                 options,
                 semVerLevel,
                 _featureFlagService.IsODataV2GetAllNonHijackedEnabled());
@@ -74,14 +74,14 @@ namespace NuGetGallery.Controllers
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri] string semVerLevel = null)
         {
-            return (await Get(
+            return (await GetAsync(
                 options,
                 semVerLevel,
                 _featureFlagService.IsODataV2GetAllCountNonHijackedEnabled()))
                 .FormattedAsCountResult<V2FeedPackage>();
         }
 
-        private async Task<IHttpActionResult> Get(
+        private async Task<IHttpActionResult> GetAsync(
             ODataQueryOptions<V2FeedPackage> options,
             string semVerLevel,
             bool isNonHijackEnabled)
@@ -201,7 +201,7 @@ namespace NuGetGallery.Controllers
             // We are defaulting to semVerLevel = "2.0.0" by design.
             // The client is requesting a specific package version and should support what it requests.
             // If not, too bad :)
-            var result = await GetCore(
+            var result = await GetCoreAsync(
                 options, 
                 id, 
                 version,
@@ -226,7 +226,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string id,
             [FromUri]string semVerLevel = null)
         {
-            return await FindPackagesById(
+            return await FindPackagesByIdAsync(
                 options,
                 id,
                 semVerLevel,
@@ -244,7 +244,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri] string id,
             [FromUri] string semVerLevel = null)
         {
-            return (await FindPackagesById(
+            return (await FindPackagesByIdAsync(
                 options,
                 id,
                 semVerLevel,
@@ -252,7 +252,7 @@ namespace NuGetGallery.Controllers
                 .FormattedAsCountResult<V2FeedPackage>();
         }
 
-        private async Task<IHttpActionResult> FindPackagesById(
+        private async Task<IHttpActionResult> FindPackagesByIdAsync(
             ODataQueryOptions<V2FeedPackage> options,
             string id,
             string semVerLevel,
@@ -271,7 +271,7 @@ namespace NuGetGallery.Controllers
                 return TrackedQueryResult(options, emptyResult, MaxPageSize, customQuery: false);
             }
 
-            return await GetCore(
+            return await GetCoreAsync(
                 options,
                 id,
                 version: null,
@@ -281,7 +281,7 @@ namespace NuGetGallery.Controllers
                 isNonHijackEnabled: isNonHijackEnabled);
         }
 
-        private async Task<IHttpActionResult> GetCore(
+        private async Task<IHttpActionResult> GetCoreAsync(
             ODataQueryOptions<V2FeedPackage> options, 
             string id, 
             string version, 
@@ -436,7 +436,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includePrerelease = false,
             [FromUri]string semVerLevel = null)
         {
-            return await Search(
+            return await SearchAsync(
                 options,
                 searchTerm,
                 targetFramework,
@@ -458,7 +458,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri] bool includePrerelease = false,
             [FromUri] string semVerLevel = null)
         {
-            return (await Search(
+            return (await SearchAsync(
                 options,
                 searchTerm,
                 targetFramework,
@@ -468,7 +468,7 @@ namespace NuGetGallery.Controllers
                 .FormattedAsCountResult<V2FeedPackage>();
         }
 
-        private async Task<IHttpActionResult> Search(
+        private async Task<IHttpActionResult> SearchAsync(
             ODataQueryOptions<V2FeedPackage> options,
             string searchTerm,
             string targetFramework,

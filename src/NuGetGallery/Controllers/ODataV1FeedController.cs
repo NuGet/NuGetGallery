@@ -104,7 +104,7 @@ namespace NuGetGallery.Controllers
             ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V1FeedPackage> options, string id, string version)
         {
-            var result = await GetCore(
+            var result = await GetCoreAsync(
                 options,
                 id,
                 version,
@@ -123,7 +123,7 @@ namespace NuGetGallery.Controllers
             ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V1FeedPackage> options, [FromODataUri]string id)
         {
-            return await FindPackagesById(
+            return await FindPackagesByIdAsync(
                 options,
                 id,
                 _featureFlagService.IsODataV1FindPackagesByIdNonHijackedEnabled());
@@ -137,19 +137,19 @@ namespace NuGetGallery.Controllers
             NoCache = true)]
         public async Task<IHttpActionResult> FindPackagesByIdCount(ODataQueryOptions<V1FeedPackage> options, [FromODataUri] string id)
         {
-            return (await FindPackagesById(
+            return (await FindPackagesByIdAsync(
                 options,
                 id,
                 _featureFlagService.IsODataV1FindPackagesByIdCountNonHijackedEnabled()))
                 .FormattedAsCountResult<V1FeedPackage>();
         }
 
-        private async Task<IHttpActionResult> FindPackagesById(
+        private async Task<IHttpActionResult> FindPackagesByIdAsync(
             ODataQueryOptions<V1FeedPackage> options,
             string id,
             bool isNonHijackEnabled)
         {
-            return await GetCore(
+            return await GetCoreAsync(
                 options,
                 id,
                 version: null,
@@ -157,7 +157,7 @@ namespace NuGetGallery.Controllers
                 isNonHijackEnabled: isNonHijackEnabled);
         }
 
-        private async Task<IHttpActionResult> GetCore(
+        private async Task<IHttpActionResult> GetCoreAsync(
             ODataQueryOptions<V1FeedPackage> options,
             string id,
             string version,
@@ -273,7 +273,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "")
         {
-            return await Search(
+            return await SearchAsync(
                 options,
                 searchTerm,
                 targetFramework,
@@ -291,7 +291,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "")
         {
-            return (await Search(
+            return (await SearchAsync(
                 options,
                 searchTerm,
                 targetFramework,
@@ -299,7 +299,7 @@ namespace NuGetGallery.Controllers
                 .FormattedAsCountResult<V1FeedPackage>();
         }
 
-        private async Task<IHttpActionResult> Search(
+        private async Task<IHttpActionResult> SearchAsync(
             ODataQueryOptions<V1FeedPackage> options,
             string searchTerm,
             string targetFramework,
