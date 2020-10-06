@@ -789,7 +789,6 @@ img.reserved-indicator-icon {
   margin-bottom: 0;
 }
 .page-api-keys .upsert-api-key .available-packages .panel-body {
-  overflow: auto;
   padding-top: 0;
   padding-bottom: 0;
 }
@@ -814,37 +813,48 @@ img.reserved-indicator-icon {
     display: flex;
   }
 }
-.page-api-keys .upsert-api-key .select-packages-inputs {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-}
-.page-api-keys .upsert-api-key .select-packages-inputs .available-packages-container {
-  -webkit-box-flex: 1;
-  -webkit-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-}
-.page-api-keys .upsert-api-key .select-packages-inputs .available-packages-container .available-packages {
-  -webkit-box-flex: 1;
-  -webkit-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
+@media (min-width: 768px) {
+  .page-api-keys .upsert-api-key .select-packages-inputs {
+    position: relative;
+  }
+  .page-api-keys .upsert-api-key .select-packages-inputs > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+  .page-api-keys .upsert-api-key .select-packages-inputs > div .available-packages-container {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 1 0;
+    -ms-flex: 1 1 0px;
+    flex: 1 1 0;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+  .page-api-keys .upsert-api-key .select-packages-inputs > div .available-packages-container .available-packages {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 1 0;
+    -ms-flex: 1 1 0px;
+    flex: 1 1 0;
+    overflow-y: auto;
+  }
 }
 .page-api-keys .upsert-api-key .required:after {
   color: red;
