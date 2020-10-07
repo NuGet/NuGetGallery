@@ -8,7 +8,7 @@ param(
 $rootName = (Get-Item $PSScriptRoot).parent.FullName
 
 # Required tools
-$msBuild = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\msbuild"
+$msBuild = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild"
 $nuget = "$rootName\nuget.exe"
 & "$rootName\Scripts\DownloadLatestNuGetExeRelease.ps1" $rootName
 
