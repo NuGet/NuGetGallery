@@ -41,14 +41,20 @@ namespace NuGetGallery
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
+        private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
         private const string ODataV1GetSpecificNonHijackedFeatureName = GalleryPrefix + "ODataV1GetSpecificNonHijacked";
         private const string ODataV1FindPackagesByIdNonHijackedFeatureName = GalleryPrefix + "ODataV1FindPackagesByIdNonHijacked";
+        private const string ODataV1FindPackagesByIdCountNonHijackedFeatureName = GalleryPrefix + "ODataV1FindPackagesByIdCountNonHijacked";
         private const string ODataV1SearchNonHijackedFeatureName = GalleryPrefix + "ODataV1SearchNonHijacked";
+        private const string ODataV1SearchCountNonHijackedFeatureName = GalleryPrefix + "ODataV1SearchCountNonHijacked";
 
         private const string ODataV2GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV2GetAllNonHijacked";
+        private const string ODataV2GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV2GetAllCountNonHijacked";
         private const string ODataV2GetSpecificNonHijackedFeatureName = GalleryPrefix + "ODataV2GetSpecificNonHijacked";
         private const string ODataV2FindPackagesByIdNonHijackedFeatureName = GalleryPrefix + "ODataV2FindPackagesByIdNonHijacked";
+        private const string ODataV2FindPackagesByIdCountNonHijackedFeatureName = GalleryPrefix + "ODataV2FindPackagesByIdCountNonHijacked";
         private const string ODataV2SearchNonHijackedFeatureName = GalleryPrefix + "ODataV2SearchNonHijacked";
+        private const string ODataV2SearchCountNonHijackedFeatureName = GalleryPrefix + "ODataV2SearchCountNonHijacked";
 
         private readonly IFeatureFlagClient _client;
 
@@ -208,6 +214,11 @@ namespace NuGetGallery
             return _client.IsEnabled(ODataV1GetAllNonHijackedFeatureName, defaultValue: true);
         }
 
+        public bool IsODataV1GetAllCountEnabled()
+        {
+            return _client.IsEnabled(ODataV1GetAllCountNonHijackedFeatureName, defaultValue: true);
+        }
+
         public bool IsODataV1GetSpecificNonHijackedEnabled()
         {
             return _client.IsEnabled(ODataV1GetSpecificNonHijackedFeatureName, defaultValue: true);
@@ -218,14 +229,29 @@ namespace NuGetGallery
             return _client.IsEnabled(ODataV1FindPackagesByIdNonHijackedFeatureName, defaultValue: true);
         }
 
+        public bool IsODataV1FindPackagesByIdCountNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV1FindPackagesByIdCountNonHijackedFeatureName, defaultValue: true);
+        }
+
         public bool IsODataV1SearchNonHijackedEnabled()
         {
             return _client.IsEnabled(ODataV1SearchNonHijackedFeatureName, defaultValue: true);
         }
 
+        public bool IsODataV1SearchCountNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV1SearchCountNonHijackedFeatureName, defaultValue: true);
+        }
+
         public bool IsODataV2GetAllNonHijackedEnabled()
         {
             return _client.IsEnabled(ODataV2GetAllNonHijackedFeatureName, defaultValue: true);
+        }
+
+        public bool IsODataV2GetAllCountNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV2GetAllCountNonHijackedFeatureName, defaultValue: true);
         }
 
         public bool IsODataV2GetSpecificNonHijackedEnabled()
@@ -238,9 +264,19 @@ namespace NuGetGallery
             return _client.IsEnabled(ODataV2FindPackagesByIdNonHijackedFeatureName, defaultValue: true);
         }
 
+        public bool IsODataV2FindPackagesByIdCountNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV2FindPackagesByIdCountNonHijackedFeatureName, defaultValue: true);
+        }
+
         public bool IsODataV2SearchNonHijackedEnabled()
         {
             return _client.IsEnabled(ODataV2SearchNonHijackedFeatureName, defaultValue: true);
+        }
+
+        public bool IsODataV2SearchCountNonHijackedEnabled()
+        {
+            return _client.IsEnabled(ODataV2SearchCountNonHijackedFeatureName, defaultValue: true);
         }
     }
 }
