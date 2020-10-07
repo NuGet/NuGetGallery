@@ -8,8 +8,6 @@
     var rawErrorMessage = TempData.ContainsKey("RawErrorMessage") ? TempData["RawErrorMessage"].ToString() : null;
 }
 
-<div id="cookie-banner"></div>
-
 @if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
 {
     <div class="container-fluid banner banner-bright text-center">
@@ -17,6 +15,21 @@
             <div class="col-sm-12">
                 <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
                 <span>@Config.Current.WarningBanner</span>
+            </div>
+        </div>
+    </div>
+}
+
+@if (CookieConsentMessage != null)
+{
+    <div class="container-fluid banner banner-notice text-center">
+        <div class="row">
+            <div class="col-sm-12" role="alert">
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                <span>
+                    @CookieConsentMessage.Message
+                    <a href="@CookieConsentMessage.MoreInfoUrl" aria-label="@CookieConsentMessage.MoreInfoAriaLabel">@CookieConsentMessage.MoreInfoText</a>
+                </span>
             </div>
         </div>
     </div>

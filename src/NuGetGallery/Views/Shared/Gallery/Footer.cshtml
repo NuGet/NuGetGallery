@@ -51,10 +51,9 @@
                                         @:@(this.Config.Current.ExternalBrandingMessage) -
                                     }
                                 }
-
                                 <a href="@Url.About()">About</a> -
                                 <a href="@Url.Terms()">Terms of Use</a> -
-                                <a href="@Url.Privacy()" id="footer-privacy-policy-link">Privacy Policy</a>
+                                <a href="@Url.Privacy()">Privacy Policy</a>
                                 @if (!String.IsNullOrEmpty(this.Config.Current.TrademarksUrl))
                                 {
                                     @:- <a href="@this.Config.Current.TrademarksUrl">Trademarks</a>
@@ -72,14 +71,13 @@
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/dotnet-foundation-42x42.png")) />
                             </a>
                         </div>
-
                         <div class="col-md-11 footer-release-info">
                             <p>
                                 &copy; @DateTime.UtcNow.Year .NET Foundation -
                                 <a href="@Url.About()">About</a> -
                                 <a href="@Url.Terms()">Terms of Use</a> -
-                                <a href="@Url.Privacy()" id="footer-privacy-policy-link">Privacy Policy</a>
-                                @if (!String.IsNullOrEmpty(this.Config.Current.TrademarksUrl))
+                                <a href="@Url.Privacy()">Privacy Policy</a>
+                                @if(!String.IsNullOrEmpty(this.Config.Current.TrademarksUrl))
                                 {
                                     @:- <a href="@this.Config.Current.TrademarksUrl">Trademarks</a>
                                 }
