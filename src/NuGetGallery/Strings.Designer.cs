@@ -1292,7 +1292,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This OData endpoint is disabled. Please refer to the following URL for more information about this deprecation: https://aka.ms/nuget/odata-deprecation.
+        ///   Looks up a localized string similar to This OData endpoint has been disabled. Please refer to the following URL for more information about this deprecation: https://aka.ms/nuget/odata-deprecation.
         /// </summary>
         public static string ODataDisabled {
             get {
@@ -1301,7 +1301,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The combination of parameters provided to this OData endpoint is not supported. Please refer to the following URL for more information about this deprecation: https://aka.ms/nuget/odata-deprecation.
+        ///   Looks up a localized string similar to The combination of parameters provided to this OData endpoint is no longer supported. Please refer to the following URL for more information about this deprecation: https://aka.ms/nuget/odata-deprecation.
         /// </summary>
         public static string ODataParametersDisabled {
             get {
