@@ -353,11 +353,11 @@
                                 <div class="radio">
                                     <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePush"
-                                               aria-labelledby="select-scopes-package-push select-scopes"
+                                               aria-labelledby="select-scopes-push-package select-scopes"
                                                data-bind="checked: PushScope, enable: PushNewEnabled,
                                                           attr: { id: PackagePushId }" />
                                     </div>
-                                    <label id="select-scopes-package-push" data-bind="attr: { for: PackagePushId }">
+                                    <label id="select-scopes-push-package" data-bind="attr: { for: PackagePushId }">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePush)
                                     </label>
                                 </div>
@@ -366,11 +366,11 @@
                                 <div class="radio">
                                     <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
-                                               aria-labelledby="select-scopes-package-push-version select-scopes"
+                                               aria-labelledby="select-scopes-push-package-version select-scopes"
                                                data-bind="checked: PushScope, enable: PushExistingEnabled,
                                                           attr: { id: PackagePushVersionId }" />
                                     </div>
-                                    <label id="select-scopes-package-push-version" data-bind="attr: { for: PackagePushVersionId }">
+                                    <label id="select-scopes-push-package-version" data-bind="attr: { for: PackagePushVersionId }">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
                                     </label>
                                 </div>
