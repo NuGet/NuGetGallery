@@ -11,7 +11,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
@@ -45,7 +44,6 @@ using NuGetGallery.Services;
 using NuGetGallery.Services.Helpers;
 using NuGetGallery.TestUtils;
 using Xunit;
-using Xunit.Sdk;
 
 namespace NuGetGallery
 {
@@ -187,6 +185,9 @@ namespace NuGetGallery
                 contentObjectService
                     .SetupGet(c => c.GitHubUsageConfiguration)
                     .Returns(new GitHubUsageConfiguration(Array.Empty<RepositoryInformation>()));
+                contentObjectService
+                    .SetupGet(c => c.CacheConfiguration)
+                    .Returns(new CacheConfiguration());
             }
 
             if (symbolPackageUploadService == null)
