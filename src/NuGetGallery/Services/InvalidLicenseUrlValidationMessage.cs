@@ -11,7 +11,7 @@ namespace NuGetGallery
     /// </summary>
     public class InvalidLicenseUrlValidationMessage : IValidationMessage
     {
-        private string DetailsLink => $"<a href=\"https://aka.ms/invalidNuGetLicenseUrl\">{Strings.UploadPackage_LearnMore}</a>.";
+        private string DetailsLink => $"<a href=\"https://aka.ms/invalidNuGetLicenseUrl\" aria-label= \"{Strings.UploadPackage_LearMore_PackagingLicense}\">{Strings.UploadPackage_LearnMore}</a>.";
         private string DetailsPlainText => "https://aka.ms/invalidNuGetLicenseUrl";
 
         private readonly string _baseMessage;

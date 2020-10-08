@@ -442,6 +442,10 @@ namespace NuGetGallery
                 .As<IPackageVulnerabilityService>()
                 .InstancePerLifetimeScope();
 
+            builder.Register(c => new CookieExpirationService(domain: configuration.GetSiteRoot(useHttps: true)))
+                .As<ICookieExpirationService>()
+                .SingleInstance();
+
             services.AddHttpClient();
             services.AddScoped<IGravatarProxyService, GravatarProxyService>();
 
@@ -472,7 +476,7 @@ namespace NuGetGallery
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
-            RegisterCookieComplianceService(builder, configuration, diagnosticsService);
+            RegisterCookieComplianceService(configuration, loggerFactory);
 
             RegisterABTestServices(builder);
 
@@ -1458,29 +1462,21 @@ namespace NuGetGallery
                 .SingleInstance();
         }
 
-        private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
+        private static void RegisterCookieComplianceService(ConfigurationService configuration, ILoggerFactory loggerFactory)
         {
-            CookieComplianceServiceBase service = null;
+            var logger = loggerFactory.CreateLogger(nameof(CookieComplianceService));
+
+            ICookieComplianceService service = null;
             if (configuration.Current.IsHosted)
             {
                 var siteName = configuration.GetSiteRoot(true);
                 service = GetAddInServices<ICookieComplianceService>(sp =>
                 {
-                    sp.ComposeExportedValue("Domain", siteName);
-                    sp.ComposeExportedValue<IDiagnosticsService>(diagnostics);
-                }).FirstOrDefault() as CookieComplianceServiceBase;
-
-                if (service != null)
-                {
-                    // Initialize the service on App_Start to avoid any performance degradation during initial requests.
-                    HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
-                }
+                    sp.ComposeExportedValue<ILogger>(logger);
+                }).FirstOrDefault();
             }
 
-            builder.RegisterInstance(service ?? new NullCookieComplianceService())
-                .AsSelf()
-                .As<ICookieComplianceService>()
-                .SingleInstance();
+            CookieComplianceService.Initialize(service ?? new NullCookieComplianceService(), logger);
         }
     }
 }

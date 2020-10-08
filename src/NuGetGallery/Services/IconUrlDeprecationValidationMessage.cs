@@ -9,6 +9,6 @@ namespace NuGetGallery
 
         public bool HasRawHtmlRepresentation => true;
 
-        public string RawHtmlMessage => $"{Strings.UploadPackage_IconUrlDeprecated.Replace("<", "&lt;").Replace(">", "&gt;")} <a href=\"https://aka.ms/deprecateIconUrl\">{Strings.UploadPackage_LearnMore}</a>.";
+        public string RawHtmlMessage => $"{Strings.UploadPackage_IconUrlDeprecated.Replace("<", "&lt;").Replace(">", "&gt;")} <a href=\"https://aka.ms/deprecateIconUrl\" aria-label= \"{Strings.UploadPackage_LearnMore_IconUrlDeprecation}\">{Strings.UploadPackage_LearnMore}</a>.";
     }
 }

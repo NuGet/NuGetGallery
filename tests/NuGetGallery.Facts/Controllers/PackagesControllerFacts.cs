@@ -1954,7 +1954,7 @@ namespace NuGetGallery
                 Assert.Same(pd, _cache.Get(cacheKey));
             }
 
-            [Fact]
+            [Fact(Skip = "Flaky test, tracked by issue https://github.com/NuGet/NuGetGallery/issues/8231")]
             public async Task OneSecondCacheTime()
             {
                 var id = "foo";
