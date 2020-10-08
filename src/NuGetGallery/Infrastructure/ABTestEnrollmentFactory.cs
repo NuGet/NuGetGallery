@@ -18,7 +18,7 @@ namespace NuGetGallery
         private const int SchemaVersion1 = 1; // PreviewSearch: {"v":1,"ps":100}
         private const int SchemaVersion2 = 2; // PreviewSearch + PackageDependent: {"v":2,"ps":100,"pd":100}
 
-        // Note that a new schema version could theoretically reused any currently unused cookie properties. However
+        // Note that a new schema version could theoretically reuse any currently unused cookie properties. However
         // this does have questionable statistical correctness due treatment assignment of one A/B test being reused
         // for another, i.e. each A/B test population is not independent.
 
