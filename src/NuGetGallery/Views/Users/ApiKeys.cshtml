@@ -396,13 +396,13 @@
                     individual packages, or both.
                 </p>
                 <div class="has-error">
-                    <span class="help-block" data-bind="text: SubjectsError"></span>
+                    <span class="help-block" data-bind="text: SubjectsError" aria-live="polite" role="alert"></span>
                 </div>
                 <div class="has-error">
                     <span class="field-validation-valid help-block"
                           data-valmsg-replace="true"
                           data-bind="attr: { 'data-valmsg-for': GlobPatternId,
-                                             id: GlobPatternId() + '-validation-message' }"></span>
+                                             id: GlobPatternId() + '-validation-message' }" aria-live="polite" role="alert"></span>
                 </div>
             </div>
         </div>
