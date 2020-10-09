@@ -1179,10 +1179,10 @@ The {1} Team</value>
     <value>the name of &lt;readme&gt; element is case sensitive, must use the &lt;readme&gt;</value>
   </data>
   <data name="ODataDisabled" xml:space="preserve">
-    <value>This OData endpoint is disabled.</value>
+    <value>This OData endpoint has been disabled. Please refer to the following URL for more information about this deprecation: https://aka.ms/nuget/odata-deprecation</value>
   </data>
   <data name="ODataParametersDisabled" xml:space="preserve">
-    <value>The combination of parameters provided to this OData endpoint is not supported.</value>
+    <value>The combination of parameters provided to this OData endpoint is no longer supported. Please refer to the following URL for more information about this deprecation: https://aka.ms/nuget/odata-deprecation</value>
   </data>
   <data name="ReadmeNotEditableWithEmbeddedReadme" xml:space="preserve">
     <value>The readme is not editable with the package has the embedded readme</value>
