@@ -11,7 +11,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
@@ -45,7 +44,6 @@ using NuGetGallery.Services;
 using NuGetGallery.Services.Helpers;
 using NuGetGallery.TestUtils;
 using Xunit;
-using Xunit.Sdk;
 
 namespace NuGetGallery
 {
@@ -187,6 +185,9 @@ namespace NuGetGallery
                 contentObjectService
                     .SetupGet(c => c.GitHubUsageConfiguration)
                     .Returns(new GitHubUsageConfiguration(Array.Empty<RepositoryInformation>()));
+                contentObjectService
+                    .SetupGet(c => c.CacheConfiguration)
+                    .Returns(new CacheConfiguration());
             }
 
             if (symbolPackageUploadService == null)
@@ -1658,69 +1659,21 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task CheckABTestIsOff()
+            public async Task CheckPackageDependentsFeatureFlagIsOff()
             {
                 var id = "foo";
                 var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
-                var abTestService = new Mock<IABTestService>();
-
-                abTestService
-                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(false);
-
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    abTestService: abTestService);
-
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration()
-                    {
-                        Id = id,
-                        Owners = new List<User>(),
-                    },
-                    Version = "2.0.0",
-                    NormalizedVersion = "2.0.0",
-                };
-
-                var packages = new List<Package> { package };
-                packageService
-                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
-                    .Returns(packages);
-                packageService
-                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), It.IsAny<int?>(), true))
-                    .Returns(package);
-
-                var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-
-                Assert.Null(model.PackageDependents);
-                packageService
-                    .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
-                Assert.False(model.IsPackageDependentsEnabled);
-                Assert.Empty(_cache);
-            }
-
-            [Fact]
-            public async Task CheckABTestIsOnAndFeatFlagIsOff()
-            {
-                var id = "foo";
-                var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
-                var packageService = new Mock<IPackageService>();
-                var abTestService = new Mock<IABTestService>();
                 var featureFlagService = new Mock<IFeatureFlagService>();
 
-                abTestService
-                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(false);
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    featureFlagService: featureFlagService,
-                    abTestService: abTestService);
+                    featureFlagService: featureFlagService);
+
+                featureFlagService
+                    .Setup(x => x.IsPackageDependentsEnabled(It.IsAny<User>()))
+                    .Returns(false);
 
                 var package = new Package
                 {
@@ -1750,8 +1703,6 @@ namespace NuGetGallery
                 Assert.Null(model.PackageDependents);
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Never());
-                abTestService
-                    .Verify(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()), Times.Never);
                 Assert.False(model.IsPackageDependentsEnabled);
                 Assert.Empty(_cache);
             }
@@ -1762,13 +1713,8 @@ namespace NuGetGallery
                 var id = "foo";
                 var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
-                var abTestService = new Mock<IABTestService>();
                 var httpContext = new Mock<HttpContextBase>();
                 PackageDependents pd = new PackageDependents();
-
-                abTestService
-                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(true);
 
                 httpContext
                     .Setup(c => c.Cache)
@@ -1784,7 +1730,6 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    abTestService: abTestService,
                     httpContext: httpContext);
 
                 var package = new Package
@@ -1820,7 +1765,6 @@ namespace NuGetGallery
                 var id = "foo";
                 var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
-                var abTestService = new Mock<IABTestService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var contentObjectService = new Mock<IContentObjectService>();
 
@@ -1830,9 +1774,6 @@ namespace NuGetGallery
                 };
                 PackageDependents pd = new PackageDependents();
 
-                abTestService
-                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(true);
                 httpContext
                     .Setup(c => c.Cache)
                     .Returns(_cache);
@@ -1843,7 +1784,6 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    abTestService: abTestService,
                     contentObjectService: contentObjectService,
                     httpContext: httpContext);
 
@@ -1889,7 +1829,6 @@ namespace NuGetGallery
                 var id2 = "FOObAr";
                 var cacheKey = "CacheDependents_foobar";
                 var packageService = new Mock<IPackageService>();
-                var abTestService = new Mock<IABTestService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 var httpContext = new Mock<HttpContextBase>();
 
@@ -1902,9 +1841,6 @@ namespace NuGetGallery
                 contentObjectService
                     .Setup(c => c.CacheConfiguration)
                     .Returns(cacheConfiguration);
-                abTestService
-                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(true);
                 httpContext
                     .Setup(c => c.Cache)
                     .Returns(_cache);
@@ -1912,7 +1848,6 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    abTestService: abTestService,
                     contentObjectService: contentObjectService,
                     httpContext: httpContext);
 
@@ -1960,14 +1895,9 @@ namespace NuGetGallery
                 var id = "foo";
                 var cacheKey = "CacheDependents_" + id.ToLowerInvariant();
                 var packageService = new Mock<IPackageService>();
-                var abTestService = new Mock<IABTestService>();
                 var contentObjectService = new Mock<IContentObjectService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var pd = new PackageDependents();
-
-                abTestService
-                   .Setup(x => x.IsPackageDependendentsABEnabled(It.IsAny<User>()))
-                   .Returns(true);
 
                 httpContext
                     .Setup(c => c.Cache)
@@ -1985,7 +1915,6 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    abTestService: abTestService,
                     contentObjectService: contentObjectService);
 
                 var package = new Package
