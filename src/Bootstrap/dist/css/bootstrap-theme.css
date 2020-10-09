@@ -794,12 +794,12 @@ img.reserved-indicator-icon {
 }
 @media (max-width: 768px) {
   .page-api-keys .upsert-api-key .available-packages .panel-body {
-    min-height: 200px;
+    height: 200px;
   }
 }
 @media (min-width: 768px) {
   .page-api-keys .upsert-api-key .available-packages .panel-body {
-    min-height: auto;
+    height: auto;
   }
 }
 .page-api-keys .upsert-api-key .glob-pattern-hint table {
@@ -822,7 +822,7 @@ img.reserved-indicator-icon {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 100%;
+    right: 0;
     display: -webkit-box;
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -832,6 +832,8 @@ img.reserved-indicator-icon {
     -webkit-flex-direction: column;
     -ms-flex-direction: column;
     flex-direction: column;
+    margin-right: 15px;
+    margin-left: 15px;
   }
   .page-api-keys .upsert-api-key .select-packages-inputs > div .available-packages-container {
     -webkit-box-flex: 1;
