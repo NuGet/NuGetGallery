@@ -278,6 +278,7 @@ namespace NuGetGallery
         public bool IsLicenseMdRenderingEnabled(User user)
         {
             return _client.IsEnabled(LicenseMdRenderingFlightName, user, defaultValue: false);
+        }
 
         public bool IsODataV2SearchCountNonHijackedEnabled()
         {
