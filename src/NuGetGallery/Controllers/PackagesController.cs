@@ -123,6 +123,7 @@ namespace NuGetGallery
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IPackageRenameService _renameService;
         private readonly IABTestService _abTestService;
+        private readonly IMarkdownService _markdownService;
         private readonly IIconUrlProvider _iconUrlProvider;
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
         private readonly DisplayLicenseViewModelFactory _displayLicenseViewModelFactory;
@@ -162,7 +163,8 @@ namespace NuGetGallery
             IPackageDeprecationService deprecationService,
             IPackageRenameService renameService,
             IABTestService abTestService,
-            IIconUrlProvider iconUrlProvider)
+            IIconUrlProvider iconUrlProvider,
+            IMarkdownService markdownService)
         {
             _packageFilter = packageFilter;
             _packageService = packageService;
@@ -188,6 +190,8 @@ namespace NuGetGallery
             _packageOwnershipManagementService = packageOwnershipManagementService;
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
+            _markdownService = markdownService;
+
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
@@ -198,7 +202,7 @@ namespace NuGetGallery
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
             _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider);
-            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider);
+            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
             _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider);
             _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider);
@@ -614,6 +618,17 @@ namespace NuGetGallery
             model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
             model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = packageContentData.LicenseFileContents;
+
+            var license = packageMetadata.LicenseMetadata?.License;
+
+            if (_featureFlagService.IsLicenseMdRenderingEnabled(currentUser) &&
+                license != null && 
+                packageMetadata.LicenseMetadata?.Type == LicenseType.File &&
+                Path.GetExtension(license).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
+            {
+                model.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(packageContentData.LicenseFileContents, incrementHeadersBy: 2)?.Content;
+            }
+
             model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
             model.ReadmeFileContents = packageContentData.ReadmeFileContents;
 
@@ -1136,7 +1151,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = _displayLicenseViewModelFactory.Create(package, licenseExpressionSegments, licenseFileContents);
+            var model = _displayLicenseViewModelFactory.Create(package, licenseExpressionSegments, licenseFileContents, GetCurrentUser());
 
             return View(model);
         }

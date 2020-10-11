@@ -100,6 +100,7 @@
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessageFacts.cs" />
     <Compile Include="Infrastructure\SearchServiceFactoryFacts.cs" />
+    <Compile Include="Services\MarkdownServiceFacts.cs" />
     <Compile Include="Services\PackageMetadataValidationServiceFacts.cs" />
     <Compile Include="Services\ConfigurationIconFileProviderFacts.cs" />
     <Compile Include="Services\AsynchronousDeleteAccountServiceFacts.cs" />

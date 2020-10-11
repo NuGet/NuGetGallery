@@ -85,7 +85,8 @@ namespace NuGetGallery
             Mock<IPackageDeprecationService> deprecationService = null,
             Mock<IPackageRenameService> renameService = null,
             Mock<IABTestService> abTestService = null,
-            Mock<IIconUrlProvider> iconUrlProvider = null)
+            Mock<IIconUrlProvider> iconUrlProvider = null,
+            Mock<IMarkdownService> markdownService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             PackageDependents packageDependents = new PackageDependents();
@@ -174,7 +175,21 @@ namespace NuGetGallery
 
             packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>();
 
-            readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object);
+            if (markdownService == null)
+            {
+                var mockMarkdownService = new Mock<IMarkdownService>();
+
+                mockMarkdownService.Setup(x => x.GetHtmlFromMarkdown(It.IsAny<string>()))
+                    .Returns((string markdown) => new RenderedMarkdownResult { Content = mockGetHtml(markdown) });
+
+                mockMarkdownService.Setup(x => x.GetHtmlFromMarkdown(It.IsAny<string>(), It.IsAny<int>()))
+                    .Returns((string markdown, int h) => new RenderedMarkdownResult { Content = mockGetHtml(markdown) });
+
+                markdownService = mockMarkdownService;
+            }
+
+            readMeService = readMeService ?? new ReadMeService(
+                packageFileService.Object, entitiesContext.Object, markdownService.Object);
 
             if (contentObjectService == null)
             {
@@ -268,7 +283,8 @@ namespace NuGetGallery
                 deprecationService.Object,
                 renameService.Object,
                 abTestService.Object,
-                iconUrlProvider.Object);
+                iconUrlProvider.Object,
+                markdownService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -292,6 +308,21 @@ namespace NuGetGallery
             }
 
             return controller.Object;
+        }
+
+        private static string mockGetHtml(string markdown)
+        {
+            if (markdown == null) 
+            {
+                return null;
+            }
+
+            if (markdown.StartsWith("#"))
+            {
+                return "<h2>" + markdown.Trim('#', ' ') + "</h2>";
+            }
+
+            return markdown;
         }
 
         private static Mock<ISymbolPackageUploadService> GetValidSymbolPackageUploadService(string packageId,
@@ -9189,11 +9220,11 @@ namespace NuGetGallery
 
                 readmeService
                     .Setup(rs => rs.GetReadMeHtmlAsync(request, It.IsAny<Encoding>()))
-                    .ReturnsAsync(new RenderedReadMeResult { Content = html });
+                    .ReturnsAsync(new RenderedMarkdownResult { Content = html });
 
                 var result = await controller.PreviewReadMe(request);
 
-                var readmeResult = Assert.IsType<RenderedReadMeResult>(result.Data);
+                var readmeResult = Assert.IsType<RenderedMarkdownResult>(result.Data);
                 Assert.Equal(html, readmeResult.Content);
             }
 

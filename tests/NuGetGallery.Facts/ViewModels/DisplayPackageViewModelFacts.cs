@@ -833,7 +833,7 @@ namespace NuGetGallery.ViewModels
                 currentUser: currentUser,
                 packageKeyToDeprecation: packageKeyToDeprecation,
                 packageRenames: packageRenames,
-                readmeResult: new RenderedReadMeResult { Content = readmeHtml });
+                readmeResult: new RenderedMarkdownResult { Content = readmeHtml });
         }
     }
 }
