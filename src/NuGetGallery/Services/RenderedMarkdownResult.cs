@@ -3,7 +3,7 @@
 
 namespace NuGetGallery
 {
-    public class RenderedReadMeResult
+    public class RenderedMarkdownResult
     {
         public string Content { get; set; }
         

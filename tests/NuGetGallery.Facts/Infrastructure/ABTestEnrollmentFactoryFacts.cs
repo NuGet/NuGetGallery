@@ -133,9 +133,7 @@ namespace NuGetGallery
             public Facts()
             {
                 TelemetryService = new Mock<ITelemetryService>();
-                Logger = new Mock<ILogger<ABTestEnrollmentFactory>>();
-
-                Target = new ABTestEnrollmentFactory(TelemetryService.Object, Logger.Object);
+                Target = new ABTestEnrollmentFactory(TelemetryService.Object);
             }
 
             public Mock<ITelemetryService> TelemetryService { get; }
