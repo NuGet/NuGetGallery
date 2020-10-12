@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Configuration;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace NuGetGallery.App_Start
 {
     public class ConfigurationServiceFacts
     {
-        public class TheGetSiteRootMethod
+        public class TheGetSiteRootAndGetSiteDomainMethods
         {
             private class TestableConfigurationService : ConfigurationService
             {
@@ -98,6 +99,21 @@ namespace NuGetGallery.App_Start
                 configuration.StubConfiguredSiteRoot = "ftp://theSiteRoot/";
 
                 Assert.Throws<InvalidOperationException>(() => configuration.GetSiteRoot(useHttps: false));
+            }
+
+            [Theory]
+            [InlineData("http://theSiteRoot")]
+            [InlineData("https://theSiteRoot")]
+            [InlineData("http://theSiteRoot/")]
+            [InlineData("https://theSiteRoot/")]
+            public void WillGetTheConfiguredSiteDomain(string configuredSiteRoot)
+            {
+                var configuration = new TestableConfigurationService();
+                configuration.StubConfiguredSiteRoot = configuredSiteRoot;
+
+                var siteDomain = configuration.GetSiteDomain();
+
+                Assert.Equal("theSiteRoot", siteDomain);
             }
         }
 

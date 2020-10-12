@@ -59,7 +59,6 @@ namespace NuGetGallery.Cookies
 
                 var httpContext = GetHttpContext(cookies);
                 var domain = "subdomain.domain.test";
-                var rootDomain = "domain.test";
                 var cookieExpirationService = new CookieExpirationService(domain);
 
                 // Act
@@ -72,16 +71,8 @@ namespace NuGetGallery.Cookies
                     Assert.NotNull(responseCookie);
                     Assert.True(DateTime.Equals(new DateTime(2010, 1, 1), responseCookie.Expires));
                     Assert.Equal(cookies[key], responseCookie.Value);
+                    Assert.Null(responseCookie.Domain);
                 }
-
-                var _gaCookie = httpContext.Response.Cookies["_ga"];
-                Assert.Equal(rootDomain, _gaCookie.Domain);
-                var _gidCookie = httpContext.Response.Cookies["_gid"];
-                Assert.Equal(rootDomain, _gidCookie.Domain);
-                var _gatCookie = httpContext.Response.Cookies["_gat"];
-                Assert.Equal(rootDomain, _gatCookie.Domain);
-                Assert.Null(httpContext.Response.Cookies["ai_user"].Domain);
-                Assert.Null(httpContext.Response.Cookies["ai_session"].Domain);
             }
         }
 
