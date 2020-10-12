@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
-using System.Windows.Forms;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
