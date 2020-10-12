@@ -218,6 +218,10 @@ namespace NuGetGallery
         bool IsODataV2SearchNonHijackedEnabled();
 
         /// <summary>
+        /// Whether rendering licence Markdown content to HTML is enabled
+        /// </summary>
+        bool IsLicenseMdRenderingEnabled(User user);
+
         /// Whether the /Search()/$count endpoint is enabled for non-hijacked queries for the V2 OData API.
         /// </summary>
         bool IsODataV2SearchCountNonHijackedEnabled();

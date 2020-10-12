@@ -24,7 +24,7 @@ namespace NuGetGallery
             User currentUser,
             IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
             IReadOnlyList<PackageRename> packageRenames,
-            RenderedReadMeResult readmeResult)
+            RenderedMarkdownResult readmeResult)
         {
             var viewModel = new DisplayPackageViewModel();
             return Setup(
@@ -44,7 +44,7 @@ namespace NuGetGallery
             User currentUser,
             IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
             IReadOnlyList<PackageRename> packageRenames,
-            RenderedReadMeResult readmeResult)
+            RenderedMarkdownResult readmeResult)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
             SetupCommon(viewModel, package, pushedBy: null, packageKeyToDeprecation: packageKeyToDeprecation);
@@ -58,7 +58,7 @@ namespace NuGetGallery
             User currentUser,
             IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
             IReadOnlyList<PackageRename> packageRenames,
-            RenderedReadMeResult readmeResult)
+            RenderedMarkdownResult readmeResult)
         {
             var dependencies = package.Dependencies.ToList();
 

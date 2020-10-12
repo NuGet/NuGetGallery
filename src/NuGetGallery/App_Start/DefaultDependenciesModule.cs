@@ -368,6 +368,10 @@ namespace NuGetGallery
                 .As<IReadMeService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<MarkdownService>()
+                .As<IMarkdownService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<ApiScopeEvaluator>()
                 .AsSelf()
                 .As<IApiScopeEvaluator>()
