@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -536,7 +537,7 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA3147:Mark Verb Handlers With Validate Antiforgery Token", Justification = "Disable antiforgery token validation due to actions handle GET/POST requests")]
+        [SuppressMessage("Security", "CA3147:Mark Verb Handlers With Validate Antiforgery Token", Justification = "Disable antiforgery token validation due to actions handle GET/POST requests")]
         public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl, string error = null, string errorDescription = null)
         {
             // Extract the external login info
