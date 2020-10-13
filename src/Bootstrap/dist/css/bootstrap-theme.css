@@ -163,6 +163,7 @@ body h3 {
 }
 .banner a {
   color: #23527c;
+  text-decoration: underline;
 }
 .banner a:hover,
 .banner a:focus {
