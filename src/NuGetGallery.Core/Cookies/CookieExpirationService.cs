@@ -28,7 +28,6 @@ namespace NuGetGallery.Cookies
         };
 
         private readonly string _domain;
-        private readonly string _rootDomain;
 
         public CookieExpirationService(string domain)
         {
@@ -38,7 +37,6 @@ namespace NuGetGallery.Cookies
             }
 
             _domain = domain;
-            _rootDomain = GetRootDomain(_domain);
         }
 
         public void ExpireAnalyticsCookies(HttpContextBase httpContext)
@@ -48,7 +46,7 @@ namespace NuGetGallery.Cookies
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            GoogleAnalyticsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName));
+            GoogleAnalyticsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName, _domain));
             ApplicationInsightsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName));
         }
 
@@ -83,23 +81,6 @@ namespace NuGetGallery.Cookies
                     response.Cookies[cookieName].Domain = domain;
                 }
             }
-        }
-
-        private string GetRootDomain(string domain)
-        {
-            var index1 = domain.LastIndexOf('.');
-            if (index1 < 0)
-            {
-                return domain;
-            }
-
-            var index2 = domain.LastIndexOf('.', index1 - 1);
-            if (index2 < 0)
-            {
-                return domain;
-            }
-
-            return domain.Substring(index2 + 1);
         }
     }
 }
