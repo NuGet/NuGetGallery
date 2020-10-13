@@ -10,37 +10,44 @@ namespace NuGetGallery
 {
     public class DisplayLicenseViewModelFactory
     {
+        private readonly IMarkdownService _markdownService;
+        private readonly IFeatureFlagService _featureFlagService;
         private PackageViewModelFactory _packageViewModelFactory;
 
-        public DisplayLicenseViewModelFactory(IIconUrlProvider iconUrlProvider)
+        public DisplayLicenseViewModelFactory(IIconUrlProvider iconUrlProvider, IMarkdownService markdownService, IFeatureFlagService featureFlagService)
         {
             _packageViewModelFactory = new PackageViewModelFactory(iconUrlProvider);
+            _markdownService = markdownService;
+            _featureFlagService = featureFlagService;
         }
 
         public DisplayLicenseViewModel Create(
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
-            string licenseFileContents)
+            string licenseFileContents,
+            User currentUser)
         {
             var viewModel = new DisplayLicenseViewModel();
-            return Setup(viewModel, package, licenseExpressionSegments, licenseFileContents);
+            return Setup(viewModel, package, licenseExpressionSegments, licenseFileContents, currentUser);
         }
 
         private DisplayLicenseViewModel Setup(
             DisplayLicenseViewModel viewModel,
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
-            string licenseFileContents)
+            string licenseFileContents,
+            User currentUser)
         {
             _packageViewModelFactory.Setup(viewModel, package);
-            return SetupInternal(viewModel, package, licenseExpressionSegments, licenseFileContents);
+            return SetupInternal(viewModel, package, licenseExpressionSegments, licenseFileContents, currentUser);
         }
 
         private DisplayLicenseViewModel SetupInternal(
             DisplayLicenseViewModel viewModel,
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments,
-            string licenseFileContents)
+            string licenseFileContents,
+            User currentUser)
         {
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;
@@ -56,6 +63,13 @@ namespace NuGetGallery
             }
             viewModel.LicenseExpressionSegments = licenseExpressionSegments;
             viewModel.LicenseFileContents = licenseFileContents;
+
+            if (_featureFlagService.IsLicenseMdRenderingEnabled(currentUser) && 
+                package.EmbeddedLicenseType == EmbeddedLicenseFileType.Markdown && 
+                licenseFileContents != null)
+            {
+                viewModel.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(licenseFileContents)?.Content;
+            }
 
             return viewModel;
         }
