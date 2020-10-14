@@ -96,9 +96,26 @@
                     <li class="package-tags">
                         <span class="icon-text">
                             <i class="ms-Icon ms-Icon--Tag" aria-hidden="true"></i>
-                            @foreach (var tag in Model.Tags)
+                            @{
+                                const int firstN = 10;
+                                var tags = Model.Tags.Take(firstN + 1).ToList();
+                                string lastTag = null;
+                                if (tags.Count > firstN)
+                                {
+                                    lastTag = tags[firstN - 1];
+                                    tags.RemoveRange(firstN - 1, 2);
+                                }
+                            }
+                            @foreach (var tag in tags)
                             {
                                 <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a>
+                            }
+                            @if (lastTag != null)
+                            {
+                                <span class="text-nowrap">
+                                    <a href="@Url.Search("Tags:\"" + lastTag + "\"")" title="Search for @lastTag">@lastTag</a>
+                                    <a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)" title="View more tags"><i class="ms-Icon ms-Icon--More" aria-hidden="true"></i></a>
+                                </span>
                             }
                         </span>
                     </li>
