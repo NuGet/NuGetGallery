@@ -7,3 +7,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("NuGet.Services.Build.Tests")]
 [assembly: ComVisible(false)]
 [assembly: Guid("ab3c7814-3ad6-41bd-8968-a3cc10a52ec5")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

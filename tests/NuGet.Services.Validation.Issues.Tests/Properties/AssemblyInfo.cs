@@ -1,4 +1,8 @@
-﻿using System.Reflection;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Resources;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
@@ -13,3 +17,4 @@ using System.Runtime.InteropServices;
 [assembly: Guid("e7412f21-169c-4823-ab2c-f6ee20e6411e")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: NeutralResourcesLanguage("en-US")]

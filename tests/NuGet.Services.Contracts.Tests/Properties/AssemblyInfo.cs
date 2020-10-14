@@ -8,3 +8,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("NuGet.Services.Contracts.Tests")]
 [assembly: ComVisible(false)]
 [assembly: Guid("79f72c83-e94d-4d04-b904-5a4da161168e")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
