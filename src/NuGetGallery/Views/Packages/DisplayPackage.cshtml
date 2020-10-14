@@ -680,8 +680,14 @@
                             {
                                 <th>Status</th>
                             }
-                            <th aria-label="Signature Information" abbr="Signature Information"></th>
-                            <th aria-label="Deprecation Information" abbr="Deprecation Information"></th>
+                            @if (Model.IsCertificatesUIEnabled)
+                            {
+                                <th aria-label="Signature Information" abbr="Signature Information"></th>
+                            }
+                            @if (Model.IsPackageDeprecationEnabled)
+                            {
+                                <th aria-label="Deprecation Information" abbr="Deprecation Information"></th>
+                            }
                         </tr>
                     </thead>
                     <tbody class="no-border">
@@ -723,7 +729,7 @@
 
                                         <td>
                                             @if (packageStatusSummary == PackageStatusSummary.Listed ||
-                                                 packageStatusSummary == PackageStatusSummary.Unlisted)
+     packageStatusSummary == PackageStatusSummary.Unlisted)
                                             {
                                                 <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
                                             }
@@ -734,15 +740,22 @@
                                         </td>
                                     }
 
-                                    <td class="package-icon-cell">
-                                        @if (Model.IsCertificatesUIEnabled && !string.IsNullOrEmpty(packageVersion.SignatureInformation))
+                                    @if (Model.IsCertificatesUIEnabled)
+                                    {
+                                        if (!string.IsNullOrEmpty(packageVersion.SignatureInformation))
                                         {
-                                            <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
+                                            <td class="package-icon-cell">
+                                                    <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
+                                            </td>
                                         }
-                                    </td>
-
-                                    <td class="package-icon-cell">
-                                        @if (Model.IsPackageDeprecationEnabled && packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+                                        else
+                                        {
+                                            <td class="package-icon-cell" aria-label="No signature"></td>
+                                        }
+                                    }
+                                    @if (Model.IsPackageDeprecationEnabled)
+                                    {
+                                        if (packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
                                         {
                                             var deprecationTitle = packageVersion.Version;
                                             var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
@@ -767,9 +780,15 @@
                                                 deprecationTitle += " is deprecated.";
                                             }
 
-                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@deprecationTitle"></i>
+                                            <td class="package-icon-cell">
+                                                <i class="ms-Icon ms-Icon--Warning package-icon" title="@deprecationTitle"></i>
+                                            </td>
                                         }
-                                    </td>
+                                        else
+                                        {
+                                            <td class="package-icon-cell" aria-label="Not deprecated"></td>
+                                        }
+                                    }
                                 </tr>
                             }
                             else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
