@@ -262,7 +262,7 @@ img.reserved-indicator-icon {
   .package-list li {
     display: inline-block;
     line-height: 20px;
-    max-height: 100px;
+    max-height: 101px;
     overflow-y: hidden;
     padding-right: 10px;
   }
