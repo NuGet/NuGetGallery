@@ -63,10 +63,11 @@ namespace NuGetGallery
             }
         }
 
-        [SuppressMessage("Microsoft.Security.Cryptography", "CA5354:SHA1CannotBeUsed", Justification = @"SHA1 thumbprint is only used to distinguish certificates in the Gallery view.")]
         private static string GetSha1Thumbprint(MemoryStream stream)
         {
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms
             using (var hashAlgorithm = SHA1.Create())
+#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
             {
                 return GetThumbprint(stream, hashAlgorithm);
             }

@@ -153,6 +153,7 @@ namespace NuGetGallery
 
         protected abstract Task SendNewAccountEmailAsync(User account);
 
+        [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual async Task<ActionResult> Confirm(string accountName, string token)
         {
@@ -380,7 +381,9 @@ namespace NuGetGallery
 
         protected abstract DeleteAccountViewModel GetDeleteAccountViewModel(TUser account);
 
+#pragma warning disable CA3147 // No need to Validate Antiforgery Token for abstract function
         public abstract Task<ActionResult> RequestAccountDeletion(string accountName = null);
+#pragma warning restore CA3147 // No need to Validate Antiforgery Token for abstract function
 
         protected List<DeleteAccountListPackageItemViewModel> GetOwnedPackagesViewModels(User account)
         {

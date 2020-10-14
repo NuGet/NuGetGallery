@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#pragma warning disable CA3147 // No need to validate Antiforgery Token with API request
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -1191,3 +1192,4 @@ namespace NuGetGallery
         }
     }
 }
+#pragma warning restore CA3147 // No need to validate Antiforgery Token with API request

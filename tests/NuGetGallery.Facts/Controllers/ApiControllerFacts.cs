@@ -198,7 +198,6 @@ namespace NuGetGallery
     public class ApiControllerFacts
     {
         private static readonly Uri HttpRequestUrl = new Uri("http://nuget.org/api/v2/something");
-        private static readonly Uri HttpsRequestUrl = new Uri("https://nuget.org/api/v2/something");
 
         public static IEnumerable<object[]> InvalidScopes_Data
         {
