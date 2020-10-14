@@ -795,6 +795,7 @@ img.reserved-indicator-icon {
 @media (max-width: 768px) {
   .page-api-keys .upsert-api-key .available-packages .panel-body {
     height: 200px;
+    overflow: auto;
   }
 }
 @media (min-width: 768px) {
