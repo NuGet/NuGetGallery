@@ -17,16 +17,6 @@ module.exports = function (grunt) {
 
   var fs = require('fs');
   var path = require('path');
-  var generateGlyphiconsData = require('./grunt/bs-glyphicons-data-generator.js');
-  var BsLessdocParser = require('./grunt/bs-lessdoc-parser.js');
-  var getLessVarsData = function () {
-    var filePath = path.join(__dirname, 'less/variables.less');
-    var fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
-    var parser = new BsLessdocParser(fileContent);
-    return { sections: parser.parseFile() };
-  };
-  var generateRawFiles = require('./grunt/bs-raw-files-generator.js');
-  var generateCommonJSModule = require('./grunt/bs-commonjs-generator.js');
   var configBridge = grunt.file.readJSON('./grunt/configBridge.json', { encoding: 'utf8' });
 
   Object.keys(configBridge.paths).forEach(function (key) {
@@ -198,7 +188,7 @@ module.exports = function (grunt) {
   require('time-grunt')(grunt);
 
   // JS distribution task.
-  grunt.registerTask('dist-js', ['concat', 'uglify:core', 'commonjs']);
+  grunt.registerTask('dist-js', ['concat', 'uglify:core']);
 
   // CSS distribution task.
   grunt.registerTask('dist-css', ['less:core', 'less:theme', 'postcss:core', 'postcss:theme', 'cssmin:core', 'cssmin:theme']);
@@ -208,24 +198,6 @@ module.exports = function (grunt) {
 
   // Default task.
   grunt.registerTask('default', ['clean:dist', 'copy:fonts', 'dist-css', 'dist-js', 'copy:gallerycss', 'copy:galleryjs']);
-
-  grunt.registerTask('build-glyphicons-data', function () {
-    generateGlyphiconsData.call(this, grunt);
-  });
-
-  // task for building customizer
-  grunt.registerTask('build-customizer', ['build-customizer-html', 'build-raw-files']);
-  grunt.registerTask('build-customizer-html');
-  grunt.registerTask('build-raw-files', 'Add scripts/less files to customizer.', function () {
-    var banner = grunt.template.process('<%= banner %>');
-    generateRawFiles(grunt, banner);
-  });
-
-  grunt.registerTask('commonjs', 'Generate CommonJS entrypoint module in dist dir.', function () {
-    var srcFiles = grunt.config.get('concat.core.src');
-    var destFilepath = 'dist/js/npm.js';
-    generateCommonJSModule(grunt, srcFiles, destFilepath);
-  });
 
   grunt.registerTask('prep-release', ['dist']);
 };

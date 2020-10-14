@@ -27,9 +27,21 @@ namespace NuGetGallery
             PreviewSearchBucket = previewSearchBucket;
             PackageDependentBucket = packageDependentBucket;
         }
+
         public ABTestEnrollmentState State { get; }
         public int SchemaVersion { get; }
+
+        /// <summary>
+        /// Currently usabled and is represented by the "ps" property in the "nugetab" cookie.
+        /// </summary>
         public int PreviewSearchBucket { get; }
+
+        /// <summary>
+        /// Currently unused by the <see cref="CookieBasedABTestService"/> but still set in some user's cookies. See
+        /// <see cref="ABTestEnrollmentFactory"/> for the A/B test cookie data model. This C# property could be renamed
+        /// and reused for a future A/B test by leveraging the "pd" JSON property in the "nugetab" cookie or could be
+        /// ignored for the rest of time.
+        /// </summary>
         public int PackageDependentBucket { get; }
     }
 }

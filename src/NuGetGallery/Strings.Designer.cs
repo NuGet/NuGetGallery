@@ -1292,7 +1292,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This OData endpoint is disabled..
+        ///   Looks up a localized string similar to This OData endpoint has been disabled. Please refer to the following URL for more information about this deprecation: https://aka.ms/nuget/odata-deprecation.
         /// </summary>
         public static string ODataDisabled {
             get {
@@ -1301,7 +1301,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The combination of parameters provided to this OData endpoint is not supported..
+        ///   Looks up a localized string similar to The combination of parameters provided to this OData endpoint is no longer supported. Please refer to the following URL for more information about this deprecation: https://aka.ms/nuget/odata-deprecation.
         /// </summary>
         public static string ODataParametersDisabled {
             get {
@@ -2589,11 +2589,47 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn more about including a license within the package.
+        /// </summary>
+        public static string UploadPackage_LearMore_PackagingLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearMore_PackagingLicense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Learn more.
         /// </summary>
         public static string UploadPackage_LearnMore {
             get {
                 return ResourceManager.GetString("UploadPackage_LearnMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about icon URL deprecation.
+        /// </summary>
+        public static string UploadPackage_LearnMore_IconUrlDeprecation {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_IconUrlDeprecation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about invalid license URL encoding.
+        /// </summary>
+        public static string UploadPackage_LearnMore_InvalidLicenseUrlEncoding {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_InvalidLicenseUrlEncoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about license URL deprecation.
+        /// </summary>
+        public static string UploadPackage_LearnMore_LicenseUrlDreprecation {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_LicenseUrlDreprecation", resourceCulture);
             }
         }
         
