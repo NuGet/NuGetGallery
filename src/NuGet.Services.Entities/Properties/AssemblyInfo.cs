@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("NuGet.Services.Entities")]
@@ -11,3 +12,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Entities used for NuGet services")]
 [assembly: AssemblyCopyright("Copyright © .NET Foundation 2018")]
 [assembly: AssemblyCompany(".NET Foundation")]
+[assembly: NeutralResourcesLanguage("en-US")]

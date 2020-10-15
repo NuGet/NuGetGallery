@@ -227,7 +227,9 @@ namespace NuGetGallery
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpPost]
         [UIAuthorize]
+        [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> UploadPackage()
         {
@@ -1156,6 +1158,7 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpGet]
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
         {
             var page = searchAndListModel.Page;
@@ -2099,9 +2102,10 @@ namespace NuGetGallery
 
         [UIAuthorize]
         [HttpPost]
-        [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
+        [ValidateInput(false)] 
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("edit a package")]
+        [SuppressMessage("Security", "CA5363:Do Not Disable Request Validation", Justification = "Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874")]
         public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
@@ -2323,7 +2327,8 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
-        [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
+        [ValidateInput(false)]
+        [SuppressMessage("Security", "CA5363:Do Not Disable Request Validation", Justification = "Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874")]
         public virtual async Task<JsonResult> VerifyPackage(VerifyPackageRequest formData)
         {
             try
