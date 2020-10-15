@@ -1701,7 +1701,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillUnlistThePackageWithExplicitRequestModel()
             {
-                await VerifyUnlist(new DeletePackageApiRequest { Type = DeletePackageAction.Unlist });
+                await VerifyUnlist(new DeletePackageApiRequest { Type = "Unlist" });
             }
 
             [Fact]
@@ -1762,7 +1762,7 @@ namespace NuGetGallery
                 ResultAssert.IsEmpty(await controller.DeletePackage(
                     id,
                     "1.0.42",
-                    new DeletePackageApiRequest { Type = DeletePackageAction.SoftDelete }));
+                    new DeletePackageApiRequest { Type = "SoftDelete" }));
 
                 controller.MockPackageDeleteService.Verify(x => x.SoftDeletePackagesAsync(
                     It.Is<IEnumerable<Package>>(p => p.Single() == package),
@@ -1802,7 +1802,7 @@ namespace NuGetGallery
                 var result = await controller.DeletePackage(
                     id,
                     "1.0.42",
-                    new DeletePackageApiRequest { Type = DeletePackageAction.SoftDelete });
+                    new DeletePackageApiRequest { Type = "SoftDelete" });
 
                 var statusCodeResult = result as HttpStatusCodeWithBodyResult;
 
