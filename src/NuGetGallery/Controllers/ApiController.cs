@@ -24,6 +24,7 @@ using NuGetGallery.Auditing.AuditedEntities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
+using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
@@ -36,6 +37,7 @@ namespace NuGetGallery
         : AppController
     {
         private const string NuGetExeUrl = "https://dist.nuget.org/win-x86-commandline/v2.8.6/nuget.exe";
+        private const string PackageDeleteApiReason = "Deleted via API";
         private readonly IAutocompletePackageIdsQuery _autocompletePackageIdsQuery;
         private readonly IAutocompletePackageVersionsQuery _autocompletePackageVersionsQuery;
 
@@ -860,7 +862,7 @@ namespace NuGetGallery
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("DeletePackageApi")]
-        public virtual async Task<ActionResult> DeletePackage(string id, string version)
+        public virtual async Task<ActionResult> DeletePackage(string id, string version, DeletePackageApiRequest request = null)
         {
             var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
@@ -883,7 +885,39 @@ namespace NuGetGallery
                     string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
-            await PackageUpdateService.MarkPackageUnlistedAsync(package);
+            var currentUser = GetCurrentUser();
+            DeletePackageAction action;
+            if (request?.Type == null)
+            {
+                action = DeletePackageAction.Unlist;
+            }
+            else if (!DeletePackageApiRequest.Actions.TryGetValue(request?.Type, out action))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            switch (action)
+            {
+                case DeletePackageAction.Unlist:
+                    await PackageUpdateService.MarkPackageUnlistedAsync(package);
+                    break;
+
+                case DeletePackageAction.SoftDelete:
+                    if (!FeatureFlagService.IsDeletePackageApiEnabled(currentUser))
+                    {
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.DeletePackage_NotAllowed);
+                    }
+                    await PackageDeleteService.SoftDeletePackagesAsync(
+                        new[] { package },
+                        currentUser,
+                        PackageDeleteApiReason,
+                        currentUser.Username);
+                    break;
+
+                default:
+                    throw new NotSupportedException($"The delete package action '{action}' is not supported.");
+            }
+            
             return new EmptyResult();
         }
 

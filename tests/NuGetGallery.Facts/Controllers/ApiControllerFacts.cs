@@ -58,6 +58,7 @@ namespace NuGetGallery
         public Mock<IPackageDeleteService> MockPackageDeleteService { get; set; }
         public Mock<ISymbolPackageFileService> MockSymbolPackageFileService { get; set; }
         public Mock<ISymbolPackageUploadService> MockSymbolPackageUploadService { get; set; }
+        public Mock<IFeatureFlagService> MockFeatureFlagService { get; set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -85,6 +86,7 @@ namespace NuGetGallery
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
             PackageDeleteService = (MockPackageDeleteService = new Mock<IPackageDeleteService>()).Object;
             SymbolPackageUploadService = (MockSymbolPackageUploadService = new Mock<ISymbolPackageUploadService>()).Object;
+            FeatureFlagService = (MockFeatureFlagService = new Mock<IFeatureFlagService>()).Object;
 
             SetupApiScopeEvaluatorOnAllInputs();
 
@@ -1694,6 +1696,23 @@ namespace NuGetGallery
             [Fact]
             public async Task WillUnlistThePackage()
             {
+                await VerifyUnlist(request: null);
+            }
+
+            [Fact]
+            public async Task WillUnlistThePackageWithExplicitRequestModel()
+            {
+                await VerifyUnlist(new DeletePackageApiRequest { Type = DeletePackageAction.Unlist });
+            }
+
+            [Fact]
+            public async Task WillUnlistThePackageWithDefaultAction()
+            {
+                await VerifyUnlist(new DeletePackageApiRequest());
+            }
+
+            private async Task VerifyUnlist(DeletePackageApiRequest request)
+            {
                 var fakes = Get<Fakes>();
                 var currentUser = fakes.User;
 
@@ -1708,9 +1727,97 @@ namespace NuGetGallery
 
                 controller.SetCurrentUser(currentUser);
 
-                ResultAssert.IsEmpty(await controller.DeletePackage(id, "1.0.42"));
+                ResultAssert.IsEmpty(await controller.DeletePackage(id, "1.0.42", request));
 
                 controller.MockPackageUpdateService.Verify(x => x.MarkPackageUnlistedAsync(package, true, true));
+
+                controller.MockApiScopeEvaluator
+                    .Verify(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package.PackageRegistration,
+                        NuGetScopes.PackageUnlist));
+            }
+
+            [Fact]
+            public async Task WillSoftDeleteThePackageWithSoftDeleteAction()
+            {
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+
+                var id = "theId";
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = id }
+                };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                controller.SetCurrentUser(currentUser);
+                controller.MockFeatureFlagService
+                    .Setup(x => x.IsDeletePackageApiEnabled(currentUser))
+                    .Returns(true)
+                    .Verifiable();
+
+                ResultAssert.IsEmpty(await controller.DeletePackage(
+                    id,
+                    "1.0.42",
+                    new DeletePackageApiRequest { Type = DeletePackageAction.SoftDelete }));
+
+                controller.MockPackageDeleteService.Verify(x => x.SoftDeletePackagesAsync(
+                    It.Is<IEnumerable<Package>>(p => p.Single() == package),
+                    currentUser,
+                    "Deleted via API",
+                    currentUser.Username));
+
+                controller.MockApiScopeEvaluator
+                    .Verify(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package.PackageRegistration,
+                        NuGetScopes.PackageUnlist));
+            }
+
+            [Fact]
+            public async Task WillRejectSoftDeleteWhenTheFlightIsDisabledForTheUser()
+            {
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+
+                var id = "theId";
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = id }
+                };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                controller.SetCurrentUser(currentUser);
+                controller.MockFeatureFlagService
+                    .Setup(x => x.IsDeletePackageApiEnabled(currentUser))
+                    .Returns(false)
+                    .Verifiable();
+
+                var result = await controller.DeletePackage(
+                    id,
+                    "1.0.42",
+                    new DeletePackageApiRequest { Type = DeletePackageAction.SoftDelete });
+
+                var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+
+                Assert.NotNull(statusCodeResult);
+                Assert.Equal((int)HttpStatusCode.Forbidden, statusCodeResult.StatusCode);
+                Assert.Contains(Strings.DeletePackage_NotAllowed, statusCodeResult.StatusDescription);
+
+                controller.MockPackageDeleteService.Verify(
+                    x => x.SoftDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Never);
 
                 controller.MockApiScopeEvaluator
                     .Verify(x => x.Evaluate(

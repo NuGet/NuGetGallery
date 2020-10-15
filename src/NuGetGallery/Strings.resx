@@ -1199,4 +1199,7 @@ The {1} Team</value>
   <data name="UploadPackage_LearnMore_LicenseUrlDreprecation" xml:space="preserve">
     <value>Learn more about license URL deprecation</value>
   </data>
+  <data name="DeletePackage_NotAllowed" xml:space="preserve">
+    <value>Deleting a package through the API is not enabled for your user account.</value>
+  </data>
 </root>

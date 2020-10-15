@@ -225,5 +225,10 @@ namespace NuGetGallery
         /// Whether the /Search()/$count endpoint is enabled for non-hijacked queries for the V2 OData API.
         /// </summary>
         bool IsODataV2SearchCountNonHijackedEnabled();
+
+        /// <summary>
+        /// Whether or not the user delete a package through the API.
+        /// </summary>
+        bool IsDeletePackageApiEnabled(User user);
     }
 }

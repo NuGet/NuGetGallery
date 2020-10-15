@@ -776,6 +776,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deleting a package through the API is not enabled for your user account..
+        /// </summary>
+        public static string DeletePackage_NotAllowed {
+            get {
+                return ResourceManager.GetString("DeletePackage_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package cannot be the alternate package of itself..
         /// </summary>
         public static string DeprecatePackage_AlternateOfSelf {
