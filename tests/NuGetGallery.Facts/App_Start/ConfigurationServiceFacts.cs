@@ -106,6 +106,10 @@ namespace NuGetGallery.App_Start
             [InlineData("https://theSiteRoot")]
             [InlineData("http://theSiteRoot/")]
             [InlineData("https://theSiteRoot/")]
+            [InlineData("http://theSiteRoot:80")]
+            [InlineData("https://theSiteRoot:443")]
+            [InlineData("http://theSiteRoot:80/")]
+            [InlineData("https://theSiteRoot:443/")]
             public void WillGetTheConfiguredSiteDomain(string configuredSiteRoot)
             {
                 var configuration = new TestableConfigurationService();

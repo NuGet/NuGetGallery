@@ -97,6 +97,11 @@ namespace NuGetGallery.Configuration
         public string GetSiteDomain()
         {
             var siteDomain = _httpsSiteRootThunk.Value.Substring("https://".Length);
+            if (siteDomain.Contains(':'))
+            {
+                siteDomain = siteDomain.Split(':')[0];
+            }
+
             if (siteDomain.EndsWith("/"))
             {
                 return siteDomain.Substring(0, siteDomain.Length - 1);
