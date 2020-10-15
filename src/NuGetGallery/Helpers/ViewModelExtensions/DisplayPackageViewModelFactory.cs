@@ -192,10 +192,17 @@ namespace NuGetGallery
                 viewModel.DeprecationStatus = PackageDeprecationStatus.NotDeprecated;
             }
 
-            if (packageKeyToVulnerabilities != null && packageKeyToVulnerabilities.TryGetValue(package.Key, out var vulnerabilities))
+            if (packageKeyToVulnerabilities != null 
+                && packageKeyToVulnerabilities.TryGetValue(package.Key, out var vulnerabilities)
+                && vulnerabilities != null && vulnerabilities.Any())
             {
                 viewModel.Vulnerabilities = vulnerabilities;
-                viewModel.MaxVulnerabilitySeverity = vulnerabilities.Max(v => v.Severity);
+                viewModel.MaxVulnerabilitySeverity = viewModel.Vulnerabilities.Max(v => v.Severity);
+            }
+            else
+            {
+                viewModel.Vulnerabilities = new List<PackageVulnerability>();
+                viewModel.MaxVulnerabilitySeverity = PackageVulnerabilitySeverity.Low;
             }
 
             return viewModel;

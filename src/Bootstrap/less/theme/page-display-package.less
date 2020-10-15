@@ -63,6 +63,50 @@
     }
   }
 
+  .vulnerabilities-container {
+    .vulnerabilities-expander {
+      display: flex;
+      justify-content: space-between;
+      vertical-align: middle;
+      width: 100%;
+
+      .vulnerabilities-expander-container {
+        display: flex;
+
+        .vulnerabilities-expander-icon {
+          position: unset;
+          top: unset;
+        }
+
+        .vulnerabilities-expander-info-right {
+          padding-left: 15px;
+        }
+      }
+    }
+
+    .vulnerabilities-content-container {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid lightgray;
+
+      .vulnerabilities-list {
+        border-collapse: unset;
+      }
+    }
+
+    .vulnerabilities-severity-critical {
+      color: red
+    }
+
+    .vulnerabilities-severity-high {
+      color: red
+    }
+
+    .vulnerabilities-severity-moderate {
+      color: blue
+    }
+  }
+
   .failed-validation-alert-list {
     margin-top: 15px;
     margin-bottom: 15px;
