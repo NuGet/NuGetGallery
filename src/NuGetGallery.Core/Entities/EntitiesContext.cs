@@ -482,7 +482,7 @@ namespace NuGetGallery
             modelBuilder.Entity<VulnerablePackageVersionRange>()
                 .HasKey(pv => pv.Key)
                 .HasMany(pv => pv.Packages)
-                .WithMany(p => p.Vulnerabilities);
+                .WithMany(p => p.VulnerableVersionRanges);
 
             modelBuilder.Entity<VulnerablePackageVersionRange>()
                 .HasIndex(pv => pv.PackageId);
@@ -490,6 +490,13 @@ namespace NuGetGallery
             modelBuilder.Entity<VulnerablePackageVersionRange>()
                 .HasIndex(pv => new { pv.VulnerabilityKey, pv.PackageId, pv.PackageVersionRange })
                 .IsUnique();
+
+            modelBuilder.Entity<VulnerablePackageVersionRange>()
+                .HasMany<Package>(vpvr => vpvr.Packages)
+                .WithMany(p => p.VulnerableVersionRanges)
+                .Map(c => c.ToTable("VulnerablePackageVersionRangePackages")
+                    .MapLeftKey("VulnerablePackageVersionRange_Key")
+                    .MapRightKey("Package_Key"));
 
             modelBuilder.Entity<PackageRename>()
                 .HasKey(r => r.Key)

@@ -822,6 +822,7 @@ namespace NuGetGallery.ViewModels
             Package package,
             User currentUser = null,
             Dictionary<int, PackageDeprecation> packageKeyToDeprecation = null,
+            Dictionary<int, IReadOnlyList<PackageVulnerability>> packageKeyToVulnerabilities = null,
             IReadOnlyList<PackageRename> packageRenames = null,
             string readmeHtml = null)
         {
@@ -832,6 +833,7 @@ namespace NuGetGallery.ViewModels
                 allVersions,
                 currentUser: currentUser,
                 packageKeyToDeprecation: packageKeyToDeprecation,
+                packageKeyToVulnerabilities: packageKeyToVulnerabilities,
                 packageRenames: packageRenames,
                 readmeResult: new RenderedMarkdownResult { Content = readmeHtml });
         }

@@ -24,7 +24,7 @@ namespace NuGet.Services.Entities
             SymbolPackages = new HashSet<SymbolPackage>();
             Deprecations = new HashSet<PackageDeprecation>();
             AlternativeOf = new HashSet<PackageDeprecation>();
-            Vulnerabilities = new HashSet<VulnerablePackageVersionRange>();
+            VulnerableVersionRanges = new HashSet<VulnerablePackageVersionRange>();
             Listed = true;
         }
 #pragma warning restore 618
@@ -279,7 +279,7 @@ namespace NuGet.Services.Entities
         /// <summary>
         /// Gets or sets the list of vulnerabilites that this package has.
         /// </summary>
-        public ICollection<VulnerablePackageVersionRange> Vulnerabilities { get; set; }
+        public ICollection<VulnerablePackageVersionRange> VulnerableVersionRanges { get; set; }
 
         /// <summary>
         /// A flag that indicates that the package metadata had an embedded icon specified.

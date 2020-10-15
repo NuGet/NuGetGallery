@@ -1038,6 +1038,45 @@ img.reserved-indicator-icon {
 .page-package-details .deprecation-container .deprecation-content-container p:last-of-type {
   margin-bottom: 0px;
 }
+.page-package-details .vulnerabilities-container .vulnerabilities-expander {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  vertical-align: middle;
+  width: 100%;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container .vulnerabilities-expander-icon {
+  position: unset;
+  top: unset;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container .vulnerabilities-expander-info-right {
+  padding-left: 15px;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container .vulnerabilities-expander-severity-rating {
+  margin-left: 5px;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-content-container {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid lightgray;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-content-container p {
+  margin-top: 5px;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-content-container p:last-of-type {
+  margin-bottom: 0px;
+}
 .page-package-details .failed-validation-alert-list {
   margin-top: 15px;
   margin-bottom: 15px;

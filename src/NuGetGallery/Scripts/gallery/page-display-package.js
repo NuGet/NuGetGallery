@@ -5,6 +5,26 @@ $(function () {
     window.nuget.configureExpander("rename-content-container", "ChevronDown", null, "ChevronUp");
     configureExpanderWithEnterKeydown($('#show-rename-content-container'));
 
+    // Configure the vulnerability information container
+    var container = $('#show-vulnerabilities-content-container');
+    if ($('#vulnerabilities-content-container').children().length) {
+        // If the deprecation information container has content, configure it as an expander.
+        window.nuget.configureExpander("vulnerabilities-content-container", "ChevronDown", null, "ChevronUp");
+        configureExpanderWithEnterKeydown(container)
+    }
+    else {
+        // If the container does not have content, remove its expander attributes
+        var expanderAttributes = ['data-toggle', 'data-target', 'aria-expanded', 'aria-controls', 'tabindex'];
+        for (var i in expanderAttributes) {
+            container.removeAttr(expanderAttributes[i]);
+        }
+
+        // The expander should not be clickable when it doesn't have content
+        container.find('.vulnerabilities-expander').removeAttr('role');
+
+        $('#vulnerabilities-expander-icon-right').hide();
+    }
+
     // Configure the deprecation information container
     var container = $('#show-deprecation-content-container');
     if ($('#deprecation-content-container').children().length) {

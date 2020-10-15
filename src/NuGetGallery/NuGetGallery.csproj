@@ -305,8 +305,10 @@
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="Services\IMarkdownService.cs" />
+    <Compile Include="Services\IPackageVulnerabilitiesService.cs" />
     <Compile Include="Services\IPackageMetadataValidationService.cs" />
     <Compile Include="Services\MarkdownService.cs" />
+    <Compile Include="Services\PackageVulnerabilitiesService.cs" />
     <Compile Include="Services\PackageMetadataValidationService.cs" />
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
@@ -2302,6 +2304,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\Files\Content\Query-Hint-Configuration.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\_DisplayPackageVulnerabilities.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

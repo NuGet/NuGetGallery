@@ -1,0 +1,45 @@
+﻿@model DisplayPackageViewModel
+
+<div class="vulnerabilities-container">
+    <div class="icon-text alert alert-warning">
+        <div id="show-vulnerabilities-content-container" class="vulnerabilities-expander" tabindex="0" data-toggle="collapse" data-target="#vulnerabilities-content-container" aria-expanded="false" aria-controls="vulnerabilities-content-container" aria-labelledby="vulnerabilities-container-label" role="button">
+            <div class="vulnerabilities-expander" role="button">
+                <div class="vulnerabilities-expander-container">
+                    <i class="vulnerabilities-expander-icon ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+
+                    <div id="vulnerabilities-container-label" class="vulnerabilities-expander-info-right">
+                        @{
+                            var severity = Enum.GetName(typeof(PackageVulnerabilitySeverity), Model.MaxVulnerabilitySeverity).ToLowerInvariant();
+                            @:This package has at least one <b>vulnerability</b> with <b>@severity</b> severity.
+                        }
+                    </div>
+                </div>
+
+                <div class="vulnerabilities-expander-container">
+                    <i id="vulnerabilities-expander-icon-right" class="vulnerabilities-expander-icon vulnerabilities-expander-info-right ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="vulnerabilities-content-container collapse" id="vulnerabilities-content-container">
+            <b>Details</b>
+            <table style="width:100%; border:none; border-collapse:unset">
+                @{
+                    foreach (var vulnerability in Model.Vulnerabilities)
+                    {
+                        var truncatedUrl = vulnerability.AdvisoryUrl;
+                        if (truncatedUrl.Length > 50)
+                        {
+                            truncatedUrl = truncatedUrl.Substring(0, 47) + "...";
+                        }
+
+                        <tr>
+                            <td>Advisory: <a href="@vulnerability.AdvisoryUrl" target="_blank">@truncatedUrl</a></td>
+                            <td>Severity: <span style="font-weight:bold">@Enum.GetName(typeof(PackageVulnerabilitySeverity), vulnerability.Severity)</span></td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+    </div>
+</div>

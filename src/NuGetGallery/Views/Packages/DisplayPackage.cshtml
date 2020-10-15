@@ -283,6 +283,11 @@
                 )
             }
 
+            @if (Model.IsPackageVulnerabilitiesEnabled && Model.Vulnerabilities!= null && Model.Vulnerabilities.Any())
+            {
+                @Html.Partial("_DisplayPackageVulnerabilities")
+            }
+
             @if (Model.IsPackageDeprecationEnabled && Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
             {
                 @Html.Partial("_DisplayPackageDeprecation")
@@ -359,7 +364,7 @@
 
                         @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
                         </text>
-                     )
+                    )
                 }
                 else if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
                 {
@@ -404,7 +409,7 @@
                     @ViewHelpers.AlertWarning(
                         @<text>
                             The owner has unlisted this package.
-                            This could mean that the package is deprecated or shouldn't be used anymore.
+                            This could mean that the package is deprecated, has security vulnerabilities or shouldn't be used anymore.
                         </text>
                     )
                 }
@@ -684,9 +689,19 @@
                             {
                                 <th aria-hidden="true" abbr="Signature Information"></th>
                             }
-                            @if (Model.IsPackageDeprecationEnabled)
+                            @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
                             {
-                                <th aria-hidden="true" abbr="Deprecation Information"></th>
+                                var abbreviation = "Vulnerability Information";
+                                if (Model.IsPackageDeprecationEnabled && Model.IsPackageVulnerabilitiesEnabled)
+                                {
+                                    abbreviation = "Deprecation and Vulnerability Information";
+                                }
+                                else if (Model.IsPackageDeprecationEnabled)
+                                {
+                                    abbreviation = "Deprecation Information";
+                                }
+
+                                <th aria-hidden="true" abbr =@abbreviation />
                             }
                         </tr>
                     </thead>
@@ -753,15 +768,16 @@
                                             </td>
                                         }
                                     }
-                                    @if (Model.IsPackageDeprecationEnabled)
+
+                                    @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
                                     {
-                                        if (packageVersion.DeprecationStatus == PackageDeprecationStatus.NotDeprecated)
+                                        var deprecationTitle = "";
+                                        var vulnerabilitiesTitle = "";
+                                        var useAlso = false;
+
+                                        if (Model.IsPackageDeprecationEnabled && packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
                                         {
-                                            <td class="package-icon-cell" aria-hidden="true"></td>
-                                        }
-                                        else
-                                        {
-                                            var deprecationTitle = packageVersion.Version;
+                                            deprecationTitle = packageVersion.Version;
                                             var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
                                             var hasCriticalBugs = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.CriticalBugs);
                                             if (hasCriticalBugs)
@@ -784,8 +800,31 @@
                                                 deprecationTitle += " is deprecated.";
                                             }
 
+                                            useAlso = true;
+                                        }
+
+                                        if (Model.IsPackageVulnerabilitiesEnabled && packageVersion.Vulnerabilities != null && packageVersion.Vulnerabilities.Any())
+                                        {
+                                            vulnerabilitiesTitle = useAlso ? "Also, " : "";
+                                            var severity = Enum.GetName(typeof(PackageVulnerabilitySeverity), packageVersion.MaxVulnerabilitySeverity).ToLowerInvariant();
+                                            vulnerabilitiesTitle += packageVersion.Version + " has at least one vulnerability with " + severity + " severity.";
+                                        }
+
+                                        if (deprecationTitle == "" && vulnerabilitiesTitle == "")
+                                        {
+                                            <td class="package-icon-cell" aria-hidden="true" />
+                                        }
+                                        else
+                                        {
+                                            if (deprecationTitle != "")
+                                            {
+                                                deprecationTitle += " ";
+                                            }
+
+                                            var iconTitle = deprecationTitle + vulnerabilitiesTitle;
+
                                             <td class="package-icon-cell">
-                                                <i class="ms-Icon ms-Icon--Warning package-icon" title="@deprecationTitle"></i>
+                                                <i class="ms-Icon ms-Icon--Warning package-icon" title="@iconTitle"></i>
                                             </td>
                                         }
                                     }
