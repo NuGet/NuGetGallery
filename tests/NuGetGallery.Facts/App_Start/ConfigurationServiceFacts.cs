@@ -102,22 +102,26 @@ namespace NuGetGallery.App_Start
             }
 
             [Theory]
-            [InlineData("http://theSiteRoot")]
-            [InlineData("https://theSiteRoot")]
-            [InlineData("http://theSiteRoot/")]
-            [InlineData("https://theSiteRoot/")]
-            [InlineData("http://theSiteRoot:80")]
-            [InlineData("https://theSiteRoot:443")]
-            [InlineData("http://theSiteRoot:80/")]
-            [InlineData("https://theSiteRoot:443/")]
-            public void WillGetTheConfiguredSiteDomain(string configuredSiteRoot)
+            [InlineData("http://anydomain", "anydomain")]
+            [InlineData("https://anydomain", "anydomain")]
+            [InlineData("http://anydomain/", "anydomain")]
+            [InlineData("https://anydomain/", "anydomain")]
+            [InlineData("http://anydomain:80", "anydomain")]
+            [InlineData("https://anydomain:443", "anydomain")]
+            [InlineData("http://anydomain:80/", "anydomain")]
+            [InlineData("https://anydomain:443/", "anydomain")]
+            [InlineData("http://anydomain.test:80/", "anydomain.test")]
+            [InlineData("http://subdomain.anydomain.test:80/", "subdomain.anydomain.test")]
+            [InlineData("https://anydomain.test:443/", "anydomain.test")]
+            [InlineData("https://subdomain.anydomain.test:443/", "subdomain.anydomain.test")]
+            public void WillGetTheConfiguredSiteDomain(string configuredSiteRoot, string expectedSiteDomain)
             {
                 var configuration = new TestableConfigurationService();
                 configuration.StubConfiguredSiteRoot = configuredSiteRoot;
 
                 var siteDomain = configuration.GetSiteDomain();
 
-                Assert.Equal("theSiteRoot", siteDomain);
+                Assert.Equal(expectedSiteDomain, siteDomain);
             }
         }
 
