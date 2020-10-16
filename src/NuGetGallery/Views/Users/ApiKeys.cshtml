@@ -335,7 +335,7 @@
 
         <div class="row">
             <div class="col-sm-12 form-group">
-                <b class="ms-fontSize-xl">Select Scopes</b>
+                <b id="select-scopes" class="ms-fontSize-xl">Select Scopes</b>
                 <br />
                 <span class="has-error">
                     <span class="help-block" data-bind="text: ScopesError" aria-live="polite" role="alert"></span>
@@ -343,8 +343,8 @@
                 <ul role="presentation">
                     <li>
                         <div class="checkbox">
-                            <label>
-                                <input type="checkbox" data-bind="checked: PushEnabled, enable: PushAnyEnabled" />
+                            <label id="select-scopes-push">
+                                <input type="checkbox" data-bind="checked: PushEnabled, enable: PushAnyEnabled" aria-labelledby="select-scopes-push select-scopes" />
                                 Push
                             </label>
                         </div>
@@ -353,10 +353,11 @@
                                 <div class="radio">
                                     <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePush"
+                                               aria-labelledby="select-scopes-push-package select-scopes"
                                                data-bind="checked: PushScope, enable: PushNewEnabled,
                                                           attr: { id: PackagePushId }" />
                                     </div>
-                                    <label data-bind="attr: { for: PackagePushId }">
+                                    <label id="select-scopes-push-package" data-bind="attr: { for: PackagePushId }">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePush)
                                     </label>
                                 </div>
@@ -365,10 +366,11 @@
                                 <div class="radio">
                                     <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
+                                               aria-labelledby="select-scopes-push-package-version select-scopes"
                                                data-bind="checked: PushScope, enable: PushExistingEnabled,
                                                           attr: { id: PackagePushVersionId }" />
                                     </div>
-                                    <label data-bind="attr: { for: PackagePushVersionId }">
+                                    <label id="select-scopes-push-package-version" data-bind="attr: { for: PackagePushVersionId }">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
                                     </label>
                                 </div>
@@ -377,8 +379,9 @@
                     </li>
                     <li>
                         <div class="checkbox">
-                            <label>
+                            <label id="select-scopes-unlist">
                                 <input type="checkbox" value="@NuGetScopes.PackageUnlist"
+                                       aria-labelledby="select-scopes-unlist select-scopes"
                                        data-bind="checked: UnlistScopeChecked, enable: UnlistEnabled" />
                                 @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
                             </label>
@@ -415,59 +418,63 @@
             </div>
         </div>
         <div class="row select-packages-form" data-bind="css: { disabled: !SelectPackagesEnabled() }">
-            <div class="col-sm-7">
-                <div class="form-group">
-                    <input type="text" class="form-control" data-val="true"
-                           data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
-                           data-val-regex-pattern="^[\*\w_.-]*$"
-                           data-bind="textInput: PendingGlobPattern,
+            <div class="col-sm-7 select-packages-inputs">
+                <div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" data-val="true"
+                               data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
+                               data-val-regex-pattern="^[\*\w_.-]*$"
+                               data-bind="textInput: PendingGlobPattern,
                                       attr: { id: GlobPatternId,
                                               name: GlobPatternId,
                                               'aria-labelledby': GlobPatternId() + '-label ' + GlobPatternId() + '-validation-message' },
                                       enable: SelectPackagesEnabled" />
-                </div>
-                <div class="form-group">
-                    <label>Available Packages</label>
-                    <div class="panel panel-default available-packages">
-                        <div class="panel-body">
-                            <!-- ko foreach: PendingPackages -->
-                            <div class="checkbox" data-bind="css: { disabled: Matched }">
-                                <label>
-                                    <input type="checkbox" name="Packages"
-                                           data-bind="checked: Checked,
+                    </div>
+                    <div class="form-group available-packages-container">
+                        <label>Available Packages</label>
+                        <div class="panel panel-default available-packages">
+                            <div class="panel-body">
+                                <!-- ko foreach: PendingPackages -->
+                                <div class="checkbox" data-bind="css: { disabled: Matched }">
+                                    <label>
+                                        <input type="checkbox" name="Packages"
+                                               data-bind="checked: Checked,
                                                       enable: $parent.SelectPackagesEnabled" />
-                                    <!-- ko text: Id -->
-                                    <!-- /ko -->
-                                </label>
+                                        <!-- ko text: Id -->
+                                        <!-- /ko -->
+                                    </label>
+                                </div>
+                                <!-- /ko -->
                             </div>
-                            <!-- /ko -->
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-sm-5">
-                <div class="panel panel-default glob-pattern-hint">
-                    <div class="panel-body">
-                        <p>A glob pattern allows you to replace any sequence of characters with '*'.</p>
-                        <p>Example glob patterns:</p>
-                        <table class="table table-condensed borderless">
-                            <thead>
-                                <tr>
-                                    <th>Pattern</th>
-                                    <th>Result</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>*</td>
-                                    <td>Select all packages</td>
-                                </tr>
-                                <tr>
-                                    <td>Alpha.*</td>
-                                    <td>Select any package that has an ID beginning with <i>Alpha</i></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="form-group">
+                    <div class="panel panel-default glob-pattern-hint">
+                        <div class="panel-body">
+                            <p>A glob pattern allows you to replace any sequence of characters with '*'.</p>
+                            <p>Example glob patterns:</p>
+                            <table class="table table-condensed borderless">
+                                <thead>
+                                    <tr>
+                                        <th>Pattern</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>*</td>
+                                        <td>Select all packages</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Alpha.*</td>
+                                        <td>Select any package that has an ID beginning with <i>Alpha</i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -25,7 +25,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         //
         // GET: /Admin/Lucene/
-
+        [HttpGet]
         public virtual async Task<ActionResult> Index()
         {
             return View("Index", await GetLuceneInfo());

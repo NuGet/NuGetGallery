@@ -39,6 +39,7 @@ namespace NuGetGallery
         private const string UsabillaOnEveryPageFeatureName = GalleryPrefix + "UsabillaEveryPage";
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
+        private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -272,6 +273,11 @@ namespace NuGetGallery
         public bool IsODataV2SearchNonHijackedEnabled()
         {
             return _client.IsEnabled(ODataV2SearchNonHijackedFeatureName, defaultValue: true);
+        }
+
+        public bool IsLicenseMdRenderingEnabled(User user)
+        {
+            return _client.IsEnabled(LicenseMdRenderingFlightName, user, defaultValue: false);
         }
 
         public bool IsODataV2SearchCountNonHijackedEnabled()
