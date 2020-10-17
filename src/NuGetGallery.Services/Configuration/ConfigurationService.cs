@@ -91,25 +91,6 @@ namespace NuGetGallery.Configuration
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
         }
 
-        /// <summary>
-        /// Gets the site domain
-        /// </summary>
-        public string GetSiteDomain()
-        {
-            var siteDomain = _httpsSiteRootThunk.Value.Substring("https://".Length);
-            if (siteDomain.Contains(':'))
-            {
-                siteDomain = siteDomain.Split(':')[0];
-            }
-
-            if (siteDomain.EndsWith("/"))
-            {
-                return siteDomain.Substring(0, siteDomain.Length - 1);
-            }
-
-            return siteDomain;
-        }
-
         public Task<T> Get<T>() where T : NuGet.Services.Configuration.Configuration, new()
         {
             // Get the prefix specified by the ConfigurationKeyPrefixAttribute on the class if it exists.

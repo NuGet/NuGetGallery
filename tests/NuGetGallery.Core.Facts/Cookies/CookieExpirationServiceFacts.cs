@@ -11,45 +11,21 @@ namespace NuGetGallery.Cookies
 {
     public class CookieExpirationServiceFacts
     {
-        [Fact]
-        public void CreateCookieExpirationService_ThrowsIfDomainNull()
-        {
-            // Arrange, Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => new CookieExpirationService(domain: null));
-
-            Assert.Equal("domain", exception.ParamName);
-            Assert.Contains("The argument cannot be null or empty", exception.Message);
-        }
-
-        [Fact]
-        public void CreateCookieExpirationService_ThrowsIfDomainEmpty()
-        {
-            // Arrange, Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => new CookieExpirationService(domain: ""));
-
-            Assert.Equal("domain", exception.ParamName);
-            Assert.Contains("The argument cannot be null or empty", exception.Message);
-        }
-
         public class TheExpireAnalyticsCookiesMethod
         {
             [Fact]
             public void ExpireAnalyticsCookies_ThrowsIfHttpContextNull()
             {
                 // Arrange
-                var cookieExpirationService = new CookieExpirationService("AnyDomain");
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act & Assert
                 var exception = Assert.Throws<ArgumentNullException>(() => cookieExpirationService.ExpireAnalyticsCookies(httpContext: null));
                 Assert.Equal("httpContext", exception.ParamName);
             }
 
-            [Theory]
-            [InlineData("localhost", "localhost")]
-            [InlineData("anydomain", "anydomain")]
-            [InlineData("anydomain.test", "anydomain.test")]
-            [InlineData("subdomain.anydomain.test", "subdomain.anydomain.test")]
-            public void ExpireAnalyticsCookies(string domain, string expectedCookiesDomainForGoogleAnalytics)
+            [Fact]
+            public void ExpireAnalyticsCookies()
             {
                 // Arrange
                 var cookies = new Dictionary<string, string>
@@ -62,7 +38,8 @@ namespace NuGetGallery.Cookies
                 };
 
                 var httpContext = GetHttpContext(cookies);
-                var cookieExpirationService = new CookieExpirationService(domain);
+
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act
                 cookieExpirationService.ExpireAnalyticsCookies(httpContext);
@@ -74,16 +51,8 @@ namespace NuGetGallery.Cookies
                     Assert.NotNull(responseCookie);
                     Assert.True(DateTime.Equals(new DateTime(2010, 1, 1), responseCookie.Expires));
                     Assert.Equal(cookies[key], responseCookie.Value);
+                    Assert.Null(responseCookie.Domain);
                 }
-
-                var _gaCookie = httpContext.Response.Cookies["_ga"];
-                Assert.Equal(expectedCookiesDomainForGoogleAnalytics, _gaCookie.Domain);
-                var _gidCookie = httpContext.Response.Cookies["_gid"];
-                Assert.Equal(expectedCookiesDomainForGoogleAnalytics, _gidCookie.Domain);
-                var _gatCookie = httpContext.Response.Cookies["_gat"];
-                Assert.Equal(expectedCookiesDomainForGoogleAnalytics, _gatCookie.Domain);
-                Assert.Null(httpContext.Response.Cookies["ai_user"].Domain);
-                Assert.Null(httpContext.Response.Cookies["ai_session"].Domain);
             }
         }
 
@@ -93,7 +62,7 @@ namespace NuGetGallery.Cookies
             public void ExpireCookieByName_ThrowsIfHttpContextNull()
             {
                 // Arrange
-                var cookieExpirationService = new CookieExpirationService("anydomain");
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act & Assert
                 var exception = Assert.Throws<ArgumentNullException>(() => cookieExpirationService.ExpireCookieByName(httpContext: null, cookieName: It.IsAny<string>()));
@@ -104,7 +73,7 @@ namespace NuGetGallery.Cookies
             public void ExpireCookieByName_ThrowsIfCookieNameNull()
             {
                 // Arrange
-                var cookieExpirationService = new CookieExpirationService("anydomain");
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act & Assert
                 var exception = Assert.Throws<ArgumentException>(() => cookieExpirationService.ExpireCookieByName(httpContext: Mock.Of<HttpContextBase>(), cookieName: null));
@@ -116,7 +85,7 @@ namespace NuGetGallery.Cookies
             public void ExpireCookieByName_ThrowsIfCookieNameEmpty()
             {
                 // Arrange
-                var cookieExpirationService = new CookieExpirationService("anydomain");
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act & Assert
                 var exception = Assert.Throws<ArgumentException>(() => cookieExpirationService.ExpireCookieByName(httpContext: Mock.Of<HttpContextBase>(), cookieName: ""));
@@ -129,7 +98,7 @@ namespace NuGetGallery.Cookies
             {
                 // Arrange
                 var httpContext = new Mock<HttpContextBase>();
-                var cookieExpirationService = new CookieExpirationService("anydomain");
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act & Assert
                 cookieExpirationService.ExpireCookieByName(httpContext.Object, "AnyCookieName");
@@ -141,7 +110,7 @@ namespace NuGetGallery.Cookies
                 // Arrange
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.Request).Returns(Mock.Of<HttpRequestBase>());
-                var cookieExpirationService = new CookieExpirationService("anydomain");
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act & Assert
                 cookieExpirationService.ExpireCookieByName(httpContext.Object, "AnyCookieName");
@@ -154,7 +123,7 @@ namespace NuGetGallery.Cookies
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.Request).Returns(Mock.Of<HttpRequestBase>());
                 httpContext.Setup(c => c.Response).Returns(Mock.Of<HttpResponseBase>());
-                var cookieExpirationService = new CookieExpirationService("anydomain");
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act & Assert
                 cookieExpirationService.ExpireCookieByName(httpContext.Object, "AnyCookieName");
@@ -173,7 +142,7 @@ namespace NuGetGallery.Cookies
                 httpContext.Setup(c => c.Request).Returns(httpRequest.Object);
                 httpContext.Setup(c => c.Response).Returns(Mock.Of<HttpResponseBase>());
 
-                var cookieExpirationService = new CookieExpirationService("anydomain");
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act & Assert
                 cookieExpirationService.ExpireCookieByName(httpContext.Object, "AnyCookieName");
@@ -192,7 +161,7 @@ namespace NuGetGallery.Cookies
                     { cookieName, cookieValue}
                 };
                 var httpContext = GetHttpContext(cookies);
-                var cookieExpirationService = new CookieExpirationService("anydomain");
+                var cookieExpirationService = new CookieExpirationService();
 
                 // Act
                 cookieExpirationService.ExpireCookieByName(httpContext, cookieName, domain);

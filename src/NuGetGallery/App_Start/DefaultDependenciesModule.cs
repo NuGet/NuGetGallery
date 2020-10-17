@@ -446,10 +446,6 @@ namespace NuGetGallery
                 .As<IPackageVulnerabilityService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new CookieExpirationService(domain: configuration.GetSiteDomain()))
-                .As<ICookieExpirationService>()
-                .SingleInstance();
-
             services.AddHttpClient();
             services.AddScoped<IGravatarProxyService, GravatarProxyService>();
 
@@ -481,6 +477,10 @@ namespace NuGetGallery
             RegisterAuditingServices(builder, defaultAuditingService);
 
             RegisterCookieComplianceService(configuration, loggerFactory);
+
+            builder.RegisterType<CookieExpirationService>()
+                .As<ICookieExpirationService>()
+                .SingleInstance();
 
             RegisterABTestServices(builder);
 
