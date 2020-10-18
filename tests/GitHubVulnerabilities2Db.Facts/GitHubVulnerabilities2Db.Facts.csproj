@@ -45,6 +45,7 @@
     <Compile Include="AdvisoryIngestorFacts.cs" />
     <Compile Include="GitHubVersionRangeParserFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="QueryServiceFacts.cs" />
   </ItemGroup>
   <ItemGroup>
