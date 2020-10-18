@@ -78,6 +78,9 @@ namespace NuGetGallery.Cookies
             {
                 response.Cookies[cookieName].Expires = CookieExpirationTime;
 
+                // Uncomment the line below when you debug this service locally
+                // response.Cookies[cookieName].Secure = false;
+
                 if (domain != null)
                 {
                     response.Cookies[cookieName].Domain = domain;
