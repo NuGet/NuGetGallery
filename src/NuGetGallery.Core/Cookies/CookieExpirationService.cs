@@ -13,7 +13,7 @@ namespace NuGetGallery.Cookies
         private static readonly DateTime CookieExpirationTime = new DateTime(2010, 1, 1);
 
         // Google Analytics cookies
-        private static readonly IReadOnlyList<string> GoogleAnalyticsCookies = new[]
+        private static readonly string[] GoogleAnalyticsCookies = new[]
         {
             "_ga",
             "_gid",
@@ -21,7 +21,7 @@ namespace NuGetGallery.Cookies
         };
 
         // Application Insights cookies
-        private static readonly IReadOnlyList<string> ApplicationInsightsCookies = new[]
+        private static readonly string[] ApplicationInsightsCookies = new[]
         {
             "ai_user",
             "ai_session",
@@ -34,8 +34,8 @@ namespace NuGetGallery.Cookies
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            GoogleAnalyticsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName));
-            ApplicationInsightsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName));
+            Array.ForEach(GoogleAnalyticsCookies, cookieName => ExpireCookieByName(httpContext, cookieName));
+            Array.ForEach(ApplicationInsightsCookies, cookieName => ExpireCookieByName(httpContext, cookieName));
         }
 
         public void ExpireSocialMediaCookies(HttpContextBase httpContext) { }
