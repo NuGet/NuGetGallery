@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/framework/aspnet:4.7.2
 
-RUN Invoke-WebRequest 'http://download.microsoft.com/download/6/7/D/67D80164-7DD0-48AF-86E3-DE7A182D6815/rewrite_2.0_rtw_x64.msi' -OutFile c:\inetpub\rewrite.msi; \
+RUN Invoke-WebRequest 'https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi' -OutFile c:\inetpub\rewrite.msi; \
     powershell.exe -Command Start-Process c:\inetpub\rewrite.msi -ArgumentList "/qn" -Wait; \
     Remove-Item c:\inetpub\rewrite.msi
 
