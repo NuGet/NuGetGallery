@@ -133,8 +133,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpGet]
         public async Task<ActionResult> Filter(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
         {
             if (pageNumber <= 0)

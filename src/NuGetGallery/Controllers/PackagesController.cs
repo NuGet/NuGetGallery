@@ -227,9 +227,8 @@ namespace NuGetGallery
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
 
-        [HttpPost]
+        [HttpGet]
         [UIAuthorize]
-        [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> UploadPackage()
         {
