@@ -872,7 +872,8 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if the current user's scopes allow listing/unlisting the current package ID
+            // Check if the current user's scopes allow listing/unlisting the current package ID. This scope is used for
+            // both unlisting and soft deletion.
             var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package.PackageRegistration, NuGetScopes.PackageUnlist);
             if (!apiScopeEvaluationResult.IsSuccessful())
             {
@@ -894,7 +895,7 @@ namespace NuGetGallery
             }
             else if (!DeletePackageApiRequest.Actions.TryGetValue(request?.Type, out action))
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.DeletePackage_InvalidDeleteType);
             }
 
             switch (action)
@@ -904,10 +905,26 @@ namespace NuGetGallery
                     break;
 
                 case DeletePackageAction.SoftDelete:
-                    if (!FeatureFlagService.IsDeletePackageApiEnabled(currentUser))
+                    // A user can only delete packages if there are enabled in the flight and are NOT an admin. The
+                    // admin restriction is for safety reasons. This endpoint is currently intended just for test data
+                    // clean-up which can be done with a very limited, non-admin API key.
+                    if (!FeatureFlagService.IsDeletePackageApiEnabled(currentUser)
+                        || currentUser.IsAdministrator)
                     {
                         return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.DeletePackage_NotAllowed);
                     }
+
+                    // Apply a hard stop on the deletion if there are too many downloads on this package version. We
+                    // using configuration here and use a constant to mimize the risk of misconfiguration allowing too
+                    // many deletes.
+                    const int downloadCountLimit = 1000;
+                    if (package.DownloadCount >= downloadCountLimit)
+                    {
+                        return new HttpStatusCodeWithBodyResult(
+                            HttpStatusCode.Forbidden,
+                            string.Format(CultureInfo.CurrentCulture, Strings.DeletePackage_TooManyDownloads, downloadCountLimit));
+                    }
+
                     await PackageDeleteService.SoftDeletePackagesAsync(
                         new[] { package },
                         currentUser,

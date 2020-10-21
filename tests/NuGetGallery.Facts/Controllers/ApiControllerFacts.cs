@@ -1817,14 +1817,88 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<string>()),
                     Times.Never);
+            }
 
-                controller.MockApiScopeEvaluator
-                    .Verify(x => x.Evaluate(
-                        currentUser,
-                        It.IsAny<IEnumerable<Scope>>(),
-                        ActionsRequiringPermissions.UnlistOrRelistPackage,
-                        package.PackageRegistration,
-                        NuGetScopes.PackageUnlist));
+            [Fact]
+            public async Task WillRejectSoftDeleteWhenTheUserIsAnAdmin()
+            {
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                currentUser.Roles.Add(new Role { Name = Constants.AdminRoleName });
+
+                var id = "theId";
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = id }
+                };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                controller.SetCurrentUser(currentUser);
+                controller.MockFeatureFlagService
+                    .Setup(x => x.IsDeletePackageApiEnabled(currentUser))
+                    .Returns(true)
+                    .Verifiable();
+
+                var result = await controller.DeletePackage(
+                    id,
+                    "1.0.42",
+                    new DeletePackageApiRequest { Type = "SoftDelete" });
+
+                var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+
+                Assert.NotNull(statusCodeResult);
+                Assert.Equal((int)HttpStatusCode.Forbidden, statusCodeResult.StatusCode);
+                Assert.Contains(Strings.DeletePackage_NotAllowed, statusCodeResult.StatusDescription);
+
+                controller.MockPackageDeleteService.Verify(
+                    x => x.SoftDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task WillRejectSoftDeleteIfThePackageHasTooManyDownloads()
+            {
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+
+                var id = "theId";
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = id },
+                    DownloadCount = 1001,
+                };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                controller.SetCurrentUser(currentUser);
+                controller.MockFeatureFlagService
+                    .Setup(x => x.IsDeletePackageApiEnabled(currentUser))
+                    .Returns(true)
+                    .Verifiable();
+
+                var result = await controller.DeletePackage(
+                    id,
+                    "1.0.42",
+                    new DeletePackageApiRequest { Type = "SoftDelete" });
+
+                var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+
+                Assert.NotNull(statusCodeResult);
+                Assert.Equal((int)HttpStatusCode.Forbidden, statusCodeResult.StatusCode);
+                Assert.Contains(string.Format(CultureInfo.CurrentCulture, Strings.DeletePackage_TooManyDownloads, 1000), statusCodeResult.StatusDescription);
+
+                controller.MockPackageDeleteService.Verify(
+                    x => x.SoftDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Never);
             }
 
             [Fact]

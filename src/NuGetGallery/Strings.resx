@@ -1202,4 +1202,11 @@ The {1} Team</value>
   <data name="DeletePackage_NotAllowed" xml:space="preserve">
     <value>Deleting a package through the API is not enabled for your user account.</value>
   </data>
+  <data name="DeletePackage_InvalidDeleteType" xml:space="preserve">
+    <value>The provided Type in the delete request is not valid.</value>
+  </data>
+  <data name="DeletePackage_TooManyDownloads" xml:space="preserve">
+    <value>The provided package has more than {0} downloads and therefore cannot be deleted via API.</value>
+    <comment>{0} is the download count limit.</comment>
+  </data>
 </root>
