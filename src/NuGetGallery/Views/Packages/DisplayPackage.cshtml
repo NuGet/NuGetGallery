@@ -729,7 +729,7 @@
 
                                         <td>
                                             @if (packageStatusSummary == PackageStatusSummary.Listed ||
-     packageStatusSummary == PackageStatusSummary.Unlisted)
+                                                 packageStatusSummary == PackageStatusSummary.Unlisted)
                                             {
                                                 <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
                                             }
@@ -755,7 +755,11 @@
                                     }
                                     @if (Model.IsPackageDeprecationEnabled)
                                     {
-                                        if (packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+                                        if (packageVersion.DeprecationStatus == PackageDeprecationStatus.NotDeprecated)
+                                        {
+                                            <td class="package-icon-cell" aria-label="Not deprecated"></td>
+                                        }
+                                        else
                                         {
                                             var deprecationTitle = packageVersion.Version;
                                             var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
@@ -783,10 +787,6 @@
                                             <td class="package-icon-cell">
                                                 <i class="ms-Icon ms-Icon--Warning package-icon" title="@deprecationTitle"></i>
                                             </td>
-                                        }
-                                        else
-                                        {
-                                            <td class="package-icon-cell" aria-label="Not deprecated"></td>
                                         }
                                     }
                                 </tr>
