@@ -742,15 +742,15 @@
 
                                     @if (Model.IsCertificatesUIEnabled)
                                     {
-                                        if (!string.IsNullOrEmpty(packageVersion.SignatureInformation))
+                                        if (string.IsNullOrEmpty(packageVersion.SignatureInformation))
+                                        {
+                                            <td class="package-icon-cell" aria-label="No signature"></td>
+                                        }
+                                        else
                                         {
                                             <td class="package-icon-cell">
                                                     <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
                                             </td>
-                                        }
-                                        else
-                                        {
-                                            <td class="package-icon-cell" aria-label="No signature"></td>
                                         }
                                     }
                                     @if (Model.IsPackageDeprecationEnabled)
