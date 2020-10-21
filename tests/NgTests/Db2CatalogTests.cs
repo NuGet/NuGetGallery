@@ -529,7 +529,9 @@ namespace NgTests
                 expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
-        [Fact]
+        // TODO: Reenable this test.
+        // See: https://github.com/NuGet/NuGetGallery/issues/8217
+        [Fact(Skip = "Flaky")]
         public async Task RunInternal_WithMultipleDeletedPackagesWithSamePackageIdentity_PutsEachPackageInSeparateCommit()
         {
             const int top = 1;
