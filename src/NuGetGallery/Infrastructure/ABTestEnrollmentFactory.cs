@@ -17,6 +17,7 @@ namespace NuGetGallery
     {
         private const int SchemaVersion1 = 1; // PreviewSearch: {"v":1,"ps":100}
         private const int SchemaVersion2 = 2; // PreviewSearch + PackageDependent: {"v":2,"ps":100,"pd":100}
+        private const int SchemaVersion3 = 3; // PreviewSearch + PackageDependent: {"v":2,"ps":100,"pd":100}, and expired in a year.
 
         // Note that a new schema version could theoretically reuse any currently unused cookie properties. However
         // this does have questionable statistical correctness due treatment assignment of one A/B test being reused
@@ -36,7 +37,7 @@ namespace NuGetGallery
         {
             var enrollment = new ABTestEnrollment(
                 ABTestEnrollmentState.FirstHit,
-                SchemaVersion2,
+                SchemaVersion3,
                 previewSearchBucket: GetRandomWholePercentage(),
                 packageDependentBucket: GetRandomWholePercentage());
 
@@ -66,19 +67,19 @@ namespace NuGetGallery
 
         public string Serialize(ABTestEnrollment enrollment)
         {
-            if (enrollment.SchemaVersion != SchemaVersion2)
+            if (enrollment.SchemaVersion != SchemaVersion3)
             {
                 throw new NotImplementedException($"Serializing schema version {enrollment.SchemaVersion} is not implemented.");
             }
 
-            var deserialized2 = new StateVersion2
+            var deserialized3 = new StateVersion3
             {
-                SchemaVersion = SchemaVersion2,
+                SchemaVersion = SchemaVersion3,
                 PreviewSearchBucket = enrollment.PreviewSearchBucket,
                 PackageDependentBucket = enrollment.PackageDependentBucket,
             };
 
-            return JsonConvert.SerializeObject(deserialized2);
+            return JsonConvert.SerializeObject(deserialized3);
         }
 
         public bool TryDeserialize(string serialized, out ABTestEnrollment enrollment)
@@ -89,7 +90,8 @@ namespace NuGetGallery
                 return false;
             }
 
-            return TryDeserializeStateVer2(serialized, out enrollment)
+            return TryDeserializeStateVer3(serialized, out enrollment)
+                || TryDeserializeStateVer2(serialized, out enrollment)
                 || TryDeserializeStateVer1(serialized, out enrollment);
         }
 
@@ -108,14 +110,15 @@ namespace NuGetGallery
 
                 enrollment = new ABTestEnrollment(
                     ABTestEnrollmentState.Upgraded,
-                    SchemaVersion2,
+                    SchemaVersion3,
                     v1.PreviewSearchBucket,
                     packageDependentBucket: GetRandomWholePercentage());
 
                 _telemetryService.TrackABTestEnrollmentUpgraded(
-                enrollment.SchemaVersion,
-                enrollment.PreviewSearchBucket,
-                enrollment.PackageDependentBucket);
+                    SchemaVersion1,
+                    enrollment.SchemaVersion,
+                    enrollment.PreviewSearchBucket,
+                    enrollment.PackageDependentBucket);
 
                 return true;
             }
@@ -140,10 +143,44 @@ namespace NuGetGallery
                 }
 
                 enrollment = new ABTestEnrollment(
-                    ABTestEnrollmentState.Active,
-                    v2.SchemaVersion,
+                    ABTestEnrollmentState.Upgraded,
+                    SchemaVersion3,
                     v2.PreviewSearchBucket,
                     v2.PackageDependentBucket);
+
+                _telemetryService.TrackABTestEnrollmentUpgraded(
+                    SchemaVersion2,
+                    enrollment.SchemaVersion,
+                    enrollment.PreviewSearchBucket,
+                    enrollment.PackageDependentBucket);
+
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
+        private bool TryDeserializeStateVer3(string serialized, out ABTestEnrollment enrollment)
+        {
+            enrollment = null;
+            try
+            {
+                var v3 = JsonConvert.DeserializeObject<StateVersion3>(serialized);
+                if (v3 == null
+                    || v3.SchemaVersion != SchemaVersion3
+                    || IsNotPercentage(v3.PreviewSearchBucket)
+                    || IsNotPercentage(v3.PackageDependentBucket))
+                {
+                    return false;
+                }
+
+                enrollment = new ABTestEnrollment(
+                    ABTestEnrollmentState.Active,
+                    v3.SchemaVersion,
+                    v3.PreviewSearchBucket,
+                    v3.PackageDependentBucket);
 
                 return true;
             }
@@ -168,6 +205,18 @@ namespace NuGetGallery
         }
 
         private class StateVersion2
+        {
+            [JsonProperty("v", Required = Required.Always)]
+            public int SchemaVersion { get; set; }
+
+            [JsonProperty("ps", Required = Required.Always)]
+            public int PreviewSearchBucket { get; set; }
+
+            [JsonProperty("pd", Required = Required.Always)]
+            public int PackageDependentBucket { get; set; }
+        }
+
+        private class StateVersion3
         {
             [JsonProperty("v", Required = Required.Always)]
             public int SchemaVersion { get; set; }
