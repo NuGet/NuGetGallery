@@ -103,7 +103,6 @@
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Extensions\DbDataReaderExtensions.cs" />
     <Compile Include="FetchCatalogCommitsAsync.cs" />
-    <Compile Include="FixPackageHashHandler.cs" />
     <Compile Include="Dnx\DnxConstants.cs" />
     <Compile Include="Dnx\DnxEntry.cs" />
     <Compile Include="GetCatalogCommitItemKey.cs" />

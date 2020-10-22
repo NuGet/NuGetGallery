@@ -73,7 +73,6 @@
     <Compile Include="Infrastructure\TestUtility.cs" />
     <Compile Include="Infrastructure\TrackMetricCall.cs" />
     <Compile Include="NgJobFactoryTests.cs" />
-    <Compile Include="PackageFixup\FixPackageHashHandlerFacts.cs" />
     <Compile Include="PackageFixup\PackagesContainerCatalogProcessorFacts.cs" />
     <Compile Include="PackageFixup\ValidatePackageHashHandlerFacts.cs" />
     <Compile Include="PackageMonitoringStatusAccessConditionHelperTests.cs" />
