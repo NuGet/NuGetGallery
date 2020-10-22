@@ -72,7 +72,7 @@ namespace NuGetGallery
                 throw new NotImplementedException($"Serializing schema version {enrollment.SchemaVersion} is not implemented.");
             }
 
-            var deserialized3 = new StateVersion3
+            var deserialized3 = new StateVersion2OrVersion3
             {
                 SchemaVersion = SchemaVersion3,
                 PreviewSearchBucket = enrollment.PreviewSearchBucket,
@@ -133,7 +133,7 @@ namespace NuGetGallery
             enrollment = null;
             try
             {
-                var v2 = JsonConvert.DeserializeObject<StateVersion2>(serialized);
+                var v2 = JsonConvert.DeserializeObject<StateVersion2OrVersion3>(serialized);
                 if (v2 == null
                     || v2.SchemaVersion != SchemaVersion2
                     || IsNotPercentage(v2.PreviewSearchBucket)
@@ -167,7 +167,7 @@ namespace NuGetGallery
             enrollment = null;
             try
             {
-                var v3 = JsonConvert.DeserializeObject<StateVersion3>(serialized);
+                var v3 = JsonConvert.DeserializeObject<StateVersion2OrVersion3>(serialized);
                 if (v3 == null
                     || v3.SchemaVersion != SchemaVersion3
                     || IsNotPercentage(v3.PreviewSearchBucket)
@@ -204,19 +204,7 @@ namespace NuGetGallery
             public int PreviewSearchBucket { get; set; }
         }
 
-        private class StateVersion2
-        {
-            [JsonProperty("v", Required = Required.Always)]
-            public int SchemaVersion { get; set; }
-
-            [JsonProperty("ps", Required = Required.Always)]
-            public int PreviewSearchBucket { get; set; }
-
-            [JsonProperty("pd", Required = Required.Always)]
-            public int PackageDependentBucket { get; set; }
-        }
-
-        private class StateVersion3
+        private class StateVersion2OrVersion3
         {
             [JsonProperty("v", Required = Required.Always)]
             public int SchemaVersion { get; set; }
