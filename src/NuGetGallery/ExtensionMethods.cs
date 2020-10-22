@@ -243,6 +243,15 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(frameworkName));
             }
 
+            // Defer to the NuGet client logic for displaying .NET 5 frameworks. This aligns with Visual Studio package
+            // management UI.
+            var isNet5Era = frameworkName.Version.Major >= 5
+                && StringComparer.OrdinalIgnoreCase.Equals(FrameworkConstants.FrameworkIdentifiers.NetCoreApp, frameworkName.Framework);
+            if (isNet5Era)
+            {
+                return frameworkName.ToString();
+            }
+
             var sb = new StringBuilder();
             if (String.Equals(frameworkName.Framework, ".NETPortable", StringComparison.OrdinalIgnoreCase))
             {
