@@ -16,7 +16,6 @@ namespace NuGet.SupportRequests.Notifications
     {
         private const string _parameterNameStartDate = "startDate";
         private const string _parameterNameEndDate = "endDate";
-        private const string _parameterNamePagerDutyUsername = "pagerDutyUserName";
         private readonly DateTime _defaultSqlDateTime = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private readonly ILogger _logger;
         private readonly Func<Task<SqlConnection>> _openSupportRequestSqlConnectionAsync;
@@ -162,7 +161,9 @@ namespace NuGet.SupportRequests.Notifications
 
             connection = await EnsureConnectionOpenAsync(connection);
 
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
             var sqlCommand = new SqlCommand(query, connection);
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
             sqlCommand.Parameters.AddWithValue(_parameterNameStartDate, startDate);
             sqlCommand.Parameters.AddWithValue(_parameterNameEndDate, endDate);
 

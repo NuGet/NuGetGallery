@@ -144,7 +144,9 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             using (var connection = await _openGallerySqlConnectionAsync())
             {
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                 var command = new SqlCommand(_procedureName, connection);
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                 command.CommandType = CommandType.StoredProcedure;
                 command.CommandTimeout = _commandTimeoutSeconds;
 

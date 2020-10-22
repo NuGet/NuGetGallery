@@ -50,7 +50,7 @@
     <WarningLevel>4</WarningLevel>
     <RunSqlCodeAnalysis>True</RunSqlCodeAnalysis>
     <TreatTSqlWarningsAsErrors>True</TreatTSqlWarningsAsErrors>
-    <SqlCodeAnalysisRules>+!Microsoft.Rules.Data.SR0001;+!Microsoft.Rules.Data.SR0004;+!Microsoft.Rules.Data.SR0005;+!Microsoft.Rules.Data.SR0006;+!Microsoft.Rules.Data.SR0008;+!Microsoft.Rules.Data.SR0009;+!Microsoft.Rules.Data.SR0010;+!Microsoft.Rules.Data.SR0011;+!Microsoft.Rules.Data.SR0012;+!Microsoft.Rules.Data.SR0013;+!Microsoft.Rules.Data.SR0014;+!Microsoft.Rules.Data.SR0015;+!Microsoft.Rules.Data.SR0016</SqlCodeAnalysisRules>
+    <SqlCodeAnalysisRules>+!Microsoft.Rules.Data.SR0001;+!Microsoft.Rules.Data.SR0004;+!Microsoft.Rules.Data.SR0005;+!Microsoft.Rules.Data.SR0006;+!Microsoft.Rules.Data.SR0007;+!Microsoft.Rules.Data.SR0008;+!Microsoft.Rules.Data.SR0009;+!Microsoft.Rules.Data.SR0010;+!Microsoft.Rules.Data.SR0011;+!Microsoft.Rules.Data.SR0012;+!Microsoft.Rules.Data.SR0013;+!Microsoft.Rules.Data.SR0014;+!Microsoft.Rules.Data.SR0015;+!Microsoft.Rules.Data.SR0016</SqlCodeAnalysisRules>
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
@@ -145,5 +145,12 @@
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Stats.Warehouse.refactorlog" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
   </ItemGroup>
 </Project>

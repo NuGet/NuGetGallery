@@ -191,6 +191,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitLargeFiles.Tests", "te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "V3", "V3", "{0A4A2A3F-8887-431E-B1B3-E9DF9B155BA6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{78A1B3B1-3B33-49EC-8F56-C97493676BEB}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

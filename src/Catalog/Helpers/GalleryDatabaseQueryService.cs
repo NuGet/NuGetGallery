@@ -109,10 +109,12 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             using (var sqlConnection = await _connectionFactory.OpenAsync())
             {
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                 using (var packagesCommand = new SqlCommand(packageQuery, sqlConnection)
                 {
                     CommandTimeout = _commandTimeout
                 })
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                 {
                     packagesCommand.Parameters.AddWithValue(PackageIdParameterName, id);
                     packagesCommand.Parameters.AddWithValue(PackageVersionParameterName, version);
@@ -226,10 +228,12 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         {
             var packageQuery = BuildDb2CatalogSqlQuery(cursor);
 
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
             using (var packagesCommand = new SqlCommand(packageQuery, sqlConnection)
             {
                 CommandTimeout = _commandTimeout
             })
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
             {
                 packagesCommand.Parameters.AddWithValue(CursorParameterName, cursor.CursorValue);
 

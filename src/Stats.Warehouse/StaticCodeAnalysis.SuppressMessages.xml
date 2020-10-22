@@ -7,4 +7,10 @@
     <SuppressedRule Category="Microsoft.Rules.Data" RuleId="SR0014" />
     <SuppressedRule Category="Microsoft.Rules.Data" RuleId="SR0007" />
   </SuppressedFile>
+  <SuppressedFile FilePath="Programmability\Stored Procedures\dbo.CheckLogFileHasPackageStatistics.sql">
+    <SuppressedRule Category="Microsoft.Rules.Data" RuleId="SR0007" />
+  </SuppressedFile>
+  <SuppressedFile FilePath="Programmability\Stored Procedures\dbo.CheckLogFileHasToolStatistics.sql">
+    <SuppressedRule Category="Microsoft.Rules.Data" RuleId="SR0007" />
+  </SuppressedFile>
 </StaticCodeAnalysis>

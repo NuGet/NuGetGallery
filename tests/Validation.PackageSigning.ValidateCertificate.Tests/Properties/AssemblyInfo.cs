@@ -11,3 +11,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright © .NET Foundation 2017")]
 [assembly: ComVisible(false)]
 [assembly: Guid("5ace7756-f8d0-4d90-9957-872de4a1381e")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

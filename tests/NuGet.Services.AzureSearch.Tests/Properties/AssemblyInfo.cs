@@ -11,3 +11,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyMetadata("BuildDateUtc", "This is a fake build date for testing.")]
 [assembly: AssemblyMetadata("CommitId", "This is a fake commit ID for testing.")]
 [assembly: AssemblyInformationalVersion("1.0.0-fakefortesting")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
