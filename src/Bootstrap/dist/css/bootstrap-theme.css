@@ -1139,6 +1139,7 @@ img.reserved-indicator-icon {
 .page-package-details .gh-star {
   font-size: 14px;
   line-height: 12px;
+  /* Use a slightly darker orange color to increase contrast for accessibility */
   color: #d87e00;
 }
 .page-package-details .used-by h3 strong {
