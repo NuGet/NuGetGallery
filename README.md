@@ -9,7 +9,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 ## Build and Run the Gallery in (arbitrary number) easy steps
 
 1. Prerequisites:
-    1. Visual Studio 2017 - Install the following `Workloads`:
+    1. Visual Studio 2019 - Install the following `Workloads`:
         * ASP.NET and web development
         * Azure development
     2. PowerShell 4.0
