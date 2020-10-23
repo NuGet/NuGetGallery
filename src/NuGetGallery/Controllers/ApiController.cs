@@ -893,7 +893,7 @@ namespace NuGetGallery
             {
                 action = DeletePackageAction.Unlist;
             }
-            else if (!DeletePackageApiRequest.Actions.TryGetValue(request?.Type, out action))
+            else if (!request.TryParseAction(out action))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.DeletePackage_InvalidDeleteType);
             }
@@ -929,7 +929,7 @@ namespace NuGetGallery
                         new[] { package },
                         currentUser,
                         PackageDeleteApiReason,
-                        currentUser.Username);
+                        Strings.AutomatedPackageDeleteSignature);
                     break;
 
                 default:

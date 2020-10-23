@@ -21,10 +21,15 @@ namespace NuGetGallery
         /// request value is set to be the default enum value, rather than rejecting this request. This behavior is too
         /// permissive.
         /// </summary>
-        public static readonly IReadOnlyDictionary<string, DeletePackageAction> Actions = Enum
+        private static readonly IReadOnlyDictionary<string, DeletePackageAction> Actions = Enum
             .GetValues(typeof(DeletePackageAction))
             .Cast<DeletePackageAction>()
             .ToDictionary(x => x.ToString(), x => x, StringComparer.OrdinalIgnoreCase);
+
+        public bool TryParseAction(out DeletePackageAction action)
+        {
+            return DeletePackageApiRequest.Actions.TryGetValue(Type, out action);
+        }
 
         public string Type { get; set; }
     }

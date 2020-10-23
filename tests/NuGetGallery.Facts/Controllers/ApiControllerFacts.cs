@@ -1768,7 +1768,7 @@ namespace NuGetGallery
                     It.Is<IEnumerable<Package>>(p => p.Single() == package),
                     currentUser,
                     "Deleted via API",
-                    currentUser.Username));
+                    "(automated)"));
 
                 controller.MockApiScopeEvaluator
                     .Verify(x => x.Evaluate(
