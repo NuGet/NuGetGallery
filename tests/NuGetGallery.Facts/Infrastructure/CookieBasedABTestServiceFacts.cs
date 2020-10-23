@@ -131,6 +131,7 @@ namespace NuGetGallery
                 Configuration = new Mock<IABTestConfiguration>();
                 TelemetryService = new Mock<ITelemetryService>();
                 Logger = new Mock<ILogger<CookieBasedABTestService>>();
+                DateTimeProvider = new Mock<IDateTimeProvider>();
 
                 User = new User();
                 InitializedEnrollment = new ABTestEnrollment(
@@ -164,13 +165,17 @@ namespace NuGetGallery
                 ContentObjectService.Setup(x => x.ABTestConfiguration).Returns(() => Configuration.Object);
                 Configuration.Setup(x => x.PreviewSearchPercentage).Returns(() => PreviewSearchPercentage);
 
+                CurrentTime = DateTime.UtcNow;
+                DateTimeProvider.Setup(x => x.UtcNow).Returns(CurrentTime);
+
                 Target = new CookieBasedABTestService(
                     HttpContext.Object,
                     FeatureFlagService.Object,
                     EnrollmentFactory.Object,
                     ContentObjectService.Object,
                     TelemetryService.Object,
-                    Logger.Object);
+                    Logger.Object,
+                    DateTimeProvider.Object);
             }
 
             public Mock<HttpContextBase> HttpContext { get; }
@@ -180,6 +185,7 @@ namespace NuGetGallery
             public Mock<IABTestConfiguration> Configuration { get; }
             public Mock<ITelemetryService> TelemetryService { get; }
             public Mock<ILogger<CookieBasedABTestService>> Logger { get; }
+            public Mock<IDateTimeProvider> DateTimeProvider { get; }
             public User User { get; }
             public ABTestEnrollment InitializedEnrollment { get; set; }
             public ABTestEnrollment DeserializedEnrollment { get; }
@@ -189,6 +195,7 @@ namespace NuGetGallery
             public HttpCookieCollection ResponseCookies { get; }
             public int PreviewSearchPercentage { set; get; }
             public CookieBasedABTestService Target { get; }
+            public DateTime CurrentTime { get; }
 
             public void VerifyCookie(HttpCookie cookie)
             {
@@ -196,7 +203,7 @@ namespace NuGetGallery
                 Assert.Equal(SerializedEnrollment, cookie.Value);
                 Assert.True(cookie.HttpOnly, "The cookie should be HTTP only.");
                 Assert.True(cookie.Secure, "The cookie should be secure.");
-                Assert.Equal(DateTime.MaxValue, cookie.Expires);
+                Assert.Equal(CurrentTime.AddYears(1), cookie.Expires);
                 Assert.Equal("/", cookie.Path);
                 Assert.Null(cookie.Domain);
                 Assert.False(cookie.HasKeys, "The cookie itself should not have keys.");
