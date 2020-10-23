@@ -3,10 +3,17 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Timers;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
+using Markdig;
+using Markdig.Parsers;
+using Markdig.Renderers;
+using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 
 namespace NuGetGallery
 {
@@ -29,86 +36,67 @@ namespace NuGetGallery
                 Content = ""
             };
 
-            var readmeWithoutBom = markdownString.StartsWith("\ufeff") ? markdownString.Replace("\ufeff", "") : markdownString;
+            var readmeWithoutBom = markdownString.TrimStart('\ufeff');
 
             // HTML encode markdown, except for block quotes, to block inline html.
             var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readmeWithoutBom), "> ");
 
-            var settings = CommonMarkSettings.Default.Clone();
-            settings.RenderSoftLineBreaksAsLineBreaks = true;
+            var pipeline = new MarkdownPipelineBuilder()
+                .UseSoftlineBreakAsHardlineBreak()
+                .Build();
 
-            // Parse executes CommonMarkConverter's ProcessStage1 and ProcessStage2.
-            var document = CommonMarkConverter.Parse(encodedMarkdown, settings);
-            foreach (var node in document.AsEnumerable())
+            var document = Markdown.Parse(encodedMarkdown, pipeline);
+
+            foreach (var node in document.Descendants())
             {
-                if (node.IsOpening)
+                if (node is Markdig.Syntax.Block)
                 {
-                    var block = node.Block;
-                    if (block != null)
+                    // Demote heading tags so they don't overpower expander headings.
+                    if (node is HeadingBlock heading)
                     {
-                        switch (block.Tag)
-                        {
-                            // Demote heading tags so they don't overpower expander headings.
-                            case BlockTag.AtxHeading:
-                            case BlockTag.SetextHeading:
-                                var level = (byte)Math.Min(block.Heading.Level + incrementHeadersBy, 6);
-                                block.Heading = new HeadingData(level);
-                                break;
-
-                            // Decode preformatted blocks to prevent double encoding.
-                            // Skip BlockTag.BlockQuote, which are partially decoded upfront.
-                            case BlockTag.FencedCode:
-                            case BlockTag.IndentedCode:
-                                if (block.StringContent != null)
-                                {
-                                    var content = block.StringContent.TakeFromStart(block.StringContent.Length);
-                                    var unencodedContent = HttpUtility.HtmlDecode(content);
-                                    block.StringContent.Replace(unencodedContent, 0, unencodedContent.Length);
-                                }
-                                break;
-                        }
+                        heading.Level = (byte)Math.Min(heading.Level + incrementHeadersBy, 6);
                     }
 
-                    var inline = node.Inline;
-                    if (inline != null)
+                }
+                else if (node is Markdig.Syntax.Inlines.Inline)
+                {
+                    if (node is LinkInline linkInline)
                     {
-                        if (inline.Tag == InlineTag.Link)
+                        if (linkInline.IsImage)
                         {
                             // Allow only http or https links in markdown. Transform link to https for known domains.
-                            if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString))
+                            if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
                             {
-                                inline.TargetUrl = string.Empty;
+                                linkInline.Url = string.Empty;
                             }
                             else
                             {
-                                inline.TargetUrl = readyUriString;
+                                output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                linkInline.Url = readyUriString;
                             }
                         }
-
-                        else if (inline.Tag == InlineTag.Image)
+                        else
                         {
-                            if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                            if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
                             {
-                                inline.TargetUrl = string.Empty;
+                                linkInline.Url = string.Empty;
                             }
                             else
                             {
-                                output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
-                                inline.TargetUrl = readyUriString;
+                                linkInline.Url = readyUriString;
                             }
                         }
                     }
                 }
             }
 
-            // CommonMark.Net does not support link attributes, so manually inject nofollow.
-            using (var htmlWriter = new StringWriter())
-            {
-                CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
-
-                output.Content = CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
-                return output;
-            }
+            StringWriter htmlWriter = new StringWriter();
+            var renderer = new HtmlRenderer(htmlWriter);
+            renderer.Render(document);
+            htmlWriter.Flush();
+            //manually inject nofollow since markdig doesn't support inject nofollw in encode 
+            output.Content = CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
+            return output;
         }
     }
 }
