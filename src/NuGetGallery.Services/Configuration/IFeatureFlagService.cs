@@ -227,7 +227,7 @@ namespace NuGetGallery
         bool IsODataV2SearchCountNonHijackedEnabled();
 
         /// <summary>
-        /// Whether or not the user delete a package through the API.
+        /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);
     }
