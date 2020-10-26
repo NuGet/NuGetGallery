@@ -12,7 +12,7 @@ Today, this tool only verifies the Microsoft-specific metadata requirements of t
 case, you can use the following nuget.exe command:
 
 ```
-.\nuget.exe verify *.nupkg -Signatures -CertificateFingerprint 3F9001EA83C560D712C24CF213C3D312CB3BFF51EE89435D3430BD06B5D0EECE
+nuget.exe verify *.nupkg -Signatures -CertificateFingerprint "3F9001EA83C560D712C24CF213C3D312CB3BFF51EE89435D3430BD06B5D0EECE;AA12DA22A49BCE7D5C1AE64CC1F3D892F150DA76140F210ABD2CBFFCA2C18A27"
 ```
 
 Other missing verifications include:
