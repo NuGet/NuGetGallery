@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
+using Markdig;
+
 
 namespace NuGetGallery
 {
@@ -109,6 +111,26 @@ namespace NuGetGallery
                 output.Content = CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
                 return output;
             }
+        }
+
+        public RenderedMarkdownResult GetHtmlFromMarkdownMarkdig(string markdownString, int incrementHeadersBy)
+        {
+            var output = new RenderedMarkdownResult()
+            {
+                ImagesRewritten = false,
+                Content = ""
+            };
+
+            var readmeWithoutBom = markdownString.StartsWith("\ufeff") ? markdownString.Replace("\ufeff", "") : markdownString;
+
+            // HTML encode markdown, except for block quotes, to block inline html.
+            var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readmeWithoutBom), "> ");
+
+            var builder = 
+
+
+
+
         }
     }
 }
