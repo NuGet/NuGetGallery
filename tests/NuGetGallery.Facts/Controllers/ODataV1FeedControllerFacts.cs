@@ -10,6 +10,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using Moq;
 using Xunit;
+using System.Net;
+using System.Web.Http;
 
 namespace NuGetGallery.Controllers
 {
@@ -42,7 +44,7 @@ namespace NuGetGallery.Controllers
         }
 
         [Fact]
-        public void GetAll_ReturnsBadRequestWhenGetAllIsDisabled()
+        public async Task GetAll_ReturnsBadRequestWhenGetAllIsDisabled()
         {
             // Arrange
             var featureFlagService = new Mock<IFeatureFlagService>();
@@ -55,12 +57,12 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataDisabled);
             featureFlagService.Verify(x => x.IsODataV1GetAllEnabled());
         }
 
         [Fact]
-        public void GetAllCount_ReturnsBadRequestWhenGetAllIsDisabled()
+        public async Task GetAllCount_ReturnsBadRequestWhenGetAllIsDisabled()
         {
             // Arrange
             var featureFlagService = new Mock<IFeatureFlagService>();
@@ -73,7 +75,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataDisabled);
             featureFlagService.Verify(x => x.IsODataV1GetAllCountEnabled());
         }
 
@@ -91,7 +93,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV1GetSpecificNonHijackedEnabled());
         }
 
@@ -134,7 +136,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV1FindPackagesByIdNonHijackedEnabled());
         }
 
@@ -152,7 +154,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV1FindPackagesByIdCountNonHijackedEnabled());
         }
 
@@ -195,7 +197,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV1SearchNonHijackedEnabled());
         }
 
@@ -213,7 +215,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV1SearchCountNonHijackedEnabled());
         }
 
