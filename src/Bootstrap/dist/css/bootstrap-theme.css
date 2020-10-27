@@ -221,8 +221,8 @@ h3 a:active {
 }
 @media screen and (max-width: 768px) {
   .container {
-    width: -webkit-calc(100vw - 15px);
-    width: calc(100vw - 15px);
+    width: -webkit-calc(100vw - 20px);
+    width: calc(100vw - 20px);
   }
   .navbar-toggle {
     margin-right: 0;
