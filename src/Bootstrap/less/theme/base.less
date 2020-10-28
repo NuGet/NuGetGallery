@@ -1,6 +1,7 @@
 //== Theme Variables
 @panel-footer-color:  @navbar-inverse-color;
 @default-margin-bottom: 24px;
+@package-list-line-height: 20px;
 
 //== Theme Definition
 html, body {
@@ -321,12 +322,11 @@ img.reserved-indicator-icon {
 .package-list {
   margin-top: 8px;
   margin-bottom: 8px;
-  margin-left: -5px;
   padding-left: 0;
-  line-height: 20px;
+  line-height: @package-list-line-height;
   color: @gray-light;
 
-  a {
+  a:not(.more-tags) {
     color: @gray-light;
   }
 
@@ -338,14 +338,10 @@ img.reserved-indicator-icon {
   @media (min-width: @screen-sm-min) {
     li {
       display: inline-block;
-    }
-
-    li + li {
-      margin-left: @padding-small-horizontal;
-      padding-left: @padding-small-horizontal;
-      border-left-style: solid;
-      border-width: 1px;
-      border-color: @gray-lighter;
+      line-height: @package-list-line-height;
+      max-height: (@package-list-line-height * 5 + 1px);
+      overflow-y: hidden;
+      padding-right: @padding-small-horizontal;
     }
   }
 }
