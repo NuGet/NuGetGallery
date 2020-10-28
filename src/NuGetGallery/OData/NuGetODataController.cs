@@ -3,10 +3,13 @@
 
 using System;
 using System.Linq;
+using System.Net;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.OData;
+using System.Web.Http.OData.Extensions;
 using System.Web.Http.OData.Query;
+using System.Web.Http.Results;
 using Microsoft.Data.OData;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData.QueryFilter;
@@ -61,6 +64,17 @@ namespace NuGetGallery.OData
         protected virtual string GetSiteRoot()
         {
             return _configurationService.GetSiteRoot(UseHttps()).TrimEnd('/') + '/';
+        }
+
+        protected ResponseMessageResult DeprecatedRequest(string message)
+        {
+            return ResponseMessage(Request.CreateErrorResponse(
+                HttpStatusCode.BadRequest,
+                new ODataError
+                {
+                    ErrorCode = "NuGet.V2.Deprecated",
+                    Message = message,
+                }));
         }
 
         /// <summary>
