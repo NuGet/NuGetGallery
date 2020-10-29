@@ -52,17 +52,16 @@ namespace NuGetGallery
             [InlineData("<a href=\"javascript:alert('test');\">", "<p>&lt;a href=&quot;javascript:alert('test');&quot;&gt;</p>")]
             public void EncodesHtmlInMarkdownMarkdig(string originalMd, string expectedHtml)
             {
-                Assert.Equal(expectedHtml, StripNewLines(
-                    _markdownService.GetHtmlFromMarkdownMarkdig(originalMd).Content));
+                Assert.Equal(expectedHtml, _markdownService.GetHtmlFromMarkdownMarkdig(originalMd).Content);
             }
 
             [Theory]
             [InlineData("# Heading", "<h2>Heading</h2>", false)]
             [InlineData("\ufeff# Heading with BOM", "<h2>Heading with BOM</h2>", false)]
-            [InlineData("- List", "<ul><li>List</li></ul>", false)]
+            [InlineData("- List", "<ul>\n<li>List</li>\n</ul>", false)]
             [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"nofollow\">text</a></p>", false)]
             [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false)]
-            [InlineData("> <text>Blockquote</text>", "<blockquote><p>&lt;text&gt;Blockquote&lt;/text&gt;</p></blockquote>", false)]
+            [InlineData("> <text>Blockquote</text>", "<blockquote>\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>", false)]
             [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>", false)]
             [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false)]
             [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true)]
@@ -71,8 +70,17 @@ namespace NuGetGallery
             public void ConvertsMarkdownToHtmlMarkdig(string originalMd, string expectedHtml, bool imageRewriteExpected)
             {
                 var readMeResult = _markdownService.GetHtmlFromMarkdownMarkdig(originalMd);
-                Assert.Equal(expectedHtml, StripNewLines(readMeResult.Content));
+                Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
+            }
+
+            [Theory]
+            [InlineData("- __[pica](https://nodeca.github.io/pica/demo/)__ - high quality and fast image resize in browser.")]
+            [InlineData("```Sample text here...```")]
+            public void compareNewAPIwithOldAPI(string originalMd) {
+                var readMeResultMarkdig = _markdownService.GetHtmlFromMarkdownMarkdig(originalMd);
+                var expected = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(StripNewLines(expected.Content), StripNewLines(readMeResultMarkdig.Content));
             }
 
             private static string StripNewLines(string text)
