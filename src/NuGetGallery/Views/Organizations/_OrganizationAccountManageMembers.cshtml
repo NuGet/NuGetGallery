@@ -34,30 +34,28 @@
             </div>
             @if (Model.CanManageMemberships)
             {
-                <div class="input-group col-xs-12">
+                <form>
                     <div class="row">
-                        <div class="col-xs-8">
-                            <input id="new-member-textbox" class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member"  />
+                        <div class="form-group col-sm-5">
+                            <input id="new-member-textbox" class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member"/>
                         </div>
-                        <div class="col-xs-3">
-                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-labelledby="RoleNames">
-                            </select>
+                        <div class="form-group col-sm-3">
+                            <select class="form-control" data-bind="value: AddMemberRole, options: RoleNames" aria-labelledby="RoleNames"></select>
                         </div>
-                        <div class="text-right col-xs-1">
+                        <div class="col-sm-1">
                             <button class="btn btn-primary" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">Add</button>
                         </div>
                     </div>
-                </div>
+                </form>
                 <div data-bind="template: 'error-container'"></div>
             }
             <div class="member-item" data-bind="foreach: Members">
                 <hr data-bind="visible: $index()" />
                 <div class="row">
-                    <div class="col-xs-1 hidden-xs">
-                        <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar"
-                                height="36" width="36">
+                    <div class="col-sm-1 hidden-xs">
+                        <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar" height="36" width="36">
                     </div>
-                    <div class="col-xs-8 col-sm-7 member-column">
+                    <div class="col-sm-6 member-column">
                         <div>
                             <a title="View Member Profile" data-bind="attr: { href: ProfileUrl }">
                                 <span data-bind="text: Username"></span>
@@ -70,7 +68,7 @@
                             <!-- /ko -->
                         </div>
                     </div>
-                    <div class="col-xs-3">
+                    <div class="col-sm-3">
                         @if (Model.CanManageMemberships)
                         {
                             <select class="form-control" aria-labelledby="OrganizationViewModel.RoleNames"
@@ -83,7 +81,7 @@
                         }
                     </div>
                     <!-- ko if: IsCurrentUser || @(Model.CanManageMemberships ? "true" : "false") -->
-                    <div class="col-xs-1 text-right member-column">
+                    <div class="col-sm-1 text-right member-column">
                         <div>
                             <span>
                                 <button class="btn-link" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
