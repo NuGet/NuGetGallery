@@ -3,12 +3,17 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Timers;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
 using Markdig;
-
+using Markdig.Parsers;
+using Markdig.Renderers;
+using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 
 namespace NuGetGallery
 {
@@ -21,6 +26,11 @@ namespace NuGetGallery
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString)
         {
             return GetHtmlFromMarkdown(markdownString, 1);
+        }
+
+        public RenderedMarkdownResult GetHtmlFromMarkdownMarkdig(string markdownString)
+        {
+            return GetHtmlFromMarkdownMarkdig(markdownString, 1);
         }
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString, int incrementHeadersBy)
@@ -122,15 +132,62 @@ namespace NuGetGallery
             };
 
             var readmeWithoutBom = markdownString.StartsWith("\ufeff") ? markdownString.Replace("\ufeff", "") : markdownString;
-
-            // HTML encode markdown, except for block quotes, to block inline html.
             var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readmeWithoutBom), "> ");
 
-            var builder = 
+            var pipeline = new MarkdownPipelineBuilder()
+                .UseSoftlineBreakAsHardlineBreak()
+                .Build();
 
+            var document = Markdown.Parse(encodedMarkdown, pipeline);
 
+            foreach (var node in document.Descendants())
+            {
+                if (node is Markdig.Syntax.Block)
+                {
+                    if (node is HeadingBlock heading)
+                    {
+                        heading.Level = (byte)Math.Min(heading.Level + incrementHeadersBy, 6);
+                    }
 
+                }
+                else if (node is Markdig.Syntax.Inlines.Inline)
+                {
+                    if (node is LinkInline linkInline)
+                    {
+                        if (linkInline.IsImage)
+                        {
+                            if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                            {
+                                linkInline.Url = string.Empty;
+                            }
+                            else
+                            {
+                                output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                linkInline.Url = readyUriString;
+                            }
+                        }
+                        else
+                        {
+                            if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
+                            {
+                                linkInline.Url = string.Empty;
+                            }
+                            else
+                            {
+                                linkInline.Url = readyUriString;
+                            }
+                        }
+                    }
+                }
+            }
 
+            StringWriter htmlWriter = new StringWriter();
+            var renderer = new HtmlRenderer(htmlWriter);
+            renderer.Render(document);
+            htmlWriter.Flush();
+            output.Content = CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
+
+            return output;
         }
     }
 }
