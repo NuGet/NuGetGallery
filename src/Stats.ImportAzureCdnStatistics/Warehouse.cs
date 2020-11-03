@@ -455,7 +455,9 @@ namespace Stats.ImportAzureCdnStatistics
                 using (var connection = await _openStatisticsSqlConnectionAsync())
                 {
                     var command = connection.CreateCommand();
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                     command.CommandText = commandText;
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                     command.CommandTimeout = _defaultCommandTimeout;
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.AddWithValue("logFileName", logFileName);

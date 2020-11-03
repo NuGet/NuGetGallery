@@ -32,10 +32,12 @@ namespace Stats.ImportAzureCdnStatistics
 
             using (var connection = await _openStatisticsSqlConnectionAsync())
             {
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                 var tableAdapter = new SqlDataAdapter(query, connection)
                 {
                     MissingSchemaAction = MissingSchemaAction.Add
                 };
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                 tableAdapter.Fill(dataTable);
             }
 

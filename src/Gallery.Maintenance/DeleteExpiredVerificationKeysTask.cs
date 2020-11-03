@@ -68,7 +68,9 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
                     var parameters = credentialKeys.Select(c => new SqlParameter("@Key" + numKeys++, SqlDbType.Int) { Value = c }).ToArray();
                     command.Parameters.AddRange(parameters);
 
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                     command.CommandText = string.Format(DeleteQuery, string.Join(",", parameters.Select(p => p.ParameterName)));
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                     command.CommandType = CommandType.Text;
                     command.CommandTimeout = (int)_commandTimeout.TotalSeconds;
                     command.Transaction = transaction;

@@ -62,7 +62,6 @@
   <ItemGroup>
     <Compile Include="Arguments.cs" />
     <Compile Include="Jobs\Catalog2IconJob.cs" />
-    <Compile Include="Jobs\Catalog2PackageFixupJob.cs" />
     <Compile Include="Jobs\Db2MonitoringJob.cs" />
     <Compile Include="Jobs\Catalog2DnxJob.cs" />
     <Compile Include="Jobs\Catalog2MonitoringJob.cs" />

@@ -56,6 +56,7 @@
     <Compile Include="ICommitCollectorConfiguration.cs" />
     <Compile Include="ICommitCollectorLogic.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="Support\ReferenceEqualityComparer.cs" />
     <Compile Include="Registration\IRegistrationClient.cs" />
     <Compile Include="Registration\Models\RegistrationCatalogEntry.cs" />
