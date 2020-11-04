@@ -55,7 +55,7 @@
                     <div class="col-sm-1 hidden-xs">
                         <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar" height="36" width="36">
                     </div>
-                    <div class="col-sm-6 member-column">
+                    <div class="col-xs-10 col-sm-6 member-column">
                         <div>
                             <a title="View Member Profile" data-bind="attr: { href: ProfileUrl }">
                                 <span data-bind="text: Username"></span>
@@ -68,7 +68,18 @@
                             <!-- /ko -->
                         </div>
                     </div>
-                    <div class="col-sm-3">
+                    <div class="col-xs-2 col-sm-2 col-sm-push-3 member-column text-right">
+                        <!-- ko if: IsCurrentUser || @(Model.CanManageMemberships ? "true" : "false") -->
+                        <div>
+                            <span>
+                                <button class="btn-link" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                </button>
+                            </span>
+                        </div>
+                        <!-- /ko -->
+                    </div>
+                    <div class="col-xs-12 col-sm-3 col-sm-pull-2">
                         @if (Model.CanManageMemberships)
                         {
                             <select class="form-control" aria-labelledby="OrganizationViewModel.RoleNames"
@@ -80,17 +91,6 @@
                             <span data-bind="text: SelectedRole()"></span>
                         }
                     </div>
-                    <!-- ko if: IsCurrentUser || @(Model.CanManageMemberships ? "true" : "false") -->
-                    <div class="col-sm-1 text-right member-column">
-                        <div>
-                            <span>
-                                <button class="btn-link" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
-                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                </button>
-                            </span>
-                        </div>
-                    </div>
-                    <!-- /ko -->
                 </div>
             </div>
         </div>
