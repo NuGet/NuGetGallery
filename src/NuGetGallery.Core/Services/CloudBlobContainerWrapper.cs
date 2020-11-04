@@ -40,10 +40,22 @@ namespace NuGetGallery
             return new BlobResultSegmentWrapper(segment);
         }
 
-        public Task CreateIfNotExistAsync()
+        public Task CreateIfNotExistAsync(BlobContainerPermissions permissions)
         {
+            var publicAccess = permissions?.PublicAccess;
+
+            ICancellableAsyncResult beginCreateIfNotExistsResult;
+            if (publicAccess.HasValue)
+            {
+                beginCreateIfNotExistsResult = _blobContainer.BeginCreateIfNotExists(publicAccess.Value, null, null, null, null);
+            }
+            else
+            {
+                beginCreateIfNotExistsResult = _blobContainer.BeginCreateIfNotExists(null, null);
+            }
+
             return Task.Factory.FromAsync<bool>(
-                _blobContainer.BeginCreateIfNotExists(null, null), 
+                beginCreateIfNotExistsResult,
                 _blobContainer.EndCreateIfNotExists);
         }
 

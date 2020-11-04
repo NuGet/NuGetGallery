@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public interface ICloudBlobContainer
     {
-        Task CreateIfNotExistAsync();
+        Task CreateIfNotExistAsync(BlobContainerPermissions permissions);
         Task SetPermissionsAsync(BlobContainerPermissions permissions);
         ISimpleCloudBlob GetBlobReference(string blobAddressUri);
         Task<bool> ExistsAsync(BlobRequestOptions options, OperationContext operationContext);

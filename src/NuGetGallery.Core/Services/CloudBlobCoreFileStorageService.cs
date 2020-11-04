@@ -618,12 +618,12 @@ namespace NuGetGallery
         private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic)
         {
             var container = _client.GetContainerReference(folderName);
-            await container.CreateIfNotExistAsync();
-            await container.SetPermissionsAsync(
-                new BlobContainerPermissions
-                {
-                    PublicAccess = isPublic ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off
-                });
+            var permissions = new BlobContainerPermissions
+            {
+                PublicAccess = isPublic ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off
+            };
+
+            await container.CreateIfNotExistAsync(permissions);
 
             return container;
         }
