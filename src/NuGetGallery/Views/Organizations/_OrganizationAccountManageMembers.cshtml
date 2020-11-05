@@ -79,17 +79,19 @@
                         </div>
                         <!-- /ko -->
                     </div>
-                    <div class="col-xs-12 col-sm-3 col-sm-pull-2">
-                        @if (Model.CanManageMemberships)
-                        {
-                            <select class="form-control" aria-labelledby="OrganizationViewModel.RoleNames"
-                                    data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
-                            </select>
-                        }
-                        else
-                        {
-                            <span data-bind="text: SelectedRole()"></span>
-                        }
+                    <div class="col-xs-12 col-sm-3 col-sm-pull-2 member-column">
+                        <div>
+                            @if (Model.CanManageMemberships)
+                            {
+                                <select class="form-control" aria-labelledby="OrganizationViewModel.RoleNames"
+                                        data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
+                                </select>
+                            }
+                            else
+                            {
+                                <span data-bind="text: SelectedRole()"></span>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
