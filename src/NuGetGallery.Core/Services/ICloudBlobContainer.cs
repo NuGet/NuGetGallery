@@ -15,7 +15,7 @@ namespace NuGetGallery
         ISimpleCloudBlob GetBlobReference(string blobAddressUri);
         Task<bool> ExistsAsync(BlobRequestOptions options, OperationContext operationContext);
         Task<bool> DeleteIfExistsAsync();
-        Task CreateAsync();
+        Task CreateAsync(BlobContainerPermissions permissions);
         Task<ISimpleBlobResultSegment> ListBlobsSegmentedAsync(
             string prefix,
             bool useFlatBlobListing,

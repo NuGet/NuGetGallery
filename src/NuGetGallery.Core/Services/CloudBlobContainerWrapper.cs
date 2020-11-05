@@ -81,9 +81,18 @@ namespace NuGetGallery
             return await _blobContainer.DeleteIfExistsAsync();
         }
 
-        public async Task CreateAsync()
+        public async Task CreateAsync(BlobContainerPermissions permissions)
         {
-            await _blobContainer.CreateAsync();
+            var publicAccess = permissions?.PublicAccess;
+
+            if (publicAccess.HasValue)
+            {
+                await _blobContainer.CreateAsync(publicAccess.Value, null, null);
+            }
+            else
+            {
+                await _blobContainer.CreateAsync();
+            }
         }
     }
 }
