@@ -15,7 +15,7 @@
                 {
                     @Html.AntiForgeryToken()
 
-                    <div class="row form-group">
+                    <div class="row">
                         <div class="col-sm-6">
                             <input type="submit" class="btn btn-primary form-control" value="Reset to Confirmed Email Address" />
                         </div>
@@ -47,7 +47,7 @@
                         @Html.ShowValidationMessagesFor(m => m.ChangeEmail.NewEmail)
                     </div>
 
-                    <div class="row form-group">
+                    <div class="row">
                         <div class="col-sm-6">
                             <input type="submit" class="btn btn-primary form-control" value="Save" />
                         </div>
