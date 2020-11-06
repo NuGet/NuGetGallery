@@ -15,7 +15,6 @@ using System.Runtime.InteropServices;
 #endif
 
 [assembly: CLSCompliant(false)]
-[assembly: NeutralResourcesLanguage("en-us")]
 
 [assembly: AssemblyDescription("Core support library for NuGet Gallery Frontend and Backend")]
 
