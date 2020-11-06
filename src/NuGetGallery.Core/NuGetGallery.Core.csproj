@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    
+    <RootNamespace>NuGetGallery</RootNamespace>
 
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
@@ -80,6 +82,21 @@
   
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="CoreStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CoreStrings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="CoreStrings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <PropertyGroup>
