@@ -42,16 +42,12 @@ namespace NuGetGallery
 
         public Task CreateIfNotExistAsync()
         {
-            return Task.Factory.FromAsync<bool>(
-                _blobContainer.BeginCreateIfNotExists(null, null), 
-                _blobContainer.EndCreateIfNotExists);
+            return _blobContainer.CreateIfNotExistsAsync();
         }
 
         public Task SetPermissionsAsync(BlobContainerPermissions permissions)
         {
-            return Task.Factory.FromAsync(
-                _blobContainer.BeginSetPermissions(permissions, null, null),
-                _blobContainer.EndSetPermissions);
+            return _blobContainer.SetPermissionsAsync(permissions);
         }
 
         public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
