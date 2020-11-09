@@ -225,5 +225,10 @@ namespace NuGetGallery
         /// Whether the /Search()/$count endpoint is enabled for non-hijacked queries for the V2 OData API.
         /// </summary>
         bool IsODataV2SearchCountNonHijackedEnabled();
+
+        /// <summary>
+        /// Whether rending Markdown content to HTML using Markdig is enabaled
+        /// </summary>
+        bool IsMarkdigMdRenderingEnabled();
     }
 }
