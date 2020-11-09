@@ -22,19 +22,15 @@ namespace NuGetGallery.Auditing
         public static readonly string DefaultContainerName = "auditing";
 
         private CloudBlobContainer _auditContainer;
-        private string _instanceId;
-        private string _localIP;
         private Func<Task<AuditActor>> _getOnBehalfOf;
 
-        public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, bool readAccessGeoRedundant, Func<Task<AuditActor>> getOnBehalfOf)
-            : this(instanceId, localIP, GetContainer(storageConnectionString, readAccessGeoRedundant), getOnBehalfOf)
+        public CloudAuditingService(string storageConnectionString, bool readAccessGeoRedundant, Func<Task<AuditActor>> getOnBehalfOf)
+            : this(GetContainer(storageConnectionString, readAccessGeoRedundant), getOnBehalfOf)
         {
         }
 
-        public CloudAuditingService(string instanceId, string localIP, CloudBlobContainer auditContainer, Func<Task<AuditActor>> getOnBehalfOf)
+        public CloudAuditingService(CloudBlobContainer auditContainer, Func<Task<AuditActor>> getOnBehalfOf)
         {
-            _instanceId = instanceId;
-            _localIP = localIP;
             _auditContainer = auditContainer;
             _getOnBehalfOf = getOnBehalfOf;
         }
