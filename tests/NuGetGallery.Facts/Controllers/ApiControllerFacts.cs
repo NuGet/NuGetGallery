@@ -783,8 +783,8 @@ namespace NuGetGallery
             public async Task CreatePackageReturns400IfMinClientVersionIsTooHigh()
             {
                 // Arrange
-                const string HighClientVerison = "6.0.0.0";
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42", minClientVersion: HighClientVerison);
+                const string HighClientVersion = "6.0.0.0";
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42", minClientVersion: HighClientVersion);
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
                 var controller = new TestableApiController(GetConfigurationService());
@@ -796,7 +796,7 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
-                Assert.Contains(HighClientVerison, (result as HttpStatusCodeWithBodyResult).StatusDescription);
+                Assert.Contains(HighClientVersion, (result as HttpStatusCodeWithBodyResult).StatusDescription);
             }
 
             [Theory]
