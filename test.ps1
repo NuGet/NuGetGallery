@@ -27,20 +27,20 @@ Function Run-Tests {
 
     $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
 
-    $TestAssemblies = "tests\NuGet.Services.KeyVault.Tests\bin\$Configuration\NuGet.Services.KeyVault.Tests.dll", `
-        "tests\NuGet.Services.Configuration.Tests\bin\$Configuration\NuGet.Services.Configuration.Tests.dll", `
-        "tests\NuGet.Services.Logging.Tests\bin\$Configuration\NuGet.Services.Logging.Tests.dll", `
-        "tests\NuGet.Services.AzureManagement.Tests\bin\$Configuration\NuGet.Services.AzureManagement.Tests.dll", `
-        "tests\NuGet.Services.Cursor.Tests\bin\$Configuration\NuGet.Services.Cursor.Tests.dll", `
-        "tests\NuGet.Services.Owin.Tests\bin\$Configuration\NuGet.Services.Owin.Tests.dll", `
-        "tests\NuGet.Services.Validation.Tests\bin\$Configuration\NuGet.Services.Validation.Tests.dll", `
-        "tests\NuGet.Services.Contracts.Tests\bin\$Configuration\NuGet.Services.Contracts.Tests.dll", `
-        "tests\NuGet.Services.Validation.Issues.Tests\bin\$Configuration\NuGet.Services.Validation.Issues.Tests.dll", `
-        "tests\NuGet.Services.Sql.Tests\bin\$Configuration\NuGet.Services.Sql.Tests.dll", `
-        "tests\NuGet.Services.Status.Tests\bin\$Configuration\NuGet.Services.Status.Tests.dll", `
-        "tests\NuGet.Services.Messaging.Tests\bin\$Configuration\NuGet.Services.Messaging.Tests.dll", `
-        "tests\NuGet.Services.Messaging.Email.Tests\bin\$Configuration\NuGet.Services.Messaging.Email.Tests.dll", `
-        "tests\NuGet.Services.Licenses.Tests\bin\$Configuration\NuGet.Services.Licenses.Tests.dll"
+    $TestAssemblies = "tests\NuGet.Services.KeyVault.Tests\bin\$Configuration\net472\NuGet.Services.KeyVault.Tests.dll", `
+        "tests\NuGet.Services.Configuration.Tests\bin\$Configuration\net472\NuGet.Services.Configuration.Tests.dll", `
+        "tests\NuGet.Services.Logging.Tests\bin\$Configuration\net472\NuGet.Services.Logging.Tests.dll", `
+        "tests\NuGet.Services.AzureManagement.Tests\bin\$Configuration\net472\NuGet.Services.AzureManagement.Tests.dll", `
+        "tests\NuGet.Services.Cursor.Tests\bin\$Configuration\net472\NuGet.Services.Cursor.Tests.dll", `
+        "tests\NuGet.Services.Owin.Tests\bin\$Configuration\net472\NuGet.Services.Owin.Tests.dll", `
+        "tests\NuGet.Services.Validation.Tests\bin\$Configuration\net472\NuGet.Services.Validation.Tests.dll", `
+        "tests\NuGet.Services.Contracts.Tests\bin\$Configuration\net472\NuGet.Services.Contracts.Tests.dll", `
+        "tests\NuGet.Services.Validation.Issues.Tests\bin\$Configuration\net472\NuGet.Services.Validation.Issues.Tests.dll", `
+        "tests\NuGet.Services.Sql.Tests\bin\$Configuration\net472\NuGet.Services.Sql.Tests.dll", `
+        "tests\NuGet.Services.Status.Tests\bin\$Configuration\net472\NuGet.Services.Status.Tests.dll", `
+        "tests\NuGet.Services.Messaging.Tests\bin\$Configuration\net472\NuGet.Services.Messaging.Tests.dll", `
+        "tests\NuGet.Services.Messaging.Email.Tests\bin\$Configuration\net472\NuGet.Services.Messaging.Email.Tests.dll", `
+        "tests\NuGet.Services.Licenses.Tests\bin\$Configuration\net472\NuGet.Services.Licenses.Tests.dll"
 
     $TestCount = 0
 

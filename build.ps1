@@ -85,6 +85,9 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\NuGet.Services.Validation\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
+            # Ensure the directory exists before generating the version info file.
+            $directory = Split-Path $_
+            New-Item -ItemType Directory -Force -Path $directory | Out-Null
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA -AssemblyVersion "3.0.0.0"
         }
     } `
@@ -97,12 +100,12 @@ Invoke-BuildStep 'Restoring solution packages' { `
         
 Invoke-BuildStep 'Building solution' { `
         $SolutionPath = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
-        Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $SolutionPath -SkipRestore:$SkipRestore
     } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the binaries' {
-        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
+        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber `
     } `
     -ev +BuildErrors
     
@@ -136,7 +139,7 @@ Invoke-BuildStep 'Creating artifacts' { `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the packages' {
-        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber -MSBuildVersion "15" `
+        Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber `
     } `
     -ev +BuildErrors
 

@@ -22,7 +22,7 @@ namespace NuGet.Services.Cursor
 
         public override async Task Load(CancellationToken cancellationToken)
         {
-            HttpMessageHandler handler = (_handlerFunc != null) ? _handlerFunc() : new WebRequestHandler { AllowPipelining = true };
+            HttpMessageHandler handler = (_handlerFunc != null) ? _handlerFunc() : new HttpClientHandler();
 
             using (HttpClient client = new HttpClient(handler))
             {

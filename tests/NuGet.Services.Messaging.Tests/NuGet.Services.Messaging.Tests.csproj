@@ -1,64 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6B3A29C9-A26A-4B60-9D8E-46BCD5B32EF3}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Messaging.Tests</RootNamespace>
-    <AssemblyName>NuGet.Services.Messaging.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="EmailMessageEnqueuerTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceBusMessageSerializerTests.cs" />
-    <Compile Include="TestData.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>TestData.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj">
-      <Project>{6674b4b4-2d0e-4840-8cf0-2356acde8863}</Project>
-      <Name>NuGet.Services.Contracts</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj">
-      <Project>{5b3caa1e-9e8e-4eb4-8229-582de9661679}</Project>
-      <Name>NuGet.Services.Messaging</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj">
-      <Project>{9337000b-ea3b-40be-9a33-38bc28dfd0cb}</Project>
-      <Name>NuGet.Services.ServiceBus</Name>
-    </ProjectReference>
-  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Moq">
       <Version>4.10.0</Version>
@@ -72,11 +17,26 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+
   <ItemGroup>
-    <EmbeddedResource Include="TestData.resx">
+    <ProjectReference Include="..\..\src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj" />
+    <ProjectReference Include="..\..\src\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="TestData.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TestData.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="TestData.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TestData.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

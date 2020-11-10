@@ -1,96 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D3AB8DBD-EF83-41A5-AF25-0A7E7FACC056}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Status</RootNamespace>
-    <AssemblyName>NuGet.Services.Status</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
+    <TargetFramework>net472</TargetFramework>
+    <Description>A framework to produce and consume status reported about NuGet services.</Description>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PackageId Condition="'$(PackageId)' == ''">$(MSBuildProjectName)</PackageId>
-    <Authors>.NET Foundation</Authors>
-    <PackageLicenseUrl>https://github.com/NuGet/ServerCommon/blob/master/License.md</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/NuGet/ServerCommon</PackageProjectUrl>
-    <Copyright>© .NET Foundation. All rights reserved.</Copyright>
-    <IncludeSymbols Condition="'$(IncludeSymbols)' == ''">true</IncludeSymbols>
-    <NoPackageAnalysis Condition="'$(NoPackageAnalysis)' == ''">true</NoPackageAnalysis>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ActiveActiveComponent.cs" />
-    <Compile Include="Component.cs" />
-    <Compile Include="ComponentUtility.cs" />
-    <Compile Include="Constants.cs" />
-    <Compile Include="Event.cs" />
-    <Compile Include="IComponentDescription.cs" />
-    <Compile Include="IRootComponent.cs" />
-    <Compile Include="LeafComponent.cs" />
-    <Compile Include="ReadOnlyComponent.cs" />
-    <Compile Include="ComponentStatus.cs" />
-    <Compile Include="IReadOnlyComponent.cs" />
-    <Compile Include="Message.cs" />
-    <Compile Include="ActivePassiveComponent.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="ReadOnlyComponentWrapper.cs" />
-    <Compile Include="ServiceStatus.cs" />
-    <Compile Include="ComponentWrapper.cs" />
-    <Compile Include="TreeComponent.cs" />
-    <Compile Include="IComponent.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MicroBuild.Core">
-      <Version>0.3.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>10.0.2</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Build.Tasks.Pack">
-      <Version>4.8.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Project="..\..\build\sign.targets" />
-  <Import Project="..\..\build\sign.microbuild.targets" />
+
 </Project>

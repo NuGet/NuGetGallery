@@ -1,5 +1,5 @@
 ### Constants ###
-$DefaultMSBuildVersion = '15'
+$DefaultMSBuildVersion = '16'
 $DefaultConfiguration = 'debug'
 $NuGetClientRoot = Split-Path -Path $PSScriptRoot -Parent
 $CLIRoot = Join-Path $NuGetClientRoot 'cli'
@@ -11,7 +11,6 @@ $BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer
 $Artifacts = Join-Path $NuGetClientRoot artifacts
 $MSBuildRoot = Join-Path ${env:ProgramFiles(x86)} 'MSBuild\'
 $MSBuildExeRelPath = 'bin\msbuild.exe'
-$VisualStudioVersion = 15.0
 
 $NuGetBuildPackageId = 'NuGet.Services.Build'
 $NuGetBuildPackageVersion = '1.0.0'

@@ -1,41 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{63000EEE-3579-48E6-A71D-7378A7A1A2F5}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Logging.Tests</RootNamespace>
-    <AssemblyName>NuGet.Services.Logging.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Web" />
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Moq">
       <Version>4.10.0</Version>
@@ -49,33 +17,14 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="ApplicationInsightsTests.cs" />
-    <Compile Include="TelemetryInitializers\AzureWebAppTelemetryInitializerFacts.cs" />
-    <Compile Include="TelemetryInitializers\DeploymentLabelEnricherTests.cs" />
-    <Compile Include="Extensions\DiagnosticsTelemetryModuleExtensionsTests.cs" />
-    <Compile Include="ExceptionTelemetryProcessorTests.cs" />
-    <Compile Include="LoggingSetupTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequestTelemetryProcessorTests.cs" />
-    <Compile Include="Extensions\TelemetryClientExtensionsTests.cs" />
-    <Compile Include="TelemetryInitializers\JobPropertiesTelemetryInitializerTests.cs" />
-    <Compile Include="TelemetryInitializers\KnownOperationNameEnricherFacts.cs" />
-    <Compile Include="TestableTelemetry.cs" />
-    <Compile Include="TelemetryProcessorTest.cs" />
+    <ProjectReference Include="..\..\src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj">
-      <Project>{6674B4B4-2D0E-4840-8CF0-2356ACDE8863}</Project>
-      <Name>NuGet.Services.Contracts</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\NuGet.Services.Logging\NuGet.Services.Logging.csproj">
-      <Project>{088f2bf5-1220-4125-bc64-601c2f032c13}</Project>
-      <Name>NuGet.Services.Logging</Name>
-    </ProjectReference>
+    <Reference Include="System.Web" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

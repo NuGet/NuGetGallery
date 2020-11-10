@@ -1,98 +1,25 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7B663D13-49EF-4C14-AA1E-FCA66B602EEC}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Messaging.Email</RootNamespace>
-    <AssemblyName>NuGet.Services.Messaging.Email</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
+    <TargetFramework>net472</TargetFramework>
+    <Description>Components shared between the front-end and back-end concerning email messaging</Description>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PackageId Condition="'$(PackageId)' == ''">$(MSBuildProjectName)</PackageId>
-    <Authors>.NET Foundation</Authors>
-    <PackageLicenseUrl>https://github.com/NuGet/ServerCommon/blob/master/License.md</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/NuGet/ServerCommon</PackageProjectUrl>
-    <Copyright>© .NET Foundation. All rights reserved.</Copyright>
-    <IncludeSymbols Condition="'$(IncludeSymbols)' == ''">true</IncludeSymbols>
-    <NoPackageAnalysis Condition="'$(NoPackageAnalysis)' == ''">true</NoPackageAnalysis>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Web" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AsynchronousEmailMessageService.cs" />
-    <Compile Include="CoreMarkdownMessageService.cs" />
-    <Compile Include="EmailBuilder.cs" />
-    <Compile Include="EmailFormat.cs" />
-    <Compile Include="EmailMessageFooter.cs" />
-    <Compile Include="EmailRecipients.cs" />
-    <Compile Include="IEmailBuilder.cs" />
-    <Compile Include="IEmailRecipients.cs" />
-    <Compile Include="IMessageService.cs" />
-    <Compile Include="IMessageServiceConfiguration.cs" />
-    <Compile Include="Internal\PlainTextAutoLinkInlineRenderer.cs" />
-    <Compile Include="Internal\PlainTextEmphasisInlineRenderer.cs" />
-    <Compile Include="Internal\PlainTextLinkInlineRenderer.cs" />
-    <Compile Include="Internal\PlainTextListRenderer.cs" />
-    <Compile Include="Internal\PlainTextRenderer.cs" />
-    <Compile Include="MarkdownEmailBuilder.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj">
-      <Project>{5b3caa1e-9e8e-4eb4-8229-582de9661679}</Project>
-      <Name>NuGet.Services.Messaging</Name>
-    </ProjectReference>
-  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Markdig.Signed">
       <Version>0.22.0</Version>
-    </PackageReference>
-    <PackageReference Include="MicroBuild.Core">
-      <Version>0.3.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="NuGet.Build.Tasks.Pack">
-      <Version>4.8.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
     </PackageReference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Project="..\..\build\sign.targets" />
-  <Import Project="..\..\build\sign.microbuild.targets" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web" />
+  </ItemGroup>
+
 </Project>
