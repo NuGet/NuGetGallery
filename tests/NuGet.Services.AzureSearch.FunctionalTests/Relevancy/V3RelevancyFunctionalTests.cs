@@ -77,7 +77,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         [MemberData(nameof(EnsureTopResultsData))]
         public async Task EnsureTopResults(string searchTerm, string[] expectedTopResults)
         {
-            var results = await SearchAsync(searchTerm, take: 10);
+            var results = await SearchAsync(searchTerm, take: 20);
 
             Assert.True(results.Count > expectedTopResults.Length);
 

@@ -71,13 +71,13 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Theory]
-            [InlineData("foo", false, false, "foo tokenizedPackageId:foo*^20 -owners:TestUserA -owners:TestUserB")]
+            [InlineData("foo", false, false, "+foo* -owners:TestUserA -owners:TestUserB")]
             [InlineData("", false, false, "packageId:/.*/ -owners:TestUserA -owners:TestUserB")]
-            [InlineData("foo", true, false, "foo tokenizedPackageId:foo*^20")]
+            [InlineData("foo", true, false, "+foo*")]
             [InlineData("", true, false, "*")]
-            [InlineData("foo", false, true, "foo tokenizedPackageId:foo*^20")]
+            [InlineData("foo", false, true, "+foo*")]
             [InlineData("", false, true, "*")]
-            [InlineData("foo", true, true, "foo tokenizedPackageId:foo*^20")]
+            [InlineData("foo", true, true, "+foo*")]
             [InlineData("", true, true, "*")]
             public void CanExcludeTestData(string query, bool ignoreFilter, bool includeTestData, string expected)
             {
@@ -140,9 +140,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Theory]
-            [InlineData("foo", false, "foo tokenizedPackageId:foo*^20 -owners:TestUserA -owners:TestUserB")]
+            [InlineData("foo", false, "+foo* -owners:TestUserA -owners:TestUserB")]
             [InlineData("", false, "packageId:/.*/ -owners:TestUserA -owners:TestUserB")]
-            [InlineData("foo", true, "foo tokenizedPackageId:foo*^20")]
+            [InlineData("foo", true, "+foo*")]
             [InlineData("", true, "*")]
             public void CanExcludeTestData(string query, bool includeTestData, string expected)
             {
@@ -245,7 +245,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             public FactsBase()
             {
-                _config = new SearchServiceConfiguration { MatchAllTermsBoost = 2.0f };
+                _config = new SearchServiceConfiguration();
                 var options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
                 options.Setup(o => o.Value).Returns(_config);
 
@@ -313,77 +313,81 @@ namespace NuGet.Services.AzureSearch.SearchService
                     
                     // If there are multiple terms, each field-scoped term must have at least one match
                     { "title:foo description:bar title:baz", "+title:(foo baz) +description:bar" },
-                    { "title:foo bar", "+title:foo bar" },
+                    { "title:foo bar", "+title:foo +bar*" },
                     { "title:foo unknown:bar", "title:foo" },
 
                     // If there are non-field-scoped terms and no field-scoped terms, at least of one the non-field-scoped terms is required.
                     // If there are no field-scoped terms, results that prefix match the last term are boosted
                     // Results that match all terms are boosted.
                     // Results that match all terms after tokenization are boosted.
-                    { "foo", "foo tokenizedPackageId:foo*^20" },
-                    { "foobar", "foobar tokenizedPackageId:foobar*" },
-                    { "foo bar", "foo bar (+foo +bar)^2 tokenizedPackageId:bar*^20" },
-                    { "foo.bar baz.qux", "foo.bar baz.qux (+foo.bar +baz.qux)^2 (+foo +bar +baz +qux)^2 packageId:baz.qux*^20" },
+                    { "foo", "+foo*" },
+                    { "foobar", "+foobar* foobar^2" },
+                    { "foo bar", "+foo +bar*" },
+                    { "foo.bar baz.qux", "+foo +bar +baz +qux*" },
                     { "id packageId VERSION Title description tag author summary owner owners",
-                        "id packageId VERSION Title description tag author summary owner owners " +
-                        "(+id +packageId +VERSION +Title +description +tag +author +summary +owner +owners)^2 " +
-                        "(+id +package +Id +VERSION +Title +description +tag +author +summary +owner +owners)^2 tokenizedPackageId:owners*" },
+                        "+id +(packageid (+package +Id)) packageid^2 +version version^2 +title title^2 +description description^2 +tag +author author^2 +summary summary^2 +owner owner^2 +owners* owners^2" },
 
                     // If there is a single non-field-scoped term that is a valid package ID and has separator
                     // characters, boost results that match all tokens, boost results that prefix match the last token,
                     // and mega boost the exact match.
-                    { "foo.bar", "foo.bar (+foo +bar)^2 packageId:foo.bar*^20 packageId:foo.bar^1000" },
-                    { "foo_bar", "foo_bar (+foo +bar)^2 packageId:foo_bar*^20 packageId:foo_bar^1000" },
-                    { "foo-bar", @"foo\-bar (+foo +bar)^2 packageId:foo\-bar*^20 packageId:foo\-bar^1000" },
-                    { "  foo.bar.Baz   ", "foo.bar.Baz (+foo +bar +Baz)^2 packageId:foo.bar.Baz*^20 packageId:foo.bar.Baz^1000" },
-                    { @"""foo.bar""", @"foo.bar (+foo +bar)^2 packageId:foo.bar*^20 packageId:foo.bar^1000" },
-                    { @"""foo-bar""", @"foo\-bar (+foo +bar)^2 packageId:foo\-bar*^20 packageId:foo\-bar^1000" },
-                    { @"""foo_bar""", @"foo_bar (+foo +bar)^2 packageId:foo_bar*^20 packageId:foo_bar^1000" },
+                    { "foo.bar", "+foo +bar* packageId:foo.bar*^100 packageId:foo.bar^1000" },
+                    { "foo_bar", "+foo +bar* packageId:foo_bar*^100 packageId:foo_bar^1000" },
+                    { "foo-bar", @"+foo +bar* packageId:foo\-bar*^100 packageId:foo\-bar^1000" },
+                    { "  foo.bar.Baz   ", "+foo +bar +baz* packageId:foo.bar.Baz*^100 packageId:foo.bar.Baz^1000" },
+                    { @"""foo.bar""", @"+foo +bar* packageId:foo.bar*^100 packageId:foo.bar^1000" },
+                    { @"""foo-bar""", @"+foo +bar* packageId:foo\-bar*^100 packageId:foo\-bar^1000" },
+                    { @"""foo_bar""", @"+foo +bar* packageId:foo_bar*^100 packageId:foo_bar^1000" },
+
+                    // The last instance of a token should be prefixed
+                    { "a.b.a", "+b +a* packageId:a.b.a*^100 packageId:a.b.a^1000" },
 
                     // Boost results that match all tokens from unscoped terms in the query.
-                    { "foo.bar buzz", "foo.bar buzz (+foo.bar +buzz)^2 (+foo +bar +buzz)^2 tokenizedPackageId:buzz*" },
-                    { "foo_bar buzz", "foo_bar buzz (+foo_bar +buzz)^2 (+foo +bar +buzz)^2 tokenizedPackageId:buzz*" },
-                    { "foo-bar buzz", @"foo\-bar buzz (+foo\-bar +buzz)^2 (+foo +bar +buzz)^2 tokenizedPackageId:buzz*" },
-                    { "foo,bar, buzz", @"foo,bar, buzz (+foo,bar, +buzz)^2 (+foo +bar +buzz)^2 tokenizedPackageId:buzz*" },
-                    { "fooBar buzz", "fooBar buzz (+fooBar +buzz)^2 (+foo +Bar +buzz)^2 tokenizedPackageId:buzz*" },
-                    { "foo5 buzz", "foo5 buzz (+foo5 +buzz)^2 (+foo +5 +buzz)^2 tokenizedPackageId:buzz*" },
-                    { "FOO5 buzz", "FOO5 buzz (+FOO5 +buzz)^2 (+FOO +5 +buzz)^2 tokenizedPackageId:buzz*" },
-                    { "5FOO buzz", "5FOO buzz (+5FOO +buzz)^2 (+5 +FOO +buzz)^2 tokenizedPackageId:buzz*" },
-                    { "foo5foo", "foo5foo (+foo +5)^2 tokenizedPackageId:foo5foo*" },
-                    { "FOO5FOO", "FOO5FOO (+FOO +5)^2 tokenizedPackageId:FOO5FOO*" },
-                    { "fooFoo", "fooFoo (+foo +Foo)^2 tokenizedPackageId:fooFoo*" },
-                    { "FOOFoo", "FOOFoo tokenizedPackageId:FOOFoo*" },
+                    { "foo.bar buzz", "+foo +bar +buzz* buzz^2" },
+                    { "foo_bar buzz", "+foo +bar +buzz* buzz^2" },
+                    { "foo-bar buzz", "+foo +bar +buzz* buzz^2" },
+                    { "foo,bar, buzz", "+foo +bar +buzz* buzz^2" },
+                    { "fooBar", "+(foobar* (+foo +Bar)) foobar^2" },
+                    { "fooBar.", "+(foobar* (+foo +Bar)) foobar^2 packageId:fooBar.*^100" },
+                    { "fooBar buzz", "+(foobar (+foo +Bar)) foobar^2 +buzz* buzz^2" },
+                    { "foo5", "+(foo5* (+foo +5)) foo5^2" },
+                    { "foo5 buzz", "+(foo5 (+foo +5)) foo5^2 +buzz* buzz^2" },
+                    { "FOO5 buzz", "+(foo5 (+FOO +5)) foo5^2 +buzz* buzz^2" },
+                    { "5FOO buzz", "+(5foo (+5 +FOO)) 5foo^2 +buzz* buzz^2" },
+                    { "foo5foo", "+(foo5foo* (+foo +5)) foo5foo^2" },
+                    { "FOO5FOO", "+(foo5foo* (+FOO +5)) foo5foo^2" },
+                    { "fooFoo", "+foofoo* foofoo^2" },
+                    { "FOOFoo", "+foofoo* foofoo^2" },
 
                     // Phrases are supported in queries
-                    { @"""foo bar""", @"""foo bar"" tokenizedPackageId:foo\ bar*" },
-                    { @"""foo bar"" baz", @"""foo bar"" baz (+""foo bar"" +baz)^2 tokenizedPackageId:baz*^20" },
+                    { @"""foo bar""", @"+foo\ bar* ""foo bar""^2" },
+                    { @"""foo bar"" baz", @"+""foo bar"" ""foo bar""^2 +baz*" },
                     { @"title:""foo bar""", @"title:""foo bar""" },
-                    { @"title:""a b"" c title:d f", @"+title:(""a b"" d) c f (+c +f)^2" },
+                    { @"title:""a b"" c title:d f", @"+title:(""a b"" d) +c +f*" },
                     { @"title:"" a b    c   """, @"title:""a b    c""" },
 
                     // Dangling quotes are handled with best effort
                     { @"Tags:""windows", "tags:windows" },
-                    { @"json Tags:""net"" Tags:""windows sdk", @"+tags:(net windows sdk) json" },
-                    { @"json Tags:""net Tags:""windows sdk""", @"+tags:(net Tags\:) json windows sdk (+json +windows +sdk)^2" },
-                    { @"sdk Tags:""windows", "+tags:windows sdk" },
+                    { @"json Tags:""net"" Tags:""windows sdk", @"+tags:(net windows sdk) +json* json^2" },
+                    { @"json Tags:""net Tags:""windows sdk""", @"+tags:(net Tags\:) +json json^2 +windows windows^2 +sdk*" },
+                    { @"sdk Tags:""windows", "+tags:windows +sdk*" },
                     { @"Tags:""windows sdk", "tags:(windows sdk)" },
-                    { @"Tags:""""windows""", "windows tokenizedPackageId:windows*" },
+                    { @"Tags:""""windows""", "+windows* windows^2" },
 
                     // Empty quotes are ignored
                     { @"Tags:""""", @"*" },
                     { @"Tags:"" """, @"*" },
                     { @"Tags:""      """, @"*" },
-                    { @"windows Tags:""      """, @"windows tokenizedPackageId:windows*" },
-                    { @"windows Tags:""      "" Tags:sdk", @"+tags:sdk windows" },
+                    { @"windows Tags:""      """, @"+windows* windows^2" },
+                    { @"windows Tags:""      "" Tags:sdk", @"+tags:sdk +windows* windows^2" },
 
                     // Duplicate search terms on the same query field are folded
-                    { "a a", "a tokenizedPackageId:a*^20" },
+                    { "a a", "+a*" },
                     { "title:a title:a", "title:a" },
                     { "tag:a tags:a", "tags:a" },
                     { "tags:a,a", "tags:a" },
 
                     // Single word query terms are unquoted.
-                    { @"""a""", "a tokenizedPackageId:a*^20" },
+                    { @"""a""", "+a*" },
                     { @"title:""a""", "title:a" },
 
                     // Lucene keywords are removed unless quoted with other terms
@@ -393,16 +397,16 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { @"""OR""", @"*" },
                     { @"""NOT""", @"*" },
                     { @"""AND"" ""OR"" ""NOT""", @"*" },
-                    { @"""AND OR NOT""", @"""AND OR NOT"" tokenizedPackageId:AND\ OR\ NOT*" },
-                    { @"""AND OR""", @"""AND OR"" tokenizedPackageId:AND\ OR*" },
-                    { @"""OR NOT""", @"""OR NOT"" tokenizedPackageId:OR\ NOT*" },
-                    { @"""AND NOT""", @"""AND NOT"" tokenizedPackageId:AND\ NOT*" },
-                    { @""" AND""", @""" AND"" tokenizedPackageId:AND*" },
-                    { @""" OR """, @""" OR "" tokenizedPackageId:OR*" },
-                    { @"""NOT """, @"""NOT "" tokenizedPackageId:NOT*" },
-                    { @"hello AND world", @"hello world (+hello +world)^2 tokenizedPackageId:world*" },
-                    { @"hello OR world", @"hello world (+hello +world)^2 tokenizedPackageId:world*" },
-                    { @"hello NOT world", @"hello world (+hello +world)^2 tokenizedPackageId:world*" },
+                    { @"""AND OR NOT""", @"+and\ or\ not* ""and or not""^2" },
+                    { @"""AND OR""", @"+and\ or* ""and or""^2" },
+                    { @"""OR NOT""", @"+or\ not* ""or not""^2" },
+                    { @"""AND NOT""", @"+and\ not* ""and not""^2" },
+                    { @""" AND""", @"+and* and^2" },
+                    { @""" OR """, @"+or* or^2" },
+                    { @"""NOT """, @"+not* not^2" },
+                    { @"hello AND world", @"+hello hello^2 +world* world^2" },
+                    { @"hello OR world", @"+hello hello^2 +world* world^2" },
+                    { @"hello NOT world", @"+hello hello^2 +world* world^2" },
                     { @"title:""hello AND world""", @"title:""hello AND world""" },
                     { @"title:""hello OR world""", @"title:""hello OR world""" },
                     { @"title:""hello NOT world""", @"title:""hello NOT world""" },
@@ -426,17 +430,14 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { @"title:/ description:""/""", @"+title:\/ +description:\/" },
                     { @"title:"":""", @"title:\:" },
 
-                    { @"+ - & | ! ( ) { } [ ] ~ * ? \ / "":""",
-                        @"\+ \- \& \| \! \( \) \{ \} \[ \] \~ \* \? \\ \/ \: " +
-                        @"(+\+ +\- +\& +\| +\! +\( +\) +\{ +\} +\[ +\] +\~ +\* +\? +\\ +\/ +\:)^2 tokenizedPackageId:\:*^20"},
+                    { @"+ - & | ! ( ) { } [ ] ~ * ? \ / "":""", @"\+ \- \& \| \! \( \) \{ \} \[ \] \~ \* \? \\ \/ \:"},
 
                     // Unicode surrogate pairs
-                    { "A𠈓C", "A𠈓C tokenizedPackageId:A𠈓C*" },
+                    { "A𠈓C", "+a𠈓c* a𠈓c^2" },
                     { "packageId:A𠈓C", "packageId:A𠈓C" },
-                    { @"""A𠈓C"" packageId:""A𠈓C""", "+packageId:A𠈓C A𠈓C" },
-                    { @"(𠈓) packageId:(𠈓)", @"+packageId:\(𠈓\) \(𠈓\)" },
-                    { "A𠈓C packageId:A𠈓C A𠈓C packageId:A𠈓C hello packageId:hello",
-                        "+packageId:(A𠈓C hello) A𠈓C hello (+A𠈓C +hello)^2" },
+                    { @"""A𠈓C"" packageId:""A𠈓C""", "+packageId:A𠈓C +a𠈓c* a𠈓c^2" },
+                    { @"(𠈓) packageId:(𠈓)", @"+packageId:\(𠈓\) +\(𠈓\)* \(𠈓\)^2" },
+                    { "A𠈓C packageId:A𠈓C A𠈓C packageId:A𠈓C hello packageId:hello", "+packageId:(A𠈓C hello) +a𠈓c a𠈓c^2 +hello* hello^2" },
                 };
 
                 foreach (var datum in data)

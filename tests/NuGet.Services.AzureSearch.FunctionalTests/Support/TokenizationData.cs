@@ -94,7 +94,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             { "foo2bar", new[] { "foo2bar", "foo", "2", "bar" } },
             { "HTML", new[] { "html"} },
             { "HTMLThing", new[] { "htmlthing" } },
-            { "HTMLThingA", new[] { "htmlthinga", "htmlthing", "a" } },
+            { "HTMLThingA", new[] { "htmlthinga", "htmlthing" } },
             { "HelloWorld𠈓Foo", new[] { "helloworld𠈓foo", "hello", "world𠈓foo" } },
         });
 
@@ -114,6 +114,13 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
                 new[]
                 {
                     "once", "upon", "time", "little", "test", "case"
+                }
+            },
+            {
+                "ONCE UPON A TIME, THERE WAS A YELLING TEST-CASE!",
+                new[]
+                {
+                    "once", "upon", "time", "yelling", "test", "case"
                 }
             }
         });
