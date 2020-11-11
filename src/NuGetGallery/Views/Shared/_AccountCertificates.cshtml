@@ -90,7 +90,7 @@
                         </thead>
                         <tbody data-bind="foreach: $data.certificates">
                             <tr class="manage-certificate-listing" role="listitem">
-                                <td><samp class="small-fingerprint" data-bind="text: Thumbprint"></samp></td>
+                                <td><samp class="small-fingerprint break-word" data-bind="text: Thumbprint"></samp></td>
                                 <td data-bind="text: ShortSubject, attr: { title: Subject }"></td>
                                 <td data-bind="text: ExpirationDisplay, attr: {
                                     title: IsExpired ? 'This certificate\'s expiration date is in the past. Future packages signed with this certificate will fail validation. Upload a renewed certificate to enable signed package uploads.' : ExpirationIso,

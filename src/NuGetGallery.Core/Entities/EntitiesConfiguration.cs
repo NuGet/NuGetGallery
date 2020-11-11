@@ -4,13 +4,16 @@
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.SqlServer;
+#if NETFRAMEWORK
 using System.Runtime.Remoting.Messaging;
+#endif
 
 namespace NuGetGallery
 {
     public class EntitiesConfiguration
         : DbConfiguration
     {
+#if NETFRAMEWORK
         public EntitiesConfiguration()
         {
             // Configure Connection Resiliency / Retry Logic
@@ -30,5 +33,13 @@ namespace NuGetGallery
                 CallContext.LogicalSetData("SuspendExecutionStrategy", value);
             }
         }
+#else
+        public EntitiesConfiguration()
+        {
+            // Configure Connection Resiliency / Retry Logic
+            // See https://msdn.microsoft.com/en-us/data/dn456835.aspx and msdn.microsoft.com/en-us/data/dn307226
+            SetExecutionStrategy("System.Data.SqlClient", () => new SqlAzureExecutionStrategy());
+        }
+#endif
     }
 }

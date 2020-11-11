@@ -39,7 +39,7 @@ namespace NuGetGallery
 
             return new BlobResultSegmentWrapper(segment);
         }
-
+        
         public Task CreateIfNotExistAsync(BlobContainerPermissions permissions)
         {
             var publicAccess = permissions?.PublicAccess;
@@ -52,11 +52,9 @@ namespace NuGetGallery
             return _blobContainer.CreateIfNotExistsAsync();
         }
 
-        public Task SetPermissionsAsync(BlobContainerPermissions permissions)
+        public async Task SetPermissionsAsync(BlobContainerPermissions permissions)
         {
-            return Task.Factory.FromAsync(
-                _blobContainer.BeginSetPermissions(permissions, null, null),
-                _blobContainer.EndSetPermissions);
+            await _blobContainer.SetPermissionsAsync(permissions);
         }
 
         public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
@@ -64,9 +62,9 @@ namespace NuGetGallery
             return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobAddressUri));
         }
 
-        public Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions, OperationContext context)
+        public async Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions, OperationContext context)
         {
-            return _blobContainer.ExistsAsync(blobRequestOptions, context);
+            return await _blobContainer.ExistsAsync(blobRequestOptions, context);
         }
 
         public async Task<bool> DeleteIfExistsAsync()
