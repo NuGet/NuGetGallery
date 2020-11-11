@@ -39,10 +39,17 @@ namespace NuGetGallery
 
             return new BlobResultSegmentWrapper(segment);
         }
-
-        public async Task CreateIfNotExistAsync()
+        
+        public Task CreateIfNotExistAsync(BlobContainerPermissions permissions)
         {
-            await _blobContainer.CreateIfNotExistsAsync();
+            var publicAccess = permissions?.PublicAccess;
+
+            if (publicAccess.HasValue)
+            {
+                return _blobContainer.CreateIfNotExistsAsync(publicAccess.Value, options: null, operationContext: null);
+            }
+
+            return _blobContainer.CreateIfNotExistsAsync();
         }
 
         public async Task SetPermissionsAsync(BlobContainerPermissions permissions)
@@ -65,9 +72,18 @@ namespace NuGetGallery
             return await _blobContainer.DeleteIfExistsAsync();
         }
 
-        public async Task CreateAsync()
+        public async Task CreateAsync(BlobContainerPermissions permissions)
         {
-            await _blobContainer.CreateAsync();
+            var publicAccess = permissions?.PublicAccess;
+
+            if (publicAccess.HasValue)
+            {
+                await _blobContainer.CreateAsync(publicAccess.Value, options: null, operationContext: null);
+            }
+            else
+            {
+                await _blobContainer.CreateAsync();
+            }
         }
     }
 }
