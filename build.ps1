@@ -90,6 +90,9 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
         (Join-Path $PSScriptRoot "src\VerifyMicrosoftPackage\Properties\AssemblyInfo.g.cs")
 
     Foreach ($Path in $Paths) {
+        # Ensure the directory exists before generating the version info file.
+        $directory = Split-Path $Path
+        New-Item -ItemType Directory -Force -Path $directory | Out-Null
         Set-VersionInfo -Path $Path -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
     }
 } `
