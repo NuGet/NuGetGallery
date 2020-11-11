@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
     <Description>Shared configuration management NuGet services.</Description>
   </PropertyGroup>
 
@@ -25,10 +25,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.ComponentModel.DataAnnotations" />
   </ItemGroup>
 
 </Project>

@@ -93,7 +93,6 @@ namespace NuGet.Services.Build
 
                 if (!uniqueFullPaths.Add(fullPath))
                 {
-                    Log.LogWarning("File path '{0}' is associated with multiple items. Only the first will be used.", item.ItemSpec);
                     continue;
                 }
 

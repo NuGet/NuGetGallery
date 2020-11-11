@@ -16,9 +16,14 @@
 
   <Target Name="BatchSign">
     <Message Text="Projects considered:%0A@(_ProjectsToSign, '%0a')" Importance="High" />
+    <ItemGroup>
+      <SignTargetFramework Include="net472" />
+      <SignTargetFramework Include="netstandard2.0" />
+      <SignTargetFramework Include="netstandard2.1" />
+    </ItemGroup>
     <MSBuild
       Projects="@(_ProjectsToSign)"
-      Properties="SkipEnumerateFilesToSign=false"
+      Properties="SkipEnumerateFilesToSign=false;TargetFramework=%(SignTargetFramework.Identity)"
       Targets="EnumerateFilesToSign">
       <Output
           TaskParameter="TargetOutputs"

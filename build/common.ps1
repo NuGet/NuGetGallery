@@ -745,7 +745,9 @@ Function New-WebAppPackage {
         [string]$TargetProfile,
         [string]$Configuration,
         [string]$BuildNumber,
-        [string]$MSBuildVersion = $DefaultMSBuildVersion
+        [string]$MSBuildVersion = $DefaultMSBuildVersion,
+        [bool]$PackageAsSingleFile=$true,
+        [string]$SignType
     )
     Trace-Log "Creating web app package from @""$TargetFilePath"""
     
@@ -758,9 +760,10 @@ Function New-WebAppPackage {
     $opts += "/p:BuildNumber=$(Format-BuildNumber $BuildNumber)"
     $opts += "/p:DeployOnBuild=true"
     $opts += "/p:WebPublishMethod=Package"
-    $opts += "/p:PackageAsSingleFile=true"
+    $opts += "/p:PackageAsSingleFile=" + $PackageAsSingleFile.ToString().ToLower()
     $opts += "/p:PackageLocation=$Artifacts"
     $opts += "/p:BatchSign=false"
+    if ($SignType) { $opts += "/p:SignType=$SignType" }
     
     if (-not (Test-Path $Artifacts)) {
         New-Item $Artifacts -Type Directory
