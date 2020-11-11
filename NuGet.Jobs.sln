@@ -22,11 +22,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unclassified", "Unclassifie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchivePackages", "src\ArchivePackages\ArchivePackages.csproj", "{A08F0185-4DA3-4D5B-BF0C-B178596D5789}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6078A997-EDEF-4F84-9E9C-163EB1E7454D}"
-	ProjectSection(SolutionItems) = preProject
-		Local.testsettings = Local.testsettings
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata.Catalog", "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", "{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogTests", "tests\CatalogTests\CatalogTests.csproj", "{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}"
@@ -191,9 +186,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SplitLargeFiles.Tests", "te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "V3", "V3", "{0A4A2A3F-8887-431E-B1B3-E9DF9B155BA6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{78A1B3B1-3B33-49EC-8F56-C97493676BEB}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{64E5E223-C98F-4DFC-B09E-B86E65717FC7}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		sign.thirdparty.props = sign.thirdparty.props
 	EndProjectSection
 EndProject
 Global
@@ -525,7 +522,6 @@ Global
 		{97E23323-BA7A-48F0-A578-858B82B6D8FB} = {0A4A2A3F-8887-431E-B1B3-E9DF9B155BA6}
 		{5DE01C58-D5F7-482F-8256-A8333064384C} = {0A4A2A3F-8887-431E-B1B3-E9DF9B155BA6}
 		{A08F0185-4DA3-4D5B-BF0C-B178596D5789} = {FA5644B5-4F08-43F6-86B3-039374312A47}
-		{6078A997-EDEF-4F84-9E9C-163EB1E7454D} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{E97F23B8-ECB0-4AFA-B00C-015C39395FEF} = {5DE01C58-D5F7-482F-8256-A8333064384C}
 		{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{5234D86F-2C0E-4181-AAB7-BBDA3253B4E1} = {C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}

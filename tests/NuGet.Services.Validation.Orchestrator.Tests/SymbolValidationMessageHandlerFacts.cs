@@ -220,6 +220,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public int DeliveryCount { get; private set; }
 
             public string GetBody() => _inner.GetBody();
+            public Stream GetBody<Stream>() => _inner.GetBody<Stream>();
             public IDictionary<string, object> Properties => _inner.Properties;
 
             public DateTimeOffset ScheduledEnqueueTimeUtc { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
