@@ -1,13 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <Import Project="..\..\Common.props" />
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
-    
     <RootNamespace>NuGetGallery</RootNamespace>
-
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <Description>Core support library for NuGet Gallery Frontend and Backend</Description>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
@@ -37,11 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MicroBuild.Core">
-      <Version>0.3.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="NuGet.Packaging">
       <Version>5.8.0-preview.3.6823</Version>
     </PackageReference>
@@ -92,14 +85,5 @@
       <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
-  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
 
 </Project>
