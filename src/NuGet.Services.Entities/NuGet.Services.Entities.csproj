@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
-    <Description>EntityFramework models and associated extension methods for NuGetGallery.</Description>
+    <Description>Entities used for NuGet services</Description>
   </PropertyGroup>
 
   <ItemGroup>
