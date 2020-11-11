@@ -7,7 +7,6 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Markdig.Extensions.Tables;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -98,7 +97,12 @@ namespace NuGetGallery
 
         public async Task SnapshotAsync(CancellationToken token)
         {
-            await _blob.SnapshotAsync(token);
+            await _blob.SnapshotAsync(
+                metadata: null,
+                accessCondition: null,
+                options: null,
+                operationContext: null,
+                token);
         }
 
         public async Task SetPropertiesAsync()
