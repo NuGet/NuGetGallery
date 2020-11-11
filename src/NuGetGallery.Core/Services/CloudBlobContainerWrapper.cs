@@ -44,19 +44,12 @@ namespace NuGetGallery
         {
             var publicAccess = permissions?.PublicAccess;
 
-            ICancellableAsyncResult beginCreateIfNotExistsResult;
             if (publicAccess.HasValue)
             {
-                beginCreateIfNotExistsResult = _blobContainer.BeginCreateIfNotExists(publicAccess.Value, null, null, null, null);
-            }
-            else
-            {
-                beginCreateIfNotExistsResult = _blobContainer.BeginCreateIfNotExists(null, null);
+                return _blobContainer.CreateIfNotExistsAsync(publicAccess.Value, options: null, operationContext: null);
             }
 
-            return Task.Factory.FromAsync<bool>(
-                beginCreateIfNotExistsResult,
-                _blobContainer.EndCreateIfNotExists);
+            return _blobContainer.CreateIfNotExistsAsync();
         }
 
         public Task SetPermissionsAsync(BlobContainerPermissions permissions)
@@ -87,7 +80,7 @@ namespace NuGetGallery
 
             if (publicAccess.HasValue)
             {
-                await _blobContainer.CreateAsync(publicAccess.Value, null, null);
+                await _blobContainer.CreateAsync(publicAccess.Value, options: null, operationContext: null);
             }
             else
             {
