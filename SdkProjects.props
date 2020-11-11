@@ -1,4 +1,8 @@
 <Project>
+  <!--
+  These properties are only meant for projects using the newer SDK-based project style. Properties that are meant for
+  all projects (both legacy .csproj and SDK-based .csproj) should be put in Directory.Build.props.
+  -->
   <PropertyGroup>
     <Authors>.NET Foundation</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

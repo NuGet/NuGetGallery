@@ -40,14 +40,14 @@ namespace NuGetGallery
             return new BlobResultSegmentWrapper(segment);
         }
 
-        public Task CreateIfNotExistAsync()
+        public async Task CreateIfNotExistAsync()
         {
-            return _blobContainer.CreateIfNotExistsAsync();
+            await _blobContainer.CreateIfNotExistsAsync();
         }
 
-        public Task SetPermissionsAsync(BlobContainerPermissions permissions)
+        public async Task SetPermissionsAsync(BlobContainerPermissions permissions)
         {
-            return _blobContainer.SetPermissionsAsync(permissions);
+            await _blobContainer.SetPermissionsAsync(permissions);
         }
 
         public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
@@ -55,9 +55,9 @@ namespace NuGetGallery
             return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobAddressUri));
         }
 
-        public Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions, OperationContext context)
+        public async Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions, OperationContext context)
         {
-            return _blobContainer.ExistsAsync(blobRequestOptions, context);
+            return await _blobContainer.ExistsAsync(blobRequestOptions, context);
         }
 
         public async Task<bool> DeleteIfExistsAsync()
