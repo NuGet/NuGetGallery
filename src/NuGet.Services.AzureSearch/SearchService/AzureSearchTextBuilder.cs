@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,11 +10,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public partial class SearchTextBuilder
     {
-        private enum TermPrefix
+        private enum Operator
         {
             None, // Default Lucene behavior, essentially "OR"
-            And, // "AND" / "&&" / "+"
-            Not, // "NOT" / "!" / "-"
+            Required, // "+" operator
+            Prohibit, // "-" operator
         }
 
         /// <summary>
@@ -61,64 +62,79 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             /// <summary>
-            /// Appends the provided value as-is, without any escaping, prefixing or suffixing.
+            /// Append a phrase that matches all values for the provided field.
             /// </summary>
-            /// <param name="value">The value to append</param>
-            public void AppendVerbatim(string value)
+            /// <param name="fieldName">The name of the field to match on.</param>
+            public void AppendMatchAll(string fieldName)
             {
-                _result.Append(value);
+                _result.Append(fieldName);
+                _result.Append(":/.*/");
             }
 
             /// <summary>
-            /// Append search terms to the query. These terms may match any field.
+            /// Append a phase requiring at least one of the provided term sets. There must be at least two items in
+            /// <paramref name="alternatives"/> and each alternative must have at least one option. If the alternatives
+            /// are: <code>[ ['ab'], ['a', 'b'] ]</code>, then matched documents must have 'ab' OR both 'a' and 'b'.
+            /// A document with just 'a' and not 'b' (or vice versa) would not match.
             /// </summary>
-            /// <param name="terms">The terms to append to the search query.</param>
-            public void AppendTerms(IReadOnlyList<string> terms)
+            /// <param name="alternatives">The array of alternatives where each collection includes one or more options.</param>
+            /// <param name="prefixSearchSingleOptions">Whether or not perform a prefix search on alternatives with a single option.</param>
+            public void AppendRequiredAlternatives(ICollection<string>[] alternatives, bool prefixSearchSingleOptions)
             {
-                ValidateAdditionalClausesOrThrow(terms.Count);
-                ValidateTermsOrThrow(terms);
+                if (alternatives.Any(x => !x.Any()))
+                {
+                    throw new ArgumentException(
+                        "Each alternative must have at least one option.",
+                        nameof(alternatives));
+                }
+
+                if (alternatives.Length < 2)
+                {
+                    throw new ArgumentException(
+                        "There must be at least two alternatives provided.",
+                        nameof(alternatives));
+                }
 
                 AppendSpaceIfNotEmpty();
 
-                for (var i = 0; i < terms.Count; i++)
+                _result.Append("+(");
+                
+                for (int i = 0; i < alternatives.Length; i++)
                 {
                     if (i > 0)
                     {
                         _result.Append(' ');
                     }
 
-                    AppendEscapedString(terms[i], quoteWhiteSpace: true);
-                }
-            }
-
-            /// <summary>
-            /// Append a clause to boost results that match all terms.
-            /// </summary>
-            /// <param name="terms">All terms that must be matched.</param>
-            /// <param name="boost">The boost for results that match all terms.</param>
-            public void AppendBoostIfMatchAllTerms(IReadOnlyList<string> terms, float boost)
-            {
-                // We will generate a clause for each term and a clause to OR terms together.
-                ValidateAdditionalClausesOrThrow(terms.Count + 1);
-                ValidateTermsOrThrow(terms);
-
-                AppendSpaceIfNotEmpty();
-
-                _result.Append('(');
-
-                for (var i = 0; i < terms.Count; i++)
-                {
-                    if (i > 0)
+                    var alternative = alternatives[i];
+                    if (alternative.Count < 2)
                     {
-                        _result.Append(' ');
+                        AppendEscapedString(alternative.Single(), quoteWhiteSpace: false);
+                        if (prefixSearchSingleOptions)
+                        {
+                            _result.Append('*');
+                        }
                     }
+                    else
+                    {
+                        _result.Append('(');
+                        var counter = 0;
+                        foreach (var option in alternative)
+                        {
+                            if (counter > 0)
+                            {
+                                _result.Append(' ');
+                            }
 
-                    _result.Append('+');
-                    AppendEscapedString(terms[i], quoteWhiteSpace: true);
+                            _result.Append('+');
+                            AppendEscapedString(option, quoteWhiteSpace: false);
+                            counter++;
+                        }
+                        _result.Append(')');
+                    }
                 }
 
-                _result.Append(")^");
-                _result.Append(boost);
+                _result.Append(')');
             }
 
             /// <summary>
@@ -150,10 +166,10 @@ namespace NuGet.Services.AzureSearch.SearchService
             /// <param name="required">Whether search results MUST match this term.</param>
             /// <param name="prefixSearch">Whether prefix matches are allowed.</param>
             /// <param name="boost">The boost to results that match this term.</param>
-            public void AppendScopedTerm(
+            public void AppendTerm(
                 string fieldName,
                 string term,
-                TermPrefix prefix = TermPrefix.None,
+                Operator op = Operator.None,
                 bool prefixSearch = false,
                 double boost = 1.0)
             {
@@ -163,18 +179,21 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 AppendSpaceIfNotEmpty();
 
-                switch (prefix)
+                switch (op)
                 {
-                    case TermPrefix.And:
+                    case Operator.Required:
                         _result.Append('+');
                         break;
-                    case TermPrefix.Not:
+                    case Operator.Prohibit:
                         _result.Append('-');
                         break;
                 }
 
-                _result.Append(fieldName);
-                _result.Append(':');
+                if (fieldName != null)
+                {
+                    _result.Append(fieldName);
+                    _result.Append(':');
+                }
 
                 // Don't escape whitespace with quotes if this is prefix matching.
                 AppendEscapedString(term.Trim(), quoteWhiteSpace: !prefixSearch);
@@ -194,7 +213,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             /// <summary>
             /// Append search terms to the query that are scoped to a specified field.
             /// This generates queries like "field:(value1 value2)". Unlike
-            /// <see cref="AppendScopedTerm"/>, this doesn't support prefix matches.
+            /// <see cref="AppendTerm"/>, this doesn't support prefix matches.
             /// </summary>
             /// <param name="fieldName">The field that should match the terms.</param>
             /// <param name="terms">The terms to search</param>

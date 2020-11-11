@@ -291,9 +291,9 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
         }
 
         [Theory]
-        [InlineData("DOTnettOoL", "DotnetTool", Constants.TestPackageId_PackageType)]
-        [InlineData("depenDENCY", "Dependency", Constants.TestPackageId)]
-        public async Task TreatsPackageTypeAsCaseInsensitive(string packageTypeQuery, string expected, string id)
+        [InlineData("DOTnettOoL", Constants.TestPackageId_PackageType)]
+        [InlineData("depenDENCY", Constants.TestPackageId)]
+        public async Task TreatsPackageTypeAsCaseInsensitive(string packageTypeQuery, string id)
         {
             var searchBuilder = new V2SearchBuilder
             {
