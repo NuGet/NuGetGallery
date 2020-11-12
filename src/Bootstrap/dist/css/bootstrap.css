@@ -1751,7 +1751,7 @@ th {
 }
 .table-responsive {
   min-height: 0.01%;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 @media screen and (max-width: 767px) {
   .table-responsive {
