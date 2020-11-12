@@ -144,7 +144,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string blobName = GetName(resourceUri);
             CloudBlockBlob blob = GetBlockBlobReference(blobName);
 
-            await blob.FetchAttributesAsync(cancellationToken);
+            await blob.FetchAttributesAsync(
+                accessCondition: null,
+                options: null,
+                operationContext: null,
+                cancellationToken: cancellationToken);
 
             return new OptimisticConcurrencyControlToken(blob.Properties.ETag);
         }
@@ -287,7 +291,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 using (Stream stream = content.GetContentStream())
                 {
-                    await blob.UploadFromStreamAsync(stream, cancellationToken);
+                    await blob.UploadFromStreamAsync(
+                        stream,
+                        accessCondition: null,
+                        options: null,
+                        operationContext: null,
+                        cancellationToken: cancellationToken);
                 }
 
                 Trace.WriteLine(string.Format("Saved uncompressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
@@ -351,7 +360,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                 using (var originalStream = new MemoryStream())
                 {
-                    await blob.DownloadToStreamAsync(originalStream, cancellationToken);
+                    await blob.DownloadToStreamAsync(
+                        originalStream,
+                        accessCondition: null,
+                        options: null,
+                        operationContext: null,
+                        cancellationToken: cancellationToken);
 
                     originalStream.Seek(0, SeekOrigin.Begin);
 

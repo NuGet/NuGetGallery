@@ -122,6 +122,7 @@ namespace NuGet.Services.AzureSearch
                 })
                 .Keyed<CloudStorageAccount>(key);
 
+#if NETFRAMEWORK
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
@@ -140,6 +141,7 @@ namespace NuGet.Services.AzureSearch
                         throttle: NullThrottle.Instance);
                 })
                 .Keyed<IStorageFactory>(key);
+#endif
 
             containerBuilder
                 .Register<IBlobContainerBuilder>(c => new BlobContainerBuilder(
@@ -246,7 +248,7 @@ namespace NuGet.Services.AzureSearch
                     var client = new SearchServiceClient(
                         options.Value.SearchServiceName,
                         new SearchCredentials(options.Value.SearchServiceApiKey),
-                        new WebRequestHandler(),
+                        new HttpClientHandler(),
                         GetSearchDelegatingHandlers(p.GetRequiredService<ILoggerFactory>()));
 
                     client.SetRetryPolicy(GetSearchRetryPolicy());

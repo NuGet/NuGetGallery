@@ -3,7 +3,7 @@
   <Import Project="..\..\SdkProjects.props" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
     <Description>Push NuGetGallery DB packages or catalog leaves to Azure Search.</Description>
     <PackageTags>nuget azure search catalog leaf details incremental collector</PackageTags>
   </PropertyGroup>

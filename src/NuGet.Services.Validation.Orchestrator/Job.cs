@@ -213,9 +213,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 var assemblyName = assembly.GetName().Name;
                 var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
 
-                var client = new HttpClient(new WebRequestHandler
+                var client = new HttpClient(new HttpClientHandler
                 {
-                    AllowPipelining = true,
                     AutomaticDecompression = (DecompressionMethods.GZip | DecompressionMethods.Deflate),
                 });
 

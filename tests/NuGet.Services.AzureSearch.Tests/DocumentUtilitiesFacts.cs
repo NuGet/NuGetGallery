@@ -3,12 +3,30 @@
 
 using System;
 using System.Linq;
+using System.Web;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch
 {
     public class DocumentUtilitiesFacts
     {
+        public class Base64UrlEncode
+        {
+            [Fact]
+            public void IsCompatibleWithHttpServerUtilityUrlTokenEncode()
+            {
+                var random = new Random(0);
+                for (var i = 0; i < 1_000_000; i++)
+                {
+                    var bytes = new byte[random.Next(0, 8) + 1];
+                    random.NextBytes(bytes);
+                    var expected = HttpServerUtility.UrlTokenEncode(bytes);
+                    var actual = DocumentUtilities.Base64UrlEncode(bytes);
+                    Assert.Equal(expected, actual);
+                }
+            }
+        }
+
         public class GetHijackDocumentKey
         {
             [Theory]

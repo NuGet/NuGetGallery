@@ -49,7 +49,8 @@ namespace CatalogTests.Persistence
         [Fact]
         public async Task FetchAttributesAsync_CallsUnderlyingMethod()
         {
-            _underlyingBlob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
+            _underlyingBlob
+                .Setup(x => x.FetchAttributesAsync(null, null, null, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(0));
 
             var blob = new AzureCloudBlockBlob(_underlyingBlob.Object);
@@ -77,7 +78,7 @@ namespace CatalogTests.Persistence
         {
             var expectedStream = new MemoryStream();
 
-            _underlyingBlob.Setup(x => x.OpenReadAsync(It.IsAny<CancellationToken>()))
+            _underlyingBlob.Setup(x => x.OpenReadAsync(null, null, null, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedStream);
 
             var blob = new AzureCloudBlockBlob(_underlyingBlob.Object);

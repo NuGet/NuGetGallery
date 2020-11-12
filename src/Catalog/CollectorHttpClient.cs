@@ -8,7 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+#if NETFRAMEWORK
 using VDS.RDF;
+#endif
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -18,12 +20,12 @@ namespace NuGet.Services.Metadata.Catalog
         private readonly IHttpRetryStrategy _retryStrategy;
 
         public CollectorHttpClient()
-            : this(new WebRequestHandler { AllowPipelining = true })
+            : this(handler: null)
         {
         }
 
         public CollectorHttpClient(HttpMessageHandler handler, IHttpRetryStrategy retryStrategy = null)
-            : base(handler ?? new WebRequestHandler { AllowPipelining = true })
+            : base(handler ?? new HttpClientHandler())
         {
             _requestCount = 0;
             _retryStrategy = retryStrategy ?? new RetryWithExponentialBackoff();
@@ -70,6 +72,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
+#if NETFRAMEWORK
         public virtual Task<IGraph> GetGraphAsync(Uri address)
         {
             return GetGraphAsync(address, readOnly: false, token: CancellationToken.None);
@@ -91,6 +94,7 @@ namespace NuGet.Services.Metadata.Catalog
                 }
             }, token);
         }
+#endif
 
         public virtual async Task<string> GetStringAsync(Uri address, CancellationToken token)
         {

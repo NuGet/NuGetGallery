@@ -3,7 +3,7 @@
   <Import Project="..\..\SdkProjects.props" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
     <Description>Common infrastructure for V3 back-end jobs, including catalog abstractions and dependency injection setup.</Description>
   </PropertyGroup>
 
