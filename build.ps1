@@ -149,6 +149,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj",
             "src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj",
             "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj",
+            "src\NuGet.Services.V3\NuGet.Services.V3.csproj",
             "src\Validation.Common.Job\Validation.Common.Job.csproj",
             "src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj",
             "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj"

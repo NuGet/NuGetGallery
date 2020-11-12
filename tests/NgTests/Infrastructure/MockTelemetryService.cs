@@ -40,10 +40,6 @@ namespace NgTests.Infrastructure
         {
         }
 
-        public void TrackHandlerFailedToProcessPackage(IPackagesContainerHandler handler, string packageId, NuGetVersion packageVersion)
-        {
-        }
-
         public void TrackPackageMissingHash(string packageId, NuGetVersion packageVersion)
         {
         }

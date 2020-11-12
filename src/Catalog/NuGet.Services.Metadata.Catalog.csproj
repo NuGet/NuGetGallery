@@ -1,253 +1,45 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Metadata.Catalog</RootNamespace>
-    <AssemblyName>NuGet.Services.Metadata.Catalog</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <RuntimeIdentifier>win</RuntimeIdentifier>
-  </PropertyGroup>
-  <PropertyGroup>
-    <Authors>.NET Foundation</Authors>
-    <PackageLicenseUrl>https://github.com/NuGet/NuGet.Services.Metadata/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/NuGet/NuGet.Services.Metadata</PackageProjectUrl>
+    <TargetFramework>net472</TargetFramework>
     <Description>Create, edit, or read the package metadata catalog.</Description>
     <PackageTags>nuget;services;search;catalog;metadata;collector</PackageTags>
-    <Copyright>Copyright .NET Foundation</Copyright>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.Services.Client" />
-    <Reference Include="System.IdentityModel" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.WebRequest" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Runtime.InteropServices.RuntimeInformation.4.0.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Security" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AggregateCursor.cs" />
-    <Compile Include="BatchProcessingException.cs" />
-    <Compile Include="CatalogCommit.cs" />
-    <Compile Include="CatalogCommitItemBatchTask.cs" />
-    <Compile Include="CatalogIndexEntry.cs" />
-    <Compile Include="CatalogIndexReader.cs" />
-    <Compile Include="CatalogTypeConverter.cs" />
-    <Compile Include="PackageVulnerabilityItem.cs" />
-    <Compile Include="Persistence\CloudBlockBlobClientWrapper.cs" />
-    <Compile Include="Persistence\CloudBlobDirectoryWrapper.cs" />
-    <Compile Include="CloudBlobStorageExtensions.cs" />
-    <Compile Include="CommitCollector.cs" />
-    <Compile Include="CatalogCommitItem.cs" />
-    <Compile Include="CatalogCommitItemBatch.cs" />
-    <Compile Include="CommitMetadata.cs" />
-    <Compile Include="CatalogCommitUtilities.cs" />
-    <Compile Include="Constants.cs" />
-    <Compile Include="CreateCommitItemBatchesAsync.cs" />
-    <Compile Include="Extensions\DateTimeExtensions.cs" />
-    <Compile Include="Extensions\DbDataReaderExtensions.cs" />
-    <Compile Include="FetchCatalogCommitsAsync.cs" />
-    <Compile Include="Dnx\DnxConstants.cs" />
-    <Compile Include="Dnx\DnxEntry.cs" />
-    <Compile Include="GetCatalogCommitItemKey.cs" />
-    <Compile Include="Helpers\AsyncExtensions.cs" />
-    <Compile Include="Helpers\CatalogWriterHelper.cs" />
-    <Compile Include="Helpers\Db2CatalogCursor.cs" />
-    <Compile Include="Helpers\Db2CatalogProjection.cs" />
-    <Compile Include="Extensions\IDataRecordExtensions.cs" />
-    <Compile Include="Helpers\Db2CatalogProjectionColumnNames.cs" />
-    <Compile Include="Helpers\GalleryDatabaseQueryService.cs" />
-    <Compile Include="Helpers\IGalleryDatabaseQueryService.cs" />
-    <Compile Include="Helpers\LicenseHelper.cs" />
-    <Compile Include="Helpers\PackageContentUriBuilder.cs" />
-    <Compile Include="Helpers\PackageUtility.cs" />
-    <Compile Include="Helpers\Retry.cs" />
-    <Compile Include="ICatalogIndexProcessor.cs" />
-    <Compile Include="Persistence\ICloudBlockBlobClient.cs" />
-    <Compile Include="Persistence\ICloudBlobDirectory.cs" />
-    <Compile Include="Icons\AttemptResult.cs" />
-    <Compile Include="Icons\CatalogLeafDataProcessor.cs" />
-    <Compile Include="Icons\ExternalIconContentProvider.cs" />
-    <Compile Include="Icons\ExternalIconCopyResult.cs" />
-    <Compile Include="Icons\HttpClientWrapper.cs" />
-    <Compile Include="Icons\ICatalogLeafDataProcessor.cs" />
-    <Compile Include="Icons\IconCopyResultCache.cs" />
-    <Compile Include="Icons\IconProcessor.cs" />
-    <Compile Include="Icons\IconsCollector.cs" />
-    <Compile Include="Icons\IExternalIconContentProvider.cs" />
-    <Compile Include="Icons\IHttpClient.cs" />
-    <Compile Include="Icons\IIconCopyResultCache.cs" />
-    <Compile Include="Icons\IIconCopyResultCachePersistence.cs" />
-    <Compile Include="Icons\IIconProcessor.cs" />
-    <Compile Include="Icons\TryGetResponseResult.cs" />
-    <Compile Include="IPackageCatalogItemCreator.cs" />
-    <Compile Include="IPackagesContainerHandler.cs" />
-    <Compile Include="IHttpRetryStrategy.cs" />
-    <Compile Include="PackageCatalogItemCreator.cs" />
-    <Compile Include="PackageDeprecationItem.cs" />
-    <Compile Include="PackageDownloader.cs" />
-    <Compile Include="Helpers\CatalogProperties.cs" />
-    <Compile Include="Helpers\DeletionAuditEntry.cs" />
-    <Compile Include="Helpers\FeedHelpers.cs" />
-    <Compile Include="Helpers\FeedPackageDetails.cs" />
-    <Compile Include="Helpers\FeedPackageIdentity.cs" />
-    <Compile Include="Helpers\ParallelAsync.cs" />
-    <Compile Include="Helpers\NuGetVersionUtility.cs" />
-    <Compile Include="Persistence\ByteArrayStorageContent.cs" />
-    <Compile Include="Persistence\AzureCloudBlockBlob.cs" />
-    <Compile Include="Persistence\DeleteRequestOptions.cs" />
-    <Compile Include="Persistence\IAzureStorage.cs" />
-    <Compile Include="Persistence\ICloudBlockBlob.cs" />
-    <Compile Include="Persistence\NamedStorageFactory.cs" />
-    <Compile Include="Persistence\OptimisticConcurrencyControlToken.cs" />
-    <Compile Include="Persistence\StorageConstants.cs" />
-    <Compile Include="Persistence\StringStorageContentWithAccessCondition.cs" />
-    <Compile Include="Persistence\StringStorageContentWithETag.cs" />
-    <Compile Include="ProcessCommitItemBatchAsync.cs" />
-    <Compile Include="ReadOnlyGraph.cs" />
-    <Compile Include="Persistence\StorageListItem.cs" />
-    <Compile Include="FlatContainerPackagePathProvider.cs" />
-    <Compile Include="PackagesContainerCatalogProcessor.cs" />
-    <Compile Include="SortingIdVersionCollector.cs" />
-    <Compile Include="StringInterner.cs" />
-    <Compile Include="Strings.Designer.cs">
-      <AutoGen>True</AutoGen>
+    <Compile Update="Strings.Designer.cs">
       <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Include="Telemetry\TelemetryHandler.cs" />
-    <Compile Include="Telemetry\ITelemetryService.cs" />
-    <Compile Include="Telemetry\TelemetryConstants.cs" />
-    <Compile Include="Telemetry\TelemetryService.cs" />
-    <Compile Include="TransientException.cs" />
-    <Compile Include="Utilities.cs" />
-    <Compile Include="DeleteCatalogItem.cs" />
-    <Compile Include="Dnx\DnxCatalogCollector.cs" />
-    <Compile Include="Dnx\DnxMaker.cs" />
-    <Compile Include="NupkgMetadata.cs" />
-    <Compile Include="Persistence\IStorage.cs" />
-    <Compile Include="Persistence\IStorageFactory.cs" />
-    <Compile Include="Persistence\JTokenStorageContent.cs" />
-    <Compile Include="HttpReadCursor.cs" />
-    <Compile Include="ResourceSaveOperation.cs" />
-    <Compile Include="SortingCollector.cs" />
-    <Compile Include="ValidatePackageHashHandler.cs" />
-    <Compile Include="VerboseHandler.cs" />
-    <Compile Include="CollectorBase.cs" />
-    <Compile Include="CollectorHttpClient.cs" />
-    <Compile Include="DurableCursor.cs" />
-    <Compile Include="Helpers\JsonSort.cs" />
-    <Compile Include="AppendOnlyCatalogItem.cs" />
-    <Compile Include="AppendOnlyCatalogWriter.cs" />
-    <Compile Include="CatalogItemSummary.cs" />
-    <Compile Include="CatalogWriterBase.cs" />
-    <Compile Include="ICatalogGraphPersistence.cs" />
-    <Compile Include="PackageCatalog.cs" />
-    <Compile Include="PackageEntry.cs" />
-    <Compile Include="MemoryCursor.cs" />
-    <Compile Include="Persistence\AzureStorageFactory.cs" />
-    <Compile Include="Persistence\FileStorageFactory.cs" />
-    <Compile Include="Persistence\StorageFactory.cs" />
-    <Compile Include="Persistence\StreamStorageContent.cs" />
-    <Compile Include="Persistence\StringStorageContent.cs" />
-    <Compile Include="Persistence\StorageContent.cs" />
-    <Compile Include="CatalogContext.cs" />
-    <Compile Include="CatalogItem.cs" />
-    <Compile Include="PackageCatalogItem.cs" />
-    <Compile Include="Persistence\AzureStorage.cs" />
-    <Compile Include="Persistence\FileStorage.cs" />
-    <Compile Include="Persistence\Storage.cs" />
-    <Compile Include="JsonLdIntegration\JsonLdReader.cs" />
-    <Compile Include="JsonLdIntegration\JsonLdWriter.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="Helpers\Utils.cs" />
-    <Compile Include="Helpers\XsltHelper.cs" />
-    <Compile Include="ReadCursor.cs" />
-    <Compile Include="ReadWriteCursor.cs" />
-    <Compile Include="Schema.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <EmbeddedResource Include="Strings.resx">
+    <EmbeddedResource Update="Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="xslt\normalizeNuspecNamespace.xslt" />
-    <EmbeddedResource Include="xslt\nuspec.xslt">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
+
   <ItemGroup>
+    <None Remove="context\Catalog.json" />
+    <None Remove="context\Container.json" />
+    <None Remove="context\PackageDetails.json" />
+    <None Remove="xslt\normalizeNuspecNamespace.xslt" />
+    <None Remove="xslt\nuspec.xslt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="context\Catalog.json" />
     <EmbeddedResource Include="context\Container.json" />
     <EmbeddedResource Include="context\PackageDetails.json" />
-    <EmbeddedResource Include="context\Catalog.json" />
-    <Compile Include="RetryWithExponentialBackoff.cs" />
+    <EmbeddedResource Include="xslt\normalizeNuspecNamespace.xslt" />
+    <EmbeddedResource Include="xslt\nuspec.xslt" />
   </ItemGroup>
+
   <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MicroBuild.Core">
-      <Version>0.3.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="dotNetRDF">
       <Version>1.0.8.3533</Version>
     </PackageReference>
@@ -266,11 +58,6 @@
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager">
       <Version>3.1.0</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Build.Tasks.Pack">
-      <Version>4.8.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
       <Version>2.79.0</Version>
     </PackageReference>
@@ -278,19 +65,9 @@
       <Version>9.3.3</Version>
     </PackageReference>
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
-      <Project>{d44c2e89-2d98-44bd-8712-8ccbe4e67c9c}</Project>
-      <Name>NuGet.Protocol.Catalog</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
-  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+
 </Project>

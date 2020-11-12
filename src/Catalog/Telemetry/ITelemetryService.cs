@@ -22,7 +22,6 @@ namespace NuGet.Services.Metadata.Catalog
         IDisposable TrackIndexCommitDuration();
         void TrackIndexCommitTimeout();
 
-        void TrackHandlerFailedToProcessPackage(IPackagesContainerHandler handler, string packageId, NuGetVersion packageVersion);
         void TrackPackageMissingHash(string packageId, NuGetVersion packageVersion);
         void TrackPackageHasIncorrectHash(string packageId, NuGetVersion packageVersion);
         void TrackPackageAlreadyHasHash(string packageId, NuGetVersion packageVersion);
