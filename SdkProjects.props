@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
+    <SignPath>build</SignPath>
     <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
     <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
     <SignType Condition="'$(SignType)' == ''">none</SignType>
