@@ -72,6 +72,12 @@
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
+    },
+    "NuGetGallery.DeletePackageApi": {
+      "All": false,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
     }
   }
 }
