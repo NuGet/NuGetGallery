@@ -73,7 +73,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV2GetAllNonHijackedEnabled());
         }
 
@@ -91,7 +91,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV2GetAllCountNonHijackedEnabled());
         }
 
@@ -109,7 +109,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV2GetSpecificNonHijackedEnabled());
         }
 
@@ -168,7 +168,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV2FindPackagesByIdNonHijackedEnabled());
         }
 
@@ -186,7 +186,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV2FindPackagesByIdCountNonHijackedEnabled());
         }
 
@@ -249,7 +249,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV2SearchNonHijackedEnabled());
         }
 
@@ -267,7 +267,7 @@ namespace NuGetGallery.Controllers
                 featureFlagService);
 
             // Assert
-            Assert.IsType<BadRequestErrorMessageResult>(resultSet);
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
             featureFlagService.Verify(x => x.IsODataV2SearchCountNonHijackedEnabled());
         }
 

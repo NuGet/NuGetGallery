@@ -27,6 +27,7 @@ namespace NuGetGallery
             return hash;
         }
 
+#if NETFRAMEWORK
         public static string GenerateToken()
         {
             var data = new byte[0x10];
@@ -38,5 +39,6 @@ namespace NuGetGallery
                 return HttpServerUtility.UrlTokenEncode(data);
             }
         }
+#endif
     }
 }

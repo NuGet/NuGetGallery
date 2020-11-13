@@ -39,19 +39,22 @@ namespace NuGetGallery
 
             return new BlobResultSegmentWrapper(segment);
         }
-
-        public Task CreateIfNotExistAsync()
+        
+        public Task CreateIfNotExistAsync(BlobContainerPermissions permissions)
         {
-            return Task.Factory.FromAsync<bool>(
-                _blobContainer.BeginCreateIfNotExists(null, null), 
-                _blobContainer.EndCreateIfNotExists);
+            var publicAccess = permissions?.PublicAccess;
+
+            if (publicAccess.HasValue)
+            {
+                return _blobContainer.CreateIfNotExistsAsync(publicAccess.Value, options: null, operationContext: null);
+            }
+
+            return _blobContainer.CreateIfNotExistsAsync();
         }
 
-        public Task SetPermissionsAsync(BlobContainerPermissions permissions)
+        public async Task SetPermissionsAsync(BlobContainerPermissions permissions)
         {
-            return Task.Factory.FromAsync(
-                _blobContainer.BeginSetPermissions(permissions, null, null),
-                _blobContainer.EndSetPermissions);
+            await _blobContainer.SetPermissionsAsync(permissions);
         }
 
         public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
@@ -59,9 +62,9 @@ namespace NuGetGallery
             return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobAddressUri));
         }
 
-        public Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions, OperationContext context)
+        public async Task<bool> ExistsAsync(BlobRequestOptions blobRequestOptions, OperationContext context)
         {
-            return _blobContainer.ExistsAsync(blobRequestOptions, context);
+            return await _blobContainer.ExistsAsync(blobRequestOptions, context);
         }
 
         public async Task<bool> DeleteIfExistsAsync()
@@ -69,9 +72,18 @@ namespace NuGetGallery
             return await _blobContainer.DeleteIfExistsAsync();
         }
 
-        public async Task CreateAsync()
+        public async Task CreateAsync(BlobContainerPermissions permissions)
         {
-            await _blobContainer.CreateAsync();
+            var publicAccess = permissions?.PublicAccess;
+
+            if (publicAccess.HasValue)
+            {
+                await _blobContainer.CreateAsync(publicAccess.Value, options: null, operationContext: null);
+            }
+            else
+            {
+                await _blobContainer.CreateAsync();
+            }
         }
     }
 }
