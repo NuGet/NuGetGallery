@@ -77,5 +77,7 @@ namespace NuGet.Services.Logging
                 // logging failed, don't allow exception to escape
             }
         }
+
+        public void Flush() => _telemetryClient.Flush();
     }
 }

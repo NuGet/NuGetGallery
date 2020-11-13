@@ -23,5 +23,7 @@ namespace NuGet.Services.Logging
             Exception exception,
             IDictionary<string, string> properties = null,
             IDictionary<string, double> metrics = null);
+
+        void Flush();
     }
 }
