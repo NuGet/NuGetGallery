@@ -84,6 +84,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "src\NuGet.Services.AzureSearch\Properties\AssemblyInfo.g.cs",
             "src\NuGet.Services.Metadata.Catalog.Monitoring\Properties\AssemblyInfo.g.cs",
             "src\NuGet.Services.Revalidate\Properties\AssemblyInfo.g.cs",
+            "src\NuGet.Services.SearchService.Core\Properties\AssemblyInfo.g.cs",
             "src\NuGet.Services.SearchService\Properties\AssemblyInfo.g.cs",
             "src\NuGet.Services.V3\Properties\AssemblyInfo.g.cs",
             "src\NuGet.Services.Validation.Orchestrator\Properties\AssemblyInfo.g.cs",

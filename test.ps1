@@ -55,12 +55,26 @@ Function Run-Tests {
         "tests\Validation.PackageSigning.ValidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.ValidateCertificate.Tests.dll", `
         "tests\Validation.Symbols.Core.Tests\bin\$Configuration\Validation.Symbols.Core.Tests.dll", `
         "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll"
-    
+
+    $DotnetTestProjects = `
+        "tests\NuGet.Services.SearchService.Core.Tests\NuGet.Services.SearchService.Core.Tests.csproj"
+
     $TestCount = 0
     
     foreach ($Test in $TestAssemblies) {
         $TestResultFile = "Results.$TestCount.xml"
         & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml $TestResultFile
+        if (-not (Test-Path $TestResultFile))
+        {
+            Write-Error "The test run failed to produce a result file";
+            exit 1;
+        }
+        $TestCount++
+    }
+    
+    foreach ($Test in $DotnetTestProjects) {
+        $TestResultFile = Join-Path $PSScriptRoot "Results.$TestCount.xml"
+        dotnet test (Join-Path $PSScriptRoot $Test) --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
         if (-not (Test-Path $TestResultFile))
         {
             Write-Error "The test run failed to produce a result file";

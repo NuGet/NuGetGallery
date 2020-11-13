@@ -17,10 +17,17 @@
     <ThirdPartyBinaries Include="LibGit2Sharp.dll" />
     <ThirdPartyBinaries Include="Markdig.Signed.dll" />
     <ThirdPartyBinaries Include="MarkdownSharp.dll" />
+    <ThirdPartyBinaries Include="Newtonsoft.Json.Bson.dll" />
     <ThirdPartyBinaries Include="Newtonsoft.Json.dll" />
     <ThirdPartyBinaries Include="Newtonsoft.Json.Schema.dll" />
     <ThirdPartyBinaries Include="Octokit.dll" />
     <ThirdPartyBinaries Include="Owin.dll" />
+    <ThirdPartyBinaries Include="runtimes\linux-arm\lib\netstandard2.0\Mono.Posix.NETStandard.dll" />
+    <ThirdPartyBinaries Include="runtimes\linux-arm64\lib\netstandard2.0\Mono.Posix.NETStandard.dll" />
+    <ThirdPartyBinaries Include="runtimes\linux-armel\lib\netstandard2.0\Mono.Posix.NETStandard.dll" />
+    <ThirdPartyBinaries Include="runtimes\linux-x64\lib\netstandard2.0\Mono.Posix.NETStandard.dll" />
+    <ThirdPartyBinaries Include="runtimes\linux-x86\lib\netstandard2.0\Mono.Posix.NETStandard.dll" />
+    <ThirdPartyBinaries Include="runtimes\osx\lib\netstandard2.0\Mono.Posix.NETStandard.dll" />
     <ThirdPartyBinaries Include="Serilog.dll" />
     <ThirdPartyBinaries Include="Serilog.Enrichers.Environment.dll" />
     <ThirdPartyBinaries Include="Serilog.Enrichers.Process.dll" />

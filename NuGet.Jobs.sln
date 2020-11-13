@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{97
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{5DE01C58-D5F7-482F-8256-A8333064384C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Common", "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj", "{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Jobs.Common", "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj", "{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{05F997A5-CD3A-4C60-9CCB-D630542EDA48}"
 	ProjectSection(SolutionItems) = preProject
@@ -22,7 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unclassified", "Unclassifie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArchivePackages", "src\ArchivePackages\ArchivePackages.csproj", "{A08F0185-4DA3-4D5B-BF0C-B178596D5789}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata.Catalog", "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", "{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Metadata.Catalog", "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", "{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogTests", "tests\CatalogTests\CatalogTests.csproj", "{4D0B6BAB-5A33-4A7F-B007-93194FC2E2E3}"
 EndProject
@@ -36,7 +36,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Metadata.Cat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogMetadataTests", "tests\CatalogMetadataTests\CatalogMetadataTests.csproj", "{34AABA7F-1FF7-4F4B-B1DB-D07AD4505DA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.AzureSearch", "src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj", "{1A53FE3D-8041-4773-942F-D73AEF5B82B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.AzureSearch", "src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj", "{1A53FE3D-8041-4773-942F-D73AEF5B82B2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.AzureSearch.Tests", "tests\NuGet.Services.AzureSearch.Tests\NuGet.Services.AzureSearch.Tests.csproj", "{6A9C3802-A2A2-49CF-87BD-C1303533B846}"
 EndProject
@@ -44,7 +44,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Db2AzureSearch",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Catalog2AzureSearch", "src\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.csproj", "{F591130F-181A-4C53-8025-4390F46BD51D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Protocol.Catalog", "src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj", "{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Protocol.Catalog", "src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj", "{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Protocol.Catalog.Tests", "tests\NuGet.Protocol.Catalog.Tests\NuGet.Protocol.Catalog.Tests.csproj", "{1F3BC053-796C-4A35-88F4-955A0F142197}"
 EndProject
@@ -56,7 +56,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Auxiliary2AzureS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Catalog2Registration", "src\NuGet.Jobs.Catalog2Registration\NuGet.Jobs.Catalog2Registration.csproj", "{5ABE8807-2209-4948-9FC5-1980A507C47A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.V3", "src\NuGet.Services.V3\NuGet.Services.V3.csproj", "{C3F9A738-9759-4B2B-A50D-6507B28A659B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.V3", "src\NuGet.Services.V3\NuGet.Services.V3.csproj", "{C3F9A738-9759-4B2B-A50D-6507B28A659B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Catalog2Registration.Tests", "tests\NuGet.Jobs.Catalog2Registration.Tests\NuGet.Jobs.Catalog2Registration.Tests.csproj", "{296703A3-67BA-4876-8C1D-ACE13DF901EF}"
 EndProject
@@ -118,7 +118,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.ContextHelpers", "tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.Core.Tests", "tests\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj", "{B4B7564A-965B-447B-927F-6749E2C08880}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Common.Job", "src\Validation.Common.Job\Validation.Common.Job.csproj", "{FA87D075-A934-4443-8D0B-5DB32640B6D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Common.Job", "src\Validation.Common.Job\Validation.Common.Job.csproj", "{FA87D075-A934-4443-8D0B-5DB32640B6D7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackageHash", "src\PackageHash\PackageHash.csproj", "{40843020-6F0A-48F0-AC28-42FFE3A5C21E}"
 EndProject
@@ -189,10 +189,16 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{64E5E223-C98F-4DFC-B09E-B86E65717FC7}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		build.ps1 = build.ps1
 		Directory.Build.props = Directory.Build.props
 		SdkProjects.props = SdkProjects.props
 		sign.thirdparty.props = sign.thirdparty.props
+		test.ps1 = test.ps1
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.SearchService.Core", "src\NuGet.Services.SearchService.Core\NuGet.Services.SearchService.Core.csproj", "{D2C41FB6-EB65-4EC0-8D0B-3A714D58653D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.SearchService.Core.Tests", "tests\NuGet.Services.SearchService.Core.Tests\NuGet.Services.SearchService.Core.Tests.csproj", "{91D6A911-3196-4970-A5FD-198E8BFB98C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -514,6 +520,14 @@ Global
 		{DD70035C-1BAB-4EFF-B270-EF45F7473C22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD70035C-1BAB-4EFF-B270-EF45F7473C22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD70035C-1BAB-4EFF-B270-EF45F7473C22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2C41FB6-EB65-4EC0-8D0B-3A714D58653D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2C41FB6-EB65-4EC0-8D0B-3A714D58653D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2C41FB6-EB65-4EC0-8D0B-3A714D58653D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2C41FB6-EB65-4EC0-8D0B-3A714D58653D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91D6A911-3196-4970-A5FD-198E8BFB98C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91D6A911-3196-4970-A5FD-198E8BFB98C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91D6A911-3196-4970-A5FD-198E8BFB98C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91D6A911-3196-4970-A5FD-198E8BFB98C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -599,6 +613,8 @@ Global
 		{4A64FEB4-198C-445B-835F-A5B68EFBFDA7} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{AFB33A62-C437-4C32-A965-D6CC5EE50540} = {523E282D-A2FE-49C2-A782-0EEC435E765E}
 		{DD70035C-1BAB-4EFF-B270-EF45F7473C22} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{D2C41FB6-EB65-4EC0-8D0B-3A714D58653D} = {97E23323-BA7A-48F0-A578-858B82B6D8FB}
+		{91D6A911-3196-4970-A5FD-198E8BFB98C4} = {6A776396-02B1-475D-A104-26940ADB04AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}

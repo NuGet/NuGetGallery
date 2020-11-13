@@ -1,19 +1,20 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Web.Http;
-using System.Web.Http.Description;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Versioning;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace NuGet.Services.SearchService.Controllers
 {
-    public class SearchController : ApiController
+    [ApiController]
+    public class SearchController : ControllerBase
     {
         private const int DefaultSkip = 0;
         private const int DefaultTake = SearchParametersBuilder.DefaultTake;
@@ -33,8 +34,8 @@ namespace NuGet.Services.SearchService.Controllers
         }
 
         [HttpGet]
-        [ResponseType(typeof(SearchStatusResponse))]
-        public async Task<HttpResponseMessage> IndexAsync(HttpRequestMessage request)
+        [Route("/")]
+        public async Task<ActionResult<SearchStatusResponse>> IndexAsync()
         {
             var result = await GetStatusAsync(SearchStatusOptions.All);
             var statusCode = result.Success ? HttpStatusCode.OK : HttpStatusCode.InternalServerError;
@@ -45,20 +46,21 @@ namespace NuGet.Services.SearchService.Controllers
                 Success = result.Success,
             };
 
-            return request.CreateResponse(statusCode, result);
+            return new JsonResult(result) { StatusCode = (int)statusCode };
         }
 
         [HttpGet]
-        [ResponseType(typeof(SearchStatusResponse))]
-        public async Task<HttpResponseMessage> GetStatusAsync(HttpRequestMessage request)
+        [Route("/search/diag")]
+        public async Task<ActionResult<SearchStatusResponse>> GetStatusAsync()
         {
             var result = await GetStatusAsync(SearchStatusOptions.All);
             var statusCode = result.Success ? HttpStatusCode.OK : HttpStatusCode.InternalServerError;
 
-            return request.CreateResponse(statusCode, result);
+            return new JsonResult(result) { StatusCode = (int)statusCode };
         }
 
         [HttpGet]
+        [Route("/search/query")]
         public async Task<V2SearchResponse> V2SearchAsync(
             int? skip = DefaultSkip,
             int? take = DefaultTake,
@@ -82,7 +84,7 @@ namespace NuGet.Services.SearchService.Controllers
                 IgnoreFilter = ignoreFilter ?? false,
                 CountOnly = countOnly ?? false,
                 IncludePrerelease = prerelease ?? false,
-                IncludeSemVer2 =  ParameterUtilities.ParseIncludeSemVer2(semVerLevel),
+                IncludeSemVer2 = ParameterUtilities.ParseIncludeSemVer2(semVerLevel),
                 Query = q,
                 SortBy = ParameterUtilities.ParseV2SortBy(sortBy),
                 LuceneQuery = luceneQuery ?? true,
@@ -95,6 +97,7 @@ namespace NuGet.Services.SearchService.Controllers
         }
 
         [HttpGet]
+        [Route("/query")]
         public async Task<V3SearchResponse> V3SearchAsync(
             int? skip = DefaultSkip,
             int? take = DefaultTake,
@@ -123,6 +126,7 @@ namespace NuGet.Services.SearchService.Controllers
         }
 
         [HttpGet]
+        [Route("/autocomplete")]
         public async Task<AutocompleteResponse> AutocompleteAsync(
             int? skip = DefaultSkip,
             int? take = DefaultTake,
