@@ -45,7 +45,6 @@ th {
 .table {
   width: 100%;
   max-width: 100%;
-  min-width: 320px;
   margin-bottom: @line-height-computed;
   // Cells
   > thead,
@@ -58,6 +57,7 @@ th {
         line-height: @line-height-base;
         vertical-align: top;
         border-top: 1px solid @table-border-color;
+        min-width: 320px;
       }
     }
   }
