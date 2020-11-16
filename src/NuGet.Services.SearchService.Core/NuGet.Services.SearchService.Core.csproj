@@ -8,16 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
-    
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.10" />
+
     <!--
-    These references are used to "lift" transitive dependencies of Microsoft.ApplicationInsights.AspNetCore to versions
-    that are accepted by Azure DevOps Component Governance, which scans the project.assets.json file. At runtime, the
-    real versions of these packages are actually higher and defined by the shared ASP.NET Core SDK installed on the
+    This reference is used to "lift" a transitive dependency of Microsoft.ApplicationInsights.AspNetCore to a version
+    that is accepted by Azure DevOps Component Governance, which scans the project.assets.json file. At runtime, the
+    real version this package are actually higher and is defined by the shared ASP.NET Core SDK installed on the
     hosting machine.
     -->
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.9" />
   </ItemGroup>
 
   <ItemGroup>
