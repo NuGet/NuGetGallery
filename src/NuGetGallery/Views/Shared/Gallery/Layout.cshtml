@@ -32,10 +32,10 @@
     <![endif]-->
 
     @RenderSection("TopStyles", required: false)
-@*    @ViewHelpers.AnalyticsScript(ViewBag)
-*@    @RenderSection("TopScripts", required: false)
+@*    @ViewHelpers.AnalyticsScript(ViewBag)*@    
+    @RenderSection("TopScripts", required: false)
     @ViewHelpers.ReleaseMeta()
-    @ViewHelpers.InstrumentationScript(ViewBag)
+    @* @ViewHelpers.InstrumentationScript(ViewBag) *@
 </head>
 <body>
     @Html.Partial("Gallery/Header")
