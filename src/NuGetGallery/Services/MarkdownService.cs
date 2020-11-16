@@ -159,8 +159,19 @@ namespace NuGetGallery
             var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readmeWithoutBom), "> ");
 
             var pipeline = new MarkdownPipelineBuilder()
+                .UseGridTables()
+                .UsePipeTables()
+                .UseListExtras()
+                .UseTaskLists()
                 .UseSoftlineBreakAsHardlineBreak()
+                .UseEmojiAndSmiley()
+                .UseReferralLinks("nofollow")
+                .UseAutoLinks()
                 .Build();
+
+            StringWriter htmlWriter = new StringWriter();
+            var renderer = new HtmlRenderer(htmlWriter);
+            pipeline.Setup(renderer);
 
             var document = Markdown.Parse(encodedMarkdown, pipeline);
 
@@ -172,6 +183,20 @@ namespace NuGetGallery
                     if (node is HeadingBlock heading)
                     {
                         heading.Level = (byte)Math.Min(heading.Level + incrementHeadersBy, 6);
+                    }
+
+                    // Decode preformatted blocks to prevent double encoding.
+                    // Skip BlockTag.BlockQuote, which are partially decoded upfront.
+                    if (node is FencedCodeBlock || node is CodeBlock)
+                    {
+                        LeafBlock codeBlock = (LeafBlock)node;
+                        var lines =codeBlock.Lines;
+                        for (int i = 0; i < lines.Count; i++) 
+                        {
+                            var content = lines.Lines[i].Slice.ToString();
+                            var unencodedContent = HttpUtility.HtmlDecode(content);
+                            lines.Lines[i].Slice = new Markdig.Helpers.StringSlice(unencodedContent);
+                        }
                     }
 
                 }
@@ -207,12 +232,9 @@ namespace NuGetGallery
                 }
             }
 
-            StringWriter htmlWriter = new StringWriter();
-            var renderer = new HtmlRenderer(htmlWriter);
             renderer.Render(document);
             htmlWriter.Flush();
-            //manually inject nofollow since markdig doesn't support inject nofollw in encode 
-            output.Content = LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
+            output.Content = htmlWriter.ToString().Trim();
             return output;
         }
     }
