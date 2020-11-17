@@ -55,6 +55,7 @@ namespace NuGet.Services.SearchService
             services
                 .AddControllers(o =>
                 {
+                    o.SuppressAsyncSuffixInActionNames = false;
                     o.Filters.Add<ApiExceptionFilterAttribute>();
                 })
                 .AddNewtonsoftJson(o =>
@@ -173,12 +174,6 @@ namespace NuGet.Services.SearchService
 
         private static string GetOperationName<T>(HttpMethod verb, string actionName) where T : ControllerBase
         {
-            const string asyncSuffix = "Async";
-            if (actionName.EndsWith(asyncSuffix))
-            {
-                actionName = actionName.Substring(0, actionName.Length - asyncSuffix.Length);
-            }
-
             return $"{verb} {GetControllerName<T>()}/{actionName}";
         }
 
