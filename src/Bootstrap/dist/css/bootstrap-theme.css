@@ -1942,6 +1942,9 @@ img.reserved-indicator-icon {
 .page-status .ms-Icon--Cancel {
   color: red;
 }
+.page-status .table {
+  word-break: break-word;
+}
 .page-status .table thead th:nth-child(1) {
   width: 50%;
 }
