@@ -45,6 +45,7 @@ th {
 .table {
   width: 100%;
   max-width: 100%;
+  min-width: 320px;
   margin-bottom: @line-height-computed;
   // Cells
   > thead,
@@ -57,7 +58,6 @@ th {
         line-height: @line-height-base;
         vertical-align: top;
         border-top: 1px solid @table-border-color;
-        min-width: 320px;
       }
     }
   }
@@ -65,7 +65,6 @@ th {
   > thead > tr > th {
     vertical-align: bottom;
     border-bottom: 2px solid @table-border-color;
-    min-width: 320px;
   }
   // Remove top border from thead by default
   > caption + thead,

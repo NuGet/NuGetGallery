@@ -1584,6 +1584,7 @@ th {
 .table {
   width: 100%;
   max-width: 100%;
+  min-width: 320px;
   margin-bottom: 22px;
 }
 .table > thead > tr > th,
@@ -1596,12 +1597,10 @@ th {
   line-height: 1.42857143;
   vertical-align: top;
   border-top: 1px solid #ddd;
-  min-width: 320px;
 }
 .table > thead > tr > th {
   vertical-align: bottom;
   border-bottom: 2px solid #ddd;
-  min-width: 320px;
 }
 .table > caption + thead > tr:first-child > th,
 .table > colgroup + thead > tr:first-child > th,
