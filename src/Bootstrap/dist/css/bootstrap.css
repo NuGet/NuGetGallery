@@ -1584,7 +1584,7 @@ th {
 .table {
   max-width: 100%;
   overflow-x: hidden;
-  min-width: 40px;
+  min-width: 20px;
   margin-bottom: 22px;
 }
 .table > thead > tr > th,
