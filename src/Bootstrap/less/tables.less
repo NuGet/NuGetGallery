@@ -175,29 +175,29 @@ th {
   overflow-x: hidden;
   min-width: 80px;
 
-  @media screen and (max-width: @screen-xs-max) {
-    width: 100%;
-    margin-bottom: (@line-height-computed * .75);
-    overflow-y: hidden;
-    -ms-overflow-style: -ms-autohiding-scrollbar;
-    border: 1px solid @table-border-color;
+  // @media screen and (max-width: @screen-xs-max) {
+  //   width: 100%;
+  //   margin-bottom: (@line-height-computed * .75);
+  //   overflow-y: hidden;
+  //   -ms-overflow-style: -ms-autohiding-scrollbar;
+  //   border: 1px solid @table-border-color;
 
-    // Tighten up spacing
-    > .table {
-      margin-bottom: 0;
+  //   // Tighten up spacing
+  //   > .table {
+  //     margin-bottom: 0;
 
-      // Ensure the content doesn't wrap
-      > thead,
-      > tbody,
-      > tfoot {
-        > tr {
-          > th,
-          > td {
-            white-space: nowrap;
-          }
-        }
-      }
-    }
+  //     // Ensure the content doesn't wrap
+  //     > thead,
+  //     > tbody,
+  //     > tfoot {
+  //       > tr {
+  //         > th,
+  //         > td {
+  //           white-space: nowrap;
+  //         }
+  //       }
+  //     }
+  //   }
 
     // Special overrides for the bordered tables
     > .table-bordered {
