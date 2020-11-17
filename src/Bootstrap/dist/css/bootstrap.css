@@ -1582,10 +1582,9 @@ th {
   text-align: left;
 }
 .table {
-  width: 100%;
   max-width: 100%;
   overflow-x: hidden;
-  min-width: 80px;
+  min-width: 40px;
   margin-bottom: 22px;
 }
 .table > thead > tr > th,
