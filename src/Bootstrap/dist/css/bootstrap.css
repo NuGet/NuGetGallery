@@ -1582,9 +1582,8 @@ th {
   text-align: left;
 }
 .table {
-  max-width: 100%;
   overflow-x: hidden;
-  min-width: 20px;
+  min-width: 10px;
   margin-bottom: 22px;
 }
 .table > thead > tr > th,
