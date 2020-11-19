@@ -18,7 +18,7 @@
         @Html.ShowValidationMessagesFor(m => m.Register)
     </div>
 
-    <div class="form-group @Html.HasErrorFor(m => m.Register.Username)">
+    <div class="form-group required @Html.HasErrorFor(m => m.Register.Username)">
         @Html.ShowLabelFor(m => m.Register.Username)
         @Html.ShowTextBoxFor(m => m.Register.Username)
         @Html.ShowValidationMessagesFor(m => m.Register.Username)
