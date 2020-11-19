@@ -776,6 +776,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The provided Type in the delete request is not valid..
+        /// </summary>
+        public static string DeletePackage_InvalidDeleteType {
+            get {
+                return ResourceManager.GetString("DeletePackage_InvalidDeleteType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting a package through the API is not enabled for your user account..
+        /// </summary>
+        public static string DeletePackage_NotAllowed {
+            get {
+                return ResourceManager.GetString("DeletePackage_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The provided package has more than {0} downloads and therefore cannot be deleted via API..
+        /// </summary>
+        public static string DeletePackage_TooManyDownloads {
+            get {
+                return ResourceManager.GetString("DeletePackage_TooManyDownloads", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package cannot be the alternate package of itself..
         /// </summary>
         public static string DeprecatePackage_AlternateOfSelf {

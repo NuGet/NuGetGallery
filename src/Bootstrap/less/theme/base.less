@@ -1,6 +1,7 @@
 //== Theme Variables
 @panel-footer-color:  @navbar-inverse-color;
 @default-margin-bottom: 24px;
+@package-list-line-height: 20px;
 
 //== Theme Definition
 html, body {
@@ -248,7 +249,7 @@ body {
   .alert {
     margin: 0;
     padding: 10px;
-  } 
+  }
 }
 
 .alert-transient-jumbotron {
@@ -260,7 +261,7 @@ body {
 
   li {
     position: relative;
-    
+
     i.ms-Icon {
       position: absolute;
       left: -24px;
@@ -285,11 +286,12 @@ h2, h3 {
   .container {
     // Bootstrap doesn't set the container width when the screen is xs.
     // This works fine when there are no elements in the container that are wider than the viewport,
-    // however, if there are elements in the container that are wider than the viewport, 
+    // however, if there are elements in the container that are wider than the viewport,
     // their overflow properties will not work properly because they are not bound by the size of the container.
     // To fix this, we need to set the container width to be the width of the viewport minus the row margin on xs screens.
     // This way, those elements that are larger than the viewport are properly bound by the size of the container and overflow properly.
-    width: calc(100vw - 15px);
+    // 2020.10.27: We actually need to set it slightly smaller than the row margin as a horizontal scrollbar appears at xs when exactly matched.
+    width: calc(100vw - 20px);
   }
 
   .navbar-toggle {
@@ -321,12 +323,11 @@ img.reserved-indicator-icon {
 .package-list {
   margin-top: 8px;
   margin-bottom: 8px;
-  margin-left: -5px;
   padding-left: 0;
-  line-height: 20px;
+  line-height: @package-list-line-height;
   color: @gray-light;
 
-  a {
+  a:not(.more-tags) {
     color: @gray-light;
   }
 
@@ -338,14 +339,10 @@ img.reserved-indicator-icon {
   @media (min-width: @screen-sm-min) {
     li {
       display: inline-block;
-    }
-
-    li + li {
-      margin-left: @padding-small-horizontal;
-      padding-left: @padding-small-horizontal;
-      border-left-style: solid;
-      border-width: 1px;
-      border-color: @gray-lighter;
+      line-height: @package-list-line-height;
+      max-height: (@package-list-line-height * 5 + 1px);
+      overflow-y: hidden;
+      padding-right: @padding-small-horizontal;
     }
   }
 }

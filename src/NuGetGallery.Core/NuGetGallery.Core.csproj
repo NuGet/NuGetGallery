@@ -1,277 +1,63 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{097B2CDD-9623-4C34-93C2-D373D51F5B4E}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
     <RootNamespace>NuGetGallery</RootNamespace>
-    <AssemblyName>NuGetGallery.Core</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <RuntimeIdentifier>win</RuntimeIdentifier>
-    <NoWarn>$(NoWarn);NU5104</NoWarn>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <BuildPackage>true</BuildPackage>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup>
     <Description>Core support library for NuGet Gallery Frontend and Backend</Description>
-    <PackageId Condition="'$(PackageId)' == ''">$(MSBuildProjectName)</PackageId>
-    <Authors>.NET Foundation</Authors>
-    <PackageLicenseUrl>https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/NuGet/NuGetGallery</PackageProjectUrl>
-    <Copyright>© .NET Foundation. All rights reserved.</Copyright>
-    <IncludeSymbols Condition="'$(IncludeSymbols)' == ''">true</IncludeSymbols>
-    <NoPackageAnalysis Condition="'$(NoPackageAnalysis)' == ''">true</NoPackageAnalysis>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.Services.Client" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="Auditing\AuditActor.cs" />
+    <Compile Remove="Auditing\AuditEntry.cs" />
+    <Compile Remove="Auditing\AuditingService.cs" />
+    <Compile Remove="Auditing\CloudAuditingService.cs" />
+    <Compile Remove="Auditing\FileSystemAuditingService.cs" />
+    <Compile Remove="Cookies\CookieComplianceService.cs" />
+    <Compile Remove="Cookies\CookieExpirationService.cs" />
+    <Compile Remove="Cookies\ICookieComplianceService.cs" />
+    <Compile Remove="Cookies\ICookieExpirationService.cs" />
+    <Compile Remove="Cookies\NullCookieComplianceService.cs" />
+    <Compile Remove="Entities\SuspendDbExecutionStrategy.cs" />
+    <Compile Remove="Extensions\PackageValidationSetExtensions.cs" />
+    <Compile Remove="Extensions\ValidationIssueExtensions.cs" />
+    <Compile Remove="Infrastructure\AzureEntityList.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\CredentialRevokedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\PackageValidationFailedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
+    <Compile Remove="Infrastructure\TableErrorLog.cs" />
+    <Compile Remove="Services\CorePackageFileService.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Auditing\AggregateAuditingService.cs" />
-    <Compile Include="Auditing\AuditedEntities\AuditedFeatureFlagFlight.cs" />
-    <Compile Include="Auditing\AuditedEntities\AuditedFeatureFlagFeature.cs" />
-    <Compile Include="Auditing\AuditedFeatureFlagsAction.cs" />
-    <Compile Include="Auditing\AuditedCertificateAction.cs" />
-    <Compile Include="Auditing\AuditedDeleteAccountAction.cs" />
-    <Compile Include="Auditing\AuditedEntities\AuditedPackageDeprecation.cs" />
-    <Compile Include="Auditing\FeatureFlagsAuditRecord.cs" />
-    <Compile Include="Auditing\CertificateAuditRecord.cs" />
-    <Compile Include="Auditing\Obfuscation\ObfuscateAttribute.cs" />
-    <Compile Include="Auditing\Obfuscation\ObfuscationType.cs" />
-    <Compile Include="Auditing\Obfuscation\ObfuscatorJsonConverter.cs" />
-    <Compile Include="Auditing\AuditedEntities\AuditedPackage.cs" />
-    <Compile Include="Auditing\AuditedEntities\AuditedPackageIdentifier.cs" />
-    <Compile Include="Auditing\AuditedAuthenticatedOperationAction.cs" />
-    <Compile Include="Auditing\AuditedEntities\AuditedReservedNamespace.cs" />
-    <Compile Include="Auditing\AuditedEntities\AuditedUserSecurityPolicy.cs" />
-    <Compile Include="Auditing\AuditedSecurityPolicyAction.cs" />
-    <Compile Include="Auditing\AuditedReservedNamespaceAction.cs" />
-    <Compile Include="Auditing\AuditEntry.cs" />
-    <Compile Include="Auditing\AuditActor.cs" />
-    <Compile Include="Auditing\AuditingService.cs" />
-    <Compile Include="Auditing\AuditRecord.cs" />
-    <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecord.cs" />
-    <Compile Include="Auditing\Obfuscation\Obfuscator.cs" />
-    <Compile Include="Auditing\DeleteAccountAuditRecord.cs" />
-    <Compile Include="Auditing\ReservedNamespaceAuditRecord.cs" />
-    <Compile Include="Auditing\UserSecurityPolicyAuditRecord.cs" />
-    <Compile Include="Auditing\FileSystemAuditingService.cs" />
-    <Compile Include="Auditing\CloudAuditingService.cs" />
-    <Compile Include="Auditing\CredentialAuditRecord.cs" />
-    <Compile Include="Auditing\AuditedPackageAction.cs" />
-    <Compile Include="Auditing\IAuditingService.cs" />
-    <Compile Include="Auditing\PackageAuditReasons.cs" />
-    <Compile Include="Auditing\AuditedPackageRegistrationAction.cs" />
-    <Compile Include="Auditing\AuditedEntities\AuditedPackageRegistration.cs" />
-    <Compile Include="Auditing\PackageRegistrationAuditRecord.cs" />
-    <Compile Include="Auditing\AuditedUserAction.cs" />
-    <Compile Include="Auditing\PackageAuditRecord.cs" />
-    <Compile Include="Auditing\ScopeAuditRecord.cs" />
-    <Compile Include="Auditing\UserAuditRecord.cs" />
-    <Compile Include="Authentication\AuthenticationExtensions.cs" />
-    <Compile Include="Authentication\CredentialTypeInfo.cs" />
-    <Compile Include="Authentication\MicrosoftClaims.cs" />
-    <Compile Include="Certificates\CertificateFile.cs" />
-    <Compile Include="Cookies\CookieComplianceService.cs" />
-    <Compile Include="Cookies\CookieExpirationService.cs" />
-    <Compile Include="Cookies\ICookieComplianceService.cs" />
-    <Compile Include="Cookies\ICookieExpirationService.cs" />
-    <Compile Include="Cookies\NullCookieComplianceService.cs" />
-    <Compile Include="CoreConstants.cs" />
-    <Compile Include="CredentialTypes.cs" />
-    <Compile Include="Completion.cs" />
-    <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
-    <Compile Include="Diagnostics\IDiagnosticsService.cs" />
-    <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
-    <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
-    <Compile Include="DisposableAction.cs" />
-    <Compile Include="Entities\DatabaseWrapper.cs" />
-    <Compile Include="Entities\DbContextTransactionWrapper.cs" />
-    <Compile Include="Entities\QueryHintInterceptor.cs" />
-    <Compile Include="Entities\ReadOnlyEntitiesContext.cs" />
-    <Compile Include="Entities\IReadOnlyEntitiesContext.cs" />
-    <Compile Include="Entities\ReadOnlyEntityRepository.cs" />
-    <Compile Include="Entities\IDatabase.cs" />
-    <Compile Include="Entities\IDbContextTransaction.cs" />
-    <Compile Include="Entities\EntitiesConfiguration.cs" />
-    <Compile Include="Entities\EntitiesContext.cs" />
-    <Compile Include="Entities\Interception\ObjectMaterializedInterception.cs" />
-    <Compile Include="Entities\Interception\ObjectMaterializedInterceptingDbContext.cs" />
-    <Compile Include="Entities\EntityRepository.cs" />
-    <Compile Include="Entities\GallerySetting.cs" />
-    <Compile Include="Entities\IEntitiesContext.cs" />
-    <Compile Include="Entities\Interception\IObjectMaterializedInterceptor.cs" />
-    <Compile Include="Entities\IEntityRepository.cs" />
-    <Compile Include="Entities\IReadOnlyEntityRepository.cs" />
-    <Compile Include="Entities\ReadOnlyModeException.cs" />
-    <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
-    <Compile Include="Extensions\DiagnosticsSourceExtensions.cs" />
-    <Compile Include="Extensions\EntitiesContextExtensions.cs" />
-    <Compile Include="Extensions\PackageValidationSetExtensions.cs" />
-    <Compile Include="Extensions\StorageExceptionExtensions.cs" />
-    <Compile Include="Extensions\UserExtensionsCore.cs" />
-    <Compile Include="Extensions\ValidationIssueExtensions.cs" />
-    <Compile Include="Features\EditableFeatureFlagFileStorageService.cs" />
-    <Compile Include="Features\FeatureFlagClientExtensions.cs" />
-    <Compile Include="Features\FeatureFlagFileStorageService.cs" />
-    <Compile Include="Features\FeatureFlagReference.cs" />
-    <Compile Include="Features\FeatureFlagSaveResult.cs" />
-    <Compile Include="Features\IEditableFeatureFlagStorageService.cs" />
-    <Compile Include="GitHub\GitHubUsageConfiguration.cs" />
-    <Compile Include="GitHub\IGitHubUsageConfiguration.cs" />
-    <Compile Include="GitHub\NuGetPackageGitHubInformation.cs" />
-    <Compile Include="GitHub\RepositoryInformation.cs" />
-    <Compile Include="ICloudStorageStatusDependency.cs" />
-    <Compile Include="Infrastructure\AzureEntityList.cs" />
-    <Compile Include="Infrastructure\ElmahException.cs" />
-    <Compile Include="Infrastructure\Mail\EmailRecipientsHelper.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\CredentialRevokedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageValidationFailedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
-    <Compile Include="Infrastructure\MessageQueue.cs" />
-    <Compile Include="Infrastructure\TableErrorLog.cs" />
-    <Compile Include="Authentication\NuGetClaims.cs" />
-    <Compile Include="PackageMetadataExtensions.cs" />
-    <Compile Include="PackageReaderCoreExtensions.cs" />
-    <Compile Include="Packaging\InvalidPackageException.cs" />
-    <Compile Include="Packaging\ManifestValidator.cs" />
-    <Compile Include="Packaging\PackageIdValidator.cs" />
-    <Compile Include="Packaging\PackageMetadata.cs" />
-    <Compile Include="Packaging\PackageMetadataStrings.cs" />
-    <Compile Include="Packaging\PackageStreamMetadata.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="NuGetVersionExtensions.cs" />
-    <Compile Include="SemVerLevelKey.cs" />
-    <Compile Include="Services\AccessConditionWrapper.cs" />
-    <Compile Include="Services\BlobResultSegmentWrapper.cs" />
-    <Compile Include="Services\CloudBlobClientWrapper.cs" />
-    <Compile Include="Services\CloudBlobContainerWrapper.cs" />
-    <Compile Include="Services\CloudBlobCoreFileStorageService.cs" />
-    <Compile Include="Services\CloudBlobWrapper.cs" />
-    <Compile Include="Services\CloudFileReference.cs" />
-    <Compile Include="Services\CoreLicenseFileService.cs" />
-    <Compile Include="Services\CorePackageFileService.cs" />
-    <Compile Include="Services\CoreSymbolPackageService.cs" />
-    <Compile Include="Services\CorePackageService.cs" />
-    <Compile Include="Services\CryptographyService.cs" />
-    <Compile Include="Services\FileNameHelper.cs" />
-    <Compile Include="Services\GalleryCloudBlobContainerInformationProvider.cs" />
-    <Compile Include="Services\ICloudBlobContainerInformationProvider.cs" />
-    <Compile Include="Services\IContentFileMetadataService.cs" />
-    <Compile Include="Services\ICoreLicenseFileService.cs" />
-    <Compile Include="Services\ISimpleBlobResultSegment.cs" />
-    <Compile Include="Services\IStringTemplateProcessor.cs" />
-    <Compile Include="Services\PackageAlreadyExistsException.cs" />
-    <Compile Include="Services\FileAlreadyExistsException.cs" />
-    <Compile Include="Services\FileUriPermissions.cs" />
-    <Compile Include="Services\IAccessCondition.cs" />
-    <Compile Include="Services\ICloudBlobClient.cs" />
-    <Compile Include="Services\ICloudBlobContainer.cs" />
-    <Compile Include="Services\ICorePackageFileService.cs" />
-    <Compile Include="Services\ICoreSymbolPackageService.cs" />
-    <Compile Include="Services\ICorePackageService.cs" />
-    <Compile Include="Services\IFileReference.cs" />
-    <Compile Include="Services\ICoreFileStorageService.cs" />
-    <Compile Include="Services\IFileMetadataService.cs" />
-    <Compile Include="Services\IRevalidationStateService.cs" />
-    <Compile Include="Services\ISimpleCloudBlob.cs" />
-    <Compile Include="Services\PackageDeprecationFieldsToInclude.cs" />
-    <Compile Include="Services\StringReplaceTemplateProcessor.cs" />
-    <Compile Include="Services\SymbolPackageFileServiceMetadata.cs" />
-    <Compile Include="Services\PackageFileServiceMetadata.cs" />
-    <Compile Include="Services\RevalidationState.cs" />
-    <Compile Include="Services\RevalidationStateService.cs" />
-    <Compile Include="Services\TestableStorageClientException.cs" />
-    <Compile Include="StreamExtensions.cs" />
-    <Compile Include="CoreStrings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CoreStrings.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Unit.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="CoreStrings.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Infrastructure\MigrateUserToOrganization.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="NuGet.Services.FeatureFlags">
-      <Version>2.74.0</Version>
+    <PackageReference Include="NuGet.Packaging">
+      <Version>5.8.0-preview.3.6823</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Services.FeatureFlags">
+      <Version>2.79.0</Version>
+    </PackageReference>
+    <PackageReference Include="WindowsAzure.Storage">
+      <Version>9.3.3</Version>
+    </PackageReference>
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="NuGet.Services.Messaging.Email">
-      <Version>2.74.0</Version>
+      <Version>2.79.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.74.0</Version>
+      <Version>2.79.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.74.0</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
-      <Version>1.2.0</Version>
+      <Version>2.79.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.elmah.corelibrary">
       <Version>1.2.2</Version>
-    </PackageReference>
-    <PackageReference Include="EntityFramework">
-      <Version>6.4.0-preview3-19553-01</Version>
-    </PackageReference>
-    <PackageReference Include="MicroBuild.Core">
-      <Version>0.3.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Azure.KeyVault.Core">
-      <Version>1.0.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Data.Services.Client">
       <Version>5.8.4</Version>
@@ -279,30 +65,25 @@
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager">
       <Version>3.1.0</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Build.Tasks.Pack">
-      <Version>4.8.0</Version>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="NuGet.Packaging">
-      <Version>5.8.0-preview.3.6823</Version>
-    </PackageReference>
-    <PackageReference Include="WindowsAzure.Storage">
-      <Version>9.3.3</Version>
-    </PackageReference>
   </ItemGroup>
+  
   <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
-      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
-      <Name>NuGet.Services.Entities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
-  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+  
+  <ItemGroup>
+    <Compile Update="CoreStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CoreStrings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="CoreStrings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

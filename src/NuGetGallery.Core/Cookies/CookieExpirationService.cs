@@ -13,7 +13,7 @@ namespace NuGetGallery.Cookies
         private static readonly DateTime CookieExpirationTime = new DateTime(2010, 1, 1);
 
         // Google Analytics cookies
-        private static readonly IReadOnlyList<string> GoogleAnalyticsCookies = new[]
+        private static readonly string[] GoogleAnalyticsCookies = new[]
         {
             "_ga",
             "_gid",
@@ -21,25 +21,11 @@ namespace NuGetGallery.Cookies
         };
 
         // Application Insights cookies
-        private static readonly IReadOnlyList<string> ApplicationInsightsCookies = new[]
+        private static readonly string[] ApplicationInsightsCookies = new[]
         {
             "ai_user",
             "ai_session",
         };
-
-        private readonly string _domain;
-        private readonly string _rootDomain;
-
-        public CookieExpirationService(string domain)
-        {
-            if (string.IsNullOrEmpty(domain))
-            {
-                throw new ArgumentException(CoreStrings.ArgumentCannotBeNullOrEmpty, nameof(domain));
-            }
-
-            _domain = domain;
-            _rootDomain = GetRootDomain(_domain);
-        }
 
         public void ExpireAnalyticsCookies(HttpContextBase httpContext)
         {
@@ -48,8 +34,8 @@ namespace NuGetGallery.Cookies
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            GoogleAnalyticsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName, _rootDomain));
-            ApplicationInsightsCookies.ToList().ForEach(cookieName => ExpireCookieByName(httpContext, cookieName));
+            Array.ForEach(GoogleAnalyticsCookies, cookieName => ExpireCookieByName(httpContext, cookieName));
+            Array.ForEach(ApplicationInsightsCookies, cookieName => ExpireCookieByName(httpContext, cookieName));
         }
 
         public void ExpireSocialMediaCookies(HttpContextBase httpContext) { }
@@ -83,23 +69,6 @@ namespace NuGetGallery.Cookies
                     response.Cookies[cookieName].Domain = domain;
                 }
             }
-        }
-
-        private string GetRootDomain(string domain)
-        {
-            var index1 = domain.LastIndexOf('.');
-            if (index1 < 0)
-            {
-                return domain;
-            }
-
-            var index2 = domain.LastIndexOf('.', index1 - 1);
-            if (index2 < 0)
-            {
-                return domain;
-            }
-
-            return domain.Substring(index2 + 1);
         }
     }
 }

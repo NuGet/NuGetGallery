@@ -20,6 +20,7 @@ namespace NuGetGallery
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<CookieBasedABTestService> _logger;
         private readonly Lazy<ABTestEnrollment> _lazyEnrollment;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
         public CookieBasedABTestService(
             HttpContextBase httpContext,
@@ -27,7 +28,8 @@ namespace NuGetGallery
             IABTestEnrollmentFactory enrollmentFactory,
             IContentObjectService contentObjectService,
             ITelemetryService telemetryService,
-            ILogger<CookieBasedABTestService> logger)
+            ILogger<CookieBasedABTestService> logger,
+            IDateTimeProvider dateTimeProvider)
         {
             _httpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -36,6 +38,7 @@ namespace NuGetGallery
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _lazyEnrollment = new Lazy<ABTestEnrollment>(DetermineEnrollment);
+            _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
         }
 
         public bool IsPreviewSearchEnabled(User user)
@@ -74,7 +77,7 @@ namespace NuGetGallery
                     HttpOnly = true,
                     Secure = true,
                     Value = _enrollmentFactory.Serialize(enrollment),
-                    Expires = DateTime.MaxValue,
+                    Expires = _dateTimeProvider.UtcNow.AddYears(1),
                 };
                 _httpContext.Response.Cookies.Add(responseCookie);
             }

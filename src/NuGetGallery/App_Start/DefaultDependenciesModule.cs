@@ -446,10 +446,6 @@ namespace NuGetGallery
                 .As<IPackageVulnerabilityService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new CookieExpirationService(domain: configuration.GetSiteRoot(useHttps: true)))
-                .As<ICookieExpirationService>()
-                .SingleInstance();
-
             services.AddHttpClient();
             services.AddScoped<IGravatarProxyService, GravatarProxyService>();
 
@@ -481,6 +477,10 @@ namespace NuGetGallery
             RegisterAuditingServices(builder, defaultAuditingService);
 
             RegisterCookieComplianceService(configuration, loggerFactory);
+
+            builder.RegisterType<CookieExpirationService>()
+                .As<ICookieExpirationService>()
+                .SingleInstance();
 
             RegisterABTestServices(builder);
 
@@ -1404,11 +1404,7 @@ namespace NuGetGallery
 
         private static IAuditingService GetAuditingServiceForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
-            string instanceId = HostMachine.Name;
-
-            var localIp = AuditActor.GetLocalIpAddressAsync().Result;
-
-            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
+            var service = new CloudAuditingService(configuration.Current.AzureStorage_Auditing_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
 
             builder.RegisterInstance(service)
                 .As<ICloudStorageStatusDependency>()

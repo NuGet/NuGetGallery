@@ -221,8 +221,8 @@ h3 a:active {
 }
 @media screen and (max-width: 768px) {
   .container {
-    width: -webkit-calc(100vw - 15px);
-    width: calc(100vw - 15px);
+    width: -webkit-calc(100vw - 20px);
+    width: calc(100vw - 20px);
   }
   .navbar-toggle {
     margin-right: 0;
@@ -248,12 +248,11 @@ img.reserved-indicator-icon {
 .package-list {
   margin-top: 8px;
   margin-bottom: 8px;
-  margin-left: -5px;
   padding-left: 0;
   line-height: 20px;
   color: #666666;
 }
-.package-list a {
+.package-list a:not(.more-tags) {
   color: #666666;
 }
 .package-list li {
@@ -263,13 +262,10 @@ img.reserved-indicator-icon {
 @media (min-width: 768px) {
   .package-list li {
     display: inline-block;
-  }
-  .package-list li + li {
-    margin-left: 10px;
-    padding-left: 10px;
-    border-left-style: solid;
-    border-width: 1px;
-    border-color: #dbdbdb;
+    line-height: 20px;
+    max-height: 101px;
+    overflow-y: hidden;
+    padding-right: 10px;
   }
 }
 .package-title-text {
@@ -586,16 +582,6 @@ img.reserved-indicator-icon {
   margin-top: 8px;
   color: #000;
   line-height: 20px;
-}
-@media (min-width: 768px) {
-  .list-packages .package .package-list {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .list-packages .package .package-list li {
-    display: inline;
-  }
 }
 .pager {
   margin-top: 75px;
@@ -1139,7 +1125,8 @@ img.reserved-indicator-icon {
 .page-package-details .gh-star {
   font-size: 14px;
   line-height: 12px;
-  color: #ef8b00;
+  /* Use a slightly darker orange color to increase contrast for accessibility */
+  color: #d87e00;
 }
 .page-package-details .used-by h3 strong {
   font-weight: 400;
