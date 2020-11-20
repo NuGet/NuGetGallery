@@ -97,14 +97,14 @@
             {
                 Id = "dotnet-fsi-nuget",
                 CommandPrefix = "fsi> ",
-                InstallPackageCommand = string.Format("#r \"nuget: {0} >= {1}\"", Model.Id, Model.Version),
+                InstallPackageCommand = string.Format("#r \"nuget: {0},{1}\"", Model.Id, Model.Version),
             },
 
             new ThirdPartyPackageManagerViewModel("dotnet fsi (paket)", "https://fsprojects.github.io/Paket/fsi-integration.html")
             {
                 Id = "dotnet-fsi-paket",
                 CommandPrefix = "fsi> ",
-                InstallPackageCommand = string.Format("#r \"paket: nuget {0} >= {1}\"", Model.Id, Model.Version),
+                InstallPackageCommand = string.Format("#r \"paket: nuget {0} = {1}\"", Model.Id, Model.Version),
             },
 
         };
