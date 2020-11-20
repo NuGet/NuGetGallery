@@ -106,18 +106,34 @@ namespace NuGetGallery
 
         public static HtmlString ShowLabelFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
         {
-            return ShowLabelFor(html, expression, labelText: null);
+            return ShowLabelFor(html, expression, labelText: null, false);
         }
 
-        public static HtmlString ShowLabelFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, string labelText)
+        public static HtmlString ShowLabelFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, bool isrequired)
+        {
+            return ShowLabelFor(html, expression, labelText: null, isrequired);
+        }
+
+        public static HtmlString ShowLabelFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, string labelText, bool isrequired)
         {
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
 
-            return html.LabelFor(expression, labelText, new
+            if (isrequired)
             {
-                id = $"{propertyName}-label"
-            });
+                return html.LabelFor(expression, labelText, new
+                {
+                    id = $"{propertyName}-label",
+                    @class = "required"
+                });
+            }
+            else
+            {
+                return html.LabelFor(expression, labelText, new
+                {
+                    id = $"{propertyName}-label"
+                });
+            }
         }
 
         public static HtmlString ShowPasswordFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
