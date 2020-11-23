@@ -11,6 +11,7 @@ namespace NuGetGallery
         Task<IReadOnlyList<string>> Execute(
             string id,
             bool? includePrerelease = false,
+            bool? icnludeTestData = false,
             string semVerLevel = null);
     }
 }

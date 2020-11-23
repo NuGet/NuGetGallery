@@ -4,7 +4,6 @@
     ViewBag.Title = "Manage My Package";
     ViewBag.Tab = "Packages";
 }
-
 <section role="main" class="container main-container page-manage-packages">
     @ViewHelpers.AjaxAntiForgeryToken(Html)
 
@@ -113,14 +112,14 @@
                 <thead>
                     <tr class="manage-package-headings">
                         <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
-                        <th>Package ID</th>
-                        <th>Owners</th>
+                        <th class="sortable">Package ID</th>
+                        <th class="sortable">Owners</th>
                     @if (Model.IsCertificatesUIEnabled)
                     {
-                        <th>Signing Owner</th>
+                        <th  class="sortable">Signing Owner</th>
                     }
-                        <th>Downloads</th>
-                        <th>Latest Version</th>
+                        <th  class="sortable">Downloads</th>
+                        <th  class="sortable">Latest Version</th>
                         <th><span class="hidden">Icon</span></th>
                     </tr>
                 </thead>
@@ -166,10 +165,10 @@
                             <!-- /ko -->
                         </td>
                     }
-                        <td class="align-middle text-nowrap">
+                        <td class="align-middle text-nowrap" data-bind="attr: { 'data-sortby': DownloadCount }">
                             <span data-bind="text: FormattedDownloadCount"></span>
                         </td>
-                        <td class="align-middle text-nowrap">
+                        <td class="align-middle text-nowrap" data-bind="attr: { 'data-sortby': VersionSortOrder }">
                             <span data-bind="text: LatestVersion"></span>
                         </td>
                         <td class="text-right align-middle package-controls">
@@ -353,7 +352,8 @@
             CanDelete = p.CanUnlistOrRelist,
             p.CanEditRequiredSigner,
             p.ShowRequiredSigner,
-            p.ShowTextBox
+            p.ShowTextBox,
+            p.VersionSortOrder
         };
     }
 

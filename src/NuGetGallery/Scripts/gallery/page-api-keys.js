@@ -440,6 +440,10 @@
 
                 // Re-attach extensions.
                 self.AttachExtensions();
+
+                // Focus the edit link so that the next tab key will continue with where it was left off prior to
+                // opening the edit form. See https://github.com/NuGet/NuGetGallery/issues/8183.
+                $("#" + self.StartEditId()).focus();
             };
 
             this.ShowRemainingPackages = function (_, e) {

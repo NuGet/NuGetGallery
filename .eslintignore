@@ -1,0 +1,8 @@
+# Don't run ESLint on external script files. We depend on Component Governance to scan and detect unacceptable or
+# vulnerable script versions.
+#
+# Prepend each file with a globbing '**/' because our official builds run in a complex way that makes it hard to depend
+# on specific relative paths.
+**/Scripts/gallery/jquery-3.4.1.js
+**/Scripts/gallery/knockout-3.5.1.js
+**/Scripts/gallery/moment-2.18.1.js

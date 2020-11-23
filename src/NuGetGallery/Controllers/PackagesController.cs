@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
-using System.Windows.Forms;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
@@ -124,6 +123,7 @@ namespace NuGetGallery
         private readonly IPackageDeprecationService _deprecationService;
         private readonly IPackageRenameService _renameService;
         private readonly IABTestService _abTestService;
+        private readonly IMarkdownService _markdownService;
         private readonly IIconUrlProvider _iconUrlProvider;
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
         private readonly DisplayLicenseViewModelFactory _displayLicenseViewModelFactory;
@@ -163,7 +163,8 @@ namespace NuGetGallery
             IPackageDeprecationService deprecationService,
             IPackageRenameService renameService,
             IABTestService abTestService,
-            IIconUrlProvider iconUrlProvider)
+            IIconUrlProvider iconUrlProvider,
+            IMarkdownService markdownService)
         {
             _packageFilter = packageFilter;
             _packageService = packageService;
@@ -189,6 +190,8 @@ namespace NuGetGallery
             _packageOwnershipManagementService = packageOwnershipManagementService;
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
+            _markdownService = markdownService;
+
             _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
@@ -199,7 +202,7 @@ namespace NuGetGallery
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
             _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider);
-            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider);
+            _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
             _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider);
             _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider);
@@ -224,6 +227,7 @@ namespace NuGetGallery
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpGet]
         [UIAuthorize]
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> UploadPackage()
@@ -615,6 +619,17 @@ namespace NuGetGallery
             model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
             model.Warnings.AddRange(packageContentData.Warnings.Select(w => new JsonValidationMessage(w)));
             model.LicenseFileContents = packageContentData.LicenseFileContents;
+
+            var license = packageMetadata.LicenseMetadata?.License;
+
+            if (_featureFlagService.IsLicenseMdRenderingEnabled(currentUser) &&
+                license != null && 
+                packageMetadata.LicenseMetadata?.Type == LicenseType.File &&
+                Path.GetExtension(license).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
+            {
+                model.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(packageContentData.LicenseFileContents, incrementHeadersBy: 2)?.Content;
+            }
+
             model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
             model.ReadmeFileContents = packageContentData.ReadmeFileContents;
 
@@ -828,6 +843,10 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
+            // Attempt to normalize the version but allow version strings that are not actually SemVer strings. For
+            // example, "absoluteLatest" is allowed as the version string as a reference to the absolute latest version
+            // including prerelease versions. In this case, the resulting normalized version will be left as the
+            // original string.
             string normalized = NuGetVersionFormatter.Normalize(version);
             if (!string.Equals(version, normalized))
             {
@@ -877,8 +896,7 @@ namespace NuGetGallery
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
-            model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser) && 
-                _abTestService.IsPackageDependendentsABEnabled(currentUser);
+            model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
            
             if (model.IsPackageDependentsEnabled)
             {
@@ -890,7 +908,11 @@ namespace NuGetGallery
                 model.GitHubDependenciesInformation = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
             }
 
-            if (normalized != null && !string.Equals(package.NormalizedVersion, normalized, StringComparison.OrdinalIgnoreCase))
+            // If the normalized version is actually a SemVer but does not match the resolved package version, show a
+            // warning. It's possible that the normalized version is not a SemVer string (like "absoluteLatest").
+            if (normalized != null
+                && !string.Equals(package.NormalizedVersion, normalized, StringComparison.OrdinalIgnoreCase)
+                && NuGetVersion.TryParse(normalized, out var parsed))
             {
                 model.VersionRequested = normalized;
                 model.VersionRequestedWasNotFound = true;
@@ -941,7 +963,8 @@ namespace NuGetGallery
                             packageType: null,
                             sortOrder: null,
                             context: SearchFilter.ODataSearchContext,
-                            semVerLevel: SemVerLevelKey.SemVerLevel2);
+                            semVerLevel: SemVerLevelKey.SemVerLevel2,
+                            includeTestData: true);
 
                         searchFilter.IncludeAllVersions = true;
 
@@ -1129,16 +1152,18 @@ namespace NuGetGallery
                 throw;
             }
 
-            var model = _displayLicenseViewModelFactory.Create(package, licenseExpressionSegments, licenseFileContents);
+            var model = _displayLicenseViewModelFactory.Create(package, licenseExpressionSegments, licenseFileContents, GetCurrentUser());
 
             return View(model);
         }
 
+        [HttpGet]
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
         {
             var page = searchAndListModel.Page;
             var q = searchAndListModel.Q;
             var includePrerelease = searchAndListModel.Prerel ?? true;
+            var includeTestData = searchAndListModel.TestData ?? false;
 
             if (page < 1)
             {
@@ -1195,7 +1220,8 @@ namespace NuGetGallery
                         packageType: searchAndListModel.PackageType,
                         sortOrder: searchAndListModel.SortBy,
                         context: SearchFilter.UISearchContext,
-                        semVerLevel: SemVerLevelKey.SemVerLevel2);
+                        semVerLevel: SemVerLevelKey.SemVerLevel2,
+                        includeTestData: includeTestData);
 
                     results = await searchService.Search(searchFilter);
 
@@ -1223,7 +1249,8 @@ namespace NuGetGallery
                     packageType: searchAndListModel.PackageType,
                     sortOrder: searchAndListModel.SortBy,
                     context: SearchFilter.UISearchContext,
-                    semVerLevel: SemVerLevelKey.SemVerLevel2);
+                    semVerLevel: SemVerLevelKey.SemVerLevel2,
+                    includeTestData: includeTestData);
 
                 results = await searchService.Search(searchFilter);
             }
@@ -2075,9 +2102,10 @@ namespace NuGetGallery
 
         [UIAuthorize]
         [HttpPost]
-        [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
+        [ValidateInput(false)] 
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("edit a package")]
+        [SuppressMessage("Security", "CA5363:Do Not Disable Request Validation", Justification = "Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874")]
         public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
@@ -2299,7 +2327,8 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
-        [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
+        [ValidateInput(false)]
+        [SuppressMessage("Security", "CA5363:Do Not Disable Request Validation", Justification = "Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874")]
         public virtual async Task<JsonResult> VerifyPackage(VerifyPackageRequest formData)
         {
             try
@@ -2625,7 +2654,7 @@ namespace NuGetGallery
                 
                 if (formData.Edit != null)
                 {
-                    if (package.HasReadMe && package.EmbeddedReadmeType != EmbeddedReadmeFileType.Absent)
+                    if (_readMeService.HasReadMeSource(formData.Edit.ReadMe) && package.HasReadMe && package.EmbeddedReadmeType != EmbeddedReadmeFileType.Absent)
                     {
                         return Json(HttpStatusCode.BadRequest, new[] { new JsonValidationMessage(Strings.ReadmeNotEditableWithEmbeddedReadme) });
                     }

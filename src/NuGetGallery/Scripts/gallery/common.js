@@ -463,51 +463,56 @@
     };
 
     nuget.enableUsabilla = function (obfuscatedPath) {
-        // If there is an obfuscated path, hook into the outgoing AJAX request containing the feedback and obfuscate
-        // the URL data. This approach was provided by the Usabilla technical support.
-        if (obfuscatedPath) {
-            var obfuscatedUrl = document.createElement('a');
-            obfuscatedUrl.href = window.location.href;
-            if (obfuscatedPath.substring(0, 1) != "/") {
-                obfuscatedUrl.pathname = "/" + obfuscatedPath;
-            } else {
-                obfuscatedUrl.pathname = obfuscatedPath;
+        // Only enable Usabilla if the API is available and the button container is in the DOM. If the user has
+        // external scripts blocked or trackers blocks, Usabilla might not be loaded at all. This method was confirmed
+        // with Usabilla support staff.
+        if (window.usabilla_live !== undefined && $(".usabilla_live_button_container").length > 0) {
+            // If there is an obfuscated path, hook into the outgoing AJAX request containing the feedback and obfuscate
+            // the URL data. This approach was provided by the Usabilla technical support.
+            if (obfuscatedPath) {
+                var obfuscatedUrl = document.createElement('a');
+                obfuscatedUrl.href = window.location.href;
+                if (obfuscatedPath.substring(0, 1) != "/") {
+                    obfuscatedUrl.pathname = "/" + obfuscatedPath;
+                } else {
+                    obfuscatedUrl.pathname = obfuscatedPath;
+                }
+
+                window.usabilla_live("setEventCallback", function (category, action, label, value, eventdata) {
+                    if (action != "Feedback:Open") {
+                        return;
+                    }
+
+                    function sendWithObfuscation(vData) {
+                        if (vData) {
+                            var data = JSON.parse(vData);
+                            data.url = obfuscatedUrl.href;
+                            vData = JSON.stringify(data);
+                            arguments[0] = vData;
+                        }
+                        realSend.apply(this, arguments);
+                    }
+
+                    var realSend = XMLHttpRequest.prototype.send;
+                    var ub_window = document.getElementById("lightningjs-frame-usabilla_live_feedback").contentWindow;
+                    ub_window.XMLHttpRequest.prototype.send = sendWithObfuscation;
+                    if (window.XDomainRequest) {
+                        realSend = XDomainRequest.prototype.send;
+                        ub_window.XDomainRequest.prototype.send = sendWithObfuscation;
+                    }
+                });
             }
 
-            window.usabilla_live("setEventCallback", function (category, action, label, value, eventdata) {
-                if (action != "Feedback:Open") {
-                    return;
-                }
+            // Hide the default feedback button.
+            window.usabilla_live("hide");
 
-                function sendWithObfuscation(vData) {
-                    if (vData) {
-                        var data = JSON.parse(vData);
-                        data.url = obfuscatedUrl.href;
-                        vData = JSON.stringify(data);
-                        arguments[0] = vData;
-                    }
-                    realSend.apply(this, arguments);
-                }
-
-                var realSend = XMLHttpRequest.prototype.send;
-                var ub_window = document.getElementById("lightningjs-frame-usabilla_live_feedback").contentWindow;
-                ub_window.XMLHttpRequest.prototype.send = sendWithObfuscation;
-                if (window.XDomainRequest) {
-                    realSend = XDomainRequest.prototype.send;
-                    ub_window.XDomainRequest.prototype.send = sendWithObfuscation;
-                }
+            // Wire-up and show the custom feedback button.
+            document.getElementById("usbl-integrated-button").addEventListener("click", function (event) {
+                event.preventDefault();
+                window.usabilla_live("click");
             });
+            document.getElementById("usabilla-button").style.display = "block";
         }
-
-        // Hide the default feedback button.
-        window.usabilla_live("hide");
-
-        // Wire-up and show the custom feedback button.
-        document.getElementById("usbl-integrated-button").addEventListener("click", function (event) {
-            event.preventDefault();
-            window.usabilla_live("click");
-        });
-        document.getElementById("usabilla-button").style.display = "block";
     };
 
     window.nuget = nuget;
@@ -635,5 +640,17 @@
                 skippedToContent.focus();
             }
         });
+
+        window.WcpConsent && WcpConsent.init("en-US", "cookie-banner", function (err, _siteConsent) {
+            if (err !== undefined) {
+                console.log("Error initializing WcpConsent: ", err);
+            } else {
+                window.nuget.wcpSiteConsent = _siteConsent;  // wcpSiteConsent is used to get the current consent
+            }
+        });
+
+        if (window.nuget.wcpSiteConsent && window.nuget.wcpSiteConsent.isConsentRequired) {
+            $("#footer-privacy-policy-link").after(" - <a class='button' href = 'javascript: window.nuget.wcpSiteConsent.manageConsent()' > Manage Cookies</a >")
+        }
     });
 }());

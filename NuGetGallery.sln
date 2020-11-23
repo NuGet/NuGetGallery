@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery", "src\NuGetGa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Facts", "tests\NuGetGallery.Facts\NuGetGallery.Facts.csproj", "{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Core", "src\NuGetGallery.Core\NuGetGallery.Core.csproj", "{097B2CDD-9623-4C34-93C2-D373D51F5B4E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGetGallery.Core", "src\NuGetGallery.Core\NuGetGallery.Core.csproj", "{097B2CDD-9623-4C34-93C2-D373D51F5B4E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Core.Facts", "tests\NuGetGallery.Core.Facts\NuGetGallery.Core.Facts.csproj", "{8AC9E39E-366C-47E5-80AE-38E71CD31386}"
 EndProject
@@ -26,7 +26,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4. Tools", "4. Tools", "{22
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalleryTools", "src\GalleryTools\GalleryTools.csproj", "{C5849063-8CDC-4561-BA5C-7D97BD905DC3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Entities", "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj", "{6262F4FC-29BE-4226-B676-DB391C89D396}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Entities", "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj", "{6262F4FC-29BE-4226-B676-DB391C89D396}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Entities.Tests", "tests\NuGet.Services.Entities.Tests\NuGet.Services.Entities.Tests.csproj", "{79C831E9-7C88-4B98-B084-4DE940C73FC7}"
 EndProject
@@ -51,6 +51,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHubVulnerabilities2Db.Facts", "tests\GitHubVulnerabilities2Db.Facts\GitHubVulnerabilities2Db.Facts.csproj", "{E50953CB-209A-484E-951D-A68F5CF3C546}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VerifyGitHubVulnerabilities", "src\VerifyGitHubVulnerabilities\VerifyGitHubVulnerabilities.csproj", "{C0B764D2-D376-439E-A5C4-1AC41B11E9DE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C643C106-D245-4F00-A486-146357812D8D}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		SdkProjects.props = SdkProjects.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

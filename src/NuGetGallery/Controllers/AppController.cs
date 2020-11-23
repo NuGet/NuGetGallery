@@ -2,11 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net;
-using System.Security.Claims;
-using System.Threading;
 using System.Web;
 using System.Web.Mvc;
+using System.Threading;
+using System.Security.Claims;
 using Microsoft.Owin;
+using NuGetGallery.Cookies;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -14,6 +15,8 @@ namespace NuGetGallery
     public abstract partial class AppController
         : Controller
     {
+        private ICookieExpirationService _cookieExpirationService;
+
         private IOwinContext _overrideContext;
 
         public IOwinContext OwinContext => _overrideContext ?? HttpContext.GetOwinContext();
@@ -30,9 +33,19 @@ namespace NuGetGallery
             _overrideContext = owinContext;
         }
 
+        /// <summary>
+        /// This method is used for the unit test.
+        /// </summary>
+        public void SetCookieExpirationService(ICookieExpirationService cookieExpirationService)
+        {
+            _cookieExpirationService = cookieExpirationService;
+        }
+
         protected AppController()
         {
             NuGetContext = new NuGetContext(this);
+
+            _cookieExpirationService = GetService<ICookieExpirationService>();
         }
 
         protected internal virtual T GetService<T>()
@@ -95,6 +108,32 @@ namespace NuGetGallery
             }
 
             base.OnActionExecuting(filterContext);
+        }
+
+        /// <summary>
+        /// Called after the action method is invoked.
+        /// </summary>
+        /// <param name="filterContext">Information about the current request and action.</param>
+        protected override void OnActionExecuted(ActionExecutedContext filterContext)
+        {
+            SetCookieCompliance(filterContext);
+
+            base.OnActionExecuted(filterContext);
+        }
+
+        private void SetCookieCompliance(ActionExecutedContext filterContext)
+        {
+            if (filterContext.HttpContext?.Items[ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] == null
+                || (bool)filterContext.HttpContext.Items[ServicesConstants.CookieComplianceCanWriteAnalyticsCookies] == false)
+            {
+                ViewBag.CanWriteAnalyticsCookies = false;
+
+                _cookieExpirationService.ExpireAnalyticsCookies(filterContext.HttpContext);
+            }
+            else
+            {
+                ViewBag.CanWriteAnalyticsCookies = true;
+            }
         }
     }
 }

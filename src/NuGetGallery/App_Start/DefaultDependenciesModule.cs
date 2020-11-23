@@ -368,6 +368,10 @@ namespace NuGetGallery
                 .As<IReadMeService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<MarkdownService>()
+                .As<IMarkdownService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<ApiScopeEvaluator>()
                 .AsSelf()
                 .As<IApiScopeEvaluator>()
@@ -472,7 +476,11 @@ namespace NuGetGallery
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
-            RegisterCookieComplianceService(builder, configuration, diagnosticsService);
+            RegisterCookieComplianceService(configuration, loggerFactory);
+
+            builder.RegisterType<CookieExpirationService>()
+                .As<ICookieExpirationService>()
+                .SingleInstance();
 
             RegisterABTestServices(builder);
 
@@ -1396,11 +1404,7 @@ namespace NuGetGallery
 
         private static IAuditingService GetAuditingServiceForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
         {
-            string instanceId = HostMachine.Name;
-
-            var localIp = AuditActor.GetLocalIpAddressAsync().Result;
-
-            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
+            var service = new CloudAuditingService(configuration.Current.AzureStorage_Auditing_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
 
             builder.RegisterInstance(service)
                 .As<ICloudStorageStatusDependency>()
@@ -1458,29 +1462,21 @@ namespace NuGetGallery
                 .SingleInstance();
         }
 
-        private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
+        private static void RegisterCookieComplianceService(ConfigurationService configuration, ILoggerFactory loggerFactory)
         {
-            CookieComplianceServiceBase service = null;
+            var logger = loggerFactory.CreateLogger(nameof(CookieComplianceService));
+
+            ICookieComplianceService service = null;
             if (configuration.Current.IsHosted)
             {
                 var siteName = configuration.GetSiteRoot(true);
                 service = GetAddInServices<ICookieComplianceService>(sp =>
                 {
-                    sp.ComposeExportedValue("Domain", siteName);
-                    sp.ComposeExportedValue<IDiagnosticsService>(diagnostics);
-                }).FirstOrDefault() as CookieComplianceServiceBase;
-
-                if (service != null)
-                {
-                    // Initialize the service on App_Start to avoid any performance degradation during initial requests.
-                    HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
-                }
+                    sp.ComposeExportedValue<ILogger>(logger);
+                }).FirstOrDefault();
             }
 
-            builder.RegisterInstance(service ?? new NullCookieComplianceService())
-                .AsSelf()
-                .As<ICookieComplianceService>()
-                .SingleInstance();
+            CookieComplianceService.Initialize(service ?? new NullCookieComplianceService(), logger);
         }
     }
 }

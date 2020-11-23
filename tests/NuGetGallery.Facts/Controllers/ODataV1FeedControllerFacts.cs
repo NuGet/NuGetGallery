@@ -10,6 +10,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using Moq;
 using Xunit;
+using System.Net;
+using System.Web.Http;
 
 namespace NuGetGallery.Controllers
 {
@@ -42,6 +44,60 @@ namespace NuGetGallery.Controllers
         }
 
         [Fact]
+        public async Task GetAll_ReturnsBadRequestWhenGetAllIsDisabled()
+        {
+            // Arrange
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService.Setup(x => x.IsODataV1GetAllEnabled()).Returns(false);
+
+            // Act
+            var resultSet = GetActionResult<V1FeedPackage>(
+                (controller, options) => controller.Get(options),
+                "/api/v1/Packages",
+                featureFlagService);
+
+            // Assert
+            await VerifyODataDeprecation(resultSet, Strings.ODataDisabled);
+            featureFlagService.Verify(x => x.IsODataV1GetAllEnabled());
+        }
+
+        [Fact]
+        public async Task GetAllCount_ReturnsBadRequestWhenGetAllIsDisabled()
+        {
+            // Arrange
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService.Setup(x => x.IsODataV1GetAllCountEnabled()).Returns(false);
+
+            // Act
+            var resultSet = GetActionResult<V1FeedPackage>(
+                (controller, options) => controller.GetCount(options),
+                "/api/v1/Packages/$count",
+                featureFlagService);
+
+            // Assert
+            await VerifyODataDeprecation(resultSet, Strings.ODataDisabled);
+            featureFlagService.Verify(x => x.IsODataV1GetAllCountEnabled());
+        }
+
+        [Fact]
+        public async Task GetSpecific_ReturnsBadRequestNonHijackedIsDisabledAndQueryCannotBeHijacked()
+        {
+            // Arrange
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService.Setup(x => x.IsODataV1GetSpecificNonHijackedEnabled()).Returns(false);
+
+            // Act
+            var resultSet = await GetActionResultAsync<V1FeedPackage>(
+                async (controller, options) => await controller.Get(options, TestPackageId, "1.0.0"),
+                $"/api/v1/Packages(Id='{TestPackageId}',Version='1.0.0')?$filter=1 eq 1",
+                featureFlagService);
+
+            // Assert
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
+            featureFlagService.Verify(x => x.IsODataV1GetSpecificNonHijackedEnabled());
+        }
+
+        [Fact]
         public async Task GetCount_FiltersSemVerV2PackageVersions()
         {
             // Act
@@ -67,6 +123,42 @@ namespace NuGetGallery.Controllers
         }
 
         [Fact]
+        public async Task FindPackagesById_ReturnsBadRequestNonHijackedIsDisabledAndQueryCannotBeHijacked()
+        {
+            // Arrange
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService.Setup(x => x.IsODataV1FindPackagesByIdNonHijackedEnabled()).Returns(false);
+
+            // Act
+            var resultSet = await GetActionResultAsync<V1FeedPackage>(
+                async (controller, options) => await controller.FindPackagesById(options, TestPackageId),
+                $"/api/v1/FindPackagesById?id='{TestPackageId}'&$orderby=Version",
+                featureFlagService);
+
+            // Assert
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
+            featureFlagService.Verify(x => x.IsODataV1FindPackagesByIdNonHijackedEnabled());
+        }
+
+        [Fact]
+        public async Task FindPackagesByIdCount_ReturnsBadRequestNonHijackedIsDisabledAndQueryCannotBeHijacked()
+        {
+            // Arrange
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService.Setup(x => x.IsODataV1FindPackagesByIdCountNonHijackedEnabled()).Returns(false);
+
+            // Act
+            var resultSet = await GetActionResultAsync<V1FeedPackage>(
+                async (controller, options) => await controller.FindPackagesByIdCount(options, TestPackageId),
+                $"/api/v1/FindPackagesById/$count?id='{TestPackageId}'&$orderby=Version",
+                featureFlagService);
+
+            // Assert
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
+            featureFlagService.Verify(x => x.IsODataV1FindPackagesByIdCountNonHijackedEnabled());
+        }
+
+        [Fact]
         public async Task FindPackagesByIdCount_FiltersSemVerV2PackageVersions()
         {
             // Act
@@ -89,6 +181,42 @@ namespace NuGetGallery.Controllers
             // Assert
             AssertSemVer2PackagesFilteredFromResult(resultSet);
             Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
+        }
+
+        [Fact]
+        public async Task Search_ReturnsBadRequestNonHijackedIsDisabledAndQueryCannotBeHijacked()
+        {
+            // Arrange
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService.Setup(x => x.IsODataV1SearchNonHijackedEnabled()).Returns(false);
+
+            // Act
+            var resultSet = await GetActionResultAsync<V1FeedPackage>(
+                async (controller, options) => await controller.Search(options, TestPackageId),
+                $"/api/v1/Search?searchTerm='{TestPackageId}'&$orderby=Version",
+                featureFlagService);
+
+            // Assert
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
+            featureFlagService.Verify(x => x.IsODataV1SearchNonHijackedEnabled());
+        }
+
+        [Fact]
+        public async Task SearchCount_ReturnsBadRequestNonHijackedIsDisabledAndQueryCannotBeHijacked()
+        {
+            // Arrange
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService.Setup(x => x.IsODataV1SearchCountNonHijackedEnabled()).Returns(false);
+
+            // Act
+            var resultSet = await GetActionResultAsync<V1FeedPackage>(
+                async (controller, options) => await controller.SearchCount(options, TestPackageId),
+                $"/api/v1/Search/$count?searchTerm='{TestPackageId}'&$orderby=Version",
+                featureFlagService);
+
+            // Assert
+            await VerifyODataDeprecation(resultSet, Strings.ODataParametersDisabled);
+            featureFlagService.Verify(x => x.IsODataV1SearchCountNonHijackedEnabled());
         }
 
         [Fact]

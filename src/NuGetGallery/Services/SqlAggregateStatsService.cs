@@ -14,7 +14,7 @@ namespace NuGetGallery
         private readonly ISqlConnectionFactory _connectionFactory;
 
         // Note the NOLOCK hints here!
-        private static readonly string GetStatisticsSql = @"SELECT
+        private const string GetStatisticsSql = @"SELECT
     (SELECT SUM([DownloadCount]) FROM PackageRegistrations WITH (NOLOCK)) As Downloads,
     (SELECT COUNT([Key]) FROM PackageRegistrations pr WITH (NOLOCK)
             WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageStatusKey = 0)) AS UniquePackages,
@@ -26,9 +26,9 @@ namespace NuGetGallery
             _connectionFactory = galleryDbConnectionFactory;
         }
 
-        public Task<AggregateStats> GetAggregateStats()
+        public async Task<AggregateStats> GetAggregateStats()
         {
-            var connection = Task.Run(() => _connectionFactory.CreateAsync()).Result;
+            var connection = await _connectionFactory.CreateAsync();
             using (var dbContext = new EntitiesContext(connection, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
             {
                 var database = dbContext.Database;
@@ -41,15 +41,15 @@ namespace NuGetGallery
                         bool hasData = reader.Read();
                         if (!hasData)
                         {
-                            return Task.FromResult(new AggregateStats());
+                            return new AggregateStats();
                         }
 
-                        return Task.FromResult(new AggregateStats
+                        return new AggregateStats
                         {
                             Downloads = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
                             UniquePackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
                             TotalPackages = reader.IsDBNull(2) ? 0 : reader.GetInt32(2)
-                        });
+                        };
                     }
                 }
             }

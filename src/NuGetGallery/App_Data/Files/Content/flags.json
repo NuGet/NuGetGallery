@@ -8,7 +8,21 @@
     "NuGetGallery.ODataCacheDurations": "Enabled",
     "NuGetGallery.ShowEnable2FADialog": "Enabled",
     "NuGetGallery.Get2FADismissFeedback": "Disabled",
-    "NuGetGallery.UsabillaEveryPage": "Enabled"
+    "NuGetGallery.UsabillaEveryPage": "Enabled",
+    "NuGetGallery.ODataV1GetAllNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1GetAllCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1GetSpecificNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1FindPackagesByIdNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1FindPackagesByIdCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1SearchNonHijacked": "Enabled",
+    "NuGetGallery.ODataV1SearchCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2GetAllNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2GetAllCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2GetSpecificNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2FindPackagesByIdNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2FindPackagesByIdCountNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2SearchNonHijacked": "Enabled",
+    "NuGetGallery.ODataV2SearchCountNonHijacked": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
@@ -49,6 +63,18 @@
     },
     "NuGetGallery.PackageDependents": {
       "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.LicenseMdRendering": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DeletePackageApi": {
+      "All": false,
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []

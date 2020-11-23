@@ -133,6 +133,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
+        [HttpGet]
         public async Task<ActionResult> Filter(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
         {
             if (pageNumber <= 0)
@@ -169,6 +170,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpGet]
         public async Task<ActionResult> Index(int pageNumber = 1, int take = _defaultTakeCount, int? assignedToId = null, int? issueStatusId = null, string reason = null)
         {
             if (pageNumber <= 0)

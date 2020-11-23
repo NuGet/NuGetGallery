@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#pragma warning disable CA3147 // No need to validate Antiforgery Token with API request
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -24,6 +25,7 @@ using NuGetGallery.Auditing.AuditedEntities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
+using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
@@ -36,6 +38,7 @@ namespace NuGetGallery
         : AppController
     {
         private const string NuGetExeUrl = "https://dist.nuget.org/win-x86-commandline/v2.8.6/nuget.exe";
+        private const string PackageDeleteApiReason = "Deleted via API";
         private readonly IAutocompletePackageIdsQuery _autocompletePackageIdsQuery;
         private readonly IAutocompletePackageVersionsQuery _autocompletePackageVersionsQuery;
 
@@ -860,7 +863,7 @@ namespace NuGetGallery
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName("DeletePackageApi")]
-        public virtual async Task<ActionResult> DeletePackage(string id, string version)
+        public virtual async Task<ActionResult> DeletePackage(string id, string version, DeletePackageApiRequest request = null)
         {
             var package = PackageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
@@ -869,7 +872,8 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if the current user's scopes allow listing/unlisting the current package ID
+            // Check if the current user's scopes allow listing/unlisting the current package ID. This scope is used for
+            // both unlisting and soft deletion.
             var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package.PackageRegistration, NuGetScopes.PackageUnlist);
             if (!apiScopeEvaluationResult.IsSuccessful())
             {
@@ -883,7 +887,55 @@ namespace NuGetGallery
                     string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
-            await PackageUpdateService.MarkPackageUnlistedAsync(package);
+            var currentUser = GetCurrentUser();
+            DeletePackageAction action;
+            if (request?.Type == null)
+            {
+                action = DeletePackageAction.Unlist;
+            }
+            else if (!request.TryParseAction(out action))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.DeletePackage_InvalidDeleteType);
+            }
+
+            switch (action)
+            {
+                case DeletePackageAction.Unlist:
+                    await PackageUpdateService.MarkPackageUnlistedAsync(package);
+                    break;
+
+                case DeletePackageAction.SoftDelete:
+                    // A user can only delete packages if there are enabled in the flight and are NOT an admin. The
+                    // admin restriction is for safety reasons. This endpoint is currently intended just for test data
+                    // clean-up which can be done with a very limited, non-admin API key.
+                    if (!FeatureFlagService.IsDeletePackageApiEnabled(currentUser)
+                        || currentUser.IsAdministrator)
+                    {
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.DeletePackage_NotAllowed);
+                    }
+
+                    // Apply a hard stop on the deletion if there are too many downloads on this package version. We
+                    // using configuration here and use a constant to mimize the risk of misconfiguration allowing too
+                    // many deletes.
+                    const int downloadCountLimit = 1000;
+                    if (package.DownloadCount >= downloadCountLimit)
+                    {
+                        return new HttpStatusCodeWithBodyResult(
+                            HttpStatusCode.Forbidden,
+                            string.Format(CultureInfo.CurrentCulture, Strings.DeletePackage_TooManyDownloads, downloadCountLimit));
+                    }
+
+                    await PackageDeleteService.SoftDeletePackagesAsync(
+                        new[] { package },
+                        currentUser,
+                        PackageDeleteApiReason,
+                        Strings.AutomatedPackageDeleteSignature);
+                    break;
+
+                default:
+                    throw new NotSupportedException($"The delete package action '{action}' is not supported.");
+            }
+            
             return new EmptyResult();
         }
 
@@ -1018,11 +1070,16 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> GetPackageIds(
             string partialId,
             bool? includePrerelease,
+            bool? testData,
             string semVerLevel = null)
         {
             return new JsonResult
             {
-                Data = await _autocompletePackageIdsQuery.Execute(partialId, includePrerelease, semVerLevel),
+                Data = await _autocompletePackageIdsQuery.Execute(
+                    partialId,
+                    includePrerelease,
+                    testData,
+                    semVerLevel),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
@@ -1032,11 +1089,16 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> GetPackageVersions(
             string id,
             bool? includePrerelease,
+            bool? testData,
             string semVerLevel = null)
         {
             return new JsonResult
             {
-                Data = await _autocompletePackageVersionsQuery.Execute(id, includePrerelease, semVerLevel),
+                Data = await _autocompletePackageVersionsQuery.Execute(
+                    id,
+                    includePrerelease,
+                    testData,
+                    semVerLevel),
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }
@@ -1181,3 +1243,4 @@ namespace NuGetGallery
         }
     }
 }
+#pragma warning restore CA3147 // No need to validate Antiforgery Token with API request
