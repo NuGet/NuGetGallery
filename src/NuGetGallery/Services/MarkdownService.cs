@@ -52,7 +52,6 @@ namespace NuGetGallery
             {
                 return GetHtmlFromMarkdownCommonMark(markdownString, incrementHeadersBy);
             }
-
         }
 
         private RenderedMarkdownResult GetHtmlFromMarkdownCommonMark(string markdownString, int incrementHeadersBy)
@@ -169,73 +168,73 @@ namespace NuGetGallery
                 .UseAutoLinks()
                 .Build();
 
-            StringWriter htmlWriter = new StringWriter();
-            var renderer = new HtmlRenderer(htmlWriter);
-            pipeline.Setup(renderer);
-
-            var document = Markdown.Parse(encodedMarkdown, pipeline);
-
-            foreach (var node in document.Descendants())
+            using(StringWriter htmlWriter = new StringWriter())
             {
-                if (node is Markdig.Syntax.Block)
-                {
-                    // Demote heading tags so they don't overpower expander headings.
-                    if (node is HeadingBlock heading)
-                    {
-                        heading.Level = (byte)Math.Min(heading.Level + incrementHeadersBy, 6);
-                    }
+                var renderer = new HtmlRenderer(htmlWriter);
+                pipeline.Setup(renderer);
 
-                    // Decode preformatted blocks to prevent double encoding.
-                    // Skip BlockTag.BlockQuote, which are partially decoded upfront.
-                    if (node is FencedCodeBlock || node is CodeBlock)
+                var document = Markdown.Parse(encodedMarkdown, pipeline);
+
+                foreach (var node in document.Descendants())
+                {
+                    if (node is Markdig.Syntax.Block)
                     {
-                        LeafBlock codeBlock = (LeafBlock)node;
-                        var lines =codeBlock.Lines;
-                        for (int i = 0; i < lines.Count; i++) 
+                        // Demote heading tags so they don't overpower expander headings.
+                        if (node is HeadingBlock heading)
                         {
-                            var content = lines.Lines[i].Slice.ToString();
-                            var unencodedContent = HttpUtility.HtmlDecode(content);
-                            lines.Lines[i].Slice = new Markdig.Helpers.StringSlice(unencodedContent);
+                            heading.Level = (byte)Math.Min(heading.Level + incrementHeadersBy, 6);
+                        }
+
+                        // Decode preformatted blocks to prevent double encoding.
+                        // Skip BlockTag.BlockQuote, which are partially decoded upfront.
+                        if (node is FencedCodeBlock || node is CodeBlock)
+                        {
+                            LeafBlock codeBlock = (LeafBlock)node;
+                            var lines =codeBlock.Lines;
+                            for (int i = 0; i < lines.Count; i++) 
+                            {
+                                var content = lines.Lines[i].Slice.ToString();
+                                var unencodedContent = HttpUtility.HtmlDecode(content);
+                                lines.Lines[i].Slice = new Markdig.Helpers.StringSlice(unencodedContent);
+                            }
                         }
                     }
-
-                }
-                else if (node is Markdig.Syntax.Inlines.Inline)
-                {
-                    if (node is LinkInline linkInline)
+                    else if (node is Markdig.Syntax.Inlines.Inline)
                     {
-                        if (linkInline.IsImage)
+                        if (node is LinkInline linkInline)
                         {
-                            // Allow only http or https links in markdown. Transform link to https for known domains.
-                            if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                            if (linkInline.IsImage)
                             {
-                                linkInline.Url = string.Empty;
+                                // Allow only http or https links in markdown. Transform link to https for known domains.
+                                if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                {
+                                    linkInline.Url = string.Empty;
+                                }
+                                else
+                                {
+                                    output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                    linkInline.Url = readyUriString;
+                                }
                             }
                             else
                             {
-                                output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
-                                linkInline.Url = readyUriString;
-                            }
-                        }
-                        else
-                        {
-                            if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
-                            {
-                                linkInline.Url = string.Empty;
-                            }
-                            else
-                            {
-                                linkInline.Url = readyUriString;
+                                if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
+                                {
+                                    linkInline.Url = string.Empty;
+                                }
+                                else
+                                {
+                                    linkInline.Url = readyUriString;
+                                }
                             }
                         }
                     }
                 }
+
+                renderer.Render(document);
+                output.Content = htmlWriter.ToString().Trim();
+                return output;
             }
-
-            renderer.Render(document);
-            htmlWriter.Flush();
-            output.Content = htmlWriter.ToString().Trim();
-            return output;
         }
     }
 }
