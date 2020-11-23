@@ -10,7 +10,7 @@ param (
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '2b78092c53527212b9cef813ef248e14ec11079d',
+    [string]$BuildBranch = '948e06b7e5dc320eccd1f44a15a5faeb60384ed6',
     [string]$VerifyMicrosoftPackageVersion = $null
 )
 
