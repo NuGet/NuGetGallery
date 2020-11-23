@@ -42,7 +42,7 @@
                         </div>
                     }
                     <div class="form-group @Html.HasErrorFor(m => m.ChangeEmail.NewEmail)">
-                        @Html.ShowLabelFor(m => m.ChangeEmail.NewEmail)
+                        @Html.ShowLabelFor(m => m.ChangeEmail.NewEmail, isrequired: true)
                         @Html.ShowTextBoxFor(m => m.ChangeEmail.NewEmail)
                         @Html.ShowValidationMessagesFor(m => m.ChangeEmail.NewEmail)
                     </div>

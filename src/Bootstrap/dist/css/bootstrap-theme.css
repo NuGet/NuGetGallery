@@ -1461,6 +1461,10 @@ img.reserved-indicator-icon {
   display: inline-block;
   width: 100%;
 }
+.page-manage-organizations .required:after {
+  color: red;
+  content: " *";
+}
 .manage-members-listing tbody:first-child {
   border-style: hidden;
 }
@@ -1728,6 +1732,10 @@ img.reserved-indicator-icon {
 }
 .page-sign-in .or-row {
   margin: 20px;
+}
+.page-sign-in .required:after {
+  color: red;
+  content: " *";
 }
 .page-statistics-most-downloaded .show-all-packages-toggle {
   font-weight: bold;
