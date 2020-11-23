@@ -14,6 +14,19 @@ namespace NuGetGallery
         public class TheToFriendlyNameMethod
         {
             [Theory]
+            [InlineData("net5.0", "net5.0")]
+            [InlineData("net5.0", "NET5.0")]
+            [InlineData("net5.0", "net5")]
+            [InlineData("net5.0", "net50")]
+            [InlineData("net5.0", "netcoreapp5.0")]
+            [InlineData("net5.0", "netcoreapp50")]
+            [InlineData("net5.0-windows", "net5.0-windows")]
+            [InlineData("net5.0-windows9.0", "net5.0-windows9")]
+            [InlineData("net5.0-ios14.0", "net5.0-ios14.0")]
+            [InlineData("net5.0", "netcoreapp5.0-windows")] // See: https://github.com/NuGet/Home/issues/10177
+            [InlineData("net5.0", "netcoreapp5.0-windows9")] // See: https://github.com/NuGet/Home/issues/10177
+            [InlineData("net6.0", "net6.0")]
+            [InlineData("net10.0", "net10.0")]
             [InlineData(".NETFramework 4.0", "net40")]
             [InlineData("Silverlight 4.0", "sl40")]
             [InlineData("WindowsPhone 8.0", "wp8")]

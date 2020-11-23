@@ -167,7 +167,7 @@ namespace NuGetGallery.Controllers
 
             if (!isNonHijackEnabled)
             {
-                return BadRequest(Strings.ODataParametersDisabled);
+                return DeprecatedRequest(Strings.ODataParametersDisabled);
             }
 
             // Reject only when try to reach database.
@@ -389,7 +389,7 @@ namespace NuGetGallery.Controllers
             {
                 if (!isSimpleLookup)
                 {
-                    return BadRequest(Strings.ODataParametersDisabled);
+                    return DeprecatedRequest(Strings.ODataParametersDisabled);
                 }
 
                 customQuery = true;
@@ -557,7 +557,7 @@ namespace NuGetGallery.Controllers
 
             if (!isNonHijackEnabled)
             {
-                return BadRequest(Strings.ODataParametersDisabled);
+                return DeprecatedRequest(Strings.ODataParametersDisabled);
             }
 
             //Reject only when try to reach database.

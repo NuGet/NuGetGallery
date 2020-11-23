@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,12 +14,14 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Builder;
 using System.Web.Http.OData.Query;
+using System.Web.Http.Results;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.OData;
 using NuGetGallery.WebApi;
+using Xunit;
 
 namespace NuGetGallery.Controllers
 {
@@ -47,6 +50,15 @@ namespace NuGetGallery.Controllers
             var packagesRepositoryMock = new Mock<IReadOnlyEntityRepository<Package>>(MockBehavior.Strict);
             packagesRepositoryMock.Setup(m => m.GetAll()).Returns(AllPackages).Verifiable();
             PackagesRepository = packagesRepositoryMock.Object;
+        }
+
+        protected static async Task VerifyODataDeprecation(IHttpActionResult resultSet, string message)
+        {
+            var result = Assert.IsType<ResponseMessageResult>(resultSet);
+            Assert.Equal(HttpStatusCode.BadRequest, result.Response.StatusCode);
+            var content = await result.Response.Content.ReadAsStringAsync();
+            Assert.Contains("NuGet.V2.Deprecated", content);
+            Assert.Contains(message, content);
         }
 
         protected abstract TController CreateController(

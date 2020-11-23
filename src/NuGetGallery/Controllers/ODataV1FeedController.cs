@@ -4,11 +4,14 @@
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
+using System.Web.Http.OData.Extensions;
 using System.Web.Http.OData.Query;
+using Microsoft.Data.OData;
 using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
@@ -69,7 +72,7 @@ namespace NuGetGallery.Controllers
         {
             if (!isNonHijackEnabled)
             {
-                return BadRequest(Strings.ODataDisabled);
+                return DeprecatedRequest(Strings.ODataDisabled);
             }
 
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Packages,
@@ -235,7 +238,7 @@ namespace NuGetGallery.Controllers
             // non-hijacked queries are disabled, stop here.
             if (!isNonHijackEnabled)
             {
-                return BadRequest(Strings.ODataParametersDisabled);
+                return DeprecatedRequest(Strings.ODataParametersDisabled);
             }
 
             if (return404NotFoundWhenNoResults && !packages.Any())
@@ -372,7 +375,7 @@ namespace NuGetGallery.Controllers
 
             if (!isNonHijackEnabled)
             {
-                return BadRequest(Strings.ODataParametersDisabled);
+                return DeprecatedRequest(Strings.ODataParametersDisabled);
             }
 
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Search,

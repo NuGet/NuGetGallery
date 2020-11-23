@@ -4,6 +4,7 @@
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
     TempData["Parent"] = this;
 }
+@ViewHelpers.AjaxAntiForgeryToken(Html)
 
 <section role="main" class="container main-container page-account-settings">
     <div class="row">

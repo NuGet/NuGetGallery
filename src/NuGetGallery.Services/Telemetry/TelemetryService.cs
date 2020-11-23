@@ -1055,12 +1055,14 @@ namespace NuGetGallery
         }
 
         public void TrackABTestEnrollmentUpgraded(
+            int oldSchemaVersion,
             int newSchemaVersion,
             int previewSearchBucket,
             int packageDependentBucket)
         {
             TrackMetric(Events.ABTestEnrollmentUpgraded, 1, properties =>
             {
+                properties.Add(OldSchemaVersion, oldSchemaVersion.ToString());
                 properties.Add(NewSchemaVersion, newSchemaVersion.ToString());
                 properties.Add(PreviewSearchBucket, previewSearchBucket.ToString());
                 properties.Add(PackageDependentBucket, packageDependentBucket.ToString());

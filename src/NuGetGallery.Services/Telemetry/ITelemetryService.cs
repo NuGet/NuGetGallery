@@ -378,11 +378,13 @@ namespace NuGetGallery
         /// <summary>
         /// Track when an A/B test enrollment is upgraded
         /// </summary>
-        /// <param name="schemaVersion">The schema version.</param>
+        /// <param name="oldSchemaVersion">The old schema version.</param>
+        /// <param name="newSchemaVersion">The new schema version.</param>
         /// <param name="previewSearchBucket">The bucket for the preview search test.</param>
         /// <param name="packageDependentBucket">The bucket for the package dependents test</param>
         void TrackABTestEnrollmentUpgraded(
-            int schemaVersion,
+            int oldSchemaVersion,
+            int newSchemaVersion,
             int previewSearchBucket,
             int packageDependentBucket);
 

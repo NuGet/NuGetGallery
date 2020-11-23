@@ -325,7 +325,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "ABTestEnrollmentUpgraded",
-                        (TrackAction)(s => s.TrackABTestEnrollmentUpgraded(2, 42, 47))
+                        (TrackAction)(s => s.TrackABTestEnrollmentUpgraded(1, 2, 42, 47))
                     };
 
                     yield return new object[] { "ABTestEvaluated",

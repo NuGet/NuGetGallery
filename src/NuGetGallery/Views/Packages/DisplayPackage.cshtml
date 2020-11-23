@@ -150,7 +150,7 @@
                 <div class="copy-button">
                     <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
                             data-toggle="popover" data-placement="bottom" data-content="Copied."
-                            aria-label="@packageManager.CopyLabel">
+                            aria-label="@packageManager.CopyLabel" aria-live="polite" role="status">
                         <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                     </button>
                 </div>
@@ -680,8 +680,14 @@
                             {
                                 <th>Status</th>
                             }
-                            <th aria-label="Signature Information" abbr="Signature Information"></th>
-                            <th aria-label="Deprecation Information" abbr="Deprecation Information"></th>
+                            @if (Model.IsCertificatesUIEnabled)
+                            {
+                                <th aria-hidden="true" abbr="Signature Information"></th>
+                            }
+                            @if (Model.IsPackageDeprecationEnabled)
+                            {
+                                <th aria-hidden="true" abbr="Deprecation Information"></th>
+                            }
                         </tr>
                     </thead>
                     <tbody class="no-border">
@@ -734,15 +740,26 @@
                                         </td>
                                     }
 
-                                    <td class="package-icon-cell">
-                                        @if (Model.IsCertificatesUIEnabled && !string.IsNullOrEmpty(packageVersion.SignatureInformation))
+                                    @if (Model.IsCertificatesUIEnabled)
+                                    {
+                                        if (string.IsNullOrEmpty(packageVersion.SignatureInformation))
                                         {
-                                            <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
+                                            <td class="package-icon-cell" aria-hidden="true"></td>
                                         }
-                                    </td>
-
-                                    <td class="package-icon-cell">
-                                        @if (Model.IsPackageDeprecationEnabled && packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+                                        else
+                                        {
+                                            <td class="package-icon-cell">
+                                                    <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
+                                            </td>
+                                        }
+                                    }
+                                    @if (Model.IsPackageDeprecationEnabled)
+                                    {
+                                        if (packageVersion.DeprecationStatus == PackageDeprecationStatus.NotDeprecated)
+                                        {
+                                            <td class="package-icon-cell" aria-hidden="true"></td>
+                                        }
+                                        else
                                         {
                                             var deprecationTitle = packageVersion.Version;
                                             var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
@@ -767,9 +784,11 @@
                                                 deprecationTitle += " is deprecated.";
                                             }
 
-                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@deprecationTitle"></i>
+                                            <td class="package-icon-cell">
+                                                <i class="ms-Icon ms-Icon--Warning package-icon" title="@deprecationTitle"></i>
+                                            </td>
                                         }
-                                    </td>
+                                    }
                                 </tr>
                             }
                             else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
