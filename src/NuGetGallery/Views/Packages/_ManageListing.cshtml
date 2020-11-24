@@ -52,7 +52,7 @@
                     @Html.Hidden("version", @Model.Version, new { id = "input-list-package" })
                     <div class="form-group @Html.HasErrorFor(package => package.Listed)">
                         @Html.ShowCheckboxFor(package => package.Listed)
-                        @Html.ShowLabelFor(package => package.Listed, "List in search results.")
+                        @Html.ShowLabelFor(package => package.Listed, "List in search results.", isrequired: false)
                         @Html.ShowValidationMessagesFor(package => package.Listed)
 
                         <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
