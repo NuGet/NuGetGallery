@@ -54,12 +54,10 @@
     <Compile Include="Configuration\ImportAzureCdnStatisticsConfiguration.cs" />
     <Compile Include="IPackageStatisticsParser.cs" />
     <Compile Include="IStatisticsBlobContainerUtility.cs" />
-    <Compile Include="PackageDefinition.cs" />
     <Compile Include="StatisticsBlobContainerUtility.cs" />
     <Compile Include="Dimensions\IpAddressFact.cs" />
     <Compile Include="IStatisticsWarehouse.cs" />
     <Compile Include="LogFileAggregates.cs" />
-    <Compile Include="PackageTranslator.cs" />
     <Compile Include="UserAgentFactTableType.cs" />
     <Compile Include="ClientDimensionTableType.cs" />
     <Compile Include="Dimensions\ToolDimension.cs" />
@@ -80,19 +78,11 @@
     <Compile Include="SqlQueries.cs" />
     <Compile Include="Dimensions\TimeDimension.cs" />
     <Compile Include="StatisticsParser.cs" />
-    <Compile Include="Support\PackageTranslation.cs" />
     <Compile Include="ToolStatisticsParser.cs" />
-    <Compile Include="UserAgentParser.cs" />
     <Compile Include="Warehouse.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <EmbeddedResource Include="knownclients.yaml">
-      <LogicalName>knownclients.yaml</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Include="packagetranslations.json">
-      <LogicalName>packagetranslations.json</LogicalName>
-    </EmbeddedResource>
     <None Include="Scripts\*" />
     <None Include="Stats.ImportAzureCdnStatistics.nuspec" />
   </ItemGroup>
@@ -105,16 +95,17 @@
       <Project>{F72C31A7-424D-48C6-924C-EBFD4BE0918B}</Project>
       <Name>Stats.AzureCdnLogs.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Stats.LogInterpretation\Stats.LogInterpretation.csproj">
+      <Project>{158e68fa-d06a-458a-9766-032d9c80f5a7}</Project>
+      <Name>Stats.LogInterpretation</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Services.Client">
       <Version>5.8.4</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Versioning">
-      <Version>4.3.0-preview1-2524</Version>
-    </PackageReference>
-    <PackageReference Include="UAParser">
-      <Version>1.2.0</Version>
+      <Version>5.8.0</Version>
     </PackageReference>
     <PackageReference Include="MicroBuild.Core">
       <Version>0.3.0</Version>

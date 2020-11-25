@@ -3,7 +3,7 @@
 
 using System.Text.RegularExpressions;
 
-namespace Stats.ImportAzureCdnStatistics
+namespace Stats.LogInterpretation
 {
     internal class PackageTranslation
     {

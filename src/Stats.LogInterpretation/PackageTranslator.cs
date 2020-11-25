@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
-namespace Stats.ImportAzureCdnStatistics
+namespace Stats.LogInterpretation
 {
     public class PackageTranslator
     {

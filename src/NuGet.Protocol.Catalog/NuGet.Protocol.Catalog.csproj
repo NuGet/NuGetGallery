@@ -15,7 +15,7 @@
       <Version>9.0.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>5.8.0-preview.3.6823</Version>
+      <Version>5.8.0</Version>
     </PackageReference>
   </ItemGroup>
 

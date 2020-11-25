@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using UAParser;
 
-namespace Stats.ImportAzureCdnStatistics
+namespace Stats.LogInterpretation
 {
     public class UserAgentParser
     {

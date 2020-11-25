@@ -200,6 +200,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.SearchServic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.SearchService.Core.Tests", "tests\NuGet.Services.SearchService.Core.Tests\NuGet.Services.SearchService.Core.Tests.csproj", "{91D6A911-3196-4970-A5FD-198E8BFB98C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.LogInterpretation", "src\Stats.LogInterpretation\Stats.LogInterpretation.csproj", "{158E68FA-D06A-458A-9766-032D9C80F5A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -528,6 +530,10 @@ Global
 		{91D6A911-3196-4970-A5FD-198E8BFB98C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91D6A911-3196-4970-A5FD-198E8BFB98C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91D6A911-3196-4970-A5FD-198E8BFB98C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{158E68FA-D06A-458A-9766-032D9C80F5A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{158E68FA-D06A-458A-9766-032D9C80F5A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{158E68FA-D06A-458A-9766-032D9C80F5A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{158E68FA-D06A-458A-9766-032D9C80F5A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -615,6 +621,7 @@ Global
 		{DD70035C-1BAB-4EFF-B270-EF45F7473C22} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{D2C41FB6-EB65-4EC0-8D0B-3A714D58653D} = {97E23323-BA7A-48F0-A578-858B82B6D8FB}
 		{91D6A911-3196-4970-A5FD-198E8BFB98C4} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{158E68FA-D06A-458A-9766-032D9C80F5A7} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}

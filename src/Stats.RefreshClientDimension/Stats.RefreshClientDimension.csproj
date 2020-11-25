@@ -55,7 +55,7 @@
     <Compile Include="..\Stats.ImportAzureCdnStatistics\UserAgentFactTableType.cs">
       <Link>UserAgentFactTableType.cs</Link>
     </Compile>
-    <Compile Include="..\Stats.ImportAzureCdnStatistics\UserAgentParser.cs">
+    <Compile Include="..\Stats.LogInterpretation\UserAgentParser.cs">
       <Link>UserAgentParser.cs</Link>
     </Compile>
     <Compile Include="Program.cs" />
@@ -65,7 +65,7 @@
     <Compile Include="Warehouse.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\Stats.ImportAzureCdnStatistics\knownclients.yaml">
+    <EmbeddedResource Include="..\Stats.LogInterpretation\knownclients.yaml">
       <Link>knownclients.yaml</Link>
       <LogicalName>knownclients.yaml</LogicalName>
     </EmbeddedResource>
@@ -79,7 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="UAParser">
-      <Version>1.2.0</Version>
+      <Version>3.1.44</Version>
     </PackageReference>
   </ItemGroup>
   <PropertyGroup>

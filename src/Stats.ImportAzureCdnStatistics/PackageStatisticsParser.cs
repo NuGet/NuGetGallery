@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 using Stats.AzureCdnLogs.Common;
+using Stats.LogInterpretation;
 
 namespace Stats.ImportAzureCdnStatistics
 {

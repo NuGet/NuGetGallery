@@ -7,7 +7,7 @@ using System.Linq;
 using System.Web;
 using NuGet.Versioning;
 
-namespace Stats.ImportAzureCdnStatistics
+namespace Stats.LogInterpretation
 {
     public class PackageDefinition
     {
