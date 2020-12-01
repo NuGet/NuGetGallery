@@ -16,6 +16,7 @@ using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using Stats.AzureCdnLogs.Common;
+using Stats.LogInterpretation;
 
 namespace Stats.ImportAzureCdnStatistics
 {

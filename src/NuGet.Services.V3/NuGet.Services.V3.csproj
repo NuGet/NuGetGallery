@@ -1,100 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Import Project="..\..\sign.thirdparty.props" />
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C3F9A738-9759-4B2B-A50D-6507B28A659B}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.V3</RootNamespace>
-    <AssemblyName>NuGet.Services.V3</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <Description>Common infrastructure for V3 back-end jobs, including catalog abstractions and dependency injection setup.</Description>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
+    <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj" />
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CommitCollectorConfiguration.cs" />
-    <Compile Include="DefaultBlobRequestOptions.cs" />
-    <Compile Include="DependencyInjectionExtensions.cs" />
-    <Compile Include="Registration\Models\ICommitted.cs" />
-    <Compile Include="Registration\Models\RegistrationPackageDependency.cs" />
-    <Compile Include="Registration\Models\RegistrationContainerContext.cs" />
-    <Compile Include="Registration\Models\RegistrationLeafContext.cs" />
-    <Compile Include="Registration\Models\RegistrationPackageDependencyGroup.cs" />
-    <Compile Include="Registration\Models\RegistrationPackageVulnerability.cs" />
-    <Compile Include="Support\Guard.cs" />
-    <Compile Include="Support\IdAndValue.cs" />
-    <Compile Include="IV3TelemetryService.cs" />
-    <Compile Include="Support\KeyValuePair.cs" />
-    <Compile Include="V3TelemetryService.cs" />
-    <Compile Include="CommitCollectorHost.cs" />
-    <Compile Include="CommitCollectorUtility.cs" />
-    <Compile Include="ICollector.cs" />
-    <Compile Include="ICommitCollectorConfiguration.cs" />
-    <Compile Include="ICommitCollectorLogic.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="Support\ReferenceEqualityComparer.cs" />
-    <Compile Include="Registration\IRegistrationClient.cs" />
-    <Compile Include="Registration\Models\RegistrationCatalogEntry.cs" />
-    <Compile Include="Registration\Models\RegistrationIndex.cs" />
-    <Compile Include="Registration\Models\RegistrationLeaf.cs" />
-    <Compile Include="Registration\Models\RegistrationLeafItem.cs" />
-    <Compile Include="Registration\Models\RegistrationPage.cs" />
-    <Compile Include="Registration\RegistrationClient.cs" />
-    <Compile Include="Registration\RegistrationUrlBuilder.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MicroBuild.Core">
-      <Version>0.3.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
-      <Project>{e97f23b8-ecb0-4afa-b00c-015c39395fef}</Project>
-      <Name>NuGet.Services.Metadata.Catalog</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj">
-      <Project>{D44C2E89-2D98-44BD-8712-8CCBE4E67C9C}</Project>
-      <Name>NuGet.Protocol.Catalog</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj">
-      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
-      <Name>Validation.Common.Job</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
-  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+
 </Project>

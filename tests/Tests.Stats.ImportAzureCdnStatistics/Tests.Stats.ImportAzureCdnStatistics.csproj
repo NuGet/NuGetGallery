@@ -64,7 +64,7 @@
     <Compile Include="XunitLoggerProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\Stats.ImportAzureCdnStatistics\packagetranslations.json">
+    <None Include="..\..\src\Stats.LogInterpretation\packagetranslations.json">
       <Link>TestData\packagetranslations.json</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -84,6 +84,10 @@
     <ProjectReference Include="..\..\src\Stats.ImportAzureCdnStatistics\Stats.ImportAzureCdnStatistics.csproj">
       <Project>{5B0D3EC6-4326-47A7-AEE1-CC67D07D5C84}</Project>
       <Name>Stats.ImportAzureCdnStatistics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Stats.LogInterpretation\Stats.LogInterpretation.csproj">
+      <Project>{158e68fa-d06a-458a-9766-032d9c80f5a7}</Project>
+      <Name>Stats.LogInterpretation</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

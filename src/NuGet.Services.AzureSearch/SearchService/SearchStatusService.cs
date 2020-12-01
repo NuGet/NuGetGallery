@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Logging;
@@ -144,6 +145,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 ProcessId = processId,
                 ProcessStartTime = processStartTime,
                 LastServiceRefreshTime = lastSecretRefresh,
+                FrameworkDescription = RuntimeInformation.FrameworkDescription,
             };
 
             return Task.FromResult(serverStatus);

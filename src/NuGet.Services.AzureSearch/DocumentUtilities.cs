@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Web;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -48,12 +47,47 @@ namespace NuGet.Services.AzureSearch
         {
             // First, encode the raw value for uniqueness.
             var bytes = Encoding.UTF8.GetBytes(rawKey);
-            var unique = HttpServerUtility.UrlTokenEncode(bytes);
+            var unique = Base64UrlEncode(bytes);
 
             // Then, prepend a string as close to the raw key as possible, for readability.
             var readable = ReplaceUnsafeKeyCharacters(rawKey).TrimStart('_');
 
             return readable.Length > 0 ? $"{readable}-{unique}" : unique;
+        }
+
+        /// <summary>
+        /// This implementation is designed to be equivalent to the .NET Framework method
+        /// <c>HttpServerUtility.UrlTokenEncode(byte[])</c>.
+        /// </summary>
+        public static string Base64UrlEncode(byte[] bytes)
+        {
+            // Allocate a character array large enough, per https://stackoverflow.com/a/13378842.
+            var charArray = new char[4 * ((bytes.Length / 3) + 1)];
+            var charCount = Convert.ToBase64CharArray(bytes, 0, bytes.Length, charArray, 0);
+
+            // Map unsafe characters to safe ones.
+            var paddingCount = 0;
+            for (var i = charCount - 1; i >= 0; i--)
+            {
+                switch (charArray[i])
+                {
+                    case '=':
+                        paddingCount++;
+                        break;
+                    case '+':
+                        charArray[i] = '-';
+                        break;
+                    case '/':
+                        charArray[i] = '_';
+                        break;
+                }
+            }
+
+            // Append the padding count to the end.
+            var dataCount = charCount - paddingCount;
+            charArray[dataCount] = (char)((int)'0' + paddingCount);
+
+            return new string(charArray, 0, dataCount + 1);
         }
 
         private static string ReplaceUnsafeKeyCharacters(string input)

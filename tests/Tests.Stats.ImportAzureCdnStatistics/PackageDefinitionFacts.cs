@@ -8,9 +8,10 @@ using System.IO;
 using System.Linq;
 using NuGet.Versioning;
 using Stats.ImportAzureCdnStatistics;
+using Stats.LogInterpretation;
 using Xunit;
 
-namespace Tests.Stats.ImportAzureCdnStatistics
+namespace Tests.Stats.LogInterpretation
 {
     public class PackageDefinitionFacts
     {

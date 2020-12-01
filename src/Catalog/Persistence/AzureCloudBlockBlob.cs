@@ -41,7 +41,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public async Task FetchAttributesAsync(CancellationToken cancellationToken)
         {
-            await _blob.FetchAttributesAsync(cancellationToken);
+            await _blob.FetchAttributesAsync(
+                accessCondition: null,
+                options: null,
+                operationContext: null,
+                cancellationToken: cancellationToken);
         }
 
         public async Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken)
@@ -52,7 +56,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public async Task<Stream> GetStreamAsync(CancellationToken cancellationToken)
         {
-            return await _blob.OpenReadAsync(cancellationToken);
+            return await _blob.OpenReadAsync(
+                accessCondition: null,
+                options: null,
+                operationContext: null,
+                cancellationToken: cancellationToken);
         }
 
         public async Task SetPropertiesAsync(AccessCondition accessCondition, BlobRequestOptions options, OperationContext operationContext)

@@ -24,7 +24,7 @@ namespace BasicSearchTests.FunctionalTests.Core
         public const string TestPackageAuthor = "clayco";
         public const string TestPackageCopyright = "Copyright 2013";
         public const string NonExistentSearchString = "asadfasdfsadfwerfasdf23423rafdsf";
-        public const string TestPackageOwner = "NugetTestAccount";
+        public const string TestPackageOwner = "NuGetTestData";
         public const string TestPackageTag = "json";
     }
 }

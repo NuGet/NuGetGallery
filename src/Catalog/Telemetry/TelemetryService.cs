@@ -63,34 +63,6 @@ namespace NuGet.Services.Metadata.Catalog
             _telemetryClient.TrackMetric(TelemetryConstants.IndexCommitTimeout, 1);
         }
 
-        public void TrackHandlerFailedToProcessPackage(IPackagesContainerHandler handler, string packageId, NuGetVersion packageVersion)
-        {
-            if (handler == null)
-            {
-                throw new ArgumentNullException(nameof(handler));
-            }
-
-            if (string.IsNullOrEmpty(packageId))
-            {
-                throw new ArgumentException($"The package id parameter is required", nameof(packageId));
-            }
-
-            if (packageVersion == null)
-            {
-                throw new ArgumentNullException(nameof(packageVersion));
-            }
-
-            _telemetryClient.TrackMetric(
-                TelemetryConstants.HandlerFailedToProcessPackage,
-                1,
-                new Dictionary<string, string>
-                {
-                    { TelemetryConstants.Handler, handler.GetType().Name },
-                    { TelemetryConstants.Id, packageId },
-                    { TelemetryConstants.Version, packageVersion.ToNormalizedString() }
-                });
-        }
-
         public void TrackPackageMissingHash(string packageId, NuGetVersion packageVersion)
         {
             if (string.IsNullOrEmpty(packageId))

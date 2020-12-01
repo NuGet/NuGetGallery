@@ -54,10 +54,6 @@ namespace Ng
 
         #endregion
 
-        #region Catalog2PackageFixup
-        public const string Verify = "verify";
-        #endregion
-
         #region Db2Catalog
         public const string StartDate = "startDate";
         public const string PackageContentUrlFormat = "packageContentUrlFormat";

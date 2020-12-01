@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search.Models;
@@ -113,6 +114,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.NotEqual(0, status.Server.ProcessId);
                 Assert.InRange(status.Server.ProcessStartTime, DateTimeOffset.MinValue, before);
                 Assert.Equal(_lastSecretRefresh, status.Server.LastServiceRefreshTime);
+                Assert.Equal(RuntimeInformation.FrameworkDescription, status.Server.FrameworkDescription);
 
                 Assert.Equal(23, status.SearchIndex.DocumentCount);
                 Assert.Equal("search-index", status.SearchIndex.Name);

@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Stats.AzureCdnLogs.Common;
 using Stats.ImportAzureCdnStatistics;
+using Stats.LogInterpretation;
 using Xunit;
 using Xunit.Abstractions;
 

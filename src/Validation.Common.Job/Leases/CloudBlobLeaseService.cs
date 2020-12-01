@@ -58,6 +58,8 @@ namespace NuGet.Jobs.Validation.Leases
             {
                 await blob.ReleaseLeaseAsync(
                     AccessCondition.GenerateLeaseCondition(leaseId),
+                    options: null,
+                    operationContext: null,
                     cancellationToken);
                 return true;
             }
@@ -77,6 +79,9 @@ namespace NuGet.Jobs.Validation.Leases
                     Array.Empty<byte>(),
                     index: 0,
                     count: 0,
+                    accessCondition: null,
+                    options: null,
+                    operationContext: null,
                     cancellationToken: cancellationToken);
 
                 return await TryAcquireAsync(blob, leaseTime, cancellationToken);
@@ -102,6 +107,9 @@ namespace NuGet.Jobs.Validation.Leases
                 var leaseId = await blob.AcquireLeaseAsync(
                     leaseTime: leaseTime,
                     proposedLeaseId: null,
+                    accessCondition: null,
+                    options: null,
+                    operationContext: null,
                     cancellationToken: cancellationToken);
 
                 return LeaseResult.Success(leaseId);

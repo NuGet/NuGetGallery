@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch.ScoringProfiles;
 using NuGet.Services.AzureSearch.Wrappers;
+using Index = Microsoft.Azure.Search.Models.Index;
 
 namespace NuGet.Services.AzureSearch
 {

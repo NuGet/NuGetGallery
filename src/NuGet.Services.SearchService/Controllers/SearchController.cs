@@ -15,23 +15,8 @@ namespace NuGet.Services.SearchService.Controllers
 {
     public class SearchController : ApiController
     {
-        private static readonly NuGetVersion SemVer2Level = new NuGetVersion("2.0.0");
-
         private const int DefaultSkip = 0;
         private const int DefaultTake = SearchParametersBuilder.DefaultTake;
-
-        private static readonly IReadOnlyDictionary<string, V2SortBy> SortBy = new Dictionary<string, V2SortBy>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "relevance", V2SortBy.Popularity },
-            { "lastEdited", V2SortBy.LastEditedDesc },
-            { "published", V2SortBy.PublishedDesc },
-            { "title-asc", V2SortBy.SortableTitleAsc },
-            { "title-desc", V2SortBy.SortableTitleDesc },
-            { "created-asc", V2SortBy.CreatedAsc },
-            { "created-desc", V2SortBy.CreatedDesc },
-            { "totalDownloads-asc", V2SortBy.TotalDownloadsAsc },
-            { "totalDownloads-desc", V2SortBy.TotalDownloadsDesc },
-        };
 
         private readonly IAuxiliaryDataCache _auxiliaryDataCache;
         private readonly ISearchService _searchService;
@@ -97,9 +82,9 @@ namespace NuGet.Services.SearchService.Controllers
                 IgnoreFilter = ignoreFilter ?? false,
                 CountOnly = countOnly ?? false,
                 IncludePrerelease = prerelease ?? false,
-                IncludeSemVer2 = GetIncludeSemVer2(semVerLevel),
+                IncludeSemVer2 =  ParameterUtilities.ParseIncludeSemVer2(semVerLevel),
                 Query = q,
-                SortBy = GetSortBy(sortBy),
+                SortBy = ParameterUtilities.ParseV2SortBy(sortBy),
                 LuceneQuery = luceneQuery ?? true,
                 PackageType = packageType,
                 IncludeTestData = testData ?? false,
@@ -127,7 +112,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Skip = skip ?? DefaultSkip,
                 Take = take ?? DefaultTake,
                 IncludePrerelease = prerelease ?? false,
-                IncludeSemVer2 = GetIncludeSemVer2(semVerLevel),
+                IncludeSemVer2 = ParameterUtilities.ParseIncludeSemVer2(semVerLevel),
                 Query = q,
                 PackageType = packageType,
                 IncludeTestData = testData ?? false,
@@ -161,7 +146,7 @@ namespace NuGet.Services.SearchService.Controllers
                 Skip = skip ?? DefaultSkip,
                 Take = take ?? DefaultTake,
                 IncludePrerelease = prerelease ?? false,
-                IncludeSemVer2 = GetIncludeSemVer2(semVerLevel),
+                IncludeSemVer2 = ParameterUtilities.ParseIncludeSemVer2(semVerLevel),
                 Query = q ?? id,
                 Type = type,
                 PackageType = packageType,
@@ -184,28 +169,6 @@ namespace NuGet.Services.SearchService.Controllers
         {
             var assemblyForMetadata = typeof(SearchController).Assembly;
             return await _statusService.GetStatusAsync(options, assemblyForMetadata);
-        }
-
-        private static V2SortBy GetSortBy(string sortBy)
-        {
-            if (sortBy == null || !SortBy.TryGetValue(sortBy, out var parsedSortBy))
-            {
-                parsedSortBy = V2SortBy.Popularity;
-            }
-
-            return parsedSortBy;
-        }
-
-        private static bool GetIncludeSemVer2(string semVerLevel)
-        {
-            if (!NuGetVersion.TryParse(semVerLevel, out var semVerLevelVersion))
-            {
-                return false;
-            }
-            else
-            {
-                return semVerLevelVersion >= SemVer2Level;
-            }
         }
     }
 }

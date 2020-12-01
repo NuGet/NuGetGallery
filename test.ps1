@@ -25,11 +25,19 @@ Function Run-Tests {
     $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console.2.1.0\tools\xunit.console.exe")
     
     $TestAssemblies = `
+        "tests\CatalogMetadataTests\bin\$Configuration\CatalogMetadataTests.dll", `
+        "tests\CatalogTests\bin\$Configuration\CatalogTests.dll", `
         "tests\Monitoring.PackageLag.Tests\bin\$Configuration\Monitoring.PackageLag.Tests.dll", `
+        "tests\NgTests\bin\$Configuration\NgTests.dll", `
+        "tests\NuGet.Jobs.Catalog2Registration.Tests\bin\$Configuration\NuGet.Jobs.Catalog2Registration.Tests.dll", `
         "tests\NuGet.Jobs.Common.Tests\bin\$Configuration\NuGet.Jobs.Common.Tests.dll", `
         "tests\NuGet.Jobs.GitHubIndexer.Tests\bin\$Configuration\NuGet.Jobs.GitHubIndexer.Tests.dll", `
+        "tests\NuGet.Protocol.Catalog.Tests\bin\$Configuration\NuGet.Protocol.Catalog.Tests.dll", `
+        "tests\NuGet.Services.AzureSearch.Tests\bin\$Configuration\NuGet.Services.AzureSearch.Tests.dll", `
         "tests\NuGet.Services.Revalidate.Tests\bin\$Configuration\NuGet.Services.Revalidate.Tests.dll", `
+        "tests\NuGet.Services.SearchService.Tests\bin\$Configuration\NuGet.Services.SearchService.Tests.dll", `
         "tests\NuGet.Services.Validation.Orchestrator.Tests\bin\$Configuration\NuGet.Services.Validation.Orchestrator.Tests.dll", `
+        "tests\SplitLargeFiles.Tests\bin\$Configuration\NuGet.Tools.SplitLargeFiles.Tests.dll", `
         "tests\StatusAggregator.Tests\bin\$Configuration\StatusAggregator.Tests.dll", `
         "tests\Tests.CredentialExpiration\bin\$Configuration\Tests.CredentialExpiration.dll", `
         "tests\Tests.Gallery.Maintenance\bin\$Configuration\Tests.Gallery.Maintenance.dll", `
@@ -46,21 +54,27 @@ Function Run-Tests {
         "tests\Validation.PackageSigning.ScanAndSign.Tests\bin\$Configuration\Validation.PackageSigning.ScanAndSign.Tests.dll", `
         "tests\Validation.PackageSigning.ValidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.ValidateCertificate.Tests.dll", `
         "tests\Validation.Symbols.Core.Tests\bin\$Configuration\Validation.Symbols.Core.Tests.dll", `
-        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll", `
-        "tests\SplitLargeFiles.Tests\bin\$Configuration\NuGet.Tools.SplitLargeFiles.Tests.dll", `
-        "tests\NgTests\bin\$Configuration\NgTests.dll", `
-        "tests\CatalogTests\bin\$Configuration\CatalogTests.dll", `
-        "tests\CatalogMetadataTests\bin\$Configuration\CatalogMetadataTests.dll", `
-        "tests\NuGet.Protocol.Catalog.Tests\bin\$Configuration\NuGet.Protocol.Catalog.Tests.dll", `
-        "tests\NuGet.Services.AzureSearch.Tests\bin\$Configuration\NuGet.Services.AzureSearch.Tests.dll", `
-        "tests\NuGet.Services.SearchService.Tests\bin\$Configuration\NuGet.Services.SearchService.Tests.dll", `
-        "tests\NuGet.Jobs.Catalog2Registration.Tests\bin\$Configuration\NuGet.Jobs.Catalog2Registration.Tests.dll"
-    
+        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll"
+
+    $DotnetTestProjects = `
+        "tests\NuGet.Services.SearchService.Core.Tests\NuGet.Services.SearchService.Core.Tests.csproj"
+
     $TestCount = 0
     
     foreach ($Test in $TestAssemblies) {
         $TestResultFile = "Results.$TestCount.xml"
         & $xUnitExe (Join-Path $PSScriptRoot $Test) -xml $TestResultFile
+        if (-not (Test-Path $TestResultFile))
+        {
+            Write-Error "The test run failed to produce a result file";
+            exit 1;
+        }
+        $TestCount++
+    }
+    
+    foreach ($Test in $DotnetTestProjects) {
+        $TestResultFile = Join-Path $PSScriptRoot "Results.$TestCount.xml"
+        dotnet test (Join-Path $PSScriptRoot $Test) --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
         if (-not (Test-Path $TestResultFile))
         {
             Write-Error "The test run failed to produce a result file";

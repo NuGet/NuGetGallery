@@ -191,17 +191,7 @@ namespace NuGet.Services.SearchService
                 GetOperationName<SearchController>(HttpMethod.Get, nameof(SearchController.V3SearchAsync)),
             }));
 
-            applicationInsightsConfiguration.TelemetryConfiguration.TelemetryProcessorChainBuilder.Use(next =>
-            {
-                var processor = new RequestTelemetryProcessor(next);
-
-                processor.SuccessfulResponseCodes.Add(400);
-                processor.SuccessfulResponseCodes.Add(403);
-                processor.SuccessfulResponseCodes.Add(404);
-                processor.SuccessfulResponseCodes.Add(405);
-
-                return processor;
-            });
+            applicationInsightsConfiguration.TelemetryConfiguration.TelemetryProcessorChainBuilder.Use(next => new SearchRequestTelemetryProcessor(next));
 
             RegisterApplicationInsightsTelemetryModules(applicationInsightsConfiguration.TelemetryConfiguration);
 
