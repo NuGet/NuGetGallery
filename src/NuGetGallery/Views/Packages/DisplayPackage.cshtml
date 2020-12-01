@@ -682,11 +682,11 @@
                             }
                             @if (Model.IsCertificatesUIEnabled)
                             {
-                                <th aria-label="Signature Information" abbr="Signature Information"></th>
+                                <th aria-hidden="true" abbr="Signature Information"></th>
                             }
                             @if (Model.IsPackageDeprecationEnabled)
                             {
-                                <th aria-label="Deprecation Information" abbr="Deprecation Information"></th>
+                                <th aria-hidden="true" abbr="Deprecation Information"></th>
                             }
                         </tr>
                     </thead>
@@ -744,7 +744,7 @@
                                     {
                                         if (string.IsNullOrEmpty(packageVersion.SignatureInformation))
                                         {
-                                            <td class="package-icon-cell" aria-label="No signature"></td>
+                                            <td class="package-icon-cell" aria-hidden="true"></td>
                                         }
                                         else
                                         {
@@ -757,7 +757,7 @@
                                     {
                                         if (packageVersion.DeprecationStatus == PackageDeprecationStatus.NotDeprecated)
                                         {
-                                            <td class="package-icon-cell" aria-label="Not deprecated"></td>
+                                            <td class="package-icon-cell" aria-hidden="true"></td>
                                         }
                                         else
                                         {

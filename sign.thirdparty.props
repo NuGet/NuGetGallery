@@ -26,7 +26,7 @@
     <ThirdPartyBinaries Include="Lucene.Net.Contrib.Snowball.dll" />
     <ThirdPartyBinaries Include="Lucene.Net.Contrib.SpellChecker.dll" />
     <ThirdPartyBinaries Include="Lucene.Net.dll" />
-    <ThirdPartyBinaries Include="Markdig.dll" />
+    <ThirdPartyBinaries Include="Markdig.Signed.dll" />
     <ThirdPartyBinaries Include="MarkdownSharp.dll" />
     <ThirdPartyBinaries Include="Microsoft.ApplicationServer.Caching.Client.dll" />
     <ThirdPartyBinaries Include="Microsoft.ApplicationServer.Caching.Core.dll" />

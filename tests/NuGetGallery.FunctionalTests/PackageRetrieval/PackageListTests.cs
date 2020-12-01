@@ -38,7 +38,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             var sortByParam = string.IsNullOrEmpty(sortBy) ? string.Empty : $"&sortBy={sortBy}";
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?testData=true&q=owner%3A{Constants.TestAccount}{sortByParam}");
+                $"/packages?testData=true&q=owner%3A{Constants.TestDataAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -65,7 +65,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             var sortByParam = string.IsNullOrEmpty(sortBy) ? string.Empty : $"&sortBy={sortBy}";
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?testData=true&q=owner%3A{Constants.TestAccount}{sortByParam}");
+                $"/packages?testData=true&q=owner%3A{Constants.TestDataAccount}{sortByParam}");
 
             // Act
             using (var httpClient = new HttpClient())
@@ -97,7 +97,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             var packageTypeParam = string.IsNullOrEmpty(packageType) ? string.Empty : $"&packageType={packageType}";
             var feedUrl = new Uri(
                 new Uri(UrlHelper.BaseUrl),
-                $"/packages?testData=true&q=packageid%3A{Uri.EscapeUriString(id)}+owner%3A{Constants.TestAccount}{packageTypeParam}");
+                $"/packages?testData=true&q=packageid%3A{Uri.EscapeUriString(id)}+owner%3A{Constants.TestDataAccount}{packageTypeParam}");
 
             // Act
             using (var httpClient = new HttpClient())
