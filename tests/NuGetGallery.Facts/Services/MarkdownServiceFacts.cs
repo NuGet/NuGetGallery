@@ -80,7 +80,8 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void TestToHtmlWithPipeTable() {
+            public void TestToHtmlWithPipeTable() 
+            {
                 var originalMd = @"a | b
 -- | -
 0 | 1";

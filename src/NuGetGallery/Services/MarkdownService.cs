@@ -154,9 +154,6 @@ namespace NuGetGallery
 
             var readmeWithoutBom = markdownString.TrimStart('\ufeff');
 
-            // HTML encode markdown, except for block quotes, to block inline html.
-            var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readmeWithoutBom), "> ");
-
             var pipeline = new MarkdownPipelineBuilder()
                 .UseGridTables()
                 .UsePipeTables()
@@ -166,14 +163,15 @@ namespace NuGetGallery
                 .UseEmojiAndSmiley()
                 .UseReferralLinks("nofollow")
                 .UseAutoLinks()
+                .DisableHtml() //block inline html
                 .Build();
 
-            using(StringWriter htmlWriter = new StringWriter())
+            using(var htmlWriter = new StringWriter())
             {
                 var renderer = new HtmlRenderer(htmlWriter);
                 pipeline.Setup(renderer);
 
-                var document = Markdown.Parse(encodedMarkdown, pipeline);
+                var document = Markdown.Parse(readmeWithoutBom, pipeline);
 
                 foreach (var node in document.Descendants())
                 {
@@ -183,20 +181,6 @@ namespace NuGetGallery
                         if (node is HeadingBlock heading)
                         {
                             heading.Level = (byte)Math.Min(heading.Level + incrementHeadersBy, 6);
-                        }
-
-                        // Decode preformatted blocks to prevent double encoding.
-                        // Skip BlockTag.BlockQuote, which are partially decoded upfront.
-                        if (node is FencedCodeBlock || node is CodeBlock)
-                        {
-                            LeafBlock codeBlock = (LeafBlock)node;
-                            var lines =codeBlock.Lines;
-                            for (int i = 0; i < lines.Count; i++) 
-                            {
-                                var content = lines.Lines[i].Slice.ToString();
-                                var unencodedContent = HttpUtility.HtmlDecode(content);
-                                lines.Lines[i].Slice = new Markdig.Helpers.StringSlice(unencodedContent);
-                            }
                         }
                     }
                     else if (node is Markdig.Syntax.Inlines.Inline)
