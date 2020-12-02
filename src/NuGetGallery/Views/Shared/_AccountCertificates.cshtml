@@ -78,37 +78,38 @@
 
             <div data-bind="if: $data && $data.hasCertificates && $data.hasCertificates()">
                 <div class="panel-collapse collapse in" aria-expanded="true">
-                    <table class="table" role="list">
-                        <thead>
-                            <tr class="manage-certificate-headings">
-                                <th>Fingerprint (SHA-256)</th>
-                                <th>Subject</th>
-                                <th>Expiration</th>
-                                <th>Issuer</th>
-                                <th><span class="hidden">Icon</span></th>
-                            </tr>
-                        </thead>
-                        <tbody data-bind="foreach: $data.certificates">
-                            <tr class="manage-certificate-listing" role="listitem">
-                                <td><samp class="small-fingerprint break-word" data-bind="text: Thumbprint"></samp></td>
-                                <td data-bind="text: ShortSubject, attr: { title: Subject }"></td>
-                                <td data-bind="text: ExpirationDisplay, attr: {
+                    <div class="table-container">
+                        <table class="table" role="list">
+                            <thead>
+                                <tr class="manage-certificate-headings">
+                                    <th>Fingerprint (SHA-256)</th>
+                                    <th>Subject</th>
+                                    <th>Expiration</th>
+                                    <th>Issuer</th>
+                                    <th><span class="hidden">Icon</span></th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: $data.certificates">
+                                <tr class="manage-certificate-listing" role="listitem">
+                                    <td><samp class="small-fingerprint break-word" data-bind="text: Thumbprint"></samp></td>
+                                    <td data-bind="text: ShortSubject, attr: { title: Subject }"></td>
+                                    <td data-bind="text: ExpirationDisplay, attr: {
                                     title: IsExpired ? 'This certificate\'s expiration date is in the past. Future packages signed with this certificate will fail validation. Upload a renewed certificate to enable signed package uploads.' : ExpirationIso,
                                     class: IsExpired ? 'expired-certificate' : ''
                                     }">
-                                </td>
-                                <td data-bind="text: ShortIssuer, attr: { title: Issuer }"></td>
-                                <td class="text-right align-middle package-controls">
-                                    <span data-bind="visible: CanDelete">
-                                        <a class="btn" title="Delete certificate" tabindex="0" data-bind="attr: { 'data-href': DeleteUrl, 'aria-label': 'Delete certificate' }, click: $parent.deleteCertificate">
-                                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                                        </a>
-                                    </span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
+                                    </td>
+                                    <td data-bind="text: ShortIssuer, attr: { title: Issuer }"></td>
+                                    <td class="text-right align-middle package-controls">
+                                        <span data-bind="visible: CanDelete">
+                                            <a class="btn" title="Delete certificate" tabindex="0" data-bind="attr: { 'data-href': DeleteUrl, 'aria-label': 'Delete certificate' }, click: $parent.deleteCertificate">
+                                                <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <p>
                         The SHA-256 fingerprint can be found by calculating the SHA-256 hash of the DER encoded
                         certificate file (.cer). The fingerprint should be hex-encoded. This can be done with a variety
