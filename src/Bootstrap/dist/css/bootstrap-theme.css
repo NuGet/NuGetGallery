@@ -245,6 +245,9 @@ img.reserved-indicator-icon {
   margin-left: auto;
   margin-right: auto;
 }
+.table-container {
+  overflow-x: auto;
+}
 .package-list {
   margin-top: 8px;
   margin-bottom: 8px;
