@@ -77,7 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.79.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <PropertyGroup>

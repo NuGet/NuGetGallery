@@ -65,7 +65,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Services.ServiceBus">
-      <Version>2.79.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="MicroBuild.Core">
       <Version>0.3.0</Version>

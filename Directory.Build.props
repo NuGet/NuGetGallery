@@ -1,4 +1,10 @@
 <Project>
+
+  <!-- NuGet dependencies shared across projects -->
+  <PropertyGroup>
+    <ServerCommonPackageVersion>2.80.0</ServerCommonPackageVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers">
       <Version>3.0.0</Version>

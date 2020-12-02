@@ -326,7 +326,7 @@
       <Version>4.10.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.79.0</Version>
+      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.4.1</Version>
