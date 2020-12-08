@@ -32,6 +32,12 @@ namespace NuGetGallery
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString)
         {
+            if (_features == null)
+            {
+                throw new ArgumentNullException(nameof(_features));
+
+            }
+
             if (_features.IsMarkdigMdRenderingEnabled()) 
             { 
                 return GetHtmlFromMarkdownMarkdig(markdownString, 1);
@@ -44,6 +50,12 @@ namespace NuGetGallery
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString, int incrementHeadersBy)
         {
+            if (_features == null)
+            {
+                throw new ArgumentNullException(nameof(_features));
+
+            }
+
             if (_features.IsMarkdigMdRenderingEnabled())
             {
                 return GetHtmlFromMarkdownMarkdig(markdownString, incrementHeadersBy);
@@ -162,11 +174,10 @@ namespace NuGetGallery
                 .UseSoftlineBreakAsHardlineBreak()
                 .UseEmojiAndSmiley()
                 .UseReferralLinks("nofollow")
-                .UseAutoLinks()
                 .DisableHtml() //block inline html
                 .Build();
 
-            using(var htmlWriter = new StringWriter())
+            using (var htmlWriter = new StringWriter())
             {
                 var renderer = new HtmlRenderer(htmlWriter);
                 pipeline.Setup(renderer);
@@ -202,6 +213,7 @@ namespace NuGetGallery
                             }
                             else
                             {
+                                // Allow only http or https links in markdown. Transform link to https for known domains.
                                 if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
                                 {
                                     linkInline.Url = string.Empty;

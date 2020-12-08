@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Moq;
 using System.Data.Entity.Core.Objects;
+using Moq;
 using Xunit;
 
 namespace NuGetGallery
@@ -14,7 +14,6 @@ namespace NuGetGallery
         {
             private readonly MarkdownService _markdownService;
             private readonly Mock<IFeatureFlagService> _featureFlagService;
-            private bool isMarkdigMdRenderingEnabled = true;
 
             public GetReadMeHtmlMethod()
             {
@@ -48,6 +47,8 @@ namespace NuGetGallery
             [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false, false)]
             [InlineData("> <text>Blockquote</text>", "<blockquote>\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>", false, true)]
             [InlineData("> <text>Blockquote</text>", "<blockquote>\r\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\r\n</blockquote>", false, false)]
+            [InlineData("> > <text>Blockquote</text>", "<blockquote>\n<blockquote>\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>\n</blockquote>", false, true)]
+            [InlineData("> > <text>Blockquote</text>", "<blockquote>\r\n<p>&gt; &lt;text&gt;Blockquote&lt;/text&gt;</p>\r\n</blockquote>", false, false)]
             [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>", false, true)]
             [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>", false, false)]
             [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false, true)]
@@ -73,7 +74,7 @@ namespace NuGetGallery
             {
                 var originalMd = "This is a paragraph\r\n with a break inside";
                 var expectedHtml = "<p>This is a paragraph<br />\nwith a break inside</p>";
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(false, readMeResult.ImagesRewritten);
@@ -87,7 +88,7 @@ namespace NuGetGallery
 0 | 1";
 
                 var expectedHtml = "<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>0</td>\n<td>1</td>\n</tr>\n</tbody>\n</table>";
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(false, readMeResult.ImagesRewritten);
@@ -104,7 +105,7 @@ namespace NuGetGallery
 ";
 
                 var expectedHtml = "<table>\n<col style=\"width:50%\" />\n<col style=\"width:50%\" />\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>1</td>\n<td>2</td>\n</tr>\n</tbody>\n</table>";
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(false, readMeResult.ImagesRewritten);
@@ -116,7 +117,7 @@ namespace NuGetGallery
                 var originalMd = "This is a test with a :) and a :angry: smiley";
 
                 var expectedHtml = "<p>This is a test with a 😃 and a 😠 smiley</p>";
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(false, readMeResult.ImagesRewritten);
@@ -133,7 +134,7 @@ namespace NuGetGallery
                 var expectedHtml = "<ul class=\"contains-task-list\">\n<li class=\"task-list-item\"><input disabled=\"disabled\" type=\"checkbox\" /> Item1</li>\n<li class=\"task-list-item\">" +
                     "<input disabled=\"disabled\" type=\"checkbox\" checked=\"checked\" /> Item2</li>\n<li class=\"task-list-item\"><input disabled=\"disabled\" type=\"checkbox\" /> " +
                     "Item3</li>\n<li>Item4</li>\n</ul>";
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(false, readMeResult.ImagesRewritten);
@@ -149,18 +150,7 @@ Some text
 2.    Second item";
 
                 var expectedHtml = "<ol>\n<li>First item</li>\n</ol>\n<p>Some text</p>\n<ol start=\"2\">\n<li>Second item</li>\n</ol>";
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
-                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
-                Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
-            }
-
-            public void TestToHtmlWithAutoLinks()
-            {
-                var originalMd = "This is a http://www.google.com URL and https://www.google.com";
-
-                var expectedHtml = "<p>This is a <a href=\"https://www.google.com\">https://www.google.com</a> URL and <a href=\"https://www.google.com\">https://www.google.com</a>";
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(false, readMeResult.ImagesRewritten);
