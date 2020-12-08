@@ -248,7 +248,7 @@ namespace NuGet.Services.AzureSearch
                     var client = new SearchServiceClient(
                         options.Value.SearchServiceName,
                         new SearchCredentials(options.Value.SearchServiceApiKey),
-                        new HttpClientHandler(),
+                        p.GetRequiredService<HttpClientHandler>(),
                         GetSearchDelegatingHandlers(p.GetRequiredService<ILoggerFactory>()));
 
                     client.SetRetryPolicy(GetSearchRetryPolicy());
