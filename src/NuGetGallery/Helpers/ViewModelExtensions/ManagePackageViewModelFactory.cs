@@ -26,10 +26,10 @@ namespace NuGetGallery
             UrlHelper url,
             string readMe,
             bool isManageDeprecationEnabled,
-            bool isReadmeFileUploaded)
+            bool isEmbeddedReadmeEnabled)
         {
             var viewModel = new ManagePackageViewModel();
-            return Setup(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled, isReadmeFileUploaded);
+            return Setup(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled, isEmbeddedReadmeEnabled);
         }
 
         public ManagePackageViewModel Setup(
@@ -40,10 +40,10 @@ namespace NuGetGallery
             UrlHelper url,
             string readMe,
             bool isManageDeprecationEnabled,
-            bool isReadmeFileUploaded)
+            bool isEmbeddedReadmeEnabled)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
-            return SetupInternal(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled, isReadmeFileUploaded);
+            return SetupInternal(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled, isEmbeddedReadmeEnabled);
         }
 
         private ManagePackageViewModel SetupInternal(
@@ -54,7 +54,7 @@ namespace NuGetGallery
             UrlHelper url,
             string readMe,
             bool isManageDeprecationEnabled,
-            bool isReadmeFileUploaded)
+            bool isEmbeddedReadmeEnabled)
         {
             viewModel.IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
 
@@ -74,8 +74,7 @@ namespace NuGetGallery
             viewModel.IsLocked = package.PackageRegistration.IsLocked;
 
             viewModel.IsManageDeprecationEnabled = isManageDeprecationEnabled;
-
-            viewModel.IsReadmeFileUploaded = isReadmeFileUploaded;
+            viewModel.IsEmbeddedReadmeEnabled = isEmbeddedReadmeEnabled;
 
             var versionSelectPackages = package.PackageRegistration.Packages
                 .Where(p => p.PackageStatusKey == PackageStatus.Available || p.PackageStatusKey == PackageStatus.Validating)
@@ -91,8 +90,6 @@ namespace NuGetGallery
             var versionDeprecationStateDictionary = new Dictionary<string, ManagePackageViewModel.VersionDeprecationState>();
             viewModel.VersionDeprecationStateDictionary = versionDeprecationStateDictionary;
 
-            var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
-            var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
             foreach (var versionSelectPackage in versionSelectPackages)
             {
                 var text = PackageHelper.GetSelectListText(versionSelectPackage);
@@ -111,10 +108,7 @@ namespace NuGetGallery
                 var model = new TrivialPackageVersionModel(versionSelectPackage);
                 versionReadMeStateDictionary.Add(
                     value,
-                    new ManagePackageViewModel.VersionReadMeState(
-                        submitUrlTemplate.Resolve(model),
-                        getReadMeUrlTemplate.Resolve(model),
-                        null));
+                    GetVersionReadMeState(model, url));
 
                 versionDeprecationStateDictionary.Add(
                     value,
@@ -160,6 +154,22 @@ namespace NuGetGallery
                 result.CustomMessage = deprecation.CustomMessage;
             }
 
+            return result;
+        }
+
+        private static ManagePackageViewModel.VersionReadMeState GetVersionReadMeState(
+            TrivialPackageVersionModel model,
+            UrlHelper url)
+        {
+            var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
+            var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
+
+            var result = new ManagePackageViewModel.VersionReadMeState(
+                submitUrlTemplate.Resolve(model),
+                getReadMeUrlTemplate.Resolve(model),
+                null);
+
+            result.HasEmbeddedReadme = model.HasEmbeddedReadme;
             return result;
         }
     }

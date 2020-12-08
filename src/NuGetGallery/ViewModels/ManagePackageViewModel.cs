@@ -16,7 +16,7 @@ namespace NuGetGallery
         public IReadOnlyDictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
         public IReadOnlyDictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }
         public bool IsManageDeprecationEnabled { get; set; }
-        public bool IsReadmeFileUploaded { get; set; }
+        public bool IsEmbeddedReadmeEnabled { get; set; }
         public IReadOnlyDictionary<string, VersionDeprecationState> VersionDeprecationStateDictionary { get; set; }
 
         /// <remarks>
@@ -51,6 +51,7 @@ namespace NuGetGallery
             public string SubmitUrl { get; }
             public string GetReadMeUrl { get; }
             public string ReadMe { get; }
+            public bool HasEmbeddedReadme { get; set; }
         }
 
         /// <remarks>

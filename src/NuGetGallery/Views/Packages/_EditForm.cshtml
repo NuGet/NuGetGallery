@@ -1,21 +1,10 @@
-﻿<form aria-label="Edit your package" id="edit-readme-form">
+﻿
+<form aria-label="Edit your package" id="edit-readme-form">
     @Html.AntiForgeryToken()
 
     <div id="import-readme-container">
     </div>
-@*    @if (Model.VersionSelectList.Selected)
-    {*@
-        @Html.Partial("_ImportReadMe")
-
-@*        <span> isReadmeFileUploaded is false, value is @Model.VersionSelectList.SelectedItem.Value</span>
-    }*@
-    else
-    {
-        @ViewHelpers.AlertInfo(
-        @<text>
-            <span>Embedded readme files cannot be edited. To update your readme, please upload a new package version.</span>
-        </text>)
-    }
+    @Html.Partial("_ImportReadMe")
 
     <div id="submit-package-container">
     </div>

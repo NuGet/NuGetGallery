@@ -14,14 +14,15 @@
             _submitted = false;
             _viewModel = model;
             _changedState = {};
+
+            _selectVersion = $('.page-edit-package #input-select-readme');
+            var defaultVersion = _selectVersion.val();
+
             BindReadMeDataManager.init(previewUrl);
 
             bindData(_viewModel);
 
             $(window).on('beforeunload', confirmLeave);
-
-            _selectVersion = $('.page-edit-package #input-select-readme');
-            var defaultVersion = _selectVersion.val();
             
             _selectVersion.change(function () {
                 var selectedVersion = $(this).val();
@@ -183,6 +184,23 @@
 
             if (model === null || !model.IsSymbolsPackage) {
                 BindReadMeDataManager.bindReadMeData(model);
+            }
+
+            if (model.IsEmbeddedReadmeEnabled) {
+                var selectedVersion = _selectVersion.val();
+
+                if (!selectedVersion) {
+                    // No version is selected.
+                    return;
+                }
+
+                if (model.Versions[selectedVersion].HasEmbeddedReadme) {
+                    $('#edit-markdown-button').addClass('hidden');
+                    $('#verify-submit-button').addClass('hidden');
+                } else {
+                    $('#edit-markdown-button').removeClass('hidden');
+                    $('#verify-submit-button').removeClass('hidden');
+                }
             }
         }
     };

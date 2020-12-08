@@ -10,6 +10,7 @@ namespace NuGetGallery
         {
             Id = package.PackageRegistration.Id;
             Version = package.NormalizedVersion;
+            HasEmbeddedReadme = package.HasEmbeddedReadMe;
         }
 
         public TrivialPackageVersionModel(string id, string version)
@@ -20,5 +21,6 @@ namespace NuGetGallery
 
         public string Id { get; set; }
         public string Version { get; set; }
+        public bool HasEmbeddedReadme { get; set; }
     }
 }
