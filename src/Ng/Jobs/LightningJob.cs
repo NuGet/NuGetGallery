@@ -286,8 +286,8 @@ namespace Ng.Jobs
             foreach (var name in new[] { config.LegacyStorageContainer, config.GzippedStorageContainer, config.SemVer2StorageContainer })
             {
                 var reference = blobClient.GetContainerReference(name);
-                await reference.CreateIfNotExistAsync();
-                await reference.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+                var permissions = new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob };
+                await reference.CreateIfNotExistAsync(permissions);
             }
 
             // Write cursor to storage

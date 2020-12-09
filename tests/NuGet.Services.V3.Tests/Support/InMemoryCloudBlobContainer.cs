@@ -17,12 +17,12 @@ namespace NuGet.Services
 
         public SortedDictionary<string, InMemoryCloudBlob> Blobs { get; } = new SortedDictionary<string, InMemoryCloudBlob>();
 
-        public Task CreateAsync()
+        public Task CreateAsync(BlobContainerPermissions permissions)
         {
             throw new NotImplementedException();
         }
 
-        public Task CreateIfNotExistAsync()
+        public Task CreateIfNotExistAsync(BlobContainerPermissions permissions)
         {
             throw new NotImplementedException();
         }

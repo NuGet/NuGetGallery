@@ -62,8 +62,8 @@ namespace NuGet.Services.AzureSearch
             {
                 try
                 {
-                    await Container.CreateAsync();
-                    await Container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+                    var permissions = new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob };
+                    await Container.CreateAsync(permissions);
                     containerCreated = true;
                 }
                 catch (StorageException ex) when (retryOnConflict && ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict)

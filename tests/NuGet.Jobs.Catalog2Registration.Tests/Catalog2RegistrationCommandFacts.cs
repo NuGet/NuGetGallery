@@ -64,10 +64,7 @@ namespace NuGet.Jobs.Catalog2Registration
                 CloudBlobClient.Verify(x => x.GetContainerReference(Config.LegacyStorageContainer), Times.Once);
                 CloudBlobClient.Verify(x => x.GetContainerReference(Config.GzippedStorageContainer), Times.Once);
                 CloudBlobClient.Verify(x => x.GetContainerReference(Config.SemVer2StorageContainer), Times.Once);
-                CloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(), Times.Exactly(3));
-                CloudBlobContainer.Verify(
-                    x => x.SetPermissionsAsync(It.Is<BlobContainerPermissions>(p => p.PublicAccess == BlobContainerPublicAccessType.Blob)),
-                    Times.Exactly(3));
+                CloudBlobContainer.Verify(x => x.CreateIfNotExistAsync(It.Is<BlobContainerPermissions>(p => p.PublicAccess == BlobContainerPublicAccessType.Blob)), Times.Exactly(3));
             }
 
             [Fact]
