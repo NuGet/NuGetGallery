@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Data.Entity.Core.Objects;
 using Moq;
 using Xunit;
@@ -21,6 +22,19 @@ namespace NuGetGallery
                 _markdownService = new MarkdownService(_featureFlagService.Object);
             }
 
+            [Fact]
+            public void ThrowsArgumentOutOfRangeExceptionForNegativeParameterValue()
+            {
+                Assert.Throws<ArgumentOutOfRangeException>(() => _markdownService.GetHtmlFromMarkdown("markdown file test", -1));
+            }
+
+            [Fact]
+            public void ThrowsArgumentNullExceptionForNullMarkdownString()
+            {
+                Assert.Throws<ArgumentNullException>(() => _markdownService.GetHtmlFromMarkdown(null, 0));
+                Assert.Throws<ArgumentNullException>(() => _markdownService.GetHtmlFromMarkdown(null));
+            }
+
             [Theory]
             [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>", true)]
             [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>", false)]
@@ -32,6 +46,23 @@ namespace NuGetGallery
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
                 Assert.Equal(expectedHtml, _markdownService.GetHtmlFromMarkdown(originalMd).Content);
+            }
+
+            [Theory]
+            [InlineData("# Heading", "<h1>Heading</h1>", true, 0)]
+            [InlineData("# Heading", "<h1>Heading</h1>", false, 0)]
+            [InlineData("# Heading", "<h2>Heading</h2>", true, 1)]
+            [InlineData("# Heading", "<h2>Heading</h2>", false, 1)]
+            [InlineData("# Heading", "<h6>Heading</h6>", true, 6)]
+            [InlineData("# Heading", "<h6>Heading</h6>", false, 6)]
+            [InlineData("# Heading", "<h6>Heading</h6>", true, 7)]
+            [InlineData("# Heading", "<h6>Heading</h6>", false, 7)]
+            [InlineData("# Heading", "<h6>Heading</h6>", true, 5)]
+            [InlineData("# Heading", "<h6>Heading</h6>", false, 5)]
+            public void EncodesHtmlInMarkdownWithAdaptiveHeader(string originalMd, string expectedHtml, bool isMarkdigMdRenderingEnabled, int incrementHeadersBy)
+            {
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                Assert.Equal(expectedHtml, _markdownService.GetHtmlFromMarkdown(originalMd, incrementHeadersBy).Content);
             }
 
             [Theory]

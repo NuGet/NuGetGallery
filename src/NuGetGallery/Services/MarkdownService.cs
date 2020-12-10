@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Text.RegularExpressions;
 using System.Timers;
 using System.Web;
@@ -32,10 +33,9 @@ namespace NuGetGallery
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString)
         {
-            if (_features == null)
+            if (markdownString == null)
             {
-                throw new ArgumentNullException(nameof(_features));
-
+                throw new ArgumentNullException(nameof(markdownString));
             }
 
             if (_features.IsMarkdigMdRenderingEnabled()) 
@@ -50,10 +50,14 @@ namespace NuGetGallery
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString, int incrementHeadersBy)
         {
-            if (_features == null)
+            if (markdownString == null)
             {
-                throw new ArgumentNullException(nameof(_features));
+                throw new ArgumentNullException(nameof(markdownString));
+            }
 
+            if (incrementHeadersBy < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(incrementHeadersBy));
             }
 
             if (_features.IsMarkdigMdRenderingEnabled())
@@ -191,7 +195,7 @@ namespace NuGetGallery
                         // Demote heading tags so they don't overpower expander headings.
                         if (node is HeadingBlock heading)
                         {
-                            heading.Level = (byte)Math.Min(heading.Level + incrementHeadersBy, 6);
+                            heading.Level = Math.Min(heading.Level + incrementHeadersBy, 6);
                         }
                     }
                     else if (node is Markdig.Syntax.Inlines.Inline)
@@ -200,7 +204,6 @@ namespace NuGetGallery
                         {
                             if (linkInline.IsImage)
                             {
-                                // Allow only http or https links in markdown. Transform link to https for known domains.
                                 if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
                                 {
                                     linkInline.Url = string.Empty;
