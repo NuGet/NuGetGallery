@@ -35,6 +35,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Infrastructure\MigrateUserToOrganization.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Infrastructure\MigrateUserToOrganization.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NuGet.Packaging">
       <Version>5.8.0</Version>
     </PackageReference>
