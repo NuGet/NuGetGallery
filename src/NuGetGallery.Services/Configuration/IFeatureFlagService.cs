@@ -227,6 +227,10 @@ namespace NuGetGallery
         bool IsODataV2SearchCountNonHijackedEnabled();
 
         /// <summary>
+        /// Whether rendering Markdown content to HTML using Markdig is enabled
+        /// </summary>
+        bool IsMarkdigMdRenderingEnabled();
+        
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);

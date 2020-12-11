@@ -40,6 +40,7 @@ namespace NuGetGallery
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
         private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
+        private const string MarkdigMdRenderingFlightName = GalleryPrefix + "MarkdigMdRendering";
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
@@ -286,6 +287,11 @@ namespace NuGetGallery
             return _client.IsEnabled(ODataV2SearchCountNonHijackedFeatureName, defaultValue: true);
         }
 
+        public bool IsMarkdigMdRenderingEnabled()
+        {
+            return _client.IsEnabled(MarkdigMdRenderingFlightName, defaultValue: false);
+        }
+        
         public bool IsDeletePackageApiEnabled(User user)
         {
             return _client.IsEnabled(DeletePackageApiFlightName, user, defaultValue: false);
