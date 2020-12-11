@@ -189,6 +189,18 @@ Some text
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(false, readMeResult.ImagesRewritten);
             }
+
+            [Fact]
+            public void TestToHtmlWithAutoLinks()
+            {
+                var originalMd = "This is a http://www.google.com URL and https://www.google.com";
+
+                var expectedHtml = "<p>This is a <a href=\"http://www.google.com/\" rel=\"nofollow\">http://www.google.com</a> URL and <a href=\"https://www.google.com/\" rel=\"nofollow\">https://www.google.com</a></p>";
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.Equal(false, readMeResult.ImagesRewritten);
+            }
         }
     }
 }

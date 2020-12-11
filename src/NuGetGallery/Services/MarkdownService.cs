@@ -177,6 +177,7 @@ namespace NuGetGallery
                 .UseTaskLists()
                 .UseSoftlineBreakAsHardlineBreak()
                 .UseEmojiAndSmiley()
+                .UseAutoLinks()
                 .UseReferralLinks("nofollow")
                 .DisableHtml() //block inline html
                 .Build();
