@@ -22,10 +22,13 @@ namespace NuGetGallery
                 _markdownService = new MarkdownService(_featureFlagService.Object);
             }
 
-            [Fact]
-            public void ThrowsArgumentOutOfRangeExceptionForNegativeParameterValue()
+            [Theory]
+            [InlineData(-1)]
+            public void ThrowsArgumentOutOfRangeExceptionForNegativeIncrementHeadersBy(int incrementHeadersBy)
             {
-                Assert.Throws<ArgumentOutOfRangeException>(() => _markdownService.GetHtmlFromMarkdown("markdown file test", -1));
+                var exception = Assert.Throws<ArgumentOutOfRangeException>(() => _markdownService.GetHtmlFromMarkdown("markdown file test", incrementHeadersBy));
+                Assert.Equal(nameof(incrementHeadersBy), exception.ParamName);
+                Assert.Contains("must be greater than or equal to 0", exception.Message);
             }
 
             [Fact]

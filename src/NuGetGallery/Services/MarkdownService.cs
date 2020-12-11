@@ -57,7 +57,7 @@ namespace NuGetGallery
 
             if (incrementHeadersBy < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(incrementHeadersBy));
+                throw new ArgumentOutOfRangeException(nameof(incrementHeadersBy), $"{nameof(incrementHeadersBy)} must be greater than or equal to 0");
             }
 
             if (_features.IsMarkdigMdRenderingEnabled())
