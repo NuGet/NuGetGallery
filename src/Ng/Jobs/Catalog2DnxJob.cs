@@ -40,6 +40,7 @@ namespace Ng.Jobs
                    + "|"
                    + $"[-{Arguments.StorageAccountName} <azure-acc>"
                    + $"-{Arguments.StorageKeyValue} <azure-key> "
+                   + $"-{Arguments.StorageSasValue} <azure-sas> "
                    + $"-{Arguments.StorageContainer} <azure-container> "
                    + $"-{Arguments.StoragePath} <path> "
                    + $"[-{Arguments.VaultName} <keyvault-name> "
@@ -54,6 +55,7 @@ namespace Ng.Jobs
                    + $"[-{Arguments.PreferAlternatePackageSourceStorage} true|false "
                    + $"-{Arguments.StorageAccountNamePreferredPackageSourceStorage} <azure-acc> "
                    + $"-{Arguments.StorageKeyValuePreferredPackageSourceStorage} <azure-key> "
+                   + $"-{Arguments.StorageSasValuePreferredPackageSourceStorage} <azure-sas> "
                    + $"-{Arguments.StorageContainerPreferredPackageSourceStorage} <azure-container>"
                    + $"-{Arguments.StorageUseServerSideCopy} true|false]";
         }

@@ -35,6 +35,7 @@ namespace Ng
         public const string StorageBaseAddress = "storageBaseAddress";
         public const string StorageContainer = "storageContainer";
         public const string StorageKeyValue = "storageKeyValue";
+        public const string StorageSasValue = "storageSasValue";
         public const string StoragePath = "storagePath";
         public const string StorageQueueName = "storageQueueName";
         public const string StorageType = "storageType";
@@ -46,6 +47,7 @@ namespace Ng
 
         public const string StorageAccountNamePreferredPackageSourceStorage = "storageAccountNamePreferredPackageSourceStorage";
         public const string StorageKeyValuePreferredPackageSourceStorage = "storageKeyValuePreferredPackageSourceStorage";
+        public const string StorageSasValuePreferredPackageSourceStorage = "storageSasValuePreferredPackageSourceStorage";
         public const string StorageContainerPreferredPackageSourceStorage = "storageContainerPreferredPackageSourceStorage";
 
         public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
@@ -62,6 +64,7 @@ namespace Ng
         public const string StorageAccountNameAuditing = "storageAccountNameAuditing";
         public const string StorageContainerAuditing = "storageContainerAuditing";
         public const string StorageKeyValueAuditing = "storageKeyValueAuditing";
+        public const string StorageSasValueAuditing = "storageSasValueAuditing";
         public const string StoragePathAuditing = "storagePathAuditing";
         public const string StorageTypeAuditing = "storageTypeAuditing";
         public const string SqlCommandTimeoutInSeconds = "sqlCommandTimeoutInSeconds";
@@ -157,12 +160,14 @@ namespace Ng
         public const string CompressedStorageBaseAddress = "compressedStorageBaseAddress";
         public const string CompressedStorageContainer = "compressedStorageContainer";
         public const string CompressedStorageKeyValue = "compressedStorageKeyValue";
+        public const string CompressedStorageSasValue = "compressedStorageSasValue";
         public const string CompressedStoragePath = "compressedStoragePath";
 
         public const string SemVer2StorageAccountName = "semVer2StorageAccountName";
         public const string SemVer2StorageBaseAddress = "semVer2StorageBaseAddress";
         public const string SemVer2StorageContainer = "semVer2StorageContainer";
         public const string SemVer2StorageKeyValue = "semVer2StorageKeyValue";
+        public const string SemVer2StorageSasValue = "semVer2StorageSasValue";
         public const string SemVer2StoragePath = "semVer2StoragePath";
 
         public const string FlatContainerName = "flatContainerName";
