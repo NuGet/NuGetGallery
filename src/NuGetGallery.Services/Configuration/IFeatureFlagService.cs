@@ -230,5 +230,15 @@ namespace NuGetGallery
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);
+        
+        /// <summary>
+        /// Whether rending Markdown content to HTML using Markdig is enabaled
+        /// </summary>
+        bool IsMarkdigMdRenderingEnabled();
+
+        /// <summary>
+        /// Whether displaying images in Markdown when sources from allowlist 
+        /// </summary>
+        bool IsImagesAllowlistEnabled();
     }
 }
