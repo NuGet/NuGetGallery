@@ -25,11 +25,10 @@ namespace NuGetGallery
             IReadOnlyList<ReportPackageReason> reasons,
             UrlHelper url,
             string readMe,
-            bool isManageDeprecationEnabled,
-            bool isEmbeddedReadmeEnabled)
+            bool isManageDeprecationEnabled)
         {
             var viewModel = new ManagePackageViewModel();
-            return Setup(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled, isEmbeddedReadmeEnabled);
+            return Setup(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
         }
 
         public ManagePackageViewModel Setup(
@@ -39,11 +38,10 @@ namespace NuGetGallery
             IReadOnlyList<ReportPackageReason> reasons,
             UrlHelper url,
             string readMe,
-            bool isManageDeprecationEnabled,
-            bool isEmbeddedReadmeEnabled)
+            bool isManageDeprecationEnabled)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
-            return SetupInternal(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled, isEmbeddedReadmeEnabled);
+            return SetupInternal(viewModel, package, currentUser, reasons, url, readMe, isManageDeprecationEnabled);
         }
 
         private ManagePackageViewModel SetupInternal(
@@ -53,8 +51,7 @@ namespace NuGetGallery
             IReadOnlyList<ReportPackageReason> reasons,
             UrlHelper url,
             string readMe,
-            bool isManageDeprecationEnabled,
-            bool isEmbeddedReadmeEnabled)
+            bool isManageDeprecationEnabled)
         {
             viewModel.IsCurrentUserAnAdmin = currentUser != null && currentUser.IsAdministrator;
 
@@ -74,7 +71,6 @@ namespace NuGetGallery
             viewModel.IsLocked = package.PackageRegistration.IsLocked;
 
             viewModel.IsManageDeprecationEnabled = isManageDeprecationEnabled;
-            viewModel.IsEmbeddedReadmeEnabled = isEmbeddedReadmeEnabled;
 
             var versionSelectPackages = package.PackageRegistration.Packages
                 .Where(p => p.PackageStatusKey == PackageStatus.Available || p.PackageStatusKey == PackageStatus.Validating)
@@ -117,7 +113,7 @@ namespace NuGetGallery
 
             // Update edit model with the readme.md data.
             viewModel.ReadMe = new EditPackageVersionReadMeRequest();
-            if (package.HasReadMe && package.EmbeddedReadmeType == EmbeddedReadmeFileType.Absent)
+            if (package.HasEmbeddedReadme)
             {
                 viewModel.ReadMe.ReadMe.SourceType = ReadMeService.TypeWritten;
                 viewModel.ReadMe.ReadMe.SourceText = readMe;

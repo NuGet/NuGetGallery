@@ -94,8 +94,7 @@
             // Set up documentation section
             var readMeModel = {
                 "Versions": @Html.ToJson(Model.VersionReadMeStateDictionary),
-                "Edit": @Html.Raw(Json.Encode(Model.ReadMe)),
-                "IsEmbeddedReadmeEnabled": @Html.Raw(Json.Encode(Model.IsEmbeddedReadmeEnabled))
+                "Edit": @Html.Raw(Json.Encode(Model.ReadMe))
             };
 
             var readMeModelVersion = readMeModel.Versions['@Model.Version'];

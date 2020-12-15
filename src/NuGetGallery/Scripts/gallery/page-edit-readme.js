@@ -186,21 +186,20 @@
                 BindReadMeDataManager.bindReadMeData(model);
             }
 
-            if (model.IsEmbeddedReadmeEnabled) {
-                var selectedVersion = _selectVersion.val();
 
-                if (!selectedVersion) {
-                    // No version is selected.
-                    return;
-                }
+            var selectedVersion = _selectVersion.val();
 
-                if (model.Versions[selectedVersion].HasEmbeddedReadme) {
-                    $('#edit-markdown-button').addClass('hidden');
-                    $('#verify-submit-button').addClass('hidden');
-                } else {
-                    $('#edit-markdown-button').removeClass('hidden');
-                    $('#verify-submit-button').removeClass('hidden');
-                }
+            if (!selectedVersion) {
+                // No version is selected.
+                return;
+            }
+
+            if (model.Versions[selectedVersion].HasEmbeddedReadme) {
+                $('#edit-markdown-button').addClass('hidden');
+                $('#verify-submit-button').addClass('hidden');
+            } else {
+                $('#edit-markdown-button').removeClass('hidden');
+                $('#verify-submit-button').removeClass('hidden');
             }
         }
     };

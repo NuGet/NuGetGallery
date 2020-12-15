@@ -160,7 +160,7 @@ namespace NuGet.Services.Entities
         /// Signifies whether or not the embedded ReadMe exists
         /// </summary>
         [NotMapped]
-        public bool HasEmbeddedReadMe
+        public bool HasEmbeddedReadme
         {
             get
             {
