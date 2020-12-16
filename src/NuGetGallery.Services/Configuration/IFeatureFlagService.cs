@@ -57,6 +57,11 @@ namespace NuGetGallery
         bool IsManageDeprecationApiEnabled(User user);
 
         /// <summary>
+        /// Whether or not a package owner can view vulnerability advisory information on their package.
+        /// </summary>
+        bool IsDisplayVulnerabilitiesEnabled();
+
+        /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.
         /// </summary>
         bool AreEmbeddedIconsEnabled(User user);

@@ -442,8 +442,8 @@ namespace NuGetGallery
                 .As<IIconUrlTemplateProcessor>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<PackageVulnerabilityService>()
-                .As<IPackageVulnerabilityService>()
+            builder.RegisterType<PackageVulnerabilitiesManagementService>()
+                .As<IPackageVulnerabilitiesManagementService>()
                 .InstancePerLifetimeScope();
 
             services.AddHttpClient();
