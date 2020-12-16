@@ -50,6 +50,7 @@ namespace NuGetGallery
             public string SubmitUrl { get; }
             public string GetReadMeUrl { get; }
             public string ReadMe { get; }
+            public bool HasEmbeddedReadme { get; set; }
         }
 
         /// <remarks>

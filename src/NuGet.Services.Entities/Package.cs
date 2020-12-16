@@ -156,6 +156,18 @@ namespace NuGet.Services.Entities
             }
         }
 
+        /// <summary>
+        /// Signifies whether or not the embedded Readme exists
+        /// </summary>
+        [NotMapped]
+        public bool HasEmbeddedReadme
+        {
+            get
+            {
+                return HasReadMe && EmbeddedReadmeType != EmbeddedReadmeFileType.Absent;
+            }
+        }
+
         public bool RequiresLicenseAcceptance { get; set; }
 
         public bool DevelopmentDependency { get; set; }
