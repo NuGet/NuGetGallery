@@ -113,7 +113,7 @@ namespace NuGetGallery
 
             // Update edit model with the readme.md data.
             viewModel.ReadMe = new EditPackageVersionReadMeRequest();
-            if (package.HasEmbeddedReadme)
+            if (package.HasReadMe && package.EmbeddedReadmeType == EmbeddedReadmeFileType.Absent)
             {
                 viewModel.ReadMe.ReadMe.SourceType = ReadMeService.TypeWritten;
                 viewModel.ReadMe.ReadMe.SourceText = readMe;
