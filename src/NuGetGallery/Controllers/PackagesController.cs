@@ -121,6 +121,7 @@ namespace NuGetGallery
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
+        private readonly IPackageVulnerabilitiesService _vulnerabilitiesService;
         private readonly IPackageRenameService _renameService;
         private readonly IABTestService _abTestService;
         private readonly IMarkdownService _markdownService;
@@ -161,6 +162,7 @@ namespace NuGetGallery
             ILicenseExpressionSplitter licenseExpressionSplitter,
             IFeatureFlagService featureFlagService,
             IPackageDeprecationService deprecationService,
+            IPackageVulnerabilitiesService vulnerabilitiesService,
             IPackageRenameService renameService,
             IABTestService abTestService,
             IIconUrlProvider iconUrlProvider,
@@ -197,6 +199,7 @@ namespace NuGetGallery
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
+            _vulnerabilitiesService = vulnerabilitiesService ?? throw new ArgumentNullException(nameof(vulnerabilitiesService));
             _renameService = renameService ?? throw new ArgumentNullException(nameof(renameService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
@@ -875,6 +878,8 @@ namespace NuGetGallery
                 .GroupBy(d => d.PackageKey)
                 .ToDictionary(g => g.Key, g => g.First());
 
+            var packageKeyToVulnerabilities = _vulnerabilitiesService.GetVulnerabilitiesById(id);
+
             IReadOnlyList<PackageRename> packageRenames = null;
             if (_featureFlagService.IsPackageRenamesEnabled(currentUser))
             {
@@ -886,6 +891,7 @@ namespace NuGetGallery
                 allVersions,
                 currentUser,
                 packageKeyToDeprecation,
+                packageKeyToVulnerabilities,
                 packageRenames,
                 readme);
 
@@ -895,6 +901,7 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            model.IsPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
            

@@ -33,6 +33,7 @@ namespace NuGetGallery
         public bool IsDotnetNewTemplatePackageType { get; set; }
         public bool IsAtomFeedEnabled { get; set; }
         public bool IsPackageDeprecationEnabled { get; set; }
+        public bool IsPackageVulnerabilitiesEnabled { get; set; }
         public bool IsPackageRenamesEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
         public bool IsPackageDependentsEnabled { get; set; }
@@ -82,6 +83,8 @@ namespace NuGetGallery
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
         public PackageDeprecationStatus DeprecationStatus { get; set; }
+        public IReadOnlyCollection<PackageVulnerability> Vulnerabilities { get; set; }
+        public PackageVulnerabilitySeverity MaxVulnerabilitySeverity { get; set; }
         public string AlternatePackageId { get; set; }
         public string AlternatePackageVersion { get; set; }
         public string CustomMessage { get; set; }

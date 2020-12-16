@@ -63,7 +63,7 @@ namespace NuGetGallery.Services
                 Service.ApplyExistingVulnerabilitiesToPackage(package);
 
                 // Assert
-                Assert.Single(package.Vulnerabilities, satisfiedRange);
+                Assert.Single(package.VulnerablePackageRanges, satisfiedRange);
                 Assert.Single(satisfiedRange.Packages, package);
             }
         }

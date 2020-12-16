@@ -83,6 +83,7 @@ namespace NuGetGallery
             Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null,
             Mock<IFeatureFlagService> featureFlagService = null,
             Mock<IPackageDeprecationService> deprecationService = null,
+            Mock<IPackageVulnerabilitiesService> vulnerabilitiesService = null,
             Mock<IPackageRenameService> renameService = null,
             Mock<IABTestService> abTestService = null,
             Mock<IIconUrlProvider> iconUrlProvider = null,
@@ -245,6 +246,15 @@ namespace NuGetGallery
                     .Setup(x => x.GetDeprecationsById(It.IsAny<string>()))
                     .Returns(new List<PackageDeprecation>());
             }
+
+            if (vulnerabilitiesService == null)
+            {
+                vulnerabilitiesService = new Mock<IPackageVulnerabilitiesService>();
+                vulnerabilitiesService
+                    .Setup(x => x.GetVulnerabilitiesById(It.IsAny<string>()))
+                    .Returns(new Dictionary<int, IReadOnlyList<PackageVulnerability>>());
+            }
+
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 
             abTestService = abTestService ?? new Mock<IABTestService>();
@@ -281,6 +291,7 @@ namespace NuGetGallery
                 licenseExpressionSplitter.Object,
                 featureFlagService.Object,
                 deprecationService.Object,
+                vulnerabilitiesService.Object,
                 renameService.Object,
                 abTestService.Object,
                 iconUrlProvider.Object,
@@ -453,6 +464,7 @@ namespace NuGetGallery
                 var id = "Test" + Guid.NewGuid().ToString();
                 var packageService = new Mock<IPackageService>();
                 var deprecationService = new Mock<IPackageDeprecationService>();
+                var vulnerabilitiesService = new Mock<IPackageVulnerabilitiesService>();
                 var diagnosticsService = new Mock<IDiagnosticsService>();
                 var searchClient = new Mock<ISearchClient>();
                 var searchService = new Mock<ExternalSearchService>(diagnosticsService.Object, searchClient.Object)
@@ -465,6 +477,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     deprecationService: deprecationService,
+                    vulnerabilitiesService: vulnerabilitiesService,
                     searchService: searchService.As<ISearchService>(),
                     httpContext: httpContext);
                 controller.SetCurrentUser(TestUtility.FakeUser);
@@ -472,6 +485,11 @@ namespace NuGetGallery
                 deprecationService
                     .Setup(x => x.GetDeprecationsById(id))
                     .Returns(new List<PackageDeprecation>())
+                    .Verifiable();
+
+                vulnerabilitiesService
+                    .Setup(x => x.GetVulnerabilitiesById(id))
+                    .Returns(new Dictionary<int, IReadOnlyList<PackageVulnerability>>())
                     .Verifiable();
 
                 searchService
@@ -507,6 +525,7 @@ namespace NuGetGallery
                 Assert.Equal(id, model.Id);
                 searchService.Verify(x => x.RawSearch(It.IsAny<SearchFilter>()), Times.Exactly(searchTimes));
                 deprecationService.Verify();
+                vulnerabilitiesService.Verify();
             }
 
             [Fact]
