@@ -157,7 +157,7 @@ namespace NuGet.Services.Entities
         }
 
         /// <summary>
-        /// Signifies whether or not the embedded ReadMe exists
+        /// Signifies whether or not the embedded Readme exists
         /// </summary>
         [NotMapped]
         public bool HasEmbeddedReadme

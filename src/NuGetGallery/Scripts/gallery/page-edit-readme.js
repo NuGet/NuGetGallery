@@ -186,7 +186,6 @@
                 BindReadMeDataManager.bindReadMeData(model);
             }
 
-
             var selectedVersion = _selectVersion.val();
 
             if (!selectedVersion) {
