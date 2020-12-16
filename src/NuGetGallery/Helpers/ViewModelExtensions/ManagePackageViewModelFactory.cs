@@ -163,7 +163,7 @@ namespace NuGetGallery
             var result = new ManagePackageViewModel.VersionReadMeState(
                 submitUrlTemplate.Resolve(model),
                 getReadMeUrlTemplate.Resolve(model),
-                null);
+                readMe: null);
 
             result.HasEmbeddedReadme = model.HasEmbeddedReadme;
             return result;
