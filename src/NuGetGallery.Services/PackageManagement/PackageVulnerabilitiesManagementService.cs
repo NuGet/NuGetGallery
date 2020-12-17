@@ -45,7 +45,7 @@ namespace NuGetGallery
                 var versionRange = VersionRange.Parse(possibleRange.PackageVersionRange);
                 if (versionRange.Satisfies(version))
                 {
-                    package.Vulnerabilities.Add(possibleRange);
+                    package.VulnerablePackageRanges.Add(possibleRange);
                     possibleRange.Packages.Add(package);
                 }
             }
@@ -278,7 +278,7 @@ namespace NuGetGallery
                         package.NormalizedVersion,
                         range.PackageVersionRange);
 
-                    package.Vulnerabilities.Add(range);
+                    package.VulnerablePackageRanges.Add(range);
                     range.Packages.Add(package);
                     packagesToUpdate.Add(package);
                 }

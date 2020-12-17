@@ -482,7 +482,7 @@ namespace NuGetGallery
             modelBuilder.Entity<VulnerablePackageVersionRange>()
                 .HasKey(pv => pv.Key)
                 .HasMany(pv => pv.Packages)
-                .WithMany(p => p.Vulnerabilities);
+                .WithMany(p => p.VulnerablePackageRanges);
 
             modelBuilder.Entity<VulnerablePackageVersionRange>()
                 .HasIndex(pv => pv.PackageId);

@@ -23,6 +23,7 @@ namespace NuGetGallery
             IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
+            IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> packageKeyToVulnerabilities,
             IReadOnlyList<PackageRename> packageRenames,
             RenderedMarkdownResult readmeResult)
         {
@@ -33,6 +34,7 @@ namespace NuGetGallery
                 allVersions,
                 currentUser,
                 packageKeyToDeprecation,
+                packageKeyToVulnerabilities,
                 packageRenames,
                 readmeResult);
         }
@@ -43,12 +45,15 @@ namespace NuGetGallery
             IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
+            IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> packageKeyToVulnerabilities,
             IReadOnlyList<PackageRename> packageRenames,
             RenderedMarkdownResult readmeResult)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
-            SetupCommon(viewModel, package, pushedBy: null, packageKeyToDeprecation: packageKeyToDeprecation);
-            return SetupInternal(viewModel, package, allVersions, currentUser, packageKeyToDeprecation, packageRenames, readmeResult);
+            SetupCommon(viewModel, package, pushedBy: null, 
+                packageKeyToDeprecation: packageKeyToDeprecation, packageKeyToVulnerabilities: packageKeyToVulnerabilities);
+            return SetupInternal(viewModel, package, allVersions, currentUser, 
+                packageKeyToDeprecation, packageKeyToVulnerabilities, packageRenames, readmeResult);
         }
 
         private DisplayPackageViewModel SetupInternal(
@@ -57,6 +62,7 @@ namespace NuGetGallery
             IReadOnlyCollection<Package> allVersions,
             User currentUser,
             IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
+            IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> packageKeyToVulnerabilities,
             IReadOnlyList<PackageRename> packageRenames,
             RenderedMarkdownResult readmeResult)
         {
@@ -74,7 +80,7 @@ namespace NuGetGallery
                     {
                         var vm = new DisplayPackageViewModel();
                         _listPackageItemViewModelFactory.Setup(vm, p, currentUser);
-                        return SetupCommon(vm, p, GetPushedBy(p, currentUser, pushedByCache), packageKeyToDeprecation);
+                        return SetupCommon(vm, p, GetPushedBy(p, currentUser, pushedByCache), packageKeyToDeprecation, packageKeyToVulnerabilities);
                     })
                 .ToList();
 
@@ -136,7 +142,8 @@ namespace NuGetGallery
             DisplayPackageViewModel viewModel,
             Package package,
             string pushedBy,
-            IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation)
+            IReadOnlyDictionary<int, PackageDeprecation> packageKeyToDeprecation,
+            IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> packageKeyToVulnerabilities)
         {
             viewModel.NuGetVersion = NuGetVersion.Parse(NuGetVersionFormatter.ToFullString(package.Version));
             viewModel.Copyright = package.Copyright;
@@ -177,6 +184,12 @@ namespace NuGetGallery
             else
             {
                 viewModel.DeprecationStatus = PackageDeprecationStatus.NotDeprecated;
+            }
+
+            if (packageKeyToVulnerabilities != null && packageKeyToVulnerabilities.TryGetValue(package.Key, out var vulnerabilities))
+            {
+                viewModel.Vulnerabilities = vulnerabilities;
+                viewModel.MaxVulnerabilitySeverity = vulnerabilities.Max(v => v.Severity);
             }
 
             return viewModel;
