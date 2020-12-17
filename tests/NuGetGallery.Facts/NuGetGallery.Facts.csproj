@@ -110,7 +110,7 @@
     <Compile Include="Services\PackageDeprecationManagementServiceFacts.cs" />
     <Compile Include="Services\PackageDeprecationServiceFacts.cs" />
     <Compile Include="Services\PackageRenameServiceFacts.cs" />
-    <Compile Include="Services\PackageVulnerabilityServiceFacts.cs" />
+    <Compile Include="Services\PackageVulnerabilitiesManagementServiceFacts.cs" />
     <Compile Include="Services\SearchSideBySideServiceFacts.cs" />
     <Compile Include="Services\PackageUpdateServiceFacts.cs" />
     <Compile Include="Services\StatusServiceFacts.cs" />

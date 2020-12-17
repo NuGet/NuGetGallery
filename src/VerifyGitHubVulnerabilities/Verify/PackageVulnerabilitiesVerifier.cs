@@ -11,11 +11,11 @@ using NuGetGallery;
 
 namespace VerifyGitHubVulnerabilities.Verify
 {
-    public class PackageVulnerabilityServiceVerifier : IPackageVulnerabilityService
+    public class PackageVulnerabilitiesVerifier : IPackageVulnerabilitiesManagementService
     {
         private readonly IEntitiesContext _entitiesContext;
 
-        public PackageVulnerabilityServiceVerifier(
+        public PackageVulnerabilitiesVerifier(
             IEntitiesContext entitiesContext)
         {
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));

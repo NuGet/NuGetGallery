@@ -12,16 +12,16 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public class PackageVulnerabilityService : IPackageVulnerabilityService
+    public class PackageVulnerabilitiesManagementService : IPackageVulnerabilitiesManagementService
     {
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageUpdateService _packageUpdateService;
-        private readonly ILogger<PackageVulnerabilityService> _logger;
+        private readonly ILogger<PackageVulnerabilitiesManagementService> _logger;
 
-        public PackageVulnerabilityService(
+        public PackageVulnerabilitiesManagementService(
             IEntitiesContext entitiesContext,
             IPackageUpdateService packageUpdateService,
-            ILogger<PackageVulnerabilityService> logger)
+            ILogger<PackageVulnerabilitiesManagementService> logger)
         {
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageUpdateService = packageUpdateService ?? throw new ArgumentNullException(nameof(packageUpdateService));

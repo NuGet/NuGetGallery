@@ -32,7 +32,7 @@ namespace NuGetGallery
             Mock<IPackageService> packageService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
             Mock<IValidationService> validationService = null,
-            Mock<IPackageVulnerabilityService> vulnerabilityService = null)
+            Mock<IPackageVulnerabilitiesManagementService> vulnerabilityService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
 
@@ -64,7 +64,7 @@ namespace NuGetGallery
 
             if (vulnerabilityService == null)
             {
-                vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
             }
 
             validationService = validationService ?? new Mock<IValidationService>();
@@ -96,7 +96,7 @@ namespace NuGetGallery
                 var key = 0;
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                var vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                var vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
 
                 var id = "Microsoft.Aspnet.Mvc";
                 var packageUploadService = CreateService(packageService, vulnerabilityService: vulnerabilityService);
@@ -151,7 +151,7 @@ namespace NuGetGallery
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
                     .Returns(testNamespaces.ToList().AsReadOnly());
 
-                var vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                var vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
 
                 var packageUploadService = CreateService(
                     reservedNamespaceService: reservedNamespaceService, 
@@ -193,7 +193,7 @@ namespace NuGetGallery
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
                     .Returns(testNamespaces.ToList().AsReadOnly());
 
-                var vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                var vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
 
                 var packageUploadService = CreateService(
                     reservedNamespaceService: reservedNamespaceService,
@@ -741,7 +741,7 @@ namespace NuGetGallery
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ICoreLicenseFileService> _licenseFileService;
             protected readonly Mock<IDiagnosticsService> _diagnosticsService;
-            protected readonly Mock<IPackageVulnerabilityService> _vulnerabilityService;
+            protected readonly Mock<IPackageVulnerabilitiesManagementService> _vulnerabilityService;
             protected readonly Mock<IPackageMetadataValidationService> _metadataValidationService;
             protected Package _package;
             protected Stream _packageFile;
@@ -784,7 +784,7 @@ namespace NuGetGallery
                     .Setup(ds => ds.GetSource(It.IsAny<string>()))
                     .Returns(Mock.Of<IDiagnosticsSource>());
 
-                _vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                _vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
 
                 _metadataValidationService = new Mock<IPackageMetadataValidationService>();
 
