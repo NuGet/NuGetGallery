@@ -104,6 +104,26 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(expected, model.ProjectUrl);
         }
 
+        [Theory]
+        [InlineData("foo", "1.0.0", "https://www.fuget.org/packages/foo/1.0.0")]
+        [InlineData("foo", "1.1.0", "https://www.fuget.org/packages/foo/1.1.0")]
+        [InlineData("foo.bar", "1.1.0-beta", "https://www.fuget.org/packages/foo.bar/1.1.0-beta")]
+        public void ItInitializesFuGetUrl(string packageId, string packageVersion, string expected)
+        {
+            var package = new Package
+            {
+                Version = packageVersion,
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = packageId,
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+            Assert.Equal(expected, model.FuGetUrl);
+        }
 
         [Theory]
         [InlineData(null, null)]

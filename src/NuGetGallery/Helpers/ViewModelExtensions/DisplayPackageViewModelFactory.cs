@@ -163,6 +163,12 @@ namespace NuGetGallery
                 viewModel.ProjectUrl = projectUrl;
             }
 
+            var fugetUrl = $"https://www.fuget.org/packages/{package.Id}/{package.Version}";
+            if (PackageHelper.TryPrepareUrlForRendering(fugetUrl, out string fugetReadyUrl))
+            {
+                viewModel.FuGetUrl = fugetReadyUrl;
+            }
+
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;
 
