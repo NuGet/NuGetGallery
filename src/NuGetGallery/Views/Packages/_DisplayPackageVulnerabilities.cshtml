@@ -32,20 +32,17 @@
             <b>Details</b>
             <table width="100%" class="vulnerabilities-list">
                 @{
-                    foreach (var vulnerability in Model.Vulnerabilities)
+                    if (Model.Vulnerabilities != null)
                     {
-                        var truncatedUrl = vulnerability.AdvisoryUrl;
-                        if (truncatedUrl.Length > 50)
+                        foreach (var vulnerability in Model.Vulnerabilities)
                         {
-                            truncatedUrl = truncatedUrl.Substring(0, 47) + "...";
+                            var vulnerabilitySeverity = Enum.GetName(typeof(PackageVulnerabilitySeverity), vulnerability.Severity).ToLowerInvariant();
+
+                            <tr>
+                                <td>Advisory: <a href="@vulnerability.AdvisoryUrl" target="_blank">@vulnerability.AdvisoryUrl</a></td>
+                                <td>Severity: <span class="vulnerabilities-severity-@vulnerabilitySeverity">@vulnerabilitySeverity</span></td>
+                            </tr>
                         }
-
-                        var vulnerabilitySeverity = Enum.GetName(typeof(PackageVulnerabilitySeverity), vulnerability.Severity).ToLowerInvariant();
-
-                        <tr>
-                            <td>Advisory: <a href="@vulnerability.AdvisoryUrl" target="_blank">@truncatedUrl</a></td>
-                            <td>Severity: <span class="vulnerabilities-severity-@vulnerabilitySeverity">@vulnerabilitySeverity</span></td>
-                        </tr>
                     }
                 }
             </table>

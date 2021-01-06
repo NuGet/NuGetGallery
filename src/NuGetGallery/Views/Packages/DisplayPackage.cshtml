@@ -283,7 +283,7 @@
                 )
             }
 
-            @if (Model.IsPackageVulnerabilitiesEnabled && Model.Vulnerabilities.Any())
+            @if (Model.IsPackageVulnerabilitiesEnabled && Model.Vulnerabilities != null)
             {
                 @Html.Partial("_DisplayPackageVulnerabilities")
             }
@@ -691,7 +691,7 @@
                             }
                             @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
                             {
-                                <th aria-hidden="true" abbr ="Package Warnings" />
+                                <th aria-hidden="true" abbr="Package Warnings"></th>
                             }
                         </tr>
                     </thead>
@@ -759,56 +759,15 @@
                                         }
                                     }
 
-                                    @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
+                                    @if (string.IsNullOrEmpty(packageVersion.PackageWarningIconTitle))
                                     {
-                                        var deprecationTitle = "";
-                                        var vulnerabilitiesTitle = "";
-
-                                        if (Model.IsPackageDeprecationEnabled && packageVersion.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
-                                        {
-                                            deprecationTitle = packageVersion.Version;
-                                            var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
-                                            var hasCriticalBugs = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.CriticalBugs);
-                                            if (hasCriticalBugs)
-                                            {
-                                                if (isLegacy)
-                                                {
-                                                    deprecationTitle += " is deprecated because it's legacy and has critical bugs";
-                                                }
-                                                else
-                                                {
-                                                    deprecationTitle += " is deprecated because it has critical bugs";
-                                                }
-                                            }
-                                            else if (isLegacy)
-                                            {
-                                                deprecationTitle += " is deprecated because it's legacy and no longer maintained";
-                                            }
-                                            else
-                                            {
-                                                deprecationTitle += " is deprecated";
-                                            }
-                                        }
-
-                                        if (Model.IsPackageVulnerabilitiesEnabled && packageVersion.Vulnerabilities.Any())
-                                        {
-                                            var severity = Enum.GetName(typeof(PackageVulnerabilitySeverity), packageVersion.MaxVulnerabilitySeverity).ToLowerInvariant();
-                                            vulnerabilitiesTitle = string.Format("{0} has at least one vulnerability with {1} severity.", packageVersion.Version, severity);
-                                        }
-
-                                        if (deprecationTitle == "" && vulnerabilitiesTitle == "")
-                                        {
-                                            <td class="package-icon-cell" aria-hidden="true" />
-                                        }
-                                        else
-                                        {
-                                            deprecationTitle += deprecationTitle != "" && vulnerabilitiesTitle != "" ? "; " : deprecationTitle != "" ? "." : "";
-                                            var iconTitle = deprecationTitle + vulnerabilitiesTitle;
-
-                                            <td class="package-icon-cell">
-                                                <i class="ms-Icon ms-Icon--Warning package-icon" title="@iconTitle"></i>
-                                            </td>
-                                        }
+                                        <td class="package-icon-cell" aria-hidden="true" />
+                                    }
+                                    else
+                                    {
+                                        <td class="package-icon-cell">
+                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                        </td>
                                     }
                                 </tr>
                             }
