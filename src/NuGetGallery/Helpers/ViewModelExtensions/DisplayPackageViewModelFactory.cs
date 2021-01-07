@@ -163,7 +163,7 @@ namespace NuGetGallery
                 viewModel.ProjectUrl = projectUrl;
             }
 
-            var fugetUrl = $"https://www.fuget.org/packages/{package.Id}/{package.Version}";
+            var fugetUrl = $"https://www.fuget.org/packages/{package.Id}/{package.NormalizedVersion}";
             if (PackageHelper.TryPrepareUrlForRendering(fugetUrl, out string fugetReadyUrl))
             {
                 viewModel.FuGetUrl = fugetReadyUrl;

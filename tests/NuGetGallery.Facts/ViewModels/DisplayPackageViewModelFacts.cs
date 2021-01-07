@@ -107,12 +107,13 @@ namespace NuGetGallery.ViewModels
         [Theory]
         [InlineData("foo", "1.0.0", "https://www.fuget.org/packages/foo/1.0.0")]
         [InlineData("foo", "1.1.0", "https://www.fuget.org/packages/foo/1.1.0")]
-        [InlineData("foo.bar", "1.1.0-beta", "https://www.fuget.org/packages/foo.bar/1.1.0-beta")]
+        [InlineData("Foo.Bar", "1.1.0-bETa", "https://www.fuget.org/packages/Foo.Bar/1.1.0-bETa")]
         public void ItInitializesFuGetUrl(string packageId, string packageVersion, string expected)
         {
             var package = new Package
             {
                 Version = packageVersion,
+                NormalizedVersion = packageVersion,
                 PackageRegistration = new PackageRegistration
                 {
                     Id = packageId,
