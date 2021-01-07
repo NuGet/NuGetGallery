@@ -35,6 +35,7 @@ namespace NuGetGallery
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IFeatureFlagService _featureFlagService;
+        private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
 
         public UsersController(
             IUserService userService,
@@ -51,6 +52,7 @@ namespace NuGetGallery
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
             IFeatureFlagService featureFlagService,
+            IPackageVulnerabilitiesService packageVulnerabilitiesService,
             IMessageServiceConfiguration messageServiceConfiguration,
             IIconUrlProvider iconUrlProvider,
             IGravatarProxyService gravatarProxy)
@@ -73,6 +75,7 @@ namespace NuGetGallery
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService, iconUrlProvider);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
@@ -521,7 +524,9 @@ namespace NuGetGallery
 
             var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
 
-            var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
+            var packages = PackageService.FindPackagesByAnyMatchingOwner(
+                    currentUser, includeUnlisted: true, includeVersions: true, includeVulnerabilities: true)
+                .AsQueryable();
 
             var listedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
                 p => p.Listed && p.PackageStatusKey == PackageStatus.Available);
@@ -559,8 +564,10 @@ namespace NuGetGallery
                 OwnerRequests = ownerRequests,
                 ReservedNamespaces = reservedPrefixes,
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
-                IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false
+                IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false,
+                IsPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled()
             };
+
             return View(model);
         }
 
@@ -573,13 +580,14 @@ namespace NuGetGallery
         /// <param name="predicate"></param>
         /// <returns></returns>
         private List<ListPackageItemRequiredSignerViewModel> GetPackages(
-            IEnumerable<Package> packages,
+            IQueryable<Package> packages,
             User currentUser,
             bool wasAADLoginOrMultiFactorAuthenticated,
             Func<Package, bool> predicate)
         {
-            var listedPackages = packages
-                .Where(p => predicate(p))
+            var filteredPackages = packages.Where(p => predicate(p));
+            var latestPackages = PackageService.GetLatestVersions(filteredPackages);
+            var listedPackages = latestPackages
                 .Select(p => _listPackageItemRequiredSignerViewModelFactory.Create(p, currentUser, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => NuGetVersion.Parse(p.FullVersion))
                 .ToList();
@@ -587,6 +595,9 @@ namespace NuGetGallery
             for (int i = 0; i < listedPackages.Count; i++)
             {
                 listedPackages[i].VersionSortOrder = i;
+                listedPackages[i].IsVulnerable =
+                    _packageVulnerabilitiesService.PackagesContainVulnerability(
+                        filteredPackages.Where(p => p.Id == listedPackages[i].Id));
             }
 
             listedPackages.Sort((x, y) => string.Compare(x.Id, y.Id, StringComparison.OrdinalIgnoreCase));

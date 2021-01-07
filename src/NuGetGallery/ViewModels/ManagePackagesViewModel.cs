@@ -23,5 +23,7 @@ namespace NuGetGallery
         public bool WasMultiFactorAuthenticated { get; set; }
 
         public bool IsCertificatesUIEnabled { get; set; }
+
+        public bool IsPackageVulnerabilitiesEnabled { get; set; }
     }
 }

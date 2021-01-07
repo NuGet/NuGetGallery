@@ -1099,7 +1099,7 @@ namespace NuGetGallery
                     .Returns(owner);
 
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false, false))
                     .Returns(new[] { package, invalidatedPackage, validatingPackage, deletedPackage });
 
                 var controller = GetController<UsersController>();
@@ -1153,7 +1153,7 @@ namespace NuGetGallery
                     .Returns(owner);
 
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false, false))
                     .Returns(new[] { package1, package2 });
 
                 var controller = GetController<UsersController>();
@@ -1195,7 +1195,7 @@ namespace NuGetGallery
                     .Setup(x => x.FindByUsername(username, false))
                     .Returns(owner);
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false, false))
                     .Returns(new[] { userPackage });
 
                 var controller = GetController<UsersController>();
@@ -2273,7 +2273,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(testUser.Username, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false, false))
                     .Returns(userPackages);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, testUser))
@@ -2356,7 +2356,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false, false))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, userName))
@@ -3690,7 +3690,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false, false))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                     .Setup(stub => stub.GetIssues(null, null, null, null))
@@ -3729,7 +3729,7 @@ namespace NuGetGallery
                 packageRegistration.Id = Id;
                 packageRegistration.Owners.Add(_testUser);
 
-                var userPackage1 = new Package()
+                var userPackage1 = new Package
                 {
                     Key = Key,
                     Version = Version,
@@ -3747,8 +3747,8 @@ namespace NuGetGallery
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.AlphaPackage", 1, "1.0.0", "first");
                 PackageRegistration packageRegistration3 = CreatePackageRegistration("Company.NormalPackage", 1, "1.0.0", "middle");
 
-                var userPackages = new List<Package>() { 
-                    packageRegistration1.Packages.First() ,
+                var userPackages = new List<Package> { 
+                    packageRegistration1.Packages.First(),
                     packageRegistration2.Packages.First(),
                     packageRegistration3.Packages.First()
                 };
@@ -3757,9 +3757,12 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(_testUser);
 
-                GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                var packageServiceMock = GetMock<IPackageService>();
+                packageServiceMock
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), true, true))
                     .Returns(userPackages);
+                packageServiceMock
+                    .Setup(stub => stub.GetLatestVersions(It.IsAny<IQueryable<Package>>())).Returns(userPackages.AsQueryable());
 
                 var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
 
@@ -3775,8 +3778,8 @@ namespace NuGetGallery
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.NormalPackage", 1, "0.0.1", "first");
                 PackageRegistration packageRegistration3 = CreatePackageRegistration("Company.AlphaPackage", 1, "1.1.0", "last");
 
-                var userPackages = new List<Package>() {
-                    packageRegistration1.Packages.First() ,
+                var userPackages = new List<Package> {
+                    packageRegistration1.Packages.First(),
                     packageRegistration2.Packages.First(),
                     packageRegistration3.Packages.First()
                 };
@@ -3785,9 +3788,12 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(_testUser);
 
-                GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                var packageServiceMock = GetMock<IPackageService>();
+                packageServiceMock
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), true, true))
                     .Returns(userPackages);
+                packageServiceMock
+                    .Setup(stub => stub.GetLatestVersions(It.IsAny<IQueryable<Package>>())).Returns(userPackages.AsQueryable());
 
                 var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
 
@@ -3812,15 +3818,60 @@ namespace NuGetGallery
                 GetMock<IUserService>()
                     .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(_testUser);
-                GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+
+                var packageServiceMock = GetMock<IPackageService>();
+                packageServiceMock
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), true, true))
                     .Returns(userPackages);
+                packageServiceMock
+                    .Setup(stub => stub.GetLatestVersions(It.IsAny<IQueryable<Package>>())).Returns(userPackages.AsQueryable());
 
                 var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
 
                 GetMock<IIconUrlProvider>()
                     .Verify(iup => iup.GetIconUrlString(userPackage), Times.AtLeastOnce);
                 Assert.Equal(iconUrl, model.ListedPackages.Single().IconUrl);
+            }
+
+            [Fact]
+            public void AssessesVulnerabilities()
+            {
+                PackageRegistration packageRegistration1 = CreatePackageRegistration("Company.ZebraPackage", 1, "1.0.0", "test zebra vulnerable");
+                PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.ZebraPackage", 1, "1.0.1", "test zebra clean");
+                PackageRegistration packageRegistration3 = CreatePackageRegistration("Company.AlphaPackage", 1, "1.1.0", "test alpha clean");
+                PackageRegistration packageRegistration4 = CreatePackageRegistration("Company.AlphaPackage", 1, "1.1.1", "test alpha also clean");
+                var versionRange = new VulnerablePackageVersionRange
+                {
+                    PackageVersionRange = "1.0.0"
+                };
+                var zebra100 = packageRegistration1.Packages.First();
+                var zebra101 = packageRegistration2.Packages.First();
+                var alpha110 = packageRegistration3.Packages.First();
+                var alpha111 = packageRegistration4.Packages.First();
+                zebra100.VulnerablePackageRanges = new List<VulnerablePackageVersionRange> { versionRange };
+                versionRange.Vulnerability = new PackageVulnerability();
+                var userPackages = new List<Package> { zebra100, zebra101, alpha110, alpha111 };
+                var latestPackages = new List<Package> { zebra101, alpha111 };
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName, false))
+                    .Returns(_testUser);
+                GetMock<IPackageVulnerabilitiesService>()
+                    .Setup(stub => stub.PackagesContainVulnerability(It.IsAny<IQueryable<Package>>()))
+                    .Returns<IQueryable<Package>>(packages =>
+                        (packages?.FirstOrDefault()?.Id ?? "") == "Company.ZebraPackage"); // this is the vulnerable package - true if this
+
+                var packageServiceMock = GetMock<IPackageService>();
+                packageServiceMock
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), true, true))
+                    .Returns(userPackages);
+                packageServiceMock
+                    .Setup(stub => stub.GetLatestVersions(It.IsAny<IQueryable<Package>>())).Returns(latestPackages.AsQueryable());
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.False(model.ListedPackages.ToArray()[0].IsVulnerable);  // alpha
+                Assert.True(model.ListedPackages.ToArray()[1].IsVulnerable);   // zebra
             }
         }
 

@@ -1,13 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -16,6 +12,7 @@ namespace NuGetGallery.Services
     public class PackageVulnerabilitiesServiceFacts : TestContainer
     {
         private PackageRegistration _registrationVulnerable;
+        private PackageRegistration _registrationNotVulnerable;
 
         private PackageVulnerability _vulnerabilityCritical;
         private PackageVulnerability _vulnerabilityModerate;
@@ -28,23 +25,18 @@ namespace NuGetGallery.Services
         private Package _packageVulnerable111;
         private Package _packageVulnerable112;
 
-        private Package _packageNotVulnerable;
+        private Package _packageNotVulnerable010;
+        private Package _packageNotVulnerable011;
+
+        private Package[] _packages;
 
         [Fact]
         public void GetsVulnerabilitiesOfPackage()
         {
             // Arrange
             SetUp();
-            var packages = new[]
-            {
-                _packageVulnerable100,
-                _packageVulnerable110,
-                _packageVulnerable111,
-                _packageVulnerable112,
-                _packageNotVulnerable
-            };
             var context = GetFakeContext();
-            context.Packages.AddRange(packages);
+            context.Packages.AddRange(_packages);
             var target = Get<PackageVulnerabilitiesService>();
 
             // Act
@@ -64,9 +56,30 @@ namespace NuGetGallery.Services
             Assert.Null(notVulnerableResult);
         }
 
+        [Fact]
+        public void GetsVulnerableStatusOfPackageGroup()
+        {
+            // Arrange
+            SetUp();
+            var context = GetFakeContext();
+            context.Packages.AddRange(_packages);
+            var target = Get<PackageVulnerabilitiesService>();
+
+            // Act
+            var shouldBeVulnerable =
+                target.PackagesContainVulnerability(_packages.AsQueryable().Where(p => p.Id == "Vulnerable"));
+            var shouldNotBeVulnerable =
+                target.PackagesContainVulnerability(_packages.AsQueryable().Where(p => p.Id == "NotVulnerable"));
+
+            // Assert
+            Assert.True(shouldBeVulnerable);
+            Assert.False(shouldNotBeVulnerable);
+        }
+
         private void SetUp()
         {
             _registrationVulnerable = new PackageRegistration { Id = "Vulnerable" };
+            _registrationNotVulnerable = new PackageRegistration { Id = "NotVulnerable" };
 
             _vulnerabilityCritical = new PackageVulnerability
             {
@@ -132,11 +145,29 @@ namespace NuGetGallery.Services
                 Version = "1.1.2",
                 VulnerablePackageRanges = null
             };
-            _packageNotVulnerable = new Package
+            _packageNotVulnerable010 = new Package
             {
                 Key = 4,
-                PackageRegistration = new PackageRegistration { Id = "NotVulnerable" },
+                PackageRegistration = _registrationNotVulnerable,
+                Version = "0.1.0",
                 VulnerablePackageRanges = null
+            };
+            _packageNotVulnerable011 = new Package
+            {
+                Key = 5,
+                PackageRegistration = _registrationNotVulnerable,
+                Version = "0.1.1",
+                VulnerablePackageRanges = null
+            };
+
+            _packages = new[]
+            {
+                _packageVulnerable100,
+                _packageVulnerable110,
+                _packageVulnerable111,
+                _packageVulnerable112,
+                _packageNotVulnerable010,
+                _packageNotVulnerable011,
             };
         }
     }

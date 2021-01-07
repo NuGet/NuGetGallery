@@ -84,9 +84,11 @@ namespace NuGetGallery
         Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages,
             string version, bool prerelease);
 
-        IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
+        IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false, bool includeVulnerabilities = false);
 
-        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
+        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false, bool includeVulnerabilities = false);
+
+        IQueryable<Package> GetLatestVersions(IQueryable<Package> packages);
 
         IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
 

@@ -41,5 +41,27 @@ namespace NuGetGallery
             return !result.Any() ? null :
                 result.ToDictionary(kv => kv.Key, kv => kv.Value as IReadOnlyList<PackageVulnerability>);
         }
+
+        public bool PackagesContainVulnerability(IQueryable<Package> packages)
+        {
+            if (packages == null || !packages.Any())
+            {
+                return false;
+            }
+
+            Package first = null;
+            foreach (var package in packages)
+            {
+                if (package.VulnerablePackageRanges != null
+                    && package.VulnerablePackageRanges.Any()
+                    && package.VulnerablePackageRanges.FirstOrDefault(vpr => vpr.Vulnerability != null) != null)
+                {
+                    first = package;
+                    break;
+                }
+            }
+
+            return first != null;
+        }
     }
 }
