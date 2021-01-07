@@ -902,6 +902,7 @@ namespace NuGetGallery
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
             model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             model.IsPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled();
+            model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
            

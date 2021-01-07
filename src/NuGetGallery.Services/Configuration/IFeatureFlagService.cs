@@ -62,6 +62,11 @@ namespace NuGetGallery
         bool IsDisplayVulnerabilitiesEnabled();
 
         /// <summary>
+        /// Whether or not a fuget.org link is visible on a package's details page.
+        /// </summary>
+        bool IsDisplayFuGetLinksEnabled();
+
+        /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.
         /// </summary>
         bool AreEmbeddedIconsEnabled(User user);

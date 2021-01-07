@@ -1029,7 +1029,24 @@
                         <a href="@Url.ViewValidations(Model)">View validations</a>
                     </li>
                 }
-            </ul>
+
+                @if (Model.IsFuGetLinksEnabled && !string.IsNullOrEmpty(Model.FuGetUrl))
+                {
+                    var disclaimer = "fuget.org is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
+
+                    <li>
+                        <img class="icon"
+                             aria-label="@disclaimer" title="@disclaimer"
+                             src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
+                        <a href="@Model.FuGetUrl" data-track="outbound-repository-url"
+                           aria-label="open in fuget.org explorer"
+                           title="Explore additional package info on fuget.org" rel="nofollow" target="_blank">
+                            Open in FuGet Package Explorer
+                        </a>
+                    </li>
+                }
+                </ul>
             @if (Model.LicenseNames.AnySafe())
             {
                 <p>License info provided by <a href="http://sonatype.com/">Sonatype</a>.</p>
