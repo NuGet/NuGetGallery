@@ -35,7 +35,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             // Arrange
             var packageId = $"{nameof(DuplicatePushesAreRejectedAndNotDeleted)}.{Guid.NewGuid():N}";
 
-            int pushVersionCount = 10;
+            // TODO: Increase this back to 10.
+            // See: https://github.com/NuGet/NuGetGallery/issues/8368
+            int pushVersionCount = 1;
             var duplicatePushTasks = new List<Task>();
             for (var duplicateTaskIndex = 0; duplicateTaskIndex < pushVersionCount; duplicateTaskIndex++)
             {
