@@ -873,12 +873,18 @@ namespace NuGetGallery
             }
 
             var readme = await _readMeService.GetReadMeHtmlAsync(package);
-            var deprecations = _deprecationService.GetDeprecationsById(id);
-            var packageKeyToDeprecation = deprecations
-                .GroupBy(d => d.PackageKey)
-                .ToDictionary(g => g.Key, g => g.First());
 
-            var packageKeyToVulnerabilities = _vulnerabilitiesService.GetVulnerabilitiesById(id);
+            var isPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            var packageKeyToDeprecation = isPackageDeprecationEnabled
+                ? _deprecationService.GetDeprecationsById(id)
+                    .GroupBy(d => d.PackageKey)
+                    .ToDictionary(g => g.Key, g => g.First())
+                : null;
+
+            var isPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled();
+            var packageKeyToVulnerabilities = isPackageVulnerabilitiesEnabled
+                ? _vulnerabilitiesService.GetVulnerabilitiesById(id)
+                : null;
 
             IReadOnlyList<PackageRename> packageRenames = null;
             if (_featureFlagService.IsPackageRenamesEnabled(currentUser))
@@ -900,8 +906,8 @@ namespace NuGetGallery
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
-            model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
-            model.IsPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled();
+            model.IsPackageDeprecationEnabled = isPackageDeprecationEnabled;
+            model.IsPackageVulnerabilitiesEnabled = isPackageVulnerabilitiesEnabled;
             model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);

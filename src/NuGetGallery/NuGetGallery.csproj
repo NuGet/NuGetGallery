@@ -2305,6 +2305,9 @@
   <ItemGroup>
     <Content Include="App_Data\Files\Content\Query-Hint-Configuration.json" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\_DisplayPackageVulnerabilities.cshtml" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

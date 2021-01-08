@@ -283,6 +283,11 @@
                 )
             }
 
+            @if (Model.IsPackageVulnerabilitiesEnabled && Model.Vulnerabilities != null)
+            {
+                @Html.Partial("_DisplayPackageVulnerabilities")
+            }
+
             @if (Model.IsPackageDeprecationEnabled && Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
             {
                 @Html.Partial("_DisplayPackageDeprecation")
@@ -359,7 +364,7 @@
 
                         @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
                         </text>
-                     )
+                    )
                 }
                 else if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
                 {
@@ -404,7 +409,7 @@
                     @ViewHelpers.AlertWarning(
                         @<text>
                             The owner has unlisted this package.
-                            This could mean that the package is deprecated or shouldn't be used anymore.
+                            This could mean that the package is deprecated, has security vulnerabilities or shouldn't be used anymore.
                         </text>
                     )
                 }
@@ -684,9 +689,9 @@
                             {
                                 <th aria-hidden="true" abbr="Signature Information"></th>
                             }
-                            @if (Model.IsPackageDeprecationEnabled)
+                            @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
                             {
-                                <th aria-hidden="true" abbr="Deprecation Information"></th>
+                                <th aria-hidden="true" abbr="Package Warnings"></th>
                             }
                         </tr>
                     </thead>
@@ -753,41 +758,16 @@
                                             </td>
                                         }
                                     }
-                                    @if (Model.IsPackageDeprecationEnabled)
-                                    {
-                                        if (packageVersion.DeprecationStatus == PackageDeprecationStatus.NotDeprecated)
-                                        {
-                                            <td class="package-icon-cell" aria-hidden="true"></td>
-                                        }
-                                        else
-                                        {
-                                            var deprecationTitle = packageVersion.Version;
-                                            var isLegacy = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.Legacy);
-                                            var hasCriticalBugs = packageVersion.DeprecationStatus.HasFlag(PackageDeprecationStatus.CriticalBugs);
-                                            if (hasCriticalBugs)
-                                            {
-                                                if (isLegacy)
-                                                {
-                                                    deprecationTitle += " is deprecated because it's legacy and has critical bugs.";
-                                                }
-                                                else
-                                                {
-                                                    deprecationTitle += " is deprecated because it has critical bugs.";
-                                                }
-                                            }
-                                            else if (isLegacy)
-                                            {
-                                                deprecationTitle += " is deprecated because it's legacy and no longer maintained.";
-                                            }
-                                            else
-                                            {
-                                                deprecationTitle += " is deprecated.";
-                                            }
 
-                                            <td class="package-icon-cell">
-                                                <i class="ms-Icon ms-Icon--Warning package-icon" title="@deprecationTitle"></i>
-                                            </td>
-                                        }
+                                    @if (string.IsNullOrEmpty(packageVersion.PackageWarningIconTitle))
+                                    {
+                                        <td class="package-icon-cell" aria-hidden="true"></td>
+                                    }
+                                    else
+                                    {
+                                        <td class="package-icon-cell">
+                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                        </td>
                                     }
                                 </tr>
                             }

@@ -87,6 +87,7 @@ namespace NuGetGallery
         public PackageDeprecationStatus DeprecationStatus { get; set; }
         public IReadOnlyCollection<PackageVulnerability> Vulnerabilities { get; set; }
         public PackageVulnerabilitySeverity MaxVulnerabilitySeverity { get; set; }
+        public string PackageWarningIconTitle { get; set; }
         public string AlternatePackageId { get; set; }
         public string AlternatePackageVersion { get; set; }
         public string CustomMessage { get; set; }
