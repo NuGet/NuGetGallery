@@ -657,11 +657,13 @@ namespace NuGetGallery
                                         string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id));
                                 }
 
-                                var existingPackage = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
-                                if (existingPackage != null)
+                                var existingStatus = PackageService.GetPackageStatus(id, version);
+                                if (existingStatus != null)
                                 {
-                                    if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
+                                    if (existingStatus == PackageStatus.FailedValidation)
                                     {
+                                        var existingPackage = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
+
                                         TelemetryService.TrackPackageReupload(existingPackage);
 
                                         await PackageDeleteService.HardDeletePackagesAsync(

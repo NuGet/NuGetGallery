@@ -945,5 +945,17 @@ namespace NuGetGallery
                 _telemetryService.TrackRequiredSignerSet(registration.Id);
             }
         }
+
+        public PackageStatus? GetPackageStatus(string packageId, NuGetVersion packageVersion)
+        {
+            var normalizedVersion = packageVersion.ToNormalizedString();
+
+            return _packageRepository
+                .GetAll()
+                .Where(p => p.PackageRegistration.Id == packageId)
+                .Where(p => p.Version == normalizedVersion)
+                .Select(p => p.PackageStatusKey)
+                .FirstOrDefault();
+        }
     }
 }
