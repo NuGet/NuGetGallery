@@ -657,6 +657,8 @@ namespace NuGetGallery
                                         string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id));
                                 }
 
+                                // A package can only be reuploaded if it never passed validation.
+                                // We try to avoid loading the package's full entity as it is expensive.
                                 var existingStatus = PackageService.GetPackageStatus(id, version);
                                 if (existingStatus != null)
                                 {
