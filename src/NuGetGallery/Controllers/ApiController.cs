@@ -658,12 +658,14 @@ namespace NuGetGallery
                                 }
 
                                 // A package can only be reuploaded if it never passed validation.
-                                // We try to avoid loading the package's full entity as it is expensive.
                                 var existingStatus = PackageService.GetPackageStatus(id, version);
                                 if (existingStatus != null)
                                 {
                                     if (existingStatus == PackageStatus.FailedValidation)
                                     {
+                                        // Allow this new upload to replace the existing package.
+                                        // We avoided loading the full package entity until now as it is
+                                        // a relatively expensive operation and this path is uncommon.
                                         var existingPackage = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
 
                                         TelemetryService.TrackPackageReupload(existingPackage);
