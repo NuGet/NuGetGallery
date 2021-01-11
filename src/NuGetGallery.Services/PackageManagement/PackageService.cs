@@ -950,11 +950,14 @@ namespace NuGetGallery
         {
             var normalizedVersion = packageVersion.ToNormalizedString();
 
+            // Note the casting to a nullable enum in the "Select". This is required to
+            // return "null" if there are no rows. Otherwise, "FirstOrDefault" would return
+            // "PackageStatus.Available" as the default value.
             return _packageRepository
                 .GetAll()
                 .Where(p => p.PackageRegistration.Id == packageId)
                 .Where(p => p.Version == normalizedVersion)
-                .Select(p => p.PackageStatusKey)
+                .Select(p => (PackageStatus?)p.PackageStatusKey)
                 .FirstOrDefault();
         }
     }
