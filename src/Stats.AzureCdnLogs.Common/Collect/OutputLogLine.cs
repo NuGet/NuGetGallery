@@ -84,7 +84,22 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
         public override string ToString()
         {
-            return $"{TimeStamp} {TimeTaken} {CIp} {FileSize} {SIp} {SPort} {ScStatus} {ScBytes} {CsMethod} {CsUriStem} - {RsDuration} {RsBytes} {CReferrer} {CUserAgent} {CustomerId} {XEc_Custom_1}";
+            return $"{TimeStamp} {TimeTaken} {CIp} {FileSize} {SIp} {SPort} {ScStatus} {ScBytes} {CsMethod} {CsUriStem} - {RsDuration} {RsBytes} {CReferrer} {Quote(CUserAgent)} {CustomerId} {Quote(XEc_Custom_1)}";
+        }
+
+        private static string Quote(string input)
+        {
+            if (input.StartsWith("\"") && input.EndsWith("\""))
+            {
+                // already quoted
+                return input;
+            }
+            if (input.IndexOfAny(new[] { ' ', '\t' }) >= 0)
+            {
+                return $"\"{input}\"";
+            }
+
+            return input;
         }
     }
 }
