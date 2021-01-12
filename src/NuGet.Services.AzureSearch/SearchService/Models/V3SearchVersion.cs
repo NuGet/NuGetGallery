@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
@@ -12,12 +13,15 @@ namespace NuGet.Services.AzureSearch.SearchService
     public class V3SearchVersion
     {
         [JsonProperty("version")]
+        [JsonPropertyName("version")]
         public string Version { get; set; }
 
         [JsonProperty("downloads")]
+        [JsonPropertyName("downloads")]
         public long Downloads { get; set; }
 
         [JsonProperty("@id")]
+        [JsonPropertyName("@id")]
         public string AtId { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
 namespace NuGet.Services.AzureSearch.SearchService
@@ -12,12 +13,15 @@ namespace NuGet.Services.AzureSearch.SearchService
     public class V3SearchResponse
     {
         [JsonProperty("@context")]
+        [JsonPropertyName("@context")]
         public V3SearchContext Context { get; set; }
 
         [JsonProperty("totalHits")]
+        [JsonPropertyName("totalHits")]
         public long TotalHits { get; set; }
 
         [JsonProperty("data")]
+        [JsonPropertyName("data")]
         public List<V3SearchPackage> Data { get; set; }
 
         public DebugInformation Debug { get; set; }
