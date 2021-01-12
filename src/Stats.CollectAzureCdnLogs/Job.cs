@@ -342,43 +342,76 @@ namespace Stats.CollectAzureCdnLogs
             var stringBuilder = new StringBuilder();
 
             // timestamp
-            stringBuilder.Append(ToUnixTimeStamp(parsedEntry.EdgeServerTimeDelivered) + spaceCharacter);
+            stringBuilder
+                .Append(ToUnixTimeStamp(parsedEntry.EdgeServerTimeDelivered))
+                .Append(spaceCharacter);
             // time-taken
-            stringBuilder.Append((parsedEntry.EdgeServerTimeTaken.HasValue ? parsedEntry.EdgeServerTimeTaken.Value.ToString() : dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.EdgeServerTimeTaken.HasValue ? parsedEntry.EdgeServerTimeTaken.Value.ToString() : dashCharacter))
+                .Append(spaceCharacter);
 
             // REMOVE c-ip
-            stringBuilder.Append(dashCharacter + spaceCharacter);
+            stringBuilder
+                .Append(dashCharacter)
+                .Append(spaceCharacter);
 
             // filesize
-            stringBuilder.Append((parsedEntry.FileSize.HasValue ? parsedEntry.FileSize.Value.ToString() : dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.FileSize.HasValue ? parsedEntry.FileSize.Value.ToString() : dashCharacter))
+                .Append(spaceCharacter);
             // s-ip
-            stringBuilder.Append((parsedEntry.EdgeServerIpAddress ?? dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.EdgeServerIpAddress ?? dashCharacter))
+                .Append(spaceCharacter);
             // s-port
-            stringBuilder.Append((parsedEntry.EdgeServerPort.HasValue ? parsedEntry.EdgeServerPort.Value.ToString() : dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.EdgeServerPort.HasValue ? parsedEntry.EdgeServerPort.Value.ToString() : dashCharacter))
+                .Append(spaceCharacter);
             // sc-status
-            stringBuilder.Append((parsedEntry.CacheStatusCode ?? dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.CacheStatusCode ?? dashCharacter))
+                .Append(spaceCharacter);
             // sc-bytes
-            stringBuilder.Append((parsedEntry.EdgeServerBytesSent.HasValue ? parsedEntry.EdgeServerBytesSent.Value.ToString() : dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.EdgeServerBytesSent.HasValue ? parsedEntry.EdgeServerBytesSent.Value.ToString() : dashCharacter))
+                .Append(spaceCharacter);
             // cs-method
-            stringBuilder.Append((parsedEntry.HttpMethod ?? dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.HttpMethod ?? dashCharacter))
+                .Append(spaceCharacter);
             // cs-uri-stem
-            stringBuilder.Append((parsedEntry.RequestUrl ?? dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.RequestUrl ?? dashCharacter))
+                .Append(spaceCharacter);
 
             // -
-            stringBuilder.Append(dashCharacter + spaceCharacter);
+            stringBuilder
+                .Append(dashCharacter)
+                .Append(spaceCharacter);
 
             // rs-duration
-            stringBuilder.Append((parsedEntry.RemoteServerTimeTaken.HasValue ? parsedEntry.RemoteServerTimeTaken.Value.ToString() : dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.RemoteServerTimeTaken.HasValue ? parsedEntry.RemoteServerTimeTaken.Value.ToString() : dashCharacter))
+                .Append(spaceCharacter);
             // rs-bytes
-            stringBuilder.Append((parsedEntry.RemoteServerBytesSent.HasValue ? parsedEntry.RemoteServerBytesSent.Value.ToString() : dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.RemoteServerBytesSent.HasValue ? parsedEntry.RemoteServerBytesSent.Value.ToString() : dashCharacter))
+                .Append(spaceCharacter);
             // c-referrer
-            stringBuilder.Append((parsedEntry.Referrer ?? dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.Referrer ?? dashCharacter))
+                .Append(spaceCharacter);
             // c-user-agent
-            stringBuilder.Append((parsedEntry.UserAgent ?? dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.UserAgent ?? dashCharacter))
+                .Append(spaceCharacter);
             // customer-id
-            stringBuilder.Append((parsedEntry.CustomerId ?? dashCharacter) + spaceCharacter);
+            stringBuilder
+                .Append((parsedEntry.CustomerId ?? dashCharacter))
+                .Append(spaceCharacter);
             // x-ec_custom-1
-            stringBuilder.AppendLine((parsedEntry.CustomField ?? dashCharacter) + spaceCharacter);
+            stringBuilder
+                .AppendLine((parsedEntry.CustomField ?? dashCharacter));
 
             return stringBuilder.ToString();
         }

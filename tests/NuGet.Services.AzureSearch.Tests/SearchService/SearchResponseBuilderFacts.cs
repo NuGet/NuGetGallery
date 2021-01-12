@@ -7,8 +7,6 @@ using System.Linq;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Versioning;
@@ -122,8 +120,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal(4, response.Data[0].DownloadCount);
             }
 
-            [Fact]
-            public void CanIncludeDebugInformation()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void CanIncludeDebugInformation(bool useNewtonsoftJson)
             {
                 _v2Request.ShowDebug = true;
                 var docResult = _hijackResult.Results[0];
@@ -136,7 +136,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _duration);
 
                 Assert.NotNull(response.Debug);
-                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response.Debug, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""SearchRequest"": {
     ""IgnoreFilter"": false,
@@ -154,8 +154,8 @@ namespace NuGet.Services.AzureSearch.SearchService
   ""IndexOperationType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
-    ""QueryType"": ""simple"",
-    ""SearchMode"": ""any""
+    ""QueryType"": """ + JsonCasing(useNewtonsoftJson, "S") + @"imple"",
+    ""SearchMode"": """ + JsonCasing(useNewtonsoftJson, "A") + @"ny""
   },
   ""SearchText"": ""azure storage sdk"",
   ""DocumentSearchResult"": {
@@ -168,27 +168,29 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""LastModified"": ""2019-01-01T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:15"",
       ""FileSize"": 1234,
-      ""ETag"": ""\""etag-a\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-a" + JsonQuote(useNewtonsoftJson) + @"""
     },
     ""VerifiedPackages"": {
       ""LastModified"": ""2019-01-02T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
-      ""ETag"": ""\""etag-b\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-b" + JsonQuote(useNewtonsoftJson) + @"""
     },
     ""PopularityTransfers"": {
       ""LastModified"": ""2019-01-03T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:45"",
       ""FileSize"": 9876,
-      ""ETag"": ""\""etag-c\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-c" + JsonQuote(useNewtonsoftJson) + @"""
     }
   }
 }", actualJson);
                 Assert.Same(docResult, response.Data[0].Debug);
             }
 
-            [Fact]
-            public void ProducesExpectedResponse()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ProducesExpectedResponse(bool useNewtonsoftJson)
             {
                 var response = Target.V2FromHijack(
                     _v2Request,
@@ -197,7 +199,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _hijackResult,
                     _duration);
 
-                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""totalHits"": 1,
   ""data"": [
@@ -212,13 +214,13 @@ namespace NuGet.Services.AzureSearch.SearchService
           ""transfer2""
         ]
       },
-      ""Version"": ""7.1.2.0-alpha+git"",
+      ""Version"": ""7.1.2.0-alpha" + JsonPlus(useNewtonsoftJson) + @"git"",
       ""NormalizedVersion"": ""7.1.2-alpha"",
       ""Title"": ""Windows Azure Storage"",
       ""Description"": ""Description."",
       ""Summary"": ""Summary."",
       ""Authors"": ""Microsoft"",
-      ""Copyright"": ""© Microsoft Corporation. All rights reserved."",
+      ""Copyright"": """ + JsonCopyright(useNewtonsoftJson) + @" Microsoft Corporation. All rights reserved."",
       ""Language"": ""en-US"",
       ""Tags"": ""Microsoft Azure Storage Table Blob File Queue Scalable windowsazureofficial"",
       ""ReleaseNotes"": ""Release notes."",
@@ -236,7 +238,7 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""Dependencies"": [],
       ""SupportedFrameworks"": [],
       ""MinClientVersion"": ""2.12"",
-      ""Hash"": ""oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33+Z/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ=="",
+      ""Hash"": ""oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33" + JsonPlus(useNewtonsoftJson) + @"Z/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ=="",
       ""HashAlgorithm"": ""SHA512"",
       ""PackageFileSize"": 3039254,
       ""LicenseUrl"": ""http://go.microsoft.com/fwlink/?LinkId=331471"",
@@ -465,8 +467,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal("bar", transfers[1]);
             }
 
-            [Fact]
-            public void CanIncludeDebugInformation()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void CanIncludeDebugInformation(bool useNewtonsoftJson)
             {
                 _v2Request.ShowDebug = true;
                 var docResult = _searchResult.Results[0];
@@ -479,7 +483,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _duration);
 
                 Assert.NotNull(response.Debug);
-                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response.Debug, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""SearchRequest"": {
     ""IgnoreFilter"": false,
@@ -497,8 +501,8 @@ namespace NuGet.Services.AzureSearch.SearchService
   ""IndexOperationType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
-    ""QueryType"": ""simple"",
-    ""SearchMode"": ""any""
+    ""QueryType"": """ + JsonCasing(useNewtonsoftJson, "S") + @"imple"",
+    ""SearchMode"": """ + JsonCasing(useNewtonsoftJson, "A") + @"ny""
   },
   ""SearchText"": ""azure storage sdk"",
   ""DocumentSearchResult"": {
@@ -511,27 +515,29 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""LastModified"": ""2019-01-01T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:15"",
       ""FileSize"": 1234,
-      ""ETag"": ""\""etag-a\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-a" + JsonQuote(useNewtonsoftJson) + @"""
     },
     ""VerifiedPackages"": {
       ""LastModified"": ""2019-01-02T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
-      ""ETag"": ""\""etag-b\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-b" + JsonQuote(useNewtonsoftJson) + @"""
     },
     ""PopularityTransfers"": {
       ""LastModified"": ""2019-01-03T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:45"",
       ""FileSize"": 9876,
-      ""ETag"": ""\""etag-c\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-c" + JsonQuote(useNewtonsoftJson) + @"""
     }
   }
 }", actualJson);
                 Assert.Same(docResult, response.Data[0].Debug);
             }
 
-            [Fact]
-            public void ProducesExpectedResponse()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ProducesExpectedResponse(bool useNewtonsoftJson)
             {
                 var response = Target.V2FromSearch(
                     _v2Request,
@@ -540,7 +546,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _searchResult,
                     _duration);
 
-                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""totalHits"": 1,
   ""data"": [
@@ -558,13 +564,13 @@ namespace NuGet.Services.AzureSearch.SearchService
           ""transfer2""
         ]
       },
-      ""Version"": ""7.1.2.0-alpha+git"",
+      ""Version"": ""7.1.2.0-alpha" + JsonPlus(useNewtonsoftJson) + @"git"",
       ""NormalizedVersion"": ""7.1.2-alpha"",
       ""Title"": ""Windows Azure Storage"",
       ""Description"": ""Description."",
       ""Summary"": ""Summary."",
       ""Authors"": ""Microsoft"",
-      ""Copyright"": ""© Microsoft Corporation. All rights reserved."",
+      ""Copyright"": """ + JsonCopyright(useNewtonsoftJson) + @" Microsoft Corporation. All rights reserved."",
       ""Language"": ""en-US"",
       ""Tags"": ""Microsoft Azure Storage Table Blob File Queue Scalable windowsazureofficial"",
       ""ReleaseNotes"": ""Release notes."",
@@ -582,7 +588,7 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""Dependencies"": [],
       ""SupportedFrameworks"": [],
       ""MinClientVersion"": ""2.12"",
-      ""Hash"": ""oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33+Z/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ=="",
+      ""Hash"": ""oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33" + JsonPlus(useNewtonsoftJson) + @"Z/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ=="",
       ""HashAlgorithm"": ""SHA512"",
       ""PackageFileSize"": 3039254,
       ""LicenseUrl"": ""http://go.microsoft.com/fwlink/?LinkId=331471"",
@@ -764,8 +770,10 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Null(response.Data[0].PackageTypes);
             }
 
-            [Fact]
-            public void CanIncludeDebugInformation()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void CanIncludeDebugInformation(bool useNewtonsoftJson)
             {
                 _v3Request.ShowDebug = true;
                 var docResult = _searchResult.Results[0];
@@ -780,7 +788,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Same(docResult, response.Data[0].Debug);
 
                 Assert.NotNull(response.Debug);
-                var rootDebugJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                var rootDebugJson = GetActualJson(response.Debug, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""SearchRequest"": {
     ""Skip"": 0,
@@ -794,8 +802,8 @@ namespace NuGet.Services.AzureSearch.SearchService
   ""IndexOperationType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
-    ""QueryType"": ""simple"",
-    ""SearchMode"": ""any""
+    ""QueryType"": """ + JsonCasing(useNewtonsoftJson, "S") + @"imple"",
+    ""SearchMode"": """ + JsonCasing(useNewtonsoftJson, "A") + @"ny""
   },
   ""SearchText"": ""azure storage sdk"",
   ""DocumentSearchResult"": {
@@ -808,26 +816,28 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""LastModified"": ""2019-01-01T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:15"",
       ""FileSize"": 1234,
-      ""ETag"": ""\""etag-a\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-a" + JsonQuote(useNewtonsoftJson) + @"""
     },
     ""VerifiedPackages"": {
       ""LastModified"": ""2019-01-02T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
-      ""ETag"": ""\""etag-b\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-b" + JsonQuote(useNewtonsoftJson) + @"""
     },
     ""PopularityTransfers"": {
       ""LastModified"": ""2019-01-03T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:45"",
       ""FileSize"": 9876,
-      ""ETag"": ""\""etag-c\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-c" + JsonQuote(useNewtonsoftJson) + @"""
     }
   }
 }", rootDebugJson);
             }
 
-            [Fact]
-            public void ProducesExpectedResponse()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ProducesExpectedResponse(bool useNewtonsoftJson)
             {
                 var docResult = _searchResult.Results[0];
                 docResult.Document.FilterablePackageTypes = new[] { "dependency", "dotnettool" };
@@ -840,7 +850,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _searchResult,
                     _duration);
 
-                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""@context"": {
     ""@vocab"": ""http://schema.nuget.org/schema#"",
@@ -853,7 +863,7 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""@type"": ""Package"",
       ""registration"": ""https://example/reg-gz-semver2/windowsazure.storage/index.json"",
       ""id"": ""WindowsAzure.Storage"",
-      ""version"": ""7.1.2-alpha+git"",
+      ""version"": ""7.1.2-alpha" + JsonPlus(useNewtonsoftJson) + @"git"",
       ""description"": ""Description."",
       ""summary"": ""Summary."",
       ""title"": ""Windows Azure Storage"",
@@ -891,7 +901,7 @@ namespace NuGet.Services.AzureSearch.SearchService
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/1.0.0.json""
         },
         {
-          ""version"": ""2.0.0+git"",
+          ""version"": ""2.0.0" + JsonPlus(useNewtonsoftJson) + @"git"",
           ""downloads"": 23,
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/2.0.0.json""
         },
@@ -901,7 +911,7 @@ namespace NuGet.Services.AzureSearch.SearchService
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/3.0.0-alpha.1.json""
         },
         {
-          ""version"": ""7.1.2-alpha+git"",
+          ""version"": ""7.1.2-alpha" + JsonPlus(useNewtonsoftJson) + @"git"",
           ""downloads"": 23,
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/7.1.2-alpha.json""
         }
@@ -945,8 +955,10 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public class V3FromSearchDocument : BaseFacts
         {
-            [Fact]
-            public void CanIncludeDebugInformation()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void CanIncludeDebugInformation(bool useNewtonsoftJson)
             {
                 _v3Request.ShowDebug = true;
                 var doc = _searchResult.Results[0].Document;
@@ -961,7 +973,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Same(doc, debugDoc.Document);
 
                 Assert.NotNull(response.Debug);
-                var rootDebugJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                var rootDebugJson = GetActualJson(response.Debug, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""SearchRequest"": {
     ""Skip"": 0,
@@ -981,26 +993,28 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""LastModified"": ""2019-01-01T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:15"",
       ""FileSize"": 1234,
-      ""ETag"": ""\""etag-a\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-a" + JsonQuote(useNewtonsoftJson) + @"""
     },
     ""VerifiedPackages"": {
       ""LastModified"": ""2019-01-02T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:30"",
       ""FileSize"": 5678,
-      ""ETag"": ""\""etag-b\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-b" + JsonQuote(useNewtonsoftJson) + @"""
     },
     ""PopularityTransfers"": {
       ""LastModified"": ""2019-01-03T11:00:00+00:00"",
       ""LoadDuration"": ""00:00:45"",
       ""FileSize"": 9876,
-      ""ETag"": ""\""etag-c\""""
+      ""ETag"": """ + JsonQuote(useNewtonsoftJson) + @"etag-c" + JsonQuote(useNewtonsoftJson) + @"""
     }
   }
 }", rootDebugJson);
             }
 
-            [Fact]
-            public void ProducesExpectedResponse()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ProducesExpectedResponse(bool useNewtonsoftJson)
             {
                 var doc = _searchResult.Results[0].Document;
 
@@ -1010,7 +1024,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     doc,
                     _duration);
 
-                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""@context"": {
     ""@vocab"": ""http://schema.nuget.org/schema#"",
@@ -1023,7 +1037,7 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""@type"": ""Package"",
       ""registration"": ""https://example/reg-gz-semver2/windowsazure.storage/index.json"",
       ""id"": ""WindowsAzure.Storage"",
-      ""version"": ""7.1.2-alpha+git"",
+      ""version"": ""7.1.2-alpha" + JsonPlus(useNewtonsoftJson) + @"git"",
       ""description"": ""Description."",
       ""summary"": ""Summary."",
       ""title"": ""Windows Azure Storage"",
@@ -1058,7 +1072,7 @@ namespace NuGet.Services.AzureSearch.SearchService
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/1.0.0.json""
         },
         {
-          ""version"": ""2.0.0+git"",
+          ""version"": ""2.0.0" + JsonPlus(useNewtonsoftJson) + @"git"",
           ""downloads"": 23,
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/2.0.0.json""
         },
@@ -1068,7 +1082,7 @@ namespace NuGet.Services.AzureSearch.SearchService
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/3.0.0-alpha.1.json""
         },
         {
-          ""version"": ""7.1.2-alpha+git"",
+          ""version"": ""7.1.2-alpha" + JsonPlus(useNewtonsoftJson) + @"git"",
           ""downloads"": 23,
           ""@id"": ""https://example/reg-gz-semver2/windowsazure.storage/7.1.2-alpha.json""
         }
@@ -1112,8 +1126,10 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public class AutocompleteFromSearch : BaseFacts
         {
-            [Fact]
-            public void CanIncludeDebugInformation()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void CanIncludeDebugInformation(bool useNewtonsoftJson)
             {
                 _autocompleteRequest.ShowDebug = true;
 
@@ -1125,7 +1141,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _duration);
 
                 Assert.NotNull(response.Debug);
-                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response.Debug, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""SearchRequest"": {
     ""Type"": ""PackageIds"",
@@ -1140,8 +1156,8 @@ namespace NuGet.Services.AzureSearch.SearchService
   ""IndexOperationType"": ""Search"",
   ""SearchParameters"": {
     ""IncludeTotalResultCount"": false,
-    ""QueryType"": ""simple"",
-    ""SearchMode"": ""any""
+    ""QueryType"": """ + JsonCasing(useNewtonsoftJson, "S") + @"imple"",
+    ""SearchMode"": """ + JsonCasing(useNewtonsoftJson, "A") + @"ny""
   },
   ""SearchText"": ""azure storage sdk"",
   ""DocumentSearchResult"": {
@@ -1223,12 +1239,14 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public class EmptyV3 : BaseFacts
         {
-            [Fact]
-            public void ProducesExpectedResponse()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ProducesExpectedResponse(bool useNewtonsoftJson)
             {
                 var response = Target.EmptyV3(_v3Request);
 
-                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                var actualJson =  GetActualJson(response, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""@context"": {
     ""@vocab"": ""http://schema.nuget.org/schema#"",
@@ -1239,15 +1257,17 @@ namespace NuGet.Services.AzureSearch.SearchService
 }", actualJson);
             }
 
-            [Fact]
-            public void CanIncludeDebugInformation()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void CanIncludeDebugInformation(bool useNewtonsoftJson)
             {
                 _v3Request.ShowDebug = true;
 
                 var response = Target.EmptyV3(_v3Request);
 
                 Assert.NotNull(response.Debug);
-                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response.Debug, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""SearchRequest"": {
     ""Skip"": 0,
@@ -1264,27 +1284,31 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public class EmptyV2 : BaseFacts
         {
-            [Fact]
-            public void ProducesExpectedResponse()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ProducesExpectedResponse(bool useNewtonsoftJson)
             {
                 var response = Target.EmptyV2(_v2Request);
 
-                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""totalHits"": 0,
   ""data"": []
 }", actualJson);
             }
 
-            [Fact]
-            public void CanIncludeDebugInformation()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void CanIncludeDebugInformation(bool useNewtonsoftJson)
             {
                 _v2Request.ShowDebug = true;
 
                 var response = Target.EmptyV2(_v2Request);
 
                 Assert.NotNull(response.Debug);
-                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response.Debug, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""SearchRequest"": {
     ""IgnoreFilter"": false,
@@ -1305,12 +1329,14 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public class EmptyAutocomplete : BaseFacts
         {
-            [Fact]
-            public void ProducesExpectedResponse()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ProducesExpectedResponse(bool useNewtonsoftJson)
             {
                 var response = Target.EmptyAutocomplete(_autocompleteRequest);
 
-                var actualJson = JsonConvert.SerializeObject(response, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""@context"": {
     ""@vocab"": ""http://schema.nuget.org/schema#""
@@ -1320,15 +1346,17 @@ namespace NuGet.Services.AzureSearch.SearchService
 }", actualJson);
             }
 
-            [Fact]
-            public void CanIncludeDebugInformation()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void CanIncludeDebugInformation(bool useNewtonsoftJson)
             {
                 _autocompleteRequest.ShowDebug = true;
 
                 var response = Target.EmptyAutocomplete(_autocompleteRequest);
 
                 Assert.NotNull(response.Debug);
-                var actualJson = JsonConvert.SerializeObject(response.Debug, _jsonSerializerSettings);
+                var actualJson = GetActualJson(response.Debug, useNewtonsoftJson);
                 Assert.Equal(@"{
   ""SearchRequest"": {
     ""Type"": ""PackageIds"",
@@ -1360,7 +1388,6 @@ namespace NuGet.Services.AzureSearch.SearchService
             protected readonly DocumentSearchResult<SearchDocument.Full> _emptySearchResult;
             protected readonly DocumentSearchResult<SearchDocument.Full> _manySearchResults;
             protected readonly DocumentSearchResult<HijackDocument.Full> _hijackResult;
-            protected readonly JsonSerializerSettings _jsonSerializerSettings;
             protected readonly AuxiliaryFilesMetadata _auxiliaryMetadata;
 
             public SearchResponseBuilder Target => new SearchResponseBuilder(
@@ -1512,16 +1539,40 @@ namespace NuGet.Services.AzureSearch.SearchService
                         },
                     },
                 };
+            }
 
-                _jsonSerializerSettings = new JsonSerializerSettings
+            protected string JsonCasing(bool useNewtonsoftJson, string letter) => (useNewtonsoftJson ? letter.ToLowerInvariant() : letter.ToUpperInvariant());
+            protected string JsonQuote(bool useNewtonsoftJson) => useNewtonsoftJson ? "\\\"" : "\\u0022";
+            protected string JsonPlus(bool useNewtonsoftJson) => useNewtonsoftJson ? "+" : "\\u002B";
+            protected string JsonCopyright(bool useNewtonsoftJson) => useNewtonsoftJson ? "©" : "\\u00A9";
+
+            protected string GetActualJson(object response, bool useNewtonsoftJson)
+            {
+                if (useNewtonsoftJson)
                 {
-                    NullValueHandling = NullValueHandling.Ignore,
-                    Converters =
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(response, new Newtonsoft.Json.JsonSerializerSettings
                     {
-                        new StringEnumConverter(),
-                    },
-                    Formatting = Formatting.Indented,
-                };
+                        NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+                        Converters =
+                        {
+                            new Newtonsoft.Json.Converters.StringEnumConverter(),
+                        },
+                        Formatting = Newtonsoft.Json.Formatting.Indented,
+                    });
+                }
+                else
+                {
+                    return System.Text.Json.JsonSerializer.Serialize(response, new System.Text.Json.JsonSerializerOptions
+                    {
+                        IgnoreNullValues = true,
+                        Converters =
+                        {
+                            new System.Text.Json.Serialization.JsonStringEnumConverter(),
+                            new TimeSpanConverter(),
+                        },
+                        WriteIndented = true,
+                    });
+                }
             }
         }
     }

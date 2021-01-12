@@ -103,13 +103,12 @@ namespace NuGet.Jobs.Catalog2Registration
             var containerName = getContainer(_options.Value);
             var container = _cloudBlobClient.GetContainerReference(containerName);
 
-            _logger.LogInformation("Creating container {Container} if it does not already exist.", containerName);
-            await container.CreateIfNotExistAsync();
-            _logger.LogInformation("Ensuring container {Container} has blobs publicly available.", containerName);
-            await container.SetPermissionsAsync(new BlobContainerPermissions
+            _logger.LogInformation("Creating container {Container} with blobs publicly available if it does not already exist.", containerName);
+            var permissions = new BlobContainerPermissions
             {
                 PublicAccess = BlobContainerPublicAccessType.Blob,
-            });
+            };
+            await container.CreateIfNotExistAsync(permissions);
         }
 
         private void LogContainerUrl(HiveType hive, Func<Catalog2RegistrationConfiguration, string> getContainer)

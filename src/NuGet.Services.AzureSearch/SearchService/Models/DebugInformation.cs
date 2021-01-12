@@ -6,9 +6,18 @@ using Microsoft.Azure.Search.Models;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
+    /// <summary>
+    /// Note that the <c>object</c> type properties in this class are set like that purposefully. This enables
+    /// System.Text.Json to dynamically serialize all properties of the type at runtime:
+    /// https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-polymorphism#serialize-properties-of-derived-classes
+    /// 
+    /// The alternative is using a complex set of generics to express the actual type. This is not useful given this
+    /// object is just for serializing some useful debug information. This model is rarely seen by users since it
+    /// requires an unofficial query parameter.
+    /// </summary>
     public class DebugInformation
     {
-        public SearchRequest SearchRequest { get; set; }
+        public object SearchRequest { get; set; }
         public string IndexName { get; set; }
         public IndexOperationType IndexOperationType { get; set; }
         public string DocumentKey { get; set; }

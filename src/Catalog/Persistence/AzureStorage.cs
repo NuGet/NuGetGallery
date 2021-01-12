@@ -116,17 +116,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 RetryPolicy = new ExponentialRetry()
             };
 
-            if (initializeContainer)
+            if (initializeContainer && _directory.Container.CreateIfNotExists(BlobContainerPublicAccessType.Blob, requestOptions: null, operationContext: null) && Verbose)
             {
-                if (_directory.Container.CreateIfNotExists())
-                {
-                    _directory.Container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-                    if (Verbose)
-                    {
-                        Trace.WriteLine(string.Format("Created '{0}' public container", _directory.Container.Name));
-                    }
-                }
+                Trace.WriteLine(string.Format("Created '{0}' public container", _directory.Container.Name));
             }
         }
 

@@ -3,22 +3,13 @@
 
 using Autofac;
 using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.AspNetCore;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights.Extensibility.Implementation;
-using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Hosting.Internal;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.Configuration;
@@ -30,7 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Timers;
+using System.Text.Json.Serialization;
 
 namespace NuGet.Services.SearchService
 {
@@ -59,17 +50,22 @@ namespace NuGet.Services.SearchService
                     o.SuppressAsyncSuffixInActionNames = false;
                     o.Filters.Add<ApiExceptionFilterAttribute>();
                 })
-                .AddNewtonsoftJson(o =>
+                .AddJsonOptions(o =>
                 {
-                    o.SerializerSettings.ContractResolver = new DefaultContractResolver();
-                    o.SerializerSettings.Converters.Add(new StringEnumConverter());
-                    o.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    o.JsonSerializerOptions.PropertyNamingPolicy = null;
+                    o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    o.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
+                    o.JsonSerializerOptions.IgnoreNullValues = true;
                 });
 
             services.Configure<AzureSearchConfiguration>(Configuration.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(Configuration.GetSection(ConfigurationSectionName));
 
-            services.AddApplicationInsightsTelemetry(Configuration.GetValue<string>("ApplicationInsights_InstrumentationKey"));
+            services.AddApplicationInsightsTelemetry(o =>
+            {
+                o.InstrumentationKey = Configuration.GetValue<string>("ApplicationInsights_InstrumentationKey");
+                o.EnableAdaptiveSampling = false;
+            });
             services.AddSingleton<ITelemetryInitializer>(new KnownOperationNameEnricher(new[]
             {
                 GetOperationName<SearchController>(HttpMethod.Get, nameof(SearchController.AutocompleteAsync)),

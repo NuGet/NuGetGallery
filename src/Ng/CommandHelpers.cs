@@ -33,6 +33,19 @@ namespace Ng
         {
             "connectionString",
         };
+        private static readonly IDictionary<string, string> ArgumentNames = new Dictionary<string, string>
+        {
+            { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress },
+            { Arguments.StorageAccountName, Arguments.StorageAccountName },
+            { Arguments.StorageKeyValue, Arguments.StorageKeyValue },
+            { Arguments.StorageSasValue, Arguments.StorageSasValue },
+            { Arguments.StorageContainer, Arguments.StorageContainer },
+            { Arguments.StoragePath, Arguments.StoragePath },
+            { Arguments.StorageSuffix, Arguments.StorageSuffix },
+            { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
+            { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
+            { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
+        };
 
         public static IDictionary<string, string> GetArguments(string[] args, int start, out ISecretInjector secretInjector)
         {
@@ -114,22 +127,9 @@ namespace Ng
             bool verbose,
             IThrottle throttle = null)
         {
-            IDictionary<string, string> names = new Dictionary<string, string>
-            {
-                { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress },
-                { Arguments.StorageAccountName, Arguments.StorageAccountName },
-                { Arguments.StorageKeyValue, Arguments.StorageKeyValue },
-                { Arguments.StorageContainer, Arguments.StorageContainer },
-                { Arguments.StoragePath, Arguments.StoragePath },
-                { Arguments.StorageSuffix, Arguments.StorageSuffix },
-                { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
-                { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
-                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
-            };
-
             return CreateStorageFactoryImpl(
                 arguments,
-                names,
+                ArgumentNames,
                 verbose,
                 compressed: false,
                 throttle: throttle);
@@ -151,6 +151,7 @@ namespace Ng
                 { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress + suffix },
                 { Arguments.StorageAccountName, Arguments.StorageAccountName + suffix },
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue + suffix },
+                { Arguments.StorageSasValue, Arguments.StorageSasValue + suffix },
                 { Arguments.StorageContainer, Arguments.StorageContainer + suffix },
                 { Arguments.StoragePath, Arguments.StoragePath + suffix },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix + suffix },
@@ -201,7 +202,6 @@ namespace Ng
             if (Arguments.AzureStorageType.Equals(storageType, StringComparison.InvariantCultureIgnoreCase))
             {
                 var storageAccountName = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageAccountName]);
-                var storageKeyValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageKeyValue]);
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
                 var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
                 var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
@@ -209,11 +209,7 @@ namespace Ng
                 var storageServerTimeout = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageServerTimeoutInSeconds]));
                 var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
 
-                var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
-
-                var account = string.IsNullOrEmpty(storageSuffix) ?
-                    new CloudStorageAccount(credentials, useHttps: true) :
-                    new CloudStorageAccount(credentials, storageSuffix, useHttps: true);
+                var account = GetCloudStorageAccount(storageAccountName, storageSuffix, arguments, argumentNameMap);
 
                 return new CatalogAzureStorageFactory(
                     account,
@@ -306,7 +302,7 @@ namespace Ng
                     instanceNameToSearchCursorUri.Remove(key);
                 }
             }
-            
+
             // See if there are any search cursor URI arguments left over and error out. Better to fail than to ignore
             // an argument that the user expected to be relevant.
             if (instanceNameToSearchCursorUri.Any())
@@ -348,11 +344,9 @@ namespace Ng
             if (Arguments.AzureStorageType.Equals(storageType, StringComparison.InvariantCultureIgnoreCase))
             {
                 var storageAccountName = arguments.GetOrThrow<string>(Arguments.StorageAccountName);
-                var storageKeyValue = arguments.GetOrThrow<string>(Arguments.StorageKeyValue);
                 var storageQueueName = arguments.GetOrDefault<string>(Arguments.StorageQueueName);
-
-                var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
-                var account = new CloudStorageAccount(credentials, true);
+                
+                var account = GetCloudStorageAccount(storageAccountName, endpointSuffix: null, arguments, ArgumentNames);
                 return new StorageQueue<T>(new AzureStorageQueue(account, storageQueueName),
                     new JsonMessageSerializer<T>(JsonSerializerUtility.SerializerSettings), version);
             }
@@ -360,6 +354,21 @@ namespace Ng
             {
                 throw new NotImplementedException("Only Azure storage queues are supported!");
             }
+        }
+
+        private static CloudStorageAccount GetCloudStorageAccount(string storageAccountName, string endpointSuffix, IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap)
+        {
+            var storageKeyValue = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageKeyValue]);
+
+            if (string.IsNullOrEmpty(storageKeyValue))
+            {
+                var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
+                var credentialSas = new StorageCredentials(storageSasValue);
+                return new CloudStorageAccount(credentialSas, storageAccountName, endpointSuffix, useHttps: true);
+            }
+
+            var credentialKey = new StorageCredentials(storageAccountName, storageKeyValue);
+            return new CloudStorageAccount(credentialKey, endpointSuffix, useHttps: true);
         }
     }
 }
