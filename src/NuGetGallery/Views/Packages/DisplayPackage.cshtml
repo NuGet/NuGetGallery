@@ -91,7 +91,18 @@
                 Id = "paket-cli",
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
-            }
+            },
+
+            new PackageManagerViewModel("F# Interactive")
+            {
+                Id = "fsharp-interactive",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("#r \"nuget: {0}, {1}\"", Model.Id, Model.Version),
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = string.Format(
+                    "For F# interactive projects that support <a href=\"{0}\">#r syntax</a>, copy this into the project file to reference the package.",
+                    "https://docs.microsoft.com/en-us/dotnet/fsharp/tools/fsharp-interactive/#referencing-packages-in-f-interactive")
+            },
         };
     }
 }
