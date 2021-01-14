@@ -9,6 +9,12 @@ namespace NuGetGallery
     public interface IFeatureFlagService
     {
         /// <summary>
+        /// Whether downloads.v1.json hould be pulled from primary or secondary location.
+        /// If true, the secondary location will be used to download downloads.v1.json.
+        /// </summary>
+        bool IsSecondaryStatisticsOverallEnabled();
+
+        /// <summary>
         /// Whether account deletes are performed asychronously or not.
         /// If true, account deletes will be attempted to be performed asychronously
         /// and fall back to old method if the async delete fails
