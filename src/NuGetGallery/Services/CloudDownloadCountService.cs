@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -25,8 +26,9 @@ namespace NuGetGallery
         private const string TelemetryOriginForRefreshMethod = "CloudDownloadCountService.Refresh";
 
         private readonly ITelemetryService _telemetryService;
-        private readonly string _connectionString;
-        private readonly bool _readAccessGeoRedundant;
+        private readonly IFeatureFlagService _featureFlagService;
+        private readonly IBlobStorageConfiguration _primaryStorageConfiguration;
+        private readonly IBlobStorageConfiguration _alternateBlobStorageConfiguration;
 
         private readonly object _refreshLock = new object();
         private bool _isRefreshing;
@@ -34,12 +36,16 @@ namespace NuGetGallery
         private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, int>> _downloadCounts
             = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
 
-        public CloudDownloadCountService(ITelemetryService telemetryService, string connectionString, bool readAccessGeoRedundant)
+        public CloudDownloadCountService(
+            ITelemetryService telemetryService,
+            IFeatureFlagService featureFlagService,
+            IBlobStorageConfiguration primaryBlobStorageConfiguration,
+            IBlobStorageConfiguration alternateBlobStorageConfiguration)
         {
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-
-            _connectionString = connectionString;
-            _readAccessGeoRedundant = readAccessGeoRedundant;
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _primaryStorageConfiguration = primaryBlobStorageConfiguration ?? throw new ArgumentNullException(nameof(primaryBlobStorageConfiguration));
+            _alternateBlobStorageConfiguration = alternateBlobStorageConfiguration;
         }
 
         public bool TryGetDownloadCountForPackageRegistration(string id, out int downloadCount)
@@ -248,10 +254,19 @@ namespace NuGetGallery
 
         private CloudBlockBlob GetBlobReference()
         {
-            var storageAccount = CloudStorageAccount.Parse(_connectionString);
+            string connectionString = _primaryStorageConfiguration.ConnectionString;
+            bool readAccessGeoRedundant = _primaryStorageConfiguration.ReadAccessGeoRedundant;
+
+            if (_alternateBlobStorageConfiguration != null && _featureFlagService.IsAlternateStatisticsSourceEnabled())
+            {
+                connectionString = _alternateBlobStorageConfiguration.ConnectionString;
+                readAccessGeoRedundant = _alternateBlobStorageConfiguration.ReadAccessGeoRedundant;
+            }
+
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
 
-            if (_readAccessGeoRedundant)
+            if (readAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }
