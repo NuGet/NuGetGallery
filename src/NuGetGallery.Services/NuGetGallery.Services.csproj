@@ -109,6 +109,7 @@
     <Compile Include="Configuration\FeatureFlagService.cs" />
     <Compile Include="Configuration\IABTestConfiguration.cs" />
     <Compile Include="Configuration\IAppConfiguration.cs" />
+    <Compile Include="Configuration\IBlobStorageConfiguration.cs" />
     <Compile Include="Configuration\ICacheConfiguration.cs" />
     <Compile Include="Configuration\ICertificatesConfiguration.cs" />
     <Compile Include="Configuration\IFeatureFlagService.cs" />
@@ -127,6 +128,7 @@
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
+    <Compile Include="Configuration\SimpleBlobStorageConfiguration.cs" />
     <Compile Include="Configuration\SymbolsConfiguration.cs" />
     <Compile Include="Configuration\TyposquattingConfiguration.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
