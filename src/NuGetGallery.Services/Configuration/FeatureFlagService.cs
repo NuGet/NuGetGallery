@@ -15,7 +15,7 @@ namespace NuGetGallery
         private const string GalleryPrefix = "NuGetGallery.";
 
         private const string ABTestingFlightName = GalleryPrefix + "ABTesting";
-        private const string SecondaryStatisticsOverallFeatureName = GalleryPrefix + "SecondaryStatisticsOverall";
+        private const string AlternateStatisticsSourceFeatureName = GalleryPrefix + "AlternateStatisticsSource";
         private const string AsyncAccountDeleteFeatureName = GalleryPrefix + "AsyncAccountDelete";
         private const string SelfServiceAccountDeleteFeatureName = GalleryPrefix + "SelfServiceAccountDelete";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
@@ -69,9 +69,9 @@ namespace NuGetGallery
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        public bool IsSecondaryStatisticsOverallEnabled()
+        public bool IsAlternateStatisticsSourceEnabled()
         {
-            return _client.IsEnabled(SecondStaisticsOverallFeatureName, defaultValue: false);
+            return _client.IsEnabled(AlternateStatisticsSourceFeatureName, defaultValue: false);
         }
 
         public bool IsAsyncAccountDeleteEnabled()

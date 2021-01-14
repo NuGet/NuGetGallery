@@ -12,7 +12,7 @@ namespace NuGetGallery
         /// Whether downloads.v1.json hould be pulled from primary or secondary location.
         /// If true, the secondary location will be used to download downloads.v1.json.
         /// </summary>
-        bool IsSecondaryStatisticsOverallEnabled();
+        bool IsAlternateStatisticsSourceEnabled();
 
         /// <summary>
         /// Whether account deletes are performed asychronously or not.
