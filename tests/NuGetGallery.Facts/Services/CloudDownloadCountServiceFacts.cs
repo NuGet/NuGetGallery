@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
+using NuGetGallery.Services;
 using Xunit;
 
 namespace NuGetGallery
@@ -144,6 +145,9 @@ namespace NuGetGallery
         public class BaseFacts
         {
             internal readonly Mock<ITelemetryService> _telemetryService;
+            internal readonly Mock<IFeatureFlagService> _featureFlagService;
+            internal readonly Mock<IBlobStorageConfiguration> _primaryBlobStorageConfig;
+            internal readonly Mock<IBlobStorageConfiguration> _alternateBlobStorageConfig;
             internal string _content;
             internal Func<IDictionary<string, int>, int> _calculateSum;
             internal TestableCloudDownloadCountService _target;
@@ -151,6 +155,16 @@ namespace NuGetGallery
             public BaseFacts()
             {
                 _telemetryService = new Mock<ITelemetryService>();
+                _featureFlagService = new Mock<IFeatureFlagService>();
+                _primaryBlobStorageConfig = new Mock<IBlobStorageConfiguration>();
+                _alternateBlobStorageConfig = new Mock<IBlobStorageConfiguration>();
+
+                _primaryBlobStorageConfig.Setup(ps => ps.ConnectionString).Returns("primary");
+                _primaryBlobStorageConfig.Setup(ps => ps.ReadAccessGeoRedundant).Returns(true);
+
+                _alternateBlobStorageConfig.Setup(ps => ps.ConnectionString).Returns("secondary");
+                _alternateBlobStorageConfig.Setup(ps => ps.ReadAccessGeoRedundant).Returns(true);
+
                 _content = "[[\"NuGet.Versioning\",[\"4.6.0\",23],[\"4.6.2\",42]]";
                 _calculateSum = null;
                 _target = new TestableCloudDownloadCountService(this);
@@ -162,7 +176,7 @@ namespace NuGetGallery
             private readonly BaseFacts _baseFacts;
 
             public TestableCloudDownloadCountService(BaseFacts baseFacts)
-                    : base(baseFacts._telemetryService.Object, "UseDevelopmentStorage=true", readAccessGeoRedundant: true)
+                    : base(baseFacts._telemetryService.Object, baseFacts._featureFlagService.Object, baseFacts._primaryBlobStorageConfig.Object,  baseFacts._alternateBlobStorageConfig.Object)
             {
                 _baseFacts = baseFacts;
             }
