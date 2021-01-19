@@ -82,38 +82,6 @@ namespace NuGetGallery.Services
             }
 
             [Theory]
-            [InlineData(EmbeddedReadmeFileType.Markdown)]
-            public async Task WillThrowIfPackageIsMissingNormalizedVersionAndVersion(EmbeddedReadmeFileType readmeFileType)
-            {
-                var service = CreateService();
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package = new Package { PackageRegistration = packageRegistration, NormalizedVersion = null, Version = null, EmbeddedReadmeType = readmeFileType };
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.ExtractAndSaveReadmeFileAsync(package, Stream.Null));
-
-                Assert.StartsWith("The package is missing required data.", ex.Message);
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedReadmeFileType.Markdown)]
-            public async Task WillUseNormalizedRegularVersionIfNormalizedVersionMissing(EmbeddedReadmeFileType readmeFileType)
-            {
-                var fileStorageSvc = new Mock<ICoreFileStorageService>();
-                var service = CreateService(fileStorageService: fileStorageSvc);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package = new Package { PackageRegistration = packageRegistration, NormalizedVersion = null, Version = "01.01.01", EmbeddedReadmeType = readmeFileType };
-
-                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildReadmeFileName("theId", "1.1.1"), It.IsAny<Stream>(), true))
-                    .Completes()
-                    .Verifiable();
-
-                await service.ExtractAndSaveReadmeFileAsync(package, Stream.Null);
-
-                fileStorageSvc.VerifyAll();
-            }
-
-            [Theory]
             [InlineData("readme.md")]
             [InlineData("foo\\readme.md")]
             [InlineData("foo/readme.md")]
