@@ -83,33 +83,6 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData(EmbeddedReadmeFileType.Markdown)]
-            public async Task WillThrowIfPackageIsMissingPackageRegistration(EmbeddedReadmeFileType readmeFileType)
-            {
-                var service = CreateService();
-                var package = new Package { PackageRegistration = null, EmbeddedReadmeType = readmeFileType };
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.ExtractAndSaveReadmeFileAsync(package, Stream.Null));
-
-                Assert.StartsWith("The package is missing required data.", ex.Message);
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedReadmeFileType.Markdown)]
-            public async Task WillThrowIfPackageIsMissingPackageRegistrationId(EmbeddedReadmeFileType readmeFileType)
-            {
-                var service = CreateService();
-                var packageRegistration = new PackageRegistration { Id = null };
-                var package = new Package { PackageRegistration = packageRegistration, EmbeddedReadmeType = readmeFileType };
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.ExtractAndSaveReadmeFileAsync(package, Stream.Null));
-
-                Assert.StartsWith("The package is missing required data.", ex.Message);
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedReadmeFileType.Markdown)]
             public async Task WillThrowIfPackageIsMissingNormalizedVersionAndVersion(EmbeddedReadmeFileType readmeFileType)
             {
                 var service = CreateService();
