@@ -720,7 +720,7 @@ namespace NuGetGallery
                 .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
 
-            builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
 
