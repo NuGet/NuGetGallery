@@ -12,15 +12,6 @@ namespace NuGetGallery
     /// </summary>
     public interface ICoreReadmeFileService
     {
-
-        /// <summary>
-        /// Saves the package readme.md file to storage. This method should throw if the package
-        /// does not have an embedded readme file 
-        /// </summary>
-        /// <param name="package">The package associated with the readme.</param>
-        /// <param name="readmeFile">The content of readme file.</param>
-        Task SaveReadmeFileAsync(Package package, Stream readmeFile);
-
         /// <summary>
         /// Save the readme file from package stream. This method should throw if the package
         /// does not have an embedded readme file 

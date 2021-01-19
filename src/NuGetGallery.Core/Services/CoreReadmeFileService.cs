@@ -29,7 +29,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>
         /// <param name="readmeFile">The content of readme file.</param>
-        public Task SaveReadmeFileAsync(Package package, Stream readmeFile)
+        private Task SaveReadmeFileAsync(Package package, Stream readmeFile)
         {
             if (package == null)
             {

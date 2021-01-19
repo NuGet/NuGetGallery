@@ -15,108 +15,6 @@ namespace NuGetGallery.Services
 {
     public class CoreReadmeFileServiceFacts
     {
-        public class TheSaveReadmeFileAsyncMethod
-        {
-            [Fact]
-            public async Task WhenPackageNull_ThrowsArgumentNullException()
-            {
-                var service = CreateService();
-
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SaveReadmeFileAsync(null, Stream.Null));
-            }
-
-            [Fact]
-            public async Task WhenStreamIsNull_ThrowsArgumentException()
-            {
-                var service = CreateService();
-                var package = CreatePackage();
-
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SaveReadmeFileAsync(package, null));
-            }
-
-            [Fact]
-            public async Task WhenEmbeddedReadmeTypeIsAbsent_ThrowsArgumentException()
-            {
-                var service = CreateService();
-                var package = CreatePackage();
-                package.EmbeddedReadmeType = EmbeddedReadmeFileType.Absent;
-                var packageStream = GeneratePackageWithReadmeFile("readme.md");
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.SaveReadmeFileAsync(package, packageStream));
-                Assert.Equal("package", ex.ParamName);
-                Assert.Contains("embedded readme", ex.Message);
-            }
-
-            [Fact]
-            public async Task WillThrowIfStreamIsNull()
-            {
-                var service = CreateService();
-                var package = CreatePackage();
-                package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SaveReadmeFileAsync(package, null));
-                Assert.Equal("readmeFile", ex.ParamName);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedReadmeFileType.Markdown)]
-            public async Task WillThrowIfPackageIsMissingPackageRegistration(EmbeddedReadmeFileType readmeFileType)
-            {
-                var service = CreateService();
-                var package = new Package { PackageRegistration = null, EmbeddedReadmeType = readmeFileType };
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.SaveReadmeFileAsync(package, Stream.Null));
-
-                Assert.StartsWith("The package is missing required data.", ex.Message);
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedReadmeFileType.Markdown)]
-            public async Task WillThrowIfPackageIsMissingPackageRegistrationId(EmbeddedReadmeFileType readmeFileType)
-            {
-                var service = CreateService();
-                var packageRegistration = new PackageRegistration { Id = null };
-                var package = new Package { PackageRegistration = packageRegistration, EmbeddedReadmeType = readmeFileType };
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.SaveReadmeFileAsync(package, Stream.Null));
-
-                Assert.StartsWith("The package is missing required data.", ex.Message);
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedReadmeFileType.Markdown)]
-            public async Task WillThrowIfPackageIsMissingNormalizedVersionAndVersion(EmbeddedReadmeFileType readmeFileType)
-            {
-                var service = CreateService();
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package = new Package { PackageRegistration = packageRegistration, NormalizedVersion = null, Version = null, EmbeddedReadmeType = readmeFileType };
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.SaveReadmeFileAsync(package, Stream.Null));
-
-                Assert.StartsWith("The package is missing required data.", ex.Message);
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Theory]
-            [InlineData(EmbeddedReadmeFileType.Markdown)]
-            public async Task WillUseNormalizedRegularVersionIfNormalizedVersionMissing(EmbeddedReadmeFileType readmeFileType)
-            {
-                var fileStorageSvc = new Mock<ICoreFileStorageService>();
-                var service = CreateService(fileStorageService: fileStorageSvc);
-                var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package = new Package { PackageRegistration = packageRegistration, NormalizedVersion = null, Version = "01.01.01", EmbeddedReadmeType = readmeFileType };
-
-                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildReadmeFileName("theId", "1.1.1"), It.IsAny<Stream>(), true))
-                    .Completes()
-                    .Verifiable();
-
-                await service.SaveReadmeFileAsync(package, Stream.Null);
-
-                fileStorageSvc.VerifyAll();
-            }
-        }
-
         public class ExtractAndSaveReadmeFileAsyncMethod
         {
             [Fact]
@@ -168,6 +66,78 @@ namespace NuGetGallery.Services
 
                 var ex = await Assert.ThrowsAsync<FileNotFoundException>(() => service.ExtractAndSaveReadmeFileAsync(pacakge, packageStream));
                 Assert.Contains(readmeFileName, ex.Message);
+            }
+
+            [Fact]
+            public async Task WhenEmbeddedReadmeTypeIsAbsent_ThrowsArgumentException()
+            {
+                var service = CreateService();
+                var package = CreatePackage();
+                package.EmbeddedReadmeType = EmbeddedReadmeFileType.Absent;
+                var packageStream = GeneratePackageWithReadmeFile("readme.md");
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.ExtractAndSaveReadmeFileAsync(package, packageStream));
+                Assert.Equal("package", ex.ParamName);
+                Assert.Contains("embedded readme", ex.Message);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedReadmeFileType.Markdown)]
+            public async Task WillThrowIfPackageIsMissingPackageRegistration(EmbeddedReadmeFileType readmeFileType)
+            {
+                var service = CreateService();
+                var package = new Package { PackageRegistration = null, EmbeddedReadmeType = readmeFileType };
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.ExtractAndSaveReadmeFileAsync(package, Stream.Null));
+
+                Assert.StartsWith("The package is missing required data.", ex.Message);
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedReadmeFileType.Markdown)]
+            public async Task WillThrowIfPackageIsMissingPackageRegistrationId(EmbeddedReadmeFileType readmeFileType)
+            {
+                var service = CreateService();
+                var packageRegistration = new PackageRegistration { Id = null };
+                var package = new Package { PackageRegistration = packageRegistration, EmbeddedReadmeType = readmeFileType };
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.ExtractAndSaveReadmeFileAsync(package, Stream.Null));
+
+                Assert.StartsWith("The package is missing required data.", ex.Message);
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedReadmeFileType.Markdown)]
+            public async Task WillThrowIfPackageIsMissingNormalizedVersionAndVersion(EmbeddedReadmeFileType readmeFileType)
+            {
+                var service = CreateService();
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { PackageRegistration = packageRegistration, NormalizedVersion = null, Version = null, EmbeddedReadmeType = readmeFileType };
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.ExtractAndSaveReadmeFileAsync(package, Stream.Null));
+
+                Assert.StartsWith("The package is missing required data.", ex.Message);
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Theory]
+            [InlineData(EmbeddedReadmeFileType.Markdown)]
+            public async Task WillUseNormalizedRegularVersionIfNormalizedVersionMissing(EmbeddedReadmeFileType readmeFileType)
+            {
+                var fileStorageSvc = new Mock<ICoreFileStorageService>();
+                var service = CreateService(fileStorageService: fileStorageSvc);
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { PackageRegistration = packageRegistration, NormalizedVersion = null, Version = "01.01.01", EmbeddedReadmeType = readmeFileType };
+
+                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.Folders.PackagesContentFolderName, BuildReadmeFileName("theId", "1.1.1"), It.IsAny<Stream>(), true))
+                    .Completes()
+                    .Verifiable();
+
+                await service.ExtractAndSaveReadmeFileAsync(package, Stream.Null);
+
+                fileStorageSvc.VerifyAll();
             }
 
             [Theory]
