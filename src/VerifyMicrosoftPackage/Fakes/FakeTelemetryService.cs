@@ -367,5 +367,10 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public void TrackManagePackagesQueryPerformance(long milliseconds, int packageIdCount)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
