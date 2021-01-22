@@ -404,5 +404,15 @@ namespace NuGetGallery
             bool isAuthenticated,
             int testBucket,
             int testPercentage);
+
+        /// <summary>
+        /// Track query and viewmodel setup time for manage packages page.
+        /// </summary>
+        /// <param name="milliseconds">How long the queries and transforms took</param>
+        /// <param name="packageIdCount">The number of unique package ids represented on page</param>
+        void TrackManagePackagesQueryPerformance(
+            long milliseconds, 
+            int packageIdCount
+        );
     }
 }

@@ -370,5 +370,10 @@ namespace GitHubVulnerabilities2Db.Gallery
         {
             throw new NotImplementedException();
         }
+
+        public void TrackManagePackagesQueryPerformance(long milliseconds, int packageIdCount)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
