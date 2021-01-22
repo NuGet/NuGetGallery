@@ -1339,6 +1339,8 @@
     <Content Include="Content\gallery\img\facebook.svg" />
     <Content Include="Content\gallery\img\git-32x32.png" />
     <Content Include="Content\gallery\img\git.svg" />
+    <Content Include="Content\gallery\img\fuget-32x32.png" />
+    <Content Include="Content\gallery\img\fuget.svg" />
     <Content Include="Content\gallery\img\github-32x32.png" />
     <Content Include="Content\gallery\img\github.svg" />
     <Content Include="Content\gallery\img\logo-footer-184x57.png" />
