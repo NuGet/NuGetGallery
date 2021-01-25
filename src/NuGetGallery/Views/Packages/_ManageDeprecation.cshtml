@@ -29,7 +29,7 @@
             @ViewHelpers.AlertDanger(@<text>At least one version must be selected.</text>)
         </div>
         <div data-bind="visible: chosenItemsConflictWarning">
-            @ViewHelpers.AlertWarning(@<text><span data-bind="text: chosenItemsConflictWarning"></span></text>)
+            @ViewHelpers.AlertWarning(@<text><span data-bind="text: chosenItemsConflictWarning"></span></text>, true)
         </div>
     </div>
 

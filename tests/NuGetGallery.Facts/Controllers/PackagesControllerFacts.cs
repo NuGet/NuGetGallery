@@ -83,6 +83,7 @@ namespace NuGetGallery
             Mock<ILicenseExpressionSplitter> licenseExpressionSplitter = null,
             Mock<IFeatureFlagService> featureFlagService = null,
             Mock<IPackageDeprecationService> deprecationService = null,
+            Mock<IPackageVulnerabilitiesService> vulnerabilitiesService = null,
             Mock<IPackageRenameService> renameService = null,
             Mock<IABTestService> abTestService = null,
             Mock<IIconUrlProvider> iconUrlProvider = null,
@@ -245,6 +246,15 @@ namespace NuGetGallery
                     .Setup(x => x.GetDeprecationsById(It.IsAny<string>()))
                     .Returns(new List<PackageDeprecation>());
             }
+
+            if (vulnerabilitiesService == null)
+            {
+                vulnerabilitiesService = new Mock<IPackageVulnerabilitiesService>();
+                vulnerabilitiesService
+                    .Setup(x => x.GetVulnerabilitiesById(It.IsAny<string>()))
+                    .Returns(new Dictionary<int, IReadOnlyList<PackageVulnerability>>());
+            }
+
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 
             abTestService = abTestService ?? new Mock<IABTestService>();
@@ -281,6 +291,7 @@ namespace NuGetGallery
                 licenseExpressionSplitter.Object,
                 featureFlagService.Object,
                 deprecationService.Object,
+                vulnerabilitiesService.Object,
                 renameService.Object,
                 abTestService.Object,
                 iconUrlProvider.Object,
@@ -452,7 +463,6 @@ namespace NuGetGallery
                 // Arrange
                 var id = "Test" + Guid.NewGuid().ToString();
                 var packageService = new Mock<IPackageService>();
-                var deprecationService = new Mock<IPackageDeprecationService>();
                 var diagnosticsService = new Mock<IDiagnosticsService>();
                 var searchClient = new Mock<ISearchClient>();
                 var searchService = new Mock<ExternalSearchService>(diagnosticsService.Object, searchClient.Object)
@@ -464,15 +474,9 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    deprecationService: deprecationService,
                     searchService: searchService.As<ISearchService>(),
                     httpContext: httpContext);
                 controller.SetCurrentUser(TestUtility.FakeUser);
-
-                deprecationService
-                    .Setup(x => x.GetDeprecationsById(id))
-                    .Returns(new List<PackageDeprecation>())
-                    .Verifiable();
 
                 searchService
                     .Setup(x => x.RawSearch(It.IsAny<SearchFilter>()))
@@ -506,7 +510,6 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(id, model.Id);
                 searchService.Verify(x => x.RawSearch(It.IsAny<SearchFilter>()), Times.Exactly(searchTimes));
-                deprecationService.Verify();
             }
 
             [Fact]
@@ -799,7 +802,6 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
-                var deprecationService = new Mock<IPackageDeprecationService>();
                 var indexingService = new Mock<IIndexingService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
@@ -807,8 +809,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService,
-                    httpContext: httpContext,
-                    deprecationService: deprecationService);
+                    httpContext: httpContext);
                 controller.SetCurrentUser(currentUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
                 var title = "A test package!";
@@ -835,11 +836,6 @@ namespace NuGetGallery
                     .Setup(p => p.FilterExactPackage(packages, normalizedVersion))
                     .Returns(package);
 
-                deprecationService
-                    .Setup(x => x.GetDeprecationsById(id))
-                    .Returns(new List<PackageDeprecation>())
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
@@ -849,8 +845,6 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
-
-                deprecationService.Verify();
             }
 
             [Fact]
@@ -859,12 +853,10 @@ namespace NuGetGallery
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
-                var deprecationService = new Mock<IPackageDeprecationService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    indexingService: indexingService,
-                    deprecationService: deprecationService);
+                    indexingService: indexingService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -911,11 +903,6 @@ namespace NuGetGallery
                     .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
                     .Returns(new[] { notLatestPackage, latestPackage, latestButNotPackage });
 
-                deprecationService
-                    .Setup(x => x.GetDeprecationsById(id))
-                    .Returns(new List<PackageDeprecation>())
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
@@ -929,8 +916,6 @@ namespace NuGetGallery
                 Assert.Equal(latestPackage.NormalizedVersion, model.Version);
                 Assert.True(model.LatestVersionSemVer2);
                 Assert.False(model.VersionRequestedWasNotFound);
-
-                deprecationService.Verify();
             }
 
             [Fact]
@@ -939,12 +924,10 @@ namespace NuGetGallery
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
-                var deprecationService = new Mock<IPackageDeprecationService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    indexingService: indexingService,
-                    deprecationService: deprecationService);
+                    indexingService: indexingService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -969,11 +952,6 @@ namespace NuGetGallery
                     .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(notLatestPackage);
 
-                deprecationService
-                    .Setup(x => x.GetDeprecationsById(id))
-                    .Returns(new List<PackageDeprecation>())
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
@@ -985,8 +963,6 @@ namespace NuGetGallery
                 Assert.Equal(id, model.Id);
                 Assert.Equal(notLatestPackage.NormalizedVersion, model.Version);
                 Assert.False(model.LatestVersionSemVer2);
-
-                deprecationService.Verify();
             }
 
             [Fact]
@@ -995,12 +971,10 @@ namespace NuGetGallery
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
-                var deprecationService = new Mock<IPackageDeprecationService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    indexingService: indexingService,
-                    deprecationService: deprecationService);
+                    indexingService: indexingService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var package = new Package()
@@ -1024,11 +998,6 @@ namespace NuGetGallery
                     .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
-                deprecationService
-                    .Setup(x => x.GetDeprecationsById("Foo"))
-                    .Returns(new List<PackageDeprecation>())
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
@@ -1039,8 +1008,6 @@ namespace NuGetGallery
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Null(model.ReadMeHtml);
-
-                deprecationService.Verify();
             }
 
             [Fact]
@@ -1099,14 +1066,12 @@ namespace NuGetGallery
             {
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
-                var deprecationService = new Mock<IPackageDeprecationService>();
                 var fileService = new Mock<IPackageFileService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService,
-                    packageFileService: fileService,
-                    deprecationService: deprecationService);
+                    packageFileService: fileService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -1132,11 +1097,6 @@ namespace NuGetGallery
                     .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
-                deprecationService
-                    .Setup(x => x.GetDeprecationsById(id))
-                    .Returns(new List<PackageDeprecation>())
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 if (hasReadMe)
@@ -1144,11 +1104,7 @@ namespace NuGetGallery
                     fileService.Setup(f => f.DownloadReadMeMdFileAsync(It.IsAny<Package>())).Returns(Task.FromResult(readMeHtml));
                 }
 
-                var result = await controller.DisplayPackage(id, /*version*/null);
-
-                deprecationService.Verify();
-
-                return result;
+                return await controller.DisplayPackage(id, /*version*/null);
             }
 
             [Fact]
@@ -1156,7 +1112,6 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
-                var deprecationService = new Mock<IPackageDeprecationService>();
                 var indexingService = new Mock<IIndexingService>();
                 var fileService = new Mock<IPackageFileService>();
                 var validationService = new Mock<IValidationService>();
@@ -1166,8 +1121,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     indexingService: indexingService,
                     packageFileService: fileService,
-                    validationService: validationService,
-                    deprecationService: deprecationService);
+                    validationService: validationService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var package = new Package()
@@ -1189,11 +1143,6 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
-                deprecationService
-                    .Setup(x => x.GetDeprecationsById("Foo"))
-                    .Returns(new List<PackageDeprecation>())
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 var expectedIssues = new[]
@@ -1212,8 +1161,6 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(model.PackageValidationIssues, expectedIssues);
-
-                deprecationService.Verify();
             }
 
             [Theory]
@@ -1259,8 +1206,7 @@ namespace NuGetGallery
 
                 deprecationService
                     .Setup(x => x.GetDeprecationsById(id))
-                    .Returns(new List<PackageDeprecation>())
-                    .Verifiable();
+                    .Returns(new List<PackageDeprecation>());
 
                 // Arrange and Act
                 var result = await controller.DisplayPackage(id, version: null);
@@ -1268,8 +1214,6 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isAtomFeedEnabled, model.IsAtomFeedEnabled);
-
-                deprecationService.Verify();
             }
 
             [Theory]
@@ -1324,7 +1268,10 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
 
-                deprecationService.Verify();
+                if (isDeprecationEnabled)
+                {
+                    deprecationService.Verify();
+                }
             }
 
             [Theory]
@@ -1380,7 +1327,10 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
 
-                deprecationService.Verify();
+                if (isDeprecationEnabled)
+                {
+                    deprecationService.Verify();
+                }
             }
 
             [Fact]
@@ -1454,6 +1404,225 @@ namespace NuGetGallery
                 Assert.Equal("Hello", model.CustomMessage);
 
                 deprecationService.Verify();
+            }
+
+            [Theory]
+            [InlineData(PackageDeprecationStatus.NotDeprecated, PackageDeprecationStatus.NotDeprecated, "")]
+            [InlineData(PackageDeprecationStatus.CriticalBugs, PackageDeprecationStatus.NotDeprecated, 
+                "{0} is deprecated because it has critical bugs.")]
+            [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.NotDeprecated, 
+                "{0} is deprecated because it's legacy and no longer maintained.")]
+            [InlineData(PackageDeprecationStatus.Legacy, PackageDeprecationStatus.CriticalBugs, 
+                "{0} is deprecated because it's legacy and has critical bugs.")]
+            [InlineData(PackageDeprecationStatus.Other, PackageDeprecationStatus.NotDeprecated, "{0} is deprecated.")]
+            public async Task ShowsCorrectDeprecationIconTitle(
+                PackageDeprecationStatus deprecationStatus,
+                PackageDeprecationStatus deprecationStatusSecondFlag,
+                string expectedIconTitle)
+            {
+                deprecationStatus |= deprecationStatusSecondFlag; // this is to address a bug in xunit, where or'ing in the inlinedata returns 0
+
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var deprecationService = new Mock<IPackageDeprecationService>();
+                var vulnerabilitiesService = new Mock<IPackageVulnerabilitiesService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    deprecationService: deprecationService,
+                    vulnerabilitiesService: vulnerabilitiesService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var id = "Foo";
+                var version = "1.1.1";
+                var package = new Package()
+                {
+                    Key = 1,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = version,
+                    Title = "A test package!"
+                };
+
+                List<PackageDeprecation> deprecations = default;
+                if (deprecationStatus != PackageDeprecationStatus.NotDeprecated)
+                {
+                    var deprecation = new PackageDeprecation
+                    {
+                        PackageKey = 1,
+                        Status = deprecationStatus
+                    };
+
+                    deprecations = new List<PackageDeprecation> {deprecation};
+
+                }
+                else
+                {
+                    deprecations = new List<PackageDeprecation>();
+                }
+
+                package.Deprecations = deprecations;
+
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(TestUtility.FakeUser, packages))
+                    .Returns(true);
+
+                featureFlagService
+                    .Setup(x => x.IsDisplayVulnerabilitiesEnabled())
+                    .Returns(false);
+
+                deprecationService
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(deprecations)
+                    .Verifiable();
+
+                // Arrange and Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal(string.Format(expectedIconTitle, version), model.PackageWarningIconTitle);
+
+                deprecationService.Verify();
+            }
+
+            [Theory]
+            [InlineData(false, false, "")]
+            [InlineData(true, false, "{0} is deprecated because it's legacy and no longer maintained.")]
+            [InlineData(false, true, "{0} has at least one vulnerability with {1} severity.")]
+            [InlineData(true, true, "{0} is deprecated because it's legacy and no longer maintained; {0} has at least one vulnerability with {1} severity.")]
+            public async Task ShowsCombinedDeprecationAndVulnerabilitiesIconTitle(
+                bool isDeprecationEnabled,
+                bool isVulnerabilitiesEnabled,
+                string expectedIconTitle)
+            {
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var deprecationService = new Mock<IPackageDeprecationService>();
+                var vulnerabilitiesService = new Mock<IPackageVulnerabilitiesService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    deprecationService: deprecationService,
+                    vulnerabilitiesService: vulnerabilitiesService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var id = "Foo";
+                var vulnerabilityModerate = new PackageVulnerability
+                {
+                    AdvisoryUrl = "https://theurl/advisory01",
+                    GitHubDatabaseKey = 1,
+                    Severity = PackageVulnerabilitySeverity.Moderate
+                };
+                var vulnerabilityLow = new PackageVulnerability
+                {
+                    AdvisoryUrl = "https://theurl/advisory05",
+                    GitHubDatabaseKey = 5,
+                    Severity = PackageVulnerabilitySeverity.Low
+                };
+                var version = "1.1.1";
+
+                var deprecation = new PackageDeprecation
+                {
+                    PackageKey = 1,
+                    Status = PackageDeprecationStatus.Legacy
+                };
+
+                var package = new Package()
+                {
+                    Key = 1,
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    VulnerablePackageRanges = new List<VulnerablePackageVersionRange>
+                    {
+                        new VulnerablePackageVersionRange
+                        {
+                            PackageVersionRange = "1.1.1",
+                            FirstPatchedPackageVersion = "1.1.2",
+                            PackageId = id,
+                            Vulnerability = vulnerabilityModerate
+                        },
+                        new VulnerablePackageVersionRange
+                        {
+                            PackageVersionRange = "<=1.1.1",
+                            FirstPatchedPackageVersion = "1.1.2",
+                            PackageId = id,
+                            Vulnerability = vulnerabilityLow
+                        }
+                    },
+                    Deprecations = new List<PackageDeprecation> { deprecation },
+                    Version = "01.1.01",
+                    NormalizedVersion = version,
+                    Title = "A test package!"
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsManageDeprecationEnabled(TestUtility.FakeUser, packages))
+                    .Returns(isDeprecationEnabled);
+
+                featureFlagService
+                    .Setup(x => x.IsDisplayVulnerabilitiesEnabled())
+                    .Returns(isVulnerabilitiesEnabled);
+
+                deprecationService
+                    .Setup(x => x.GetDeprecationsById(id))
+                    .Returns(new List<PackageDeprecation> { deprecation })
+                    .Verifiable();
+
+                vulnerabilitiesService
+                    .Setup(x => x.GetVulnerabilitiesById(id))
+                    .Returns(new Dictionary<int, IReadOnlyList<PackageVulnerability>>
+                    {
+                        { 1, new List<PackageVulnerability> { vulnerabilityModerate, vulnerabilityLow } }
+                    })
+                    .Verifiable();
+
+                // Arrange and Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
+                Assert.Equal(isVulnerabilitiesEnabled, model.IsPackageVulnerabilitiesEnabled);
+                Assert.Equal(string.Format(expectedIconTitle, version, "moderate"), model.PackageWarningIconTitle);
+
+                if (isDeprecationEnabled)
+                {
+                    deprecationService.Verify();
+                }
+
+                if (isVulnerabilitiesEnabled)
+                {
+                    vulnerabilitiesService.Verify();
+                }
             }
 
             [Theory]
@@ -1536,7 +1705,6 @@ namespace NuGetGallery
                 var splitterMock = new Mock<ILicenseExpressionSplitter>();
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
-                var deprecationService = new Mock<IPackageDeprecationService>();
 
                 var segments = new List<CompositeLicenseExpressionSegment>();
                 splitterMock
@@ -1566,19 +1734,13 @@ namespace NuGetGallery
                     .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
-                deprecationService
-                    .Setup(x => x.GetDeprecationsById(id))
-                    .Returns(new List<PackageDeprecation>())
-                    .Verifiable();
-
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService,
-                    licenseExpressionSplitter: splitterMock,
-                    deprecationService: deprecationService);
+                    licenseExpressionSplitter: splitterMock);
 
                 var result = await controller.DisplayPackage(id, version: null);
 
@@ -1586,8 +1748,6 @@ namespace NuGetGallery
                     .Verify(les => les.SplitExpression(expression), Times.Once);
                 splitterMock
                     .Verify(les => les.SplitExpression(It.IsAny<string>()), Times.Once);
-
-                deprecationService.Verify();
 
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Same(segments, model.LicenseExpressionSegments);

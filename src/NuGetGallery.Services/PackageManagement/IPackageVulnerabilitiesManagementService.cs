@@ -6,10 +6,10 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public interface IPackageVulnerabilityService
+    public interface IPackageVulnerabilitiesManagementService
     {
         /// <summary>
-        /// Adds any <see cref="VulnerablePackageVersionRange"/>s to <see cref="Package.Vulnerabilities"/> that it is a part of.
+        /// Adds any <see cref="VulnerablePackageVersionRange"/>s to <see cref="Package.VulnerableVersionRanges"/> that it is a part of.
         /// </summary>
         /// <remarks>
         /// Does not commit changes. The caller is expected to commit any changes separately.

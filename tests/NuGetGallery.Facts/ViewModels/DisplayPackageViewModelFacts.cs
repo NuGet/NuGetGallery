@@ -104,6 +104,27 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(expected, model.ProjectUrl);
         }
 
+        [Theory]
+        [InlineData("foo", "1.0.0", "https://www.fuget.org/packages/foo/1.0.0")]
+        [InlineData("foo", "1.1.0", "https://www.fuget.org/packages/foo/1.1.0")]
+        [InlineData("Foo.Bar", "1.1.0-bETa", "https://www.fuget.org/packages/Foo.Bar/1.1.0-bETa")]
+        public void ItInitializesFuGetUrl(string packageId, string packageVersion, string expected)
+        {
+            var package = new Package
+            {
+                Version = packageVersion,
+                NormalizedVersion = packageVersion,
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = packageId,
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+            Assert.Equal(expected, model.FuGetUrl);
+        }
 
         [Theory]
         [InlineData(null, null)]
@@ -822,6 +843,7 @@ namespace NuGetGallery.ViewModels
             Package package,
             User currentUser = null,
             Dictionary<int, PackageDeprecation> packageKeyToDeprecation = null,
+            Dictionary<int, IReadOnlyList<PackageVulnerability>> packageKeyToVulnerabilities = null,
             IReadOnlyList<PackageRename> packageRenames = null,
             string readmeHtml = null)
         {
@@ -832,6 +854,7 @@ namespace NuGetGallery.ViewModels
                 allVersions,
                 currentUser: currentUser,
                 packageKeyToDeprecation: packageKeyToDeprecation,
+                packageKeyToVulnerabilities: packageKeyToVulnerabilities,
                 packageRenames: packageRenames,
                 readmeResult: new RenderedMarkdownResult { Content = readmeHtml });
         }

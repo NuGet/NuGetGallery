@@ -121,6 +121,7 @@ namespace NuGetGallery
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
+        private readonly IPackageVulnerabilitiesService _vulnerabilitiesService;
         private readonly IPackageRenameService _renameService;
         private readonly IABTestService _abTestService;
         private readonly IMarkdownService _markdownService;
@@ -161,6 +162,7 @@ namespace NuGetGallery
             ILicenseExpressionSplitter licenseExpressionSplitter,
             IFeatureFlagService featureFlagService,
             IPackageDeprecationService deprecationService,
+            IPackageVulnerabilitiesService vulnerabilitiesService,
             IPackageRenameService renameService,
             IABTestService abTestService,
             IIconUrlProvider iconUrlProvider,
@@ -197,6 +199,7 @@ namespace NuGetGallery
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
+            _vulnerabilitiesService = vulnerabilitiesService ?? throw new ArgumentNullException(nameof(vulnerabilitiesService));
             _renameService = renameService ?? throw new ArgumentNullException(nameof(renameService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
@@ -870,10 +873,18 @@ namespace NuGetGallery
             }
 
             var readme = await _readMeService.GetReadMeHtmlAsync(package);
-            var deprecations = _deprecationService.GetDeprecationsById(id);
-            var packageKeyToDeprecation = deprecations
-                .GroupBy(d => d.PackageKey)
-                .ToDictionary(g => g.Key, g => g.First());
+
+            var isPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            var packageKeyToDeprecation = isPackageDeprecationEnabled
+                ? _deprecationService.GetDeprecationsById(id)
+                    .GroupBy(d => d.PackageKey)
+                    .ToDictionary(g => g.Key, g => g.First())
+                : null;
+
+            var isPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled();
+            var packageKeyToVulnerabilities = isPackageVulnerabilitiesEnabled
+                ? _vulnerabilitiesService.GetVulnerabilitiesById(id)
+                : null;
 
             IReadOnlyList<PackageRename> packageRenames = null;
             if (_featureFlagService.IsPackageRenamesEnabled(currentUser))
@@ -886,6 +897,7 @@ namespace NuGetGallery
                 allVersions,
                 currentUser,
                 packageKeyToDeprecation,
+                packageKeyToVulnerabilities,
                 packageRenames,
                 readme);
 
@@ -894,7 +906,9 @@ namespace NuGetGallery
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
-            model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            model.IsPackageDeprecationEnabled = isPackageDeprecationEnabled;
+            model.IsPackageVulnerabilitiesEnabled = isPackageVulnerabilitiesEnabled;
+            model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
            

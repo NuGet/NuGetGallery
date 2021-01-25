@@ -245,6 +245,9 @@ img.reserved-indicator-icon {
   margin-left: auto;
   margin-right: auto;
 }
+.table-container {
+  overflow-x: auto;
+}
 .package-list {
   margin-top: 8px;
   margin-bottom: 8px;
@@ -718,10 +721,6 @@ img.reserved-indicator-icon {
 }
 .page-account-settings .login-account-row {
   padding-top: 10px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
   -webkit-box-align: center;
   -webkit-align-items: center;
   -ms-flex-align: center;
@@ -1034,6 +1033,48 @@ img.reserved-indicator-icon {
 }
 .page-package-details .deprecation-container .deprecation-content-container p:last-of-type {
   margin-bottom: 0px;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-expander {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  vertical-align: middle;
+  width: 100%;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container .vulnerabilities-expander-icon {
+  position: unset;
+  top: unset;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container .vulnerabilities-expander-info-right {
+  padding-left: 15px;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-content-container {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid lightgray;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-content-container .vulnerabilities-list {
+  border-collapse: unset;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-severity-critical {
+  color: red;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-severity-high {
+  color: red;
+}
+.page-package-details .vulnerabilities-container .vulnerabilities-severity-moderate {
+  color: blue;
 }
 .page-package-details .failed-validation-alert-list {
   margin-top: 15px;

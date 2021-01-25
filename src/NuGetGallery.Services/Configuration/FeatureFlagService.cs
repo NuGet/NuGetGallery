@@ -15,6 +15,7 @@ namespace NuGetGallery
         private const string GalleryPrefix = "NuGetGallery.";
 
         private const string ABTestingFlightName = GalleryPrefix + "ABTesting";
+        private const string AlternateStatisticsSourceFeatureName = GalleryPrefix + "AlternateStatisticsSource";
         private const string AsyncAccountDeleteFeatureName = GalleryPrefix + "AsyncAccountDelete";
         private const string SelfServiceAccountDeleteFeatureName = GalleryPrefix + "SelfServiceAccountDelete";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
@@ -25,6 +26,8 @@ namespace NuGetGallery
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
         private const string ManageDeprecationApiFeatureName = GalleryPrefix + "ManageDeprecationApi";
+        private const string DisplayVulnerabilitiesFeatureName = GalleryPrefix + "DisplayVulnerabilities";
+        private const string DisplayFuGetLinksFeatureName = GalleryPrefix + "DisplayFuGetLinks";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
@@ -40,6 +43,7 @@ namespace NuGetGallery
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
         private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
+        private const string MarkdigMdRenderingFlightName = GalleryPrefix + "MarkdigMdRendering";
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
@@ -63,6 +67,11 @@ namespace NuGetGallery
         public FeatureFlagService(IFeatureFlagClient client)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+        }
+
+        public bool IsAlternateStatisticsSourceEnabled()
+        {
+            return _client.IsEnabled(AlternateStatisticsSourceFeatureName, defaultValue: false);
         }
 
         public bool IsAsyncAccountDeleteEnabled()
@@ -124,6 +133,16 @@ namespace NuGetGallery
         public bool IsManageDeprecationApiEnabled(User user)
         {
             return _client.IsEnabled(ManageDeprecationApiFeatureName, user, defaultValue: false);
+        }
+
+        public bool IsDisplayVulnerabilitiesEnabled()
+        {
+            return _client.IsEnabled(DisplayVulnerabilitiesFeatureName, defaultValue: false);
+        }
+
+        public bool IsDisplayFuGetLinksEnabled()
+        {
+            return _client.IsEnabled(DisplayFuGetLinksFeatureName, defaultValue: false);
         }
 
         public bool AreEmbeddedIconsEnabled(User user)
@@ -286,6 +305,11 @@ namespace NuGetGallery
             return _client.IsEnabled(ODataV2SearchCountNonHijackedFeatureName, defaultValue: true);
         }
 
+        public bool IsMarkdigMdRenderingEnabled()
+        {
+            return _client.IsEnabled(MarkdigMdRenderingFlightName, defaultValue: false);
+        }
+        
         public bool IsDeletePackageApiEnabled(User user)
         {
             return _client.IsEnabled(DeletePackageApiFlightName, user, defaultValue: false);

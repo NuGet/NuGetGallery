@@ -305,8 +305,10 @@
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="Services\IMarkdownService.cs" />
+    <Compile Include="Services\IPackageVulnerabilitiesService.cs" />
     <Compile Include="Services\IPackageMetadataValidationService.cs" />
     <Compile Include="Services\MarkdownService.cs" />
+    <Compile Include="Services\PackageVulnerabilitiesService.cs" />
     <Compile Include="Services\PackageMetadataValidationService.cs" />
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
     <Compile Include="Services\IconUrlDeprecationValidationMessage.cs" />
@@ -1337,6 +1339,8 @@
     <Content Include="Content\gallery\img\facebook.svg" />
     <Content Include="Content\gallery\img\git-32x32.png" />
     <Content Include="Content\gallery\img\git.svg" />
+    <Content Include="Content\gallery\img\fuget-32x32.png" />
+    <Content Include="Content\gallery\img\fuget.svg" />
     <Content Include="Content\gallery\img\github-32x32.png" />
     <Content Include="Content\gallery\img\github.svg" />
     <Content Include="Content\gallery\img\logo-footer-184x57.png" />
@@ -2302,6 +2306,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\Files\Content\Query-Hint-Configuration.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\_DisplayPackageVulnerabilities.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

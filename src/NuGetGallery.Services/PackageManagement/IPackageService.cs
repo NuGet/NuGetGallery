@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGet.Versioning;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -155,5 +156,13 @@ namespace NuGetGallery
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="registration" />
         /// is <c>null</c>.</exception>
         Task SetRequiredSignerAsync(PackageRegistration registration, User signer, bool commitChanges = true);
+
+        /// <summary>
+        /// Get a package's status, or <c>null</c> if the package does not exist.
+        /// </summary>
+        /// <param name="packageId">The package's ID.</param>
+        /// <param name="packageVersion">The package's version.</param>
+        /// <returns>The package's status, or <c>null</c> is the package does not exist.</returns>
+        PackageStatus? GetPackageStatus(string packageId, NuGetVersion packageVersion);
     }
 }

@@ -657,11 +657,17 @@ namespace NuGetGallery
                                         string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id));
                                 }
 
-                                var existingPackage = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
-                                if (existingPackage != null)
+                                // A package can only be reuploaded if it never passed validation.
+                                var existingStatus = PackageService.GetPackageStatus(id, version);
+                                if (existingStatus != null)
                                 {
-                                    if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
+                                    if (existingStatus == PackageStatus.FailedValidation)
                                     {
+                                        // Allow this new upload to replace the existing package.
+                                        // We avoided loading the full package entity until now as it is
+                                        // a relatively expensive operation and this path is uncommon.
+                                        var existingPackage = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
+
                                         TelemetryService.TrackPackageReupload(existingPackage);
 
                                         await PackageDeleteService.HardDeletePackagesAsync(

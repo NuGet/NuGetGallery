@@ -22,7 +22,9 @@
     "NuGetGallery.ODataV2FindPackagesByIdNonHijacked": "Enabled",
     "NuGetGallery.ODataV2FindPackagesByIdCountNonHijacked": "Enabled",
     "NuGetGallery.ODataV2SearchNonHijacked": "Enabled",
-    "NuGetGallery.ODataV2SearchCountNonHijacked": "Enabled"
+    "NuGetGallery.ODataV2SearchCountNonHijacked": "Enabled",
+    "NuGetGallery.DisplayVulnerabilities": "Enabled",
+    "NuGetGallery.DisplayFuGetLinks": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

@@ -850,7 +850,13 @@ namespace NuGetGallery
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(new User() { EmailAddress = "confirmed2@email.com" });
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(id, version)).Returns(conflictingPackage);
+                controller
+                    .MockPackageService
+                    .Setup(x => x.GetPackageStatus(
+                        id,
+                        It.Is<NuGetVersion>(v => v.ToNormalizedString() == version)))
+                    .Returns(status);
+
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act
@@ -897,8 +903,16 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(currentUser);
+
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(id, version)).Returns(conflictingPackage);
+                controller
+                    .MockPackageService
+                    .Setup(x => x.GetPackageStatus(
+                        id,
+                        It.Is<NuGetVersion>(v => v.ToNormalizedString() == version)))
+                    .Returns(PackageStatus.FailedValidation);
+
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act

@@ -64,8 +64,8 @@ namespace GitHubVulnerabilities2Db
             ConfigureGalleryServices(containerBuilder);
 
             containerBuilder
-                .RegisterType<PackageVulnerabilityService>()
-                .As<IPackageVulnerabilityService>();
+                .RegisterType<PackageVulnerabilitiesManagementService>()
+                .As<IPackageVulnerabilitiesManagementService>();
 
             containerBuilder
                 .RegisterType<GitHubVersionRangeParser>()

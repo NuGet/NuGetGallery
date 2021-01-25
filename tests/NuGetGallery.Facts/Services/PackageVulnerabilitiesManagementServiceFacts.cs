@@ -13,7 +13,7 @@ using Xunit;
 
 namespace NuGetGallery.Services
 {
-    public class PackageVulnerabilityServiceFacts
+    public class PackageVulnerabilitiesManagementServiceFacts
     {
         public class TheApplyExistingVulnerabilitiesToPackageMethod : MethodFacts
         {
@@ -63,7 +63,7 @@ namespace NuGetGallery.Services
                 Service.ApplyExistingVulnerabilitiesToPackage(package);
 
                 // Assert
-                Assert.Single(package.Vulnerabilities, satisfiedRange);
+                Assert.Single(package.VulnerablePackageRanges, satisfiedRange);
                 Assert.Single(satisfiedRange.Packages, package);
             }
         }
@@ -211,7 +211,7 @@ namespace NuGetGallery.Services
                         .Verifiable();
                 }
 
-                var service = GetService<PackageVulnerabilityService>();
+                var service = GetService<PackageVulnerabilitiesManagementService>();
 
                 // Act
                 await service.UpdateVulnerabilityAsync(vulnerability, true);
@@ -258,7 +258,7 @@ namespace NuGetGallery.Services
                         .Verifiable();
                 }
 
-                var service = GetService<PackageVulnerabilityService>();
+                var service = GetService<PackageVulnerabilitiesManagementService>();
 
                 // Act
                 await service.UpdateVulnerabilityAsync(vulnerability, false);
@@ -440,7 +440,7 @@ namespace NuGetGallery.Services
                         .Verifiable();
                 }
 
-                var service = GetService<PackageVulnerabilityService>();
+                var service = GetService<PackageVulnerabilitiesManagementService>();
 
                 // Act
                 await service.UpdateVulnerabilityAsync(vulnerability, false);
@@ -469,7 +469,7 @@ namespace NuGetGallery.Services
                 _databaseMock = new Mock<IDatabase>();
                 Context = GetFakeContext();
                 UpdateServiceMock = GetMock<IPackageUpdateService>();
-                Service = GetService<PackageVulnerabilityService>();
+                Service = GetService<PackageVulnerabilitiesManagementService>();
 
                 _transactionMock
                     .Setup(x => x.Commit())
@@ -487,7 +487,7 @@ namespace NuGetGallery.Services
             private Mock<IDatabase> _databaseMock { get; }
             protected FakeEntitiesContext Context { get; }
             protected Mock<IPackageUpdateService> UpdateServiceMock { get; }
-            protected PackageVulnerabilityService Service { get; }
+            protected PackageVulnerabilitiesManagementService Service { get; }
 
             protected void VerifyTransaction()
             {

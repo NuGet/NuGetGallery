@@ -11,11 +11,11 @@ using NuGetGallery;
 
 namespace VerifyGitHubVulnerabilities.Verify
 {
-    public class PackageVulnerabilityServiceVerifier : IPackageVulnerabilityService
+    public class PackageVulnerabilitiesVerifier : IPackageVulnerabilitiesManagementService
     {
         private readonly IEntitiesContext _entitiesContext;
 
-        public PackageVulnerabilityServiceVerifier(
+        public PackageVulnerabilitiesVerifier(
             IEntitiesContext entitiesContext)
         {
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -103,14 +103,14 @@ namespace VerifyGitHubVulnerabilities.Verify
 
                 var packages = _entitiesContext.Packages
                     .Where(p => p.PackageRegistration.Id == range.PackageId)
-                    .Include(p => p.Vulnerabilities)
+                    .Include(p => p.VulnerablePackageRanges)
                     .ToList();
 
                 var versionRange = VersionRange.Parse(range.PackageVersionRange);
                 foreach (var package in packages)
                 {
                     var version = NuGetVersion.Parse(package.NormalizedVersion);
-                    if (versionRange.Satisfies(version) != package.Vulnerabilities.Contains(existingRange))
+                    if (versionRange.Satisfies(version) != package.VulnerablePackageRanges.Contains(existingRange))
                     {
                         Console.Error.WriteLine(
                             $@"Vulnerability advisory {vulnerability.GitHubDatabaseKey

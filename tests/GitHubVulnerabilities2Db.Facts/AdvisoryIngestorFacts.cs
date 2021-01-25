@@ -132,14 +132,14 @@ namespace GitHubVulnerabilities2Db.Facts
         {
             public MethodFacts()
             {
-                PackageVulnerabilityServiceMock = new Mock<IPackageVulnerabilityService>();
+                PackageVulnerabilityServiceMock = new Mock<IPackageVulnerabilitiesManagementService>();
                 GitHubVersionRangeParserMock = new Mock<IGitHubVersionRangeParser>();
                 Ingestor = new AdvisoryIngestor(
                     PackageVulnerabilityServiceMock.Object,
                     GitHubVersionRangeParserMock.Object);
             }
 
-            public Mock<IPackageVulnerabilityService> PackageVulnerabilityServiceMock { get; }
+            public Mock<IPackageVulnerabilitiesManagementService> PackageVulnerabilityServiceMock { get; }
             public Mock<IGitHubVersionRangeParser> GitHubVersionRangeParserMock { get; }
             public AdvisoryIngestor Ingestor { get; }
         }
