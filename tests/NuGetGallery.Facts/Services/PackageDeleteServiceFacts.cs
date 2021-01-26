@@ -35,6 +35,7 @@ namespace NuGetGallery
             Mock<ISymbolPackageService> symbolPackageService = null,
             Mock<IEntityRepository<SymbolPackage>> symbolPackageRepository = null,
             Mock<ICoreLicenseFileService> coreLicenseFileService = null,
+            Mock<ICoreReadmeFileService> coreReadmeFileService = null, 
             Action<Mock<TestPackageDeleteService>> setup = null,
             bool useRealConstructor = false)
         {
@@ -63,6 +64,7 @@ namespace NuGetGallery
             symbolPackageService = symbolPackageService ?? new Mock<ISymbolPackageService>();
             symbolPackageRepository = symbolPackageRepository ?? new Mock<IEntityRepository<SymbolPackage>>();
             coreLicenseFileService = coreLicenseFileService ?? new Mock<ICoreLicenseFileService>();
+            coreReadmeFileService = coreReadmeFileService ?? new Mock<ICoreReadmeFileService>();
 
             if (useRealConstructor)
             {
@@ -81,7 +83,8 @@ namespace NuGetGallery
                     symbolPackageFileService.Object,
                     symbolPackageService.Object,
                     symbolPackageRepository.Object,
-                    coreLicenseFileService.Object);
+                    coreLicenseFileService.Object,
+                    coreReadmeFileService.Object);
             }
             else
             {
@@ -100,7 +103,8 @@ namespace NuGetGallery
                     symbolPackageFileService.Object,
                     symbolPackageService.Object,
                     symbolPackageRepository.Object,
-                    coreLicenseFileService.Object);
+                    coreLicenseFileService.Object,
+                    coreReadmeFileService.Object);
 
                 packageDeleteService.CallBase = true;
 
@@ -133,7 +137,8 @@ namespace NuGetGallery
                 ISymbolPackageFileService symbolPackageFileService,
                 ISymbolPackageService symbolPackageService,
                 IEntityRepository<SymbolPackage> symbolPackageRepository,
-                ICoreLicenseFileService coreLicenseFileService) : base(
+                ICoreLicenseFileService coreLicenseFileService,
+                ICoreReadmeFileService coreReadmeFileService) : base(
                     packageRepository,
                     packageRegistrationRepository,
                     packageDeletesRepository,
@@ -148,7 +153,8 @@ namespace NuGetGallery
                     symbolPackageFileService,
                     symbolPackageService,
                     symbolPackageRepository,
-                    coreLicenseFileService)
+                    coreLicenseFileService,
+                    coreReadmeFileService)
             {
             }
 
@@ -827,6 +833,24 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
                 
                 packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package), Times.Once);
+            }
+
+            [Fact]
+            public async Task WillDeleteEmbeddedReadmeFiles()
+            {
+                var coreReadmeFileService = new Mock<ICoreReadmeFileService>();
+
+                var service = CreateService(coreReadmeFileService: coreReadmeFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                package.HasReadMe = true;
+                package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                coreReadmeFileService.Verify(x => x.DeleteReadmeFileAsync(package.Id, package.Version), Times.Once);
             }
 
             [Fact]
