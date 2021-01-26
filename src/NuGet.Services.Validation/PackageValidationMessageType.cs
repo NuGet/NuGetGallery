@@ -5,7 +5,9 @@ namespace NuGet.Services.Validation
 {
     public enum PackageValidationMessageType
     {
+        StartValidation,
         ProcessValidationSet,
+        CheckValidationSet,
         CheckValidator,
     }
 }

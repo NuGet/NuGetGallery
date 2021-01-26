@@ -5,6 +5,9 @@ using System;
 
 namespace NuGet.Services.Validation
 {
+    /// <summary>
+    /// The message to check a single validation step.
+    /// </summary>
     public class CheckValidatorData
     {
         public CheckValidatorData(Guid validationId)

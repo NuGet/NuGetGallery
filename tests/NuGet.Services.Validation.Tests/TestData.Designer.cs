@@ -61,6 +61,15 @@ namespace NuGet.Services.Validation.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;,&quot;ExtendExpiration&quot;:true}.
+        /// </summary>
+        internal static string SerializedCheckValidationSetData {
+            get {
+                return ResourceManager.GetString("SerializedCheckValidationSetData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {&quot;ValidationId&quot;:&quot;3fa83d31-3b44-4ffd-bfb8-02a9f5155af6&quot;}.
         /// </summary>
         internal static string SerializedCheckValidatorData {
@@ -120,6 +129,15 @@ namespace NuGet.Services.Validation.Tests {
         internal static string SerializedProcessValidationSetDataWithNoEntityKey2 {
             get {
                 return ResourceManager.GetString("SerializedProcessValidationSetDataWithNoEntityKey2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;,&quot;ContentType&quot;:&quot;VsCodeExtensionV1&quot;,&quot;ContentUrl&quot;:&quot;https://local.test/my/content&quot;,&quot;Properties&quot;:{&quot;Foo&quot;:&quot;Bar&quot;}}.
+        /// </summary>
+        internal static string SerializedStartValidationData {
+            get {
+                return ResourceManager.GetString("SerializedStartValidationData", resourceCulture);
             }
         }
     }

@@ -6,6 +6,9 @@ using NuGet.Versioning;
 
 namespace NuGet.Services.Validation
 {
+    /// <summary>
+    /// The message to process a validation set for NuGet or symbols package.
+    /// </summary>
     public class ProcessValidationSetData
     {
         public ProcessValidationSetData(
