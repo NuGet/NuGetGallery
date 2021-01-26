@@ -1195,6 +1195,11 @@ namespace NuGetGallery
                 TelemetryService.TrackPackagePushNamespaceConflictEvent(id, versionString, GetCurrentUser(), User.Identity);
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
             }
+            else if (result.PermissionsCheckResult == PermissionsCheckResult.OwnerlessReservedNamespaceFailure)
+            {
+                TelemetryService.TrackPackagePushOwnerlessNamespaceConflictEvent(id, versionString, GetCurrentUser(), User.Identity);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_OwnerlessIdNamespaceConflict);
+            }
 
             var message = result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed ?
                 Strings.ApiKeyOwnerUnconfirmed : Strings.ApiKeyNotAuthorized;

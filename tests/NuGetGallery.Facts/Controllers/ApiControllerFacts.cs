@@ -222,9 +222,24 @@ namespace NuGetGallery
                         continue;
                     }
 
-                    var isReservedNamespaceConflict = result == PermissionsCheckResult.ReservedNamespaceFailure;
-                    var statusCode = isReservedNamespaceConflict ? HttpStatusCode.Conflict : HttpStatusCode.Forbidden;
-                    var description = isReservedNamespaceConflict ? Strings.UploadPackage_IdNamespaceConflict : Strings.ApiKeyNotAuthorized;
+                    HttpStatusCode statusCode;
+                    string description;
+                    if (result == PermissionsCheckResult.ReservedNamespaceFailure)
+                    {
+                        statusCode = HttpStatusCode.Conflict;
+                        description = Strings.UploadPackage_IdNamespaceConflict;
+                    }
+                    else if (result == PermissionsCheckResult.OwnerlessReservedNamespaceFailure)
+                    {
+                        statusCode = HttpStatusCode.Conflict;
+                        description = Strings.UploadPackage_OwnerlessIdNamespaceConflict;
+                    }
+                    else
+                    {
+                        statusCode = HttpStatusCode.Forbidden;
+                        description = Strings.ApiKeyNotAuthorized;
+                    }
+
                     yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(null, result, scopesAreValid: true), statusCode, description);
                 }
             }

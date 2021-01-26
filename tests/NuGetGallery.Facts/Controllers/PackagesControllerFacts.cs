@@ -6505,7 +6505,7 @@ namespace NuGetGallery
                 Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
             }
 
-            public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace_Data
+            public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageIdIsBlockedByReservedNamespace_Data
             {
                 get
                 {
@@ -6516,8 +6516,8 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace_Data))]
-            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace(User currentUser, User reservedNamespaceOwner)
+            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageIdIsBlockedByReservedNamespace_Data))]
+            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesOwnedByOtherUserNamespace(User currentUser, User reservedNamespaceOwner)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -6552,9 +6552,58 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(String.Format(Strings.UploadPackage_IdNamespaceConflict), (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(Strings.UploadPackage_IdNamespaceConflict, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Null((result.Data as JsonValidationMessage[])[0].RawHtmlMessage);
                 fakeTelemetryService.Verify(
                     x => x.TrackPackagePushNamespaceConflictEvent(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        currentUser,
+                        controller.OwinContext.Request.User.Identity),
+                    Times.Once);
+            }
+
+            [Theory]
+            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageIdIsBlockedByReservedNamespace_Data))]
+            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace(User currentUser, User reservedNamespaceOwner)
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                Stream fakeFileStream = TestPackage.CreateTestPackageStream("Random.Package1", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
+                fakeUploadFileService.SetupSequence(x => x.GetUploadFileAsync(currentUser.Key))
+                    .Returns(Task.FromResult<Stream>(null))
+                    .Returns(Task.FromResult(fakeFileStream));
+
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(() => null);
+
+                var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
+                fakeReservedNamespaceService
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(new[] { new ReservedNamespace() });
+
+                var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    uploadFileService: fakeUploadFileService,
+                    packageService: fakePackageService,
+                    fakeNuGetPackage: fakeFileStream,
+                    reservedNamespaceService: fakeReservedNamespaceService,
+                    telemetryService: fakeTelemetryService);
+                controller.SetCurrentUser(currentUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Null((result.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                Assert.Equal(Strings.UploadPackage_OwnerlessIdNamespaceConflictHtml, (result.Data as JsonValidationMessage[])[0].RawHtmlMessage);
+                fakeTelemetryService.Verify(
+                    x => x.TrackPackagePushOwnerlessNamespaceConflictEvent(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         currentUser,

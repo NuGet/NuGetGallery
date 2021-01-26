@@ -61,6 +61,8 @@ namespace NuGetGallery
 
         void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity);
 
+        void TrackPackagePushOwnerlessNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity);
+
         void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode);
 
         void TrackNewUserRegistrationEvent(User user, Credential identity);
