@@ -2778,6 +2778,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package ID is reserved. You can upload your package with a different package ID. Reach out to support@nuget.org if you have questions..
+        /// </summary>
+        public static string UploadPackage_OwnerlessIdNamespaceConflict {
+            get {
+                return ResourceManager.GetString("UploadPackage_OwnerlessIdNamespaceConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package ID is reserved. You can upload your package with a different package ID. Reach out to &lt;a href=&quot;mailto:support@nuget.org&quot;&gt;support@nuget.org&lt;/a&gt; if you have questions..
+        /// </summary>
+        public static string UploadPackage_OwnerlessIdNamespaceConflictHtml {
+            get {
+                return ResourceManager.GetString("UploadPackage_OwnerlessIdNamespaceConflictHtml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package contains one or more duplicated files in the same folder..
         /// </summary>
         public static string UploadPackage_PackageContainsDuplicatedEntries {

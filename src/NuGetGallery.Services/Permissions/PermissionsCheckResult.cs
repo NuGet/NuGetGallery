@@ -31,6 +31,12 @@ namespace NuGetGallery
         /// <summary>
         /// The current user does not have permissions to perform the action on the <see cref="ReservedNamespace"/> on behalf of another <see cref="User"/>.
         /// </summary>
-        ReservedNamespaceFailure
+        ReservedNamespaceFailure,
+
+        /// <summary>
+        /// The current user does not have permissions to perform the action on the <see cref="ReservedNamespace"/> on behalf of another <see cref="User"/>
+        /// but none of the namespaces currently have owners.
+        /// </summary>
+        OwnerlessReservedNamespaceFailure,
     }
 }
