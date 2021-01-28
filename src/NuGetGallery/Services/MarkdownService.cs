@@ -136,14 +136,29 @@ namespace NuGetGallery
 
                         else if (inline.Tag == InlineTag.Image)
                         {
-                            if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                            if (_features.IsImageAllowlistEnabled())
                             {
-                                inline.TargetUrl = string.Empty;
+                                if (!PackageHelper.TryPrepareImageUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                                {
+                                    inline.TargetUrl = string.Empty;
+                                }
+                                else
+                                {
+                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
+                                    inline.TargetUrl = readyUriString;
+                                }
                             }
                             else
                             {
-                                output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
-                                inline.TargetUrl = readyUriString;
+                                if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                                {
+                                    inline.TargetUrl = string.Empty;
+                                }
+                                else
+                                {
+                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
+                                    inline.TargetUrl = readyUriString;
+                                }
                             }
                         }
                     }
@@ -205,14 +220,29 @@ namespace NuGetGallery
                         {
                             if (linkInline.IsImage)
                             {
-                                if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                if (_features.IsImageAllowlistEnabled())
                                 {
-                                    linkInline.Url = string.Empty;
+                                    if (!PackageHelper.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                    {
+                                        linkInline.Url = string.Empty;
+                                    }
+                                    else
+                                    {
+                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                        linkInline.Url = readyUriString;
+                                    }
                                 }
                                 else
                                 {
-                                    output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
-                                    linkInline.Url = readyUriString;
+                                    if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                    {
+                                        linkInline.Url = string.Empty;
+                                    }
+                                    else
+                                    {
+                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                        linkInline.Url = readyUriString;
+                                    }
                                 }
                             }
                             else

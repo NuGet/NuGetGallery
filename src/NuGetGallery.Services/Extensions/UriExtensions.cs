@@ -3,6 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace NuGetGallery
@@ -10,6 +14,41 @@ namespace NuGetGallery
     public static class UriExtensions
     {
         private static string ExternalLinkAnchorTagFormat = $"<a href=\"{{1}}\" target=\"_blank\">{{0}}</a>";
+        private const string GithubBadgeRegExPattern = "^(https|http):\\/\\/github\\.com\\/[^/]+\\/[^/]+\\/workflows\\/.*badge\\.svg";
+        private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(2);
+        private static readonly Regex GithubBadgeUrlRegEx = new Regex(GithubBadgeRegExPattern, RegexOptions.Compiled, Timeout);
+
+        private static readonly IReadOnlyCollection<string> TrustedImageSources = new HashSet<string>
+        {
+            "api.bintray.com",
+            "api.codacy.com",
+            "api.codeclimate.com",
+            "api.dependabot.com",
+            "api.travis-ci.com",
+            "api.travis-ci.org",
+            "app.fossa.io",
+            "badge.fury.io",
+            "badgen.net",
+            "badges.gitter.im",
+            "bettercodehub.com",
+            "buildstats.info",
+            "ci.appveyor.com",
+            "circleci.com",
+            "codecov.io",
+            "codefactor.io",
+            "coveralls.io",
+            "dev.azure.com",
+            "gitlab.com",
+            "img.shields.io",
+            "isitmaintained.com",
+            "opencollective.com",
+            "snyk.io",
+            "sonarcloud.io",
+            "raw.github.com",
+            "raw.githubusercontent.com",
+            "user-images.githubusercontent.com",
+            "camo.githubusercontent.com",
+        };
 
         public static string ToEncodedUrlStringOrNull(this Uri uri)
         {
@@ -43,6 +82,25 @@ namespace NuGetGallery
                    IsCodeplexUri(uri) || 
                    IsMicrosoftUri(uri) || 
                    IsNuGetUri(uri);
+        }
+
+        public static bool IsTrustedImageDomain(this Uri uri)
+        {
+
+            return TrustedImageSources.Contains(uri.Host, StringComparer.OrdinalIgnoreCase) ||
+                IsGitHubBadge(uri);
+        }
+
+        private static bool IsGitHubBadge(this Uri uri)
+        {
+            try
+            {
+                return GithubBadgeUrlRegEx.IsMatch(uri.ToString());
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                return false;
+            }
         }
 
         public static bool IsGitHubUri(this Uri uri)

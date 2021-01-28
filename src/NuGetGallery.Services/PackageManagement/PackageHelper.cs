@@ -74,6 +74,40 @@ namespace NuGetGallery
             return false;
         }
 
+        /// <summary>
+        /// If the input uri is http => check if it's a known domain and convert to https.
+        /// If the input uri is https => check if it's a known domain 
+        /// If the input uri is not a valid uri or not http/https => return false
+        /// </summary>
+        public static bool TryPrepareImageUrlForRendering(string uriString, out string readyUriString, bool rewriteAllHttp = false)
+        {
+            Uri returnUri = null;
+            readyUriString = null;
+
+            if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
+            {
+                if (uri.IsHttpProtocol())
+                {
+                    if (rewriteAllHttp && uri.IsTrustedImageDomain())
+                    {
+                        returnUri = uri.ToHttps();
+                    }
+                }
+                else if (uri.IsHttpsProtocol() && uri.IsTrustedImageDomain())
+                {
+                    returnUri = uri;
+                }
+            }
+
+            if (returnUri != null)
+            {
+                readyUriString = returnUri.AbsoluteUri;
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool IsGitRepositoryType(string repositoryType)
         {
             return ServicesConstants.GitRepository.Equals(repositoryType, StringComparison.OrdinalIgnoreCase);
