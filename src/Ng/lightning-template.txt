@@ -14,16 +14,14 @@ start /w ng.exe lightning ^
     -galleryBaseAddress "[galleryBaseAddress]" ^
     -storageBaseAddress "[storageBaseAddress]" ^
     -storageAccountName "[storageAccountName]" ^
-    -storageKeyValue "[storageKeyValue]" ^
     -storageContainer "[storageContainer]" ^
     -compressedStorageBaseAddress "[compressedStorageBaseAddress]" ^
     -compressedStorageAccountName "[compressedStorageAccountName]" ^
-    -compressedStorageKeyValue "[compressedStorageKeyValue]" ^
     -compressedStorageContainer "[compressedStorageContainer]" ^
     -semVer2StorageBaseAddress "[semVer2StorageBaseAddress]" ^
     -semVer2StorageAccountName "[semVer2StorageAccountName]" ^
-    -semVer2StorageKeyValue "[semVer2StorageKeyValue]" ^
     -semVer2StorageContainer "[semVer2StorageContainer]" ^
+    [storageCredentialArguments]
     [optionalArguments]
 
 @echo finished
