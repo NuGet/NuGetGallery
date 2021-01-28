@@ -104,12 +104,11 @@ namespace NuGetGallery
                 Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
             }
 
-            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true, true)]
-            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true, false)]
-            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", false, true)]
-            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", false, false)]
-            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>", true, true)]
-            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>", true, false)]
+            [Theory]
+            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"\" target=\"_blank\" rel=\"noopener noreferrer\" crossorigin=\"anonymous\" alt=\"image\" /></p>", false, true)]
+            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"\" target=\"_blank\" rel=\"noopener noreferrer\" crossorigin=\"anonymous\" alt=\"image\" /></p>", false, false)]
+            [InlineData("![image](https://api.bintray.com/example/image.svg)", "<p><img src=\"https://api.bintray.com/example/image.svg\" target=\"_blank\" rel=\"noopener noreferrer\" crossorigin=\"anonymous\" alt=\"image\" /></p>", false, true)]
+            [InlineData("![image](http://api.bintray.com/example/image.svg)", "<p><img src=\"https://api.bintray.com/example/image.svg\" target=\"_blank\" rel=\"noopener noreferrer\" crossorigin=\"anonymous\" alt=\"image\" /></p>", true, false)]
             public void ConvertsMarkdownToHtmlWithImageAllowlistEnabled(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
