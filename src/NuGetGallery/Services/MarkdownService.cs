@@ -23,6 +23,7 @@ namespace NuGetGallery
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
+        private static readonly Regex ImageSourcePattern = new Regex("<img src=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
 
         private readonly IFeatureFlagService _features;
 
@@ -171,6 +172,12 @@ namespace NuGetGallery
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
 
                 output.Content = LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
+
+                if (_features.IsImageAllowlistEnabled())
+                {
+                    output.Content = ImageSourcePattern.Replace(htmlWriter.ToString(), "$0" + " target=\"_blank\" rel=\"noopener noreferrer\" crossorigin=\"anonymous\"").Trim();
+                }
+
                 return output;
             }
         }
@@ -262,7 +269,15 @@ namespace NuGetGallery
                 }
 
                 renderer.Render(document);
-                output.Content = htmlWriter.ToString().Trim();
+                if (_features.IsImageAllowlistEnabled())
+                {
+                    output.Content = ImageSourcePattern.Replace(htmlWriter.ToString(), "$0" + " target=\"_blank\" rel=\"noopener noreferrer\" crossorigin=\"anonymous\"").Trim();
+                }
+                else
+                {
+                    output.Content = htmlWriter.ToString().Trim();
+                }
+
                 return output;
             }
         }

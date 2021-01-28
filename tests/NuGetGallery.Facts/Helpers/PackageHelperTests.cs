@@ -193,6 +193,9 @@ namespace NuGetGallery.Helpers
         [InlineData("https://travis-ci.org/Azure/azure-relay-aspnetserver.svg?branch=dev", true, null, false)]
         [InlineData("https://travis-ci.org/Azure/azure-relay-aspnetserver.svg?branch=dev", false, null, false)]
         [InlineData("http://nuget.org/", true, null, false)]
+        [InlineData("https://raw.github.com/image", true, "https://raw.github.com/image", true)]
+        [InlineData("https://user-images.githubusercontent.com/image", true, "https://user-images.githubusercontent.com/image", true)]
+        [InlineData("https://camo.githubusercontent.com/image", true, "https://camo.githubusercontent.com/image", true)]
         public void TryPrepareImageUrlForRendering(string input, bool alwaysRewriteHttp, string expectedOutput, bool expectConversion)
         {
             Assert.Equal(expectConversion, PackageHelper.TryPrepareImageUrlForRendering(input, out string readyUriString, alwaysRewriteHttp));

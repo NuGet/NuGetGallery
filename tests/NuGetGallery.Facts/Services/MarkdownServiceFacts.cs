@@ -95,10 +95,25 @@ namespace NuGetGallery
             [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>", true, false)]
             [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3>License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);\n</code></pre>", false, true)]
             [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3>License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);\n</code></pre>", false, true)]
-            public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled, bool isImageAllowlistEnabled)
+            public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
-                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(isImageAllowlistEnabled);
+                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(false);
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
+            }
+
+            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true, true)]
+            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true, false)]
+            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", false, true)]
+            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", false, false)]
+            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>", true, true)]
+            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>", true, false)]
+            public void ConvertsMarkdownToHtmlWithImageAllowlistEnabled(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
+            {
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
