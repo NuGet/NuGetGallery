@@ -76,17 +76,17 @@ namespace NuGetGallery
             [InlineData("- List", "<ul>\n<li>List</li>\n</ul>", false, true)]
             [InlineData("- List", "<ul>\r\n<li>List</li>\r\n</ul>", false, false)]
             [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"nofollow\">text</a></p>", false, false)]
+            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
             [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false, false)]
+            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
             [InlineData("> <text>Blockquote</text>", "<blockquote>\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>", false, true)]
             [InlineData("> <text>Blockquote</text>", "<blockquote>\r\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\r\n</blockquote>", false, false)]
             [InlineData("> > <text>Blockquote</text>", "<blockquote>\n<blockquote>\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>\n</blockquote>", false, true)]
             [InlineData("> > <text>Blockquote</text>", "<blockquote>\r\n<p>&gt; &lt;text&gt;Blockquote&lt;/text&gt;</p>\r\n</blockquote>", false, false)]
             [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>", false, false)]
+            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
             [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false, false)]
+            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
             [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true, true)]
             [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true, false)]
             [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", false, true)]
@@ -105,10 +105,10 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"\" referrerpolicy=\"no-referrer\" crossorigin=\"anonymous\" alt=\"image\" /></p>", false, true)]
-            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"\" referrerpolicy=\"no-referrer\" crossorigin=\"anonymous\" alt=\"image\" /></p>", false, false)]
-            [InlineData("![image](https://api.bintray.com/example/image.svg)", "<p><img src=\"https://api.bintray.com/example/image.svg\" referrerpolicy=\"no-referrer\" crossorigin=\"anonymous\" alt=\"image\" /></p>", false, true)]
-            [InlineData("![image](http://api.bintray.com/example/image.svg)", "<p><img src=\"https://api.bintray.com/example/image.svg\" referrerpolicy=\"no-referrer\" crossorigin=\"anonymous\" alt=\"image\" /></p>", true, false)]
+            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"\" alt=\"image\" /></p>", false, true)]
+            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"\" alt=\"image\" /></p>", false, false)]
+            [InlineData("![image](https://api.bintray.com/example/image.svg)", "<p><img src=\"https://api.bintray.com/example/image.svg\" alt=\"image\" /></p>", false, true)]
+            [InlineData("![image](http://api.bintray.com/example/image.svg)", "<p><img src=\"https://api.bintray.com/example/image.svg\" alt=\"image\" /></p>", true, false)]
             public void ConvertsMarkdownToHtmlWithImageAllowlistEnabled(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
@@ -210,7 +210,7 @@ Some text
             {
                 var originalMd = "This is a http://www.google.com URL and https://www.google.com";
 
-                var expectedHtml = "<p>This is a <a href=\"http://www.google.com/\" rel=\"nofollow\">http://www.google.com</a> URL and <a href=\"https://www.google.com/\" rel=\"nofollow\">https://www.google.com</a></p>";
+                var expectedHtml = "<p>This is a <a href=\"http://www.google.com/\" rel=\"noopener noreferrer nofollow\">http://www.google.com</a> URL and <a href=\"https://www.google.com/\" rel=\"noopener noreferrer nofollow\">https://www.google.com</a></p>";
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
