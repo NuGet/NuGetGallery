@@ -7,14 +7,16 @@ using System.Collections.Generic;
 namespace NuGet.Services.Validation
 {
     /// <summary>
-    /// The status of an <see cref="IValidator"/>'s validation of a package. This should be used
-    /// by each <see cref="IValidator"/> to persist its state.
+    /// The Orchestrator integrates with a downstream validation job by implementing a "validator".
+    /// The Orchestrator, through its validator, creates this entity when it starts a new validation step
+    /// and polls the entity to receive status updates. Meanwhile, the downstream validation job
+    /// passes information back to the Orchestrator by updating this entity.
     /// </summary>
     public class ValidatorStatus
     {
         /// <summary>
-        /// The unique identifier for this validation. The Validation Orchestrator generates a unique
-        /// validation ID for each <see cref="IValidator"/> it runs on a single package.
+        /// The unique identifier for this validation step. The Validation Orchestrator generates a unique
+        /// validation ID for each validation step it runs on a single package.
         /// </summary>
         public Guid ValidationId { get; set; }
 
@@ -24,7 +26,7 @@ namespace NuGet.Services.Validation
         public int PackageKey { get; set; }
 
         /// <summary>
-        /// The name of the <see cref="IValidator"/>.
+        /// The name of the "validator" for this validation step.
         /// </summary>
         public string ValidatorName { get; set; }
 

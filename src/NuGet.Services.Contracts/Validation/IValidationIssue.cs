@@ -4,7 +4,7 @@
 namespace NuGet.Services.Validation
 {
     /// <summary>
-    /// A validation issue encountered during a validation.
+    /// A validation issue encountered during a validation step.
     /// </summary>
     public interface IValidationIssue
     {

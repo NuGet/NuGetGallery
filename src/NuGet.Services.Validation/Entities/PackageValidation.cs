@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace NuGet.Services.Validation
 {
     /// <summary>
-    /// Represents a single validation performed on a package. The associated package is implied via the validations's
+    /// Represents a single validation step performed on a package. The associated package is implied via the validations's
     /// <see cref="NuGetGallery.PackageValidationSet"/>.
     /// </summary>
     public class PackageValidation
