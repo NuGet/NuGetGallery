@@ -336,6 +336,10 @@ var BindReadMeDataManager = (function () {
             if (response.ImagesRewritten) {
                 displayReadMeWarning("Some images were automatically rewritten to use secure links and might be broken.");
             }
+
+            if (response.ImageSourceDisallowed) {
+                displayReadMeWarning("Some images were broken might due to images source are not from trusted services.");
+            }
         }
 
         function displayReadMeEditMarkdown() {

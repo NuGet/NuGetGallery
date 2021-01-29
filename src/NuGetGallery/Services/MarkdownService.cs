@@ -76,7 +76,8 @@ namespace NuGetGallery
             var output = new RenderedMarkdownResult()
             {
                 ImagesRewritten = false,
-                Content = ""
+                Content = "",
+                ImageSourceDisallowed = false
             };
 
             var readmeWithoutBom = markdownString.StartsWith("\ufeff") ? markdownString.Replace("\ufeff", "") : markdownString;
@@ -142,6 +143,7 @@ namespace NuGetGallery
                                 if (!PackageHelper.TryPrepareImageUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
                                 {
                                     inline.TargetUrl = string.Empty;
+                                    output.ImageSourceDisallowed = true;
                                 }
                                 else
                                 {
@@ -170,13 +172,7 @@ namespace NuGetGallery
             using (var htmlWriter = new StringWriter())
             {
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
-
-                output.Content = LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
-
-                if (_features.IsImageAllowlistEnabled())
-                {
-                    output.Content = ImageSourcePattern.Replace(htmlWriter.ToString(), "$0" + " target=\"_blank\" rel=\"noopener noreferrer\" crossorigin=\"anonymous\"").Trim();
-                }
+                output.Content = LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"noopener noreferrer nofollow\"").Trim();
 
                 return output;
             }
@@ -187,7 +183,8 @@ namespace NuGetGallery
             var output = new RenderedMarkdownResult()
             {
                 ImagesRewritten = false,
-                Content = ""
+                Content = "",
+                ImageSourceDisallowed = false
             };
 
             var readmeWithoutBom = markdownString.TrimStart('\ufeff');
@@ -200,7 +197,7 @@ namespace NuGetGallery
                 .UseSoftlineBreakAsHardlineBreak()
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
-                .UseReferralLinks("nofollow")
+                .UseReferralLinks("noopener noreferrer nofollow")
                 .DisableHtml() //block inline html
                 .Build();
 
@@ -232,6 +229,7 @@ namespace NuGetGallery
                                     if (!PackageHelper.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
                                     {
                                         linkInline.Url = string.Empty;
+                                        output.ImageSourceDisallowed = true;
                                     }
                                     else
                                     {
@@ -269,14 +267,7 @@ namespace NuGetGallery
                 }
 
                 renderer.Render(document);
-                if (_features.IsImageAllowlistEnabled())
-                {
-                    output.Content = ImageSourcePattern.Replace(htmlWriter.ToString(), "$0" + " target=\"_blank\" rel=\"noopener noreferrer\" crossorigin=\"anonymous\"").Trim();
-                }
-                else
-                {
-                    output.Content = htmlWriter.ToString().Trim();
-                }
+                output.Content = htmlWriter.ToString().Trim();
 
                 return output;
             }
