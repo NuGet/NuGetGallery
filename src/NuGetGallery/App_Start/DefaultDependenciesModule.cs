@@ -67,6 +67,9 @@ namespace NuGetGallery
             public const string AsyncDeleteAccountName = "AsyncDeleteAccountService";
             public const string SyncDeleteAccountName = "SyncDeleteAccountService";
 
+            public const string PrimaryStatisticsKey = "PrimaryStatisticsKey";
+            public const string AlternateStatisticsKey = "AlternateStatisticsKey";
+
             public const string AccountDeleterTopic = "AccountDeleterBindingKey";
             public const string PackageValidationTopic = "PackageValidationBindingKey";
             public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
@@ -696,6 +699,51 @@ namespace NuGetGallery
                     .As<IDeleteAccountService>()
                     .InstancePerLifetimeScope();
             }
+        }
+
+        private static void RegisterStatisticsServices(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryService telemetryService)
+        {
+            // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
+            builder.RegisterInstance(new JsonAggregateStatsService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+                .AsSelf()
+                .As<IAggregateStatsService>()
+                .SingleInstance();
+
+            // when running on Windows Azure, pull the statistics from the warehouse via storage
+            builder.RegisterInstance(new CloudReportService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+                .AsSelf()
+                .As<IReportService>()
+                .SingleInstance();
+
+            // when running on Windows Azure, download counts come from the downloads.v1.json blob
+            builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+                .SingleInstance()
+                .Keyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
+
+            builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate, configuration.Current.AzureStorageReadAccessGeoRedundant))
+                .SingleInstance()
+                .Keyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
+
+            builder.Register(c =>
+            {
+                var primaryConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
+                var alternateConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
+                var featureFlagService = c.Resolve<IFeatureFlagService>();
+                var downloadCountService = new CloudDownloadCountService(telemetryService, featureFlagService, primaryConfiguration, alternateConfiguration);
+
+                var dlCountInterceptor = new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryService);
+                ObjectMaterializedInterception.AddInterceptor(dlCountInterceptor);
+
+                return downloadCountService;
+            })
+                .AsSelf()
+                .As<IDownloadCountService>()
+                .SingleInstance();
+
+            builder.RegisterType<JsonStatisticsService>()
+                .AsSelf()
+                .As<IStatisticsService>()
+                .SingleInstance();
         }
 
         private static void RegisterSwitchingDeleteAccountService(ContainerBuilder builder, ConfigurationService configuration)
@@ -1368,34 +1416,7 @@ namespace NuGetGallery
                 }
             }
 
-            // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
-            builder.RegisterInstance(new JsonAggregateStatsService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .AsSelf()
-                .As<IAggregateStatsService>()
-                .SingleInstance();
-
-            // when running on Windows Azure, pull the statistics from the warehouse via storage
-            builder.RegisterInstance(new CloudReportService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .AsSelf()
-                .As<IReportService>()
-                .SingleInstance();
-
-            // when running on Windows Azure, download counts come from the downloads.v1.json blob
-            var downloadCountService = new CloudDownloadCountService(
-                telemetryService,
-                configuration.Current.AzureStorage_Statistics_ConnectionString,
-                configuration.Current.AzureStorageReadAccessGeoRedundant);
-
-            builder.RegisterInstance(downloadCountService)
-                .AsSelf()
-                .As<IDownloadCountService>()
-                .SingleInstance();
-            ObjectMaterializedInterception.AddInterceptor(new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryService));
-
-            builder.RegisterType<JsonStatisticsService>()
-                .AsSelf()
-                .As<IStatisticsService>()
-                .SingleInstance();
+            RegisterStatisticsServices(builder, configuration, telemetryService);
 
             builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .As<ErrorLog>()

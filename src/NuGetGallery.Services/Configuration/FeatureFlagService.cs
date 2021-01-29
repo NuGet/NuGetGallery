@@ -15,6 +15,7 @@ namespace NuGetGallery
         private const string GalleryPrefix = "NuGetGallery.";
 
         private const string ABTestingFlightName = GalleryPrefix + "ABTesting";
+        private const string AlternateStatisticsSourceFeatureName = GalleryPrefix + "AlternateStatisticsSource";
         private const string AsyncAccountDeleteFeatureName = GalleryPrefix + "AsyncAccountDelete";
         private const string SelfServiceAccountDeleteFeatureName = GalleryPrefix + "SelfServiceAccountDelete";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
@@ -66,6 +67,11 @@ namespace NuGetGallery
         public FeatureFlagService(IFeatureFlagClient client)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+        }
+
+        public bool IsAlternateStatisticsSourceEnabled()
+        {
+            return _client.IsEnabled(AlternateStatisticsSourceFeatureName, defaultValue: false);
         }
 
         public bool IsAsyncAccountDeleteEnabled()

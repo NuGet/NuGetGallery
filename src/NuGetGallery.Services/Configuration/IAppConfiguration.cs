@@ -76,6 +76,11 @@ namespace NuGetGallery.Configuration
         string AzureStorage_Statistics_ConnectionString { get; set; }
 
         /// <summary>
+        /// The Azure Storage connection string used for statistics. Secondary
+        /// </summary>
+        string AzureStorage_Statistics_ConnectionString_Alternate { get; set; }
+
+        /// <summary>
         /// The Azure Storage connection string used for package uploads, before publishing.
         /// </summary>
         string AzureStorage_Uploads_ConnectionString { get; set; }
