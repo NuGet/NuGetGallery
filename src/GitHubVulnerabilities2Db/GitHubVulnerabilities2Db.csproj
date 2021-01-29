@@ -89,7 +89,7 @@
       <Version>4.3.0-dev-3612825</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.82.0-loshar-uvp-rename-4411505</Version>
+      <Version>2.82.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
