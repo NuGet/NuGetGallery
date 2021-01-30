@@ -13,7 +13,7 @@ using NuGet.Services.Validation.Orchestrator.Telemetry;
 namespace NuGet.Services.Validation.Symbols
 {
     [ValidatorName(ValidatorName.SymbolsValidator)]
-    public class SymbolsValidator : BaseValidator, IValidator
+    public class SymbolsValidator : BaseNuGetValidator, INuGetValidator
     {
         private readonly IValidatorStateService _validatorStateService;
         private readonly ISymbolsMessageEnqueuer _symbolMessageEnqueuer;
@@ -32,7 +32,7 @@ namespace NuGet.Services.Validation.Symbols
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<IValidationResult> GetResultAsync(IValidationRequest request)
+        public async Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
         {
             if (request == null)
             {
@@ -40,17 +40,17 @@ namespace NuGet.Services.Validation.Symbols
             }
 
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
-            var result = validatorStatus.ToValidationResult();
+            var response = validatorStatus.ToNuGetValidationResponse();
             if (validatorStatus.State == ValidationStatus.Failed)
             {
                 _logger.LogInformation(
                     "SymbolValidationFailure "+
                     "status = {ValidationStatus}, snupkg URL = {NupkgUrl}, validation issues = {Issues}",
-                    result.Status,
-                    result.NupkgUrl,
-                    result.Issues.Select(i => i.IssueCode));
+                    response.Status,
+                    response.NupkgUrl,
+                    response.Issues.Select(i => i.IssueCode));
             }
-            return result;
+            return response;
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace NuGet.Services.Validation.Symbols
         /// </summary>
         /// <param name="request">The request to be send to the validator job queue.</param>
         /// <returns>The validation status.</returns>
-        public async Task<IValidationResult> StartAsync(IValidationRequest request)
+        public async Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
         {
             if (request == null)
             {
@@ -79,7 +79,7 @@ namespace NuGet.Services.Validation.Symbols
                     request.PackageId,
                     request.PackageVersion);
 
-                return validatorStatus.ToValidationResult();
+                return validatorStatus.ToNuGetValidationResponse();
             }
 
             // Due to race conditions or failure of method TryAddValidatorStatusAsync the same message can be enqueued multiple times
@@ -89,7 +89,7 @@ namespace NuGet.Services.Validation.Symbols
 
             var result = await _validatorStateService.TryAddValidatorStatusAsync(request, validatorStatus, ValidationStatus.Incomplete);
 
-            return result.ToValidationResult();
+            return result.ToNuGetValidationResponse();
         }
     }
 }

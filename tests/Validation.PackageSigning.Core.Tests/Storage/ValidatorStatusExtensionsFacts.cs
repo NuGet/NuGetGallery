@@ -11,7 +11,7 @@ namespace Validation.PackageSigning.Core.Tests.Storage
 {
     public class ValidatorStatusExtensionsFacts
     {
-        public class ToValidationResult
+        public class ToNuGetValidationResponse
         {
             [Fact]
             public void RejectsNullValidatorStatus()
@@ -20,7 +20,7 @@ namespace Validation.PackageSigning.Core.Tests.Storage
                 ValidatorStatus validatorStatus = null;
 
                 // Act & Assert
-                var ex = Assert.Throws<ArgumentNullException>(() => validatorStatus.ToValidationResult());
+                var ex = Assert.Throws<ArgumentNullException>(() => validatorStatus.ToNuGetValidationResponse());
                 Assert.Equal("validatorStatus", ex.ParamName);
             }
 
@@ -34,7 +34,7 @@ namespace Validation.PackageSigning.Core.Tests.Storage
                 };
 
                 // Act & Assert
-                var ex = Assert.Throws<ArgumentException>(() => validatorStatus.ToValidationResult());
+                var ex = Assert.Throws<ArgumentException>(() => validatorStatus.ToNuGetValidationResponse());
                 Assert.Contains("The ValidatorIssues property must not be null.", ex.Message);
                 Assert.Equal("validatorStatus", ex.ParamName);
             }
@@ -50,7 +50,7 @@ namespace Validation.PackageSigning.Core.Tests.Storage
                 };
 
                 // Act
-                var result = validatorStatus.ToValidationResult();
+                var result = validatorStatus.ToNuGetValidationResponse();
 
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, result.Status);
@@ -71,7 +71,7 @@ namespace Validation.PackageSigning.Core.Tests.Storage
                 };
 
                 // Act
-                var result = validatorStatus.ToValidationResult();
+                var result = validatorStatus.ToNuGetValidationResponse();
 
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, result.Status);
@@ -96,7 +96,7 @@ namespace Validation.PackageSigning.Core.Tests.Storage
                 };
 
                 // Act
-                var result = validatorStatus.ToValidationResult();
+                var result = validatorStatus.ToNuGetValidationResponse();
 
                 // Assert
                 Assert.Equal(ValidationStatus.Failed, result.Status);

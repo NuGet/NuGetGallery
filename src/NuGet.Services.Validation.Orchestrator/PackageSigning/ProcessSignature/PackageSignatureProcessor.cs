@@ -14,7 +14,7 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
     /// This runs before a package is repository signed.
     /// </summary>
     [ValidatorName(ValidatorName.PackageSignatureProcessor)]
-    public class PackageSignatureProcessor : BaseSignatureProcessor, IProcessor
+    public class PackageSignatureProcessor : BaseSignatureProcessor, INuGetProcessor
     {
         private readonly IValidatorStateService _validatorStateService;
         private readonly IProcessSignatureEnqueuer _signatureVerificationEnqueuer;

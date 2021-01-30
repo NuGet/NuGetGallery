@@ -28,7 +28,7 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public Task EnqueueProcessSignatureAsync(IValidationRequest request, bool requireRepositorySignature)
+        public Task EnqueueProcessSignatureAsync(INuGetValidationRequest request, bool requireRepositorySignature)
         {
             var message = new SignatureValidationMessage(
                 request.PackageId,

@@ -479,7 +479,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 };
                 var expected = new StorageException("Validation set package not found!");
                 ValidatorProviderMock
-                    .Setup(x => x.IsProcessor(It.Is<string>(n => n.Contains("Processor"))))
+                    .Setup(x => x.IsNuGetProcessor(It.Is<string>(n => n.Contains("Processor"))))
                     .Returns(true);
                 PackageFileServiceMock
                     .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet, It.IsAny<IAccessCondition>()))
@@ -502,16 +502,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     x => x.DoesValidationSetPackageExistAsync(It.IsAny<PackageValidationSet>()),
                     Times.Never);
                 ValidatorProviderMock.Verify(
-                    x => x.IsProcessor("SomeValidatorA"),
+                    x => x.IsNuGetProcessor("SomeValidatorA"),
                     Times.Once);
                 ValidatorProviderMock.Verify(
-                    x => x.IsProcessor("SomeValidatorB"),
+                    x => x.IsNuGetProcessor("SomeValidatorB"),
                     Times.Once);
                 ValidatorProviderMock.Verify(
-                    x => x.IsProcessor("SomeProcessorA"),
+                    x => x.IsNuGetProcessor("SomeProcessorA"),
                     Times.Once);
                 ValidatorProviderMock.Verify(
-                    x => x.IsProcessor("SomeProcessorB"),
+                    x => x.IsNuGetProcessor("SomeProcessorB"),
                     Times.Never); // Never checked, since SomeProcessorA was found.
             }
 

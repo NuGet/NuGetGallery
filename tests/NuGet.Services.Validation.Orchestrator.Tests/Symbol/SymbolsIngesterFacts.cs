@@ -27,7 +27,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
         private const string NupkgUrl = "https://example/nuget.versioning/1.2.3/package.nupkg";
         private const string SnupkgUrl = "https://example/nuget.versioning/1.2.3/package.snupkg";
 
-        public class TheGetStatusMethod : FactsBase
+        public class TheGetResponseAsyncMethod : FactsBase
         {
             private static readonly ValidationStatus[] possibleValidationStatuses = new ValidationStatus[]
             {
@@ -36,7 +36,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 ValidationStatus.Succeeded
             };
 
-            public TheGetStatusMethod(ITestOutputHelper output) : base(output)
+            public TheGetResponseAsyncMethod(ITestOutputHelper output) : base(output)
             {
             }
 
@@ -46,7 +46,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             {
                 // Arrange
                 _symbolsValidationEntitiesService
-                    .Setup(x => x.GetSymbolsServerRequestAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetSymbolsServerRequestAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new SymbolsServerRequest
                     {
                         Created = DateTime.UtcNow,
@@ -57,7 +57,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     });
 
                 // Act & Assert
-                var actual = await _target.GetResultAsync(_validationRequest.Object);
+                var actual = await _target.GetResponseAsync(_validationRequest.Object);
 
                 Assert.Equal(status, actual.Status);
             }
@@ -84,7 +84,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             {
                 // Arrange
                 _symbolsValidationEntitiesService
-                    .Setup(x => x.GetSymbolsServerRequestAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetSymbolsServerRequestAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new SymbolsServerRequest
                     {
                         Created = DateTime.UtcNow,
@@ -98,7 +98,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 await _target.StartAsync(_validationRequest.Object);
 
                 _symbolMessageEnqueuer
-                    .Verify(x => x.EnqueueSymbolsIngestionMessageAsync(It.IsAny<IValidationRequest>()), Times.Never);
+                    .Verify(x => x.EnqueueSymbolsIngestionMessageAsync(It.IsAny<INuGetValidationRequest>()), Times.Never);
 
                 _symbolsValidationEntitiesService
                     .Verify(x => x.AddSymbolsServerRequestAsync(It.IsAny<SymbolsServerRequest>()), Times.Never);
@@ -126,11 +126,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 var symbolsIngesterMessage = new SymbolsIngesterMessage(ValidationId, PackageKey, PackageId, PackageVersion, SnupkgUrl, "DummyRequestName");
 
                 _symbolsValidationEntitiesService
-                     .Setup(x => x.GetSymbolsServerRequestAsync(It.IsAny<IValidationRequest>()))
+                     .Setup(x => x.GetSymbolsServerRequestAsync(It.IsAny<INuGetValidationRequest>()))
                      .ReturnsAsync((SymbolsServerRequest)null);
 
                 _symbolMessageEnqueuer
-                    .Setup(x => x.EnqueueSymbolsIngestionMessageAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.EnqueueSymbolsIngestionMessageAsync(It.IsAny<INuGetValidationRequest>()))
                     .Callback(() =>
                     {
                         verificationQueuedBeforeStatePersisted = !statePersisted;
@@ -150,7 +150,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
 
                 // Assert
                 _symbolMessageEnqueuer
-                    .Verify(x => x.EnqueueSymbolsIngestionMessageAsync(It.IsAny<IValidationRequest>()), Times.Once);
+                    .Verify(x => x.EnqueueSymbolsIngestionMessageAsync(It.IsAny<INuGetValidationRequest>()), Times.Once);
 
                 _symbolsValidationEntitiesService
                     .Verify(
@@ -173,7 +173,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             protected readonly Mock<ISymbolsIngesterMessageEnqueuer> _symbolMessageEnqueuer;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly ILogger<SymbolsIngester> _logger;
-            protected readonly Mock<IValidationRequest> _validationRequest;
+            protected readonly Mock<INuGetValidationRequest> _validationRequest;
             protected readonly SymbolsIngester _target;
 
             public FactsBase(ITestOutputHelper output)
@@ -184,7 +184,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 var loggerFactory = new LoggerFactory().AddXunit(output);
                 _logger = loggerFactory.CreateLogger<SymbolsIngester>();
 
-                _validationRequest = new Mock<IValidationRequest>();
+                _validationRequest = new Mock<INuGetValidationRequest>();
                 _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
                 _validationRequest.Setup(x => x.PackageId).Returns(PackageId);
                 _validationRequest.Setup(x => x.PackageKey).Returns(PackageKey);

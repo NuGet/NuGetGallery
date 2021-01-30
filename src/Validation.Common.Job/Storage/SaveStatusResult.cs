@@ -15,7 +15,7 @@ namespace NuGet.Jobs.Validation.Storage
 
         /// <summary>
         /// The <see cref="ValidatorStatus"/> is stale. The status should be refetched using
-        /// <see cref="IValidatorStateService.GetStatusAsync(string, IValidationRequest)"/> before attempting
+        /// <see cref="IValidatorStateService.GetStatusAsync(string, INuGetValidationRequest)"/> before attempting
         /// to save again.
         /// </summary>
         StaleStatus

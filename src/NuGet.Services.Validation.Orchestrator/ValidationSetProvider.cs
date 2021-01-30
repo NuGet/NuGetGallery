@@ -91,7 +91,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 // If there are any processors in the validation set, back up the original. We back up from the
                 // validation set copy to avoid concurrency issues.
-                if (validationSet.PackageValidations.Any(x => _validatorProvider.IsProcessor(x.Type)))
+                if (validationSet.PackageValidations.Any(x => _validatorProvider.IsNuGetProcessor(x.Type)))
                 {
                     await _packageFileService.BackupPackageFileFromValidationSetPackageAsync(validationSet);
                 }

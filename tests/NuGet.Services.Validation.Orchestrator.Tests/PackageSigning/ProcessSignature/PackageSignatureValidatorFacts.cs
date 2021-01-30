@@ -28,7 +28,7 @@ namespace NuGet.Services.Validation.PackageSigning
         private static readonly Guid ValidationId = new Guid("fb9c0bac-3d4d-4cc7-ac2d-b3940e15b94d");
         private const string NupkgUrl = "https://example/nuget.versioning/4.3.0/package.nupkg";
 
-        public class TheGetStatusMethod : FactsBase
+        public class TheGetResponseAsyncMethod : FactsBase
         {
             private static readonly ValidationStatus[] possibleValidationStatuses = new ValidationStatus[]
             {
@@ -37,7 +37,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 ValidationStatus.Succeeded,
             };
 
-            public TheGetStatusMethod(ITestOutputHelper output) : base(output)
+            public TheGetResponseAsyncMethod(ITestOutputHelper output) : base(output)
             {
             }
 
@@ -47,7 +47,7 @@ namespace NuGet.Services.Validation.PackageSigning
             {
                 // Arrange
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
                     {
                         ValidationId = ValidationId,
@@ -58,7 +58,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     });
 
                 // Act & Assert
-                var actual = await _target.GetResultAsync(_validationRequest.Object);
+                var actual = await _target.GetResponseAsync(_validationRequest.Object);
 
                 Assert.Equal(status, actual.Status);
             }
@@ -68,7 +68,7 @@ namespace NuGet.Services.Validation.PackageSigning
             {
                 // Arrange
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
                     {
                         ValidationId = ValidationId,
@@ -91,7 +91,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     });
 
                 // Act
-                var actual = await _target.GetResultAsync(_validationRequest.Object);
+                var actual = await _target.GetResponseAsync(_validationRequest.Object);
 
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
@@ -109,7 +109,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     .Returns(_packageRegistration);
 
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
                     {
                         ValidationId = ValidationId,
@@ -120,9 +120,9 @@ namespace NuGet.Services.Validation.PackageSigning
                     });
 
                 // Act & Assert
-                var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResultAsync(_validationRequest.Object));
+                var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResponseAsync(_validationRequest.Object));
 
-                Assert.Equal("Package signature validator has an unexpected validation result", e.Message);
+                Assert.Equal("Package signature validator has an unexpected validation response", e.Message);
             }
 
             [Fact]
@@ -136,7 +136,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     .Returns(_packageRegistration);
 
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
                     {
                         ValidationId = ValidationId,
@@ -148,9 +148,9 @@ namespace NuGet.Services.Validation.PackageSigning
                     });
 
                 // Act & Assert
-                var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResultAsync(_validationRequest.Object));
+                var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResponseAsync(_validationRequest.Object));
 
-                Assert.Equal("Package signature validator has an unexpected validation result", e.Message);
+                Assert.Equal("Package signature validator has an unexpected validation response", e.Message);
             }
 
             public static IEnumerable<object[]> PossibleValidationStatuses => possibleValidationStatuses.Select(s => new object[] { s });
@@ -174,7 +174,7 @@ namespace NuGet.Services.Validation.PackageSigning
             {
                 // Arrange
                 _validatorStateService
-                     .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                     .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                      .ReturnsAsync(new ValidatorStatus
                      {
                          ValidationId = ValidationId,
@@ -188,7 +188,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 await _target.StartAsync(_validationRequest.Object);
 
                 _packageSignatureVerifier
-                    .Verify(x => x.EnqueueProcessSignatureAsync(It.IsAny<IValidationRequest>(), It.IsAny<bool>()), Times.Never);
+                    .Verify(x => x.EnqueueProcessSignatureAsync(It.IsAny<INuGetValidationRequest>(), It.IsAny<bool>()), Times.Never);
 
                 _validatorStateService
                     .Verify(x => x.AddStatusAsync(It.IsAny<ValidatorStatus>()), Times.Never);
@@ -211,7 +211,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _config.RepositorySigningEnabled = repositorySigningEnabled;
 
                 _validatorStateService
-                     .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                     .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                      .ReturnsAsync(new ValidatorStatus
                      {
                          ValidationId = ValidationId,
@@ -222,7 +222,7 @@ namespace NuGet.Services.Validation.PackageSigning
                      });
 
                 _packageSignatureVerifier
-                    .Setup(x => x.EnqueueProcessSignatureAsync(It.IsAny<IValidationRequest>(), true))
+                    .Setup(x => x.EnqueueProcessSignatureAsync(It.IsAny<INuGetValidationRequest>(), true))
                     .Callback(() =>
                     {
                         verificationQueuedBeforeStatePersisted = !statePersisted;
@@ -231,7 +231,7 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _validatorStateService
                     .Setup(x => x.TryAddValidatorStatusAsync(
-                                    It.IsAny<IValidationRequest>(),
+                                    It.IsAny<INuGetValidationRequest>(),
                                     It.IsAny<ValidatorStatus>(),
                                     It.IsAny<ValidationStatus>()))
                     .Callback(() =>
@@ -249,12 +249,12 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 // Assert
                 _packageSignatureVerifier
-                    .Verify(x => x.EnqueueProcessSignatureAsync(It.IsAny<IValidationRequest>(), true), Times.Once);
+                    .Verify(x => x.EnqueueProcessSignatureAsync(It.IsAny<INuGetValidationRequest>(), true), Times.Once);
 
                 _validatorStateService
                     .Verify(
                         x => x.TryAddValidatorStatusAsync(
-                                It.IsAny<IValidationRequest>(),
+                                It.IsAny<INuGetValidationRequest>(),
                                 It.IsAny<ValidatorStatus>(),
                                 It.Is<ValidationStatus>(s => s == ValidationStatus.Incomplete)),
                         Times.Once);
@@ -271,7 +271,7 @@ namespace NuGet.Services.Validation.PackageSigning
             {
                 // Arrange
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
                     {
                         ValidationId = ValidationId,
@@ -308,7 +308,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _config.RepositorySigningEnabled = true;
 
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
                     {
                         ValidationId = ValidationId,
@@ -329,7 +329,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _config.RepositorySigningEnabled = true;
 
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
                     {
                         ValidationId = ValidationId,
@@ -351,7 +351,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _config.RepositorySigningEnabled = false;
 
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
                     {
                         ValidationId = ValidationId,
@@ -377,7 +377,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _config.RepositorySigningEnabled = false;
 
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
                     {
                         ValidationId = ValidationId,
@@ -409,7 +409,7 @@ namespace NuGet.Services.Validation.PackageSigning
             {
                 _validatorStatus = new ValidatorStatus();
                 _validatorStateService
-                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.GetStatusAsync(It.IsAny<INuGetValidationRequest>()))
                     .ReturnsAsync(() => _validatorStatus);
 
                 _blob = new Mock<ISimpleCloudBlob>(MockBehavior.Strict);
@@ -453,7 +453,7 @@ namespace NuGet.Services.Validation.PackageSigning
             protected readonly Mock<IOptionsSnapshot<ScanAndSignConfiguration>> _configAccessor;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly ILogger<PackageSignatureValidator> _logger;
-            protected readonly Mock<IValidationRequest> _validationRequest;
+            protected readonly Mock<INuGetValidationRequest> _validationRequest;
             protected readonly PackageSignatureValidator _target;
 
             protected readonly ScanAndSignConfiguration _config;
@@ -471,7 +471,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 var loggerFactory = new LoggerFactory().AddXunit(output);
                 _logger = loggerFactory.CreateLogger<PackageSignatureValidator>();
 
-                _validationRequest = new Mock<IValidationRequest>();
+                _validationRequest = new Mock<INuGetValidationRequest>();
                 _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
                 _validationRequest.Setup(x => x.PackageId).Returns(PackageId);
                 _validationRequest.Setup(x => x.PackageKey).Returns(PackageKey);

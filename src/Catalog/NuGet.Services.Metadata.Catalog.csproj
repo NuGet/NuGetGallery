@@ -64,7 +64,7 @@
       <Version>0.7.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Entities">
-      <Version>4.4.5-dev-4220086</Version>
+      <Version>4.4.5-dev-4422931</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
       <Version>$(ServerCommonPackageVersion)</Version>

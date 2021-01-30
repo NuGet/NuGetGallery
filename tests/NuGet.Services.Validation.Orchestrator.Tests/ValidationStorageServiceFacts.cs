@@ -49,9 +49,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
             }
 
-            protected override async Task ExecuteAsync(IValidationResult validationResult)
+            protected override async Task ExecuteAsync(INuGetValidationResponse response)
             {
-                await _target.UpdateValidationStatusAsync(_packageValidation, validationResult);
+                await _target.UpdateValidationStatusAsync(_packageValidation, response);
             }
 
             [Fact]
@@ -60,10 +60,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 // Arrange
                 _packageValidation.Started = null;
 
-                var validationResult = ValidationResult.Incomplete;
+                var validationResponse = NuGetValidationResponse.Incomplete;
 
                 // Act
-                await _target.UpdateValidationStatusAsync(_packageValidation, validationResult);
+                await _target.UpdateValidationStatusAsync(_packageValidation, validationResponse);
 
                 // Assert
                 Assert.Null(_packageValidation.Started);
@@ -77,13 +77,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 // Arrange
                 _packageValidation.ValidationStatus = status;
-                var validationResult = new ValidationResult(status);
+                var validationResponse = new NuGetValidationResponse(status);
 
                 _telemetryService = new Mock<ITelemetryService>(MockBehavior.Strict);
                 InitializeTarget();
 
                 // Act
-                await ExecuteAsync(validationResult);
+                await ExecuteAsync(validationResponse);
 
                 // Assert
                 _telemetryService.VerifyAll();
@@ -96,9 +96,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
             }
 
-            protected override async Task ExecuteAsync(IValidationResult validationResult)
+            protected override async Task ExecuteAsync(INuGetValidationResponse validationResponse)
             {
-                await _target.MarkValidationStartedAsync(_packageValidation, validationResult);
+                await _target.MarkValidationStartedAsync(_packageValidation, validationResponse);
             }
 
             [Fact]
@@ -107,11 +107,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 // Arrange
                 _packageValidation.Started = null;
 
-                var validationResult = ValidationResult.Incomplete;
+                var validationResponse = NuGetValidationResponse.Incomplete;
 
                 // Act
                 var before = DateTime.UtcNow;
-                await _target.MarkValidationStartedAsync(_packageValidation, validationResult);
+                await _target.MarkValidationStartedAsync(_packageValidation, validationResponse);
                 var after = DateTime.UtcNow;
 
                 // Assert
@@ -267,7 +267,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
             }
 
-            protected abstract Task ExecuteAsync(IValidationResult validationResult);
+            protected abstract Task ExecuteAsync(INuGetValidationResponse validationResponse);
 
             [Theory]
             [InlineData(ValidationStatus.Failed)]
@@ -276,15 +276,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 // Arrange
                 _validatorProvider
-                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Setup(x => x.IsNuGetProcessor(It.IsAny<string>()))
                     .Returns(true);
-                var validationResult = new Mock<IValidationResult>();
-                validationResult.Setup(x => x.Status).Returns(status);
-                validationResult.Setup(x => x.NupkgUrl).Returns(_nupkgUrl);
-                validationResult.Setup(x => x.Issues).Returns(new List<IValidationIssue>());
+                var validationResponse = new Mock<INuGetValidationResponse>();
+                validationResponse.Setup(x => x.Status).Returns(status);
+                validationResponse.Setup(x => x.NupkgUrl).Returns(_nupkgUrl);
+                validationResponse.Setup(x => x.Issues).Returns(new List<IValidationIssue>());
 
                 // Act
-                await ExecuteAsync(validationResult.Object);
+                await ExecuteAsync(validationResponse.Object);
 
                 // Assert
                 _packageFileService.Verify(
@@ -297,9 +297,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 // Arrange
                 _validatorProvider
-                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Setup(x => x.IsNuGetProcessor(It.IsAny<string>()))
                     .Returns(true);
-                var validationResult = new ValidationResult(ValidationStatus.Succeeded, _nupkgUrl);
+                var validationResponse = new NuGetValidationResponse(ValidationStatus.Succeeded, _nupkgUrl);
 
                 var operations = new List<string>();
                 _packageFileService
@@ -313,7 +313,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Callback(() => operations.Add(nameof(IValidationEntitiesContext.SaveChangesAsync)));
 
                 // Act
-                await ExecuteAsync(validationResult);
+                await ExecuteAsync(validationResponse);
 
                 // Assert
                 Assert.Equal(new List<string>
@@ -328,12 +328,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 // Arrange
                 _validatorProvider
-                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Setup(x => x.IsNuGetProcessor(It.IsAny<string>()))
                     .Returns(true);
-                var validationResult = new ValidationResult(ValidationStatus.Succeeded, _nupkgUrl);
+                var validationResponse = new NuGetValidationResponse(ValidationStatus.Succeeded, _nupkgUrl);
 
                 // Act
-                await ExecuteAsync(validationResult);
+                await ExecuteAsync(validationResponse);
 
                 // Assert
                 _packageFileService.Verify(
@@ -349,12 +349,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 // Arrange
                 _validatorProvider
-                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Setup(x => x.IsNuGetProcessor(It.IsAny<string>()))
                     .Returns(true);
-                var validationResult = ValidationResult.Succeeded;
+                var validationResponse = NuGetValidationResponse.Succeeded;
 
                 // Act
-                await ExecuteAsync(validationResult);
+                await ExecuteAsync(validationResponse);
 
                 // Assert
                 _packageFileService.Verify(
@@ -367,16 +367,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 // Arrange
                 _validatorProvider
-                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Setup(x => x.IsNuGetProcessor(It.IsAny<string>()))
                     .Returns(false);
-                var validationResult = new ValidationResult(ValidationStatus.Succeeded, _nupkgUrl);
+                var validationResponse = new NuGetValidationResponse(ValidationStatus.Succeeded, _nupkgUrl);
 
                 // Act & Assert
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => ExecuteAsync(validationResult));
+                    () => ExecuteAsync(validationResponse));
                 Assert.Equal(
                     $"The validator '{_validatorType}' is not a processor but returned a .nupkg URL as " +
-                    $"part of the validation result.",
+                    $"part of the validation step response.",
                     ex.Message);
             }
 
@@ -391,7 +391,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Setup(x => x.TrackValidatorDuration(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>(), It.IsAny<string>(), It.IsAny<bool>()))
                     .Callback<string, string, Guid, TimeSpan, string, bool>((_1, _2, _3, d, _, __) => duration = d);
 
-                var validationResult = new ValidationResult(
+                var validationResponse = new NuGetValidationResponse(
                     toStatus,
                     new List<IValidationIssue>
                     {
@@ -402,7 +402,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
                 // Act
                 var before = DateTime.UtcNow;
-                await ExecuteAsync(validationResult);
+                await ExecuteAsync(validationResponse);
                 var after = DateTime.UtcNow;
 
                 // Assert
@@ -426,10 +426,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 // Arrange
                 _packageValidation.Started = null;
 
-                var validationResult = new ValidationResult(ValidationStatus.Failed);
+                var validationResponse = new NuGetValidationResponse(ValidationStatus.Failed);
 
                 // Act
-                await ExecuteAsync(validationResult);
+                await ExecuteAsync(validationResponse);
 
                 // Assert
                 var validationSet = _packageValidation.PackageValidationSet;
@@ -443,13 +443,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 // Arrange
                 _packageValidation.ValidationStatus = ValidationStatus.NotStarted;
-                var validationResult = new ValidationResult(ValidationStatus.Incomplete);
+                var validationResponse = new NuGetValidationResponse(ValidationStatus.Incomplete);
 
                 _telemetryService = new Mock<ITelemetryService>(MockBehavior.Strict);
                 InitializeTarget();
 
                 // Act
-                await ExecuteAsync(validationResult);
+                await ExecuteAsync(validationResponse);
 
                 // Assert
                 _telemetryService.VerifyAll();
@@ -463,10 +463,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 // Arrange
                 _packageValidation.PackageValidationIssues = null;
-                var validationResult = new ValidationResult(validationStatus);
+                var validationResponse = new NuGetValidationResponse(validationStatus);
 
                 // Act
-                var ex = await Record.ExceptionAsync(async() => await ExecuteAsync(validationResult));
+                var ex = await Record.ExceptionAsync(async() => await ExecuteAsync(validationResponse));
 
                 // Assert
                 Assert.Null(ex);

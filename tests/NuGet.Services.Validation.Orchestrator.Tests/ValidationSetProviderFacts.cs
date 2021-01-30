@@ -132,7 +132,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             };
 
             ValidatorProvider
-                .Setup(x => x.IsProcessor(validation1))
+                .Setup(x => x.IsNuGetProcessor(validation1))
                 .Returns(false);
 
             Guid validationTrackingId = Guid.NewGuid();
@@ -602,7 +602,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(Task.CompletedTask);
 
             ValidatorProvider
-                .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                .Setup(x => x.IsNuGetProcessor(It.IsAny<string>()))
                 .Returns(true);
 
             Configuration = new ValidationConfiguration();

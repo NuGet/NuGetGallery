@@ -44,14 +44,14 @@ namespace NuGet.Services.Validation.Symbols
         private readonly Mock<IBrokeredMessageSerializer<SymbolsIngesterMessage>> _serializer;
         private readonly SymbolsValidationConfiguration _configuration;
         private readonly Mock<IBrokeredMessage> _brokeredMessage;
-        private readonly Mock<IValidationRequest> _validationRequest;
+        private readonly Mock<INuGetValidationRequest> _validationRequest;
         private readonly SymbolsIngesterMessageEnqueuer _target;
 
         public SymbolIngesterMessageEnqueuerFacts()
         {
             _configuration = new SymbolsValidationConfiguration();
             _brokeredMessage = new Mock<IBrokeredMessage>();
-            _validationRequest = new Mock<IValidationRequest>();
+            _validationRequest = new Mock<INuGetValidationRequest>();
 
             _validationRequest.Setup(x => x.ValidationId).Returns(new Guid("ab2629ce-2d67-403a-9a42-49748772ae90"));
             _validationRequest.Setup(x => x.PackageId).Returns("NuGet.Versioning");

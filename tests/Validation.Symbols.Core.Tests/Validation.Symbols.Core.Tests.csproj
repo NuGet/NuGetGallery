@@ -58,6 +58,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
+      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
+      <Name>Validation.Common.Job</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.Symbols.Core\Validation.Symbols.Core.csproj">
       <Project>{17510a22-176f-4e96-a867-e79f1b54f54f}</Project>
       <Name>Validation.Symbols.Core</Name>

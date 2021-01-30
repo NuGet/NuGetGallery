@@ -10,10 +10,10 @@ namespace NuGet.Jobs.Validation.Storage
     public static class ValidatorStatusExtensions
     {
         /// <summary>
-        /// Maps the provided validation status entity and its associated issues to a <see cref="IValidationResult"/>.
+        /// Maps the provided validation status entity and its associated issues to a <see cref="INuGetValidationResponse"/>.
         /// This method does not attempt to deserialize the issue data.
         /// </summary>
-        public static IValidationResult ToValidationResult(this ValidatorStatus validatorStatus)
+        public static INuGetValidationResponse ToNuGetValidationResponse(this ValidatorStatus validatorStatus)
         {
             if (validatorStatus == null)
             {
@@ -36,7 +36,7 @@ namespace NuGet.Jobs.Validation.Storage
                 .Select(x => new SerializedValidationIssue(x.IssueCode, x.Data))
                 .ToList();
 
-            return new ValidationResult(validatorStatus.State, issues, validatorStatus.NupkgUrl);
+            return new NuGetValidationResponse(validatorStatus.State, issues, validatorStatus.NupkgUrl);
         }
     }
 }

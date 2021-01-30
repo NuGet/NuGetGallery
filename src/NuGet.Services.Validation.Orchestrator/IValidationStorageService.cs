@@ -49,10 +49,11 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <param name="packageValidation">Validation object to update, must be an object from the <see cref="PackageValidationSet.PackageValidations"/> collection
         /// from an <see cref="PackageValidationSet"/> previously returned by either <see cref="CreateValidationSetAsync(PackageValidationSet)"/> 
         /// or <see cref="GetValidationSetAsync(Guid)"/> calls.</param>
-        /// <param name="validationResult">Validation result. Its status cannot be <see cref="ValidationStatus.NotStarted"/></param>
+        /// <param name="validationResponse">The latest response from the validation step.
+        /// Its status cannot be <see cref="ValidationStatus.NotStarted"/>.</param>
         /// <returns>Task object tracking the async operation status.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">If <paramref name="validationResult"/> has status <see cref="ValidationStatus.NotStarted"/></exception>
-        Task MarkValidationStartedAsync(PackageValidation packageValidation, IValidationResult validationResult);
+        /// <exception cref="ArgumentOutOfRangeException">If <paramref name="validationResponse"/> has status <see cref="ValidationStatus.NotStarted"/></exception>
+        Task MarkValidationStartedAsync(PackageValidation packageValidation, INuGetValidationResponse validationResponse);
 
         /// <summary>
         /// Updates the <see cref="PackageValidationSet.Updated"/> to the current timestamp and persists changes.
@@ -70,9 +71,9 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <param name="packageValidation">Validation object to update, must be an object from the <see cref="PackageValidationSet.PackageValidations"/> collection
         /// from an <see cref="PackageValidationSet"/> previously returned by either <see cref="CreateValidationSetAsync(PackageValidationSet)"/> 
         /// or <see cref="GetValidationSetAsync(Guid)"/> calls.</param>
-        /// <param name="validationResult">The result of the validation.</param>
+        /// <param name="validationResponse">The latest response from the validation step.</param>
         /// <returns>Task object tracking the async operation status.</returns>
-        Task UpdateValidationStatusAsync(PackageValidation packageValidation, IValidationResult validationResult);
+        Task UpdateValidationStatusAsync(PackageValidation packageValidation, INuGetValidationResponse validationResponse);
 
         /// <summary>
         /// Checks whether a validation set was created within the time range specified

@@ -148,12 +148,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var validatorProvider = new Mock<IValidatorProvider>();
             validatorProvider
-                .Setup(x => x.IsValidator(It.Is<string>(n => n == validationName1
+                .Setup(x => x.IsNuGetValidator(It.Is<string>(n => n == validationName1
                                                           || n == validationName2
                                                           || n == processorName1)))
                 .Returns(true);
             validatorProvider
-                .Setup(x => x.IsProcessor(processorName1))
+                .Setup(x => x.IsNuGetProcessor(processorName1))
                 .Returns(true);
 
             var ex = Record.Exception(() => Validate(validatorProvider.Object, configuration));
@@ -197,12 +197,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var validatorProvider = new Mock<IValidatorProvider>();
             validatorProvider
-                .Setup(x => x.IsValidator(It.Is<string>(n => n == validationName1
+                .Setup(x => x.IsNuGetValidator(It.Is<string>(n => n == validationName1
                                                           || n == validationName2
                                                           || n == processorName1)))
                 .Returns(true);
             validatorProvider
-                .Setup(x => x.IsProcessor(processorName1))
+                .Setup(x => x.IsNuGetProcessor(processorName1))
                 .Returns(true);
 
             var ex = Record.Exception(() => Validate(validatorProvider.Object, configuration));
@@ -605,7 +605,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             var validatorProvider = new Mock<IValidatorProvider>();
             validatorProvider
-                .Setup(x => x.IsValidator(It.IsAny<string>()))
+                .Setup(x => x.IsNuGetValidator(It.IsAny<string>()))
                 .Returns(true);
 
             Validate(validatorProvider.Object, configuration);

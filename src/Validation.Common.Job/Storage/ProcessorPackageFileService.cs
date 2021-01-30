@@ -34,9 +34,9 @@ namespace NuGet.Jobs.Validation.Storage
                 throw new ArgumentNullException(nameof(processorType));
             }
 
-            if (!typeof(IProcessor).IsAssignableFrom(processorType))
+            if (!typeof(INuGetProcessor).IsAssignableFrom(processorType))
             {
-                throw new ArgumentException($"The validator type {processorType} must extend {nameof(IProcessor)}", nameof(processorType));
+                throw new ArgumentException($"The validator type {processorType} must extend {nameof(INuGetProcessor)}", nameof(processorType));
             }
 
             _processorName = processorType.Name;

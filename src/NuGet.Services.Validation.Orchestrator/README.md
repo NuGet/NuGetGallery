@@ -60,34 +60,34 @@ words, this job does not have to be a singleton.
 
 ## List of Validators
 
-The easiest way to find validators is to find types implementing `IValidator` or `IProcessor` but this is the list as
+The easiest way to find validators is to find types implementing `INuGetValidator` or `INuGetProcessor` but this is the list as
 of April 17th, 2020.
 
 ### Package Orchestrator
 
 - Process Signature (in "processor" mode)
-  - `IProcessor`: [`PackageSignatureProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureProcessor.cs)
+  - `INuGetProcessor`: [`PackageSignatureProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureProcessor.cs)
   - Job implementation: [Validation.PackageSigning.ProcessSignature](https://github.com/NuGet/NuGet.Jobs/tree/master/src/Validation.PackageSigning.ProcessSignature)
 - Validate Certificate
-  - `IValidator`: [`PackageCertificatesValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ValidateCertificate/PackageCertificatesValidator.cs)
+  - `INuGetValidator`: [`PackageCertificatesValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ValidateCertificate/PackageCertificatesValidator.cs)
   - Job implementation: [Validation.PackageSigning.ValidateCertificate](https://github.com/NuGet/NuGet.Jobs/tree/master/src/Validation.PackageSigning.ValidateCertificate)
 - Scan and Sign
-  - `IProcessor`: [`ScanAndSignProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ScanAndSign/ScanAndSignProcessor.cs)
+  - `INuGetProcessor`: [`ScanAndSignProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ScanAndSign/ScanAndSignProcessor.cs)
   - Job implementation: **Closed-source**, due to integration with Microsoft malware scanning and package signing services.
 - Process Signature (in "validator" mode)
-  - `IValidator`: [`PackageSignatureValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureValidator.cs)
+  - `INuGetValidator`: [`PackageSignatureValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureValidator.cs)
   - Job implementation: [Validation.PackageSigning.ProcessSignature](https://github.com/NuGet/NuGet.Jobs/tree/master/src/Validation.PackageSigning.ProcessSignature)
 
 ### Symbols Orchestrator
 
 - Symbol Scan
-  - `IValidator`: [`SymbolScanValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolScanValidator.cs)
+  - `INuGetValidator`: [`SymbolScanValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolScanValidator.cs)
   - Job implementation: **Closed-source**, due to integration with Microsoft malware scanning service.
 - Symbols Validator
-  - `IValidator`: [`SymbolsValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolsValidator.cs)
+  - `INuGetValidator`: [`SymbolsValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolsValidator.cs)
   - Job implementation: [Validation.Symbols](https://github.com/NuGet/NuGet.Jobs/tree/master/src/Validation.Symbols)
 - Symbols Ingester
-  - `IValidator`: [`SymbolsIngester`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolsIngester.cs)
+  - `INuGetValidator`: [`SymbolsIngester`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/Symbols/SymbolsIngester.cs)
   - Job implementation: **Closed-source**, due to integration with Microsoft symbol server.
 
 ## Service Bus Message Shapes

@@ -18,7 +18,7 @@ using NuGetGallery;
 namespace NuGet.Services.Validation.Symbols
 {
     [ValidatorName(ValidatorName.SymbolScan)]
-    public class SymbolScanValidator : BaseValidator, IValidator
+    public class SymbolScanValidator : BaseNuGetValidator, INuGetValidator
     {
         private readonly IValidationEntitiesContext _validationContext;
         private readonly IValidatorStateService _validatorStateService;
@@ -65,7 +65,7 @@ namespace NuGet.Services.Validation.Symbols
             _configuration = configurationAccessor.Value;
         }
 
-        public async Task<IValidationResult> GetResultAsync(IValidationRequest request)
+        public async Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
         {
             if (request == null)
             {
@@ -74,10 +74,10 @@ namespace NuGet.Services.Validation.Symbols
 
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
 
-            return validatorStatus.ToValidationResult();
+            return validatorStatus.ToNuGetValidationResponse();
         }
 
-        public async Task<IValidationResult> StartAsync(IValidationRequest request)
+        public async Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
         {
             if (request == null)
             {
@@ -94,22 +94,22 @@ namespace NuGet.Services.Validation.Symbols
                     request.PackageId,
                     request.PackageVersion);
 
-                return validatorStatus.ToValidationResult();
+                return validatorStatus.ToNuGetValidationResponse();
             }
 
             if (ShouldSkipScan(request))
             {
-                return ValidationResult.Succeeded;
+                return NuGetValidationResponse.Succeeded;
             }
 
             await _scanAndSignEnqueuer.EnqueueScanAsync(request.ValidationId, request.NupkgUrl);
 
-            var result = await _validatorStateService.TryAddValidatorStatusAsync(request, validatorStatus, ValidationStatus.Incomplete);
+            var status = await _validatorStateService.TryAddValidatorStatusAsync(request, validatorStatus, ValidationStatus.Incomplete);
 
-            return result.ToValidationResult();
+            return status.ToNuGetValidationResponse();
         }
 
-        private bool ShouldSkipScan(IValidationRequest request)
+        private bool ShouldSkipScan(INuGetValidationRequest request)
         {
             var symbolPackage = _symbolPackageService
                 .FindSymbolPackagesByIdAndVersion(request.PackageId,request.PackageVersion)

@@ -63,7 +63,7 @@ namespace NuGet.Services.Validation.PackageSigning
         private readonly Mock<IOptionsSnapshot<ValidateCertificateConfiguration>> _options;
         private readonly ValidateCertificateConfiguration _configuration;
         private readonly Mock<IBrokeredMessage> _brokeredMessage;
-        private readonly Mock<IValidationRequest> _validationRequest;
+        private readonly Mock<INuGetValidationRequest> _validationRequest;
         private readonly EndCertificate _endCertificate;
         private readonly ValidateCertificateEnqueuer _target;
 
@@ -71,7 +71,7 @@ namespace NuGet.Services.Validation.PackageSigning
         {
             _configuration = new ValidateCertificateConfiguration();
             _brokeredMessage = new Mock<IBrokeredMessage>();
-            _validationRequest = new Mock<IValidationRequest>();
+            _validationRequest = new Mock<INuGetValidationRequest>();
             _endCertificate = new EndCertificate { Key = 23 };
 
             _validationRequest.Setup(x => x.ValidationId).Returns(new Guid("68fc78da-af04-4e4e-8128-de68dcfec3ba"));

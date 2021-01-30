@@ -19,7 +19,7 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
     /// final signature validation after a package has been repository signed.
     /// </summary>
     [ValidatorName(ValidatorName.PackageSignatureValidator)]
-    public class PackageSignatureValidator : BaseSignatureProcessor, IValidator
+    public class PackageSignatureValidator : BaseSignatureProcessor, INuGetValidator
     {
         private readonly IValidatorStateService _validatorStateService;
         private readonly IProcessSignatureEnqueuer _signatureVerificationEnqueuer;
@@ -60,63 +60,63 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
         /// </summary>
         protected override bool RequiresRepositorySignature => true;
 
-        public override async Task<IValidationResult> GetResultAsync(IValidationRequest request)
+        public override async Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
         {
-            var result = await base.GetResultAsync(request);
+            var response = await base.GetResponseAsync(request);
 
-            return Validate(request, result);
+            return Validate(request, response);
         }
 
-        public override async Task<IValidationResult> StartAsync(IValidationRequest request)
+        public override async Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
         {
-            var result = await base.StartAsync(request);
+            var response = await base.StartAsync(request);
 
-            return Validate(request, result);
+            return Validate(request, response);
         }
 
-        private IValidationResult Validate(IValidationRequest request, IValidationResult result)
+        private INuGetValidationResponse Validate(INuGetValidationRequest request, INuGetValidationResponse response)
         {
             /// The package signature validator runs after the <see cref="PackageSignatureProcessor" />.
             /// All signature validation issues should be caught and handled by the processor.
-            if (result.Status == ValidationStatus.Failed || result.NupkgUrl != null)
+            if (response.Status == ValidationStatus.Failed || response.NupkgUrl != null)
             {
                 if (!_config.RepositorySigningEnabled)
                 {
                     _logger.LogInformation(
-                        "Ignoring invalid validation result in package signature validator as repository signing is disabled. " +
+                        "Ignoring invalid validation response in package signature validator as repository signing is disabled. " +
                         "Status = {ValidationStatus}, Nupkg URL = {NupkgUrl}, validation issues = {Issues}",
-                        result.Status,
-                        result.NupkgUrl,
-                        result.Issues.Select(i => i.IssueCode));
+                        response.Status,
+                        response.NupkgUrl,
+                        response.Issues.Select(i => i.IssueCode));
 
-                    return ValidationResult.Succeeded;
+                    return NuGetValidationResponse.Succeeded;
                 }
 
                 _logger.LogCritical(
-                    "Unexpected validation result in package signature validator. This may be caused by an invalid repository " +
+                    "Unexpected validation response in package signature validator. This may be caused by an invalid repository " +
                     "signature. Throwing an exception to force this validation to dead-letter. " +
                     "Status = {ValidationStatus}, Nupkg URL = {NupkgUrl}, validation issues = {Issues}",
-                    result.Status,
-                    result.NupkgUrl,
-                    result.Issues.Select(i => i.IssueCode));
+                    response.Status,
+                    response.NupkgUrl,
+                    response.Issues.Select(i => i.IssueCode));
 
-                throw new InvalidOperationException("Package signature validator has an unexpected validation result");
+                throw new InvalidOperationException("Package signature validator has an unexpected validation response");
             }
 
             /// Suppress all validation issues. The <see cref="PackageSignatureProcessor"/> should
             /// have already reported any issues related to the author signature. Customers should
             /// not be notified of validation issues due to the repository signature.
-            if (result.Issues.Count != 0)
+            if (response.Issues.Count != 0)
             {
                 _logger.LogWarning(
-                    "Ignoring {ValidationIssueCount} validation issues from result. Issues: {Issues}",
-                    result.Issues.Count,
-                    result.Issues.Select(i => i.IssueCode));
+                    "Ignoring {ValidationIssueCount} validation issues from response. Issues: {Issues}",
+                    response.Issues.Count,
+                    response.Issues.Select(i => i.IssueCode));
 
-                return new ValidationResult(result.Status);
+                return new NuGetValidationResponse(response.Status);
             }
 
-            return result;
+            return response;
         }
     }
 }

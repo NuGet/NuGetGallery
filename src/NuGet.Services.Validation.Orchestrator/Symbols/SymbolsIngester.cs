@@ -12,7 +12,7 @@ using NuGet.Services.Validation.Orchestrator.Telemetry;
 namespace NuGet.Services.Validation.Symbols
 {
     [ValidatorName(ValidatorName.SymbolsIngester)]
-    public class SymbolsIngester : BaseValidator, IValidator
+    public class SymbolsIngester : BaseNuGetValidator, INuGetValidator
     {
         private readonly ISymbolsValidationEntitiesService _symbolsValidationEntitiesService;
         private readonly ISymbolsIngesterMessageEnqueuer _symbolMessageEnqueuer;
@@ -31,23 +31,24 @@ namespace NuGet.Services.Validation.Symbols
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<IValidationResult> GetResultAsync(IValidationRequest request)
+        public async Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var result = SymbolsValidationEntitiesService.ConvertToIValidationResult(await _symbolsValidationEntitiesService.GetSymbolsServerRequestAsync(request));
+            var symbolsRequest = await _symbolsValidationEntitiesService.GetSymbolsServerRequestAsync(request);
+            var response = SymbolsValidationEntitiesService.ToValidationResponse(symbolsRequest);
             _logger.LogInformation(
                     "Symbols status {Status} for PackageId: {PackageId}, PackageNormalizedVersion {PackageNormalizedVersion}, SymbolsPackageKey {SymbolsPackageKey} ValidationId {ValidationId}",
-                    result.Status,
+                    response.Status,
                     request.PackageId,
                     request.PackageVersion,
                     request.PackageKey,
                     request.ValidationId);
 
-            return result;
+            return response;
         }
 
         /// <summary>
@@ -57,17 +58,18 @@ namespace NuGet.Services.Validation.Symbols
         /// 3. After the message is queued, update the SymbolServerRequests table.
         /// </summary>
         /// <param name="request">The request to be sent to the ingester job queue.</param>
-        /// <returns>The operation status as <see cref="IValidationResult"/>.</returns>
-        public async Task<IValidationResult> StartAsync(IValidationRequest request)
+        /// <returns>The operation status as <see cref="INuGetValidationResponse"/>.</returns>
+        public async Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var result = SymbolsValidationEntitiesService.ConvertToIValidationResult(await _symbolsValidationEntitiesService.GetSymbolsServerRequestAsync(request));
+            var symbolsRequest = await _symbolsValidationEntitiesService.GetSymbolsServerRequestAsync(request);
+            var response = SymbolsValidationEntitiesService.ToValidationResponse(symbolsRequest);
 
-            if (result.Status != ValidationStatus.NotStarted)
+            if (response.Status != ValidationStatus.NotStarted)
             {
                 _logger.LogWarning(
                     "Symbol ingestion for {PackageId} {PackageNormalizedVersion} {SymbolsPackageKey} has already started.",
@@ -75,7 +77,7 @@ namespace NuGet.Services.Validation.Symbols
                     request.PackageVersion,
                     request.PackageKey);
 
-                return result;
+                return response;
             }
 
             _telemetryService.TrackSymbolsMessageEnqueued(request.PackageId, request.PackageVersion, ValidatorName.SymbolsIngester, request.ValidationId);
@@ -102,7 +104,7 @@ namespace NuGet.Services.Validation.Symbols
                  request.PackageVersion,
                  request.PackageKey);
             }
-            return SymbolsValidationEntitiesService.ConvertToIValidationResult(savedSymbolRequest);
+            return SymbolsValidationEntitiesService.ToValidationResponse(savedSymbolRequest);
         }
     }
 }

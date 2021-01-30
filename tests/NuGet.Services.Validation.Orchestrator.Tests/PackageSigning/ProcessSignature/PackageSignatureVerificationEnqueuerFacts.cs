@@ -64,14 +64,14 @@ namespace NuGet.Services.Validation.PackageSigning
         private readonly Mock<IOptionsSnapshot<ProcessSignatureConfiguration>> _options;
         private readonly ProcessSignatureConfiguration _configuration;
         private readonly Mock<IBrokeredMessage> _brokeredMessage;
-        private readonly Mock<IValidationRequest> _validationRequest;
+        private readonly Mock<INuGetValidationRequest> _validationRequest;
         private readonly ProcessSignatureEnqueuer _target;
 
         public PackageSignatureVerificationEnqueuerFacts()
         {
             _configuration = new ProcessSignatureConfiguration();
             _brokeredMessage = new Mock<IBrokeredMessage>();
-            _validationRequest = new Mock<IValidationRequest>();
+            _validationRequest = new Mock<INuGetValidationRequest>();
 
             _validationRequest.Setup(x => x.ValidationId).Returns(new Guid("ab2629ce-2d67-403a-9a42-49748772ae90"));
             _validationRequest.Setup(x => x.PackageId).Returns("NuGet.Versioning");

@@ -135,7 +135,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
         [Fact]
         public async Task SendsMessage()
         {
-            var request = new ValidationRequest(Guid.NewGuid(), 42, "somepackage", "someversion", "https://example.com/testpackage.nupkg");
+            var request = new NuGetValidationRequest(Guid.NewGuid(), 42, "somepackage", "someversion", "https://example.com/testpackage.nupkg");
             await _target.EnqueueScanAsync(request.ValidationId, request.NupkgUrl);
 
             Assert.Same(_serializedMessage, _capturedBrokeredMessage);
@@ -225,7 +225,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
         protected IBrokeredMessage _capturedBrokeredMessage;
         protected BrokeredMessageWrapper _serializedMessage;
 
-        protected readonly IValidationRequest _validationRequest;
+        protected readonly INuGetValidationRequest _validationRequest;
         protected readonly List<string> _owners;
 
         public ScanAndSignEnqueuerFactsBase()
@@ -246,7 +246,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
                 _configurationAccessorMock.Object,
                 _logger);
 
-            _validationRequest = new ValidationRequest(Guid.NewGuid(), 42, "somepackage", "someversion", "https://example.com/testpackage.nupkg");
+            _validationRequest = new NuGetValidationRequest(Guid.NewGuid(), 42, "somepackage", "someversion", "https://example.com/testpackage.nupkg");
             _owners = new List<string> {"Billy", "Bob"};
 
             _serializedMessage = new BrokeredMessageWrapper("somedata");

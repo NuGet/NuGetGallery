@@ -16,7 +16,7 @@ using Error = NuGet.Services.Validation.Orchestrator.Error;
 namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
 {
     [ValidatorName(ValidatorName.PackageCertificate)]
-    public class PackageCertificatesValidator : BaseValidator, IValidator
+    public class PackageCertificatesValidator : BaseNuGetValidator, INuGetValidator
     {
         private static readonly TimeSpan DefaultCertificateRevalidationThresholdTime = TimeSpan.FromDays(1);
 
@@ -57,14 +57,14 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
             }
         }
 
-        public async Task<IValidationResult> GetResultAsync(IValidationRequest request)
+        public async Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
         {
             var status = await GetStatusAsync(request);
 
-            return status.ToValidationResult();
+            return status.ToNuGetValidationResponse();
         }
 
-        private async Task<ValidatorStatus> GetStatusAsync(IValidationRequest request)
+        private async Task<ValidatorStatus> GetStatusAsync(INuGetValidationRequest request)
         {
             // Look up this validator's state in the database.
             var status = await _validatorStateService.GetStatusAsync(request);
@@ -124,14 +124,14 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
             }
         }
 
-        public async Task<IValidationResult> StartAsync(IValidationRequest request)
+        public async Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
         {
             var validatorStatus = await StartInternalAsync(request);
 
-            return validatorStatus.ToValidationResult();
+            return validatorStatus.ToNuGetValidationResponse();
         }
 
-        private async Task<ValidatorStatus> StartInternalAsync(IValidationRequest request)
+        private async Task<ValidatorStatus> StartInternalAsync(INuGetValidationRequest request)
         {
             var status = await _validatorStateService.GetStatusAsync(request);
 
@@ -221,7 +221,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         /// </summary>
         /// <param name="request">The validation request that started the certificate validations.</param>
         /// <returns>Whether the certificate validations are ALL finished.</returns>
-        private Task<bool> AllCertificateValidationsAreFinishedAsync(IValidationRequest request)
+        private Task<bool> AllCertificateValidationsAreFinishedAsync(INuGetValidationRequest request)
         {
             // Incomplete CertificateValidation have a Status of NULL.
             return _validationContext
@@ -235,7 +235,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         /// </summary>
         /// <param name="request">The validation request containing the package whose signing state should be fetched.</param>
         /// <returns>The package's signing state.</returns>
-        private Task<PackageSigningState> FindPackageSigningStateAsync(IValidationRequest request)
+        private Task<PackageSigningState> FindPackageSigningStateAsync(INuGetValidationRequest request)
         {
             return _validationContext
                         .PackageSigningStates
@@ -248,7 +248,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         /// </summary>
         /// <param name="request">The validation request containing the package whose signatures should be fetched.</param>
         /// <returns>The package's author signature with its certificates, or null.</returns>
-        private Task<PackageSignature> FindAuthorSignatureAsync(IValidationRequest request)
+        private Task<PackageSignature> FindAuthorSignatureAsync(INuGetValidationRequest request)
         {
             return _validationContext
                         .PackageSignatures
@@ -263,7 +263,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         /// </summary>
         /// <param name="request">The validation request for the package whose signature should be promoted.</param>
         /// <param name="signatures">The valid signatures that should be promoted.</param>
-        private void PromoteSignature(IValidationRequest request, PackageSignature signature)
+        private void PromoteSignature(INuGetValidationRequest request, PackageSignature signature)
         {
 
             var newSignatureStatus = signature.IsPromotable()
@@ -286,7 +286,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         /// <param name="request">The validation request for the package whose signature should be inspected.</param>
         /// <param name="signature">The valid signature whose status should be decided.</param>
         /// <returns>True if the signature should be "Valid", false if it should be "InGracePeriod".</returns>
-        private bool IsValidSignatureOutOfGracePeriod(IValidationRequest request, PackageSignature signature)
+        private bool IsValidSignatureOutOfGracePeriod(INuGetValidationRequest request, PackageSignature signature)
         {
             bool IsCertificateStatusPastTime(EndCertificate certificate, DateTime time)
             {
@@ -371,7 +371,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         /// <param name="package">The package's overall signing state that should be invalidated.</param>
         /// <param name="signature">The package's signatures that should be invalidated.</param>
         /// <returns>A task that completes when the entities have been updated.</returns>
-        private void InvalidatePackageSignature(IValidationRequest request, PackageSigningState package, PackageSignature signature)
+        private void InvalidatePackageSignature(INuGetValidationRequest request, PackageSigningState package, PackageSignature signature)
         {
             _logger.LogWarning(
                 "Invalidating package {PackageId} {PackageVersion} due to revoked signatures.",
@@ -427,7 +427,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         /// <param name="request">The package validation request.</param>
         /// <param name="certificates">The certificates that should be verified.</param>
         /// <returns>A task that completes when all certificate verifications have been enqueued.</returns>
-        private Task StartCertificateValidationsAsync(IValidationRequest request, IEnumerable<EndCertificate> certificates)
+        private Task StartCertificateValidationsAsync(INuGetValidationRequest request, IEnumerable<EndCertificate> certificates)
         {
             var startCertificateVerificationTasks = new List<Task>();
 

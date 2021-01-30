@@ -102,7 +102,9 @@ namespace Validation.Symbols.Tests
                 { State = ValidationStatus.Incomplete };
 
                 _validatorStateService.Setup(s => s.GetStatusAsync(It.IsAny<Guid>())).ReturnsAsync(status);
-                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(ValidationResult.Incomplete);
+                _symbolService
+                    .Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(NuGetValidationResponse.Incomplete);
 
                 // Act 
                 var result = await Target.HandleAsync(_message);
@@ -121,7 +123,9 @@ namespace Validation.Symbols.Tests
 
                 _validatorStateService.Setup(s => s.GetStatusAsync(It.IsAny<Guid>())).ReturnsAsync(status);
                 _validatorStateService.Setup(s => s.SaveStatusAsync(It.IsAny<ValidatorStatus>())).ReturnsAsync(SaveStatusResult.Success);
-                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(ValidationResult.Succeeded);
+                _symbolService
+                    .Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(NuGetValidationResponse.Succeeded);
 
                 // Act 
                 var result = await Target.HandleAsync(_message);
@@ -145,8 +149,10 @@ namespace Validation.Symbols.Tests
 
                 _validatorStateService.Setup(s => s.GetStatusAsync(It.IsAny<Guid>())).ReturnsAsync(status);
                 _validatorStateService.Setup(s => s.SaveStatusAsync(It.IsAny<ValidatorStatus>())).ReturnsAsync(SaveStatusResult.Success);
-                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(ValidationResult.Succeeded);
                 _featureFlagService.Setup(x => x.IsQueueBackEnabled()).Returns(false);
+                _symbolService
+                    .Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(NuGetValidationResponse.Succeeded);
 
                 // Act 
                 var result = await Target.HandleAsync(_message);
@@ -169,8 +175,9 @@ namespace Validation.Symbols.Tests
                 _validatorStateService.Setup(s => s.GetStatusAsync(It.IsAny<Guid>())).ReturnsAsync(status);
                 _validatorStateService.Setup(s => s.SaveStatusAsync(It.IsAny<ValidatorStatus>())).ReturnsAsync(SaveStatusResult.Success);
 
-                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>())).
-                    ReturnsAsync(ValidationResult.FailedWithIssues(ValidationIssue.Unknown));
+                _symbolService
+                    .Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(NuGetValidationResponse.FailedWithIssues(ValidationIssue.Unknown));
 
                 // Act 
                 var result = await Target.HandleAsync(_message);
@@ -191,8 +198,9 @@ namespace Validation.Symbols.Tests
                 _validatorStateService.Setup(s => s.GetStatusAsync(It.IsAny<Guid>())).ReturnsAsync(status);
                 _validatorStateService.Setup(s => s.SaveStatusAsync(It.IsAny<ValidatorStatus>())).ReturnsAsync(SaveStatusResult.StaleStatus);
 
-                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>())).
-                    ReturnsAsync(ValidationResult.Succeeded);
+                _symbolService
+                    .Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(NuGetValidationResponse.Succeeded);
 
                 // Act 
                 var result = await Target.HandleAsync(_message);

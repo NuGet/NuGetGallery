@@ -14,7 +14,7 @@ namespace NuGet.Services.Validation.Orchestrator
     public class ValidatorProvider : IValidatorProvider
     {
         /// <summary>
-        /// This is a cache of all of the <see cref="IValidator"/> and <see cref="IProcessor"/> implementations
+        /// This is a cache of all of the <see cref="INuGetValidator"/> and <see cref="INuGetProcessor"/> implementations
         /// available.
         /// </summary>
         private static EvaluatedTypes _evaluatedTypes;
@@ -32,7 +32,7 @@ namespace NuGet.Services.Validation.Orchestrator
         }
 
         /// <summary>
-        /// Discovers all <see cref="IValidator"/> and <see cref="IProcessor"/> types available and caches the result.
+        /// Discovers all <see cref="INuGetValidator"/> and <see cref="INuGetProcessor"/> types available and caches the result.
         /// </summary>
         private void InitializeEvaluatedTypes(Assembly callingAssembly)
         {
@@ -48,53 +48,53 @@ namespace NuGet.Services.Validation.Orchestrator
                     return;
                 }
 
-                using (_logger.BeginScope("Enumerating all IValidator implementations"))
+                using (_logger.BeginScope($"Enumerating all {nameof(INuGetValidator)} implementations"))
                 {
                     _logger.LogTrace("Before enumeration");
                     IEnumerable<Type> candidateTypes = GetCandidateTypes(callingAssembly);
 
-                    var validatorTypes = candidateTypes
-                        .Where(type => typeof(IValidator).IsAssignableFrom(type)
-                               && type != typeof(IValidator)
-                               && type != typeof(IProcessor)
+                    var nugetValidatorTypes = candidateTypes
+                        .Where(type => typeof(INuGetValidator).IsAssignableFrom(type)
+                               && type != typeof(INuGetValidator)
+                               && type != typeof(INuGetProcessor)
                                && ValidatorUtility.HasValidatorNameAttribute(type))
                         .ToDictionary(ValidatorUtility.GetValidatorName);
 
-                    var processorTypes = validatorTypes
+                    var nugetProcessorTypes = nugetValidatorTypes
                         .Values
                         .Where(IsProcessorType)
                         .ToDictionary(ValidatorUtility.GetValidatorName);
 
                     _logger.LogTrace("After enumeration, got {NumImplementations} implementations: {TypeNames}",
-                        validatorTypes.Count,
-                        validatorTypes.Keys);
+                        nugetValidatorTypes.Count,
+                        nugetValidatorTypes.Keys);
 
-                    _evaluatedTypes = new EvaluatedTypes(validatorTypes, processorTypes);
+                    _evaluatedTypes = new EvaluatedTypes(nugetValidatorTypes, nugetProcessorTypes);
                 }
             }
         }
 
-        public bool IsValidator(string validatorName)
+        public bool IsNuGetValidator(string validatorName)
         {
             validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
 
-            return _evaluatedTypes.ValidatorTypes.ContainsKey(validatorName);
+            return _evaluatedTypes.NuGetValidatorTypes.ContainsKey(validatorName);
         }
 
-        public bool IsProcessor(string validatorName)
+        public bool IsNuGetProcessor(string validatorName)
         {
             validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
 
-            return _evaluatedTypes.ProcessorTypes.ContainsKey(validatorName);
+            return _evaluatedTypes.NuGetProcessorTypes.ContainsKey(validatorName);
         }
 
-        public IValidator GetValidator(string validatorName)
+        public INuGetValidator GetNuGetValidator(string validatorName)
         {
             validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
 
-            if (_evaluatedTypes.ValidatorTypes.TryGetValue(validatorName, out Type validatorType))
+            if (_evaluatedTypes.NuGetValidatorTypes.TryGetValue(validatorName, out Type validatorType))
             {
-                return (IValidator)_serviceProvider.GetRequiredService(validatorType);
+                return (INuGetValidator)_serviceProvider.GetRequiredService(validatorType);
             }
 
             throw new ArgumentException($"Unknown validator name: {validatorName}", nameof(validatorName));
@@ -114,21 +114,21 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private static bool IsProcessorType(Type type)
         {
-            return typeof(IProcessor).IsAssignableFrom(type);
+            return typeof(INuGetProcessor).IsAssignableFrom(type);
         }
 
         private class EvaluatedTypes
         {
             public EvaluatedTypes(
-                IReadOnlyDictionary<string, Type> validatorTypes,
-                IReadOnlyDictionary<string, Type> processorTypes)
+                IReadOnlyDictionary<string, Type> nugetValidatorTypes,
+                IReadOnlyDictionary<string, Type> nugetProcessorTypes)
             {
-                ValidatorTypes = validatorTypes ?? throw new ArgumentNullException(nameof(validatorTypes));
-                ProcessorTypes = processorTypes ?? throw new ArgumentNullException(nameof(validatorTypes));
+                NuGetValidatorTypes = nugetValidatorTypes ?? throw new ArgumentNullException(nameof(nugetValidatorTypes));
+                NuGetProcessorTypes = nugetProcessorTypes ?? throw new ArgumentNullException(nameof(nugetProcessorTypes));
             }
 
-            public IReadOnlyDictionary<string, Type> ValidatorTypes { get; }
-            public IReadOnlyDictionary<string, Type> ProcessorTypes { get; }
+            public IReadOnlyDictionary<string, Type> NuGetValidatorTypes { get; }
+            public IReadOnlyDictionary<string, Type> NuGetProcessorTypes { get; }
         }
     }
 }
