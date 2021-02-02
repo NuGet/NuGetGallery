@@ -28,15 +28,18 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageFileService _packageFileService;
         private readonly IMarkdownService _markdownService;
+        private readonly ICoreReadmeFileService _coreReadmeFileService;
 
         public ReadMeService(
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
-            IMarkdownService markdownService)
+            IMarkdownService markdownService,
+            ICoreReadmeFileService coreReadmeFileService)
         {
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _markdownService = markdownService ?? throw new ArgumentNullException(nameof(markdownService));
+            _coreReadmeFileService = coreReadmeFileService ?? throw new ArgumentNullException(nameof(coreReadmeFileService));
         }
 
         /// <summary>
@@ -128,7 +131,14 @@ namespace NuGetGallery
         {
             if (package.HasReadMe)
             {
-                return await _packageFileService.DownloadReadMeMdFileAsync(package);
+                if (package.HasEmbeddedReadme)
+                {
+                    return await _coreReadmeFileService.DownloadReadmeFileAsync(package);
+                }
+                else
+                {
+                    return await _packageFileService.DownloadReadMeMdFileAsync(package);
+                }
             }
 
             return null;

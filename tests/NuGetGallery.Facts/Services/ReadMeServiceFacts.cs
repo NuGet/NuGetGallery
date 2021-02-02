@@ -22,6 +22,7 @@ namespace NuGetGallery
             private readonly Mock<IPackageFileService> _packageFileService;
             private readonly Mock<IEntitiesContext> _entitiesContext;
             private readonly Mock<IMarkdownService> _markdownService;
+            private readonly Mock<ICoreReadmeFileService> _coreReadmeFileService;
             private readonly ReadMeService _target;
 
             public TheSaveReadMeMdIfChangedMethod()
@@ -44,11 +45,13 @@ namespace NuGetGallery
                 _packageFileService = new Mock<IPackageFileService>();
                 _entitiesContext = new Mock<IEntitiesContext>();
                 _markdownService = new Mock<IMarkdownService>();
+                _coreReadmeFileService = new Mock<ICoreReadmeFileService>();
 
                 _target = new ReadMeService(
                     _packageFileService.Object,
                     _entitiesContext.Object,
-                    _markdownService.Object);
+                    _markdownService.Object,
+                    _coreReadmeFileService.Object);
             }
 
             [Theory]
@@ -189,7 +192,8 @@ namespace NuGetGallery
             internal ReadMeService ReadMeService = new ReadMeService(
                 new Mock<IPackageFileService>().Object,
                 new Mock<IEntitiesContext>().Object,
-                new Mock<IMarkdownService>().Object);
+                new Mock<IMarkdownService>().Object,
+                new Mock<ICoreReadmeFileService>().Object);
 
             [Fact]
             public void WhenRequestIsNull_ReturnsFalse()
@@ -263,7 +267,8 @@ namespace NuGetGallery
                 var readMeService = new ReadMeService(
                     new Mock<IPackageFileService>().Object, 
                     new Mock<IEntitiesContext>().Object,
-                    new Mock<IMarkdownService>().Object);
+                    new Mock<IMarkdownService>().Object,
+                    new Mock<ICoreReadmeFileService>().Object);
                 var package = new Package() { HasReadMe = false };
 
                 // Act & Assert

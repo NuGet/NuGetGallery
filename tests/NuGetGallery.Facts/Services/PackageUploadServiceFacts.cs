@@ -81,6 +81,7 @@ namespace NuGetGallery
                 reservedNamespaceService.Object,
                 validationService.Object,
                 Mock.Of<ICoreLicenseFileService>(),
+                Mock.Of<ICoreReadmeFileService>(),
                 diagnosticsService.Object,
                 vulnerabilityService.Object,
                 metadataValidationService.Object);
@@ -631,7 +632,7 @@ namespace NuGetGallery
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
-                _packageFileService.Verify(
+                _readmeFileService.Verify(
                     lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile),
                     expectedReadmeSave ? Times.Once() : Times.Never());
             }
@@ -651,7 +652,7 @@ namespace NuGetGallery
                     .Callback<Package, Stream>((_, stream) => stream.Position = 42)
                     .Returns(Task.CompletedTask);
 
-                _packageFileService
+                _readmeFileService
                     .Setup(lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile))
                     .Callback<Package, Stream>((_, stream) => stream.Position = 42)
                     .Returns(Task.CompletedTask);
@@ -664,7 +665,7 @@ namespace NuGetGallery
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
                 _licenseFileService.Verify(lfs => lfs.ExtractAndSaveLicenseFileAsync(_package, _packageFile), Times.Once);
-                _packageFileService.Verify(lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile), Times.Once);
+                _readmeFileService.Verify(lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile), Times.Once);
                 _packageFileService.Verify(pfs => pfs.SavePackageFileAsync(_package, _packageFile), Times.Once);
             }
 
@@ -694,8 +695,8 @@ namespace NuGetGallery
                     lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion),
                     expectedReadmeDelete ? Times.Once() : Times.Never());
 
-                _packageFileService.Verify(
-                    lfs => lfs.DeleteReadMeMdFileAsync(_package),
+                _readmeFileService.Verify(
+                    lfs => lfs.DeleteReadmeFileAsync(_package.Id, _package.NormalizedVersion),
                     expectedReadmeDelete ? Times.Once() : Times.Never());
             }
 
@@ -722,8 +723,8 @@ namespace NuGetGallery
                     lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
                     expectedFileDelete ? Times.Once() : Times.Never());
 
-                _packageFileService.Verify(
-                    lfs => lfs.DeleteReadMeMdFileAsync(_package),
+                _readmeFileService.Verify(
+                    lfs => lfs.DeleteReadmeFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
                     expectedFileDelete ? Times.Once() : Times.Never());
             }
         }
@@ -740,6 +741,7 @@ namespace NuGetGallery
             protected readonly Mock<ITyposquattingService> _typosquattingService;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ICoreLicenseFileService> _licenseFileService;
+            protected readonly Mock<ICoreReadmeFileService> _readmeFileService;
             protected readonly Mock<IDiagnosticsService> _diagnosticsService;
             protected readonly Mock<IPackageVulnerabilitiesManagementService> _vulnerabilityService;
             protected readonly Mock<IPackageMetadataValidationService> _metadataValidationService;
@@ -778,6 +780,7 @@ namespace NuGetGallery
                 _conflictException = new FileAlreadyExistsException("Conflict!");
                 _token = CancellationToken.None;
                 _licenseFileService = new Mock<ICoreLicenseFileService>();
+                _readmeFileService = new Mock<ICoreReadmeFileService>();
                 _diagnosticsService = new Mock<IDiagnosticsService>();
 
                 _diagnosticsService
@@ -795,6 +798,7 @@ namespace NuGetGallery
                     _reservedNamespaceService.Object,
                     _validationService.Object,
                     _licenseFileService.Object,
+                    _readmeFileService.Object,
                     _diagnosticsService.Object,
                     _vulnerabilityService.Object,
                     _metadataValidationService.Object);

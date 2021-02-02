@@ -190,7 +190,7 @@ namespace NuGetGallery
             }
 
             readMeService = readMeService ?? new ReadMeService(
-                packageFileService.Object, entitiesContext.Object, markdownService.Object);
+                packageFileService.Object, entitiesContext.Object, markdownService.Object, new Mock<ICoreReadmeFileService>().Object);
 
             if (contentObjectService == null)
             {
