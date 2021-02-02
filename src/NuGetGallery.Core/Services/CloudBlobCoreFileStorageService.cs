@@ -368,13 +368,25 @@ namespace NuGetGallery
             await blob.SetPropertiesAsync();
         }
 
+        public async Task<Uri> GetFileUriAsync(string folderName, string fileName)
+        {
+            var blob = await GetBlobForUriAsync(folderName, fileName);
+
+            return blob.Uri;
+        }
+
         public async Task<Uri> GetPriviledgedFileUriAsync(
             string folderName,
             string fileName,
             FileUriPermissions permissions,
             DateTimeOffset endOfAccess)
         {
-            var blob = await GetBlobForUriAsync(folderName, fileName, endOfAccess);
+            if (endOfAccess < DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
+            }
+
+            var blob = await GetBlobForUriAsync(folderName, fileName);
 
             return new Uri(
                 blob.Uri,
@@ -383,11 +395,21 @@ namespace NuGetGallery
 
         public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
         {
-            var blob = await GetBlobForUriAsync(folderName, fileName, endOfAccess);
+            var blob = await GetBlobForUriAsync(folderName, fileName);
 
             if (IsPublicContainer(folderName))
             {
                 return blob.Uri;
+            }
+
+            if (!endOfAccess.HasValue)
+            {
+                throw new ArgumentNullException(nameof(endOfAccess), $"{nameof(endOfAccess)} must not be null for non-public containers");
+            }
+
+            if (endOfAccess < DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
             }
 
             return new Uri(
@@ -519,20 +541,11 @@ namespace NuGetGallery
             return (SharedAccessBlobPermissions)permissions;
         }
 
-        private async Task<ISimpleCloudBlob> GetBlobForUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
+        private async Task<ISimpleCloudBlob> GetBlobForUriAsync(string folderName, string fileName)
         {
             folderName = folderName ?? throw new ArgumentNullException(nameof(folderName));
             fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
-            if (endOfAccess.HasValue && endOfAccess < DateTimeOffset.UtcNow)
-            {
-                throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
-            }
-
-            if (!IsPublicContainer(folderName) && endOfAccess == null)
-            {
-                throw new ArgumentNullException(nameof(endOfAccess), $"{nameof(endOfAccess)} must not be null for non-public containers");
-            }
-
+            
             ICloudBlobContainer container = await GetContainerAsync(folderName);
 
             return container.GetBlobReference(fileName);

@@ -29,6 +29,13 @@ namespace NuGetGallery
         /// Generates the URL for the specified package in the public container for available packages.
         /// </summary>
         /// <param name="package">The package metadata.</param>
+        /// <returns>Package URL</returns>
+        Task<Uri> GetPackageUriAsync(Package package);
+
+        /// <summary>
+        /// Generates the URL for the specified package in the public container for available packages.
+        /// </summary>
+        /// <param name="package">The package metadata.</param>
         /// <returns>Package download URL</returns>
         /// <remarks>
         /// The returned URL is only intended to be used by the internal tooling and not for the user:

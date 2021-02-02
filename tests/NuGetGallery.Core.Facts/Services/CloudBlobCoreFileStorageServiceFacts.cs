@@ -673,6 +673,64 @@ namespace NuGetGallery
             }
         }
 
+        public class TheGetFileUriAsyncMethod
+        {
+            private const string folderName = "theFolderName";
+            private const string fileName = "theFileName";
+
+            [Fact]
+            public async Task WillThrowIfFolderIsNull()
+            {
+                var service = CreateService();
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileUriAsync(null, fileName));
+                Assert.Equal("folderName", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfFilenameIsNull()
+            {
+                var service = CreateService();
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileUriAsync(folderName, null));
+                Assert.Equal("fileName", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillAlwaysReturnValidUri()
+            {
+                var containerName = CoreConstants.Folders.ValidationFolderName;
+                var expectedUri = $"http://example.com/{CoreConstants.Folders.ValidationFolderName}/{fileName}";
+
+                var setupResult = Setup(containerName, fileName);
+                var fakeBlobClient = setupResult.Item1;
+
+                var service = CreateService(fakeBlobClient);
+
+                var uri = await service.GetFileUriAsync(containerName, fileName);
+
+                Assert.Equal(expectedUri, uri.AbsoluteUri);
+            }
+
+            private static Tuple<Mock<ICloudBlobClient>, Mock<ISimpleCloudBlob>, Uri> Setup(string folderName, string fileName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeContainer = new Mock<ICloudBlobContainer>();
+                fakeBlobClient
+                    .Setup(bc => bc.GetContainerReference(folderName))
+                    .Returns(fakeContainer.Object)
+                    .Callback(() => { int i = 0; i = i + 1; });
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeContainer.Setup(c => c.GetBlobReference(fileName)).Returns(fakeBlob.Object);
+
+                var blobUri = new Uri($"http://example.com/{folderName}/{fileName}");
+
+                fakeBlob.SetupGet(b => b.Uri).Returns(blobUri);
+
+                return Tuple.Create(fakeBlobClient, fakeBlob, blobUri);
+            }
+        }
+
         public class TheGetPriviledgedFileUriAsyncMethod
         {
             private const string folderName = "theFolderName";
@@ -824,12 +882,18 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillThrowIfEndOfAccessIsInThePast()
+            public async Task WillThrowIfEndOfAccessIsInThePastForNonPublicContainer()
             {
-                var service = CreateService();
-
+                var setupResult = Setup(folderName, fileName);
+                var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
+                fakeFolderInformationProvider
+                    .Setup(fip => fip.IsPublicContainer(It.IsAny<string>()))
+                    .Returns(false);
+                var service = CreateService(setupResult.Item1, fakeFolderInformationProvider);
                 DateTimeOffset inThePast = DateTimeOffset.UtcNow.AddSeconds(-1);
+                
                 var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetFileReadUriAsync(folderName, fileName, inThePast));
+                
                 Assert.Equal("endOfAccess", ex.ParamName);
             }
 
@@ -863,11 +927,12 @@ namespace NuGetGallery
             [Fact]
             public async Task WillThrowIfNoEndOfAccessSpecifiedForNonPublicContainer()
             {
+                var setupResult = Setup(CoreConstants.Folders.ValidationFolderName, fileName);
                 var fakeFolderInformationProvider = new Mock<ICloudBlobContainerInformationProvider>();
                 fakeFolderInformationProvider
                     .Setup(fip => fip.IsPublicContainer(It.IsAny<string>()))
                     .Returns(false);
-                var service = CreateService(fakeFolderInformationProvider: fakeFolderInformationProvider);
+                var service = CreateService(setupResult.Item1, fakeFolderInformationProvider);
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(CoreConstants.Folders.ValidationFolderName, fileName, null));
                 Assert.Equal("endOfAccess", ex.ParamName);
@@ -1596,6 +1661,5 @@ namespace NuGetGallery
                 Assert.Null(etagValue);
             }
         }
-
     }
 }
