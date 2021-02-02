@@ -93,9 +93,9 @@
                 InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
             },
 
-            new PackageManagerViewModel(".NET Interactive")
+            new PackageManagerViewModel("Script & Interactive")
             {
-                Id = "net-interactive",
+                Id = "script-interactive",
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("#r \"nuget: {0}, {1}\"", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
