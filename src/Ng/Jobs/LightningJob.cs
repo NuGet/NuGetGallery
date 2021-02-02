@@ -85,7 +85,9 @@ namespace Ng.Jobs
             sw.WriteLine($"  -{Arguments.StorageAccountName} <azure-acc>");
             sw.WriteLine($"      Azure Storage account name.");
             sw.WriteLine($"  -{Arguments.StorageKeyValue} <azure-key>");
-            sw.WriteLine($"      Azure Storage account name.");
+            sw.WriteLine($"      Azure Storage account key.");
+            sw.WriteLine($"  -{Arguments.StorageSasValue} <azure-sas>");
+            sw.WriteLine($"      Azure Storage account sas token.");
             sw.WriteLine($"  -{Arguments.StorageContainer} <container>");
             sw.WriteLine($"      Container to generate registrations in.");
             sw.WriteLine();
@@ -94,7 +96,9 @@ namespace Ng.Jobs
             sw.WriteLine($"  -{Arguments.CompressedStorageAccountName} <azure-acc>");
             sw.WriteLine($"      Compressed only: Azure Storage account name.");
             sw.WriteLine($"  -{Arguments.CompressedStorageKeyValue} <azure-key>");
-            sw.WriteLine($"      Compressed only: Azure Storage account name.");
+            sw.WriteLine($"      Compressed only: Azure Storage account key.");
+            sw.WriteLine($"  -{Arguments.CompressedStorageSasValue} <azure-sas>");
+            sw.WriteLine($"      Compressed only: Azure Storage account sas token.");
             sw.WriteLine($"  -{Arguments.CompressedStorageContainer} <container>");
             sw.WriteLine($"      Compressed only: Container to generate registrations in.");
             sw.WriteLine();
@@ -103,7 +107,9 @@ namespace Ng.Jobs
             sw.WriteLine($"  -{Arguments.SemVer2StorageAccountName} <azure-acc>");
             sw.WriteLine($"      SemVer 2.0.0 only: Azure Storage account name.");
             sw.WriteLine($"  -{Arguments.SemVer2StorageKeyValue} <azure-key>");
-            sw.WriteLine($"      SemVer 2.0.0 only: Azure Storage account name for SemVer 2.0.0.");
+            sw.WriteLine($"      SemVer 2.0.0 only: Azure Storage account key for SemVer 2.0.0.");
+            sw.WriteLine($"  -{Arguments.SemVer2StorageSasValue} <azure-sas>");
+            sw.WriteLine($"      SemVer 2.0.0 only: Azure Storage account sas token for SemVer 2.0.0.");
             sw.WriteLine($"  -{Arguments.SemVer2StorageContainer} <container>");
             sw.WriteLine($"      SemVer 2.0.0 only: Container to generate registrations in.");
             sw.WriteLine();
@@ -231,6 +237,7 @@ namespace Ng.Jobs
             var latestCommit = DateTime.MinValue;
             int numberOfEntries = 0;
             string indexFile = Path.Combine(_outputFolder, "index.txt");
+            string storageCredentialArgumentsTemplate = "storageCredentialArguments";
             string optionalArgumentsTemplate = "optionalArguments";
 
             using (var streamWriter = new StreamWriter(indexFile, false))
@@ -342,12 +349,21 @@ namespace Ng.Jobs
                             .Replace($"[{replacement.Key}]", replacement.Value);
                     }
 
+                    // Since we only need to set the storage key or the storage sas token, only one will be added to the template.
+                    var storageCredentialArguments = new StringBuilder();
+                    AddStorageCredentialArgument(storageCredentialArguments, Arguments.StorageSasValue, Arguments.StorageKeyValue);
+                    AddStorageCredentialArgument(storageCredentialArguments, Arguments.CompressedStorageSasValue, Arguments.CompressedStorageKeyValue);
+                    AddStorageCredentialArgument(storageCredentialArguments, Arguments.SemVer2StorageSasValue, Arguments.SemVer2StorageKeyValue);
+
+                    commandStreamContents = commandStreamContents
+                        .Replace($"[{storageCredentialArgumentsTemplate}]", storageCredentialArguments.ToString());
+
                     //the not required arguments need to be added only if they were passed in
                     //they cannot be hardcoded in the template
                     var optionalArguments = new StringBuilder();
-                    AppendOptionalArgument(optionalArguments, Arguments.FlatContainerName);
-                    AppendOptionalArgument(optionalArguments, Arguments.StorageSuffix);
-                    AppendOptionalArgument(optionalArguments, Arguments.Verbose);
+                    AppendArgument(optionalArguments, Arguments.FlatContainerName);
+                    AppendArgument(optionalArguments, Arguments.StorageSuffix);
+                    AppendArgument(optionalArguments, Arguments.Verbose);
 
                     commandStreamContents = commandStreamContents
                         .Replace($"[{optionalArgumentsTemplate}]", optionalArguments.ToString());
@@ -365,18 +381,28 @@ namespace Ng.Jobs
             _log.WriteLine("to multiple machines and run the cursor*.cmd files in parallel.");
         }
 
-        private void AppendOptionalArgument(StringBuilder optionalArguments, string name)
+        private void AppendArgument(StringBuilder argument, string name)
         {
             if (_arguments.ContainsKey(name))
             {
-                if (optionalArguments.Length > 0)
+                if (argument.Length > 0)
                 {
-                    optionalArguments.AppendLine(" ^");
-                    optionalArguments.Append("    ");
+                    argument.AppendLine(" ^");
+                    argument.Append("    ");
                 }
 
-                optionalArguments.AppendFormat("-{0} {1}", name, _arguments[name]);
+                argument.AppendFormat("-{0} {1}", name, _arguments[name]);
             }
+        }
+
+        private void AddStorageCredentialArgument(StringBuilder argument, string sasTokenArgument, string storageKeyArgument)
+        {
+            if (!string.IsNullOrEmpty(_arguments.GetOrDefault<string>(sasTokenArgument)))
+            {
+                AppendArgument(argument, sasTokenArgument);
+            }
+
+            AppendArgument(argument, storageKeyArgument);
         }
 
         private async Task StrikeAsync()
@@ -485,6 +511,7 @@ namespace Ng.Jobs
                     config.StorageConnectionString,
                     Arguments.StorageAccountName,
                     Arguments.StorageKeyValue,
+                    Arguments.StorageSasValue,
                     Arguments.StorageSuffix);
 
                 config.GzippedBaseUrl = _arguments.GetOrDefault<string>(Arguments.CompressedStorageBaseAddress);
@@ -493,6 +520,7 @@ namespace Ng.Jobs
                    config.StorageConnectionString,
                    Arguments.CompressedStorageAccountName,
                    Arguments.CompressedStorageKeyValue,
+                   Arguments.CompressedStorageSasValue,
                    Arguments.StorageSuffix);
 
                 config.SemVer2BaseUrl = _arguments.GetOrDefault<string>(Arguments.SemVer2StorageBaseAddress);
@@ -501,6 +529,7 @@ namespace Ng.Jobs
                    config.StorageConnectionString,
                    Arguments.SemVer2StorageAccountName,
                    Arguments.SemVer2StorageKeyValue,
+                   Arguments.SemVer2StorageSasValue,
                    Arguments.StorageSuffix);
 
                 config.GalleryBaseUrl = _arguments.GetOrThrow<string>(Arguments.GalleryBaseAddress);
@@ -524,12 +553,23 @@ namespace Ng.Jobs
             string currentConnectionString,
             string accountNameArgument,
             string accountKeyArgument,
+            string accountSasArgument,
             string endpointSuffixArgument)
         {
             var builder = new StringBuilder();
             builder.Append("DefaultEndpointsProtocol=https;");
             builder.AppendFormat("AccountName={0};", _arguments.GetOrThrow<string>(accountNameArgument));
-            builder.AppendFormat("AccountKey={0};", _arguments.GetOrThrow<string>(accountKeyArgument));
+
+            var accountName = _arguments.GetOrDefault<string>(accountKeyArgument);
+            if (!string.IsNullOrEmpty(accountName))
+            {
+                builder.AppendFormat("AccountKey={0};", _arguments.GetOrThrow<string>(accountKeyArgument));
+            }
+            else
+            {
+                builder.AppendFormat("SharedAccessSignature={0};", _arguments.GetOrThrow<string>(accountSasArgument));
+            }
+
             builder.AppendFormat("EndpointSuffix={0}", _arguments.GetOrDefault(endpointSuffixArgument, "core.windows.net"));
 
             var connectionString = builder.ToString();

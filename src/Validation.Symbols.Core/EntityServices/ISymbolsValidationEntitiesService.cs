@@ -38,10 +38,10 @@ namespace NuGet.Jobs.Validation.Symbols.Core
         Task<SymbolsServerRequest> GetSymbolsServerRequestAsync(string requestName, int symbolsPackageKey);
 
         /// <summary>
-        /// Queries and returns the <see cref="SymbolsServerRequest"/> based on the <see cref="IValidationRequest"/> information.
+        /// Queries and returns the <see cref="SymbolsServerRequest"/> based on the <see cref="INuGetValidationRequest"/> information.
         /// </summary>
         /// <param name="validationRequest">The validation request.</param>
-        /// <returns>The result transformed to <see cref="IValidationResult"/>.</returns>
-        Task<SymbolsServerRequest> GetSymbolsServerRequestAsync(IValidationRequest validationRequest);
+        /// <returns>The result transformed to <see cref="SymbolsServerRequest"/>.</returns>
+        Task<SymbolsServerRequest> GetSymbolsServerRequestAsync(INuGetValidationRequest validationRequest);
     }
 }

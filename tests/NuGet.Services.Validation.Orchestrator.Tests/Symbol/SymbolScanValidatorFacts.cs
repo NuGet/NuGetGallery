@@ -25,14 +25,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             [Fact]
             public async Task ThrowsWhenRequestIsNull()
             {
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _target.GetResultAsync(null));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _target.GetResponseAsync(null));
                 Assert.Equal("request", ex.ParamName);
             }
 
             [Fact]
             public async Task ForwardsCallToValidatorStateService()
             {
-                var request = new ValidationRequest(Guid.NewGuid(), 42, "somepackage", "somversion", "https://example.com/package.nupkg");
+                var request = new NuGetValidationRequest(Guid.NewGuid(), 42, "somepackage", "somversion", "https://example.com/package.nupkg");
                 var status = new ValidatorStatus
                 {
                     State = ValidationStatus.Incomplete,
@@ -44,12 +44,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     .Setup(vss => vss.GetStatusAsync(request))
                     .ReturnsAsync(status);
 
-                var result = await _target.GetResultAsync(request);
+                var result = await _target.GetResponseAsync(request);
 
                 _validatorStateServiceMock
                     .Verify(vss => vss.GetStatusAsync(request), Times.Once);
                 _validatorStateServiceMock
-                    .Verify(vss => vss.GetStatusAsync(It.IsAny<ValidationRequest>()), Times.Once);
+                    .Verify(vss => vss.GetStatusAsync(It.IsAny<NuGetValidationRequest>()), Times.Once);
                 _validatorStateServiceMock
                     .Verify(vss => vss.GetStatusAsync(It.IsAny<Guid>()), Times.Never);
                 Assert.Empty(result.Issues);
@@ -60,7 +60,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             [Fact]
             public async Task DoesNotSkipCheckWhenPackageFitsCriteria()
             {
-                var request = new ValidationRequest(Guid.NewGuid(), 42, "somepackage", "somversion", "https://example.com/package.nupkg");
+                var request = new NuGetValidationRequest(Guid.NewGuid(), 42, "somepackage", "somversion", "https://example.com/package.nupkg");
                 var status = new ValidatorStatus
                 {
                     State = ValidationStatus.NotStarted,
@@ -76,12 +76,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     .Setup(vss => vss.GetStatusAsync(request))
                     .ReturnsAsync(status);
 
-                var result = await _target.GetResultAsync(request);
+                var result = await _target.GetResponseAsync(request);
 
                 Assert.Equal(ValidationStatus.NotStarted, result.Status);
 
                 _validatorStateServiceMock
-                    .Verify(vss => vss.GetStatusAsync(It.IsAny<ValidationRequest>()), Times.Once);
+                    .Verify(vss => vss.GetStatusAsync(It.IsAny<NuGetValidationRequest>()), Times.Once);
                 _validatorStateServiceMock
                     .Verify(vss => vss.GetStatusAsync(It.IsAny<Guid>()), Times.Never);
             }
@@ -115,9 +115,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 _validatorStateServiceMock
                     .Verify(vss => vss.SaveStatusAsync(It.IsAny<ValidatorStatus>()), Times.Never);
                 _validatorStateServiceMock
-                    .Verify(vss => vss.TryAddValidatorStatusAsync(It.IsAny<IValidationRequest>(), It.IsAny<ValidatorStatus>(), It.IsAny<ValidationStatus>()), Times.Never);
+                    .Verify(vss => vss.TryAddValidatorStatusAsync(It.IsAny<INuGetValidationRequest>(), It.IsAny<ValidatorStatus>(), It.IsAny<ValidationStatus>()), Times.Never);
                 _validatorStateServiceMock
-                    .Verify(vss => vss.TryUpdateValidationStatusAsync(It.IsAny<IValidationRequest>(), It.IsAny<ValidatorStatus>(), It.IsAny<ValidationStatus>()), Times.Never);
+                    .Verify(vss => vss.TryUpdateValidationStatusAsync(It.IsAny<INuGetValidationRequest>(), It.IsAny<ValidatorStatus>(), It.IsAny<ValidationStatus>()), Times.Never);
 
                 Assert.Equal(_status.State, result.Status);
                 Assert.Equal(_status.NupkgUrl, result.NupkgUrl);
@@ -133,12 +133,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 await Assert.ThrowsAsync<InvalidDataException>(async () => await _target.StartAsync(_request));
             }
 
-            private ValidationRequest _request;
+            private NuGetValidationRequest _request;
             private ValidatorStatus _status;
 
             public TheStartAsyncMethod()
             {
-                _request = new ValidationRequest(Guid.NewGuid(), 42, "somepackage", "somversion", "https://example.com/package.nupkg");
+                _request = new NuGetValidationRequest(Guid.NewGuid(), 42, "somepackage", "somversion", "https://example.com/package.nupkg");
                 _status = new ValidatorStatus
                 {
                     State = ValidationStatus.NotStarted,
@@ -150,7 +150,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     .Setup(vss => vss.GetStatusAsync(_request))
                     .ReturnsAsync(_status);
                 _validatorStateServiceMock
-                    .Setup(vss => vss.TryAddValidatorStatusAsync(It.IsAny<IValidationRequest>(), It.IsAny<ValidatorStatus>(), It.IsAny<ValidationStatus>()))
+                    .Setup(vss => vss.TryAddValidatorStatusAsync(It.IsAny<INuGetValidationRequest>(), It.IsAny<ValidatorStatus>(), It.IsAny<ValidationStatus>()))
                     .ReturnsAsync(_status);
             }
         }

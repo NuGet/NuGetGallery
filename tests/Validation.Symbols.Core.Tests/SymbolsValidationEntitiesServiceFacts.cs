@@ -184,8 +184,8 @@ namespace Validation.Symbols.Core.Tests
             public void CreateFromValidationRequestValidRequest()
             {
                 // Arrange
-                ValidationRequest request = new ValidationRequest(Guid.NewGuid(), PackageKey, PackageId, PackageVersion, "");
-                string requestName = "DummyRequestName";
+                var request = new NuGetValidationRequest(Guid.NewGuid(), PackageKey, PackageId, PackageVersion, "");
+                var requestName = "DummyRequestName";
 
                 // Act
                 var result = SymbolsValidationEntitiesService.CreateFromValidationRequest(request, SymbolsPackageIngestRequestStatus.FailedIngestion, requestName);
@@ -197,10 +197,10 @@ namespace Validation.Symbols.Core.Tests
             }
         }
 
-        public class TheConvertToIValidationResultMethod
+        public class TheToValidationResponseMethod
         {
             [Fact]
-            public void ConvertToIValidationResultFailedIngestion()
+            public void ToValidationResponseFailedIngestion()
             {
                 // Arrange
                 SymbolsServerRequest request = new SymbolsServerRequest()
@@ -210,14 +210,14 @@ namespace Validation.Symbols.Core.Tests
 
 
                 // Act
-                var result = SymbolsValidationEntitiesService.ConvertToIValidationResult(request);
+                var result = SymbolsValidationEntitiesService.ToValidationResponse(request);
 
                 // Assert
                 Assert.Equal(ValidationStatus.Failed, result.Status);
             }
 
             [Fact]
-            public void ConvertToIValidationResultIngested()
+            public void ToValidationResponseIngested()
             {
                 // Arrange
                 SymbolsServerRequest request = new SymbolsServerRequest()
@@ -227,14 +227,14 @@ namespace Validation.Symbols.Core.Tests
 
 
                 // Act
-                var result = SymbolsValidationEntitiesService.ConvertToIValidationResult(request);
+                var result = SymbolsValidationEntitiesService.ToValidationResponse(request);
 
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, result.Status);
             }
 
             [Fact]
-            public void ConvertToIValidationResultIngesting()
+            public void ToValidationResponseIngesting()
             {
                 // Arrange
                 SymbolsServerRequest request = new SymbolsServerRequest()
@@ -244,17 +244,17 @@ namespace Validation.Symbols.Core.Tests
 
 
                 // Act
-                var result = SymbolsValidationEntitiesService.ConvertToIValidationResult(request);
+                var result = SymbolsValidationEntitiesService.ToValidationResponse(request);
 
                 // Assert
                 Assert.Equal(ValidationStatus.Incomplete, result.Status);
             }
 
             [Fact]
-            public void ConvertToIValidationResultNull()
+            public void ToValidationResponseNull()
             {
                 // Act
-                var result = SymbolsValidationEntitiesService.ConvertToIValidationResult(null);
+                var result = SymbolsValidationEntitiesService.ToValidationResponse(null);
 
                 // Assert
                 Assert.Equal(ValidationStatus.NotStarted, result.Status);
@@ -267,8 +267,8 @@ namespace Validation.Symbols.Core.Tests
             public void CreateRequestName()
             {
                 // Arrange
-                Guid id = Guid.NewGuid();
-                ValidationRequest vRequest = new ValidationRequest(id, 10, "pId", "1.1.1", "url");
+                var id = Guid.NewGuid();
+                var vRequest = new NuGetValidationRequest(id, 10, "pId", "1.1.1", "url");
 
                 // Act
                 var requestName = SymbolsValidationEntitiesService.CreateSymbolServerRequestNameFromValidationRequest(vRequest);
@@ -288,28 +288,6 @@ namespace Validation.Symbols.Core.Tests
             {
                 _validationEntitiesContext = new Mock<IValidationEntitiesContext>();
                 _target = new SymbolsValidationEntitiesService(_validationEntitiesContext.Object);
-            }
-        }
-
-        public class ValidationRequest : IValidationRequest
-        {
-            public Guid ValidationId { get; }
-
-            public int PackageKey { get; }
-
-            public string PackageId { get; }
-
-            public string PackageVersion { get; }
-
-            public string NupkgUrl { get; }
-
-            public ValidationRequest(Guid validationId, int packageKey, string packageId, string packageVersion, string nupkgUrl)
-            {
-                ValidationId = validationId;
-                PackageKey = packageKey;
-                PackageId = packageId;
-                PackageVersion = packageVersion;
-                NupkgUrl = nupkgUrl;
             }
         }
     }

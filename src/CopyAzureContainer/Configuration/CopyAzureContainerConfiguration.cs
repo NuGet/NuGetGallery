@@ -10,6 +10,7 @@ namespace CopyAzureContainer
         public int? BackupDays { get; set; }
         public string DestStorageAccountName { get; set; }
         public string DestStorageKeyValue { get; set; }
+        public string DestStorageSasValue { get; set; }
         public List<AzureContainerInfo> SourceContainers { get; set; }
     }
 }

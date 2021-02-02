@@ -100,7 +100,7 @@ namespace Validation.Symbols.Tests
                 var  result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
-                Assert.Equal(ValidationResult.Failed.Status, result.Status);
+                Assert.Equal(NuGetValidationResponse.Failed.Status, result.Status);
             }
 
             [Fact]
@@ -121,7 +121,7 @@ namespace Validation.Symbols.Tests
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
-                Assert.Equal(ValidationResult.Failed.Status, result.Status);
+                Assert.Equal(NuGetValidationResponse.Failed.Status, result.Status);
             }
 
             [Fact]
@@ -148,7 +148,7 @@ namespace Validation.Symbols.Tests
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
-                Assert.Equal(ValidationResult.Failed.Status, result.Status);
+                Assert.Equal(NuGetValidationResponse.Failed.Status, result.Status);
                 Assert.Equal(1, result.Issues.Count);
             }
 
@@ -178,7 +178,7 @@ namespace Validation.Symbols.Tests
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
-                Assert.Equal(ValidationResult.Succeeded.Status, result.Status);
+                Assert.Equal(NuGetValidationResponse.Succeeded.Status, result.Status);
                 Assert.True(service.ValidateSymbolMatchingInvoked);
             }
 
@@ -196,7 +196,7 @@ namespace Validation.Symbols.Tests
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
-                Assert.Equal(ValidationResult.Failed.Status, result.Status);
+                Assert.Equal(NuGetValidationResponse.Failed.Status, result.Status);
                 Assert.Equal(1, result.Issues.Count);
             }
 
@@ -222,7 +222,7 @@ namespace Validation.Symbols.Tests
                 var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
-                Assert.Equal(ValidationResult.Failed.Status, result.Status);
+                Assert.Equal(NuGetValidationResponse.Failed.Status, result.Status);
                 Assert.Equal(1, result.Issues.Count);
             }
 
@@ -365,10 +365,10 @@ namespace Validation.Symbols.Tests
             {
             }
 
-            public override IValidationResult ValidateSymbolMatching(string targetDirectory, string packageId, string packageNormalizedVersion)
+            public override INuGetValidationResponse ValidateSymbolMatching(string targetDirectory, string packageId, string packageNormalizedVersion)
             {
                 ValidateSymbolMatchingInvoked = true;
-                return ValidationResult.Succeeded;
+                return NuGetValidationResponse.Succeeded;
             }
         }
     }

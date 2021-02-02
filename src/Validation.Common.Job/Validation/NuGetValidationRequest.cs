@@ -3,9 +3,9 @@
 
 using System;
 
-namespace NuGet.Services.Validation.Orchestrator
+namespace NuGet.Services.Validation
 {
-    public class ValidationRequest : IValidationRequest
+    public class NuGetValidationRequest : INuGetValidationRequest
     {
         public Guid ValidationId { get; }
 
@@ -17,7 +17,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public string NupkgUrl { get; }
 
-        public ValidationRequest(Guid validationId, int packageKey, string packageId, string packageVersion, string nupkgUrl)
+        public NuGetValidationRequest(Guid validationId, int packageKey, string packageId, string packageVersion, string nupkgUrl)
         {
             ValidationId = validationId;
             PackageKey = packageKey;

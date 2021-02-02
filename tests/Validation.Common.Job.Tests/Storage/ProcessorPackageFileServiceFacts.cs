@@ -101,11 +101,11 @@ namespace Validation.Common.Job.Tests.Storage
         }
 
         [ValidatorName("TestProcessor")]
-        private class TestProcessor : IProcessor
+        private class TestProcessor : INuGetProcessor
         {
-            public Task CleanUpAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<IValidationResult> GetResultAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<IValidationResult> StartAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task CleanUpAsync(INuGetValidationRequest request) => throw new NotImplementedException();
+            public Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request) => throw new NotImplementedException();
+            public Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request) => throw new NotImplementedException();
         }
     }
 }

@@ -31,21 +31,21 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public virtual async Task<IValidationResult> GetResultAsync(IValidationRequest request)
+        public virtual async Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
         {
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
 
-            return validatorStatus.ToValidationResult();
+            return validatorStatus.ToNuGetValidationResponse();
         }
 
-        public virtual async Task<IValidationResult> StartAsync(IValidationRequest request)
+        public virtual async Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
         {
             var validatorStatus = await StartInternalAsync(request);
 
-            return validatorStatus.ToValidationResult();
+            return validatorStatus.ToNuGetValidationResponse();
         }
 
-        public async Task CleanUpAsync(IValidationRequest request)
+        public async Task CleanUpAsync(INuGetValidationRequest request)
         {
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
 
@@ -69,7 +69,7 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
         /// </summary>
         protected abstract bool RequiresRepositorySignature { get; }
 
-        private async Task<ValidatorStatus> StartInternalAsync(IValidationRequest request)
+        private async Task<ValidatorStatus> StartInternalAsync(INuGetValidationRequest request)
         {
             // Check that this is the first validation for this specific request.
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);

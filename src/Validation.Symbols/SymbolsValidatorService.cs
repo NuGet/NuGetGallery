@@ -41,7 +41,7 @@ namespace Validation.Symbols
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<IValidationResult> ValidateSymbolsAsync(SymbolsValidatorMessage message, CancellationToken token)
+        public async Task<INuGetValidationResponse> ValidateSymbolsAsync(SymbolsValidatorMessage message, CancellationToken token)
         {
             _logger.LogInformation("{ValidatorName} :Start ValidateSymbolsAsync. PackageId: {packageId} PackageNormalizedVersion: {packageNormalizedVersion}",
                 ValidatorName.SymbolsValidator,
@@ -54,7 +54,7 @@ namespace Validation.Symbols
                 {
                     if (!await _zipArchiveService.ValidateZipAsync(snupkgstream, message.SnupkgUrl, token))
                     {
-                        return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction);
+                        return NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction);
                     }
 
                     try
@@ -66,7 +66,7 @@ namespace Validation.Symbols
 
                             if (pdbs.Count == 0)
                             {
-                                return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_SnupkgDoesNotContainSymbols);
+                                return NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_SnupkgDoesNotContainSymbols);
                             }
 
                             using (_telemetryService.TrackSymbolValidationDurationEvent(message.PackageId, message.PackageNormalizedVersion, pdbs.Count))
@@ -79,7 +79,7 @@ namespace Validation.Symbols
                                         _telemetryService.TrackSymbolsAssemblyValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound), assemblyName: symbol);
                                     });
                                     _telemetryService.TrackSymbolsValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed);
-                                    return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound);
+                                    return NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound);
                                 }
                                 var targetDirectory = Settings.GetWorkingDirectory();
                                 try
@@ -103,14 +103,14 @@ namespace Validation.Symbols
                     catch (FileNotFoundException)
                     {
                         _telemetryService.TrackPackageNotFoundEvent(message.PackageId, message.PackageNormalizedVersion);
-                        return ValidationResult.Failed;
+                        return NuGetValidationResponse.Failed;
                     }
                 }
             }
             catch (InvalidOperationException)
             {
                 _telemetryService.TrackSymbolsPackageNotFoundEvent(message.PackageId, message.PackageNormalizedVersion);
-                return ValidationResult.Failed;
+                return NuGetValidationResponse.Failed;
             }
         }
 
@@ -159,33 +159,33 @@ namespace Validation.Symbols
         /// <param name="packageId">Package Id.</param>
         /// <param name="packageNormalizedVersion">PackageNormalized version.</param>
         /// <returns></returns>
-        public virtual IValidationResult ValidateSymbolMatching(string targetDirectory, string packageId, string packageNormalizedVersion)
+        public virtual INuGetValidationResponse ValidateSymbolMatching(string targetDirectory, string packageId, string packageNormalizedVersion)
         {
             foreach (string extension in PEExtensionsPatterns)
             {
                 foreach (string peFile in Directory.GetFiles(targetDirectory, extension, SearchOption.AllDirectories))
                 {
-                    IValidationResult validationResult;
+                    INuGetValidationResponse validationResponse;
 
                     if (!IsPortable(GetSymbolPath(peFile)))
                     {
                         _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed);
-                        return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_PdbIsNotPortable);
+                        return NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_PdbIsNotPortable);
                     }
-                    if (!IsChecksumMatch(peFile, packageId, packageNormalizedVersion, out validationResult))
+                    if (!IsChecksumMatch(peFile, packageId, packageNormalizedVersion, out validationResponse))
                     {
                         _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed);
-                        return validationResult;
+                        return validationResponse;
                     }
                 }
             }
             _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Succeeded);
-            return ValidationResult.Succeeded;
+            return NuGetValidationResponse.Succeeded;
         }
 
-        private bool IsChecksumMatch(string peFilePath, string packageId, string packageNormalizedVersion, out IValidationResult validationResult)
+        private bool IsChecksumMatch(string peFilePath, string packageId, string packageNormalizedVersion, out INuGetValidationResponse validationResponse)
         {
-            validationResult = ValidationResult.Succeeded;
+            validationResponse = NuGetValidationResponse.Succeeded;
             using (var peStream = File.OpenRead(peFilePath))
             using (var peReader = new PEReader(peStream))
             {
@@ -204,7 +204,7 @@ namespace Validation.Symbols
                     if (checksumRecords.Length == 0)
                     {
                         _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch), assemblyName: Path.GetFileName(peFilePath));
-                        validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
+                        validationResponse = NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
                         return false;
                     }
 
@@ -242,13 +242,13 @@ namespace Validation.Symbols
 
                         // Not found any checksum record that matches the PDB.
                         _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch), assemblyName: Path.GetFileName(peFilePath));
-                        validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
+                        validationResponse = NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
                         return false;
                     }
                 }
             }
             _telemetryService.TrackSymbolsAssemblyValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound), assemblyName: Path.GetFileName(peFilePath));
-            validationResult = ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound);
+            validationResponse = NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound);
             return false;
         }
 

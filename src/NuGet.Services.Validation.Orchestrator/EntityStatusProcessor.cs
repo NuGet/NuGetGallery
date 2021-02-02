@@ -232,7 +232,7 @@ namespace NuGet.Services.Validation.Orchestrator
             // the on-call person should investigate.
             bool copied;
             PackageStreamMetadata metaData;
-            if (validationSet.PackageValidations.Any(x => _validatorProvider.IsProcessor(x.Type)) ||
+            if (validationSet.PackageValidations.Any(x => _validatorProvider.IsNuGetProcessor(x.Type)) ||
                 await _packageFileService.DoesValidationSetPackageExistAsync(validationSet))
             {
                 IAccessCondition destAccessCondition;

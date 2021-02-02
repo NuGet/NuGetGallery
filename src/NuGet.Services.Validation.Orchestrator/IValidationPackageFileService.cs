@@ -54,14 +54,14 @@ namespace NuGet.Services.Validation.Orchestrator
 
         /// <summary>
         /// Copy a package from the validation container to a location specific for the validation set. This allows the
-        /// validation set to have its own copy of the package to mutate (via <see cref="IProcessor"/>) and validate.
+        /// validation set to have its own copy of the package to mutate (via <see cref="INuGetProcessor"/>) and validate.
         /// </summary>
         /// <param name="validationSet">The validation set, containing validation set and package identifiers.</param>
         Task CopyValidationPackageForValidationSetAsync(PackageValidationSet validationSet);
 
         /// <summary>
         /// Copy a package from the packages container to a location specific for the validation set. This allows the
-        /// validation set to have its own copy of the package to mutate (via <see cref="IProcessor"/>) and validate.
+        /// validation set to have its own copy of the package to mutate (via <see cref="INuGetProcessor"/>) and validate.
         /// </summary>
         /// <param name="validationSet">The validation set, containing validation set and package identifiers.</param>
         /// <returns>The etag of the source package.</returns>

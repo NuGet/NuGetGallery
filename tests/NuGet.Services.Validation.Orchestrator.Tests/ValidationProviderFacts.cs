@@ -47,37 +47,37 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
-        public class IsProcessor : BaseFacts
+        public class IsNuGetProcessor : BaseFacts
         {
             [Theory]
-            [InlineData(nameof(TestProcessor), true)]
-            [InlineData(nameof(TestValidator), false)]
-            [InlineData(nameof(IsProcessor), false)]
-            [InlineData(nameof(IProcessor), false)]
-            [InlineData(nameof(IValidator), false)]
+            [InlineData(nameof(TestNuGetProcessor), true)]
+            [InlineData(nameof(TestNuGetValidator), false)]
+            [InlineData(nameof(IsNuGetProcessor), false)]
+            [InlineData(nameof(INuGetProcessor), false)]
+            [InlineData(nameof(INuGetValidator), false)]
             [InlineData("NotARealType", false)]
-            public void ReturnsTrueForProcessors(string name, bool expected)
+            public void ReturnsTrueForNuGetProcessors(string name, bool expected)
             {
-                Assert.Equal(expected, Target.IsProcessor(name));
+                Assert.Equal(expected, Target.IsNuGetProcessor(name));
             }
         }
 
-        public class IsValidator : BaseFacts
+        public class IsNuGetValidator : BaseFacts
         {
             [Theory]
-            [InlineData(nameof(TestProcessor), true)]
-            [InlineData(nameof(TestValidator), true)]
-            [InlineData(nameof(IsProcessor), false)]
-            [InlineData(nameof(IProcessor), false)]
-            [InlineData(nameof(IValidator), false)]
+            [InlineData(nameof(TestNuGetProcessor), true)]
+            [InlineData(nameof(TestNuGetValidator), true)]
+            [InlineData(nameof(IsNuGetProcessor), false)]
+            [InlineData(nameof(INuGetProcessor), false)]
+            [InlineData(nameof(INuGetValidator), false)]
             [InlineData("NotARealType", false)]
-            public void ReturnsTrueForValidators(string name, bool expected)
+            public void ReturnsTrueForNuGetValidators(string name, bool expected)
             {
-                Assert.Equal(expected, Target.IsValidator(name));
+                Assert.Equal(expected, Target.IsNuGetValidator(name));
             }
         }
 
-        public class GetValidator : BaseFacts
+        public class GetNuGetValidator : BaseFacts
         {
             /// <summary>
             /// Names of known processors. These must never change unless there is a well thought out migration story
@@ -88,21 +88,21 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             [InlineData("PackageCertificatesValidator", false)]
             public void KnownValidatorsDoNotChangeNames(string validatorName, bool isProcessor)
             {
-                Assert.True(Target.IsValidator(validatorName));
-                Assert.Equal(isProcessor, Target.IsProcessor(validatorName));
+                Assert.True(Target.IsNuGetValidator(validatorName));
+                Assert.Equal(isProcessor, Target.IsNuGetProcessor(validatorName));
             }
 
             [Fact]
             public void CanGetValidator()
             {
-                var validator = new TestValidator();
+                var validator = new TestNuGetValidator();
                 var validatorType = validator.GetType();
 
                 ServiceProviderMock
                     .Setup(sp => sp.GetService(validatorType))
                     .Returns(() => validator);
 
-                var result = Target.GetValidator(ValidatorUtility.GetValidatorName(validatorType));
+                var result = Target.GetNuGetValidator(ValidatorUtility.GetValidatorName(validatorType));
 
                 ServiceProviderMock
                     .Verify(sp => sp.GetService(validatorType), Times.Once);
@@ -112,14 +112,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             [Fact]
             public void CanGetProcessor()
             {
-                var processor = new TestProcessor();
+                var processor = new TestNuGetProcessor();
                 var processorType = processor.GetType();
 
                 ServiceProviderMock
                     .Setup(sp => sp.GetService(processorType))
                     .Returns(() => processor);
                 
-                var result = Target.GetValidator(ValidatorUtility.GetValidatorName(processorType));
+                var result = Target.GetNuGetValidator(ValidatorUtility.GetValidatorName(processorType));
 
                 ServiceProviderMock
                     .Verify(sp => sp.GetService(processorType), Times.Once);
@@ -129,7 +129,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             [Fact]
             public void ThrowsOnNullArgument()
             {
-                Assert.Throws<ArgumentNullException>(() => Target.GetValidator(null));
+                Assert.Throws<ArgumentNullException>(() => Target.GetNuGetValidator(null));
             }
 
             [Fact]
@@ -137,7 +137,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 const string validatorName = "someNonExistentValidator";
 
-                var ex = Assert.Throws<ArgumentException>(() => Target.GetValidator(validatorName));
+                var ex = Assert.Throws<ArgumentException>(() => Target.GetNuGetValidator(validatorName));
                 Assert.Contains(validatorName, ex.Message);
             }
         }
@@ -157,39 +157,39 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public ValidatorProvider Target { get; }
         }
 
-        [ValidatorName("TestValidator")]
-        public class TestValidator : IValidator
+        [ValidatorName("TestNuGetValidator")]
+        public class TestNuGetValidator : INuGetValidator
         {
-            public Task CleanUpAsync(IValidationRequest request)
+            public Task CleanUpAsync(INuGetValidationRequest request)
             {
                 throw new NotImplementedException();
             }
 
-            public Task<IValidationResult> GetResultAsync(IValidationRequest request)
+            public Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
             {
                 throw new NotImplementedException();
             }
 
-            public Task<IValidationResult> StartAsync(IValidationRequest request)
+            public Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
             {
                 throw new NotImplementedException();
             }
         }
 
-        [ValidatorName("TestProcessor")]
-        public class TestProcessor : IProcessor
+        [ValidatorName("TestNuGetProcessor")]
+        public class TestNuGetProcessor : INuGetProcessor
         {
-            public Task CleanUpAsync(IValidationRequest request)
+            public Task CleanUpAsync(INuGetValidationRequest request)
             {
                 throw new NotImplementedException();
             }
 
-            public Task<IValidationResult> GetResultAsync(IValidationRequest request)
+            public Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
             {
                 throw new NotImplementedException();
             }
 
-            public Task<IValidationResult> StartAsync(IValidationRequest request)
+            public Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
             {
                 throw new NotImplementedException();
             }

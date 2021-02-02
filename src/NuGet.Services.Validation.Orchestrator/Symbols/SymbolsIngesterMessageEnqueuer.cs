@@ -24,7 +24,7 @@ namespace NuGet.Services.Validation.Symbols
             _messageDelay = messageDelay;
         }
 
-        public async Task<SymbolsIngesterMessage> EnqueueSymbolsIngestionMessageAsync(IValidationRequest request)
+        public async Task<SymbolsIngesterMessage> EnqueueSymbolsIngestionMessageAsync(INuGetValidationRequest request)
         {
             var message = new SymbolsIngesterMessage(validationId: request.ValidationId, 
                 symbolPackageKey: request.PackageKey,

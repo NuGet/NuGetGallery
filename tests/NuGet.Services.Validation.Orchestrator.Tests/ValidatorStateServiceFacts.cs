@@ -38,19 +38,19 @@ namespace NuGet.Services.Validation
         };
 
         [ValidatorName("AValidator")]
-        class AValidator : IValidator
+        class AValidator : INuGetValidator
         {
-            public Task CleanUpAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<IValidationResult> GetResultAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<IValidationResult> StartAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task CleanUpAsync(INuGetValidationRequest request) => throw new NotImplementedException();
+            public Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request) => throw new NotImplementedException();
+            public Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request) => throw new NotImplementedException();
         }
 
         [ValidatorName("BValidator")]
-        class BValidator : IValidator
+        class BValidator : INuGetValidator
         {
-            public Task CleanUpAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<IValidationResult> GetResultAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<IValidationResult> StartAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task CleanUpAsync(INuGetValidationRequest request) => throw new NotImplementedException();
+            public Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request) => throw new NotImplementedException();
+            public Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request) => throw new NotImplementedException();
         }
 
         public class TheGetStatusMethod : FactsBase
@@ -565,7 +565,7 @@ namespace NuGet.Services.Validation
             protected readonly ITestOutputHelper _output;
             protected readonly Mock<IValidationEntitiesContext> _validationContext;
             protected readonly ILogger<ValidatorStateService> _logger;
-            protected readonly Mock<IValidationRequest> _validationRequest;
+            protected readonly Mock<INuGetValidationRequest> _validationRequest;
             protected readonly ValidatorStateService _target;
 
             public FactsBase(ITestOutputHelper output)
@@ -574,7 +574,7 @@ namespace NuGet.Services.Validation
                 _validationContext = new Mock<IValidationEntitiesContext>();
                 _logger = new LoggerFactory().AddXunit(_output).CreateLogger<ValidatorStateService>();
 
-                _validationRequest = new Mock<IValidationRequest>();
+                _validationRequest = new Mock<INuGetValidationRequest>();
                 _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
                 _validationRequest.Setup(x => x.PackageId).Returns(PackageId);
                 _validationRequest.Setup(x => x.PackageKey).Returns(PackageKey);

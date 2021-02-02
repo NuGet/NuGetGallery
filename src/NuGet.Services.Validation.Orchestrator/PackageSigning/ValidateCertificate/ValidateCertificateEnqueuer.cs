@@ -25,7 +25,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public async Task EnqueueVerificationAsync(IValidationRequest request, EndCertificate certificate)
+        public async Task EnqueueVerificationAsync(INuGetValidationRequest request, EndCertificate certificate)
         {
             var message = new CertificateValidationMessage(
                 certificate.Key,

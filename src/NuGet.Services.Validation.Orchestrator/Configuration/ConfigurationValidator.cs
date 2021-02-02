@@ -102,7 +102,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             foreach (var validatorItem in _configuration.Validations)
             {
-                if (!_validatorProvider.IsValidator(validatorItem.Name))
+                if (!_validatorProvider.IsNuGetValidator(validatorItem.Name))
                 {
                     throw new ConfigurationErrorsException("Validator implementation not found for " + validatorItem.Name);
                 }
@@ -140,7 +140,7 @@ namespace NuGet.Services.Validation.Orchestrator
             var processorNames = _configuration
                 .Validations
                 .Select(x => x.Name)
-                .Where(x => _validatorProvider.IsProcessor(x))
+                .Where(x => _validatorProvider.IsNuGetProcessor(x))
                 .ToList();
 
             TopologicalSort.Validate(_configuration.Validations, processorNames);

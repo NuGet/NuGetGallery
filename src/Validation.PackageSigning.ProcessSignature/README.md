@@ -9,13 +9,13 @@ signature and can optionally have an author signature.
 This job is enqueued to at two points in a package's validation, managed by
 [the orchestrator](https://github.com/NuGet/NuGet.Jobs/tree/master/src/NuGet.Services.Validation.Orchestrator).
 
-**First**, it is treated as an `IProcessor`, meaning the package can be modified. Any unacceptable repository signature is
+**First**, it is treated as an `INuGetProcessor`, meaning the package can be modified. Any unacceptable repository signature is
 stripped. Any author signature is validated. The enqueuer in the orchestrator is
 [`PackageSignatureProcessor`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureProcessor.cs).
 This mode is executed before repository signing to prepare the package for signing and to quickly reject any bad author
 signatures.
 
-**Second**, it is treated as an `IValidator`, meaning the package is not allowed to be modified. All of the same validations
+**Second**, it is treated as an `INuGetValidator`, meaning the package is not allowed to be modified. All of the same validations
 as the first mode are run. Additionally, a repository signature is now required. The enqueuer in the orchestrator is
 [`PackageSignatureValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureValidator.cs).
 This mode is executed after the package has been repository signed so that the whole signature, as it will be seen by

@@ -28,7 +28,7 @@ namespace NuGet.Jobs.Validation.Storage
             _validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
         }
 
-        public async Task<ValidatorStatus> GetStatusAsync(IValidationRequest request)
+        public async Task<ValidatorStatus> GetStatusAsync(INuGetValidationRequest request)
         {
             var status = await GetStatusAsync(request.ValidationId);
 
@@ -68,7 +68,7 @@ namespace NuGet.Jobs.Validation.Storage
                 .FirstOrDefaultAsync();
         }
 
-        public Task<bool> IsRevalidationRequestAsync(IValidationRequest request, ValidatingType validatingType)
+        public Task<bool> IsRevalidationRequestAsync(INuGetValidationRequest request, ValidatingType validatingType)
         {
             return IsRevalidationRequestAsync(request.PackageKey, request.ValidationId, validatingType);
         }
@@ -128,7 +128,7 @@ namespace NuGet.Jobs.Validation.Storage
             }
         }
 
-        public async Task<ValidatorStatus> TryAddValidatorStatusAsync(IValidationRequest request, ValidatorStatus status, ValidationStatus desiredState)
+        public async Task<ValidatorStatus> TryAddValidatorStatusAsync(INuGetValidationRequest request, ValidatorStatus status, ValidationStatus desiredState)
         {
             status.State = desiredState;
 
@@ -156,7 +156,10 @@ namespace NuGet.Jobs.Validation.Storage
             return status;
         }
 
-        public async Task<ValidatorStatus> TryUpdateValidationStatusAsync(IValidationRequest request, ValidatorStatus validatorStatus, ValidationStatus desiredState)
+        public async Task<ValidatorStatus> TryUpdateValidationStatusAsync(
+            INuGetValidationRequest request,
+            ValidatorStatus validatorStatus,
+            ValidationStatus desiredState)
         {
             validatorStatus.State = desiredState;
 

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
-    public abstract class BaseValidator
+    public abstract class BaseNuGetValidator
     {
-        public virtual Task CleanUpAsync(IValidationRequest request)
+        public virtual Task CleanUpAsync(INuGetValidationRequest request)
         {
             return Task.CompletedTask;
         }

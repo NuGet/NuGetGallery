@@ -17,7 +17,7 @@ using NuGetGallery;
 namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
 {
     [ValidatorName(ValidatorName.ScanAndSign)]
-    public class ScanAndSignProcessor : IProcessor
+    public class ScanAndSignProcessor : INuGetProcessor
     {
         private readonly IValidationEntitiesContext _validationContext;
         private readonly IValidatorStateService _validatorStateService;
@@ -67,7 +67,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             _configuration = configurationAccessor.Value;
         }
 
-        public async Task CleanUpAsync(IValidationRequest request)
+        public async Task CleanUpAsync(INuGetValidationRequest request)
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
 
@@ -99,7 +99,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             await blob.DeleteIfExistsAsync();
         }
 
-        public async Task<IValidationResult> GetResultAsync(IValidationRequest request)
+        public async Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
         {
             if (request == null)
             {
@@ -108,10 +108,10 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
 
             var result = await GetProcessorStatusAsync(request);
 
-            return result.ToValidationResult();
+            return result.ToNuGetValidationResponse();
         }
 
-        public async Task<IValidationResult> StartAsync(IValidationRequest request)
+        public async Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
         {
             if (request == null)
             {
@@ -128,7 +128,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
                     request.PackageId,
                     request.PackageVersion);
 
-                return processorStatus.ToValidationResult();
+                return processorStatus.ToNuGetValidationResponse();
             }
 
             var owners = FindPackageOwners(request);
@@ -148,7 +148,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             {
                 if (ShouldSkipScan(request))
                 {
-                    return ValidationResult.Succeeded;
+                    return NuGetValidationResponse.Succeeded;
                 }
 
                 await _scanAndSignEnqueuer.EnqueueScanAsync(request.ValidationId, request.NupkgUrl);
@@ -156,10 +156,10 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
 
             var result = await _validatorStateService.TryAddValidatorStatusAsync(request, processorStatus, ValidationStatus.Incomplete);
 
-            return result.ToValidationResult();
+            return result.ToNuGetValidationResponse();
         }
 
-        private async Task<ValidatorStatus> GetProcessorStatusAsync(IValidationRequest request)
+        private async Task<ValidatorStatus> GetProcessorStatusAsync(INuGetValidationRequest request)
         {
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
 
@@ -177,7 +177,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             return validatorStatus;
         }
 
-        private bool ShouldSkipScan(IValidationRequest request)
+        private bool ShouldSkipScan(INuGetValidationRequest request)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(
                 request.PackageId,
@@ -197,7 +197,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             return false;
         }
 
-        private async Task<bool> ShouldRepositorySignAsync(IValidationRequest request)
+        private async Task<bool> ShouldRepositorySignAsync(INuGetValidationRequest request)
         {
             var hasRepositorySignature = await _validationContext
                 .PackageSignatures
@@ -218,7 +218,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             return true;
         }
 
-        private List<string> FindPackageOwners(IValidationRequest request)
+        private List<string> FindPackageOwners(INuGetValidationRequest request)
         {
             var registration = _packageService.FindPackageRegistrationById(request.PackageId);
 

@@ -92,11 +92,11 @@ namespace NuGet.Services.Validation.Orchestrator
                         continue;
                     }
 
-                    var validator = _validatorProvider.GetValidator(packageValidation.Type);
-                    var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation);
-                    var validationResult = await validator.GetResultAsync(validationRequest);
+                    var validator = _validatorProvider.GetNuGetValidator(packageValidation.Type);
+                    var validationRequest = await CreateNuGetValidationRequest(packageValidation.PackageValidationSet, packageValidation);
+                    var validationResponse = await validator.GetResponseAsync(validationRequest);
 
-                    if (validationResult.Status != ValidationStatus.Incomplete)
+                    if (validationResponse.Status != ValidationStatus.Incomplete)
                     {
                         _logger.LogInformation(
                             "New status for validation {ValidationType} for {PackageId} {PackageVersion} is " +
@@ -104,7 +104,7 @@ namespace NuGet.Services.Validation.Orchestrator
                            packageValidation.Type,
                            validationSet.PackageId,
                            validationSet.PackageNormalizedVersion,
-                           validationResult.Status,
+                           validationResponse.Status,
                            validationSet.ValidationTrackingId,
                            packageValidation.Key);
                     }
@@ -116,23 +116,23 @@ namespace NuGet.Services.Validation.Orchestrator
                             packageValidation.Type,
                             validationSet.PackageId,
                             validationSet.PackageNormalizedVersion,
-                            validationResult.Status,
+                            validationResponse.Status,
                             validationSet.ValidationTrackingId,
                             packageValidation.Key);
                     }
 
-                    switch (validationResult.Status)
+                    switch (validationResponse.Status)
                     {
                         case ValidationStatus.Incomplete:
                             break;
 
                         case ValidationStatus.Failed:
-                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResult);
+                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResponse);
                             await validator.CleanUpAsync(validationRequest);
                             break;
 
                         case ValidationStatus.Succeeded:
-                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResult);
+                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResponse);
                             await validator.CleanUpAsync(validationRequest);
                             UpdateStatsForValidationSuccess(processorStats, validationConfiguration);
                             break;
@@ -140,7 +140,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         default:
                             throw new InvalidOperationException($"Unexpected validation state: " +
                                 $"DB: {ValidationStatus.Incomplete} ({(int)ValidationStatus.Incomplete}), " +
-                                $"Actual: {validationResult.Status} {(int)validationResult.Status}");
+                                $"Actual: {validationResponse.Status} {(int)validationResponse.Status}");
                     }
                 }
             }
@@ -183,9 +183,9 @@ namespace NuGet.Services.Validation.Orchestrator
                         continue;
                     }
 
-                    var validator = _validatorProvider.GetValidator(packageValidation.Type);
-                    var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation);
-                    var validationResult = await validator.GetResultAsync(validationRequest);
+                    var validator = _validatorProvider.GetNuGetValidator(packageValidation.Type);
+                    var validationRequest = await CreateNuGetValidationRequest(packageValidation.PackageValidationSet, packageValidation);
+                    var validationResult = await validator.GetResponseAsync(validationRequest);
 
                     if (validationResult.Status == ValidationStatus.NotStarted)
                     {
@@ -274,10 +274,10 @@ namespace NuGet.Services.Validation.Orchestrator
                 packageValidation.PackageValidationSet.PackageId,
                 packageValidation.PackageValidationSet.PackageNormalizedVersion);
 
-            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, ValidationResult.Failed);
+            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, NuGetValidationResponse.Failed);
         }
 
-        private async Task<IValidationRequest> CreateValidationRequest(
+        private async Task<INuGetValidationRequest> CreateNuGetValidationRequest(
             PackageValidationSet packageValidationSet,
             PackageValidation packageValidation)
         {
@@ -285,7 +285,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 packageValidationSet,
                 DateTimeOffset.UtcNow.Add(_validationConfiguration.TimeoutValidationSetAfter));
 
-            var validationRequest = new ValidationRequest(
+            var validationRequest = new NuGetValidationRequest(
                 validationId: packageValidation.Key,
                 packageKey: packageValidationSet.PackageKey,
                 packageId: packageValidationSet.PackageId,

@@ -69,29 +69,32 @@ namespace NuGet.Jobs.Validation.Symbols.Core
                .FirstOrDefaultAsync();
         }
 
-        public async Task<SymbolsServerRequest> GetSymbolsServerRequestAsync(IValidationRequest validationRequest)
+        public async Task<SymbolsServerRequest> GetSymbolsServerRequestAsync(INuGetValidationRequest validationRequest)
         {
             string requestName = CreateSymbolServerRequestNameFromValidationRequest(validationRequest);
             return await GetSymbolsServerRequestAsync(requestName, validationRequest.PackageKey);
         }
 
         /// <summary>
-        /// From a <see cref="IValidationRequest"/> creates a symbol server request name.
+        /// From a <see cref="INuGetValidationRequest"/> creates a symbol server request name.
         /// </summary>
         /// <param name="validationRequest"></param>
         /// <returns></returns>
-        public static string CreateSymbolServerRequestNameFromValidationRequest(IValidationRequest validationRequest)
+        public static string CreateSymbolServerRequestNameFromValidationRequest(INuGetValidationRequest validationRequest)
         {
             return $"{validationRequest.PackageKey}_{validationRequest.ValidationId}";
         }
 
         /// <summary>
-        /// Creates a <see cref="SymbolsServerRequest"/> from a <see cref="IValidationRequest"/>
+        /// Creates a <see cref="SymbolsServerRequest"/> from a <see cref="INuGetValidationRequest"/>
         /// </summary>
-        /// <param name="validationRequest">The <see cref="IValidationRequest"/>.</param>
+        /// <param name="validationRequest">The <see cref="INuGetValidationRequest"/>.</param>
         /// <param name="status">The <see cref="SymbolsPackageIngestRequestStatus"/>.</param>
         /// <returns></returns>
-        public static SymbolsServerRequest CreateFromValidationRequest(IValidationRequest validationRequest, SymbolsPackageIngestRequestStatus status, string requestName)
+        public static SymbolsServerRequest CreateFromValidationRequest(
+            INuGetValidationRequest validationRequest,
+            SymbolsPackageIngestRequestStatus status,
+            string requestName)
         {
             return new SymbolsServerRequest()
             {
@@ -104,24 +107,24 @@ namespace NuGet.Jobs.Validation.Symbols.Core
         }
 
         /// <summary>
-        /// Converts a <see cref="SymbolsServerRequest"/> to <see cref="IValidationResult"/>
+        /// Converts a <see cref="SymbolsServerRequest"/> to <see cref="INuGetValidationResponse"/>
         /// </summary>
         /// <param name="symbolsServerRequest">A <see cref="SymbolsServerRequest" />.</param>
-        /// <returns>The <see cref="IValidationResult"/>.</returns>
-        public static IValidationResult ConvertToIValidationResult(SymbolsServerRequest symbolsServerRequest)
+        /// <returns>The <see cref="INuGetValidationResponse"/>.</returns>
+        public static INuGetValidationResponse ToValidationResponse(SymbolsServerRequest symbolsServerRequest)
         {
             if (symbolsServerRequest == null)
             {
-                return new ValidationResult(ValidationStatus.NotStarted);
+                return new NuGetValidationResponse(ValidationStatus.NotStarted);
             }
             switch (symbolsServerRequest.RequestStatusKey)
             {
                 case SymbolsPackageIngestRequestStatus.FailedIngestion:
-                    return new ValidationResult(ValidationStatus.Failed);
+                    return new NuGetValidationResponse(ValidationStatus.Failed);
                 case SymbolsPackageIngestRequestStatus.Ingested:
-                    return new ValidationResult(ValidationStatus.Succeeded);
+                    return new NuGetValidationResponse(ValidationStatus.Succeeded);
                 case SymbolsPackageIngestRequestStatus.Ingesting:
-                    return new ValidationResult(ValidationStatus.Incomplete);
+                    return new NuGetValidationResponse(ValidationStatus.Incomplete);
                 default:
                     throw new ArgumentOutOfRangeException("Unexpected SymbolsPackageIngestRequestStatus.");
             }

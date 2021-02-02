@@ -12,6 +12,6 @@ namespace NuGet.Services.Validation.Symbols
         /// </summary>
         /// <param name="request">The validtion request.</param>
         /// <returns>A <see cref="Task"/> that will be completed when the execution is completed.</returns>
-        Task EnqueueSymbolsValidationMessageAsync(IValidationRequest request);
+        Task EnqueueSymbolsValidationMessageAsync(INuGetValidationRequest request);
     }
 }

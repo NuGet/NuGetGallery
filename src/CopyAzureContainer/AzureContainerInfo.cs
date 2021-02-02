@@ -7,6 +7,7 @@ namespace CopyAzureContainer
     {
         public string StorageAccountName { get; set; }
         public string StorageAccountKey { get; set; }
+        public string StorageSasToken { get; set; }
         public string ContainerName { get; set; }
     }
 }
