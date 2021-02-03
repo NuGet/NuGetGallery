@@ -264,17 +264,24 @@ namespace NuGetGallery
                         package.NormalizedVersion);
                 }
 
-                return ReturnConflictOrThrow(ex);
+                if (IsConflict(ex))
+                {
+                    return PackageCommitResult.Conflict;
+                }
+                else
+                {
+                    throw;
+                }
             }
 
             return PackageCommitResult.Success;
         }
 
-        private PackageCommitResult ReturnConflictOrThrow(Exception ex)
+        private bool IsConflict(Exception ex)
         {
             if (ex is DbUpdateConcurrencyException concurrencyEx)
             {
-                return PackageCommitResult.Conflict;
+                return true;
             }
             else if (ex is DbUpdateException dbUpdateEx)
             {
@@ -287,13 +294,13 @@ namespace NuGetGallery
                             case 547:   // Constraint check violation
                             case 2601:  // Duplicated key row error
                             case 2627:  // Unique constraint error
-                                return PackageCommitResult.Conflict;
+                                return true;
                         }
                     }
                 }
             }
 
-            throw ex;
+            return false;
         }
     }
 }

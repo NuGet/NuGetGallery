@@ -2427,7 +2427,7 @@ namespace NuGetGallery
             catch (Exception ex)
             {
                 _telemetryService.TrackPackagePushFailureEvent(id: null, version: null);
-                throw ex;
+                throw;
             }
         }
 

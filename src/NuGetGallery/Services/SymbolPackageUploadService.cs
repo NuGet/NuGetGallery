@@ -241,7 +241,7 @@ namespace NuGetGallery
                             package.Version);
                     }
 
-                    throw ex;
+                    throw;
                 }
             }
             catch (FileAlreadyExistsException ex)

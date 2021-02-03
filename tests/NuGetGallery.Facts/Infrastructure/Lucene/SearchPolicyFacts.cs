@@ -479,7 +479,7 @@ namespace NuGetGallery.Infrastructure.Search
                 catch (Exception ex)
                 {
                     _logger.LogError(0, ex, "[{Type}] EXCEPTION", nameof(TestSearchHttpClient));
-                    throw ex;
+                    throw;
                 }
             }
         }
