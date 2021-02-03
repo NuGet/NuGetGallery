@@ -34,7 +34,7 @@ namespace VerifyGitHubVulnerabilities
             Console.WriteLine($" FOUND {advisories.Count} advisories.");
 
             Console.WriteLine("Fetching vulnerabilities from DB...");
-            var verifier = new PackageVulnerabilitiesVerifier(_serviceProvider.GetRequiredService<IEntitiesContext>());
+            var verifier = new PackageVulnerabilitiesVerifier(_serviceProvider);
             var ingestor = new AdvisoryIngestor(verifier, new GitHubVersionRangeParser());
             await ingestor.IngestAsync(advisories);
 
