@@ -528,7 +528,7 @@ namespace NuGetGallery
             {
                 ex.Log();
                 TelemetryService.TrackSymbolPackagePushFailureEvent(id, normalizedVersion);
-                throw ex;
+                throw;
             }
         }
 
