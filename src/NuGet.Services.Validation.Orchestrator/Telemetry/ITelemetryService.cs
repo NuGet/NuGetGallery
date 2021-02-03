@@ -159,13 +159,13 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         void TrackSymbolsMessageEnqueued(string packageId, string normalizedVersion, string validatorName, Guid validationId);
 
         /// <summary>
-        /// A metric to track duration of the license file extraction.
+        /// A metric to track duration of the license/readme file extraction.
         /// </summary>
-        /// <param name="packageId">Package ID from which license file is extracted.</param>
-        /// <param name="normalizedVersion">Normalized version of the package from which license file is extracted.</param>
+        /// <param name="packageId">Package ID from which license/readme file is extracted.</param>
+        /// <param name="normalizedVersion">Normalized version of the package from which license/readme file is extracted.</param>
         /// <param name="validationTrackingId">Validation tracking ID for which extraction is done.</param>
         /// <returns></returns>
-        IDisposable TrackDurationToExtractLicenseFile(string packageId, string normalizedVersion, string validationTrackingId);
+        IDisposable TrackDurationToExtractLicenseAndReadmeFile(string packageId, string normalizedVersion, string validationTrackingId);
 
         /// <summary>
         /// A metric to track duration of the license file deletion from flat container.
@@ -174,5 +174,13 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         /// <param name="normalizedVersion">Normalized version of the package for which license file is deleted.</param>
         /// <param name="validationTrackingId">Validation tracking ID for which delete operation is done.</param>
         IDisposable TrackDurationToDeleteLicenseFile(string packageId, string normalizedVersion, string validationTrackingId);
+
+        /// <summary>
+        /// A metric to track duration of the read file deletion from flat container.
+        /// </summary>
+        /// <param name="packageId">Package ID for which readme file is deleted.</param>
+        /// <param name="normalizedVersion">Normalized version of the package for which readme file is deleted.</param>
+        /// <param name="validationTrackingId">Validation tracking ID for which delete operation is done.</param>
+        IDisposable TrackDurationToDeleteReadmeFile(string packageId, string normalizedVersion, string validationTrackingId);
     }
 }
