@@ -194,5 +194,29 @@ namespace CatalogTests.Helpers
                 Assert.Empty(iconUrlTriples);
             }
         }
+
+        [Theory]
+        [InlineData("TestPackage.readmeFileOnly.0.4.2.nupkg.testdata")]
+        [InlineData("TestPackage.readmeWithNoType.0.4.2.nupkg.testdata")]
+        public void GetNupkgMetadataWithReadme_ProcessesCorrectly(string packageFilename)
+        {
+            // Arrange
+            var stream = TestHelper.GetStream(packageFilename);
+            var metadata = Utils.GetNupkgMetadata(stream, packageHash: null);
+            var baseUrl = "http://example/";
+            var packageIdVersion = packageFilename.Replace(".nupkg.testdata", "").ToLowerInvariant();
+            var uriNodeName = new Uri(string.Concat(baseUrl, packageIdVersion, ".json"));
+
+            // Act
+            var graph = Utils.CreateNuspecGraph(metadata.Nuspec, baseUrl, normalizeXml: true);
+            var readmeTriples = graph.GetTriplesWithSubjectPredicate(
+                graph.CreateUriNode(uriNodeName),
+                graph.CreateUriNode(new Uri(String.Concat(Schema.Prefixes.NuGet + "readmeFile"))));
+            var result = (LiteralNode)readmeTriples.FirstOrDefault()?.Object;
+
+            // Assert
+            Assert.Single(readmeTriples);
+            Assert.Equal("readme.md", result.Value);
+        }
     }
 }

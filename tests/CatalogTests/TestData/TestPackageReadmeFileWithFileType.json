@@ -1,41 +1,36 @@
 {
-  "@id": "http://example/data/2017.01.04.08.15.00/packagetypewhitespace.0.1.0.json",
+  "@id": "http://example/data/2017.01.04.08.15.00/testpackagereadmefilewithfiletype.0.4.2.json",
   "@type": [
     "PackageDetails",
     "catalog:Permalink"
   ],
-  "authors": "PackageTypeWhiteSpace",
+  "authors": "dai",
   "catalog:commitId": "4aee0ef4-a039-4460-bd5f-98f944e33289",
   "catalog:commitTimeStamp": "2017-01-04T08:15:00Z",
+  "copyright": "Copyright 2019",
   "created": "2017-01-01T08:15:00Z",
-  "description": "PackageTypeWhiteSpace",
-  "id": "PackageTypeWhiteSpace",
+  "description": "Test package that is used to verify that package with readme metadata that has 'file' type specified is processed fine.",
+  "id": "TestPackageReadmeFileWithFileType",
   "isPrerelease": false,
   "lastEdited": "2017-01-02T08:15:00Z",
   "listed": true,
-  "packageHash": "hhseXZ+2gB/JCeTGS59mmwhW2HCvsYUcMHTLTgJ6P1x2AyrMwWE3Yu3vvRzkGQ7oLxXlt7z7316L7DM+2y3paw==",
+  "packageHash": "mnjEOyDZIXIsYh384YyTAUw5pqr4iq8xL8sxD4ewlh4qNmp5OMhk8IBVcJynn5VXjHCqegYW7S3y4H+doTwBdg==",
   "packageHashAlgorithm": "SHA512",
-  "packageSize": 397,
+  "packageSize": 531,
   "published": "2017-01-03T08:15:00Z",
   "readmeFile": "readme.md",
-  "title": "PackageTypeWhiteSpace",
-  "verbatimVersion": "0.1.0",
-  "version": "0.1.0",
+  "releaseNotes": "Test release notes",
+  "requireLicenseAcceptance": false,
+  "verbatimVersion": "0.4.2",
+  "version": "0.4.2",
   "packageEntries": [
     {
-      "@id": "http://example/data/2017.01.04.08.15.00/packagetypewhitespace.0.1.0.json#PackageTypeWhiteSpace.nuspec",
+      "@id": "http://example/data/2017.01.04.08.15.00/testpackagereadmefilewithfiletype.0.4.2.json#TestPackageReadmeFileWithFileType.nuspec",
       "@type": "PackageEntry",
-      "compressedLength": 243,
-      "fullName": "PackageTypeWhiteSpace.nuspec",
-      "length": 494,
-      "name": "PackageTypeWhiteSpace.nuspec"
-    }
-  ],
-  "packageTypes": [
-    {
-      "@id": "http://example/data/2017.01.04.08.15.00/packagetypewhitespace.0.1.0.json#packagetypes/type1",
-      "@type": "PackageType",
-      "name": "type1"
+      "compressedLength": 353,
+      "fullName": "TestPackageReadmeFileWithFileType.nuspec",
+      "length": 647,
+      "name": "TestPackageReadmeFileWithFileType.nuspec"
     }
   ],
   "@context": {
