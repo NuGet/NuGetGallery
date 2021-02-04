@@ -46,6 +46,9 @@ namespace NuGet.Protocol.Registration
         [JsonProperty("licenseUrl")]
         public string LicenseUrl { get; set; }
 
+        [JsonProperty("readmeUrl")]
+        public string ReadmeUrl { get; set; }
+
         [JsonProperty("listed")]
         public bool Listed { get; set; }
 
