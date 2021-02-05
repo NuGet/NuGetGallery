@@ -74,15 +74,17 @@ namespace NuGetGallery
             Assert.Contains(typeof(SymbolPackageFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(UploadFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(CoreLicenseFileService), implementationToInterface.Keys);
+            Assert.Contains(typeof(CoreReadmeFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(RevalidationStateService), implementationToInterface.Keys);
             Assert.Contains(typeof(EditableFeatureFlagFileStorageService), implementationToInterface.Keys);
-            Assert.Equal(8, implementationToInterface.Count);
+            Assert.Equal(9, implementationToInterface.Count);
             Assert.Equal(typeof(ICertificateService), implementationToInterface[typeof(CertificateService)]);
             Assert.Equal(typeof(IContentService), implementationToInterface[typeof(ContentService)]);
             Assert.Equal(typeof(IPackageFileService), implementationToInterface[typeof(PackageFileService)]);
             Assert.Equal(typeof(ISymbolPackageFileService), implementationToInterface[typeof(SymbolPackageFileService)]);
             Assert.Equal(typeof(IUploadFileService), implementationToInterface[typeof(UploadFileService)]);
             Assert.Equal(typeof(ICoreLicenseFileService), implementationToInterface[typeof(CoreLicenseFileService)]);
+            Assert.Equal(typeof(ICoreReadmeFileService), implementationToInterface[typeof(CoreReadmeFileService)]);
             Assert.Equal(typeof(IRevalidationStateService), implementationToInterface[typeof(RevalidationStateService)]);
             Assert.Equal(typeof(IFeatureFlagStorageService), implementationToInterface[typeof(EditableFeatureFlagFileStorageService)]);
         }
@@ -103,6 +105,7 @@ namespace NuGetGallery
             Assert.Equal(typeToConnectionString[typeof(PackageFileService)], config.AzureStorage_Packages_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(UploadFileService)], config.AzureStorage_Uploads_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(CoreLicenseFileService)], config.AzureStorage_FlatContainer_ConnectionString);
+            Assert.Equal(typeToConnectionString[typeof(CoreReadmeFileService)], config.AzureStorage_FlatContainer_ConnectionString);
         }
 
         [Fact]
