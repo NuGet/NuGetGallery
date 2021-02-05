@@ -36,15 +36,21 @@ namespace GalleryTools.Commands
                 $"The duration in seconds to sleep between each reservation (default: 0).",
                 CommandOptionType.SingleValue);
 
+            var unreserveOption = config.Option(
+                "-u | --unreserve",
+                $"Unreserve namespaces, instead of reserving them. Meant for a rollback of bulk reserving. Note that you must clear the progress file to reuse the same input file.",
+                CommandOptionType.NoValue);
+
             config.OnExecute(() =>
             {
-                return ExecuteAsync(pathOptions, sleepDurationOption).GetAwaiter().GetResult();
+                return ExecuteAsync(pathOptions, sleepDurationOption, unreserveOption).GetAwaiter().GetResult();
             });
         }
 
         private static async Task<int> ExecuteAsync(
             CommandOption pathOption,
-            CommandOption sleepDurationOption)
+            CommandOption sleepDurationOption,
+            CommandOption unreserveOption)
         {
             if (!pathOption.HasValue())
             {
@@ -64,9 +70,12 @@ namespace GalleryTools.Commands
                 }
             }
 
+            var unreserve = unreserveOption.HasValue();
+
             var path = pathOption.Value();
             var completedPath = path + ".progress";
             var remainingList = GetRemainingList(path, completedPath);
+            Console.WriteLine($"{remainingList.Count} reserved namespaces(s) to {(unreserve ? "remove" : "add")}.");
             if (!remainingList.Any())
             {
                 Console.WriteLine("No namespaces were found to reserve.");
@@ -82,20 +91,36 @@ namespace GalleryTools.Commands
             var totalCounter = 0;
             foreach (var reservedNamespace in remainingList)
             {
-                Console.Write($"Reserving '{reservedNamespace.Value}' IsPrefix = {reservedNamespace.IsPrefix}...");
+                Console.Write($"{(unreserve ? "Removing" : "Adding")} '{reservedNamespace.Value}' IsPrefix = {reservedNamespace.IsPrefix}...");
                 try
                 {
                     var matching = service
                         .FindReservedNamespacesForPrefixList(new[] { reservedNamespace.Value })
                         .SingleOrDefault(x => ReservedNamespaceComparer.Instance.Equals(x, reservedNamespace));
-                    if (matching != null)
+
+                    if (unreserve)
                     {
-                        Console.WriteLine(" already exists.");
-                        AppendReservedNamespace(completedPath, reservedNamespace);
-                        continue;
+                        if (matching == null)
+                        {
+                            Console.WriteLine(" does not exist.");
+                            AppendReservedNamespace(completedPath, reservedNamespace);
+                            continue;
+                        }
+
+                        await service.DeleteReservedNamespaceAsync(reservedNamespace.Value);
+                    }
+                    else
+                    {
+                        if (matching != null)
+                        {
+                            Console.WriteLine(" already exists.");
+                            AppendReservedNamespace(completedPath, reservedNamespace);
+                            continue;
+                        }
+
+                        await service.AddReservedNamespaceAsync(reservedNamespace);
                     }
 
-                    await service.AddReservedNamespaceAsync(reservedNamespace);
                     AppendReservedNamespace(completedPath, reservedNamespace);
                     totalCounter++;
                     Console.WriteLine(" done.");
@@ -113,7 +138,7 @@ namespace GalleryTools.Commands
                 }
             }
 
-            Console.WriteLine($"All done. Added {totalCounter} reserved namespace(s).");
+            Console.WriteLine($"All done. {(unreserve ? "Removed" : "Added")} {totalCounter} reserved namespace(s).");
 
             return 0;
         }
@@ -135,7 +160,6 @@ namespace GalleryTools.Commands
             {
                 Console.WriteLine($"{all.Count - remaining.Count} reserved namespaces(s) are already done.");
             }
-            Console.WriteLine($"{remaining.Count} reserved namespaces(s) to add.");
 
             return remaining;
         }
