@@ -28,6 +28,7 @@ namespace NuGetGallery
             ODataCacheConfiguration = new ODataCacheConfiguration();
             CacheConfiguration = new CacheConfiguration();
             QueryHintConfiguration = new QueryHintConfiguration();
+            TrustedImageDomains = new TrustedImageDomains();
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; private set; }
@@ -39,6 +40,7 @@ namespace NuGetGallery
         public IODataCacheConfiguration ODataCacheConfiguration { get; private set; }
         public ICacheConfiguration CacheConfiguration { get; private set; }
         public IQueryHintConfiguration QueryHintConfiguration { get; private set; }
+        public ITrustedImageDomains TrustedImageDomains { get; private set; }
 
         public async Task Refresh()
         {
@@ -78,6 +80,10 @@ namespace NuGetGallery
             QueryHintConfiguration =
                 await Refresh<QueryHintConfiguration>(ServicesConstants.ContentNames.QueryHintConfiguration) ??
                 new QueryHintConfiguration();
+
+            TrustedImageDomains =
+                await Refresh<TrustedImageDomains>(ServicesConstants.ContentNames.TrustedImageDomains) ??
+                new TrustedImageDomains();
         }
 
         private async Task<T> Refresh<T>(string contentName)

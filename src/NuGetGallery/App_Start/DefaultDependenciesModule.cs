@@ -374,6 +374,10 @@ namespace NuGetGallery
             builder.RegisterType<MarkdownService>()
                 .As<IMarkdownService>()
                 .InstancePerLifetimeScope();
+            
+            builder.RegisterType<ImageDomainValidator>()
+                .As<IImageDomainValidator>()
+                .InstancePerLifetimeScope();
 
             builder.RegisterType<ApiScopeEvaluator>()
                 .AsSelf()

@@ -120,6 +120,7 @@
     <Compile Include="Configuration\IQueryHintConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
     <Compile Include="Configuration\ISymbolsConfiguration.cs" />
+    <Compile Include="Configuration\ITrustedImageDomains.cs" />
     <Compile Include="Configuration\ITyposquattingConfiguration.cs" />
     <Compile Include="Configuration\LoginDiscontinuationConfiguration.cs" />
     <Compile Include="Configuration\ODataCacheConfiguration.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
     <Compile Include="Configuration\SimpleBlobStorageConfiguration.cs" />
     <Compile Include="Configuration\SymbolsConfiguration.cs" />
+    <Compile Include="Configuration\TrustedImageDomains.cs" />
     <Compile Include="Configuration\TyposquattingConfiguration.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />

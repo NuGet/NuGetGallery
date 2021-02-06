@@ -304,7 +304,9 @@
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
+    <Compile Include="Services\ImageDomainValiator.cs" />
     <Compile Include="Services\IMarkdownService.cs" />
+    <Compile Include="Services\IImageDomainValidator.cs" />
     <Compile Include="Services\IPackageVulnerabilitiesService.cs" />
     <Compile Include="Services\IPackageMetadataValidationService.cs" />
     <Compile Include="Services\MarkdownService.cs" />
@@ -1792,13 +1794,14 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="Public\robots.txt" />
+    <Content Include="App_Data\Files\Content\Trusted-Image-Domains.json" />
     <Content Include="App_Data\Files\Content\Typosquatting-Configuration.json" />
     <Content Include="App_Data\Files\Content\flags.json" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteOrganizationAccount.cshtml" />
     <Content Include="Areas\Admin\Views\Features\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_EditFeature.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_AddFeature.cshtml" />
-    <Content Include="Areas\Admin\Views\Features\_AddFlight.cshtml" />
+    <Content Include="Areas\Admin\Views\Featurses\_AddFlight.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_EditFlight.cshtml" />
     <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
     <Content Include="Areas\Admin\Views\SiteAdmins\Index.cshtml" />

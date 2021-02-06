@@ -338,7 +338,7 @@ var BindReadMeDataManager = (function () {
             }
 
             if (response.ImageSourceDisallowed) {
-                displayReadMeWarning("Some images were broken might due to images source are not from trusted services.");
+                displayReadMeWarning("Some images are not display as they are not from trusted domains.");
             }
         }
 

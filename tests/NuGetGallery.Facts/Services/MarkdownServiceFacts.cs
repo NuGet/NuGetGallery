@@ -15,11 +15,15 @@ namespace NuGetGallery
         {
             private readonly MarkdownService _markdownService;
             private readonly Mock<IFeatureFlagService> _featureFlagService;
+            private readonly Mock<IImageDomainValidator> _imageDomainValidator;
 
             public GetReadMeHtmlMethod()
             {
                 _featureFlagService = new Mock<IFeatureFlagService>();
-                _markdownService = new MarkdownService(_featureFlagService.Object);
+                _imageDomainValidator = new Mock<IImageDomainValidator>();
+                _markdownService = new MarkdownService(_featureFlagService.Object,
+                    _imageDomainValidator.Object);
+
             }
 
             [Theory]
@@ -105,17 +109,39 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"\" alt=\"image\" /></p>", false, true)]
-            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"\" alt=\"image\" /></p>", false, false)]
-            [InlineData("![image](https://api.bintray.com/example/image.svg)", "<p><img src=\"https://api.bintray.com/example/image.svg\" alt=\"image\" /></p>", false, true)]
-            [InlineData("![image](http://api.bintray.com/example/image.svg)", "<p><img src=\"https://api.bintray.com/example/image.svg\" alt=\"image\" /></p>", true, false)]
-            public void ConvertsMarkdownToHtmlWithImageAllowlistEnabled(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ConvertsMarkdownToHtmlWithImageDisaplyed(bool isMarkdigMdRenderingEnabled)
             {
+                string imageUrl = "https://api.bintray.com/example/image.svg";
+                string originalMd = "![image](https://api.bintray.com/example/image.svg)";
+                string expectedHtml = "<p><img src=\"https://api.bintray.com/example/image.svg\" alt=\"image\" /></p>";
+
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
                 _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(true);
+                _imageDomainValidator.Setup(x => x.TryPrepareImageUrlForRendering(imageUrl, out imageUrl)).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
+                Assert.Equal(false, readMeResult.ImageSourceDisallowed);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ConvertsMarkdownToHtmlWithoutImageDisaplyed(bool isMarkdigMdRenderingEnabled)
+            {
+                string imageUrl = "https://nuget.org/example/image.svg";
+                string originalMd = "![image](https://nuget.org/example/image.svg)";
+                string expectedHtml = "<p><img src=\"\" alt=\"image\" /></p>";
+                string outUrl = null;
+
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(true);
+
+                _imageDomainValidator.Setup(x => x.TryPrepareImageUrlForRendering(imageUrl, out outUrl)).Returns(false);
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.Equal(true, readMeResult.ImageSourceDisallowed);
             }
 
             [Fact]

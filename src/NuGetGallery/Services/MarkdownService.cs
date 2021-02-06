@@ -23,13 +23,15 @@ namespace NuGetGallery
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
-        private static readonly Regex ImageSourcePattern = new Regex("<img src=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
 
         private readonly IFeatureFlagService _features;
+        private readonly IImageDomainValidator _imageDomainValidator;
 
-        public MarkdownService(IFeatureFlagService features)
+        public MarkdownService(IFeatureFlagService features,
+            IImageDomainValidator imageDomainValidator)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
+            _imageDomainValidator = imageDomainValidator ?? throw new ArgumentNullException(nameof(imageDomainValidator));
         }
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString)
@@ -140,7 +142,7 @@ namespace NuGetGallery
                         {
                             if (_features.IsImageAllowlistEnabled())
                             {
-                                if (!PackageHelper.TryPrepareImageUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                                if (!_imageDomainValidator.TryPrepareImageUrlForRendering(inline.TargetUrl, out string readyUriString))
                                 {
                                     inline.TargetUrl = string.Empty;
                                     output.ImageSourceDisallowed = true;
@@ -226,7 +228,7 @@ namespace NuGetGallery
                             {
                                 if (_features.IsImageAllowlistEnabled())
                                 {
-                                    if (!PackageHelper.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                    if (!_imageDomainValidator.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString))
                                     {
                                         linkInline.Url = string.Empty;
                                         output.ImageSourceDisallowed = true;
@@ -268,7 +270,6 @@ namespace NuGetGallery
 
                 renderer.Render(document);
                 output.Content = htmlWriter.ToString().Trim();
-
                 return output;
             }
         }
