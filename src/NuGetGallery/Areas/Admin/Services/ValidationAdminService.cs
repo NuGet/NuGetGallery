@@ -67,14 +67,16 @@ namespace NuGetGallery.Areas.Admin.Services
             var pendingPackages = _packages
                 .GetAll()
                 .Where(p => p.PackageStatusKey == PackageStatus.Validating)
-                .Select(p => p.Key)
+                .Select(p => (int?)p.Key)
                 .ToList();
             var pendingSymbolPackages = _symbolPackages
                 .GetAll()
                 .Where(s => s.StatusKey == PackageStatus.Validating)
-                .Select(s => s.Key)
+                .Select(s => (int?)s.Key)
                 .ToList();
 
+            // TODO: Add generic validation sets.
+            // Tracked by: https://github.com/NuGet/Engineering/issues/3587
             AddPendingValidationSets(pendingValidations, pendingPackages, ValidatingType.Package);
             AddPendingValidationSets(pendingValidations, pendingSymbolPackages, ValidatingType.SymbolPackage);
 
@@ -228,7 +230,7 @@ namespace NuGetGallery.Areas.Admin.Services
 
         private void AddPendingValidationSets(
             List<PackageValidationSet> validationSets,
-            IReadOnlyList<int> packageKeys,
+            IReadOnlyList<int?> packageKeys,
             ValidatingType type)
         {
             foreach (var packageKeyBatch in Batch(packageKeys, PendingValidationsBatchSize))
@@ -237,7 +239,7 @@ namespace NuGetGallery.Areas.Admin.Services
                     _validationSets
                         .GetAll()
                         .Where(v => v.ValidatingType == type)
-                        .Where(v => packageKeys.Contains(v.PackageKey)));
+                        .Where(v => packageKeyBatch.Contains(v.PackageKey)));
             }
         }
 

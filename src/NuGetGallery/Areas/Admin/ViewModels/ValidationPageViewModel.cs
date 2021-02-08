@@ -11,10 +11,10 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         {
         }
 
-        public ValidationPageViewModel(string query, IReadOnlyList<ValidatedPackageViewModel> packages)
+        public ValidationPageViewModel(string query, IReadOnlyList<NuGetPackageValidationViewModel> packages)
         {
             Query = query ?? string.Empty;
-            Packages = packages ?? new List<ValidatedPackageViewModel>();
+            Packages = packages ?? new List<NuGetPackageValidationViewModel>();
         }
 
         public string Query { get; }
@@ -23,6 +23,6 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
         public bool HasResults => Packages.Count > 0;
 
-        public IReadOnlyList<ValidatedPackageViewModel> Packages { get; }
+        public IReadOnlyList<NuGetPackageValidationViewModel> Packages { get; }
     }
 }

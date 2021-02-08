@@ -31,34 +31,39 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public virtual ActionResult Pending()
         {
             var validationSets = _validationAdminService.GetPending();
-            var validatedPackages = ToValidatedPackages(validationSets);
-            var validationSetIds = validatedPackages
+            var packageValidations = ToPackageValidations(validationSets);
+            var validationSetIds = packageValidations
                 .SelectMany(p => p.ValidationSets)
                 .Select(s => s.ValidationTrackingId);
             var query = string.Join("\r\n", validationSetIds);
 
-            return View(nameof(Index), new ValidationPageViewModel(query, validatedPackages));
+            return View(nameof(Index), new ValidationPageViewModel(query, packageValidations));
         }
 
         [HttpGet]
         public virtual ActionResult Search(string q)
         {
             var packageValidationSets = _validationAdminService.Search(q ?? string.Empty);
-            var validatedPackages = ToValidatedPackages(packageValidationSets);
+            var validatedPackages = ToPackageValidations(packageValidationSets);
 
             return View(nameof(Index), new ValidationPageViewModel(q, validatedPackages));
         }
 
-        private List<ValidatedPackageViewModel> ToValidatedPackages(IReadOnlyList<PackageValidationSet> packageValidationSets)
+        private List<NuGetPackageValidationViewModel> ToPackageValidations(IReadOnlyList<PackageValidationSet> packageValidationSets)
         {
-            var validatedPackages = new List<ValidatedPackageViewModel>();
-            AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.Package);
-            AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.SymbolPackage);
+            // TODO: Add generic validation sets.
+            // Tracked by: https://github.com/NuGet/Engineering/issues/3587
+            var packageValidations = new List<NuGetPackageValidationViewModel>();
+            AppendNuGetPackageValidations(packageValidations, packageValidationSets, ValidatingType.Package);
+            AppendNuGetPackageValidations(packageValidations, packageValidationSets, ValidatingType.SymbolPackage);
 
-            return validatedPackages;
+            return packageValidations;
         }
 
-        private void AppendValidatedPackages(List<ValidatedPackageViewModel> validatedPackages, IEnumerable<PackageValidationSet> validationSets, ValidatingType validatingType)
+        private void AppendNuGetPackageValidations(
+            List<NuGetPackageValidationViewModel> packageValidations,
+            IEnumerable<PackageValidationSet> validationSets,
+            ValidatingType validatingType)
         {
             var groups = validationSets
                 .Where(x => x.ValidatingType == validatingType)
@@ -77,9 +82,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         .OrderBy(x => x.Started)
                         .ToList();
                 }
-                var deletedStatus = _validationAdminService.GetDeletedStatus(group.Key, validatingType);
-                var validatedPackage = new ValidatedPackageViewModel(group.ToList(), deletedStatus, validatingType);
-                validatedPackages.Add(validatedPackage);
+                var deletedStatus = _validationAdminService.GetDeletedStatus(group.Key.Value, validatingType);
+                var packageValidation = new NuGetPackageValidationViewModel(group.ToList(), deletedStatus, validatingType);
+                packageValidations.Add(packageValidation);
             }
         }
     }
