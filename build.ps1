@@ -81,6 +81,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\NuGet.Services.Status.Table\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Status\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Storage\Properties\AssemblyInfo.g.cs",`
+            "$PSScriptRoot\src\NuGet.Services.Testing.Entities\Properties\AssemblyInfo.g.cs",`
             "$PSScriptRoot\src\NuGet.Services.Validation.Issues\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Validation\Properties\AssemblyInfo.g.cs"
             
@@ -130,8 +131,9 @@ Invoke-BuildStep 'Creating artifacts' { `
             "src\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj",
             "src\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj",
             "src\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj",
-            "src\NuGet.Services.Licenses\NuGet.Services.Licenses.csproj"
-            
+            "src\NuGet.Services.Licenses\NuGet.Services.Licenses.csproj",
+            "src\NuGet.Services.Testing.Entities\NuGet.Services.Testing.Entities.csproj"
+
         $projects | ForEach-Object {
             New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId $packageId
         }

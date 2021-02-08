@@ -93,6 +93,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Licenses.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Build.Tests", "tests\NuGet.Services.Build.Tests\NuGet.Services.Build.Tests.csproj", "{AB3C7814-3AD6-41BD-8968-A3CC10A52EC5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Testing.Entities", "src\NuGet.Services.Testing.Entities\NuGet.Services.Testing.Entities.csproj", "{C1D0A112-531C-4ED6-B983-2417335BFB52}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -255,6 +257,10 @@ Global
 		{AB3C7814-3AD6-41BD-8968-A3CC10A52EC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB3C7814-3AD6-41BD-8968-A3CC10A52EC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB3C7814-3AD6-41BD-8968-A3CC10A52EC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1D0A112-531C-4ED6-B983-2417335BFB52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1D0A112-531C-4ED6-B983-2417335BFB52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1D0A112-531C-4ED6-B983-2417335BFB52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1D0A112-531C-4ED6-B983-2417335BFB52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -299,6 +305,7 @@ Global
 		{20EE3196-4D8B-42B6-8E5E-B8ADC2D3BF9D} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 		{D0A110BD-156D-432B-9525-171430C9F51D} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
 		{AB3C7814-3AD6-41BD-8968-A3CC10A52EC5} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
+		{C1D0A112-531C-4ED6-B983-2417335BFB52} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA413DB0-5475-4B5D-A3AF-6323DA8D538B}
