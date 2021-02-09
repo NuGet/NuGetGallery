@@ -18,7 +18,7 @@ namespace GalleryTools.Commands
 {
     public static class ReserveNamespacesCommand
     {
-        private const int DefaultSleep = 0;
+        private const int DefaultSleepSeconds = 0;
         private const string PathOption = "--path";
 
         public static void Configure(CommandLineApplication config)
@@ -33,7 +33,7 @@ namespace GalleryTools.Commands
 
             var sleepDurationOption = config.Option(
                 "-s | --sleep",
-                $"The duration in seconds to sleep between each reservation (default: 0).",
+                $"The duration in seconds to sleep between each reservation (default: {DefaultSleepSeconds}).",
                 CommandOptionType.SingleValue);
 
             var unreserveOption = config.Option(
@@ -58,7 +58,7 @@ namespace GalleryTools.Commands
                 return 1;
             }
 
-            var sleepDuration = TimeSpan.FromSeconds(DefaultSleep);
+            var sleepDuration = TimeSpan.FromSeconds(DefaultSleepSeconds);
             if (sleepDurationOption.HasValue())
             {
                 sleepDuration = TimeSpan.FromSeconds(int.Parse(sleepDurationOption.Value()));
@@ -75,7 +75,7 @@ namespace GalleryTools.Commands
             var path = pathOption.Value();
             var completedPath = path + ".progress";
             var remainingList = GetRemainingList(path, completedPath);
-            Console.WriteLine($"{remainingList.Count} reserved namespaces(s) to {(unreserve ? "remove" : "add")}.");
+            Console.WriteLine($"{remainingList.Count} reserved namespace(s) to {(unreserve ? "remove" : "add")}.");
             if (!remainingList.Any())
             {
                 Console.WriteLine("No namespaces were found to reserve.");
