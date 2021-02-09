@@ -7,7 +7,6 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -23,19 +22,22 @@ namespace VerifyGitHubVulnerabilities.Verify
         private readonly VerifyGitHubVulnerabilitiesConfiguration _configuration;
         private readonly IEntitiesContext _entitiesContext;
 
-        private PackageMetadataResource _packageMetadataResource;
+        private Lazy<Task<PackageMetadataResource>> _packageMetadataResource;
         private Dictionary<string, IEnumerable<IPackageSearchMetadata>> _packageMetadata;
 
-        public PackageVulnerabilitiesVerifier(IServiceProvider serviceProvider)
+        static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+
+        public PackageVulnerabilitiesVerifier(VerifyGitHubVulnerabilitiesConfiguration configuration,
+            IEntitiesContext entitiesContext)
         {
-            _configuration = serviceProvider.GetRequiredService<VerifyGitHubVulnerabilitiesConfiguration>() ??
-                             throw new Exception(
-                                 $"{nameof(VerifyGitHubVulnerabilitiesConfiguration)} service cannot be null");
+            _configuration = configuration;
             if (_configuration.VerifyDatabase)
             {
-                _entitiesContext = serviceProvider.GetRequiredService<IEntitiesContext>() ??
-                                   throw new Exception($"{nameof(IEntitiesContext)} service cannot be null for database operations");
+                _entitiesContext = entitiesContext;
             }
+
+            _packageMetadata = new Dictionary<string, IEnumerable<IPackageSearchMetadata>>();
+            _packageMetadataResource = new Lazy<Task<PackageMetadataResource>>(InitializeMetadataResourceAsync);
         }
 
         public bool HasErrors { get; private set; }
@@ -63,7 +65,7 @@ namespace VerifyGitHubVulnerabilities.Verify
             // is no longer present. Covering withdrawn advisory processing in the database will be adequate.
             if (_configuration.VerifyRegistrationMetadata && !withdrawn)
             {
-                return VerifyVulnerabilityInMetadata(vulnerability);
+                VerifyVulnerabilityInMetadata(vulnerability);
             }
 
             return Task.CompletedTask;
@@ -158,13 +160,13 @@ namespace VerifyGitHubVulnerabilities.Verify
             }
         }
 
-        private Task VerifyVulnerabilityInMetadata(PackageVulnerability gitHubAdvisory)
+        private void VerifyVulnerabilityInMetadata(PackageVulnerability gitHubAdvisory)
         {
             Console.WriteLine($"[Metadata] Verifying vulnerability {gitHubAdvisory.GitHubDatabaseKey}.");
 
             if (gitHubAdvisory.AffectedRanges == null || !gitHubAdvisory.AffectedRanges.Any())
             {
-                return Task.CompletedTask;
+                return;// Task.CompletedTask;
             }
 
             // Group ranges by id -- this makes testing metadata collections cleaner
@@ -182,21 +184,17 @@ namespace VerifyGitHubVulnerabilities.Verify
                 }
             }
 
-            var verificationTasks = new List<Task>();
-            foreach (var rangeById in rangesById)
-            {
-                verificationTasks.Add(VerifyVulnerabilityForRangeAsync(
-                    packageId: rangeById.Key, 
-                    ranges: rangeById.Value, 
-                    gitHubAdvisory.AdvisoryUrl, 
-                    gitHubAdvisory.GitHubDatabaseKey, 
-                    gitHubAdvisory.Severity));
-            }
-
-            return Task.WhenAll(verificationTasks);
+            Parallel.ForEach(rangesById, new ParallelOptions {MaxDegreeOfParallelism = 20}, async rangeById =>
+                await VerifyVulnerabilityForRangeAsync(
+                    packageId: rangeById.Key,
+                    ranges: rangeById.Value,
+                    gitHubAdvisory.AdvisoryUrl,
+                    gitHubAdvisory.GitHubDatabaseKey,
+                    gitHubAdvisory.Severity)
+                );
         }
 
-        private async Task VerifyVulnerabilityForRangeAsync (
+        private async Task VerifyVulnerabilityForRangeAsync(
             string packageId,
             IList<string> ranges,
             string advisoryUrl, 
@@ -264,35 +262,37 @@ namespace VerifyGitHubVulnerabilities.Verify
 
         private async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataAsync(string package)
         {
-            if (_packageMetadataResource == null)
-            {
-                await InitializeMetadataResourceAsync();
-            }
+            // We need this to be thread-safe as it's called by multiple tasks concurrently
+            await semaphoreSlim.WaitAsync();
 
-            if (!_packageMetadata.TryGetValue(package, out IEnumerable<IPackageSearchMetadata> metadata))
+            try
             {
-                metadata = await _packageMetadataResource.GetMetadataAsync(
-                    package,
-                    includePrerelease: true,
-                    includeUnlisted: false,
-                    sourceCacheContext: new SourceCacheContext(),
-                    log: NuGet.Common.NullLogger.Instance,
-                    token: CancellationToken.None);
-                _packageMetadata[package] = metadata;
-            }
+                if (!_packageMetadata.TryGetValue(package, out IEnumerable<IPackageSearchMetadata> metadata))
+                {
+                    metadata = (await (await _packageMetadataResource.Value).GetMetadataAsync(
+                        package,
+                        includePrerelease: true,
+                        includeUnlisted: false,
+                        sourceCacheContext: new SourceCacheContext(),
+                        log: NuGet.Common.NullLogger.Instance,
+                        token: CancellationToken.None)).ToList();
+                    _packageMetadata[package] = metadata;
+                }
 
-            return metadata;
+                return metadata;
+            }
+            finally
+            {
+                semaphoreSlim.Release();
+            }
         }
 
-        private async Task InitializeMetadataResourceAsync()
+        private async Task<PackageMetadataResource> InitializeMetadataResourceAsync()
         {
             var providers = Repository.Provider.GetCoreV3();
             var packageSource = new PackageSource(_configuration.NuGetV3Index, "NuGet Source", isEnabled: true);
             var sourceRepository = Repository.CreateSource(providers, packageSource, FeedType.Undefined);
-            _packageMetadataResource =
-                await sourceRepository.GetResourceAsync<PackageMetadataResource>(CancellationToken.None);
-
-            _packageMetadata = new Dictionary<string, IEnumerable<IPackageSearchMetadata>>();
+            return await sourceRepository.GetResourceAsync<PackageMetadataResource>(CancellationToken.None);
         }
     }
 }
