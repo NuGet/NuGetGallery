@@ -65,7 +65,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.83.0-loshar-uvp-db-4434184</Version>
+      <Version>2.84.0-loshar-uvp-db-4454369</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
