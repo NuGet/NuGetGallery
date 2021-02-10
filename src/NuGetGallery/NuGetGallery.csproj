@@ -1801,7 +1801,7 @@
     <Content Include="Areas\Admin\Views\Features\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_EditFeature.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_AddFeature.cshtml" />
-    <Content Include="Areas\Admin\Views\Featurses\_AddFlight.cshtml" />
+    <Content Include="Areas\Admin\Views\Featurse\_AddFlight.cshtml" />
     <Content Include="Areas\Admin\Views\Features\_EditFlight.cshtml" />
     <Content Include="App_Data\Files\Content\AB-Test-Configuration.json" />
     <Content Include="Areas\Admin\Views\SiteAdmins\Index.cshtml" />
