@@ -253,6 +253,11 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
+        public void TrackPackagePushOwnerlessNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState)
         {
             throw new NotImplementedException();

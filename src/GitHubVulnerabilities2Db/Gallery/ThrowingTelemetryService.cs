@@ -256,6 +256,11 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
+        public void TrackPackagePushOwnerlessNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState)
         {
             throw new NotImplementedException();

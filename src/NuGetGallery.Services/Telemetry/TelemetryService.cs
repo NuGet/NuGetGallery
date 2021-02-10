@@ -28,6 +28,7 @@ namespace NuGetGallery
             public const string VerifyPackageKey = "VerifyPackageKey";
             public const string PackageReadMeChanged = "PackageReadMeChanged";
             public const string PackagePushNamespaceConflict = "PackagePushNamespaceConflict";
+            public const string PackagePushOwnerlessNamespaceConflict = "PackagePushOwnerlessNamespaceConflict";
             public const string NewUserRegistration = "NewUserRegistration";
             public const string CredentialAdded = "CredentialAdded";
             public const string CredentialUsed = "CredentialUsed";
@@ -362,6 +363,11 @@ namespace NuGetGallery
         public void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
         {
             TrackMetricForPackage(Events.PackagePushNamespaceConflict, packageId, packageVersion, user, identity);
+        }
+
+        public void TrackPackagePushOwnerlessNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
+        {
+            TrackMetricForPackage(Events.PackagePushOwnerlessNamespaceConflict, packageId, packageVersion, user, identity);
         }
 
         public void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity)

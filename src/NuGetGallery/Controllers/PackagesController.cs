@@ -507,15 +507,29 @@ namespace NuGetGallery
             var id = nuspec.GetId();
             existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
             // For a new package id verify if the user is allowed to use it.
-            if (existingPackageRegistration == null &&
-                ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
-                    currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
+            if (existingPackageRegistration == null)
             {
-                var version = nuspec.GetVersion().ToNormalizedString();
-                _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
+                var result = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
+                    currentUser,
+                    new ActionOnNewPackageContext(id, _reservedNamespaceService),
+                    out accountsAllowedOnBehalfOf);
 
-                return Json(HttpStatusCode.Conflict, new[] {
-                    new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict)) });
+                if (result == PermissionsCheckResult.ReservedNamespaceFailure)
+                {
+                    var version = nuspec.GetVersion().ToNormalizedString();
+                    _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
+                    return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(Strings.UploadPackage_IdNamespaceConflict) });
+                }
+                else if (result == PermissionsCheckResult.OwnerlessReservedNamespaceFailure)
+                {
+                    var version = nuspec.GetVersion().ToNormalizedString();
+                    _telemetryService.TrackPackagePushOwnerlessNamespaceConflictEvent(id, version, currentUser, User.Identity);
+                    return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(new OwnerlessNamespaceIdConflictMessage()) });
+                }
+                else if (result != PermissionsCheckResult.Allowed)
+                {
+                    throw new InvalidOperationException($"When checking if a new package ID can be created, result '{result}' is not expected.");
+                }
             }
 
             // For existing package id verify if it is owned by the current user
@@ -2577,9 +2591,13 @@ namespace NuGetGallery
                             // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
                             var version = packageVersion.ToNormalizedString();
                             _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
-
-                            var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
-                            return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(message) });
+                            return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(Strings.UploadPackage_IdNamespaceConflict) });
+                        }
+                        else if (checkPermissionsOfUploadNewId == PermissionsCheckResult.OwnerlessReservedNamespaceFailure)
+                        {
+                            var version = packageVersion.ToNormalizedString();
+                            _telemetryService.TrackPackagePushOwnerlessNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
+                            return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(new OwnerlessNamespaceIdConflictMessage()) });
                         }
 
                         // An unknown error occurred.

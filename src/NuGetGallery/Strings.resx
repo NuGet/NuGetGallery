@@ -1209,4 +1209,10 @@ The {1} Team</value>
     <value>The provided package has more than {0} downloads and therefore cannot be deleted via API.</value>
     <comment>{0} is the download count limit.</comment>
   </data>
+  <data name="UploadPackage_OwnerlessIdNamespaceConflict" xml:space="preserve">
+    <value>The package ID is reserved. You can upload your package with a different package ID. Reach out to support@nuget.org if you have questions.</value>
+  </data>
+  <data name="UploadPackage_OwnerlessIdNamespaceConflictHtml" xml:space="preserve">
+    <value>The package ID is reserved. You can upload your package with a different package ID. Reach out to &lt;a href="mailto:support@nuget.org"&gt;support@nuget.org&lt;/a&gt; if you have questions.</value>
+  </data>
 </root>
