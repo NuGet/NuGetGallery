@@ -116,13 +116,15 @@ namespace NuGet.Services.Validation.Orchestrator
                     return false;
                 }
 
+                // TODO: Add support for the "generic" validating type.
+                // Tracked by: https://github.com/NuGet/Engineering/issues/3583
                 if (validationSet.ValidatingType != ValidatingType)
                 {
                     _logger.LogError("Validation set {ValidationSetId} is not for a {TypeName}.", message.ValidationId, ValidatingType);
                     return false;
                 }
 
-                entity = _entityService.FindPackageByKey(validationSet.PackageKey);
+                entity = _entityService.FindPackageByKey(validationSet.PackageKey.Value);
                 if (entity == null)
                 {
                     _logger.LogError(
