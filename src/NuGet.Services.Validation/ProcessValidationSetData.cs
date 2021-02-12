@@ -23,6 +23,13 @@ namespace NuGet.Services.Validation
                 throw new ArgumentOutOfRangeException(nameof(validationTrackingId));
             }
 
+            if (validatingType == ValidatingType.Generic)
+            {
+                throw new ArgumentException(
+                    $"The validating type must be {nameof(ValidatingType.Package)} or {nameof(ValidatingType.SymbolPackage)}",
+                    nameof(validatingType));
+            }
+
             PackageId = packageId;
             PackageVersion = packageVersion;
             PackageNormalizedVersion = NuGetVersion.Parse(packageVersion).ToNormalizedString();

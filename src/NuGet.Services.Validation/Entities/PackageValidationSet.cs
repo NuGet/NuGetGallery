@@ -26,19 +26,35 @@ namespace NuGet.Services.Validation
         /// The key referencing a package in the NuGet Gallery database. If a package is hard deleted then re-pushed,
         /// the <see cref="PackageId"/> and <see cref="PackageNormalizedVersion"/> version will be the same but the
         /// <see cref="PackageKey"/> will be different.
+        /// Null if <see cref="ValidatingType"/> is <see cref="ValidatingType.Generic"/>.
         /// </summary>
-        public int PackageKey { get; set; }
+        public int? PackageKey { get; set; }
 
         /// <summary>
         /// The package ID. Has a maximum length of 128 unicode characters as defined by the NuGet Gallery database.
+        /// Null if <see cref="ValidatingType"/> is <see cref="ValidatingType.Generic"/>.
         /// </summary>
         public string PackageId { get; set; }
 
         /// <summary>
         /// The normalized package version. Has a maximum length of 64 unicode characters as defined by the NuGet
-        /// Gallery database.
+        /// Gallery database. Null if <see cref="ValidatingType"/> is <see cref="ValidatingType.Generic"/>.
         /// </summary>
         public string PackageNormalizedVersion { get; set; }
+
+        /// <summary>
+        /// The etag of the available package being validated. Null if the package is not yet available (i.e. it is not
+        /// yet in the packages container) or if <see cref="ValidatingType"/> is <see cref="ValidatingType.Generic"/>.
+        /// A validation set for a NuGet package that is already available will have its packages container package etag
+        /// in this column. This is used to control the concurrency of validation sets that mutate NuGet packages.
+        /// </summary>
+        public string PackageETag { get; set; }
+
+        /// <summary>
+        /// The content type of the package being validated, provided by the "start validation" protocol message.
+        /// Null if <see cref="ValidatingType"/> is not <see cref="ValidatingType.Generic"/>.
+        /// </summary>
+        public string PackageContentType { get; set; }
 
         /// <summary>
         /// The time when the validation set is created. This time should be shortly after the application requesting the
@@ -55,12 +71,27 @@ namespace NuGet.Services.Validation
         public DateTime Updated { get; set; }
 
         /// <summary>
-        /// The etag of the available package being validated. Null if the package is not yet available (i.e. it is not
-        /// yet in the packages container). A validation set for a package that is already available will have its
-        /// packages container package etag in this column. This is used to control the concurrency of validation sets
-        /// that mutate packages.
+        /// The time at which the validation set times out. Null if the validation set was created before
+        /// this column was added.
         /// </summary>
-        public string PackageETag { get; set; }
+        public DateTime? Expiration { get; set; }
+
+        /// <summary>
+        /// The entity type to be validated.
+        /// </summary>
+        public ValidatingType ValidatingType { get; set; }
+
+        /// <summary>
+        /// The status of this validation set.
+        /// </summary>
+        public ValidationSetStatus ValidationSetStatus { get; set; }
+
+        /// <summary>
+        /// The JSON object containing additional information about the content or validation,
+        /// provided by the "start validation" protocol message. Null if <see cref="ValidatingType"/>
+        /// is not <see cref="ValidatingType.Generic"/>.
+        /// </summary>
+        public string ValidationProperties { get; set; }
 
         /// <summary>
         /// Used for optimistic concurrency when updating which validations are in the set.
@@ -73,13 +104,8 @@ namespace NuGet.Services.Validation
         public virtual ICollection<PackageValidation> PackageValidations { get; set; }
 
         /// <summary>
-        /// The entity type to be validated.
+        /// The validation set's results that should be included in the "validation response" message.
         /// </summary>
-        public ValidatingType ValidatingType { get; set; }
-
-        /// <summary>
-        /// The status of this validation set.
-        /// </summary>
-        public ValidationSetStatus ValidationSetStatus { get; set; }
+        public virtual ICollection<PackageValidationResult> PackageValidationResults { get; set; }
     }
 }

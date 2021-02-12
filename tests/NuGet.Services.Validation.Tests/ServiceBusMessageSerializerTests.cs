@@ -101,6 +101,22 @@ namespace NuGet.Services.Validation.Tests
             }
 
             [Fact]
+            public void ThrowsIfProcessValidationSetIsGivenGenericType()
+            {
+                // Arrange & Act
+                var exception = Assert.Throws<ArgumentException>(
+                    () => PackageValidationMessageData.NewProcessValidationSet(
+                        PackageId,
+                        PackageVersion,
+                        ValidationTrackingId,
+                        ValidatingType.Generic,
+                        PackageKey));
+
+                // Assert
+                Assert.Contains("The validating type must be Package or SymbolPackage", exception.Message);
+            }
+
+            [Fact]
             public void ProducesExpectedMessageForCheckValidationSet()
             {
                 // Arrange

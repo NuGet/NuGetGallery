@@ -41,6 +41,9 @@ namespace NuGet.Services.Validation
 
         private const int MaximumPackageIdLength = 128;
         private const int MaximumPackageVersionLength = 64;
+        private const int MaximumPackageContentTypeLength = 128;
+
+        private const int MaximumValidationResultTypeLength = 128;
 
         /// <summary>
         /// Since we encode thumbprints using hexadecimal, NVARCHAR is not necessary. Additionally, we use varchar
@@ -103,6 +106,7 @@ namespace NuGet.Services.Validation
 
         public IDbSet<PackageValidationSet> PackageValidationSets { get; set; }
         public IDbSet<PackageValidation> PackageValidations { get; set; }
+        public IDbSet<PackageValidationResult> PackageValidationResults { get; set; }
         public IDbSet<PackageValidationIssue> PackageValidationIssues { get; set; }
         public IDbSet<ValidatorStatus> ValidatorStatuses { get; set; }
         public IDbSet<PackageSigningState> PackageSigningStates { get; set; }
@@ -145,7 +149,7 @@ namespace NuGet.Services.Validation
 
             modelBuilder.Entity<PackageValidationSet>()
                 .Property(pvs => pvs.PackageKey)
-                .IsRequired()
+                .IsOptional()
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
@@ -156,7 +160,7 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<PackageValidationSet>()
                 .Property(pvs => pvs.PackageId)
                 .HasMaxLength(MaximumPackageIdLength)
-                .IsRequired()
+                .IsOptional()
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
@@ -167,13 +171,22 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<PackageValidationSet>()
                 .Property(pvs => pvs.PackageNormalizedVersion)
                 .HasMaxLength(MaximumPackageVersionLength)
-                .IsRequired()
+                .IsOptional()
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
                         new IndexAttribute(PackageValidationSetsPackageIdPackageVersionIndex, 2)
                     }));
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .Property(pvs => pvs.PackageContentType)
+                .HasMaxLength(MaximumPackageContentTypeLength)
+                .IsOptional();
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .Property(pvs => pvs.ValidationProperties)
+                .IsOptional();
 
             modelBuilder.Entity<PackageValidationSet>()
                 .Property(pvs => pvs.RowVersion)
@@ -186,6 +199,21 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<PackageValidationSet>()
                 .Property(pvs => pvs.Updated)
                 .HasColumnType("datetime2");
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .Property(pvs => pvs.Expiration)
+                .HasColumnType("datetime2")
+                .IsOptional();
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .Property(pvs => pvs.ValidationProperties)
+                .IsOptional();
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .HasMany(v => v.PackageValidationResults)
+                .WithRequired(r => r.PackageValidationSet)
+                .HasForeignKey(r => r.PackageValidationSetKey)
+                .WillCascadeOnDelete();
 
             modelBuilder.Entity<PackageValidation>()
                 .HasKey(pv => pv.Key);
@@ -212,6 +240,26 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<PackageValidation>()
                 .Property(pv => pv.RowVersion)
                 .IsRowVersion();
+
+            modelBuilder.Entity<PackageValidationResult>()
+                .HasKey(e => e.Key);
+
+            modelBuilder.Entity<PackageValidationResult>()
+                .Property(pv => pv.Key)
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
+
+            modelBuilder.Entity<PackageValidationResult>()
+                .Property(pv => pv.Type)
+                .HasMaxLength(MaximumValidationResultTypeLength)
+                .IsRequired();
+
+            modelBuilder.Entity<PackageValidationResult>()
+                .Property(pv => pv.Data)
+                .IsRequired();
+
+            modelBuilder.Entity<PackageValidationResult>()
+                .HasOptional(r => r.PackageValidation)
+                .WithMany();
 
             modelBuilder.Entity<PackageValidationIssue>()
                 .HasKey(e => e.Key);

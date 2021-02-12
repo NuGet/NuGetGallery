@@ -9,7 +9,19 @@ namespace NuGet.Services.Validation
     /// </summary>
     public enum ValidatingType
     {
+        /// <summary>
+        /// The entity is a NuGet package.
+        /// </summary>
         Package = 0,
-        SymbolPackage = 1
+
+        /// <summary>
+        /// The entity is a NuGet symbols package.
+        /// </summary>
+        SymbolPackage = 1,
+
+        /// <summary>
+        /// An entity whose validation was requested using the validation protocol.
+        /// </summary>
+        Generic = 2,
     }
 }
