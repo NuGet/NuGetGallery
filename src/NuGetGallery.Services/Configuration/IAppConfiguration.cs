@@ -462,12 +462,6 @@ namespace NuGetGallery.Configuration
         string DeploymentLabel { get; set; }
 
         /// <summary>
-        /// The Usabilla feedback button ID embedded in the JavaScript snippet obtained from Usabilla. The ID can found
-        /// in your button's JavaScript code. Look for "//w.usabilla.com/{button ID}.js".
-        /// </summary>
-        string UsabillaFeedbackButtonId { get; set; }
-
-        /// <summary>
         /// Allows to override the default (or externally configured) minWorkerThreads setting. Must be specified with <see cref="MinIoThreads"/>.
         /// This is a global (not per CPU core) limit.
         /// See more: 

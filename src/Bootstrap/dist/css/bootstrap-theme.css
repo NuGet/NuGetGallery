@@ -331,16 +331,6 @@ img.reserved-indicator-icon {
 .page-manage-organizations .small-fingerprint {
   font-size: 75%;
 }
-.usabilla-button {
-  top: auto !important;
-  margin-top: -65px;
-  bottom: 20%;
-  width: 40px;
-  height: 130px;
-  position: fixed;
-  z-index: 99999;
-  right: 0;
-}
 .sortable {
   cursor: pointer;
 }
