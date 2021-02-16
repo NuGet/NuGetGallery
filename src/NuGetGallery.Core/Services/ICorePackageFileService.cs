@@ -26,7 +26,7 @@ namespace NuGetGallery
         Task<Stream> DownloadPackageFileAsync(Package package);
 
         /// <summary>
-        /// Generates the URL for the specified package in the public container for available packages.
+        /// Generates the URL for the specified package.
         /// </summary>
         /// <param name="package">The package metadata.</param>
         /// <returns>Package URL</returns>
