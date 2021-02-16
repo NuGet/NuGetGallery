@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Microsoft.Extensions.Options;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
@@ -149,6 +150,17 @@ namespace NuGet.Jobs.Catalog2Registration
             else
             {
                 catalogEntry.LicenseUrl = packageDetails.LicenseUrl ?? string.Empty;
+            }
+
+            if (!string.IsNullOrWhiteSpace(packageDetails.ReadmeFile))
+            { 
+                catalogEntry.ReadmeUrl = GetGalleryReadmeUrl(
+                    catalogEntry.PackageId,
+                    parsedVersion.ToNormalizedString(), _galleryBaseUrl);
+            }
+            else
+            {
+                catalogEntry.ReadmeUrl = null;
             }
 
             catalogEntry.Listed = packageDetails.IsListed();
@@ -323,6 +335,15 @@ namespace NuGet.Jobs.Catalog2Registration
         private string GetPackageContentUrl(string id, PackageDetailsCatalogLeaf packageDetails)
         {
             return new Uri(_flatContainerPathProvider.GetPackagePath(id, packageDetails.PackageVersion)).AbsoluteUri;
+        }
+
+        private string GetGalleryReadmeUrl(string packageId, string packageVersion, Uri galleryBaseAddress)
+        {
+            var uriBuilder = new UriBuilder(galleryBaseAddress);
+            uriBuilder.Path = string.Join("/", new[] { "packages", packageId, packageVersion});
+            uriBuilder.Fragment = "show-readme-container";
+
+            return uriBuilder.Uri.AbsoluteUri;
         }
     }
 }

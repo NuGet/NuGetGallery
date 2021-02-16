@@ -44,12 +44,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.False(result, "The handler should not have succeeded.");
         }
 
-        [Fact]
-        public async Task RejectsNonSymbolPackageValidationSetWithCheckValidator()
+        [Theory]
+        [InlineData(ValidatingType.Package)]
+        [InlineData(ValidatingType.Generic)]
+        public async Task RejectsNonSymbolPackageValidationSetWithCheckValidator(ValidatingType validatingType)
         {
             var messageData = PackageValidationMessageData.NewCheckValidator(Guid.NewGuid());
             var validationConfiguration = new ValidationConfiguration();
-            var validationSet = new PackageValidationSet { PackageKey = 42, ValidatingType = ValidatingType.Package };
+            var validationSet = new PackageValidationSet { PackageKey = 42, ValidatingType = validatingType };
 
             ValidationSetProviderMock
                 .Setup(ps => ps.TryGetParentValidationSetAsync(messageData.CheckValidator.ValidationId))
@@ -79,7 +81,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(validationSet)
                 .Verifiable();
             CoreSymbolPackageServiceMock
-                .Setup(ps => ps.FindPackageByKey(validationSet.PackageKey))
+                .Setup(ps => ps.FindPackageByKey(validationSet.PackageKey.Value))
                 .Returns<SymbolPackage>(null)
                 .Verifiable();
 
@@ -91,7 +93,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ps => ps.TryGetParentValidationSetAsync(messageData.CheckValidator.ValidationId),
                 Times.Once);
             CoreSymbolPackageServiceMock.Verify(
-                ps => ps.FindPackageByKey(validationSet.PackageKey),
+                ps => ps.FindPackageByKey(validationSet.PackageKey.Value),
                 Times.Once);
 
             Assert.False(result, "The handler should not have succeeded.");

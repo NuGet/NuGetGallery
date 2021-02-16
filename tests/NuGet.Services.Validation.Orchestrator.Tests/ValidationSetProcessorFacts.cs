@@ -419,6 +419,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSet = new PackageValidationSet
             {
                 Key = 238423,
+                PackageKey = 9999,
                 PackageId = Package.PackageRegistration.Id,
                 PackageNormalizedVersion = Package.NormalizedVersion,
                 PackageValidations = new List<PackageValidation>

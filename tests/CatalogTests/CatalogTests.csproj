@@ -294,6 +294,24 @@
     <None Include="TestData\WhitespaceDependencyVersionRange.0.1.0.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="TestData\TestPackage.readmeFileOnly.0.4.2.nupkg.testdata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\TestPackage.readmeWithNoType.0.4.2.nupkg.testdata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\PackageWithReadmeOnlyNoType.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>    
+    <None Include="TestData\PackageWithReadmeOnlyNoType.nupkg.testdata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\TestPackageReadmeFileWithFileType.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestData\TestPackageReadmeFileWithFileType.nupkg.testdata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Catalog\NuGet.Services.Metadata.Catalog.csproj">

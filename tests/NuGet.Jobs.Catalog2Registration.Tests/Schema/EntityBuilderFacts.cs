@@ -107,6 +107,41 @@ namespace NuGet.Jobs.Catalog2Registration
                 Assert.Equal("https://example/fc/windowsazure.storage/7.1.2-alpha/icon", LeafItem.CatalogEntry.IconUrl);
             }
 
+            [Fact]
+            public void ReturnNullGalleryForReadmeUrlWhenThereisNoReadmeFile()
+            {
+                var leaf = V3Data.Leaf;
+                leaf.ReadmeFile = null;
+
+                Target.UpdateLeafItem(LeafItem, Hive, Id, leaf);
+
+                Assert.Null(LeafItem.CatalogEntry.ReadmeUrl);
+            }
+
+            [Fact]
+            public void UsesGalleryForReadmeUrlWhenPackageHasReadmeFile()
+            {
+                var leaf = V3Data.Leaf;
+                leaf.ReadmeFile = "readme.md";
+
+                Target.UpdateLeafItem(LeafItem, Hive, Id, leaf);
+
+                Assert.Equal("https://example-gallery/packages/WindowsAzure.Storage/7.1.2-alpha#show-readme-container", LeafItem.CatalogEntry.ReadmeUrl);
+            }
+
+            [Fact]
+            public void UsesPackageIdCaseFromLeafItemNotParameterWhenBuildingReadmeUrl()
+            {
+                var leaf = V3Data.Leaf;
+                leaf.ReadmeFile = "readme.md";
+                leaf.PackageId = "WindowsAzure.Storage";
+                Id = "windowsazure.storage";
+
+                Target.UpdateLeafItem(LeafItem, Hive, Id, leaf);
+
+                Assert.Equal("https://example-gallery/packages/WindowsAzure.Storage/7.1.2-alpha#show-readme-container", LeafItem.CatalogEntry.ReadmeUrl);
+            }
+
             [Theory]
             [InlineData(HiveType.Legacy, false)]
             [InlineData(HiveType.Gzipped, false)]

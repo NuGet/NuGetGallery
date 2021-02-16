@@ -191,6 +191,35 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 }
             }
 
+            [Theory]
+            [InlineData(EmbeddedReadmeFileType.Absent, false)]
+            [InlineData(EmbeddedReadmeFileType.Markdown, true)]
+            public async Task SavesPackageReadmeFileWhenPresent(EmbeddedReadmeFileType readmeFileType, bool expectedSave)
+            {
+                var content = "Hello, world.";
+                var stream = new MemoryStream(Encoding.ASCII.GetBytes(content));
+                Package.EmbeddedReadmeType = readmeFileType;
+                Package.HasReadMe = true;
+                PackageFileServiceMock
+                    .Setup(x => x.DownloadPackageFileToDiskAsync(ValidationSet))
+                    .ReturnsAsync(stream);
+
+                await Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available);
+
+                if (expectedSave)
+                {
+                    CoreReadmeFileServiceMock
+                        .Verify(clfs => clfs.ExtractAndSaveReadmeFileAsync(PackageValidatingEntity.EntityRecord, stream), Times.Once);
+                    CoreReadmeFileServiceMock
+                        .Verify(clfs => clfs.ExtractAndSaveReadmeFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()), Times.Once);
+                }
+                else
+                {
+                    CoreReadmeFileServiceMock
+                        .Verify(clfs => clfs.ExtractAndSaveReadmeFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()), Times.Never);
+                }
+            }
+
             [Fact]
             public async Task AllowsPackageAlreadyInPublicContainerWhenValidationSetPackageDoesNotExist()
             {
@@ -377,6 +406,41 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 {
                     CoreLicenseFileServiceMock
                         .Verify(clfs => clfs.DeleteLicenseFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                }
+            }
+
+            [Theory]
+            [InlineData(EmbeddedReadmeFileType.Absent, PackageStatus.Validating, false)]
+            [InlineData(EmbeddedReadmeFileType.Absent, PackageStatus.Available, false)]
+            [InlineData(EmbeddedReadmeFileType.Markdown, PackageStatus.Validating, true)]
+            [InlineData(EmbeddedReadmeFileType.Markdown, PackageStatus.Available, false)]
+            public async Task DeletesReadmeFromPublicStorageOnDbUpdateFailure(EmbeddedReadmeFileType readmeFileType, PackageStatus originalStatus, bool expectedDelete)
+            {
+                Package.PackageStatusKey = originalStatus;
+                Package.EmbeddedReadmeType = readmeFileType;
+                Package.HasReadMe = true;
+
+                var expected = new Exception("Everything failed");
+                PackageServiceMock
+                    .Setup(ps => ps.UpdateStatusAsync(Package, PackageStatus.Available, true))
+                    .Throws(expected);
+
+                var actual = await Assert.ThrowsAsync<Exception>(
+                    () => Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, PackageStatus.Available));
+
+                Assert.Same(expected, actual);
+
+                if (expectedDelete)
+                {
+                    CoreReadmeFileServiceMock
+                        .Verify(clfs => clfs.DeleteReadmeFileAsync(Package.Id, Package.NormalizedVersion), Times.Once);
+                    CoreReadmeFileServiceMock
+                        .Verify(clfs => clfs.DeleteReadmeFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+                }
+                else
+                {
+                    CoreReadmeFileServiceMock
+                        .Verify(clfs => clfs.DeleteReadmeFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
                 }
             }
 
@@ -624,6 +688,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 TelemetryServiceMock = new Mock<ITelemetryService>();
                 LoggerMock = new Mock<ILogger<EntityStatusProcessor<Package>>>();
                 CoreLicenseFileServiceMock = new Mock<ICoreLicenseFileService>();
+                CoreReadmeFileServiceMock = new Mock<ICoreReadmeFileService>();
 
                 var streamMetadata = new PackageStreamMetadata()
                 {
@@ -638,7 +703,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     ValidatorProviderMock.Object,
                     TelemetryServiceMock.Object,
                     LoggerMock.Object,
-                    CoreLicenseFileServiceMock.Object);
+                    CoreLicenseFileServiceMock.Object,
+                    CoreReadmeFileServiceMock.Object);
 
                 PackageValidatingEntity = new PackageValidatingEntity(Package);
             }
@@ -651,6 +717,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public Mock<ITelemetryService> TelemetryServiceMock { get; }
             public Mock<ILogger<EntityStatusProcessor<Package>>> LoggerMock { get; }
             public Mock<ICoreLicenseFileService> CoreLicenseFileServiceMock { get; }
+            public Mock<ICoreReadmeFileService> CoreReadmeFileServiceMock { get; }
             public EntityStatusProcessor<Package> Target { get; }
             public PackageValidatingEntity PackageValidatingEntity { get; }
         }

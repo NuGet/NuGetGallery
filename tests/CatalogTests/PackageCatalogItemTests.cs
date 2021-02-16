@@ -37,6 +37,8 @@ namespace CatalogTests.Helpers
         [InlineData("PackageTypeSameTypeTwoVersion")]
         [InlineData("PackageTypeWhiteSpace")]
         [InlineData("PackageTypeWhiteSpaceVersion")]
+        [InlineData("PackageWithReadmeOnlyNoType")]
+        [InlineData("TestPackageReadmeFileWithFileType")]
         public void CreateContent_ProducesExpectedJson(string packageName)
         {
             // Arrange

@@ -2,7 +2,7 @@
 
   <!-- NuGet dependencies shared across projects -->
   <PropertyGroup>
-    <ServerCommonPackageVersion>2.82.0</ServerCommonPackageVersion>
+    <ServerCommonPackageVersion>2.84.0</ServerCommonPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -55,6 +55,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             _validationSet = new PackageValidationSet
             {
                 ValidationTrackingId = new Guid("0b44d53f-0689-4f82-9530-f25f26b321aa"),
+                PackageKey = 9999,
                 PackageId = _package.PackageRegistration.Id,
                 PackageNormalizedVersion = _package.NormalizedVersion,
             };
@@ -131,6 +132,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.NotNull(endOfAccess);
             Assert.InRange(endOfAccess.Value, before.AddMinutes(10), after.AddMinutes(10));
             Assert.Throws<ObjectDisposedException>(() => _packageStream.Length);
+        }
+
+        [Fact]
+        public async Task CannotBackupGenericValidationSet()
+        {
+            _validationSet.ValidatingType = ValidatingType.Generic;
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(
+                () => _target.BackupPackageFileFromValidationSetPackageAsync(_validationSet));
+
+            Assert.Equal("validationSet", exception.ParamName);
+            Assert.Contains(
+                "This method is not supported for validation sets of validating type Generic",
+                exception.Message);
         }
 
         [Fact]

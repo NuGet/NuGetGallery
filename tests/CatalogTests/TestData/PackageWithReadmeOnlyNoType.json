@@ -1,41 +1,34 @@
 {
-  "@id": "http://example/data/2017.01.04.08.15.00/packagetypewhitespace.0.1.0.json",
+  "@id": "http://example/data/2017.01.04.08.15.00/packagewithreadmeonlynotype.0.1.0.json",
   "@type": [
     "PackageDetails",
     "catalog:Permalink"
   ],
-  "authors": "PackageTypeWhiteSpace",
+  "authors": "PackageWithReadmeOnlyNoType",
   "catalog:commitId": "4aee0ef4-a039-4460-bd5f-98f944e33289",
   "catalog:commitTimeStamp": "2017-01-04T08:15:00Z",
   "created": "2017-01-01T08:15:00Z",
-  "description": "PackageTypeWhiteSpace",
-  "id": "PackageTypeWhiteSpace",
+  "description": "PackageWithReadmeOnlyNoType",
+  "id": "PackageWithReadmeOnlyNoType",
   "isPrerelease": false,
   "lastEdited": "2017-01-02T08:15:00Z",
   "listed": true,
-  "packageHash": "hhseXZ+2gB/JCeTGS59mmwhW2HCvsYUcMHTLTgJ6P1x2AyrMwWE3Yu3vvRzkGQ7oLxXlt7z7316L7DM+2y3paw==",
+  "packageHash": "h3cCFJm0qW6EjoJUMZ7FUC646TnShhUpyiETKFhofQ4VDmBfiQQy5LdL2sGJKJOeL/h+CBVzBAE/PrcUL2zerQ==",
   "packageHashAlgorithm": "SHA512",
-  "packageSize": 397,
+  "packageSize": 394,
   "published": "2017-01-03T08:15:00Z",
   "readmeFile": "readme.md",
-  "title": "PackageTypeWhiteSpace",
+  "title": "PackageWithReadmeOnlyNoType",
   "verbatimVersion": "0.1.0",
   "version": "0.1.0",
   "packageEntries": [
     {
-      "@id": "http://example/data/2017.01.04.08.15.00/packagetypewhitespace.0.1.0.json#PackageTypeWhiteSpace.nuspec",
+      "@id": "http://example/data/2017.01.04.08.15.00/packagewithreadmeonlynotype.0.1.0.json#PackageWithReadmeOnlyNoType.nuspec",
       "@type": "PackageEntry",
-      "compressedLength": 243,
-      "fullName": "PackageTypeWhiteSpace.nuspec",
-      "length": 494,
-      "name": "PackageTypeWhiteSpace.nuspec"
-    }
-  ],
-  "packageTypes": [
-    {
-      "@id": "http://example/data/2017.01.04.08.15.00/packagetypewhitespace.0.1.0.json#packagetypes/type1",
-      "@type": "PackageType",
-      "name": "type1"
+      "compressedLength": 228,
+      "fullName": "PackageWithReadmeOnlyNoType.nuspec",
+      "length": 440,
+      "name": "PackageWithReadmeOnlyNoType.nuspec"
     }
   ],
   "@context": {

@@ -69,7 +69,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string ScanAndSignBindingKey = ScanAndSignSectionName;
         private const string SymbolsScanBindingKey = "SymbolsScan";
         private const string OrchestratorBindingKey = "Orchestrator";
-        private const string CoreLicenseFileServiceBindingKey = "CoreLicenseFileService";
+        private const string FlatContainerBindingKey = "FlatContainer";
 
         private const string SymbolsValidatorSectionName = "SymbolsValidator";
         private const string SymbolsValidationBindingKey = SymbolsValidatorSectionName;
@@ -459,12 +459,12 @@ namespace NuGet.Services.Validation.Orchestrator
                         configurationAccessor.Value.ConnectionString,
                         readAccessGeoRedundant: false);
                 })
-                .Keyed<ICloudBlobClient>(CoreLicenseFileServiceBindingKey);
+                .Keyed<ICloudBlobClient>(FlatContainerBindingKey);
 
             builder
                 .RegisterType<CloudBlobCoreFileStorageService>()
-                .WithKeyedParameter(typeof(ICloudBlobClient), CoreLicenseFileServiceBindingKey)
-                .Keyed<ICoreFileStorageService>(CoreLicenseFileServiceBindingKey);
+                .WithKeyedParameter(typeof(ICloudBlobClient), FlatContainerBindingKey)
+                .Keyed<ICoreFileStorageService>(FlatContainerBindingKey);
 
             builder
                 .RegisterType<OrchestratorContentFileMetadataService>()
@@ -472,8 +472,13 @@ namespace NuGet.Services.Validation.Orchestrator
 
             builder
                 .RegisterType<CoreLicenseFileService>()
-                .WithKeyedParameter(typeof(ICoreFileStorageService), CoreLicenseFileServiceBindingKey)
+                .WithKeyedParameter(typeof(ICoreFileStorageService), FlatContainerBindingKey)
                 .As<ICoreLicenseFileService>();
+
+            builder
+                .RegisterType<CoreReadmeFileService>()
+                .WithKeyedParameter(typeof(ICoreFileStorageService), FlatContainerBindingKey)
+                .As<ICoreReadmeFileService>();
         }
 
         private static void ConfigureOrchestratorMessageHandler(IServiceCollection services, IConfigurationRoot configurationRoot)
