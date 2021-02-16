@@ -406,8 +406,6 @@ namespace NuGetGallery.Configuration
         [DefaultValue(null)]
         public string DeploymentLabel { get; set; }
 
-        public string UsabillaFeedbackButtonId { get; set; }
-
         [DefaultValue(null)]
         public int? MinWorkerThreads { get; set; }
         [DefaultValue(null)]

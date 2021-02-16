@@ -39,7 +39,6 @@ namespace NuGetGallery
         private const string ODataCacheDurationsFeatureName = GalleryPrefix + "ODataCacheDurations";
         private const string ShowEnable2FADialog = GalleryPrefix + "ShowEnable2FADialog";
         private const string Get2FADismissFeedback = GalleryPrefix + "Get2FADismissFeedback";
-        private const string UsabillaOnEveryPageFeatureName = GalleryPrefix + "UsabillaEveryPage";
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
         private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
@@ -213,11 +212,6 @@ namespace NuGetGallery
         public bool IsGet2FADismissFeedbackEnabled()
         {
             return _client.IsEnabled(Get2FADismissFeedback, defaultValue: false);
-        }
-
-        public bool IsUsabillaButtonEnabledOnEveryPage()
-        {
-            return _client.IsEnabled(UsabillaOnEveryPageFeatureName, defaultValue: false);
         }
 
         public bool IsPackageRenamesEnabled(User user)

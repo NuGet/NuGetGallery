@@ -190,7 +190,7 @@
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ApiKeyRevokeViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SiteAdminsViewModel.cs" />
-    <Compile Include="Areas\Admin\ViewModels\ValidatedPackageViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\NuGetPackageValidationViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
@@ -1305,8 +1305,6 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="Content\admin\SupportRequestStyles.css" />
     <Content Include="Content\fabric.css" />
-    <Content Include="Content\gallery\img\feedback-40x130.png" />
-    <Content Include="Content\gallery\img\feedback.svg" />
     <Content Include="Content\gallery\img\logo-og-600x600.png" />
     <Content Include="Content\gallery\img\rss-24x24.png" />
     <Content Include="Content\Images\icons\apiKey.png" />
@@ -2242,13 +2240,13 @@
       <Version>5.8.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.82.0</Version>
+      <Version>2.84.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.82.0</Version>
+      <Version>2.84.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.82.0</Version>
+      <Version>2.84.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
