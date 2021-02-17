@@ -13,6 +13,9 @@
     <Compile Remove="Storage\IValidatorStateService.cs" />
     <Compile Remove="Storage\ValidatorStateService.cs" />
     <Compile Remove="Storage\ValidatorStatusExtensions.cs" />
+    <Compile Remove="Validation\IProcessor.cs" />
+    <Compile Remove="Validation\IValidationResponse.cs" />
+    <Compile Remove="Validation\IValidator.cs" />
     <Compile Remove="SubscriptionProcessorJob.cs" />
     <Compile Remove="ValidationJobBase.cs" />
   </ItemGroup>

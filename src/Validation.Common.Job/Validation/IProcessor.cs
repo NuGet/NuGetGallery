@@ -8,7 +8,7 @@ namespace NuGet.Services.Validation
     /// allow the caller of the validators (e.g. orchestrator) to verify in advance that a validator (i.e. processor)
     /// that mutates packages does not run in parallel with any other validator.
     /// </summary>
-    public interface INuGetProcessor : INuGetValidator
+    public interface IProcessor : IValidator
     {
     }
 }
