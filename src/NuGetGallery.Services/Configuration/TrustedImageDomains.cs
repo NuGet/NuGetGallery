@@ -12,10 +12,10 @@ namespace NuGetGallery.Services
 {
     public class TrustedImageDomains : ITrustedImageDomains
     {
-        public HashSet<String> TrustedImageDomainList { get; }
+        public HashSet<string> TrustedImageDomainList { get; }
 
         public TrustedImageDomains()
-            : this(trustedImageDomainList: Enumerable.Empty<String>())
+            : this(trustedImageDomainList: Enumerable.Empty<string>())
         {
 
         }
@@ -28,10 +28,10 @@ namespace NuGetGallery.Services
                 throw new ArgumentNullException(nameof(trustedImageDomainList));
             }
 
-            TrustedImageDomainList = new HashSet<String>(trustedImageDomainList, StringComparer.OrdinalIgnoreCase);
+            TrustedImageDomainList = new HashSet<string>(trustedImageDomainList, StringComparer.OrdinalIgnoreCase);
         }
 
-        public bool IsImageDomainTrusted(String imageDomain)
+        public bool IsImageDomainTrusted(string imageDomain)
         {
             if (imageDomain == null)
             {
