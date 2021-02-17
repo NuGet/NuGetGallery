@@ -1,5 +1,5 @@
 {
-    "TrustedImageDomains": [
+    "TrustedImageDomainList": [
         "api.bintray.com",
         "api.codacy.com",
         "api.codeclimate.com",
