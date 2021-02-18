@@ -3,6 +3,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Identity.Client;
+using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
 
 namespace NuGet.Services.ServiceBus
@@ -14,6 +16,25 @@ namespace NuGet.Services.ServiceBus
         public TopicClientWrapper(string connectionString, string path)
         {
             _client = TopicClient.CreateFromConnectionString(connectionString, path);
+        }
+
+        public TopicClientWrapper(string clientId, string clientSecret, string tenantId, string serviceBusUrl, string path)
+        {
+            AzureActiveDirectoryTokenProvider.AuthenticationCallback authCallback = async (audience, authority, state) =>
+            {
+                var app = ConfidentialClientApplicationBuilder.Create(clientId)
+                    .WithAuthority(authority)
+                    .WithClientSecret(clientSecret)
+                    .Build();
+
+                var result = await app
+                    .AcquireTokenForClient(new string[] { "https://servicebus.azure.net/.default" })
+                    .ExecuteAsync();
+
+                return result.AccessToken;
+            };
+
+            _client = TopicClient.CreateWithAzureActiveDirectory(new Uri(serviceBusUrl), path, authCallback, $"https://login.windows.net/{tenantId}");
         }
 
         public Task SendAsync(IBrokeredMessage message)
