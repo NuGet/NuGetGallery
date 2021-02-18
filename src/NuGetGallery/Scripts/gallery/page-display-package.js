@@ -96,9 +96,14 @@ $(function () {
             var text = $('#' + id + '-text').text().trim();
             window.nuget.copyTextToClipboard(text, copyButton);
             copyButton.popover('show');
+            //This is workaround for Narrator announce the status changes of copy button to achieve accessibility.
+            copyButton.attr('aria-pressed', 'true');
             setTimeout(function () {
                 copyButton.popover('destroy');
             }, 1000);
+            setTimeout(function () {
+                copyButton.attr('aria-pressed', 'false');
+            }, 1500);  
             window.nuget.sendMetric("CopyInstallCommand", 1, {
                 ButtonId: id,
                 PackageId: packageId,
