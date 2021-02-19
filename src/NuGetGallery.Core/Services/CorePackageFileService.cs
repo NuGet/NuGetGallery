@@ -44,6 +44,12 @@ namespace NuGetGallery
             return _fileStorageService.GetFileAsync(_metadata.FileFolderName, fileName);
         }
 
+        public Task<Uri> GetPackageUriAsync(Package package)
+        {
+            var fileName = FileNameHelper.BuildFileName(package, _metadata.FileSavePathTemplate, _metadata.FileExtension);
+            return _fileStorageService.GetFileUriAsync(_metadata.FileFolderName, fileName);
+        }
+
         public Task<Uri> GetPackageReadUriAsync(Package package)
         {
             var fileName = FileNameHelper.BuildFileName(package, _metadata.FileSavePathTemplate, _metadata.FileExtension);
