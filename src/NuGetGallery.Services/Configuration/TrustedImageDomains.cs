@@ -12,7 +12,7 @@ namespace NuGetGallery.Services
 {
     public class TrustedImageDomains : ITrustedImageDomains
     {
-        public HashSet<string> TrustedImageDomainList { get; }
+        private HashSet<string> TrustedImageDomainList { get; }
 
         public TrustedImageDomains()
             : this(trustedImageDomainList: Enumerable.Empty<string>())

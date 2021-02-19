@@ -476,7 +476,7 @@
 
                         @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
                         {
-                            @ViewHelpers.AlertWarning(@<text>This documentation had some images sources are not from trusted services. Due to security concerns, we only allow images from trusted services</text>);
+                            @ViewHelpers.AlertWarning(@<text>This documentation contains some images from unknown sources. For security reason, we only display images from trusted sources.</text>);
                         }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)

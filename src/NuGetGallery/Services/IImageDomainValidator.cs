@@ -8,7 +8,6 @@ namespace NuGetGallery
 {
     public interface IImageDomainValidator
     {
-
         /// <summary>
         /// If the input uri is http => check if it's a trusted domain and convert to https.
         /// If the input uri is https => check if it's a trusted domain 

@@ -334,11 +334,11 @@ var BindReadMeDataManager = (function () {
             clearReadMeError();
 
             if (response.ImagesRewritten) {
-                displayReadMeWarning("Some images were automatically rewritten to use secure links and might be broken.");
+                displayReadMeWarning("Some images were automatically rewritten to use secure links and may be broken.");
             }
 
             if (response.ImageSourceDisallowed) {
-                displayReadMeWarning("Some images are not display as they are not from trusted domains.");
+                displayReadMeWarning("Some images are not displayed as they are from unknown resources.");
             }
         }
 

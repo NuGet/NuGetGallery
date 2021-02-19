@@ -122,7 +122,7 @@ namespace NuGetGallery
                 _imageDomainValidator.Setup(x => x.TryPrepareImageUrlForRendering(imageUrl, out imageUrl)).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImageSourceDisallowed);
+                Assert.False(readMeResult.ImageSourceDisallowed);
             }
 
             [Theory]
@@ -141,7 +141,7 @@ namespace NuGetGallery
                 _imageDomainValidator.Setup(x => x.TryPrepareImageUrlForRendering(imageUrl, out outUrl)).Returns(false);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(true, readMeResult.ImageSourceDisallowed);
+                Assert.True(readMeResult.ImageSourceDisallowed);
             }
 
             [Fact]
@@ -152,7 +152,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -166,7 +166,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -183,7 +183,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -195,7 +195,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -212,7 +212,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -228,7 +228,7 @@ Some text
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -240,7 +240,7 @@ Some text
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
         }
     }

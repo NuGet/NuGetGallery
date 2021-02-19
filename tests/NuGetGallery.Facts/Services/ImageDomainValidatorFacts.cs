@@ -18,7 +18,6 @@ namespace NuGetGallery.Services
             {
                 _contentObjectService = new Mock<IContentObjectService>();
                 _imageDomainValidator = new ImageDomainValidator(_contentObjectService.Object);
-
             }
 
             [Theory]
