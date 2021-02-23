@@ -99,9 +99,7 @@
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("#r \"nuget: {0}, {1}\"", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
-                AlertMessage = string.Format(
-                    "For C# and F# scripts that support <a href=\"{0}\">#r syntax</a>, copy this into the source code to reference the package.",
-                    "https://docs.microsoft.com/en-us/dotnet/fsharp/tools/fsharp-interactive/#referencing-packages-in-f-interactive")
+                AlertMessage = "#r directive can be used in F# Interactive, C# scripting and .NET Interactive. Copy this into the interactive tool or source code of the script to reference the package."
             },
         };
     }
