@@ -1,5 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -173,8 +175,8 @@ namespace NuGetGallery.AsyncFileUpload
             // 
             // We want to extract the file name out of it.
             string content = _encoding.GetString(buffer);
-            var match = Regex.Match(content, @"filename\=""(.*)\""");
-            if (match.Success && match.Groups.Count > 1)
+            var match = RegexEx.MatchWithTimeoutOrNull(content, @"filename\=""(.*)\""", RegexOptions.None);
+            if (match != null && match.Success && match.Groups.Count > 1)
             {
                 string filename = match.Groups[1].Value;
                 return filename;
