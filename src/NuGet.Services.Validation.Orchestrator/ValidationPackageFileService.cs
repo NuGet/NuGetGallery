@@ -23,6 +23,7 @@ namespace NuGet.Services.Validation.Orchestrator
         protected static readonly TimeSpan AccessDuration = TimeSpan.FromMinutes(10);
 
         protected readonly ICoreFileStorageService _fileStorageService;
+        protected readonly ISharedAccessSignatureService _sharedAccessSignatureService;
         protected readonly IFileDownloader _fileDownloader;
         protected readonly ITelemetryService _telemetryService;
         protected readonly ILogger<ValidationFileService> _logger;
@@ -30,6 +31,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public ValidationFileService(
             ICoreFileStorageService fileStorageService,
+            ISharedAccessSignatureService sharedAccessSignatureService,
             IFileDownloader fileDownloader,
             ITelemetryService telemetryService,
             ILogger<ValidationFileService> logger,
@@ -40,6 +42,7 @@ namespace NuGet.Services.Validation.Orchestrator
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fileMetadataService = fileMetadataService ?? throw new ArgumentNullException(nameof(fileMetadataService));
+            _sharedAccessSignatureService = sharedAccessSignatureService ?? throw new ArgumentNullException(nameof(sharedAccessSignatureService));
         }
 
         #region Core methods to be to be invoked 
@@ -48,6 +51,14 @@ namespace NuGet.Services.Validation.Orchestrator
             string id = validationSet.PackageId;
             string version = validationSet.PackageNormalizedVersion;
             return FileNameHelper.BuildFileName(id, version, pathTemplate, extension);
+        }
+
+        public Task<Uri> GetPackageUriAsync(PackageValidationSet validationSet)
+        {
+            var fileName = BuildFileName(validationSet,
+                _fileMetadataService.FileSavePathTemplate,
+                _fileMetadataService.FileExtension);
+            return _fileStorageService.GetFileUriAsync(_fileMetadataService.FileFolderName, fileName);
         }
 
         public Task<Uri> GetPackageReadUriAsync(PackageValidationSet validationSet)
@@ -95,9 +106,20 @@ namespace NuGet.Services.Validation.Orchestrator
         }
         #endregion
 
-        public async Task<Stream> DownloadPackageFileToDiskAsync(PackageValidationSet validationSet)
+        public async Task<Stream> DownloadPackageFileToDiskAsync(PackageValidationSet validationSet, string sasDefinition)
         {
-            var fileUri = await GetPackageReadUriAsync(validationSet);
+            Uri fileUri = null;
+            if (string.IsNullOrEmpty(sasDefinition))
+            {
+                fileUri = await GetPackageReadUriAsync(validationSet);
+            }
+            else
+            {
+                var sasToken = await _sharedAccessSignatureService.GetFromManagedStorageAccountAsync(sasDefinition);
+                var packageUri = await GetPackageUriAsync(validationSet);
+                fileUri = new Uri(packageUri, sasToken);
+            }
+
             var result = await _fileDownloader.DownloadAsync(fileUri, CancellationToken.None);
             return result.GetStreamOrThrow();
         }
@@ -116,7 +138,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 AccessConditionWrapper.GenerateEmptyCondition());
         }
 
-        public async Task BackupPackageFileFromValidationSetPackageAsync(PackageValidationSet validationSet)
+        public async Task BackupPackageFileFromValidationSetPackageAsync(PackageValidationSet validationSet, string sasDefinition)
         {
             if (validationSet.ValidatingType == ValidatingType.Generic)
             {
@@ -135,6 +157,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 var packageUri = await GetPackageForValidationSetReadUriAsync(
                     validationSet,
+                    sasDefinition,
                     DateTimeOffset.UtcNow.Add(AccessDuration));
 
                 using (var result = await _fileDownloader.DownloadAsync(packageUri, CancellationToken.None))
@@ -209,11 +232,18 @@ namespace NuGet.Services.Validation.Orchestrator
             return _fileStorageService.DeleteFileAsync(_fileMetadataService.ValidationFolderName, fileName);
         }
 
-        public Task<Uri> GetPackageForValidationSetReadUriAsync(PackageValidationSet validationSet, DateTimeOffset endOfAccess)
+        public async Task<Uri> GetPackageForValidationSetReadUriAsync(PackageValidationSet validationSet, string sasDefinition, DateTimeOffset endOfAccess)
         {
             var fileName = BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension);
 
-            return _fileStorageService.GetFileReadUriAsync(_fileMetadataService.ValidationFolderName, fileName, endOfAccess);
+            if (string.IsNullOrEmpty(sasDefinition))
+            {
+                return await _fileStorageService.GetFileReadUriAsync(_fileMetadataService.ValidationFolderName, fileName, endOfAccess);
+            }
+
+            var sasToken = await _sharedAccessSignatureService.GetFromManagedStorageAccountAsync(sasDefinition);
+            var fileUri = await _fileStorageService.GetFileUriAsync(_fileMetadataService.ValidationFolderName, fileName);
+            return new Uri(fileUri, sasToken);
         }
 
         public Task CopyPackageUrlForValidationSetAsync(PackageValidationSet validationSet, string srcPackageUrl)

@@ -30,11 +30,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         private readonly string _validationSetPackageFileName;
         private readonly string _backupFileName;
         private readonly Uri _testUri;
+        private readonly Uri _testSasUri;
+        private readonly string _testSasToken;
+        private readonly string _sasDefinition;
         private readonly string _etag;
         private readonly string _packageContent;
         private readonly MemoryStream _packageStream;
         private readonly DateTimeOffset _endOfAccess;
         private readonly Mock<ICoreFileStorageService> _fileStorageService;
+        private readonly Mock<ISharedAccessSignatureService> _sasService;
         private readonly Mock<IFileDownloader> _packageDownloader;
         private readonly Mock<ITelemetryService> _telemetryService;
         private readonly Mock<ILogger<ValidationFileService>> _logger;
@@ -67,19 +71,29 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             _validationSetPackageFileName = "validation-sets/0b44d53f-0689-4f82-9530-f25f26b321aa/nuget.versioning.4.5.0-alpha.nupkg";
             _backupFileName = "nuget.versioning/4.5.0-alpha/rQw3wx1psxXzqB8TyM3nAQlK2RcluhsNwxmcqXE2YbgoDW735o8TPmIR4uWpoxUERddvFwjgRSGw7gNPCwuvJg2..nupkg";
             _testUri = new Uri("http://example.com/nupkg.nupkg");
+            _testSasToken = "?sasToken";
+            _testSasUri = new Uri(_testUri, _testSasToken);
+            _sasDefinition = "sasDefinition";
             _etag = "\"some-etag\"";
             _packageContent = "Hello, world.";
             _packageStream = new MemoryStream(Encoding.ASCII.GetBytes(_packageContent));
             _endOfAccess = new DateTimeOffset(2018, 1, 3, 8, 30, 0, TimeSpan.Zero);
 
             _fileStorageService = new Mock<ICoreFileStorageService>(MockBehavior.Strict);
+            _sasService = new Mock<ISharedAccessSignatureService>(MockBehavior.Strict);
 
             _packageDownloader = new Mock<IFileDownloader>(MockBehavior.Strict);
             _telemetryService = new Mock<ITelemetryService>(MockBehavior.Strict);
             _logger = new Mock<ILogger<ValidationFileService>>();
 
+            _sasService
+                .Setup(sas => sas.GetFromManagedStorageAccountAsync(_sasDefinition))
+                .ReturnsAsync(_testSasToken)
+                .Verifiable();
+
             _target = new ValidationFileService(
                 _fileStorageService.Object,
+                _sasService.Object,
                 _packageDownloader.Object,
                 _telemetryService.Object,
                 _logger.Object,
@@ -124,7 +138,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(backupDurationMetric.Object);
 
             var before = DateTimeOffset.UtcNow;
-            await _target.BackupPackageFileFromValidationSetPackageAsync(_validationSet);
+            await _target.BackupPackageFileFromValidationSetPackageAsync(_validationSet, sasDefinition: null);
             var after = DateTimeOffset.UtcNow;
 
             _fileStorageService.Verify();
@@ -135,12 +149,56 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
+        public async Task BackupPackageFileFromValidationSetPackageAsyncWithSasDefinition()
+        {
+            _fileStorageService
+                .Setup(x => x.GetFileUriAsync(
+                    _validationContainerName,
+                    _validationSetPackageFileName))
+                .ReturnsAsync(_testUri)
+                .Verifiable();
+
+            _packageDownloader
+                .Setup(x => x.DownloadAsync(_testSasUri, CancellationToken.None))
+                .ReturnsAsync(() => FileDownloadResult.Ok(_packageStream))
+                .Verifiable();
+
+            _fileStorageService
+                .Setup(x => x.FileExistsAsync(_backupContainerName, _backupFileName))
+                .ReturnsAsync(false)
+                .Verifiable();
+
+            _fileStorageService
+                .Setup(x => x.SaveFileAsync(_backupContainerName, _backupFileName, _packageStream, true))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            var backupDurationMetric = new Mock<IDisposable>(MockBehavior.Strict);
+            backupDurationMetric
+                .Setup(m => m.Dispose())
+                .Verifiable();
+
+            _telemetryService
+                .Setup(t => t.TrackDurationToBackupPackage(_validationSet))
+                .Returns(backupDurationMetric.Object);
+
+            var before = DateTimeOffset.UtcNow;
+            await _target.BackupPackageFileFromValidationSetPackageAsync(_validationSet, _sasDefinition);
+            var after = DateTimeOffset.UtcNow;
+
+            _fileStorageService.Verify();
+            _packageDownloader.Verify();
+            _sasService.Verify();
+            Assert.Throws<ObjectDisposedException>(() => _packageStream.Length);
+        }
+
+        [Fact]
         public async Task CannotBackupGenericValidationSet()
         {
             _validationSet.ValidatingType = ValidatingType.Generic;
 
             var exception = await Assert.ThrowsAsync<ArgumentException>(
-                () => _target.BackupPackageFileFromValidationSetPackageAsync(_validationSet));
+                () => _target.BackupPackageFileFromValidationSetPackageAsync(_validationSet, null));
 
             Assert.Equal("validationSet", exception.ParamName);
             Assert.Contains(
@@ -171,11 +229,41 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageId = _package.PackageRegistration.Id
             };
 
-            var actual = await _target.DownloadPackageFileToDiskAsync(validationSet);
+            var actual = await _target.DownloadPackageFileToDiskAsync(validationSet, null);
 
             Assert.Same(_packageStream, actual);
             _fileStorageService.Verify();
             _packageDownloader.Verify();
+        }
+
+        [Fact]
+        public async Task DownloadPackageFileToDiskAsyncWithSasDefinition()
+        {
+            _fileStorageService
+                .Setup(x => x.GetFileUriAsync(
+                    _packagesContainerName,
+                    _packageFileName))
+                .ReturnsAsync(_testUri)
+                .Verifiable();
+
+            _packageDownloader
+                .Setup(x => x.DownloadAsync(_testSasUri, CancellationToken.None))
+                .ReturnsAsync(() => FileDownloadResult.Ok(_packageStream))
+                .Verifiable();
+
+            var validationSet = new PackageValidationSet()
+            {
+                PackageNormalizedVersion = _package.NormalizedVersion,
+                PackageKey = _package.Key,
+                PackageId = _package.PackageRegistration.Id
+            };
+
+            var actual = await _target.DownloadPackageFileToDiskAsync(validationSet, _sasDefinition);
+
+            Assert.Same(_packageStream, actual);
+            _fileStorageService.Verify();
+            _packageDownloader.Verify();
+            _sasService.Verify();
         }
 
         [Fact]
@@ -311,10 +399,27 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(_testUri)
                 .Verifiable();
 
-            var actual = await _target.GetPackageForValidationSetReadUriAsync(_validationSet, _endOfAccess);
+            var actual = await _target.GetPackageForValidationSetReadUriAsync(_validationSet, sasDefinition: null, endOfAccess: _endOfAccess);
 
             Assert.Equal(_testUri, actual);
             _fileStorageService.Verify();
+        }
+
+        [Fact]
+        public async Task GetPackageForValidationSetReadUriAsyncWithSasDefinition()
+        {
+            _fileStorageService
+                .Setup(x => x.GetFileUriAsync(
+                    _validationContainerName,
+                    _validationSetPackageFileName))
+                .ReturnsAsync(_testUri)
+                .Verifiable();
+
+            var actual = await _target.GetPackageForValidationSetReadUriAsync(_validationSet, _sasDefinition, _endOfAccess);
+
+            Assert.Equal(_testSasUri, actual);
+            _fileStorageService.Verify();
+            _sasService.Verify();
         }
 
         [Fact]

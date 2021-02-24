@@ -21,6 +21,7 @@ namespace Validation.Common.Job.Tests.Storage
         private readonly ILogger<ProcessorPackageFileService> _logger;
         private readonly ProcessorPackageFileService _target;
         private readonly Mock<ICoreFileStorageService> _fileStorageService;
+        private readonly Mock<ISharedAccessSignatureService> _sasService;
         private readonly string _packageId;
         private readonly string _packageNormalizedVersion;
         private readonly Guid _validationId;
@@ -42,6 +43,7 @@ namespace Validation.Common.Job.Tests.Storage
             _stream = new MemoryStream(Encoding.ASCII.GetBytes("Hello, world."));
 
             _fileStorageService = new Mock<ICoreFileStorageService>(MockBehavior.Strict);
+            _sasService = new Mock<ISharedAccessSignatureService>();
 
             var loggerFactory = new LoggerFactory().AddXunit(output);
             _logger = loggerFactory.CreateLogger<ProcessorPackageFileService>();
@@ -49,6 +51,7 @@ namespace Validation.Common.Job.Tests.Storage
             _target = new ProcessorPackageFileService(
                 _fileStorageService.Object,
                 typeof(TestProcessor),
+                _sasService.Object,
                 _logger);
         }
 
@@ -70,11 +73,40 @@ namespace Validation.Common.Job.Tests.Storage
             await _target.GetReadAndDeleteUriAsync(
                 _packageId,
                 _packageNormalizedVersion,
-                _validationId);
+                _validationId,
+                sasDefinition: null);
             var after = DateTimeOffset.UtcNow;
 
             _fileStorageService.Verify();
             Assert.InRange(endOfAccess, before.Add(_accessDuration), after.Add(_accessDuration));
+        }
+
+        [Fact]
+        public async Task GetReadAndDeleteUriAsyncWithSasDefinition()
+        {
+            var sasDefinition = "sasDefinition";
+            var sasToken = "?sasToken";
+            var uriWithSas = new Uri(_packageUri, sasToken);
+            _fileStorageService
+                .Setup(x => x.GetFileUriAsync(
+                    _folderName,
+                    _fileName))
+                .ReturnsAsync(_packageUri)
+                .Verifiable();
+            _sasService
+                .Setup(x => x.GetFromManagedStorageAccountAsync(sasDefinition))
+                .ReturnsAsync(sasToken)
+                .Verifiable();
+
+            var result = await _target.GetReadAndDeleteUriAsync(
+                _packageId,
+                _packageNormalizedVersion,
+                _validationId,
+                sasDefinition);
+
+            _fileStorageService.Verify();
+            _sasService.Verify();
+            Assert.Equal(uriWithSas, result);
         }
 
         [Fact]

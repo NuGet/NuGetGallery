@@ -9,7 +9,7 @@ namespace NuGet.Jobs.Validation.Storage
 {
     public interface IProcessorPackageFileService
     {
-        Task<Uri> GetReadAndDeleteUriAsync(string packageId, string packageNormalizedVersion, Guid validationId);
+        Task<Uri> GetReadAndDeleteUriAsync(string packageId, string packageNormalizedVersion, Guid validationId, string sasDefinition);
         Task SaveAsync(string packageId, string packageNormalizedVersion, Guid validationId, Stream packageFile);
     }
 }

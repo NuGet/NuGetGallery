@@ -67,9 +67,9 @@ namespace NuGet.Jobs
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             var configurationFilename = JobConfigurationManager.GetArgument(jobArgsDictionary, ConfigurationArgument);
-            var configurationRoot = GetConfigurationRoot(configurationFilename, out var secretInjector);
+            var configurationRoot = GetConfigurationRoot(configurationFilename, out var secretInjector, out var secretReader);
 
-            _serviceProvider = GetServiceProvider(configurationRoot, secretInjector);
+            _serviceProvider = GetServiceProvider(configurationRoot, secretInjector, secretReader);
 
             if (!_validateOnly)
             {
@@ -77,7 +77,7 @@ namespace NuGet.Jobs
             }
         }
 
-        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ISecretInjector secretInjector)
+        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ISecretInjector secretInjector, out ISecretReader secretReader)
         {
             Logger.LogInformation(
                 "Using the {ConfigurationFilename} configuration file",
@@ -92,11 +92,13 @@ namespace NuGet.Jobs
             if (_validateOnly)
             {
                 secretInjector = null;
+                secretReader = null;
                 return uninjectedConfiguration;
             }
 
             var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
             var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
+            secretReader = cachingSecretReaderFactory.CreateSecretReader();
             secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
 
             builder = new ConfigurationBuilder()
@@ -106,7 +108,7 @@ namespace NuGet.Jobs
             return builder.Build();
         }
 
-        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot, ISecretInjector secretInjector)
+        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot, ISecretInjector secretInjector, ISecretReader secretReader)
         {
             // Configure as much as possible with Microsoft.Extensions.DependencyInjection.
             var services = new ServiceCollection();
@@ -114,6 +116,7 @@ namespace NuGet.Jobs
             if (!_validateOnly)
             {
                 services.AddSingleton(secretInjector);
+                services.AddSingleton(secretReader);
             }
 
             services.AddSingleton(ApplicationInsightsConfiguration.TelemetryConfiguration);

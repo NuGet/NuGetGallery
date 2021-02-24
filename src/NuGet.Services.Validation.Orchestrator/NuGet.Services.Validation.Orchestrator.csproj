@@ -48,6 +48,7 @@
     <Compile Include="BaseNuGetValidator.cs" />
     <Compile Include="Configuration\ConfigurationValidator.cs" />
     <Compile Include="Configuration\FlatContainerConfiguration.cs" />
+    <Compile Include="Configuration\SasDefinitionConfiguration.cs" />
     <Compile Include="Configuration\TopologicalSort.cs" />
     <Compile Include="ContainerBuilderExtensions.cs" />
     <Compile Include="Configuration\CoreMessageServiceConfiguration.cs" />
