@@ -8,14 +8,18 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Client;
+using NuGet.ContentModel;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.RuntimeModel;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using PackageType = NuGet.Packaging.Core.PackageType;
 
 namespace NuGetGallery
 {
@@ -698,9 +702,95 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package)
+        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package) =>
+            GetSupportedFrameworks(package.NuspecReader, package.GetFiles().ToList());
+
+        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles)
         {
-            return package.GetSupportedFrameworks();
+            var supportedTFMs = Enumerable.Empty<NuGetFramework>();
+            if (packageFiles != null && packageFiles.Any() && nuspecReader != null)
+            {
+                try
+                {
+                    var items = new ContentItemCollection();
+                    items.Load(packageFiles);
+                    var runtimeGraph = new RuntimeGraph();
+                    var conventions = new ManagedCodeConventions(runtimeGraph);
+
+                    var groups = Enumerable.Empty<ContentItemGroup>();
+                    var packageTypes = nuspecReader.GetPackageTypes();
+                    if (packageTypes.Count == 1 && (packageTypes[0] == PackageType.DotnetTool || packageTypes[0] == PackageType.DotnetCliTool))
+                    {
+                        // Only a package that is a tool package (and nothing else) will be matched against tools pattern set
+                        groups = items.FindItemGroups(conventions.Patterns.ToolsAssemblies);
+                    }
+                    else
+                    {
+                        var patterns = new[]
+                        {
+                            conventions.Patterns.CompileRefAssemblies,
+                            conventions.Patterns.CompileLibAssemblies,
+                            conventions.Patterns.RuntimeAssemblies,
+                            conventions.Patterns.ContentFiles,
+                            conventions.Patterns.ResourceAssemblies,
+                        };
+
+                        var msbuildPatterns = new[]
+                        {
+                            conventions.Patterns.MSBuildFiles,
+                            conventions.Patterns.MSBuildMultiTargetingFiles,
+                        };
+
+                        var standardGroups = patterns
+                            .SelectMany(p => items.FindItemGroups(p));
+
+                        // Filter out MSBuild assets that don't match the package ID.
+                        var packageId = nuspecReader.GetId();
+                        var msbuildGroups = msbuildPatterns
+                            .SelectMany(p => items.FindItemGroups(p))
+                            .Where(g => HasBuildItemsForPackageId(g.Items, packageId));
+
+                        groups = standardGroups.Concat(msbuildGroups);
+                    }
+
+                    supportedTFMs = groups
+                        .SelectMany(p => p.Properties)
+                        .Where(pair => pair.Key == ManagedCodeConventions.PropertyNames.TargetFrameworkMoniker)
+                        .Select(pair => pair.Value)
+                        .Cast<NuGetFramework>()
+                        .Distinct();
+                }
+                catch (Exception)
+                {
+                    // fail silently without providing a value
+                }
+            }
+
+            return supportedTFMs;
+        }
+
+        private static bool HasBuildItemsForPackageId(IEnumerable<ContentItem> items, string packageId)
+        {
+            foreach (var item in items)
+            {
+                var fileName = Path.GetFileName(item.Path);
+                if (fileName == PackagingCoreConstants.EmptyFolder)
+                {
+                    return true;
+                }
+
+                if ($"{packageId}.props".Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if ($"{packageId}.targets".Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static EmbeddedLicenseFileType GetEmbeddedLicenseType(PackageMetadata packageMetadata)
