@@ -103,6 +103,12 @@
                     "For F# scripts that support <a href=\"{0}\">#r syntax</a>, copy this into the source code to reference the package.",
                     "https://docs.microsoft.com/en-us/dotnet/fsharp/tools/fsharp-interactive/#referencing-packages-in-f-interactive")
             },
+
+            new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/")
+            {
+                Id = "cake",
+                InstallPackageCommand = Model.GetCakeInstallPackageCommand()
+            },
         };
     }
 }
