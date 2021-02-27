@@ -4,6 +4,48 @@ namespace NuGetGallery.Extensions
 {
     public class CakeBuildManagerExtensionsFacts
     {
+        public class GivenADotNetTool
+        {
+            [Fact]
+            public void ReturnsAToolDotNetDirective()
+            {
+                // Arrange
+                var model = new DisplayPackageViewModel
+                {
+                    IsDotnetToolPackageType = true,
+                    Id = "dotnet-reportgenerator-globaltool",
+                    Version = "4.8.6",
+                    Tags = new string[0],
+                };
+
+                // act
+                var actual = model.GetCakeInstallPackageCommand();
+
+                // assert
+                Assert.Equal("#tool dotnet:?package=dotnet-reportgenerator-globaltool&version=4.8.6", actual);
+            }
+
+            [Fact]
+            public void ReturnsAToolDotNetDirectiveWithPrerelease()
+            {
+                // Arrange
+                var model = new DisplayPackageViewModel
+                {
+                    IsDotnetToolPackageType = true,
+                    Id = "dotnet-reportgenerator-globaltool",
+                    Version = "4.8.6",
+                    Tags = new string[0],
+                    Prerelease = true,
+                };
+
+                // act
+                var actual = model.GetCakeInstallPackageCommand();
+
+                // assert
+                Assert.Equal("#tool dotnet:?package=dotnet-reportgenerator-globaltool&version=4.8.6&prerelease", actual);
+            }
+        }
+
         public class GivenACakeAddin
         {
             [Fact]
