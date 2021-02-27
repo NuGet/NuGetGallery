@@ -8,5 +8,11 @@ namespace NuGet.Services.ServiceBus
     public interface ITopicClient
     {
         Task SendAsync(IBrokeredMessage message);
+
+        void Send(IBrokeredMessage message);
+
+        Task CloseAsync();
+
+        void Close();
     }
 }

@@ -39,6 +39,28 @@ namespace NuGet.Services.ServiceBus
 
         public Task SendAsync(IBrokeredMessage message)
         {
+            var innerMessage = GetBrokeredMessage(message);
+            return _client.SendAsync(innerMessage);
+        }
+
+        public void Send(IBrokeredMessage message)
+        {
+            var innerMessage = GetBrokeredMessage(message);
+            _client.Send(innerMessage);
+        }
+
+        public void Close()
+        {
+            _client.Close();
+        }
+
+        public async Task CloseAsync()
+        {
+            await _client.CloseAsync();
+        }
+
+        private BrokeredMessage GetBrokeredMessage(IBrokeredMessage message)
+        {
             // For now, assume the only implementation is the wrapper type. We could clone over all properties
             // that the interface supports, but this is not necessary right now.
             var wrapper = message as BrokeredMessageWrapper;
@@ -54,12 +76,7 @@ namespace NuGet.Services.ServiceBus
                     nameof(message));
             }
 
-            return _client.SendAsync(innerMessage);
-        }
-
-        public Task Close()
-        {
-            return _client.CloseAsync();
+            return innerMessage;
         }
     }
 }
