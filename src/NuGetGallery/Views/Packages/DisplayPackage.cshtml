@@ -28,13 +28,13 @@
     {
         packageManagers = new PackageManagerViewModel[]
         {
-            new PackageManagerViewModel(".NET CLI")
+            new PackageManagerViewModel(".NET CLI (Global)")
             {
                 Id = "dotnet-cli",
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
-                AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET Core Global Tool</a> you can call from the shell/command line.",
+                AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET tool</a> you can call from the shell/command line.",
             },
 
             new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/support/nuget")
