@@ -17,7 +17,7 @@ using VerifyGitHubVulnerabilities.Configuration;
 
 namespace VerifyGitHubVulnerabilities.Verify
 {
-    public class PackageVulnerabilitiesVerifier : IPackageVulnerabilitiesManagementService
+    public class PackageVulnerabilitiesVerifier : IPackageVulnerabilitiesVerifier
     {
         private readonly VerifyGitHubVulnerabilitiesConfiguration _configuration;
         private readonly IEntitiesContext _entitiesContext;
@@ -203,7 +203,6 @@ namespace VerifyGitHubVulnerabilities.Verify
         {
             // Fetch metadata from registration blobs for verification--a collection of all versions of the package Id
             var metadata = await GetPackageMetadataAsync(packageId);
-
             foreach (var versionMetadata in metadata)
             {
                 var matchingVulnerabilities = Enumerable.Empty<PackageVulnerabilityMetadata>();
