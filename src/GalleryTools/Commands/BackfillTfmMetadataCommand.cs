@@ -10,15 +10,13 @@ using NuGetGallery;
 
 namespace GalleryTools.Commands
 {
-    public sealed class BackfillTfmMetadataCommand : BackfillCommand<string>
+    public sealed class BackfillTfmMetadataCommand : BackfillCommand<List<string>>
     {
         protected override string MetadataFileName => "tfmMetadata.txt";
         
-        protected override MetadataSourceType SourceType => MetadataSourceType.Entities;
+        protected override MetadataSourceType SourceType => MetadataSourceType.Nupkg;
         
         protected override string QueryIncludes => $"{nameof(Package.SupportedFrameworks)}";
-
-        protected override int LimitTo => 100000;
 
         protected override bool UpdateNeedsContext => true;
 
@@ -27,9 +25,9 @@ namespace GalleryTools.Commands
             Configure<BackfillTfmMetadataCommand>(config);
         }
 
-        protected override string ReadMetadata(IList<string> files, NuspecReader nuspecReader)
+        protected override List<string> ReadMetadata(IList<string> files, NuspecReader nuspecReader)
         {
-            var supportedTFMs = string.Empty;
+            var supportedTFMs = new List<string>();
             if (_packageService == null)
             {
                 return supportedTFMs;
@@ -38,30 +36,28 @@ namespace GalleryTools.Commands
             var supportedFrameworks = _packageService.GetSupportedFrameworks(nuspecReader, files);
             foreach (var tfm in supportedFrameworks)
             {
-                supportedTFMs += supportedTFMs == string.Empty
-                    ? tfm.GetShortFolderName()
-                    : $";{tfm.GetShortFolderName()}";
+                supportedTFMs.Add(tfm.GetShortFolderName());
             }
 
             return supportedTFMs;
         }
 
-        protected override bool ShouldWriteMetadata(string metadata) => true;
+        protected override bool ShouldWriteMetadata(List<string> metadata) => true;
 
         protected override void ConfigureClassMap(PackageMetadataClassMap map)
         {
             map.Map(x => x.Metadata).Index(3);
         }
 
-        protected override void UpdatePackage(EntitiesContext context, Package package, string metadata)
+        protected override void UpdatePackage(EntitiesContext context, Package package, List<string> metadata)
         {
             var existingTFMs = package.SupportedFrameworks == null
                 ? Enumerable.Empty<string>()
                 : package.SupportedFrameworks.Select(f => f.FrameworkName.GetShortFolderName()).OrderBy(f => f);
 
-            var newTFMs = string.IsNullOrEmpty(metadata)
+            var newTFMs = metadata == null || metadata.Count == 0
                 ? Enumerable.Empty<string>() 
-                : metadata.Split(';').OrderBy(f => f);
+                : metadata.OrderBy(f => f);
 
             if (Enumerable.SequenceEqual(existingTFMs, newTFMs))
             {
@@ -69,10 +65,13 @@ namespace GalleryTools.Commands
             }
 
             // clean out the old (which will be left unattached in table otherwise) before adding new
-            foreach (var supportedFramework in package.SupportedFrameworks.ToList())
+            if (package.SupportedFrameworks != null)
             {
-                package.SupportedFrameworks.Remove(supportedFramework);
-                context.PackageFrameworks.Remove(supportedFramework);
+                foreach (var supportedFramework in package.SupportedFrameworks.ToList())
+                {
+                    package.SupportedFrameworks.Remove(supportedFramework);
+                    context.PackageFrameworks.Remove(supportedFramework);
+                }
             }
 
             package.SupportedFrameworks = newTFMs.Select(f => new PackageFramework {Package = package, TargetFramework = f}).ToList();

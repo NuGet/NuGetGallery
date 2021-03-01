@@ -40,7 +40,7 @@ namespace GalleryTools.Commands
 
         protected virtual int LimitTo => 0;
 
-        protected virtual MetadataSourceType SourceType => MetadataSourceType.Nuspec;
+        protected virtual MetadataSourceType SourceType => MetadataSourceType.NuspecOnly;
 
         protected virtual bool UpdateNeedsContext => false;
 
@@ -158,15 +158,15 @@ namespace GalleryTools.Commands
 
                                 var nuspecReader = new NuspecReader(document);
 
-                                if (SourceType == MetadataSourceType.Nuspec)
+                                if (SourceType == MetadataSourceType.NuspecOnly)
                                 {
                                     metadata = ReadMetadata(nuspecReader);
                                 }
-                                else if (SourceType == MetadataSourceType.Entities)
+                                else if (SourceType == MetadataSourceType.Nupkg)
                                 {
                                     var nupkgUri =
                                         $"{flatContainerUri}/{idLowered}/{versionLowered}/{idLowered}.{versionLowered}.nupkg";
-                                    metadata = await FetchMetadataAsync(http, nupkgUri, nuspecReader);
+                                    metadata = await FetchMetadataAsync(http, nupkgUri, nuspecReader, id, version, logger);
                                 }
                             }
 
@@ -313,7 +313,8 @@ namespace GalleryTools.Commands
             return result.First().AbsoluteUri.TrimEnd('/');
         }
 
-        private async Task<TMetadata> FetchMetadataAsync(HttpClient httpClient, string nupkgUri, NuspecReader nuspecReader)
+        private async Task<TMetadata> FetchMetadataAsync(
+            HttpClient httpClient, string nupkgUri, NuspecReader nuspecReader, string id, string version, Logger logger)
         {
             var httpZipProvider = new HttpZipProvider(httpClient);
             httpZipProvider.RequireAcceptRanges = false;
@@ -330,9 +331,10 @@ namespace GalleryTools.Commands
 
                 return ReadMetadata(files, nuspecReader);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return default; // fail silently without a value
+                await logger.LogPackageError(id, version, e);
+                return default;
             }
         }
 
@@ -534,10 +536,20 @@ namespace GalleryTools.Commands
             }
         }
 
+        /// <summary>
+        /// This enum allows our logic to respond to a package's need for only a nupsec to determine metadata, or whether
+        /// it needs access to the .nupkg for analysis of the package
+        /// </summary>
         public enum MetadataSourceType
         {
-            Nuspec,
-            Entities
+            /// <summary>
+            /// Just the nuspec will suffice for metadata extraction
+            /// </summary>
+            NuspecOnly,
+            /// <summary>
+            /// We need to dig deeper into the bupkg for the metadata
+            /// </summary>
+            Nupkg
         }
     }
 }
