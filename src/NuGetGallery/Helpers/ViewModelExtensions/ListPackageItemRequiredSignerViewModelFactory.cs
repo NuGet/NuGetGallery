@@ -13,11 +13,16 @@ namespace NuGetGallery
     {
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly ISecurityPolicyService _securityPolicyService;
+        private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
 
-        public ListPackageItemRequiredSignerViewModelFactory(ISecurityPolicyService securityPolicyService, IIconUrlProvider iconUrlProvider)
+        public ListPackageItemRequiredSignerViewModelFactory(
+            ISecurityPolicyService securityPolicyService, 
+            IIconUrlProvider iconUrlProvider,
+            IPackageVulnerabilitiesService packageVulnerabilitiesService)
         {
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
+            _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
         }
 
         // username must be an empty string because <select /> option values are based on username
@@ -124,6 +129,8 @@ namespace NuGetGallery
 
                 viewModel.CanEditRequiredSigner &= wasAADLoginOrMultiFactorAuthenticated;
             }
+
+            viewModel.IsVulnerable = _packageVulnerabilitiesService.PackageIsVulnerable(package);
 
             return viewModel;
         }

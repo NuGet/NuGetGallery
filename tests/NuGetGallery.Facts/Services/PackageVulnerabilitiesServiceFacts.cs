@@ -1,13 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -62,6 +58,23 @@ namespace NuGetGallery.Services
             Assert.Equal(_vulnerabilityCritical, vulnerabilitiesFor111[1]);
 
             Assert.Null(notVulnerableResult);
+        }
+
+        [Fact]
+        public void GetsVulnerableStatusOfPackage()
+        {
+            // Arrange
+            SetUp();
+            var context = GetFakeContext();
+            var target = Get<PackageVulnerabilitiesService>();
+
+            // Act
+            var shouldBeVulnerable = target.PackageIsVulnerable(_packageVulnerable100);
+            var shouldNotBeVulnerable = target.PackageIsVulnerable(_packageNotVulnerable);
+
+            // Assert
+            Assert.True(shouldBeVulnerable);
+            Assert.False(shouldNotBeVulnerable);
         }
 
         private void SetUp()
