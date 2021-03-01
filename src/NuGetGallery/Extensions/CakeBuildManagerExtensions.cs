@@ -17,17 +17,17 @@ namespace NuGetGallery
                 reference += "&prerelease";
             }
 
-            if (model.Tags.Contains("cake-addin", StringComparer.CurrentCultureIgnoreCase))
+            if (model.Tags.Contains("cake-addin", StringComparer.OrdinalIgnoreCase))
             {
                 return $"#addin {reference}";
             }
 
-            if (model.Tags.Contains("cake-module", StringComparer.CurrentCultureIgnoreCase))
+            if (model.Tags.Contains("cake-module", StringComparer.OrdinalIgnoreCase))
             {
                 return $"#module {reference}";
             }
 
-            if (model.Tags.Contains("cake-recipe", StringComparer.CurrentCultureIgnoreCase))
+            if (model.Tags.Contains("cake-recipe", StringComparer.OrdinalIgnoreCase))
             {
                 return $"#load {reference}";
             }
