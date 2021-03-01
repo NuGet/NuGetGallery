@@ -7,17 +7,11 @@ namespace NuGetGallery
     {
         public static string GetCakeInstallPackageCommand(this DisplayPackageViewModel model)
         {
-            var scheme = model.IsDotnetToolPackageType ? "dotnet" : "nuget";
-            var reference = $"{scheme}:?package={model.Id}&version={model.Version}";
+            var reference = $"nuget:?package={model.Id}&version={model.Version}";
 
             if (model.Prerelease)
             {
                 reference += "&prerelease";
-            }
-
-            if (model.IsDotnetToolPackageType)
-            {
-                return $"#tool {reference}";
             }
 
             if (model.Tags.Contains("cake-addin", StringComparer.CurrentCultureIgnoreCase))
@@ -43,7 +37,6 @@ namespace NuGetGallery
                 $"// Install {model.Id} as a Cake Tool",
                 $"#tool {reference}",
             });
-
         }
     }
 }
