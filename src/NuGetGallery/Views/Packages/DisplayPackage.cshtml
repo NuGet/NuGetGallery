@@ -163,7 +163,7 @@
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
         <div>
             <div class="install-script-row">
-                <pre class="install-script" id="@packageManager.Id-text">@packageManager.InstallPackageCommand</pre>
+                <div class="install-script" id="@packageManager.Id-text">@packageManager.InstallPackageCommand</div>
                 <div class="copy-button">
                     <!--In order to statisfy the requirement to announce button status both on NVDA/Narrator, other screen reader like NVDA will
                         announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover 
