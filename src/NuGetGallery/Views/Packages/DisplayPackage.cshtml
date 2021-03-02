@@ -106,7 +106,7 @@
 
             new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/support/nuget")
             {
-                Id = "cake",
+                Id = Model.IsCakeExtension() ? "cake-extension" : "cake",
                 InstallPackageCommand = Model.GetCakeInstallPackageCommand()
             },
         };

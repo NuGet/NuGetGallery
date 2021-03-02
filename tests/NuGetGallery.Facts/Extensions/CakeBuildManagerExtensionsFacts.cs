@@ -9,6 +9,43 @@ namespace NuGetGallery.Extensions
 {
     public class CakeBuildManagerExtensionsFacts
     {
+        public class TheMethodIsCakeExtension
+        {
+            public class GivenAPackageWithKnownCakeTags
+            {
+                [Theory]
+                [ClassData(typeof(PackageTagsKnownToBeCakeExtensions))]
+                public void ReturnsFalse(string[] tags)
+                {
+                    var model = new DisplayPackageViewModel
+                    {
+                        Tags = tags,
+                    };
+
+                    var actual = model.IsCakeExtension();
+
+                    Assert.True(actual);
+                }
+            }
+
+            public class GivenAPackageWithoutAnyKnownCakeTags
+            {
+                [Theory]
+                [ClassData(typeof(PackageTagsNotKnownToBeCakeExtensions))]
+                public void ReturnsFalse(string[] tags)
+                {
+                    var model = new DisplayPackageViewModel
+                    {
+                        Tags = tags,
+                    };
+
+                    var actual = model.IsCakeExtension();
+
+                    Assert.False(actual);
+                }
+            }
+        }
+
         public class TheMethodGetCakeInstallPackageCommand
         {
             public class GivenAPackageWithTheCakeAddinTag
@@ -150,6 +187,18 @@ namespace NuGetGallery.Extensions
                     Assert.Contains("#tool nuget:?package=Polly&version=1.0.0&prerelease", actual);
                 }
             }
+        }
+
+        public class PackageTagsKnownToBeCakeExtensions : IEnumerable<object[]>
+        {
+            public IEnumerator<object[]> GetEnumerator()
+            {
+                yield return new object[] { new[] { "cake-addin" } };
+                yield return new object[] { new[] { "cake-module" } };
+                yield return new object[] { new[] { "cake-recipe" } };
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         public class PackageTagsNotKnownToBeCakeExtensions : IEnumerable<object[]>
