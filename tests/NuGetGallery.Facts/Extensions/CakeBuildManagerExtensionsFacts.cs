@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace NuGetGallery.Extensions
@@ -14,8 +14,8 @@ namespace NuGetGallery.Extensions
             public class GivenAPackageWithKnownCakeTags
             {
                 [Theory]
-                [ClassData(typeof(PackageTagsKnownToBeCakeExtensions))]
-                public void ReturnsFalse(string[] tags)
+                [MemberData(nameof(PackageTagsKnownToBeCakeExtensions), MemberType = typeof(CakeBuildManagerExtensionsFacts))]
+                public void ReturnsTrue(string[] tags)
                 {
                     var model = new DisplayPackageViewModel
                     {
@@ -31,7 +31,7 @@ namespace NuGetGallery.Extensions
             public class GivenAPackageWithoutAnyKnownCakeTags
             {
                 [Theory]
-                [ClassData(typeof(PackageTagsNotKnownToBeCakeExtensions))]
+                [MemberData(nameof(PackageTagsNotKnownToBeCakeExtensions), MemberType = typeof(CakeBuildManagerExtensionsFacts))]
                 public void ReturnsFalse(string[] tags)
                 {
                     var model = new DisplayPackageViewModel
@@ -153,7 +153,7 @@ namespace NuGetGallery.Extensions
             public class GivenAPackageWithoutAnyKnownCakeTags
             {
                 [Theory]
-                [ClassData(typeof(PackageTagsNotKnownToBeCakeExtensions))]
+                [MemberData(nameof(PackageTagsNotKnownToBeCakeExtensions), MemberType = typeof(CakeBuildManagerExtensionsFacts))]
                 public void ReturnsMultipleDirectives(string[] tags)
                 {
                     var model = new DisplayPackageViewModel
@@ -170,7 +170,7 @@ namespace NuGetGallery.Extensions
                 }
 
                 [Theory]
-                [ClassData(typeof(PackageTagsNotKnownToBeCakeExtensions))]
+                [MemberData(nameof(PackageTagsNotKnownToBeCakeExtensions), MemberType = typeof(CakeBuildManagerExtensionsFacts))]
                 public void ReturnsMultipleDirectivesWithPrerelease(string[] tags)
                 {
                     var model = new DisplayPackageViewModel
@@ -189,28 +189,19 @@ namespace NuGetGallery.Extensions
             }
         }
 
-        public class PackageTagsKnownToBeCakeExtensions : IEnumerable<object[]>
+        public static IEnumerable<object[]> PackageTagsKnownToBeCakeExtensions => new[]
         {
-            public IEnumerator<object[]> GetEnumerator()
-            {
-                yield return new object[] { new[] { "cake-addin" } };
-                yield return new object[] { new[] { "cake-module" } };
-                yield return new object[] { new[] { "cake-recipe" } };
-            }
+            new[] { "cake-addin" },
+            new[] { "cake-module" },
+            new[] { "cake-recipe" },
+        }.Select(tags => new object[] { tags });
 
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        }
-
-        public class PackageTagsNotKnownToBeCakeExtensions : IEnumerable<object[]>
+        public static IEnumerable<object[]> PackageTagsNotKnownToBeCakeExtensions => new[]
         {
-            public IEnumerator<object[]> GetEnumerator()
-            {
-                yield return new object[] { null };
-                yield return new object[] { new string[0] };
-                yield return new object[] { new[] { "json" } };
-            }
-
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        }
+            null,
+            new string[0],
+            new string[] { null },
+            new[] { "json" },
+        }.Select(tags => new object[] { tags });
     }
 }
