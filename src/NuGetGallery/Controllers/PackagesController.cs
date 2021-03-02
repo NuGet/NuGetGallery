@@ -658,7 +658,7 @@ namespace NuGetGallery
                 string licenseFileContents,
                 IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments,
                 EmbeddedIconInformation embeddedIconInformation,
-                string readmeFileContents)
+                RenderedMarkdownResult readmeFileContents)
             {
                 PackageMetadata = packageMetadata;
                 Warnings = warnings;
@@ -674,7 +674,7 @@ namespace NuGetGallery
             public string LicenseFileContents { get; }
             public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; }
             public EmbeddedIconInformation EmbeddedIconInformation { get; }
-            public string ReadmeFileContents { get; }
+            public RenderedMarkdownResult ReadmeFileContents { get; }
         }
 
         private class EmbeddedIconInformation
@@ -698,7 +698,7 @@ namespace NuGetGallery
             IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
             PackageMetadata packageMetadata = null;
             EmbeddedIconInformation embeddedIconInformation = null;
-            string readmeFileContents = null;
+            RenderedMarkdownResult readmeFileContents = null;
 
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -815,7 +815,7 @@ namespace NuGetGallery
             return new EmbeddedIconInformation(imageContentType, imageData);
         }
 
-        private async Task<string> GetReadmeFileContentsOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
+        private async Task<RenderedMarkdownResult> GetReadmeFileContentsOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
         {
             if (string.IsNullOrWhiteSpace(packageMetadata.ReadmeFile))
             {
@@ -824,7 +824,7 @@ namespace NuGetGallery
 
             var readmeFilename = FileNameHelper.GetZipEntryPath(packageMetadata.ReadmeFile);
             var readmeResult = await _readMeService.GetReadMeHtmlAsync(readmeFilename, packageArchiveReader, Encoding.UTF8);
-            return readmeResult?.Content;
+            return readmeResult;
         }
 
         private static async Task<byte[]> ReadPackageFile(PackageArchiveReader packageArchiveReader, string filename)

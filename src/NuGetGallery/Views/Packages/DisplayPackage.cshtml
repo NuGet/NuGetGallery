@@ -471,13 +471,13 @@
                     <div id="readme-container" class="collapse in">
                         @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
                         {
-                    @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
-                }
+                            @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
+                        }
 
                         @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
                         {
-                    @ViewHelpers.AlertWarning(@<text>This documentation contains some images from unknown sources. For security reason, we only display images from trusted sources. Read more about <a href='https://aka.ms/nuget-org-readme'>package readme on NuGet.org.</a></text>);
-                }
+                            @ViewHelpers.AlertWarning(@<text>This documentation contains some images from unknown sources. For security reason, we only display images from trusted sources. Read more about <a href='https://aka.ms/nuget-org-readme'>package readme on NuGet.org.</a></text>);
+                        }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)
                         </div>

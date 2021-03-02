@@ -354,7 +354,7 @@ var BindReadMeDataManager = (function () {
 
         function displayReadMeWarning(errorMsg) {
             $("#readme-warnings").removeClass("hidden");
-            $("#readme-warning-content").text(errorMsg);
+            $("#readme-warning-content").html(errorMsg);
         }
 
         function displayReadMeError(errorMsg) {

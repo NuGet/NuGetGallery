@@ -257,7 +257,10 @@
             <!-- ko if: $data.ReadmeFileContents -->
             <div class="verify-package-field readme">
                 <label class="verify-package-field-heading">Readme File</label>
-                <div class="readme-container" data-bind="html: $data.ReadmeFileContents"></div>
+                <!-- ko if: $data.ReadmeFileContents.ImageSourceDisallowed -->
+                @ViewHelpers.AlertWarning(@<text>Readme file contains some images from unknown sources. For security reason, we only display images from trusted sources. Read more about <a href='https://aka.ms/nuget-org-readme'>package readme on NuGet.org.</a></text>)
+                <!-- /ko -->
+                <div class="readme-container" data-bind="html: $data.ReadmeFileContents.Content"></div>
             </div>
             <!-- /ko -->
             <!-- /ko -->
