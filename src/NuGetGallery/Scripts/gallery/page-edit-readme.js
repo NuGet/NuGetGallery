@@ -338,7 +338,7 @@ var BindReadMeDataManager = (function () {
             }
 
             if (response.ImageSourceDisallowed) {
-                displayReadMeWarning("Some images are not displayed as they are from unknown resources.");
+                displayReadMeWarning("Some images are not displayed as they are from unknown resources. Read more about <a href='https://aka.ms/nuget-org-readme'>package readme on NuGet.org.</a>");
             }
         }
 

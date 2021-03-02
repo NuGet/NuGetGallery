@@ -21,9 +21,7 @@ namespace NuGetGallery
             {
                 _featureFlagService = new Mock<IFeatureFlagService>();
                 _imageDomainValidator = new Mock<IImageDomainValidator>();
-                _markdownService = new MarkdownService(_featureFlagService.Object,
-                    _imageDomainValidator.Object);
-
+                _markdownService = new MarkdownService(_featureFlagService.Object, _imageDomainValidator.Object);
             }
 
             [Theory]
@@ -137,7 +135,6 @@ namespace NuGetGallery
 
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
                 _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(true);
-
                 _imageDomainValidator.Setup(x => x.TryPrepareImageUrlForRendering(imageUrl, out outUrl)).Returns(false);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);

@@ -5,6 +5,9 @@ namespace NuGetGallery.Services
 {
     public interface ITrustedImageDomains
     {
+        /// <summary>
+        /// Return true if input imageDomain is in trusted image allowlist, Otherwise, return false
+        /// </summary>
         bool IsImageDomainTrusted(string imageDomain);
     }
 }

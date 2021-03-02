@@ -252,7 +252,7 @@ namespace NuGetGallery
         bool IsDeletePackageApiEnabled(User user);
 
         /// <summary>
-        /// Whether displaying images in Markdown when sources from allowlist 
+        /// Whether the allowlist is enabled for checking the image sources
         /// </summary>
         bool IsImageAllowlistEnabled();
     }

@@ -26,6 +26,11 @@ namespace NuGetGallery
             Uri returnUri = null;
             readyUriString = null;
 
+            if (uriString == null)
+            {
+                throw new ArgumentNullException(nameof(uriString));
+            }
+
             if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
             {
                 if (uri.IsHttpProtocol())
