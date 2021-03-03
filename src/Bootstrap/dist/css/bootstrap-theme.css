@@ -1228,6 +1228,7 @@ img.reserved-indicator-icon {
   -ms-user-select: all;
   user-select: all;
   vertical-align: middle;
+  word-break: break-word;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
   height: 100%;
