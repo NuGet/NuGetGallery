@@ -20,6 +20,12 @@ namespace NuGetGallery.Services
                 _imageDomainValidator = new ImageDomainValidator(_contentObjectService.Object);
             }
 
+            [Fact]
+            public void ThrowsArgumentNullExceptionForNullUrl()
+            {
+                Assert.Throws<ArgumentNullException>(() => _imageDomainValidator.TryPrepareImageUrlForRendering(null, out string readyUriString));
+            }
+
             [Theory]
             [InlineData("https://api.bintray.com/example/image.svg", true, "https://api.bintray.com/example/image.svg", true)]
             [InlineData("http://api.bintray.com/example/image.svg", true, "https://api.bintray.com/example/image.svg", true)]

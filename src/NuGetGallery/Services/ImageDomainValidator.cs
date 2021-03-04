@@ -23,13 +23,13 @@ namespace NuGetGallery
 
         public bool TryPrepareImageUrlForRendering(string uriString, out string readyUriString)
         {
-            Uri returnUri = null;
-            readyUriString = null;
-
             if (uriString == null)
             {
                 throw new ArgumentNullException(nameof(uriString));
             }
+
+            Uri returnUri = null;
+            readyUriString = null;
 
             if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
             {
