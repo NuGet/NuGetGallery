@@ -334,7 +334,11 @@ var BindReadMeDataManager = (function () {
             clearReadMeError();
 
             if (response.ImagesRewritten) {
-                displayReadMeWarning("Some images were automatically rewritten to use secure links and might be broken.");
+                displayReadMeWarning("Some images were automatically rewritten to use secure links and may be broken.");
+            }
+
+            if (response.ImageSourceDisallowed) {
+                displayReadMeWarning("Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme'>trusted domains</a>.");
             }
         }
 
@@ -350,7 +354,7 @@ var BindReadMeDataManager = (function () {
 
         function displayReadMeWarning(errorMsg) {
             $("#readme-warnings").removeClass("hidden");
-            $("#readme-warning-content").text(errorMsg);
+            $("#readme-warning-content").html(errorMsg);
         }
 
         function displayReadMeError(errorMsg) {

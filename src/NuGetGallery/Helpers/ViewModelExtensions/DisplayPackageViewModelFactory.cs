@@ -133,6 +133,7 @@ namespace NuGetGallery
 
             viewModel.ReadMeHtml = readmeResult?.Content;
             viewModel.ReadMeImagesRewritten = readmeResult != null ? readmeResult.ImagesRewritten : false;
+            viewModel.ReadmeImageSourceDisallowed = readmeResult != null ? readmeResult.ImageSourceDisallowed : false;
             viewModel.HasEmbeddedIcon = package.HasEmbeddedIcon;
 
             return viewModel;

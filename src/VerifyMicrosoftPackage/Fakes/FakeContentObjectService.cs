@@ -28,6 +28,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public IQueryHintConfiguration QueryHintConfiguration => throw new NotImplementedException();
 
+        public ITrustedImageDomains TrustedImageDomains => throw new NotImplementedException();
+
         public Task Refresh()
         {
             throw new NotImplementedException();

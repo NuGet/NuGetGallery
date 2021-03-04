@@ -475,7 +475,7 @@
                             <a href="#" role="button" data-toggle="collapse" data-target="#readme-container"
                                aria-expanded="true" aria-controls="readme-container" id="show-readme-container">
                                 <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                                <span>Documentation</span>
+                                <span>Readme</span>
                             </a>
                         </h2>
                     </div>
@@ -483,6 +483,11 @@
                         @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
                         {
                             @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
+                        }
+
+                        @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                        {
+                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme'>trusted domains</a>.</text>);
                         }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)

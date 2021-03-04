@@ -25,10 +25,13 @@ namespace NuGetGallery
         private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
 
         private readonly IFeatureFlagService _features;
+        private readonly IImageDomainValidator _imageDomainValidator;
 
-        public MarkdownService(IFeatureFlagService features)
+        public MarkdownService(IFeatureFlagService features,
+            IImageDomainValidator imageDomainValidator)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
+            _imageDomainValidator = imageDomainValidator ?? throw new ArgumentNullException(nameof(imageDomainValidator));
         }
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString)
@@ -75,7 +78,8 @@ namespace NuGetGallery
             var output = new RenderedMarkdownResult()
             {
                 ImagesRewritten = false,
-                Content = ""
+                Content = "",
+                ImageSourceDisallowed = false
             };
 
             var readmeWithoutBom = markdownString.StartsWith("\ufeff") ? markdownString.Replace("\ufeff", "") : markdownString;
@@ -136,14 +140,30 @@ namespace NuGetGallery
 
                         else if (inline.Tag == InlineTag.Image)
                         {
-                            if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                            if (_features.IsImageAllowlistEnabled())
                             {
-                                inline.TargetUrl = string.Empty;
+                                if (!_imageDomainValidator.TryPrepareImageUrlForRendering(inline.TargetUrl, out string readyUriString))
+                                {
+                                    inline.TargetUrl = string.Empty;
+                                    output.ImageSourceDisallowed = true;
+                                }
+                                else
+                                {
+                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
+                                    inline.TargetUrl = readyUriString;
+                                }
                             }
                             else
                             {
-                                output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
-                                inline.TargetUrl = readyUriString;
+                                if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                                {
+                                    inline.TargetUrl = string.Empty;
+                                }
+                                else
+                                {
+                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
+                                    inline.TargetUrl = readyUriString;
+                                }
                             }
                         }
                     }
@@ -154,8 +174,8 @@ namespace NuGetGallery
             using (var htmlWriter = new StringWriter())
             {
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
+                output.Content = LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"noopener noreferrer nofollow\"").Trim();
 
-                output.Content = LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
                 return output;
             }
         }
@@ -165,7 +185,8 @@ namespace NuGetGallery
             var output = new RenderedMarkdownResult()
             {
                 ImagesRewritten = false,
-                Content = ""
+                Content = "",
+                ImageSourceDisallowed = false
             };
 
             var readmeWithoutBom = markdownString.TrimStart('\ufeff');
@@ -178,7 +199,7 @@ namespace NuGetGallery
                 .UseSoftlineBreakAsHardlineBreak()
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
-                .UseReferralLinks("nofollow")
+                .UseReferralLinks("noopener noreferrer nofollow")
                 .DisableHtml() //block inline html
                 .Build();
 
@@ -205,14 +226,30 @@ namespace NuGetGallery
                         {
                             if (linkInline.IsImage)
                             {
-                                if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                if (_features.IsImageAllowlistEnabled())
                                 {
-                                    linkInline.Url = string.Empty;
+                                    if (!_imageDomainValidator.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString))
+                                    {
+                                        linkInline.Url = string.Empty;
+                                        output.ImageSourceDisallowed = true;
+                                    }
+                                    else
+                                    {
+                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                        linkInline.Url = readyUriString;
+                                    }
                                 }
                                 else
                                 {
-                                    output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
-                                    linkInline.Url = readyUriString;
+                                    if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                    {
+                                        linkInline.Url = string.Empty;
+                                    }
+                                    else
+                                    {
+                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                        linkInline.Url = readyUriString;
+                                    }
                                 }
                             }
                             else

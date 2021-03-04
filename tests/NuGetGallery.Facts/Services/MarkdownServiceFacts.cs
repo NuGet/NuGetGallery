@@ -15,11 +15,13 @@ namespace NuGetGallery
         {
             private readonly MarkdownService _markdownService;
             private readonly Mock<IFeatureFlagService> _featureFlagService;
+            private readonly Mock<IImageDomainValidator> _imageDomainValidator;
 
             public GetReadMeHtmlMethod()
             {
                 _featureFlagService = new Mock<IFeatureFlagService>();
-                _markdownService = new MarkdownService(_featureFlagService.Object);
+                _imageDomainValidator = new Mock<IImageDomainValidator>();
+                _markdownService = new MarkdownService(_featureFlagService.Object, _imageDomainValidator.Object);
             }
 
             [Theory]
@@ -75,18 +77,18 @@ namespace NuGetGallery
             [InlineData("\ufeff# Heading with BOM", "<h2>Heading with BOM</h2>", false, false)]
             [InlineData("- List", "<ul>\n<li>List</li>\n</ul>", false, true)]
             [InlineData("- List", "<ul>\r\n<li>List</li>\r\n</ul>", false, false)]
-            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"nofollow\">text</a></p>", false, false)]
-            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false, false)]
+            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
+            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
+            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
+            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
             [InlineData("> <text>Blockquote</text>", "<blockquote>\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>", false, true)]
             [InlineData("> <text>Blockquote</text>", "<blockquote>\r\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\r\n</blockquote>", false, false)]
             [InlineData("> > <text>Blockquote</text>", "<blockquote>\n<blockquote>\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>\n</blockquote>", false, true)]
             [InlineData("> > <text>Blockquote</text>", "<blockquote>\r\n<p>&gt; &lt;text&gt;Blockquote&lt;/text&gt;</p>\r\n</blockquote>", false, false)]
-            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"nofollow\">text</a></p>", false, false)]
-            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"nofollow\">text</a></p>", false, false)]
+            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
+            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
+            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
+            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
             [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true, true)]
             [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", true, false)]
             [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", false, true)]
@@ -98,9 +100,45 @@ namespace NuGetGallery
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(false);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ConvertsMarkdownToHtmlWithImageDisaplyed(bool isMarkdigMdRenderingEnabled)
+            {
+                string imageUrl = "https://api.bintray.com/example/image.svg";
+                string originalMd = "![image](https://api.bintray.com/example/image.svg)";
+                string expectedHtml = "<p><img src=\"https://api.bintray.com/example/image.svg\" alt=\"image\" /></p>";
+
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(true);
+                _imageDomainValidator.Setup(x => x.TryPrepareImageUrlForRendering(imageUrl, out imageUrl)).Returns(true);
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.False(readMeResult.ImageSourceDisallowed);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ConvertsMarkdownToHtmlWithoutImageDisaplyed(bool isMarkdigMdRenderingEnabled)
+            {
+                string imageUrl = "https://nuget.org/example/image.svg";
+                string originalMd = "![image](https://nuget.org/example/image.svg)";
+                string expectedHtml = "<p><img src=\"\" alt=\"image\" /></p>";
+                string outUrl = null;
+
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
+                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(true);
+                _imageDomainValidator.Setup(x => x.TryPrepareImageUrlForRendering(imageUrl, out outUrl)).Returns(false);
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.True(readMeResult.ImageSourceDisallowed);
             }
 
             [Fact]
@@ -111,7 +149,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -125,7 +163,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -142,7 +180,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -154,7 +192,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -171,7 +209,7 @@ namespace NuGetGallery
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -187,7 +225,7 @@ Some text
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]
@@ -195,11 +233,11 @@ Some text
             {
                 var originalMd = "This is a http://www.google.com URL and https://www.google.com";
 
-                var expectedHtml = "<p>This is a <a href=\"http://www.google.com/\" rel=\"nofollow\">http://www.google.com</a> URL and <a href=\"https://www.google.com/\" rel=\"nofollow\">https://www.google.com</a></p>";
+                var expectedHtml = "<p>This is a <a href=\"http://www.google.com/\" rel=\"noopener noreferrer nofollow\">http://www.google.com</a> URL and <a href=\"https://www.google.com/\" rel=\"noopener noreferrer nofollow\">https://www.google.com</a></p>";
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.Equal(false, readMeResult.ImagesRewritten);
+                Assert.False(readMeResult.ImagesRewritten);
             }
         }
     }

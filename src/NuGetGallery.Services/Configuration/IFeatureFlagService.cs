@@ -245,5 +245,10 @@ namespace NuGetGallery
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);
+
+        /// <summary>
+        /// Whether the allowlist is enabled for checking the image sources
+        /// </summary>
+        bool IsImageAllowlistEnabled();
     }
 }

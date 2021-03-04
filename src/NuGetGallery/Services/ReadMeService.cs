@@ -92,7 +92,8 @@ namespace NuGetGallery
             var result = new RenderedMarkdownResult
             {
                 Content = readMeMd,
-                ImagesRewritten = false
+                ImagesRewritten = false,
+                ImageSourceDisallowed = false
             };
 
             return string.IsNullOrEmpty(readMeMd) ?
@@ -114,7 +115,8 @@ namespace NuGetGallery
             var result = new RenderedMarkdownResult
             {
                 Content = readmeMd,
-                ImagesRewritten = false
+                ImagesRewritten = false,
+                ImageSourceDisallowed = false
             };
 
             return string.IsNullOrEmpty(readmeMd) ?
