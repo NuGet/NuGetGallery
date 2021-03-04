@@ -35,7 +35,7 @@
                 InstallPackageCommand = string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET Core Global Tool</a> you can call from the shell/command line.",
-            }
+            },
         };
     }
     else if (Model.IsDotnetNewTemplatePackageType)
@@ -102,6 +102,12 @@
                 AlertMessage = string.Format(
                     "For F# scripts that support <a href=\"{0}\">#r syntax</a>, copy this into the source code to reference the package.",
                     "https://docs.microsoft.com/en-us/dotnet/fsharp/tools/fsharp-interactive/#referencing-packages-in-f-interactive")
+            },
+
+            new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/support/nuget")
+            {
+                Id = Model.IsCakeExtension() ? "cake-extension" : "cake",
+                InstallPackageCommand = Model.GetCakeInstallPackageCommand()
             },
         };
     }

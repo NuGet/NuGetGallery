@@ -79,6 +79,7 @@
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
+    <Compile Include="Extensions\CakeBuildManagerExtensionsFacts.cs" />
     <Compile Include="Helpers\ValidationHelperFacts.cs" />
     <Compile Include="Infrastructure\ODataCacheOutputAttributeFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQueryFacts.cs" />
