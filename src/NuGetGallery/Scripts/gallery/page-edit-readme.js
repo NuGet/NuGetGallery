@@ -338,7 +338,7 @@ var BindReadMeDataManager = (function () {
             }
 
             if (response.ImageSourceDisallowed) {
-                displayReadMeWarning("Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme'>trusted domains.</a>");
+                displayReadMeWarning("Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme'>trusted domains</a>.");
             }
         }
 
