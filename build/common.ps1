@@ -185,7 +185,8 @@ Function Sign-Binaries {
         [string]$Configuration = $DefaultConfiguration,
         [int]$BuildNumber = (Get-BuildNumber),
         [string]$MSBuildVersion = $DefaultMSBuildVersion,
-        [string[]]$ProjectsToSign = $null
+        [string[]]$ProjectsToSign = $null,
+        [switch]$BinLog
     )
 
     if ($ProjectsToSign -eq $null) {
@@ -197,7 +198,7 @@ Function Sign-Binaries {
     $projectsToSignProperty = $ProjectsToSign -join ';'
 
     $ProjectPath = Join-Path $PSScriptRoot "sign-binaries.proj"
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties "/p:ProjectsToSign=`"$projectsToSignProperty`""
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties "/p:ProjectsToSign=`"$projectsToSignProperty`"" -BinLog:$BinLog
 }
 
 Function Sign-Packages {
@@ -205,11 +206,12 @@ Function Sign-Packages {
     param(
         [string]$Configuration = $DefaultConfiguration,
         [int]$BuildNumber = (Get-BuildNumber),
-        [string]$MSBuildVersion = $DefaultMSBuildVersion
+        [string]$MSBuildVersion = $DefaultMSBuildVersion,
+        [switch]$BinLog
     )
 
     $ProjectPath = Join-Path $PSScriptRoot "sign-packages.proj"
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -BinLog:$BinLog
 }
 
 Function Build-Solution {
@@ -222,7 +224,8 @@ Function Build-Solution {
         [string]$TargetProfile,
         [string]$Target,
         [string]$MSBuildProperties,
-        [switch]$SkipRestore
+        [switch]$SkipRestore,
+        [switch]$BinLog
     )
     
     if (-not $SkipRestore) {
@@ -250,6 +253,10 @@ Function Build-Solution {
         $opts += $MSBuildProperties
     }
 
+    if ($BinLog) {
+        $opts += "/bl"
+    }
+
     $MSBuildExe = Get-MSBuildExe $MSBuildVersion
 
     Trace-Log "$MSBuildExe $opts"
@@ -271,7 +278,8 @@ Function Invoke-FxCop {
         [string]$FxCopProject,
         [string]$FxCopRuleSet,
         [string]$FxCopNoWarn,
-        [string]$FxCopOutputDirectory
+        [string]$FxCopOutputDirectory,
+        [switch]$BinLog
     )
     
     # Ensure cleanup from previous runs
@@ -340,7 +348,7 @@ Function Invoke-FxCop {
     # Invoke using the msbuild RunCodeAnalysis target
     $msBuildProps = "/p:CustomBeforeMicrosoftCSharpTargets=$codeAnalysisProps;SignType=none;CodeAnalysisVerbose=true"
     
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $SolutionPath -Target "Rebuild;RunCodeAnalysis" -MSBuildProperties $msBuildProps -SkipRestore:$SkipRestore
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $SolutionPath -Target "Rebuild;RunCodeAnalysis" -MSBuildProperties $msBuildProps -SkipRestore:$SkipRestore -BinLog:$BinLog
 }
 
 Function Invoke-Git {
@@ -747,7 +755,8 @@ Function New-WebAppPackage {
         [string]$BuildNumber,
         [string]$MSBuildVersion = $DefaultMSBuildVersion,
         [bool]$PackageAsSingleFile=$true,
-        [string]$SignType
+        [string]$SignType,
+        [switch]$BinLog
     )
     Trace-Log "Creating web app package from @""$TargetFilePath"""
     
@@ -769,6 +778,10 @@ Function New-WebAppPackage {
         New-Item $Artifacts -Type Directory
     }
     
+    if ($BinLog) {
+        $opts += "/bl"
+    }
+
     Trace-Log "$MsBuildExe $opts"
     & $MsBuildExe $opts
     if (-not $?) {
@@ -792,7 +805,8 @@ Function New-ProjectPackage {
         [switch]$Symbols,
         [string]$Branch,
         [switch]$IncludeReferencedProjects,
-        [switch]$Sign
+        [switch]$Sign,
+        [switch]$BinLog
     )
     Trace-Log "Creating package from @""$TargetFilePath"""
     
@@ -837,6 +851,10 @@ Function New-ProjectPackage {
         $opts += "/p:IncludeSymbols=True"
     }
     
+    if ($BinLog) {
+        $opts += "/bl"
+    }
+
     if (-not (Test-Path $Artifacts)) {
         New-Item $Artifacts -Type Directory
     }
