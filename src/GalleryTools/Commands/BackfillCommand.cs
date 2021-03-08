@@ -16,6 +16,7 @@ using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,9 +43,8 @@ namespace GalleryTools.Commands
 
         protected virtual MetadataSourceType SourceType => MetadataSourceType.NuspecOnly;
 
-        protected virtual bool UpdateNeedsContext => false;
+        protected virtual Expression<Func<Package, object>> QueryIncludes => null;
 
-        protected virtual string QueryIncludes => null;
 
         protected IPackageService _packageService;
 
@@ -183,7 +183,7 @@ namespace GalleryTools.Commands
 
                                 await csv.NextRecordAsync();
 
-                                logger.LogPackage(id, version, "Metadata saved.");
+                                logger.LogPackage(id, version, $"Metadata saved");
                             }
                         }
                         catch (Exception e)
@@ -250,15 +250,7 @@ namespace GalleryTools.Commands
 
                             if (package != null)
                             {
-                                if (UpdateNeedsContext)
-                                {
-                                    UpdatePackage(context, package, metadata.Metadata);
-                                }
-                                else
-                                {
-                                    UpdatePackage(package, metadata.Metadata);
-                                }
-
+                                UpdatePackage(package, metadata.Metadata, context);
                                 logger.LogPackage(metadata.Id, metadata.Version, "Metadata updated.");
 
                                 counter++;
@@ -299,15 +291,7 @@ namespace GalleryTools.Commands
 
         protected abstract void ConfigureClassMap(PackageMetadataClassMap map);
 
-        protected virtual void UpdatePackage(Package package, TMetadata metadata)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected virtual void UpdatePackage(EntitiesContext context, Package package, TMetadata metadata)
-        {
-            throw new NotImplementedException();
-        }
+        protected abstract void UpdatePackage(Package package, TMetadata metadata, EntitiesContext context);
 
         private static async Task<string> GetFlatContainerUri(Uri serviceDiscoveryUri)
         {
@@ -322,8 +306,6 @@ namespace GalleryTools.Commands
             HttpClient httpClient, string nupkgUri, NuspecReader nuspecReader, string id, string version, Logger logger)
         {
             var httpZipProvider = new HttpZipProvider(httpClient);
-            httpZipProvider.RequireAcceptRanges = false;
-            httpZipProvider.RequireContentRange = false;
 
             try
             {

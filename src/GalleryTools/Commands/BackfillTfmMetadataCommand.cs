@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
@@ -16,9 +18,7 @@ namespace GalleryTools.Commands
         
         protected override MetadataSourceType SourceType => MetadataSourceType.Nupkg;
         
-        protected override string QueryIncludes => $"{nameof(Package.SupportedFrameworks)}";
-
-        protected override bool UpdateNeedsContext => true;
+        protected override Expression<Func<Package, object>> QueryIncludes => p => p.SupportedFrameworks;
 
         public static void Configure(CommandLineApplication config)
         {
@@ -28,11 +28,6 @@ namespace GalleryTools.Commands
         protected override List<string> ReadMetadata(IList<string> files, NuspecReader nuspecReader)
         {
             var supportedTFMs = new List<string>();
-            if (_packageService == null)
-            {
-                return supportedTFMs;
-            }
-
             var supportedFrameworks = _packageService.GetSupportedFrameworks(nuspecReader, files);
             foreach (var tfm in supportedFrameworks)
             {
@@ -49,7 +44,7 @@ namespace GalleryTools.Commands
             map.Map(x => x.Metadata).Index(3);
         }
 
-        protected override void UpdatePackage(EntitiesContext context, Package package, List<string> metadata)
+        protected override void UpdatePackage(Package package, List<string> metadata, EntitiesContext context)
         {
             var existingTFMs = package.SupportedFrameworks == null
                 ? Enumerable.Empty<string>()
