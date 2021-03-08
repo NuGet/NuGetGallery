@@ -130,7 +130,7 @@ namespace NuGetGallery
                 viewModel.CanEditRequiredSigner &= wasAADLoginOrMultiFactorAuthenticated;
             }
 
-            viewModel.IsVulnerable = _packageVulnerabilitiesService.PackageIsVulnerable(package);
+            viewModel.IsVulnerable = _packageVulnerabilitiesService.IsPackageVulnerable(package);
 
             return viewModel;
         }

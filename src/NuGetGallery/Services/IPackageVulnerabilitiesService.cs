@@ -18,6 +18,6 @@ namespace NuGetGallery
         /// Returns true if the package has a vulnerability
         /// </summary>
         /// <param name="package">package to examine</param>
-        bool PackageIsVulnerable(Package package);
+        bool IsPackageVulnerable(Package package);
     }
 }

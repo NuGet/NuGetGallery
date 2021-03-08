@@ -3842,7 +3842,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(_testUser);
                 GetMock<IPackageVulnerabilitiesService>()
-                    .Setup(stub => stub.PackageIsVulnerable(It.IsAny<Package>()))
+                    .Setup(stub => stub.IsPackageVulnerable(It.IsAny<Package>()))
                     .Returns<Package>(package => (package?.Id ?? "") == "Company.ZebraPackage"); // this is the vulnerable package - true if this
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false, It.IsAny<bool>()))

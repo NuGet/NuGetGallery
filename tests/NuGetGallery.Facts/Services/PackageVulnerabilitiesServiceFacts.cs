@@ -69,8 +69,8 @@ namespace NuGetGallery.Services
             var target = Get<PackageVulnerabilitiesService>();
 
             // Act
-            var shouldBeVulnerable = target.PackageIsVulnerable(_packageVulnerable100);
-            var shouldNotBeVulnerable = target.PackageIsVulnerable(_packageNotVulnerable);
+            var shouldBeVulnerable = target.IsPackageVulnerable(_packageVulnerable100);
+            var shouldNotBeVulnerable = target.IsPackageVulnerable(_packageNotVulnerable);
 
             // Assert
             Assert.True(shouldBeVulnerable);
