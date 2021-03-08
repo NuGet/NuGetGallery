@@ -343,10 +343,6 @@ namespace NuGetGallery
                     yield return new object[] { "SymbolPackagePushDisconnect",
                         (TrackAction)(s => s.TrackSymbolPackagePushDisconnectEvent())
                     };
-
-                    yield return new object[] { "ManagePackagesQueryPerformance",
-                        (TrackAction)(s => s.TrackManagePackagesQueryPerformance(1, 1))
-                    };
                 }
             }
 

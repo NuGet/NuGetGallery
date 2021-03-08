@@ -91,7 +91,6 @@ namespace NuGetGallery
             public const string ABTestEvaluated = "ABTestEvaluated";
             public const string PackagePushDisconnect = "PackagePushDisconnect";
             public const string SymbolPackagePushDisconnect = "SymbolPackagePushDisconnect";
-            public const string ManagePackagesQueryPerformance = "ManagePackagesQueryPerformance";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -227,9 +226,6 @@ namespace NuGetGallery
         public const string IsActive = "IsActive";
         public const string TestBucket = "TestBucket";
         public const string TestPercentage = "TestPercentage";
-
-        // Manage package query performance properties
-        public const string PackageIdCount = "PackageIdCount";
 
         public TelemetryService(IDiagnosticsSource diagnosticsSource, ITelemetryClient telemetryClient)
         {
@@ -1094,14 +1090,6 @@ namespace NuGetGallery
                 properties.Add(IsAuthenticated, isAuthenticated.ToString());
                 properties.Add(TestBucket, testBucket.ToString());
                 properties.Add(TestPercentage, testPercentage.ToString());
-            });
-        }
-
-        public void TrackManagePackagesQueryPerformance(long milliseconds, int packageIdCount)
-        {
-            TrackMetric(Events.ManagePackagesQueryPerformance, milliseconds, properties =>
-            {
-                properties.Add(PackageIdCount, packageIdCount.ToString());
             });
         }
 

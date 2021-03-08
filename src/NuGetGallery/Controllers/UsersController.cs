@@ -514,8 +514,6 @@ namespace NuGetGallery
         [UIAuthorize]
         public virtual ActionResult Packages()
         {
-            var stopwatch = Stopwatch.StartNew();
-
             var currentUser = GetCurrentUser();
 
             var owners = new List<ListPackageOwnerViewModel> {
@@ -571,9 +569,6 @@ namespace NuGetGallery
                 IsPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled()
             };
 
-            stopwatch.Stop();
-            TelemetryService.TrackManagePackagesQueryPerformance(stopwatch.ElapsedMilliseconds, (listedPackages?.Count ?? 0) + unlistedPackages?.Count ?? 0);
-            
             return View(model);
         }
 
