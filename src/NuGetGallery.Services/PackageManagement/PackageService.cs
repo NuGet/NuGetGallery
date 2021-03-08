@@ -708,8 +708,8 @@ namespace NuGetGallery
         /// <summary>
         /// This method combines the logic used in restore operations to make a determination about the TFM supported by the package.
         /// We have curated a set of compatibility requirements for our needs in NuGet.org. The client logic can be found here:
-        /// https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Commands/RestoreCommand/CompatibilityChecker.cs#L252-L291
-        /// https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Commands/RestoreCommand/CompatibilityChecker.cs#L439-L442
+        /// https://github.com/NuGet/NuGet.Client/blob/63255047fe7052cc33b763356ff995d9166f719e/src/NuGet.Core/NuGet.Commands/RestoreCommand/CompatibilityChecker.cs#L252-L294
+        /// https://github.com/NuGet/NuGet.Client/blob/63255047fe7052cc33b763356ff995d9166f719e/src/NuGet.Core/NuGet.Commands/RestoreCommand/CompatibilityChecker.cs#L439-L442
         /// ...and our combination of these elements is below.
         /// The logic is essentially this:
         /// - Determine whether we're looking at a tools package. In this case we will use tools "pattern sets" (collections of file patterns
