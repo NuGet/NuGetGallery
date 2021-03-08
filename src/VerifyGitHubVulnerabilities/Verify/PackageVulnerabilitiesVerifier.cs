@@ -25,7 +25,7 @@ namespace VerifyGitHubVulnerabilities.Verify
         private Lazy<Task<PackageMetadataResource>> _packageMetadataResource;
         private Dictionary<string, IEnumerable<IPackageSearchMetadata>> _packageMetadata;
 
-        static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
 
         public PackageVulnerabilitiesVerifier(VerifyGitHubVulnerabilitiesConfiguration configuration,
             IEntitiesContext entitiesContext)
@@ -65,7 +65,7 @@ namespace VerifyGitHubVulnerabilities.Verify
             // is no longer present. Covering withdrawn advisory processing in the database will be adequate.
             if (_configuration.VerifyRegistrationMetadata && !withdrawn)
             {
-                VerifyVulnerabilityInMetadata(vulnerability);
+                return VerifyVulnerabilityInMetadataAsync(vulnerability);
             }
 
             return Task.CompletedTask;
@@ -160,13 +160,13 @@ namespace VerifyGitHubVulnerabilities.Verify
             }
         }
 
-        private void VerifyVulnerabilityInMetadata(PackageVulnerability gitHubAdvisory)
+        private Task VerifyVulnerabilityInMetadataAsync(PackageVulnerability gitHubAdvisory)
         {
             Console.WriteLine($"[Metadata] Verifying vulnerability {gitHubAdvisory.GitHubDatabaseKey}.");
 
             if (gitHubAdvisory.AffectedRanges == null || !gitHubAdvisory.AffectedRanges.Any())
             {
-                return;// Task.CompletedTask;
+                return Task.CompletedTask;
             }
 
             // Group ranges by id -- this makes testing metadata collections cleaner
@@ -184,14 +184,20 @@ namespace VerifyGitHubVulnerabilities.Verify
                 }
             }
 
-            Parallel.ForEach(rangesById, new ParallelOptions {MaxDegreeOfParallelism = 20}, async rangeById =>
-                await VerifyVulnerabilityForRangeAsync(
-                    packageId: rangeById.Key,
-                    ranges: rangeById.Value,
-                    gitHubAdvisory.AdvisoryUrl,
-                    gitHubAdvisory.GitHubDatabaseKey,
-                    gitHubAdvisory.Severity)
+            var verificationJobsForAdvisory = new List<Task>();
+            foreach (var rangeById in rangesById)
+            {
+                verificationJobsForAdvisory.Add(
+                    VerifyVulnerabilityForRangeAsync(
+                        rangeById.Key,
+                        ranges: rangeById.Value,
+                        gitHubAdvisory.AdvisoryUrl,
+                        gitHubAdvisory.GitHubDatabaseKey,
+                        gitHubAdvisory.Severity)
                 );
+            }
+
+            return Task.WhenAll(verificationJobsForAdvisory);
         }
 
         private async Task VerifyVulnerabilityForRangeAsync(
@@ -259,23 +265,23 @@ namespace VerifyGitHubVulnerabilities.Verify
             }
         }
 
-        private async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataAsync(string package)
+        private async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataAsync(string packageId)
         {
             // We need this to be thread-safe as it's called by multiple tasks concurrently
             await semaphoreSlim.WaitAsync();
 
             try
             {
-                if (!_packageMetadata.TryGetValue(package, out IEnumerable<IPackageSearchMetadata> metadata))
+                if (!_packageMetadata.TryGetValue(packageId, out IEnumerable<IPackageSearchMetadata> metadata))
                 {
                     metadata = (await (await _packageMetadataResource.Value).GetMetadataAsync(
-                        package,
+                        packageId,
                         includePrerelease: true,
                         includeUnlisted: false,
                         sourceCacheContext: new SourceCacheContext(),
                         log: NuGet.Common.NullLogger.Instance,
                         token: CancellationToken.None)).ToList();
-                    _packageMetadata[package] = metadata;
+                    _packageMetadata[packageId] = metadata;
                 }
 
                 return metadata;
