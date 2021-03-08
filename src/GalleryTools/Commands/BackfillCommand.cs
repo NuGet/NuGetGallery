@@ -136,6 +136,11 @@ namespace GalleryTools.Commands
                 using (var csv = CreateCsvWriter(fileName))
                 using (var http = new HttpClient())
                 {
+                    // We want these downloads ignored by stats pipelines - this user agent is automatically skipped.
+                    // See https://github.com/NuGet/NuGet.Jobs/blob/262da48ed05d0366613bbf1c54f47879aad96dcd/src/Stats.ImportAzureCdnStatistics/StatisticsParser.cs#L41
+                    http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", 
+                        "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; AppInsights)   Backfill Job: NuGet.Gallery GalleryTools");
+
                     var counter = 0;
                     var lastCreatedDate = default(DateTime?);
 
