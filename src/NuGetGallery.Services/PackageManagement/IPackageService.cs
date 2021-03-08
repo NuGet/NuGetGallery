@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -111,6 +113,8 @@ namespace NuGetGallery
         Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified);
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
+
+        IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles);
 
         Task PublishPackageAsync(string id, string version, bool commitChanges = true);
         Task PublishPackageAsync(Package package, bool commitChanges = true);
