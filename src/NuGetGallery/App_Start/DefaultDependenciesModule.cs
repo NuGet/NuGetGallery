@@ -1384,10 +1384,9 @@ namespace NuGetGallery
             {
                 if (completedBindingKeys.Add(dependent.BindingKey))
                 {
-                    builder.RegisterInstance(new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                       .AsSelf()
+                    builder.Register(_ => new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                        .As<ICloudBlobClient>()
-                       .SingleInstance()
+                       .InstancePerLifetimeScope()
                        .Keyed<ICloudBlobClient>(dependent.BindingKey);
 
                     // Do not register the service as ICloudStorageStatusDependency because
@@ -1396,10 +1395,9 @@ namespace NuGetGallery
                         .WithParameter(new ResolvedParameter(
                            (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
-                        .AsSelf()
                         .As<IFileStorageService>()
                         .As<ICoreFileStorageService>()
-                        .SingleInstance()
+                        .InstancePerLifetimeScope()
                         .Keyed<IFileStorageService>(dependent.BindingKey);
                 }
 
