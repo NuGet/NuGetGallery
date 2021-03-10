@@ -48,6 +48,40 @@ namespace NuGetGallery.Extensions
 
         public class TheMethodGetCakeInstallPackageCommand
         {
+            public class GivenADotnetToolPackage
+            {
+                [Fact]
+                public void ReturnsADotNetToolDirective()
+                {
+                    var model = new DisplayPackageViewModel
+                    {
+                        IsDotnetToolPackageType = true,
+                        Id = "dotnet-reportgenerator-globaltool",
+                        Version = "1.0.0",
+                    };
+
+                    var actual = model.GetCakeInstallPackageCommand();
+
+                    Assert.Equal("#tool dotnet:?package=dotnet-reportgenerator-globaltool&version=1.0.0", actual);
+                }
+
+                [Fact]
+                public void ReturnsADotNetToolDirectiveWithPrerelease()
+                {
+                    var model = new DisplayPackageViewModel
+                    {
+                        IsDotnetToolPackageType = true,
+                        Id = "dotnet-reportgenerator-globaltool",
+                        Version = "1.0.0-preview",
+                        Prerelease = true,
+                    };
+
+                    var actual = model.GetCakeInstallPackageCommand();
+
+                    Assert.Equal("#tool dotnet:?package=dotnet-reportgenerator-globaltool&version=1.0.0-preview&prerelease", actual);
+                }
+            }
+
             public class GivenAPackageWithTheCakeAddinTag
             {
                 [Fact]
