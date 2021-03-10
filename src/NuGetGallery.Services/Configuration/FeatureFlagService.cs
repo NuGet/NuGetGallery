@@ -40,6 +40,7 @@ namespace NuGetGallery
         private const string ShowEnable2FADialog = GalleryPrefix + "ShowEnable2FADialog";
         private const string Get2FADismissFeedback = GalleryPrefix + "Get2FADismissFeedback";
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
+        private const string PatternSetTfmHeuristicsFeatureName = GalleryPrefix + "PatternSetTfmHeuristics";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
         private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
         private const string MarkdigMdRenderingFlightName = GalleryPrefix + "MarkdigMdRendering";
@@ -218,6 +219,11 @@ namespace NuGetGallery
         public bool IsPackageRenamesEnabled(User user)
         {
             return _client.IsEnabled(PackageRenamesFeatureName, user, defaultValue: false);
+        }
+
+        public bool ArePatternSetTfmHeuristicsEnabled()
+        {
+            return _client.IsEnabled(PatternSetTfmHeuristicsFeatureName, defaultValue: false);
         }
 
         public bool AreEmbeddedReadmesEnabled(User user)

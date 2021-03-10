@@ -32,6 +32,7 @@ namespace NuGetGallery
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IContentObjectService _contentObjectService;
+        private readonly IFeatureFlagService _featureFlagService;
         private const int packagesDisplayed = 5;
 
         public PackageService(
@@ -42,7 +43,8 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
             IEntitiesContext entitiesContext,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            IFeatureFlagService featureFlagService)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
@@ -50,6 +52,7 @@ namespace NuGetGallery
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         /// <summary>
@@ -702,8 +705,15 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package) =>
-            GetSupportedFrameworks(package.NuspecReader, package.GetFiles().ToList());
+        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package)
+        {
+            if (_featureFlagService.ArePatternSetTfmHeuristicsEnabled())
+            {
+                return GetSupportedFrameworks(package.NuspecReader, package.GetFiles().ToList());
+            }
+
+            return package.GetSupportedFrameworks();
+        }
 
         /// <summary>
         /// This method combines the logic used in restore operations to make a determination about the TFM supported by the package.

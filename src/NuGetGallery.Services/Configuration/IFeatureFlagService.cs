@@ -159,6 +159,11 @@ namespace NuGetGallery
         bool IsPackageRenamesEnabled(User user);
 
         /// <summary>
+        /// Whether we're using pattern set based TFM determination on ingested packages
+        /// </summary>
+        bool ArePatternSetTfmHeuristicsEnabled();
+
+        /// <summary>
         /// Whether the user is able to publish the package with an embedded readme file.
         /// </summary>
         bool AreEmbeddedReadmesEnabled(User user);

@@ -33,7 +33,8 @@ namespace NuGetGallery
             Mock<ISecurityPolicyService> securityPolicyService = null,
             Action<Mock<PackageService>> setup = null,
             Mock<IEntitiesContext> context = null,
-            Mock<IContentObjectService> contentObjectService = null)
+            Mock<IContentObjectService> contentObjectService = null,
+            Mock<IFeatureFlagService> featureFlagService = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
@@ -49,6 +50,12 @@ namespace NuGetGallery
                 contentObjectService.Setup(x => x.QueryHintConfiguration).Returns(Mock.Of<IQueryHintConfiguration>());
             }
 
+            if (featureFlagService == null)
+            {
+                featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(x => x.ArePatternSetTfmHeuristicsEnabled()).Returns(true);
+            }
+
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
@@ -57,7 +64,8 @@ namespace NuGetGallery
                 telemetryService.Object,
                 securityPolicyService.Object,
                 context.Object,
-                contentObjectService.Object);
+                contentObjectService.Object,
+                featureFlagService.Object);
 
             packageService.CallBase = true;
 
