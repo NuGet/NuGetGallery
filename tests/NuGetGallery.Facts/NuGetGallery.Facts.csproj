@@ -119,6 +119,7 @@
     <Compile Include="Services\StatusServiceFacts.cs" />
     <Compile Include="Telemetry\CustomerResourceIdEnricherFacts.cs" />
     <Compile Include="TestData\TestDataResourceUtility.cs" />
+    <Compile Include="TestUtils\MockPackageArchiveReader.cs" />
     <Compile Include="UsernameValidationRegex.cs" />
     <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />
