@@ -20,10 +20,11 @@ namespace NuGetGallery
         // Each entry should _always_ have a value. Values never expire, they just need to be updated. Updates use the existing data,
         // so we don't want data just vanishing from a cache.
         private ConcurrentDictionary<string, ContentItem> _contentCache = new ConcurrentDictionary<string, ContentItem>(StringComparer.OrdinalIgnoreCase);
+        private Func<IFileStorageService> _fileStorageFactory;
 
         private IDiagnosticsSource Trace { get; set; }
 
-        public IFileStorageService FileStorage { get; protected set; }
+        protected virtual IFileStorageService FileStorage => _fileStorageFactory();
 
         protected ConcurrentDictionary<string, ContentItem> ContentCache { get { return _contentCache; } }
 
@@ -32,11 +33,11 @@ namespace NuGetGallery
             Trace = NullDiagnosticsSource.Instance;
         }
 
-        public ContentService(IFileStorageService fileStorage, IDiagnosticsService diagnosticsService)
+        public ContentService(Func<IFileStorageService> fileStorageFactory, IDiagnosticsService diagnosticsService)
         {
-            if (fileStorage == null)
+            if (fileStorageFactory == null)
             {
-                throw new ArgumentNullException(nameof(fileStorage));
+                throw new ArgumentNullException(nameof(fileStorageFactory));
             }
 
             if (diagnosticsService == null)
@@ -44,7 +45,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(diagnosticsService));
             }
 
-            FileStorage = fileStorage;
+            _fileStorageFactory = fileStorageFactory;
             Trace = diagnosticsService.GetSource("ContentService");
         }
         public void ClearCache()
