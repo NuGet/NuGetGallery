@@ -194,6 +194,21 @@ namespace NuGetGallery.Services
                 LastSentMessage = message;
                 return Task.FromResult(0);
             }
+
+            public void Send(IBrokeredMessage message)
+            {
+                SendAsync(message);
+            }
+
+            public Task CloseAsync()
+            {
+                return Task.CompletedTask;
+            }
+
+            public void Close()
+            {
+
+            }
         }
 
         [Schema(Name = AccountDeleteMessageSchemaName, Version = 1)]
