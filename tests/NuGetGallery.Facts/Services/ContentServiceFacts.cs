@@ -18,7 +18,7 @@ namespace NuGetGallery.Services
             [Fact]
             public void GivenANullFileStorageService_ItShouldThrow()
             {
-                ContractAssert.ThrowsArgNull(() => new ContentService(null, new Mock<IDiagnosticsService>().Object), "fileStorage");
+                ContractAssert.ThrowsArgNull(() => new ContentService(null, new Mock<IDiagnosticsService>().Object), "fileStorageFactory");
             }
 
             [Fact]
