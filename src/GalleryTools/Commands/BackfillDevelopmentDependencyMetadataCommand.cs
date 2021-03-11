@@ -4,6 +4,7 @@
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGetGallery;
 
 namespace GalleryTools.Commands
 {
@@ -32,7 +33,7 @@ namespace GalleryTools.Commands
             map.Map(x => x.Metadata).Index(3);
         }
 
-        protected override void UpdatePackage(Package package, bool metadata)
+        protected override void UpdatePackage(Package package, bool metadata, EntitiesContext context)
         {
             package.DevelopmentDependency = metadata;
         }
