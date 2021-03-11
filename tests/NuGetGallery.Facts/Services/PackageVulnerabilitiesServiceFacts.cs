@@ -143,13 +143,13 @@ namespace NuGetGallery.Services
                 Key = 2, // simulate a different order in db  - create a non-contiguous range of rows, even if the range is contiguous
                 PackageRegistration = _registrationVulnerable,
                 Version = "1.1.2",
-                VulnerablePackageRanges = null
+                VulnerablePackageRanges = new List<VulnerablePackageVersionRange>()
             };
             _packageNotVulnerable = new Package
             {
                 Key = 4,
                 PackageRegistration = new PackageRegistration { Id = "NotVulnerable" },
-                VulnerablePackageRanges = null
+                VulnerablePackageRanges = new List<VulnerablePackageVersionRange>()
             };
         }
     }

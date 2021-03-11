@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using NuGet.Services.Entities;
 
@@ -48,8 +49,13 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(package));
             }
-                
-            return package.VulnerablePackageRanges?.FirstOrDefault(vpr => vpr.Vulnerability != null) != null;
+
+            if (package.VulnerablePackageRanges == null)
+            {
+                throw new ArgumentException($"{nameof(package.VulnerablePackageRanges)} should be included in package query");
+            }
+
+            return package.VulnerablePackageRanges.FirstOrDefault(vpr => vpr.Vulnerability != null) != null;
         }
     }
 }
