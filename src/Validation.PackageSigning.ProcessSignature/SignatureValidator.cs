@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Common;
+using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Jobs.Validation.PackageSigning.Telemetry;
@@ -36,6 +37,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private readonly IProcessorPackageFileService _packageFileService;
         private readonly ICorePackageService _corePackageService;
         private readonly IOptionsSnapshot<ProcessSignatureConfiguration> _configuration;
+        private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<SignatureValidator> _logger;
 
@@ -46,6 +48,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             IProcessorPackageFileService packageFileService,
             ICorePackageService corePackageService,
             IOptionsSnapshot<ProcessSignatureConfiguration> configuration,
+            IOptionsSnapshot<SasDefinitionConfiguration> sasDefinitionConfigurationAccessor,
             ITelemetryService telemetryService,
             ILogger<SignatureValidator> logger)
         {
@@ -55,6 +58,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _corePackageService = corePackageService ?? throw new ArgumentNullException(nameof(corePackageService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _sasDefinitionConfiguration = (sasDefinitionConfigurationAccessor == null || sasDefinitionConfigurationAccessor.Value == null) ? new SasDefinitionConfiguration() : sasDefinitionConfigurationAccessor.Value;
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -756,7 +760,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 nupkgUri = await _packageFileService.GetReadAndDeleteUriAsync(
                     context.Message.PackageId,
                     context.Message.PackageVersion,
-                    context.Message.ValidationId);
+                    context.Message.ValidationId,
+                    _sasDefinitionConfiguration.SignatureValidatorSasDefinition);
             }
 
             return new SignatureValidatorResult(ValidationStatus.Succeeded, nupkgUri);

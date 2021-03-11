@@ -18,6 +18,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly IValidationFileService _packageFileService;
         private readonly IValidatorProvider _validatorProvider;
         private readonly ValidationConfiguration _validationConfiguration;
+        private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationSetProvider<T>> _logger;
 
@@ -26,6 +27,7 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidationFileService packageFileService,
             IValidatorProvider validatorProvider,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
+            IOptionsSnapshot<SasDefinitionConfiguration> sasDefinitionConfigurationAccessor,
             ITelemetryService telemetryService,
             ILogger<ValidationSetProvider<T>> logger)
         {
@@ -37,6 +39,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new ArgumentNullException(nameof(validationConfigurationAccessor));
             }
             _validationConfiguration = validationConfigurationAccessor.Value ?? throw new ArgumentException($"The Value property cannot be null", nameof(validationConfigurationAccessor));
+            _sasDefinitionConfiguration = (sasDefinitionConfigurationAccessor == null || sasDefinitionConfigurationAccessor.Value == null) ? new SasDefinitionConfiguration() : sasDefinitionConfigurationAccessor.Value;
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -93,7 +96,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 // validation set copy to avoid concurrency issues.
                 if (validationSet.PackageValidations.Any(x => _validatorProvider.IsNuGetProcessor(x.Type)))
                 {
-                    await _packageFileService.BackupPackageFileFromValidationSetPackageAsync(validationSet);
+                    await _packageFileService.BackupPackageFileFromValidationSetPackageAsync(validationSet, _sasDefinitionConfiguration.ValidationSetProviderSasDefinition);
                 }
 
                 validationSet = await PersistValidationSetAsync(validationSet, validatingEntity);

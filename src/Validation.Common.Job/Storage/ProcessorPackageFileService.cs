@@ -18,15 +18,18 @@ namespace NuGet.Jobs.Validation.Storage
         private static readonly TimeSpan AccessDuration = TimeSpan.FromDays(7);
 
         private ICoreFileStorageService _fileStorageService;
+        private readonly ISharedAccessSignatureService _sharedAccessSignatureService;
         private ILogger<ProcessorPackageFileService> _logger;
         private readonly string _processorName;
 
         public ProcessorPackageFileService(
             ICoreFileStorageService fileStorageService,
             Type processorType,
+            ISharedAccessSignatureService sharedAccessSignatureService,
             ILogger<ProcessorPackageFileService> logger)
         {
             _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
+            _sharedAccessSignatureService = sharedAccessSignatureService ?? throw new ArgumentNullException(nameof(sharedAccessSignatureService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (processorType == null)
@@ -42,18 +45,27 @@ namespace NuGet.Jobs.Validation.Storage
             _processorName = processorType.Name;
         }
 
-        public Task<Uri> GetReadAndDeleteUriAsync(
+        public async Task<Uri> GetReadAndDeleteUriAsync(
             string packageId,
             string packageNormalizedVersion,
-            Guid validationId)
+            Guid validationId,
+            string sasDefinition)
         {
             var fileName = BuildFileName(packageId, packageNormalizedVersion, validationId);
 
-            return _fileStorageService.GetPriviledgedFileUriAsync(
-                CoreConstants.Folders.ValidationFolderName,
-                fileName,
-                FileUriPermissions.Read | FileUriPermissions.Delete,
-                DateTimeOffset.UtcNow + AccessDuration);
+            if(string.IsNullOrEmpty(sasDefinition))
+            {
+                return await _fileStorageService.GetPriviledgedFileUriAsync(
+                    CoreConstants.Folders.ValidationFolderName,
+                    fileName,
+                    FileUriPermissions.Read | FileUriPermissions.Delete,
+                    DateTimeOffset.UtcNow + AccessDuration);
+            }
+
+            var fileUri = await _fileStorageService.GetFileUriAsync(CoreConstants.Folders.ValidationFolderName, fileName);
+            var sasToken = await _sharedAccessSignatureService.GetFromManagedStorageAccountAsync(sasDefinition);
+            
+            return new Uri(fileUri, sasToken);
         }
 
         public Task SaveAsync(

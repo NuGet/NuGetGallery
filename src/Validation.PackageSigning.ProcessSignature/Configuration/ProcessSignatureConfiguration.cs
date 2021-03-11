@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace NuGet.Jobs.Validation.PackageSigning
+namespace NuGet.Jobs.Validation.PackageSigning.Configuration
 {
     public class ProcessSignatureConfiguration
     {

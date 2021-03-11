@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
@@ -13,6 +14,7 @@ namespace NuGet.Services.Validation.Orchestrator
     public class PackageStatusProcessor : EntityStatusProcessor<Package>
     {
         private readonly ICoreLicenseFileService _coreLicenseFileService;
+        private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
         private readonly ICoreReadmeFileService _coreReadmeFileService;
 
         public PackageStatusProcessor(
@@ -20,12 +22,14 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidationFileService packageFileService,
             IValidatorProvider validatorProvider,
             ITelemetryService telemetryService,
+            IOptionsSnapshot<SasDefinitionConfiguration> options,
             ILogger<EntityStatusProcessor<Package>> logger,
             ICoreLicenseFileService coreLicenseFileService,
             ICoreReadmeFileService coreReadmeFileService) 
             : base(galleryPackageService, packageFileService, validatorProvider, telemetryService, logger)
         {
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
+            _sasDefinitionConfiguration = (options == null || options.Value == null) ? new SasDefinitionConfiguration() : options.Value;
             _coreReadmeFileService = coreReadmeFileService ?? throw new ArgumentNullException(nameof(coreReadmeFileService));
         }
 
@@ -36,7 +40,7 @@ namespace NuGet.Services.Validation.Orchestrator
             if (validatingEntity.EntityRecord.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent || validatingEntity.EntityRecord.HasEmbeddedReadme)
             {
                 using (_telemetryService.TrackDurationToExtractLicenseAndReadmeFile(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId.ToString()))
-                using (var packageStream = await _packageFileService.DownloadPackageFileToDiskAsync(validationSet))
+                using (var packageStream = await _packageFileService.DownloadPackageFileToDiskAsync(validationSet, _sasDefinitionConfiguration.PackageStatusProcessorSasDefinition))
                 {
                     if (validatingEntity.EntityRecord.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                     {

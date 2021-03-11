@@ -52,6 +52,7 @@
     <Compile Include="FileDownloaderFacts.cs" />
     <Compile Include="PathUtilityFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SharedAccessSignatureServiceFacts.cs" />
     <Compile Include="Storage\ProcessorPackageFileServiceFacts.cs" />
     <Compile Include="StreamExtensionsFacts.cs" />
     <Compile Include="TempFiles\DeleteOnCloseReadOnlyTempFileFacts.cs" />

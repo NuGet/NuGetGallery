@@ -42,6 +42,7 @@
     <Reference Include="System.Security" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\SasDefinitionConfiguration.cs" />
     <Compile Include="ExtractedCertificates.cs" />
     <Compile Include="Hash.cs" />
     <Compile Include="HashedCertificate.cs" />
@@ -49,7 +50,7 @@
     <Compile Include="ISignaturePartsExtractor.cs" />
     <Compile Include="ISignatureValidator.cs" />
     <Compile Include="MinimalSignatureVerificationProvider.cs" />
-    <Compile Include="ProcessSignatureConfiguration.cs" />
+    <Compile Include="Configuration\ProcessSignatureConfiguration.cs" />
     <Compile Include="SignatureFormatValidator.cs" />
     <Compile Include="SignaturePartsExtractor.cs" />
     <Compile Include="SignatureValidator.cs" />

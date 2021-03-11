@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using NuGet.Common;
+using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Packaging.Signing;
 
 namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature

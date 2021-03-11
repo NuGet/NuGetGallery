@@ -61,6 +61,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
         private const string FlatContainerConfigurationSectionName = "FlatContainer";
         private const string LeaseConfigurationSectionName = "Leases";
+        private const string SasDefinitionConfigurationSectionName = "SasDefinitions";
 
         private const string EmailBindingKey = EmailConfigurationSectionName;
         private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
@@ -124,6 +125,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.Configure<ScanAndSignEnqueuerConfiguration>(configurationRoot.GetSection(ScanAndSignSectionName));
             services.Configure<FlatContainerConfiguration>(configurationRoot.GetSection(FlatContainerConfigurationSectionName));
             services.Configure<LeaseConfiguration>(configurationRoot.GetSection(LeaseConfigurationSectionName));
+            services.Configure<SasDefinitionConfiguration>(configurationRoot.GetSection(SasDefinitionConfigurationSectionName));
 
             services.Configure<SymbolsValidationConfiguration>(configurationRoot.GetSection(SymbolsValidatorSectionName));
             services.Configure<SymbolsIngesterConfiguration>(configurationRoot.GetSection(SymbolsIngesterSectionName));
@@ -223,6 +225,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 return client;
             });
+            services.AddTransient<ISharedAccessSignatureService, SharedAccessSignatureService>();
 
             /// See <see cref="SubscriptionProcessorJob{T}.ConfigureDefaultJobServices(IServiceCollection, IConfigurationRoot)"/>
             /// for reasoning on why this is registered here.

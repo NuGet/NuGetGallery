@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Common;
 using NuGet.Jobs.Validation.PackageSigning;
+using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
@@ -48,7 +49,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private readonly Uri _nupkgUri;
             private readonly SignatureValidator _target;
             private readonly Mock<IOptionsSnapshot<ProcessSignatureConfiguration>> _optionsSnapshot;
+            private readonly Mock<IOptionsSnapshot<SasDefinitionConfiguration>> _sasDefinitionConfigurationMock;
             private readonly ProcessSignatureConfiguration _configuration;
+            private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
             private readonly Mock<ITelemetryService> _telemetryService;
 
             public ValidateAsync(ITestOutputHelper output)
@@ -93,7 +96,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _packageFileService = new Mock<IProcessorPackageFileService>();
                 _nupkgUri = new Uri("https://example-storage/TestProcessor/b777135f-1aac-4ec2-a3eb-1f64fe1880d5/nuget.versioning.4.3.0.nupkg");
                 _packageFileService
-                    .Setup(x => x.GetReadAndDeleteUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>()))
+                    .Setup(x => x.GetReadAndDeleteUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>()))
                     .ReturnsAsync(() => _nupkgUri);
 
                 _optionsSnapshot = new Mock<IOptionsSnapshot<ProcessSignatureConfiguration>>();
@@ -105,6 +108,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 };
                 _optionsSnapshot.Setup(x => x.Value).Returns(() => _configuration);
 
+                _sasDefinitionConfiguration = new SasDefinitionConfiguration();
+                _sasDefinitionConfigurationMock = new Mock<IOptionsSnapshot<SasDefinitionConfiguration>>();
+                _sasDefinitionConfigurationMock.Setup(x => x.Value).Returns(() => _sasDefinitionConfiguration);
+
+
                 _telemetryService = new Mock<ITelemetryService>();
 
                 _target = new SignatureValidator(
@@ -114,6 +122,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     _packageFileService.Object,
                     _corePackageService.Object,
                     _optionsSnapshot.Object,
+                    _sasDefinitionConfigurationMock.Object,
                     _telemetryService.Object,
                     _logger);
             }
@@ -685,7 +694,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     x => x.SaveAsync(_message.PackageId, _message.PackageVersion, _message.ValidationId, It.IsAny<Stream>()),
                     Times.Once);
                 _packageFileService.Verify(
-                    x => x.GetReadAndDeleteUriAsync(_message.PackageId, _message.PackageVersion, _message.ValidationId),
+                    x => x.GetReadAndDeleteUriAsync(_message.PackageId, _message.PackageVersion, _message.ValidationId, _sasDefinitionConfiguration.SignatureValidatorSasDefinition),
                     Times.Once);
                 Assert.IsType<FileStream>(uploadedStream);
                 Assert.Throws<ObjectDisposedException>(() => uploadedStream.Length);
@@ -763,7 +772,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     x => x.SaveAsync(_message.PackageId, _message.PackageVersion, _message.ValidationId, It.IsAny<Stream>()),
                     Times.Once);
                 _packageFileService.Verify(
-                    x => x.GetReadAndDeleteUriAsync(_message.PackageId, _message.PackageVersion, _message.ValidationId),
+                    x => x.GetReadAndDeleteUriAsync(_message.PackageId, _message.PackageVersion, _message.ValidationId, _sasDefinitionConfiguration.SignatureValidatorSasDefinition),
                     Times.Once);
                 Assert.IsType<FileStream>(uploadedStream);
                 Assert.Throws<ObjectDisposedException>(() => uploadedStream.Length);

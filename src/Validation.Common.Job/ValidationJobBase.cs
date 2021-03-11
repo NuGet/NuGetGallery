@@ -68,6 +68,7 @@ namespace NuGet.Jobs.Validation
             });
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
+            services.AddTransient<ISharedAccessSignatureService, SharedAccessSignatureService>();
 
             services.AddTransient<ISubscriptionClient>(p =>
             {

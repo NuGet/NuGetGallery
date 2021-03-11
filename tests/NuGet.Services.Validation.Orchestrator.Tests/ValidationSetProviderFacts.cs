@@ -19,9 +19,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public Mock<IValidationFileService> PackageFileServiceMock { get; }
         public Mock<IValidatorProvider> ValidatorProvider { get; }
         public Mock<IOptionsSnapshot<ValidationConfiguration>> ConfigurationAccessorMock { get; }
+        public Mock<IOptionsSnapshot<SasDefinitionConfiguration>> SasDefinitionConfigurationAccessorMock { get; }
         public Mock<ITelemetryService> TelemetryServiceMock { get; }
         public Mock<ILogger<ValidationSetProvider<Package>>> LoggerMock { get; }
         public ValidationConfiguration Configuration { get; }
+        public SasDefinitionConfiguration SasDefinitionConfiguration { get; }
         public string ETag { get; }
         public Package Package { get; }
         public PackageValidationSet ValidationSet { get; }
@@ -52,7 +54,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 x => x.CopyValidationPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()),
                 Times.Never);
             PackageFileServiceMock.Verify(
-                x => x.BackupPackageFileFromValidationSetPackageAsync(It.IsAny<PackageValidationSet>()),
+                x => x.BackupPackageFileFromValidationSetPackageAsync(It.IsAny<PackageValidationSet>(), SasDefinitionConfiguration.ValidationSetProviderSasDefinition),
                 Times.Never);
             TelemetryServiceMock.Verify(
                 x => x.TrackDurationToValidationSetCreation(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<TimeSpan>()),
@@ -93,7 +95,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(ETag)
                 .Callback<PackageValidationSet>(_ => operations.Add(nameof(IValidationFileService.CopyPackageFileForValidationSetAsync)));
             PackageFileServiceMock
-                .Setup(x => x.BackupPackageFileFromValidationSetPackageAsync(It.IsAny<PackageValidationSet>()))
+                .Setup(x => x.BackupPackageFileFromValidationSetPackageAsync(It.IsAny<PackageValidationSet>(), SasDefinitionConfiguration.ValidationSetProviderSasDefinition))
                 .Returns(Task.CompletedTask)
                 .Callback(() => operations.Add(nameof(IValidationFileService.BackupPackageFileFromValidationSetPackageAsync)));
             ValidationStorageMock
@@ -167,7 +169,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var actual = await provider.TryGetOrCreateValidationSetAsync(packageValidationMessageData, PackageValidatingEntity);
 
             PackageFileServiceMock.Verify(
-                x => x.BackupPackageFileFromValidationSetPackageAsync(It.IsAny<PackageValidationSet>()),
+                x => x.BackupPackageFileFromValidationSetPackageAsync(It.IsAny<PackageValidationSet>(), SasDefinitionConfiguration.ValidationSetProviderSasDefinition),
                 Times.Never);
         }
 
@@ -222,7 +224,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             PackageFileServiceMock.Verify(x => x.CopyPackageFileForValidationSetAsync(createdSet), Times.Once);
             PackageFileServiceMock.Verify(x => x.CopyPackageFileForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Once);
             PackageFileServiceMock.Verify(x => x.CopyValidationPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
-            PackageFileServiceMock.Verify(x => x.BackupPackageFileFromValidationSetPackageAsync(createdSet), Times.Once);
+            PackageFileServiceMock.Verify(x => x.BackupPackageFileFromValidationSetPackageAsync(createdSet, SasDefinitionConfiguration.ValidationSetProviderSasDefinition), Times.Once);
             Assert.Equal(ETag, actual.PackageETag);
         }
 
@@ -279,7 +281,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             PackageFileServiceMock.Verify(x => x.CopyPackageFileForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
             PackageFileServiceMock.Verify(x => x.CopyValidationPackageForValidationSetAsync(createdSet), Times.Once);
             PackageFileServiceMock.Verify(x => x.CopyValidationPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Once);
-            PackageFileServiceMock.Verify(x => x.BackupPackageFileFromValidationSetPackageAsync(createdSet), Times.Once);
+            PackageFileServiceMock.Verify(x => x.BackupPackageFileFromValidationSetPackageAsync(createdSet, SasDefinitionConfiguration.ValidationSetProviderSasDefinition), Times.Once);
             Assert.Null(actual.PackageETag);
         }
 
@@ -349,6 +351,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageFileServiceMock.Object,
                 ValidatorProvider.Object,
                 ConfigurationAccessorMock.Object,
+                SasDefinitionConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
 
@@ -440,6 +443,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageFileServiceMock.Object,
                 ValidatorProvider.Object,
                 ConfigurationAccessorMock.Object,
+                SasDefinitionConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
 
@@ -517,6 +521,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageFileServiceMock.Object,
                 ValidatorProvider.Object,
                 ConfigurationAccessorMock.Object,
+                SasDefinitionConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
 
@@ -586,6 +591,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             PackageFileServiceMock = new Mock<IValidationFileService>(MockBehavior.Strict);
             ValidatorProvider = new Mock<IValidatorProvider>(MockBehavior.Strict);
             ConfigurationAccessorMock = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
+            SasDefinitionConfigurationAccessorMock = new Mock<IOptionsSnapshot<SasDefinitionConfiguration>>();
             TelemetryServiceMock = new Mock<ITelemetryService>();
             LoggerMock = new Mock<ILogger<ValidationSetProvider<Package>>>();
 
@@ -598,7 +604,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(Task.CompletedTask);
 
             PackageFileServiceMock
-                .Setup(x => x.BackupPackageFileFromValidationSetPackageAsync(It.IsAny<PackageValidationSet>()))
+                .Setup(x => x.BackupPackageFileFromValidationSetPackageAsync(It.IsAny<PackageValidationSet>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
             ValidatorProvider
@@ -609,6 +615,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ConfigurationAccessorMock
                 .SetupGet(ca => ca.Value)
                 .Returns(() => Configuration);
+
+            SasDefinitionConfiguration = new SasDefinitionConfiguration()
+            {
+                ValidationSetProviderSasDefinition = "ValidationSetProviderSasDefinition"
+            };
+            SasDefinitionConfigurationAccessorMock
+                .SetupGet(sca => sca.Value)
+                .Returns(() => SasDefinitionConfiguration);
 
             ETag = "\"some-etag\"";
             Package = new Package
@@ -647,6 +661,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageFileServiceMock.Object,
                 ValidatorProvider.Object,
                 ConfigurationAccessorMock.Object,
+                SasDefinitionConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
         }

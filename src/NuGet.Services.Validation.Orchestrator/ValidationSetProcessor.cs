@@ -17,6 +17,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly IValidatorProvider _validatorProvider;
         private readonly IValidationStorageService _validationStorageService;
         private readonly ValidationConfiguration _validationConfiguration;
+        private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
         private readonly IValidationFileService _packageFileService;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationSetProcessor> _logger;
@@ -25,6 +26,7 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidatorProvider validatorProvider,
             IValidationStorageService validationStorageService,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
+            IOptionsSnapshot<SasDefinitionConfiguration> sasDefinitionConfigurationAccessor,
             IValidationFileService packageFileService,
             ITelemetryService telemetryService,
             ILogger<ValidationSetProcessor> logger)
@@ -36,6 +38,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new ArgumentNullException(nameof(validationConfigurationAccessor));
             }
             _validationConfiguration = validationConfigurationAccessor.Value ?? throw new ArgumentException($"The Value property cannot be null", nameof(validationConfigurationAccessor));
+            _sasDefinitionConfiguration = (sasDefinitionConfigurationAccessor == null || sasDefinitionConfigurationAccessor.Value == null) ? new SasDefinitionConfiguration() : sasDefinitionConfigurationAccessor.Value;
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -283,6 +286,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var nupkgUrl = await _packageFileService.GetPackageForValidationSetReadUriAsync(
                 packageValidationSet,
+                _sasDefinitionConfiguration.ValidationSetProcessorSasDefinition,
                 DateTimeOffset.UtcNow.Add(_validationConfiguration.TimeoutValidationSetAfter));
 
             var validationRequest = new NuGetValidationRequest(
