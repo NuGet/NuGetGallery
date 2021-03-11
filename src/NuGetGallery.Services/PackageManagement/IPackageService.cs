@@ -114,6 +114,8 @@ namespace NuGetGallery
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 
+        IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package);
+
         IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles);
 
         Task PublishPackageAsync(string id, string version, bool commitChanges = true);
