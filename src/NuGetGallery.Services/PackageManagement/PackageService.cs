@@ -463,7 +463,7 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration.Owners)
                 .Include(p => p.PackageRegistration.RequiredSigners);
 
-            if (includeVulnerabilities)
+            if (includeVulnerabilities && _featureFlagService.IsManagePackagesVulnerabilitiesEnabled())
             {
                 result = result.Include($"{nameof(Package.VulnerablePackageRanges)}.{nameof(VulnerablePackageVersionRange.Vulnerability)}");
             }

@@ -23,6 +23,7 @@
     "NuGetGallery.ODataV2SearchNonHijacked": "Enabled",
     "NuGetGallery.ODataV2SearchCountNonHijacked": "Enabled",
     "NuGetGallery.DisplayVulnerabilities": "Enabled",
+    "NuGetGallery.ManagePackagesVulnerabilities": "Enabled",
     "NuGetGallery.DisplayFuGetLinks": "Enabled",
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled"
   },

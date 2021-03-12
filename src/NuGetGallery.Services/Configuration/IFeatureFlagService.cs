@@ -68,6 +68,11 @@ namespace NuGetGallery
         bool IsDisplayVulnerabilitiesEnabled();
 
         /// <summary>
+        /// Whether or not a package owner can view vulnerability advisory information on the Manage Packages page.
+        /// </summary>
+        bool IsManagePackagesVulnerabilitiesEnabled();
+
+        /// <summary>
         /// Whether or not a fuget.org link is visible on a package's details page.
         /// </summary>
         bool IsDisplayFuGetLinksEnabled();

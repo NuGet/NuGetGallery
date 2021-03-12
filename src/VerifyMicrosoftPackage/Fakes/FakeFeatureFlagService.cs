@@ -33,6 +33,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsDisplayVulnerabilitiesEnabled() => throw new NotImplementedException();
 
+        public bool IsManagePackagesVulnerabilitiesEnabled() => throw new NotImplementedException();
+
         public bool IsDisplayFuGetLinksEnabled() => throw new NotImplementedException();
 
         public bool AreEmbeddedIconsEnabled(User user) => throw new NotImplementedException();

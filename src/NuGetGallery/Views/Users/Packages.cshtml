@@ -120,7 +120,7 @@
                     }
                         <th class="sortable">Downloads</th>
                         <th class="sortable">Latest Version</th>
-                    @if (Model.IsPackageVulnerabilitiesEnabled)
+                    @if (Model.IsManagePackagesVulnerabilitiesEnabled)
                     {
                         <th><span class="hidden">Package warnings</span></th>
                     }
@@ -175,7 +175,7 @@
                         <td class="align-middle text-nowrap" data-bind="attr: { 'data-sortby': VersionSortOrder }">
                             <span data-bind="text: LatestVersion"></span>
                         </td>
-                    @if (Model.IsPackageVulnerabilitiesEnabled)
+                    @if (Model.IsManagePackagesVulnerabilitiesEnabled)
                     {
                         <td class="package-icon-cell">
                             <i class="ms-Icon ms-Icon--Warning package-icon" data-bind="visible: IsVulnerable" title="This version has at least one known vulnerability. Click on the package name for details."></i>
