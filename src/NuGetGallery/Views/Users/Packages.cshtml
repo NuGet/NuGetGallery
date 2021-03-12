@@ -116,10 +116,14 @@
                         <th class="sortable">Owners</th>
                     @if (Model.IsCertificatesUIEnabled)
                     {
-                        <th  class="sortable">Signing Owner</th>
+                        <th class="sortable">Signing Owner</th>
                     }
-                        <th  class="sortable">Downloads</th>
-                        <th  class="sortable">Latest Version</th>
+                        <th class="sortable">Downloads</th>
+                        <th class="sortable">Latest Version</th>
+                    @if (Model.IsPackageVulnerabilitiesEnabled)
+                    {
+                        <th><span class="hidden">Package warnings</span></th>
+                    }
                         <th><span class="hidden">Icon</span></th>
                     </tr>
                 </thead>
@@ -171,6 +175,12 @@
                         <td class="align-middle text-nowrap" data-bind="attr: { 'data-sortby': VersionSortOrder }">
                             <span data-bind="text: LatestVersion"></span>
                         </td>
+                    @if (Model.IsPackageVulnerabilitiesEnabled)
+                    {
+                        <td class="package-icon-cell">
+                            <i class="ms-Icon ms-Icon--Warning package-icon" data-bind="visible: IsVulnerable" title="This version has at least one known vulnerability. Click on the package name for details."></i>
+                        </td>
+                    }
                         <td class="text-right align-middle package-controls">
                             <span data-bind="visible: CanEdit || CanManageOwners || CanDelete">
                                 <a class="btn" title="Manage Package" data-bind="attr: { href: ManageUrl,
@@ -353,7 +363,8 @@
             p.CanEditRequiredSigner,
             p.ShowRequiredSigner,
             p.ShowTextBox,
-            p.VersionSortOrder
+            p.VersionSortOrder,
+            p.IsVulnerable
         };
     }
 
