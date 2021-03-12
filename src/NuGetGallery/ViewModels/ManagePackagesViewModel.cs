@@ -24,6 +24,6 @@ namespace NuGetGallery
 
         public bool IsCertificatesUIEnabled { get; set; }
 
-        public bool IsPackageVulnerabilitiesEnabled { get; set; }
+        public bool IsManagePackagesVulnerabilitiesEnabled { get; set; }
     }
 }

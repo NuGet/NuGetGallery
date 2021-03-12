@@ -27,6 +27,7 @@ namespace NuGetGallery
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
         private const string ManageDeprecationApiFeatureName = GalleryPrefix + "ManageDeprecationApi";
         private const string DisplayVulnerabilitiesFeatureName = GalleryPrefix + "DisplayVulnerabilities";
+        private const string ManagePackagesVulnerabilitiesFeatureName = GalleryPrefix + "ManagePackagesVulnerabilities";
         private const string DisplayFuGetLinksFeatureName = GalleryPrefix + "DisplayFuGetLinks";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
@@ -139,6 +140,11 @@ namespace NuGetGallery
         public bool IsDisplayVulnerabilitiesEnabled()
         {
             return _client.IsEnabled(DisplayVulnerabilitiesFeatureName, defaultValue: false);
+        }
+
+        public bool IsManagePackagesVulnerabilitiesEnabled()
+        {
+            return _client.IsEnabled(ManagePackagesVulnerabilitiesFeatureName, defaultValue: false);
         }
 
         public bool IsDisplayFuGetLinksEnabled()

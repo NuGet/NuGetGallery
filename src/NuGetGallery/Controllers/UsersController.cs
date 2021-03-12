@@ -566,7 +566,7 @@ namespace NuGetGallery
                 ReservedNamespaces = reservedPrefixes,
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false,
-                IsPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled()
+                IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled()
             };
 
             return View(model);
