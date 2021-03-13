@@ -197,6 +197,8 @@ namespace NuGetGallery.TestUtils
             var securityPolicyService = new Mock<ISecurityPolicyService>();
             var entitiesContext = new Mock<IEntitiesContext>();
             var contentObjectService = new Mock<IContentObjectService>();
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService.Setup(x => x.ArePatternSetTfmHeuristicsEnabled()).Returns(true);
 
             var packageService = new Mock<PackageService>(
                  packageRegistrationRepository.Object,
@@ -206,7 +208,8 @@ namespace NuGetGallery.TestUtils
                  telemetryService.Object,
                  securityPolicyService.Object,
                  entitiesContext.Object,
-                 contentObjectService.Object);
+                 contentObjectService.Object,
+                 featureFlagService.Object);
 
             packageService.CallBase = true;
 

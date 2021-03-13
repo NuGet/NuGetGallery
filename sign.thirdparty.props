@@ -15,6 +15,7 @@
     <ThirdPartyBinaries Include="DynamicData.EFCodeFirstProvider.dll" />
     <ThirdPartyBinaries Include="Elmah.dll" />
     <ThirdPartyBinaries Include="ICSharpCode.SharpZipLib.dll" />
+    <ThirdPartyBinaries Include="Knapcode.MiniZip.dll" />
     <ThirdPartyBinaries Include="Lucene.Net.Contrib.Analyzers.dll" />
     <ThirdPartyBinaries Include="Lucene.Net.Contrib.Core.dll" />
     <ThirdPartyBinaries Include="Lucene.Net.Contrib.FastVectorHighlighter.dll" />

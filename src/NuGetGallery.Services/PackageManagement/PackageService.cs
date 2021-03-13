@@ -8,14 +8,18 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Client;
+using NuGet.ContentModel;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.RuntimeModel;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using PackageType = NuGet.Packaging.Core.PackageType;
 
 namespace NuGetGallery
 {
@@ -28,6 +32,7 @@ namespace NuGetGallery
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IContentObjectService _contentObjectService;
+        private readonly IFeatureFlagService _featureFlagService;
         private const int packagesDisplayed = 5;
 
         public PackageService(
@@ -38,7 +43,8 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
             IEntitiesContext entitiesContext,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            IFeatureFlagService featureFlagService)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
@@ -46,6 +52,7 @@ namespace NuGetGallery
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         /// <summary>
@@ -399,9 +406,12 @@ namespace NuGetGallery
             return package;
         }
 
-        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
+        public IEnumerable<Package> FindPackagesByOwner(User user, 
+            bool includeUnlisted, 
+            bool includeVersions = false,
+            bool includeVulnerabilities = false)
         {
-            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions);
+            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions, includeVulnerabilities);
         }
 
         /// <summary>
@@ -410,15 +420,17 @@ namespace NuGetGallery
         public IEnumerable<Package> FindPackagesByAnyMatchingOwner(
             User user,
             bool includeUnlisted,
-            bool includeVersions = false)
+            bool includeVersions = false,
+            bool includeVulnerabilities = false)
         {
             var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
             ownerKeys.Insert(0, user.Key);
 
-            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions);
+            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions, includeVulnerabilities);
         }
 
-        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
+        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted,
+            bool includeVersions, bool includeVulnerabilities)
         {
             IQueryable<Package> packages = _packageRepository.GetAll()
                 .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
@@ -430,7 +442,7 @@ namespace NuGetGallery
 
             if (!includeVersions)
             {
-                // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
+                // Do a best effort of retrieving the latest versions. Note that UpdateIsLatest has had concurrency issues
                 // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
                 // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
                 packages = packages
@@ -446,11 +458,17 @@ namespace NuGetGallery
                         .FirstOrDefault());
             }
 
-            return packages
+            var result = packages
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.PackageRegistration.RequiredSigners)
-                .ToList();
+                .Include(p => p.PackageRegistration.RequiredSigners);
+
+            if (includeVulnerabilities && _featureFlagService.IsManagePackagesVulnerabilitiesEnabled())
+            {
+                result = result.Include($"{nameof(Package.VulnerablePackageRanges)}.{nameof(VulnerablePackageVersionRange.Vulnerability)}");
+            }
+
+            return result.ToList();
         }
 
         public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
@@ -700,7 +718,112 @@ namespace NuGetGallery
 
         public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package)
         {
+            if (_featureFlagService.ArePatternSetTfmHeuristicsEnabled())
+            {
+                return GetSupportedFrameworks(package.NuspecReader, package.GetFiles().ToList());
+            }
+
             return package.GetSupportedFrameworks();
+        }
+
+        /// <summary>
+        /// This method combines the logic used in restore operations to make a determination about the TFM supported by the package.
+        /// We have curated a set of compatibility requirements for our needs in NuGet.org. The client logic can be found here:
+        /// https://github.com/NuGet/NuGet.Client/blob/63255047fe7052cc33b763356ff995d9166f719e/src/NuGet.Core/NuGet.Commands/RestoreCommand/CompatibilityChecker.cs#L252-L294
+        /// https://github.com/NuGet/NuGet.Client/blob/63255047fe7052cc33b763356ff995d9166f719e/src/NuGet.Core/NuGet.Commands/RestoreCommand/CompatibilityChecker.cs#L439-L442
+        /// ...and our combination of these elements is below.
+        /// The logic is essentially this:
+        /// - Determine whether we're looking at a tools package. In this case we will use tools "pattern sets" (collections of file patterns
+        ///   defined in <see cref="ManagedCodeConventions" />) to assess which frameworks are targeted by the package.
+        /// - If this isn't a tools package, we look for build-time, runtime, content and resource file patterns
+        /// For added details on the various cases, see unit tests targeting this method.
+        /// </summary>
+        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles)
+        {
+            var supportedTFMs = Enumerable.Empty<NuGetFramework>();
+            if (packageFiles != null && packageFiles.Any() && nuspecReader != null)
+            {
+                // Setup content items for analysis
+                var items = new ContentItemCollection();
+                items.Load(packageFiles);
+                var runtimeGraph = new RuntimeGraph();
+                var conventions = new ManagedCodeConventions(runtimeGraph);
+
+                // Let's test for tools packages first--they're a special case
+                var groups = Enumerable.Empty<ContentItemGroup>();
+                var packageTypes = nuspecReader.GetPackageTypes();
+                if (packageTypes.Count == 1 && (packageTypes[0] == PackageType.DotnetTool ||
+                                                packageTypes[0] == PackageType.DotnetCliTool))
+                {
+                    // Only a package that is a tool package (and nothing else) will be matched against tools pattern set
+                    groups = items.FindItemGroups(conventions.Patterns.ToolsAssemblies);
+                }
+                else
+                {
+                    // Gather together a list of pattern sets indicating the kinds of packages we wish to evaluate
+                    var patterns = new[]
+                    {
+                        conventions.Patterns.CompileRefAssemblies,
+                        conventions.Patterns.CompileLibAssemblies,
+                        conventions.Patterns.RuntimeAssemblies,
+                        conventions.Patterns.ContentFiles,
+                        conventions.Patterns.ResourceAssemblies,
+                    };
+
+                    // Add MSBuild to this list, but we need to ensure we have package assets before they make the cut.
+                    // A series of files in the right places won't matter if there's no {id}.props|targets.
+                    var msbuildPatterns = new[]
+                    {
+                        conventions.Patterns.MSBuildFiles,
+                        conventions.Patterns.MSBuildMultiTargetingFiles,
+                    };
+
+                    // We'll create a set of "groups" --these are content items which satisfy file pattern sets
+                    var standardGroups = patterns
+                        .SelectMany(p => items.FindItemGroups(p));
+
+                    // Filter out MSBuild assets that don't match the package ID and append to groups we already have
+                    var packageId = nuspecReader.GetId();
+                    var msbuildGroups = msbuildPatterns
+                        .SelectMany(p => items.FindItemGroups(p))
+                        .Where(g => HasBuildItemsForPackageId(g.Items, packageId));
+                    groups = standardGroups.Concat(msbuildGroups);
+                }
+
+                // Now that we have a collection of groups which have made it through the pattern set filter, let's transform them into TFMs
+                supportedTFMs = groups
+                    .SelectMany(p => p.Properties)
+                    .Where(pair => pair.Key == ManagedCodeConventions.PropertyNames.TargetFrameworkMoniker)
+                    .Select(pair => pair.Value)
+                    .Cast<NuGetFramework>()
+                    .Distinct();
+            }
+
+            return supportedTFMs;
+        }
+
+        private static bool HasBuildItemsForPackageId(IEnumerable<ContentItem> items, string packageId)
+        {
+            foreach (var item in items)
+            {
+                var fileName = Path.GetFileName(item.Path);
+                if (fileName == PackagingCoreConstants.EmptyFolder)
+                {
+                    return true;
+                }
+
+                if ($"{packageId}.props".Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if ($"{packageId}.targets".Equals(fileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static EmbeddedLicenseFileType GetEmbeddedLicenseType(PackageMetadata packageMetadata)

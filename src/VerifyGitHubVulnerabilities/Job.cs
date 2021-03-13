@@ -34,13 +34,13 @@ namespace VerifyGitHubVulnerabilities
             Console.WriteLine($" FOUND {advisories.Count} advisories.");
 
             Console.WriteLine("Fetching vulnerabilities from DB...");
-            var verifier = new PackageVulnerabilitiesVerifier(_serviceProvider.GetRequiredService<IEntitiesContext>());
-            var ingestor = new AdvisoryIngestor(verifier, new GitHubVersionRangeParser());
+            var ingestor = _serviceProvider.GetRequiredService<IAdvisoryIngestor>();
             await ingestor.IngestAsync(advisories);
 
+            var verifier = _serviceProvider.GetRequiredService<IPackageVulnerabilitiesVerifier>();
             Console.WriteLine(verifier.HasErrors ? 
                 "DB does not match GitHub API - see stderr output for details" :
-                "DB matches GitHub API!");
+                "DB/metadata matches GitHub API!");
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
@@ -68,6 +68,12 @@ namespace VerifyGitHubVulnerabilities
             containerBuilder
                 .RegisterType<AdvisoryIngestor>()
                 .As<IAdvisoryIngestor>();
+
+            containerBuilder
+                .RegisterType<PackageVulnerabilitiesVerifier>()
+                .As<IPackageVulnerabilitiesManagementService>()
+                .As<IPackageVulnerabilitiesVerifier>()
+                .SingleInstance();
         }
 
         protected void ConfigureGalleryServices(ContainerBuilder containerBuilder)

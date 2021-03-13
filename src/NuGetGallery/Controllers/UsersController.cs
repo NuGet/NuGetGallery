@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -35,6 +36,7 @@ namespace NuGetGallery
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IFeatureFlagService _featureFlagService;
+        private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
 
         public UsersController(
             IUserService userService,
@@ -51,6 +53,7 @@ namespace NuGetGallery
             ICertificateService certificateService,
             IContentObjectService contentObjectService,
             IFeatureFlagService featureFlagService,
+            IPackageVulnerabilitiesService packageVulnerabilitiesService,
             IMessageServiceConfiguration messageServiceConfiguration,
             IIconUrlProvider iconUrlProvider,
             IGravatarProxyService gravatarProxy)
@@ -73,8 +76,10 @@ namespace NuGetGallery
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
 
-            _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(securityPolicyService, iconUrlProvider);
+            _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
+                securityPolicyService, iconUrlProvider, packageVulnerabilitiesService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
         }
 
@@ -521,7 +526,8 @@ namespace NuGetGallery
 
             var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
 
-            var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
+            var packages = PackageService.FindPackagesByAnyMatchingOwner(
+                currentUser, includeUnlisted: true, includeVulnerabilities: true);
 
             var listedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
                 p => p.Listed && p.PackageStatusKey == PackageStatus.Available);
@@ -559,8 +565,10 @@ namespace NuGetGallery
                 OwnerRequests = ownerRequests,
                 ReservedNamespaces = reservedPrefixes,
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
-                IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false
+                IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false,
+                IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled()
             };
+
             return View(model);
         }
 

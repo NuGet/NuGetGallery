@@ -805,7 +805,8 @@ namespace NuGetGallery.Services
                 var packageService = new Mock<IPackageService>();
                 if (_user != null)
                 {
-                    packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(_user, true, It.IsAny<bool>())).Returns(_userPackages);
+                    packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(
+                        _user, true, It.IsAny<bool>(), It.IsAny<bool>())).Returns(_userPackages);
                     var packageRegistraionList = new List<PackageRegistration>();
                     if(_userPackagesRegistration != null)
                     {
