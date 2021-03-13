@@ -2063,22 +2063,20 @@ namespace NuGetGallery
             {
                 // Arrange
                 const string packageId = "Baz";
-                const string packageVersion = "1.0.1";
-                var actionResult = new RedirectResult("http://foo");
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller.MockPackageService
-                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
+                    .Setup(x => x.FindPackageByIdAndVersion(packageId, null, SemVerLevelKey.SemVer2, false))
                     .Returns((Package)null).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(It.IsAny<Uri>(), packageId, packageVersion))
-                    .Returns(Task.FromResult<ActionResult>(actionResult))
-                    .Verifiable();
 
                 // Act
-                var result = await controller.GetPackageInternal(packageId, packageVersion);
+                var result = await controller.GetPackageInternal(packageId, null);
 
                 // Assert
-                Assert.IsType<RedirectResult>(result);
+                controller.MockPackageService.Verify();
+
+                var notFoundResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(404, notFoundResult.StatusCode);
             }
 
             [Fact]

@@ -1,5 +1,5 @@
 {
-    "isSymbolsUploadEnabledForAll": true,
+    "isSymbolsUploadEnabledForAll": false,
     "alwaysEnabledForEmailAddresses": [
     ],
     "alwaysEnabledForDomains": [
