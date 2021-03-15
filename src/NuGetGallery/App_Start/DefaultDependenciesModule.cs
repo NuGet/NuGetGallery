@@ -1380,12 +1380,12 @@ namespace NuGetGallery
             /// connection string. Each group is given a binding key which refers to the appropriate instance of the
             /// <see cref="IFileStorageService"/>.
             var completedBindingKeys = new HashSet<string>();
-            foreach (var dependent in StorageDependent.GetAll(configuration.Current))
+            var dependents = StorageDependent.GetAll(configuration.Current).ToList();
+            foreach (var dependent in dependents)
             {
                 if (completedBindingKeys.Add(dependent.BindingKey))
                 {
                     builder.Register(_ => new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                       .As<ICloudBlobClient>()
                        .InstancePerLifetimeScope()
                        .Keyed<ICloudBlobClient>(dependent.BindingKey);
 
@@ -1395,17 +1395,17 @@ namespace NuGetGallery
                         .WithParameter(new ResolvedParameter(
                            (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
-                        .As<IFileStorageService>()
-                        .As<ICoreFileStorageService>()
                         .InstancePerLifetimeScope()
                         .Keyed<IFileStorageService>(dependent.BindingKey);
                 }
 
                 var registration = builder.RegisterType(dependent.ImplementationType)
                     .WithParameter(new ResolvedParameter(
-                       (pi, ctx) => pi.ParameterType.IsAssignableFrom(typeof(IFileStorageService)),
-                       (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
-                    .AsSelf()
+                        (pi, ctx) => pi.ParameterType.IsAssignableFrom(typeof(IFileStorageService)),
+                        (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
+                    .WithParameter(new ResolvedParameter(
+                        (pi, ctx) => pi.ParameterType == typeof(Func<IFileStorageService>),
+                        (pi, ctx) => ctx.ResolveKeyed<Func<IFileStorageService>>(dependent.BindingKey)))
                     .As(dependent.InterfaceType);
 
                 if (dependent.IsSingleInstance)
