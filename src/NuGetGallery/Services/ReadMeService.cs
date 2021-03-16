@@ -322,7 +322,7 @@ namespace NuGetGallery
             return encoding.GetString(buffer).Trim('\0');
         }
 
-        private static readonly Regex NewLineRegex = new Regex(@"\n|\r\n");
+        private static readonly Regex NewLineRegex = RegexEx.CreateWithTimeout(@"\n|\r\n", RegexOptions.None);
 
         private static string NormalizeNewLines(string content)
         {

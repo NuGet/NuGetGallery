@@ -41,8 +41,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(str2));
             }
 
-            var newStr1 = Regex.Replace(str1, SpecialCharactersToString, string.Empty);
-            var newStr2 = Regex.Replace(str2, SpecialCharactersToString, string.Empty);
+            var newStr1 = RegexEx.ReplaceWithTimeout(str1, SpecialCharactersToString, string.Empty, RegexOptions.None);
+            var newStr2 = RegexEx.ReplaceWithTimeout(str2, SpecialCharactersToString, string.Empty, RegexOptions.None);
             if (Math.Abs(newStr1.Length - newStr2.Length) > threshold)
             {
                 return false;
