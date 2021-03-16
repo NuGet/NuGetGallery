@@ -314,7 +314,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private static bool IsId(string query)
         {
             return query.Length <= PackageIdValidator.MaxPackageIdLength
-                && PackageIdValidator.IsValidPackageId(query);
+                && PackageIdValidator.IsValidPackageIdWithTimeout(query);
         }
 
         private static bool IsIdWithSeparator(string query)

@@ -153,7 +153,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             // Verify that the package type only has valid package ID characters so we don't need to worry about
             // escaping quotes and such.
-            if (packageType != null && PackageIdValidator.IsValidPackageId(packageType))
+            if (packageType != null && PackageIdValidator.IsValidPackageIdWithTimeout(packageType))
             {
                 filterString += $" and {IndexFields.Search.FilterablePackageTypes}/any(p: p eq '{packageType.ToLowerInvariant()}')";
             }
