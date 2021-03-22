@@ -43,7 +43,7 @@ namespace NuGetGallery.Authentication
         public class TheStartupMethod : TestContainer
         {
             [Fact]
-            public async Task LoadsConfigFromConfigurationService()
+            public void LoadsConfigFromConfigurationService()
             {
                 // Arrange
                 var configurationService = GetConfigurationService();
@@ -51,7 +51,7 @@ namespace NuGetGallery.Authentication
                 var auther = new ATestAuthenticator();
 
                 // Act
-                await auther.Startup(configurationService, Get<IAppBuilder>());
+                auther.Startup(configurationService, Get<IAppBuilder>());
 
                 // Assert
                 Assert.Equal(authConfig.Enabled, auther.BaseConfig.Enabled);
@@ -59,7 +59,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task DoesNotAttachToOwinAppIfDisabled()
+            public void DoesNotAttachToOwinAppIfDisabled()
             {
                 // Arrange
                 var auther = new ATestAuthenticator();
@@ -70,14 +70,14 @@ namespace NuGetGallery.Authentication
                 mockConfiguration.Settings[$"{Authenticator.AuthPrefix}{auther.Name}.{nameof(tempAuthConfig.Enabled)}"] = "false";
 
                 // Act
-                await auther.Startup(mockConfiguration, Get<IAppBuilder>());
+                auther.Startup(mockConfiguration, Get<IAppBuilder>());
 
                 // Assert
                 Assert.Null(auther.AttachedTo);
             }
 
             [Fact]
-            public async Task AttachesToOwinAppIfEnabled()
+            public void AttachesToOwinAppIfEnabled()
             {
                 // Arrange
                 var auther = new ATestAuthenticator();
@@ -88,7 +88,7 @@ namespace NuGetGallery.Authentication
                 mockConfiguration.Settings[$"{Authenticator.AuthPrefix}{auther.Name}.{nameof(tempAuthConfig.Enabled)}"] = "true";
 
                 // Act
-                await auther.Startup(mockConfiguration, Get<IAppBuilder>());
+                auther.Startup(mockConfiguration, Get<IAppBuilder>());
 
                 // Assert
                 Assert.Same(Get<IAppBuilder>(), auther.AttachedTo);

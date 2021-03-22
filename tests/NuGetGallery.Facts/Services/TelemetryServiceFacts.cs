@@ -343,6 +343,26 @@ namespace NuGetGallery
                     yield return new object[] { "SymbolPackagePushDisconnect",
                         (TrackAction)(s => s.TrackSymbolPackagePushDisconnectEvent())
                     };
+
+                    yield return new object[] { "ExpiredSecretRequested",
+                        (TrackAction)(s => s.TrackExpiredSecretRequested("someSecret"))
+                    };
+
+                    yield return new object[] { "UnknownSecretRequested",
+                        (TrackAction)(s => s.TrackUnknownSecretRequested("someSecret"))
+                    };
+
+                    yield return new object[] { "SecretRefreshFailure",
+                        (TrackAction)(s => s.TrackSecretRefreshFailure("someSecret"))
+                    };
+
+                    yield return new object[] { "SecretRefreshIteration",
+                        (TrackAction)(s => s.TrackSecretRefreshIteration())
+                    };
+
+                    yield return new object[] { "BackgroundRefreshTaskLeakedException",
+                        (TrackAction)(s => s.TrackBackgroundRefreshTaskLeakedException())
+                    };
                 }
             }
 

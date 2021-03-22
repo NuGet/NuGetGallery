@@ -8,12 +8,16 @@ using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
+using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration.SecretReader;
 
 namespace NuGetGallery.Configuration
@@ -37,24 +41,56 @@ namespace NuGetGallery.Configuration
             SettingPrefix + "SqlServer",
             SettingPrefix + "SqlServerReadOnlyReplica",
             SettingPrefix + "SupportRequestSqlServer",
-            SettingPrefix + "ValidationSqlServer" };
+            SettingPrefix + "ValidationSqlServer",
 
-        public ISecretInjector SecretInjector { get; set; }
+            // Telemetry configuration contains no secrets, preventing injection, so we could create one
+            // before we set up secret injection.
+            SettingPrefix + nameof(ITelemetryConfiguration.AppInsightsHeartbeatIntervalSeconds),
+            SettingPrefix + nameof(ITelemetryConfiguration.AppInsightsInstrumentationKey),
+            SettingPrefix + nameof(ITelemetryConfiguration.AppInsightsSamplingPercentage),
+            SettingPrefix + nameof(ITelemetryConfiguration.DeploymentLabel),
+        };
+
+        private readonly Dictionary<ConfigurationType, ConfigurationDescription> _configurationTypes;
+
+        public ISyncSecretInjector SecretInjector { get; set; }
+
+        private enum ConfigurationType
+        {
+            AppConfiguration,
+            FeatureConfiguration,
+            ServiceBusConfiguration,
+            PackageDeleteConfiguration,
+            AuthenticatorConfiguration,
+        }
 
         /// <summary>
         /// Initializes the configuration service and associates a secret injector based on the configured KeyVault
         /// settings.
         /// </summary>
-        public static ConfigurationService Initialize()
+        public static ConfigurationService Initialize(ILoggerFactory loggerFactory, TelemetryService telemetryService)
         {
             var configuration = new ConfigurationService();
             var secretReaderFactory = new SecretReaderFactory(configuration);
-            var secretReader = secretReaderFactory.CreateSecretReader();
+            var secretReader = secretReaderFactory.CreateSecretReader(
+                configuration.GetAllSecretNames(),
+                loggerFactory.CreateLogger("SecretReader"),
+                telemetryService);
             var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
 
             configuration.SecretInjector = secretInjector;
+            secretReader.WaitForTheFirstRefresh();
 
             return configuration;
+        }
+
+        public static ITelemetryConfiguration GetTelemetryConfiguration()
+        {
+            var configuration = new ConfigurationService();
+            // we expect that all properties of ITelemetryConfiguration are listed in
+            // NotInjectedSettingNames above, so we would be able to initialize it without
+            // needing to initialize secret injection
+            return configuration.ResolveConfigObject(new TelemetryConfiguration(), SettingPrefix);
         }
 
         public ConfigurationService()
@@ -62,10 +98,44 @@ namespace NuGetGallery.Configuration
             _httpSiteRootThunk = new Lazy<string>(GetHttpSiteRoot);
             _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
 
-            _lazyAppConfiguration = new Lazy<IAppConfiguration>(() => ResolveSettings().Result);
-            _lazyFeatureConfiguration = new Lazy<FeatureConfiguration>(() => ResolveFeatures().Result);
-            _lazyServiceBusConfiguration = new Lazy<IServiceBusConfiguration>(() => ResolveServiceBus().Result);
-            _lazyPackageDeleteConfiguration = new Lazy<IPackageDeleteConfiguration>(() => ResolvePackageDelete().Result);
+            _lazyAppConfiguration = new Lazy<IAppConfiguration>(() => ResolveSettings());
+            _lazyFeatureConfiguration = new Lazy<FeatureConfiguration>(() => ResolveFeatures());
+            _lazyServiceBusConfiguration = new Lazy<IServiceBusConfiguration>(() => ResolveServiceBus());
+            _lazyPackageDeleteConfiguration = new Lazy<IPackageDeleteConfiguration>(() => ResolvePackageDelete());
+
+            _configurationTypes = new Dictionary<ConfigurationType, ConfigurationDescription>()
+            {
+                {
+                    ConfigurationType.AppConfiguration,
+                    new ConfigurationDescription(
+                        configService => configService.ResolveConfigObject(new AppConfiguration(), SettingPrefix),
+                        configService => configService.GetSecretNames(new AppConfiguration(), SettingPrefix))
+                },
+                {
+                    ConfigurationType.FeatureConfiguration,
+                    new ConfigurationDescription(
+                        configService => configService.ResolveConfigObject(new FeatureConfiguration(), FeaturePrefix),
+                        configService => configService.GetSecretNames(new FeatureConfiguration(), FeaturePrefix))
+                },
+                {
+                    ConfigurationType.ServiceBusConfiguration,
+                    new ConfigurationDescription(
+                        configService => configService.ResolveConfigObject(new ServiceBusConfiguration(), ServiceBusPrefix),
+                        configService => configService.GetSecretNames(new ServiceBusConfiguration(), ServiceBusPrefix))
+                },
+                {
+                    ConfigurationType.PackageDeleteConfiguration,
+                    new ConfigurationDescription(
+                        configService => configService.ResolveConfigObject(new PackageDeleteConfiguration(), PackageDeletePrefix),
+                        configService => configService.GetSecretNames(new PackageDeleteConfiguration(), PackageDeletePrefix))
+                },
+                {
+                    ConfigurationType.AuthenticatorConfiguration,
+                    new ConfigurationDescription(
+                        configService => throw new NotImplementedException(),
+                        configService => configService.GetAuthenticatorSecretNames(Authenticator.AuthPrefix))
+                },
+            };
         }
 
         public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
@@ -103,19 +173,17 @@ namespace NuGetGallery.Configuration
                 classPrefix = configNamePrefixProperty.Prefix;
             }
 
-            return ResolveConfigObject(Activator.CreateInstance<T>(), classPrefix);
+            return Task.FromResult(ResolveConfigObject(Activator.CreateInstance<T>(), classPrefix));
         }
 
-        public async Task<T> ResolveConfigObject<T>(T instance, string prefix)
+        public T ResolveConfigObject<T>(T instance, string prefix)
         {
             // Iterate over the properties
             foreach (var property in GetConfigProperties<T>(instance))
             {
                 // Try to get a config setting value
-                string baseName = string.IsNullOrEmpty(property.DisplayName) ? property.Name : property.DisplayName;
-                string settingName = prefix + baseName;
-
-                string value = await ReadSettingAsync(settingName);
+                string settingName = GetSettingName(property, prefix);
+                string value = ReadSetting(settingName);
 
                 if (string.IsNullOrEmpty(value))
                 {
@@ -154,13 +222,13 @@ namespace NuGetGallery.Configuration
             return instance;
         }
 
-        public async Task<string> ReadSettingAsync(string settingName)
+        public string ReadSetting(string settingName)
         {
             var value = ReadRawSetting(settingName);
 
             if (!string.IsNullOrEmpty(value) && !NotInjectedSettingNames.Contains(settingName))
             {
-                value = await SecretInjector.InjectAsync(value);
+                value = SecretInjector.Inject(value);
             }
 
             return value;
@@ -185,29 +253,90 @@ namespace NuGetGallery.Configuration
             return value;
         }
 
+        private static string GetSettingName(PropertyDescriptor property, string prefix)
+        {
+            string baseName = string.IsNullOrEmpty(property.DisplayName) ? property.Name : property.DisplayName;
+            return prefix + baseName;
+        }
+
+        private ICollection<string> GetSecretNames<T>(T instance, string prefix)
+        {
+            var secretNames = new HashSet<string>();
+            foreach (var property in GetConfigProperties<T>(instance))
+            {
+                string settingName = GetSettingName(property, prefix);
+                string settingRawValue = ReadRawSetting(settingName);
+                if (settingRawValue != null)
+                {
+                    secretNames.UnionWith(NuGet.Services.KeyVault.SecretUtilities.GetSecretNames(settingRawValue, NuGet.Services.KeyVault.SecretInjector.DefaultFrame));
+                }
+            }
+
+            return secretNames;
+        }
+
+        private ICollection<string> GetAuthenticatorSecretNames(string authPrefix)
+        {
+            // Authenticator resolves configuration on its own, so we'll mimic its behavior to generate
+            // all possible secret names it could reach
+
+            var authenticators = Assembly.GetExecutingAssembly().GetTypes().Where(t => typeof(Authenticator).IsAssignableFrom(t)).ToList();
+            var prefixes = authenticators.Select(a => Authenticator.GetName(a)).ToList();
+
+            var secretNames = new HashSet<string>();
+            foreach (var prefix in prefixes)
+            {
+                secretNames.UnionWith(GetSecretNames(new AuthenticatorConfiguration(), prefix));
+            }
+
+            return secretNames;
+        }
+
         protected virtual HttpRequestBase GetCurrentRequest()
         {
             return new HttpRequestWrapper(HttpContext.Current.Request);
         }
 
-        private async Task<FeatureConfiguration> ResolveFeatures()
+        private class ConfigurationDescription
         {
-            return await ResolveConfigObject(new FeatureConfiguration(), FeaturePrefix);
+            public Func<ConfigurationService, object> GetResolvedConfigurationObject { get; }
+            public Func<ConfigurationService, ICollection<string>> GetSecretNames { get; }
+
+            public ConfigurationDescription(Func<ConfigurationService, object> getResolvedConfigurationObject, Func<ConfigurationService, ICollection<string>> getSecretNames)
+            {
+                GetResolvedConfigurationObject = getResolvedConfigurationObject ?? throw new ArgumentNullException(nameof(getResolvedConfigurationObject));
+                GetSecretNames = getSecretNames ?? throw new ArgumentNullException(nameof(getSecretNames));
+            }
         }
 
-        private async Task<IAppConfiguration> ResolveSettings()
+        private FeatureConfiguration ResolveFeatures()
         {
-            return await ResolveConfigObject(new AppConfiguration(), SettingPrefix);
+            return (FeatureConfiguration)_configurationTypes[ConfigurationType.FeatureConfiguration].GetResolvedConfigurationObject(this);
         }
 
-        private async Task<IServiceBusConfiguration> ResolveServiceBus()
+        private IAppConfiguration ResolveSettings()
         {
-            return await ResolveConfigObject(new ServiceBusConfiguration(), ServiceBusPrefix);
+            return (IAppConfiguration)_configurationTypes[ConfigurationType.AppConfiguration].GetResolvedConfigurationObject(this);
         }
 
-        private async Task<IPackageDeleteConfiguration> ResolvePackageDelete()
+        private IServiceBusConfiguration ResolveServiceBus()
         {
-            return await ResolveConfigObject(new PackageDeleteConfiguration(), PackageDeletePrefix);
+            return (IServiceBusConfiguration)_configurationTypes[ConfigurationType.ServiceBusConfiguration].GetResolvedConfigurationObject(this);
+        }
+
+        private IPackageDeleteConfiguration ResolvePackageDelete()
+        {
+            return (IPackageDeleteConfiguration)_configurationTypes[ConfigurationType.PackageDeleteConfiguration].GetResolvedConfigurationObject(this);
+        }
+
+        private ICollection<string> GetAllSecretNames()
+        {
+            var secretNames = new HashSet<string>();
+            foreach (var configurationDescription in _configurationTypes.Values)
+            {
+                secretNames.UnionWith(configurationDescription.GetSecretNames(this));
+            }
+            return secretNames;
         }
 
         protected virtual string GetCloudServiceSetting(string settingName)
@@ -289,6 +418,15 @@ namespace NuGetGallery.Configuration
             }
 
             return "https://" + siteRoot.Substring(7);
+        }
+
+        private class TelemetryConfiguration : ITelemetryConfiguration
+        {
+            public string AppInsightsInstrumentationKey { get; set; }
+            public double AppInsightsSamplingPercentage { get; set; }
+            public int AppInsightsHeartbeatIntervalSeconds { get; set; }
+            [DefaultValue(null)]
+            public string DeploymentLabel { get; set; }
         }
     }
 }

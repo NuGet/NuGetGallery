@@ -4,6 +4,7 @@
 using System;
 using System.Configuration;
 using System.Diagnostics;
+using System.Threading;
 using System.Xml;
 using NuGetGallery.Configuration;
 
@@ -11,7 +12,21 @@ namespace NuGetGallery
 {
     public class GalleryMachineKeyConfigurationProvider : ProtectedConfigurationProvider
     {
-        public static IGalleryConfigurationService Configuration { get; set; }
+        private static ManualResetEventSlim _configurationSet = new ManualResetEventSlim(false);
+
+        private static IGalleryConfigurationService _configuration = null;
+        public static IGalleryConfigurationService Configuration
+        {
+            get 
+            {
+                return _configuration;
+            }
+            set 
+            {
+                _configuration = value;
+                _configurationSet.Set();
+            }
+        }
 
         public override XmlNode Decrypt(XmlNode encryptedNode)
         {
@@ -24,14 +39,8 @@ namespace NuGetGallery
             // Get the configuration used for fetching the machine key settings. These will be cached for the lifetime
             // of the process. This is acceptable because this function's outupt is also cached for the duration of the
             // process by the .NET Framework configuration system.
+            _configurationSet.Wait();
             var config = Configuration;
-            if (Configuration == null)
-            {
-                Trace.TraceWarning($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Initializing dedicated configuration service.");
-                config = ConfigurationService.Initialize();
-                Trace.TraceWarning($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Initialized dedicated configuration service.");
-                Configuration = config;
-            }
 
             // The machine keys are used for encrypting/decrypting cookies used by ASP.NET, these are usually set by IIS in 'Auto' mode. 
             // During a deployment to Azure cloud service the same machine key values are set on all the instances of a given cloud service,

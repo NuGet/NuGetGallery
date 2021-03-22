@@ -6,7 +6,7 @@ using NuGet.Services.Messaging.Email;
 
 namespace NuGetGallery.Configuration
 {
-    public interface IAppConfiguration : IMessageServiceConfiguration
+    public interface IAppConfiguration : IMessageServiceConfiguration, ITelemetryConfiguration
     {
         /// <summary>
         /// Gets the location in which the Lucene Index is stored
@@ -199,21 +199,6 @@ namespace NuGetGallery.Configuration
         /// Gets the App ID of the Facebook app associated with this deployment
         /// </summary>
         string FacebookAppId { get; set; }
-
-        /// <summary>
-        /// Gets the Application Insights instrumentation key associated with this deployment.
-        /// </summary>
-        string AppInsightsInstrumentationKey { get; set; }
-
-        /// <summary>
-        /// Gets the Application Insights sampling percentage associated with this deployment.
-        /// </summary>
-        double AppInsightsSamplingPercentage { get; set; }
-
-        /// <summary>
-        /// Gets the Application Insights heartbeat interval in seconds associated with this deployment.
-        /// </summary>
-        int AppInsightsHeartbeatIntervalSeconds { get; set; }
 
         /// <summary>
         /// The tenant key used for Microsoft's internal instrumentation system similar to Application Insights.
@@ -455,11 +440,6 @@ namespace NuGetGallery.Configuration
         /// '{version-lower}' will be replaced with the normalized package version in lowercase.
         /// </summary>
         string EmbeddedIconUrlTemplate { get; set; }
-
-        /// <summary>
-        /// Deployment label to log with telemetry.
-        /// </summary>
-        string DeploymentLabel { get; set; }
 
         /// <summary>
         /// Allows to override the default (or externally configured) minWorkerThreads setting. Must be specified with <see cref="MinIoThreads"/>.

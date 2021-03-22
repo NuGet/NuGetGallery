@@ -89,24 +89,30 @@ namespace NuGetGallery
         {
             var services = new ServiceCollection();
 
-            var configuration = ConfigurationService.Initialize();
-            var secretInjector = configuration.SecretInjector;
+            var telemetryConfiguration = ConfigurationService.GetTelemetryConfiguration();
 
-            builder.RegisterInstance(secretInjector)
-                .AsSelf()
-                .As<ISecretInjector>()
-                .SingleInstance();
-
-            // Register the ILoggerFactory and configure AppInsights.
             var applicationInsightsConfiguration = ConfigureApplicationInsights(
-                configuration.Current,
+                telemetryConfiguration,
                 out ITelemetryClient telemetryClient);
+
+            var telemetryService = new TelemetryService(
+                new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
+                telemetryClient);
 
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(
                 loggerConfiguration,
                 telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
 
+            var configuration = ConfigurationService.Initialize(loggerFactory, telemetryService);
+            var secretInjector = configuration.SecretInjector;
+
+            builder.RegisterInstance(secretInjector)
+                .AsSelf()
+                .As<ISyncSecretInjector>()
+                .SingleInstance();
+
+            // Register the ILoggerFactory and configure AppInsights.
             builder.RegisterInstance(applicationInsightsConfiguration.TelemetryConfiguration)
                 .AsSelf()
                 .SingleInstance();
@@ -143,10 +149,6 @@ namespace NuGetGallery
 
             builder.Register(c => configuration.PackageDelete)
                 .As<IPackageDeleteConfiguration>();
-
-            var telemetryService = new TelemetryService(
-                new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
-                telemetryClient);
 
             builder.RegisterInstance(telemetryService)
                 .AsSelf()
@@ -518,7 +520,7 @@ namespace NuGetGallery
 
         // Internal for testing purposes
         internal static ApplicationInsightsConfiguration ConfigureApplicationInsights(
-            IAppConfiguration configuration,
+            ITelemetryConfiguration configuration,
             out ITelemetryClient telemetryClient)
         {
             var instrumentationKey = configuration.AppInsightsInstrumentationKey;
@@ -914,10 +916,10 @@ namespace NuGetGallery
             ILoggerFactory loggerFactory,
             string name,
             string connectionString,
-            ISecretInjector secretInjector)
+            ISyncSecretInjector secretInjector)
         {
             var logger = loggerFactory.CreateLogger($"AzureSqlConnectionFactory-{name}");
-            return new AzureSqlConnectionFactory(connectionString, secretInjector, logger);
+            return new AzureSqlConnectionFactory(connectionString, new AsyncSecretInjectorAdaptor(secretInjector), logger);
         }
 
         private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
@@ -929,7 +931,7 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ISecretInjector secretInjector)
+            ISyncSecretInjector secretInjector)
         {
             var galleryDbReadOnlyReplicaConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,
@@ -950,7 +952,7 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ISecretInjector secretInjector)
+            ISyncSecretInjector secretInjector)
         {
             var validationDbConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,
@@ -979,7 +981,7 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ISecretInjector secretInjector)
+            ISyncSecretInjector secretInjector)
         {
             builder
                 .RegisterType<NuGet.Services.Validation.ServiceBusMessageSerializer>()

@@ -2,13 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Cryptography.X509Certificates;
+using System.Web.Hosting;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.KeyVault;
 
 namespace NuGetGallery.Configuration.SecretReader
 {
-    public class SecretReaderFactory : ISecretReaderFactory
+    public class SecretReaderFactory
     {
         internal const string KeyVaultConfigurationPrefix = "KeyVault.";
         internal const string UseManagedIdentityConfigurationKey = "UseManagedIdentity";
@@ -26,14 +29,14 @@ namespace NuGetGallery.Configuration.SecretReader
             _configurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
         }
 
-        public ISecretInjector CreateSecretInjector(ISecretReader secretReader)
+        public ISyncSecretInjector CreateSecretInjector(ISyncSecretReader secretReader)
         {
             if (secretReader == null)
             {
                 throw new ArgumentNullException(nameof(secretReader));
             }
 
-            return new SecretInjector(secretReader);
+            return new SyncSecretInjector(secretReader);
         }
 
         private string ResolveKeyVaultSettingName(string settingName)
@@ -41,7 +44,10 @@ namespace NuGetGallery.Configuration.SecretReader
             return string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, settingName);
         }
 
-        public ISecretReader CreateSecretReader()
+        public CachingBackgroundRefreshingSecretReader CreateSecretReader(
+            ICollection<string> secretNames,
+            ILogger logger,
+            ICachingBackgroundRefreshingSecretReaderTelemetryService telemetryService)
         {
             ISecretReader secretReader;
 
@@ -73,7 +79,14 @@ namespace NuGetGallery.Configuration.SecretReader
                 secretReader = new EmptySecretReader();
             }
 
-            return new CachingSecretReader(secretReader, refreshIntervalSec: SecretCachingRefreshInterval);
+            return new CachingBackgroundRefreshingSecretReader(
+                secretReader,
+                HostingEnvironment.QueueBackgroundWorkItem,
+                secretNames,
+                telemetryService,
+                logger,
+                refreshInterval: TimeSpan.FromDays(1),
+                backgroundThreadSleepInterval: TimeSpan.FromMinutes(1));
         }
 
         private bool GetOptionalKeyVaultBoolSettingValue(string settingName, bool defaultValue)

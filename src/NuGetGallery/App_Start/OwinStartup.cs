@@ -128,7 +128,7 @@ namespace NuGetGallery
             if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out localUserAuthenticator))
             {
                 // Configure cookie auth now
-                localUserAuthenticator.Startup(config, app).Wait();
+                localUserAuthenticator.Startup(config, app);
             }
 
             // Attach external sign-in cookie middleware
@@ -151,7 +151,7 @@ namespace NuGetGallery
                 .Select(p => p.Value);
             foreach (var auther in nonCookieAuthers)
             {
-                auther.Startup(config, app).Wait();
+                auther.Startup(config, app);
             }
 
             var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();

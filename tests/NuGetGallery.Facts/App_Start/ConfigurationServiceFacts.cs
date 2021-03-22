@@ -106,7 +106,7 @@ namespace NuGetGallery.App_Start
         {
             private class TestableConfigurationService : ConfigurationService
             {
-                public TestableConfigurationService(ISecretInjector secretInjector = null)
+                public TestableConfigurationService(ISyncSecretInjector secretInjector = null)
                 {
                     SecretInjector = secretInjector ?? CreateDefaultSecretInjector();
                 }
@@ -132,7 +132,7 @@ namespace NuGetGallery.App_Start
                     return AppSettingStub;
                 }
 
-                private static ISecretInjector CreateDefaultSecretInjector()
+                private static ISyncSecretInjector CreateDefaultSecretInjector()
                 {
                     var secretReaderFactory = new EmptySecretReaderFactory();
                     return secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader());
@@ -140,7 +140,7 @@ namespace NuGetGallery.App_Start
             }
 
             [Fact]
-            public async Task WhenCloudSettingIsNullStringNullIsReturned()
+            public void WhenCloudSettingIsNullStringNullIsReturned()
             {
                 // Arrange
                 var configurationService = new TestableConfigurationService();
@@ -149,14 +149,14 @@ namespace NuGetGallery.App_Start
                 configurationService.ConnectionStringStub = "abc";
 
                 // Act 
-                string result = await configurationService.ReadSettingAsync("any");
+                string result = configurationService.ReadSetting("any");
 
                 // Assert
                 Assert. Null(result);
             }
 
             [Fact]
-            public async Task WhenCloudSettingIsEmptyAppSettingIsReturned()
+            public void WhenCloudSettingIsEmptyAppSettingIsReturned()
             {
                 // Arrange
                 var configurationService = new TestableConfigurationService();
@@ -165,25 +165,25 @@ namespace NuGetGallery.App_Start
                 configurationService.ConnectionStringStub = "abc";
 
                 // Act 
-                string result = await configurationService.ReadSettingAsync("any");
+                string result = configurationService.ReadSetting("any");
 
                 // Assert
                 Assert.Equal(configurationService.ConnectionStringStub, result);
             }
 
             [Fact]
-            public async Task WhenSettingIsNotEmptySecretInjectorIsRan()
+            public void WhenSettingIsNotEmptySecretInjectorIsRan()
             {
                 // Arrange
-                var secretInjectorMock = new Mock<ISecretInjector>();
-                secretInjectorMock.Setup(x => x.InjectAsync(It.IsAny<string>()))
-                                  .Returns<string>(s => Task.FromResult(s + "parsed"));
+                var secretInjectorMock = new Mock<ISyncSecretInjector>();
+                secretInjectorMock.Setup(x => x.Inject(It.IsAny<string>()))
+                                  .Returns<string>(s => s + "parsed");
                 
                 var configurationService = new TestableConfigurationService(secretInjectorMock.Object);
                 configurationService.CloudSettingStub = "somevalue";
 
                 // Act 
-                string result = await configurationService.ReadSettingAsync("any");
+                string result = configurationService.ReadSetting("any");
 
                 // Assert
                 Assert.Equal("somevalueparsed", result);
@@ -198,21 +198,21 @@ namespace NuGetGallery.App_Start
             [InlineData("Gallery.sqlserverreadonlyreplica")]
             [InlineData("Gallery.supportrequestsqlserver")]
             [InlineData("Gallery.validationsqlserver")]
-            public async Task GivenNotInjectedSettingNameSecretInjectorIsNotRan(string settingName)
+            public void GivenNotInjectedSettingNameSecretInjectorIsNotRan(string settingName)
             {
                 // Arrange
-                var secretInjectorMock = new Mock<ISecretInjector>();
-                secretInjectorMock.Setup(x => x.InjectAsync(It.IsAny<string>()))
-                    .Returns<string>(s => Task.FromResult(s + "parsed"));
+                var secretInjectorMock = new Mock<ISyncSecretInjector>();
+                secretInjectorMock.Setup(x => x.Inject(It.IsAny<string>()))
+                    .Returns<string>(s => s + "parsed");
 
                 var configurationService = new TestableConfigurationService(secretInjectorMock.Object);
                 configurationService.CloudSettingStub = "somevalue";
 
                 // Act
-                string result = await configurationService.ReadSettingAsync(settingName);
+                string result = configurationService.ReadSetting(settingName);
 
                 // Assert
-                secretInjectorMock.Verify(x => x.InjectAsync(It.IsAny<string>()), Times.Never);
+                secretInjectorMock.Verify(x => x.Inject(It.IsAny<string>()), Times.Never);
                 Assert.Equal("somevalue", result);
             }
         }

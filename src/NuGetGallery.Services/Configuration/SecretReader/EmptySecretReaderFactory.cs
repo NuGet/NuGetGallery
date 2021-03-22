@@ -5,16 +5,16 @@ using NuGet.Services.KeyVault;
 
 namespace NuGetGallery.Configuration.SecretReader
 {
-    public class EmptySecretReaderFactory : ISecretReaderFactory
+    public class EmptySecretReaderFactory
     {
-        public ISecretInjector CreateSecretInjector(ISecretReader secretReader)
+        public ISyncSecretInjector CreateSecretInjector(ISyncSecretReader secretReader)
         {
-            return new SecretInjector(secretReader);
+            return new SyncSecretInjector(secretReader);
         }
 
-        public ISecretReader CreateSecretReader()
+        public ISyncSecretReader CreateSecretReader()
         {
-            return new EmptySecretReader();
+            return new EmptySyncSecretReader();
         }
     }
 }
