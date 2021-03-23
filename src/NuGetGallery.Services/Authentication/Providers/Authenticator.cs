@@ -43,6 +43,10 @@ namespace NuGetGallery.Authentication.Providers
         protected virtual void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app) { }
 
         // Configuration Logic
+        /// <remarks>
+        /// The prefix generation logic is duplicated in
+        /// <see cref="ConfigurationService.GetAuthenticatorSecretNames(string)"/>
+        /// </remarks>
         protected virtual void Configure(IGalleryConfigurationService config)
         {
             // The same prefix logic is used in ConfigurationService to build a list of secrets to refresh.

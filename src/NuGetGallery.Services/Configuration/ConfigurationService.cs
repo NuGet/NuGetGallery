@@ -275,21 +275,60 @@ namespace NuGetGallery.Configuration
             return secretNames;
         }
 
+        private class AuthenticatorInfo
+        {
+            public Type Type { get; set; }
+            public Type BaseType { get; set; }
+        }
+
         private ICollection<string> GetAuthenticatorSecretNames(string authPrefix)
         {
             // Authenticator resolves configuration on its own, so we'll mimic its behavior to generate
             // all possible secret names it could reach
 
-            var authenticators = Assembly.GetExecutingAssembly().GetTypes().Where(t => typeof(Authenticator).IsAssignableFrom(t)).ToList();
-            var prefixes = authenticators.Select(a => Authenticator.GetName(a)).ToList();
+            var authenticators = Assembly.GetExecutingAssembly().GetTypes()
+                .Select(t => new AuthenticatorInfo { Type = t, BaseType = GetBaseGenericAuthenticator(t) })
+                .Where(info => info.BaseType != null)
+                .ToList();
 
             var secretNames = new HashSet<string>();
-            foreach (var prefix in prefixes)
+            foreach (var authenticator in authenticators)
             {
-                secretNames.UnionWith(GetSecretNames(new AuthenticatorConfiguration(), prefix));
+                var prefix = $"{Authenticator.AuthPrefix}{Authenticator.GetName(authenticator.Type)}.";
+                var configurationType = authenticator.BaseType.GetGenericArguments()[0];
+                secretNames.UnionWith(GetSecretNames(Activator.CreateInstance(configurationType), prefix));
             }
 
             return secretNames;
+        }
+
+        /// <summary>
+        /// Checks if the type is concrete and descends from <see cref="Authenticator{TConfig}"/>.
+        /// </summary>
+        /// <param name="t">Type to check.</param>
+        /// <returns>Closed generic type of Authenticator it descends from or null if it doesn't.</returns>
+        private static Type GetBaseGenericAuthenticator(Type t)
+        {
+            bool basicChecks = !t.IsAbstract
+                    && !t.IsInterface
+                    && t.BaseType != null;
+            if (!basicChecks)
+            {
+                return null;
+            }
+
+            var baseType = t.BaseType;
+
+            while (baseType != null)
+            {
+                if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(Authenticator<>))
+                {
+                    return baseType;
+                }
+                baseType = baseType.BaseType;
+            }
+
+            return null;
         }
 
         protected virtual HttpRequestBase GetCurrentRequest()
