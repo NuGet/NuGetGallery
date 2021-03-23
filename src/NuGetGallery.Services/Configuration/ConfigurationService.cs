@@ -143,13 +143,13 @@ namespace NuGetGallery.Configuration
             return TypeDescriptor.GetProperties(instance).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly);
         }
 
-        public IAppConfiguration Current => ResolveSettings();
+        public virtual IAppConfiguration Current => ResolveSettings();
 
-        public FeatureConfiguration Features => ResolveFeatures();
+        public virtual FeatureConfiguration Features => ResolveFeatures();
 
-        public IServiceBusConfiguration ServiceBus => ResolveServiceBus();
+        public virtual IServiceBusConfiguration ServiceBus => ResolveServiceBus();
 
-        public IPackageDeleteConfiguration PackageDelete => ResolvePackageDelete();
+        public virtual IPackageDeleteConfiguration PackageDelete => ResolvePackageDelete();
 
         /// <summary>
         /// Gets the site root using the specified protocol
