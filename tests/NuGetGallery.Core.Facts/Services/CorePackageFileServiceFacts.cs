@@ -419,6 +419,31 @@ namespace NuGetGallery
             }
         }
 
+        public class TheGetPackageUriMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetPackageUriAsync(null));
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillUseFileStorageService()
+            {
+                await _service.GetPackageUriAsync(_package);
+
+                string filename = BuildFileName(_package.PackageRegistration.Id, _package.NormalizedVersion, CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate);
+
+                _fileStorageService.Verify(
+                    x => x.GetFileUriAsync(PackagesFolderName, filename),
+                    Times.Once());
+                _fileStorageService.Verify(
+                    x => x.GetFileUriAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once());
+            }
+        }
+
         public class TheGetPackageReadUriMethod : FactsBase
         {
             [Fact]

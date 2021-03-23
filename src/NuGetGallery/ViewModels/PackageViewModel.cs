@@ -28,6 +28,7 @@ namespace NuGetGallery
         public string Version { get; set; }
         public string FullVersion { get; set; }
         public PackageStatusSummary PackageStatusSummary { get; set; }
+        public bool IsVulnerable { get; set; }
 
         public bool IsCurrent(IPackageVersionModel current)
         {

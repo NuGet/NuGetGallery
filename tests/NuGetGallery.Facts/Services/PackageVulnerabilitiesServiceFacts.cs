@@ -1,13 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -62,6 +58,23 @@ namespace NuGetGallery.Services
             Assert.Equal(_vulnerabilityCritical, vulnerabilitiesFor111[1]);
 
             Assert.Null(notVulnerableResult);
+        }
+
+        [Fact]
+        public void GetsVulnerableStatusOfPackage()
+        {
+            // Arrange
+            SetUp();
+            var context = GetFakeContext();
+            var target = Get<PackageVulnerabilitiesService>();
+
+            // Act
+            var shouldBeVulnerable = target.IsPackageVulnerable(_packageVulnerable100);
+            var shouldNotBeVulnerable = target.IsPackageVulnerable(_packageNotVulnerable);
+
+            // Assert
+            Assert.True(shouldBeVulnerable);
+            Assert.False(shouldNotBeVulnerable);
         }
 
         private void SetUp()
@@ -130,13 +143,13 @@ namespace NuGetGallery.Services
                 Key = 2, // simulate a different order in db  - create a non-contiguous range of rows, even if the range is contiguous
                 PackageRegistration = _registrationVulnerable,
                 Version = "1.1.2",
-                VulnerablePackageRanges = null
+                VulnerablePackageRanges = new List<VulnerablePackageVersionRange>()
             };
             _packageNotVulnerable = new Package
             {
                 Key = 4,
                 PackageRegistration = new PackageRegistration { Id = "NotVulnerable" },
-                VulnerablePackageRanges = null
+                VulnerablePackageRanges = new List<VulnerablePackageVersionRange>()
             };
         }
     }

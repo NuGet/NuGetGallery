@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -33,7 +33,8 @@ namespace NuGetGallery
             Mock<ISecurityPolicyService> securityPolicyService = null,
             Action<Mock<PackageService>> setup = null,
             Mock<IEntitiesContext> context = null,
-            Mock<IContentObjectService> contentObjectService = null)
+            Mock<IContentObjectService> contentObjectService = null,
+            Mock<IFeatureFlagService> featureFlagService = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
@@ -49,6 +50,12 @@ namespace NuGetGallery
                 contentObjectService.Setup(x => x.QueryHintConfiguration).Returns(Mock.Of<IQueryHintConfiguration>());
             }
 
+            if (featureFlagService == null)
+            {
+                featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(x => x.ArePatternSetTfmHeuristicsEnabled()).Returns(true);
+            }
+
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
@@ -57,7 +64,8 @@ namespace NuGetGallery
                 telemetryService.Object,
                 securityPolicyService.Object,
                 context.Object,
-                contentObjectService.Object);
+                contentObjectService.Object,
+                featureFlagService.Object);
 
             packageService.CallBase = true;
 
@@ -969,6 +977,240 @@ namespace NuGetGallery
 
                 Assert.Empty(package.SupportedFrameworks);
             }
+
+            [Theory]
+            [InlineData(false, new[] { "net40", "net5.0", "netcore21" })]
+            [InlineData(true, new[] { "net5.0", "netcore21" })]
+            private void UsesTfmHeuristicsBasedOnFeatureFlag(bool useNewTfmHeuristics, IEnumerable<string> expectedSupportedTfms)
+            {
+                // arrange
+                // - create a package that responds differently to each set of heuristics
+                var nuspec =
+                    $@"<?xml version=""1.0""?>
+                        <package xmlns = ""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                            <metadata>
+                                <id>Foo</id>
+                                <frameworkAssemblies>
+                                    <frameworkAssembly assemblyName=""System"" targetFramework="".NETFramework4.0"" />
+                                </frameworkAssemblies>
+                            </metadata>
+                        </package>";
+                var nuspecReader = new NuspecReader(XDocument.Parse(nuspec));
+                var files = new List<string> { "lib/netcore2.1/_._", "lib/net5.0/_._" };
+                var package = new MockPackageArchiveReader(nuspecReader, files);
+
+                // - create feature flag services and package services for both scenarios
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(x => x.ArePatternSetTfmHeuristicsEnabled()).Returns(useNewTfmHeuristics);
+
+                // act
+                var supportedFrameworks = CreateService(featureFlagService: featureFlagService).GetSupportedFrameworks(package)
+                    .Select(f => f.GetShortFolderName())
+                    .OrderBy(f => f)
+                    .ToList();
+
+                // assert
+                Assert.Equal<string>(expectedSupportedTfms, supportedFrameworks);
+            }
+
+            [Theory]
+            [MemberData(nameof(TargetFrameworkCases))]
+            private void DeterminesCorrectSupportedFrameworksFromFileList(bool isTools, List<string> files, List<string> expectedSupportedFrameworks)
+            {
+                // arrange
+                var nuspec = isTools
+                    ? @"<?xml version=""1.0""?>
+                        <package xmlns = ""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                            <metadata>
+                                <id>Foo</id>
+                                <packageTypes>
+                                    <packageType name=""DotnetTool""/>
+                                </packageTypes>
+                            </metadata>
+                        </package>"
+                    : @"<?xml version=""1.0""?>
+                        <package xmlns = ""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                            <metadata>
+                                <id>Foo</id>
+                            </metadata>
+                        </package>";
+                var nuspecReader = new NuspecReader(XDocument.Parse(nuspec));
+
+                // act
+                var supportedFrameworks = CreateService().GetSupportedFrameworks(nuspecReader, files)
+                    .Select(f => f.GetShortFolderName())
+                    .OrderBy(f => f)
+                    .ToList();
+
+                // assert
+                Assert.Equal<string>(expectedSupportedFrameworks, supportedFrameworks);
+            }
+
+            /// <summary>
+            /// These cases use the guidance laid out here:
+            /// https://docs.microsoft.com/en-us/nuget/create-packages/creating-a-package
+            /// https://docs.microsoft.com/en-us/nuget/create-packages/supporting-multiple-target-frameworks
+            /// https://docs.microsoft.com/en-us/nuget/reference/target-frameworks
+            /// https://docs.microsoft.com/en-us/dotnet/standard/frameworks
+            /// </summary>
+            public static IEnumerable<object[]> TargetFrameworkCases =>
+                new List<object[]>
+                {
+                    // Runtimes
+                    // - note that without "runtimes/" we don't use runtime ids (RIDs).
+                    new object[] {false, new List<string> {"lib/net40/_._", "lib/net45/_._"}, new List<string> {"net40", "net45"}},
+                    new object[] {false, new List<string> {"lib/net40/_._", "lib/net471/_._"}, new List<string> {"net40", "net471"}},
+                    new object[] {false, new List<string> {"lib/net40/_._", "lib/net4.7.1/_._"}, new List<string> {"net40", "net471"}},
+                    new object[] {false, new List<string> {"lib/netcoreapp31/_._", "lib/netstandard20/_._"}, new List<string> {"netcoreapp3.1", "netstandard2.0"}},
+                    new object[] {false, new List<string> {"lib/_._"}, new List<string> {"net"}},        // no version
+                    new object[] {false, new List<string> {"lib/win/_._"}, new List<string> {"win"}},    // note that this is "win" the TFM (i.e. dep'd/replaced by netcore45), not "win" the RID.
+                    new object[] {false, new List<string> {"lib/foo/_._"}, new List<string> {"foo"}},    // this will be generated as a TFM if users use it, but it's meaningless to us
+                    new object[] {false, new List<string> {"lib/any/_._"}, new List<string> {"dotnet"}}, // "dotnet" is deprecated but is still discernable through this pattern
+                    // - resources
+                    new object[] {false, new List<string> {"lib/netcoreapp31/zh-hant/_._", "lib/netstandard20/zh_hant_._"}, new List<string> {"netcoreapp3.1", "netstandard2.0"}},
+                    new object[] {false, new List<string> {"lib/netcoreapp31/fr-fr/_._", "lib/netstandard20/zh_hans_._"}, new List<string> {"netcoreapp3.1", "netstandard2.0"}},
+                    // - portables
+                    new object[] {false, new List<string> {"lib/portable-net45+sl40+win+wp71/_._", "lib/portable-net45+sl50+win+wp71+wp80/_._"},
+                        new List<string> {"portable-net45+sl4+win+wp71", "portable-net45+sl5+win+wp71+wp8"}},
+                    new object[] {false, new List<string> {"lib/portable-profile14/_._", "lib/portable-profile154/_._", "lib/portable-profile7/_._"},
+                        new List<string> {"portable-net40+sl5", "portable-net45+sl4+win8+wp8", "portable-net45+win8"}},
+                    new object[] {false, new List<string> {"lib/portable-net45+sl50+foo50+wp71+wp80/_._", "lib/portable-net45+foo40+win+wp71/_._"},
+                        new List<string> {"portable-net45+sl5+unsupported+wp71+wp8", "portable-net45+unsupported+win+wp71"}},
+                    new object[] {false, new List<string> {"lib/portable-net45+monotouch+monoandroid10+xamarintvos/_._"}, new List<string> { "portable-monoandroid10+monotouch+net45+xamarintvos"}},
+                    // - including "runtimes/" gives us the option of runtime ids (RIDs) but these won't affect TFM determination
+                    new object[] {false, new List<string> {"runtimes/win/net40/_._", "runtimes/win/net471/_._"}, new List<string>()},                   // no "lib" dir
+                    new object[] {false, new List<string> {"runtimes/win/foostuff/net40/_._", "runtimes/win/foostuff/net471/_._"}, new List<string>()}, // no "lib" dir
+                    new object[] {false, new List<string> {"runtimes/win/lib/net40/_._", "runtimes/win/lib/net471/_._"}, new List<string> {"net40", "net471"}},
+                    new object[] {false, new List<string> {"runtimes/win/lib/net40/", "runtimes/win/lib/net471/_._"}, new List<string> {"net471"}},     // no file in "net40" dir
+                    // - resources
+                    new object[] {false, new List<string> {"runtimes/win/lib/net471/_._", "runtimes/win/lib/net472/fr-fr/_._"}, new List<string> {"net471", "net472"}},
+                    // - supporting different TFMs for different RIDs won't be exposed here--we just want the union set of all supported TFMs
+                    new object[] {false, new List<string> {"runtimes/win10-x64/lib/net40/_._", "runtimes/win10-arm/lib/net471/_._"}, new List<string> {"net40", "net471"}},
+                    // - net5.0+ runtimes
+                    new object[] {false, new List<string> {"lib/net5.0/_._", "lib/net5.0/_._"}, new List<string> {"net5.0"}},
+                    new object[] {false, new List<string> {"lib/net5.0-tvos/_._", "lib/net5.0-ios/_._"}, new List<string> {"net5.0-ios", "net5.0-tvos"}},
+                    new object[] {false, new List<string> {"lib/net5.0-tvos/_._", "lib/net5.0-ios13.0/_._"}, new List<string> {"net5.0-ios13.0", "net5.0-tvos"}},
+                    new object[] {false, new List<string> {"lib/net5.1-tvos/_._", "lib/net5.1/_._", "lib/net5.0-tvos/_._"}, new List<string> {"net5.0-tvos", "net5.1", "net5.1-tvos"}},
+                    new object[] {false, new List<string> {"lib/net5.0/_1._", "lib/net5.0/_2._", "lib/native/_._"}, new List<string> {"native", "net5.0" }},
+
+                    // Compile time refs
+                    new object[] {false, new List<string> {"ref/_._"}, new List<string>()},
+                    new object[] {false, new List<string> {"ref/net40/_._", "ref/net451/_._"}, new List<string> {"net40", "net451"}},
+                    new object[] {false, new List<string> {"ref/net5.0-watchos/_1._", "ref/net5.0-watchos/_2._" }, new List<string> {"net5.0-watchos"}},
+                    new object[] {false, new List<string> {"ref/net5.0-macos/_1._", "ref/net5.0-windows/_2._" }, new List<string> {"net5.0-macos", "net5.0-windows"}},
+
+                    // Build props/targets
+                    // - only if a props or target file is present of the name {id}.props|targets ({id} is "Foo" in our case) will the TFM be supported
+                    new object[] {false, new List<string> {"build/net40/Foo.props", "build/net42/Foo.targets"}, new List<string> {"net40", "net42"}},
+                    new object[] {false, new List<string> {"build/net40/Bar.props", "build/net42/Foo.targets"}, new List<string> {"net42"}},
+                    new object[] {false, new List<string> {"build/net40/Bar.props", "build/net42/Bar.targets"}, new List<string>()},
+                    new object[] {false, new List<string> {"build/net5.0/Foo.props", "build/net42/Foo.targets"}, new List<string> {"net42", "net5.0"}},
+                    // - "any" is a special case for build, where having no specific TFM is valid
+                    new object[] {false, new List<string> {"build/Foo.props", "build/Foo.targets"}, new List<string> {"any"}},
+                    new object[] {false, new List<string> {"build/Bar.props", "build/Foo.targets"}, new List<string> {"any"}},
+                    new object[] {false, new List<string> {"build/Bar.props", "build/Bar.targets"}, new List<string>()},
+
+                    // Tools
+                    // - a special case where we will only assess tools TFMs when the nuspec indicates it is a tools (and only a tools) package - hence the true bool
+                    // - also, a file in the TFM root doesn't qualify a TFM-supported tool - an RID or "any" must be provided
+                    // - see this: https://github.com/NuGet/Home/issues/6197#issuecomment-349495271 - "any" covers portables.
+                    new object[] {true, new List<string> {"tools/netcoreapp3.1/_._"}, new List<string>()},
+                    new object[] {true, new List<string> {"tools/netcoreapp3.1/win10-x86/_._"}, new List<string> {"netcoreapp3.1"}},
+                    new object[] {true, new List<string> {"tools/netcoreapp3.1/win10-x86/tool1/_._", "tools/netcoreapp3.1/win10-x86/tool2/_._" }, 
+                        new List<string> {"netcoreapp3.1"}},
+                    new object[] {true, new List<string> {"tools/netcoreapp3.1/any/_._"}, new List<string> {"netcoreapp3.1"}},
+                    new object[] {true, new List<string> {"tools/netcoreapp3.1/win/tool1/_._"}, new List<string> {"netcoreapp3.1"}},
+                    new object[] {true, new List<string> {"tools/netcoreapp3.1/win/any/_._"}, new List<string> {"netcoreapp3.1"}},
+                    new object[] {false, new List<string> {"tools/netcoreapp3.1/any/_._"}, new List<string>()}, // not a tools package, no supported TFMs
+
+                    // Content
+                    new object[] {false, new List<string> {"contentFiles/css/_._"}, new List<string>()},
+                    new object[] {false, new List<string> {"contentFiles/any/_._"}, new List<string>()},
+                    new object[] {false, new List<string> {"contentFiles/cs/netstandard2.0/_._"}, new List<string>{"netstandard2.0"}},
+                    new object[] {false, new List<string> {"contentFiles/any/netstandard2.0/_._"}, new List<string>{"netstandard2.0"}},
+                    new object[] {false, new List<string> {"contentFiles/cs/any/_._"}, new List<string>{"any"}},
+                    new object[] {false, new List<string> {"contentFiles/vb/net45/_._", "contentFiles/cs/netcoreapp3.1/_._"},
+                        new List<string>{"net45", "netcoreapp3.1"}},
+
+                    // Combinations
+                    new object[] 
+                    {
+                        false,
+                        new List<string>
+                        {
+                            "Foo.nuspec",
+                            "runtimes/win10-x86/lib/net40/_._",
+                            "runtimes/win10-x86/lib/net471/_._",
+                            "ref/net5.0-watchos/_1._",
+                            "ref/net5.0-watchos/_2._",
+                            "build/netstandard21/Foo.props",
+                            "build/netstandard20/Foo.targets",
+                            "tools/netcoreapp3.1/win10-x86/tool1/_._",
+                            "tools/netcoreapp3.1/win10-x86/tool2/_._"
+                        }, 
+                        new List<string>{"net40", "net471", "net5.0-watchos", "netstandard2.0", "netstandard2.1"}
+                    },
+                    // - note that a tools package (true below) is *only* a tools package when evaluating TFM support
+                    new object[] 
+                    {
+                        true, // tools package
+                        new List<string>
+                        {
+                            "Foo.nuspec",
+                            "runtimes/win10-x86/lib/net40/_._",
+                            "runtimes/win10-x86/lib/net471/_._",
+                            "ref/net5.0-watchos/_1._",
+                            "ref/net5.0-watchos/_2._",
+                            "build/netstandard21/Foo.props",
+                            "build/netstandard20/Foo.targets",
+                            "tools/netcoreapp3.1/win10-x86/tool1/_._",
+                            "tools/netcoreapp3.1/win10-x86/tool2/_._"
+                        }, 
+                        new List<string> {"netcoreapp3.1"}
+                    },
+                    new object[]
+                    {
+                        false,
+                        new List<string>
+                        {
+                            "Foo.nuspec",
+                            "runtimes/win10-x86/lib/xamarinios/_._",
+                            "runtimes/win10-x64/lib/xamarinios/_._",
+                            "ref/xamarinios/_1._",
+                            "ref/xamarinios/_2._",
+                            "build/netstandard21/Foo.props",
+                            "build/netstandard21/Foo.targets",
+                            "contentFiles/vb/net45/_._", 
+                            "contentFiles/cs/netstandard2.1/_._"
+                        },
+                        new List<string>{"net45", "netstandard2.1", "xamarinios"}
+                    },
+                    new object[]
+                    {
+                        false, 
+                        new List<string>
+                        {
+                            ".signature.p7s",
+                            "LICENSE.md",
+                            "Foo.nuspec",
+                            "fooIcon.png",
+                            "[Content_Types].xml",
+                            "_rels/.rels",
+                            "package/service/metadata/core-properties/foo1234.psmdcp",
+                            "lib/net20/Foo.dll",
+                            "lib/net35/Foo.dll",
+                            "lib/net40/Foo.dll",
+                            "lib/net45/Foo.dll",
+                            "lib/netstandard1.0/Foo.dll",
+                            "lib/netstandard1.3/Foo.dll",
+                            "lib/netstandard2.0/Foo.dll",
+                            "lib/portable-net40+sl5+win8+wp8+wpa81/Foo.dll",
+                            "lib/portable-net45+win8+wp8+wpa81/Foo.dll"
+                        },
+                        new List<string> {"net20", "net35", "net40", "net45", "netstandard1.0", "netstandard1.3", "netstandard2.0",
+                            "portable-net40+sl5+win8+wp8+wpa81", "portable-net45+win8+wp8+wpa81"}
+                    }
+                };
 
             [Fact]
             private async Task WillThrowIfTheRepositoryTypeIsLongerThan100()

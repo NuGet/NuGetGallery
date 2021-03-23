@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -85,9 +87,9 @@ namespace NuGetGallery
         Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages,
             string version, bool prerelease);
 
-        IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
+        IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false, bool includeVulnerabilities = false);
 
-        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
+        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false, bool includeVulnerabilities = false);
 
         IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
 
@@ -111,6 +113,10 @@ namespace NuGetGallery
         Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified);
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
+
+        IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package);
+
+        IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles);
 
         Task PublishPackageAsync(string id, string version, bool commitChanges = true);
         Task PublishPackageAsync(Package package, bool commitChanges = true);

@@ -64,6 +64,10 @@ namespace NuGetGallery.Services
 
                 Assert.Equal(0, abTestConfiguration.PreviewSearchPercentage);
                 Assert.Equal(0, abTestConfiguration.PreviewHijackPercentage);
+
+                var trustedImageDomains = service.TrustedImageDomains as TrustedImageDomains;
+
+                Assert.Empty(trustedImageDomains.TrustedImageDomainList);
             }
 
             [Fact]
@@ -105,6 +109,11 @@ namespace NuGetGallery.Services
                     packageIdChecklistCacheExpireTimeInHours: packageIdChecklistCacheExpireTimeInHours);
                 var typosquattingJson = JsonConvert.SerializeObject(typosquattingConfiguration);
 
+                var trustedImageDomainList = new[] { "dev.azure.com" };
+
+                var trustedImageDomains = new TrustedImageDomains(trustedImageDomainList: trustedImageDomainList);
+                var trustedImageDomainJson = JsonConvert.SerializeObject(trustedImageDomains);
+
                 var previewSearchPercentage = 2;
                 var previewHijackPercentage = 4;
                 var dependentsPercentage = 6;
@@ -134,6 +143,10 @@ namespace NuGetGallery.Services
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(typosquattingJson)));
 
                 contentService
+                    .Setup(x => x.GetContentItemAsync(ServicesConstants.ContentNames.TrustedImageDomains, It.IsAny<TimeSpan>()))
+                    .Returns(Task.FromResult<IHtmlString>(new HtmlString(trustedImageDomainJson)));
+
+                contentService
                     .Setup(x => x.GetContentItemAsync(ServicesConstants.ContentNames.ABTestConfiguration, It.IsAny<TimeSpan>()))
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(abTestJson)));
 
@@ -146,6 +159,7 @@ namespace NuGetGallery.Services
                 certificatesConfiguration = service.CertificatesConfiguration as CertificatesConfiguration;
                 symbolsConfiguration = service.SymbolsConfiguration as SymbolsConfiguration;
                 typosquattingConfiguration = service.TyposquattingConfiguration as TyposquattingConfiguration;
+                trustedImageDomains = service.TrustedImageDomains as TrustedImageDomains;
                 abTestConfiguration = service.ABTestConfiguration as ABTestConfiguration;
 
                 // Assert
@@ -166,6 +180,8 @@ namespace NuGetGallery.Services
                 Assert.True(typosquattingConfiguration.IsCheckEnabled);
                 Assert.True(typosquattingConfiguration.IsBlockUsersEnabled);
                 Assert.Equal(packageIdChecklistCacheExpireTimeInHours, typosquattingConfiguration.PackageIdChecklistCacheExpireTimeInHours);
+
+                Assert.Equal(trustedImageDomainList, trustedImageDomains.TrustedImageDomainList);
 
                 Assert.Equal(previewSearchPercentage, abTestConfiguration.PreviewSearchPercentage);
                 Assert.Equal(previewHijackPercentage, abTestConfiguration.PreviewHijackPercentage);

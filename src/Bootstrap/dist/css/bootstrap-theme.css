@@ -1228,6 +1228,7 @@ img.reserved-indicator-icon {
   -ms-user-select: all;
   user-select: all;
   vertical-align: middle;
+  word-break: break-word;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
   height: 100%;
@@ -1603,6 +1604,17 @@ img.reserved-indicator-icon {
 }
 .page-manage-packages .inner-table {
   margin-bottom: 0px;
+}
+.page-manage-packages .inner-table .package-icon-cell {
+  cursor: default;
+  padding-left: 0;
+  padding-right: 0;
+  text-align: right;
+}
+.page-manage-packages .inner-table .package-icon-cell .package-icon {
+  padding-left: 6px;
+  padding-right: 6px;
+  padding-top: 6px;
 }
 .page-manage-packages .required-signer {
   width: 100%;

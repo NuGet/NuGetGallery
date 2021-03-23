@@ -193,17 +193,42 @@ namespace NuGetGallery
         [ActionName("GetSymbolPackageApi")]
         public virtual async Task<ActionResult> GetSymbolPackage(string id, string version)
         {
-            return await GetPackageInternal(id, version, isSymbolPackage: true);
+            // some security paranoia about URL hacking somehow creating e.g. open redirects
+            // validate user input: explicit calls to the same validators used during Package Registrations
+            // Ideally shouldn't be necessary?
+            if (!PackageIdValidator.IsValidPackageId(id ?? string.Empty))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
+            }
+
+            if (string.IsNullOrEmpty(version))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "Version is required");
+            }
+
+            // Check if version semantically correct
+            if (!NuGetVersion.TryParse(version, out NuGetVersion dummy))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
+            }
+
+            // Normalize the version
+            version = NuGetVersionFormatter.Normalize(version);
+
+            // There's no guarantee the symbols package exists in the returned path. We just provide the path it should be at.
+            return await SymbolPackageFileService.CreateDownloadSymbolPackageActionResultAsync(
+                    HttpContext.Request.Url,
+                    id, version);
         }
 
         [HttpGet]
         [ActionName("GetPackageApi")]
         public virtual async Task<ActionResult> GetPackage(string id, string version)
         {
-            return await GetPackageInternal(id, version, isSymbolPackage: false);
+            return await GetPackageInternal(id, version);
         }
 
-        protected internal async Task<ActionResult> GetPackageInternal(string id, string version, bool isSymbolPackage = false)
+        protected internal async Task<ActionResult> GetPackageInternal(string id, string version)
         {
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
@@ -219,24 +244,13 @@ namespace NuGetGallery
                 if (!string.IsNullOrEmpty(version))
                 {
                     // if version is non-null, check if it's semantically correct and normalize it.
-                    NuGetVersion dummy;
-                    if (!NuGetVersion.TryParse(version, out dummy))
+                    if (!NuGetVersion.TryParse(version, out NuGetVersion dummy))
                     {
                         return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
                     }
 
                     // Normalize the version
                     version = NuGetVersionFormatter.Normalize(version);
-
-                    if (isSymbolPackage)
-                    {
-                        package = PackageService.FindPackageByIdAndVersionStrict(id, version);
-
-                        if (package == null)
-                        {
-                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-                        }
-                    }
                 }
                 else
                 {
@@ -271,30 +285,14 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
             }
 
-            if (isSymbolPackage)
+            if (ConfigurationService.Features.TrackPackageDownloadCountInLocalDatabase)
             {
-                var latestAvailableSymbolsPackage = package.LatestAvailableSymbolPackage();
-
-                if (latestAvailableSymbolsPackage == null)
-                {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.SymbolsPackage_PackageNotAvailable, id, version));
-                }
-
-                return await SymbolPackageFileService.CreateDownloadSymbolPackageActionResultAsync(
-                    HttpContext.Request.Url,
-                    id, version);
+                await PackageService.IncrementDownloadCountAsync(id, version);
             }
-            else
-            {
-                if (ConfigurationService.Features.TrackPackageDownloadCountInLocalDatabase)
-                {
-                    await PackageService.IncrementDownloadCountAsync(id, version);
-                }
 
-                return await PackageFileService.CreateDownloadPackageActionResultAsync(
-                    HttpContext.Request.Url,
-                    id, version);
-            }
+            return await PackageFileService.CreateDownloadPackageActionResultAsync(
+                HttpContext.Request.Url,
+                id, version);
         }
 
         [HttpGet]

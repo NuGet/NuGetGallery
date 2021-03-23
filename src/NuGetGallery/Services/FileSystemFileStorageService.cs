@@ -237,6 +237,12 @@ namespace NuGetGallery
             return Task.FromResult(Directory.Exists(_configuration.FileStorageDirectory));
         }
 
+        public Task<Uri> GetFileUriAsync(string folderName, string fileName)
+        {
+            /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
+            throw new NotImplementedException();
+        }
+
         public Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
         {
             // technically, we would be able to generate the file:/// url here, but we don't need it right now

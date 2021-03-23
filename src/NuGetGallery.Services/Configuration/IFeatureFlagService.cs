@@ -68,6 +68,11 @@ namespace NuGetGallery
         bool IsDisplayVulnerabilitiesEnabled();
 
         /// <summary>
+        /// Whether or not a package owner can view vulnerability advisory information on the Manage Packages page.
+        /// </summary>
+        bool IsManagePackagesVulnerabilitiesEnabled();
+
+        /// <summary>
         /// Whether or not a fuget.org link is visible on a package's details page.
         /// </summary>
         bool IsDisplayFuGetLinksEnabled();
@@ -159,6 +164,11 @@ namespace NuGetGallery
         bool IsPackageRenamesEnabled(User user);
 
         /// <summary>
+        /// Whether we're using pattern set based TFM determination on ingested packages
+        /// </summary>
+        bool ArePatternSetTfmHeuristicsEnabled();
+
+        /// <summary>
         /// Whether the user is able to publish the package with an embedded readme file.
         /// </summary>
         bool AreEmbeddedReadmesEnabled(User user);
@@ -245,5 +255,10 @@ namespace NuGetGallery
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);
+
+        /// <summary>
+        /// Whether the allowlist is enabled for checking the image sources
+        /// </summary>
+        bool IsImageAllowlistEnabled();
     }
 }

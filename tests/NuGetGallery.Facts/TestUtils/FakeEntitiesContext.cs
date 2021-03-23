@@ -20,193 +20,104 @@ namespace NuGetGallery
 
         public DbSet<PackageRegistration> PackageRegistrations
         {
-            get
-            {
-                return Set<PackageRegistration>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<PackageRegistration>();
+            set => throw new NotSupportedException();
         }
+
         public DbSet<PackageDependency> PackageDependencies
         {
-            get
-            {
-                return Set<PackageDependency>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<PackageDependency>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<PackageFramework> PackageFrameworks
+        {
+            get => Set<PackageFramework>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<Package> Packages
         {
-            get
-            {
-                return Set<Package>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<Package>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<PackageDeprecation> Deprecations
         {
-            get
-            {
-                return Set<PackageDeprecation>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<PackageDeprecation>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<Credential> Credentials
         {
-            get
-            {
-                return Set<Credential>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<Credential>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<Scope> Scopes
         {
-            get
-            {
-                return Set<Scope>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<Scope>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<User> Users
         {
-            get
-            {
-                return Set<User>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<User>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<Organization> Organizations
         {
-            get
-            {
-                return Set<Organization>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<Organization>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<UserSecurityPolicy> UserSecurityPolicies
         {
-            get
-            {
-                return Set<UserSecurityPolicy>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<UserSecurityPolicy>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<ReservedNamespace> ReservedNamespaces
         {
-            get
-            {
-                return Set<ReservedNamespace>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<ReservedNamespace>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<Certificate> Certificates
         {
-            get
-            {
-                return Set<Certificate>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<Certificate>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<UserCertificate> UserCertificates
         {
-            get
-            {
-                return Set<UserCertificate>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<UserCertificate>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<SymbolPackage> SymbolPackages
         {
-            get
-            {
-                return Set<SymbolPackage>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<SymbolPackage>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<PackageVulnerability> Vulnerabilities
         {
-            get
-            {
-                return Set<PackageVulnerability>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<PackageVulnerability>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges
         {
-            get
-            {
-                return Set<VulnerablePackageVersionRange>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<VulnerablePackageVersionRange>();
+            set => throw new NotSupportedException();
         }
 
         public DbSet<PackageRename> PackageRenames
         {
-            get
-            {
-                return Set<PackageRename>();
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => Set<PackageRename>();
+            set => throw new NotSupportedException();
         }
 
         public virtual string QueryHint => throw new NotImplementedException();

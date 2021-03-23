@@ -13,6 +13,7 @@ namespace NuGetGallery
         DbSet<PackageDeprecation> Deprecations { get; set; }
         DbSet<PackageRegistration> PackageRegistrations { get; set; }
         DbSet<PackageDependency> PackageDependencies { get; set; }
+        DbSet<PackageFramework> PackageFrameworks { get; set; }
         DbSet<Credential> Credentials { get; set; }
         DbSet<Scope> Scopes { get; set; }
         DbSet<User> Users { get; set; }

@@ -1968,27 +1968,92 @@ namespace NuGetGallery
             }
         }
 
-        public class TheGetPackageAction
+        public class TheGetSymbolPackage
             : TestContainer
         {
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task GetPackageReturns400ForEvilPackageName(bool isSymbolPackage)
+            [Fact]
+            public async Task GetSymbolPackageReturns400ForEvilPackageName()
             {
                 var controller = new TestableApiController(GetConfigurationService());
-                var result = await controller.GetPackageInternal("../..", "1.0.0.0", isSymbolPackage);
+                var result = await controller.GetSymbolPackage("../..", "1.0.0.0");
                 var badRequestResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(400, badRequestResult.StatusCode);
             }
 
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task GetPackageReturns400ForEvilPackageVersion(bool isSymbolPackage)
+            [Fact]
+            public async Task GetSymbolPackageReturns400ForEvilPackageVersion()
             {
                 var controller = new TestableApiController(GetConfigurationService());
-                var result2 = await controller.GetPackageInternal("Foo", "10../..1.0", isSymbolPackage);
+                var result2 = await controller.GetSymbolPackage("Foo", "10../..1.0");
+                var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
+                Assert.Equal(400, badRequestResult2.StatusCode);
+            }
+
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            public async Task GetSymbolPackageReturns400IfNoVersionProvided(string version)
+            {
+                var controller = new TestableApiController(GetConfigurationService());
+                var result2 = await controller.GetSymbolPackage("Foo", version);
+                var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
+                Assert.Equal(400, badRequestResult2.StatusCode);
+            }
+
+            [Fact]
+            public async Task GetSymbolsPackageReturnsPackage()
+            {
+                // Arrange
+                const string packageId = "Baz";
+                const string version = "1.0.1+notnormalized";
+                const string normalizedVersion = "1.0.1";
+
+                var actionResult = new EmptyResult();
+
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
+
+                controller
+                    .MockSymbolPackageFileService
+                    .Setup(s => s.CreateDownloadSymbolPackageActionResultAsync(HttpRequestUrl, packageId, normalizedVersion))
+                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Verifiable();
+
+                var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
+                httpRequest.SetupGet(r => r.Url).Returns(HttpRequestUrl);
+
+                var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+                httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
+
+                var controllerContext = new ControllerContext(new RequestContext(httpContext.Object, new RouteData()), controller);
+                controller.ControllerContext = controllerContext;
+
+                // Act
+                var result = await controller.GetSymbolPackage(packageId, version);
+
+                // Assert
+                Assert.Same(actionResult, result);
+
+                controller.MockSymbolPackageFileService.Verify();
+            }
+        }
+
+        public class TheGetPackageAction
+            : TestContainer
+        {
+            [Fact]
+            public async Task GetPackageReturns400ForEvilPackageName()
+            {
+                var controller = new TestableApiController(GetConfigurationService());
+                var result = await controller.GetPackage("../..", "1.0.0.0");
+                var badRequestResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(400, badRequestResult.StatusCode);
+            }
+
+            [Fact]
+            public async Task GetPackageReturns400ForEvilPackageVersion()
+            {
+                var controller = new TestableApiController(GetConfigurationService());
+                var result2 = await controller.GetPackage("Foo", "10../..1.0");
                 var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
                 Assert.Equal(400, badRequestResult2.StatusCode);
             }
@@ -1998,104 +2063,29 @@ namespace NuGetGallery
             {
                 // Arrange
                 const string packageId = "Baz";
-                const string packageVersion = "1.0.1";
-                var actionResult = new RedirectResult("http://foo");
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller.MockPackageService
-                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
+                    .Setup(x => x.FindPackageByIdAndVersion(packageId, null, SemVerLevelKey.SemVer2, false))
                     .Returns((Package)null).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(It.IsAny<Uri>(), packageId, packageVersion))
-                    .Returns(Task.FromResult<ActionResult>(actionResult))
-                    .Verifiable();
 
                 // Act
-                var result = await controller.GetPackageInternal(packageId, packageVersion);
+                var result = await controller.GetPackageInternal(packageId, null);
 
                 // Assert
-                Assert.IsType<RedirectResult>(result);
+                controller.MockPackageService.Verify();
+
+                var notFoundResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(404, notFoundResult.StatusCode);
             }
 
             [Fact]
-            public async Task GetPackageReturns404ForSymbolPackageIfPackageIsNotFound()
-            {
-                // Arrange
-                const string packageId = "Baz";
-                const string packageVersion = "1.0.1";
-
-                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
-                controller.MockPackageService
-                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
-                    .Returns((Package)null).Verifiable();
-
-                // Act
-                var result = (HttpStatusCodeWithBodyResult)await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
-            }
-
-            [Theory]
-            [InlineData(PackageStatus.Deleted)]
-            [InlineData(PackageStatus.FailedValidation)]
-            [InlineData(PackageStatus.Validating)]
-            public async Task GetPackageReturnsLastAvailableSymbolPackage(PackageStatus status)
-            {
-                // Arrange
-                const string packageId = "Baz";
-                const string packageVersion = "1.0.1";
-                var package = new Package() { PackageRegistration = new PackageRegistration() { Id = packageId }, Version = packageVersion };
-                var latestSymbolPackage = new SymbolPackage()
-                {
-                    Key = 1,
-                    Package = package,
-                    StatusKey = status,
-                    Created = DateTime.Today.AddDays(-1)
-                };
-                var oldAvailableSymbolPackage = new SymbolPackage()
-                {
-                    Key = 2,
-                    Package = package,
-                    StatusKey = PackageStatus.Available,
-                    Created = DateTime.Today.AddDays(-2)
-                };
-                package.SymbolPackages.Add(oldAvailableSymbolPackage);
-                package.SymbolPackages.Add(latestSymbolPackage);
-
-                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
-                controller.MockPackageService
-                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
-                    .Returns(package).Verifiable();
-                controller.MockSymbolPackageFileService
-                    .Setup(x => x.CreateDownloadSymbolPackageActionResultAsync(It.IsAny<Uri>(), packageId, packageVersion))
-                    .Returns(Task.FromResult<ActionResult>(new HttpStatusCodeWithBodyResult(HttpStatusCode.OK, "Test package")))
-                    .Verifiable();
-
-                // Act
-                var result = (HttpStatusCodeWithBodyResult)await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.OK, result.StatusCode);
-                controller.MockSymbolPackageFileService.Verify();
-            }
-
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task GetPackageReturnsPackageIfItExists(bool isSymbolPackage)
+            public async Task GetPackageReturnsPackageIfItExists()
             {
                 // Arrange
                 const string packageId = "Baz";
                 var package = new Package() { Version = "1.0.01", NormalizedVersion = "1.0.1" };
                 var actionResult = new EmptyResult();
-                var availableSymbolPackage = new SymbolPackage()
-                {
-                    Key = 2,
-                    Package = package,
-                    StatusKey = PackageStatus.Available,
-                    Created = DateTime.Today.AddDays(-1)
-                };
-                package.SymbolPackages.Add(availableSymbolPackage);
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller
@@ -2105,11 +2095,6 @@ namespace NuGetGallery
                 controller
                     .MockPackageFileService
                     .Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
-                    .Returns(Task.FromResult<ActionResult>(actionResult))
-                    .Verifiable();
-                controller
-                    .MockSymbolPackageFileService
-                    .Setup(s => s.CreateDownloadSymbolPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
                     .Returns(Task.FromResult<ActionResult>(actionResult))
                     .Verifiable();
 
@@ -2128,18 +2113,11 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackageInternal(packageId, "1.0.01", isSymbolPackage);
+                var result = await controller.GetPackage(packageId, "1.0.01");
 
                 // Assert
                 Assert.Same(actionResult, result);
-                if (isSymbolPackage)
-                {
-                    controller.MockSymbolPackageFileService.Verify();
-                }
-                else
-                {
-                    controller.MockPackageFileService.Verify();
-                }
+                controller.MockPackageFileService.Verify();
 
                 controller.MockPackageService.Verify();
                 controller.MockUserService.Verify();

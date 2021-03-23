@@ -35,7 +35,13 @@
                 InstallPackageCommand = string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET Core Global Tool</a> you can call from the shell/command line.",
-            }
+            },
+
+            new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/support/nuget")
+            {
+                Id = "cake-dotnet-tool",
+                InstallPackageCommand = Model.GetCakeInstallPackageCommand(),
+            },
         };
     }
     else if (Model.IsDotnetNewTemplatePackageType)
@@ -103,6 +109,12 @@
                     "For F# scripts that support <a href=\"{0}\">#r syntax</a>, copy this into the source code to reference the package.",
                     "https://docs.microsoft.com/en-us/dotnet/fsharp/tools/fsharp-interactive/#referencing-packages-in-f-interactive")
             },
+
+            new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/support/nuget")
+            {
+                Id = Model.IsCakeExtension() ? "cake-extension" : "cake",
+                InstallPackageCommand = Model.GetCakeInstallPackageCommand()
+            },
         };
     }
 }
@@ -159,9 +171,14 @@
             <div class="install-script-row">
                 <pre class="install-script" id="@packageManager.Id-text">@packageManager.InstallPackageCommand</pre>
                 <div class="copy-button">
+                    <!--In order to statisfy the requirement to announce button status both on NVDA/Narrator, other screen reader like NVDA will
+                        announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover 
+                        because of known issue(https://github.com/twbs/bootstrap/issues/18618).
+                        We add aria-pressed to indicate the whether button is pressed or not, which is workaround only for Narrator announce the status change of button
+                    -->
                     <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
                             data-toggle="popover" data-placement="bottom" data-content="Copied."
-                            aria-label="@packageManager.CopyLabel" aria-live="polite" role="status">
+                            aria-label="@packageManager.CopyLabel" aria-pressed="false" aria-live="polite" role="button">
                         <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                     </button>
                 </div>
@@ -464,7 +481,7 @@
                             <a href="#" role="button" data-toggle="collapse" data-target="#readme-container"
                                aria-expanded="true" aria-controls="readme-container" id="show-readme-container">
                                 <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                                <span>Documentation</span>
+                                <span>Readme</span>
                             </a>
                         </h2>
                     </div>
@@ -472,6 +489,11 @@
                         @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
                         {
                             @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
+                        }
+
+                        @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                        {
+                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme'>trusted domains</a>.</text>);
                         }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)

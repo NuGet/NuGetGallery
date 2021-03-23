@@ -23,7 +23,10 @@
     "NuGetGallery.ODataV2SearchNonHijacked": "Enabled",
     "NuGetGallery.ODataV2SearchCountNonHijacked": "Enabled",
     "NuGetGallery.DisplayVulnerabilities": "Enabled",
-    "NuGetGallery.DisplayFuGetLinks": "Enabled"
+    "NuGetGallery.ManagePackagesVulnerabilities": "Enabled",
+    "NuGetGallery.DisplayFuGetLinks": "Enabled",
+    "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
+    "NuGetGallery.EmbeddedIcons": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
