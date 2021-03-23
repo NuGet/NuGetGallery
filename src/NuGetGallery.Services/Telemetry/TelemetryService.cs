@@ -96,6 +96,7 @@ namespace NuGetGallery
             public const string SecretRefreshFailure = "SecretRefreshFailure";
             public const string SecretRefreshIteration = "SecretRefreshIteration";
             public const string BackgroundRefreshTaskLeakedException = "BackgroundRefreshTaskLeakedException";
+            public const string SecretRefreshed = "SecretRefreshed";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -1111,6 +1112,36 @@ namespace NuGetGallery
             TrackMetric(Events.SymbolPackagePushDisconnect, 1, p => { });
         }
 
+        public void TrackExpiredSecretRequested(string secretName)
+        {
+            TrackMetric(Events.ExpiredSecretRequested, 1, properties => properties.Add(SecretName, secretName));
+        }
+
+        public void TrackUnknownSecretRequested(string secretName)
+        {
+            TrackMetric(Events.UnknownSecretRequested, 1, properties => properties.Add(SecretName, secretName));
+        }
+
+        public void TrackSecretRefreshFailure(string secretName)
+        {
+            TrackMetric(Events.SecretRefreshFailure, 1, properties => properties.Add(SecretName, secretName));
+        }
+
+        public void TrackSecretRefreshIteration()
+        {
+            TrackMetric(Events.SecretRefreshIteration, 1, _ => { });
+        }
+
+        public void TrackBackgroundRefreshTaskLeakedException()
+        {
+            TrackMetric(Events.BackgroundRefreshTaskLeakedException, 1, _ => { });
+        }
+
+        public void TrackSecretRefreshed(string secretName)
+        {
+            TrackMetric(Events.SecretRefreshed, 1, properties => properties.Add(SecretName, secretName));
+        }
+
         /// <summary>
         /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
         /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>
@@ -1128,37 +1159,6 @@ namespace NuGetGallery
         private string BuildArrayProperty(IEnumerable<string> list)
         {
             return JsonConvert.SerializeObject(list);
-        }
-
-        public void TrackExpiredSecretRequested(string secretName)
-        {
-            TrackMetric(Events.ExpiredSecretRequested, 1, properties => {
-                properties.Add(SecretName, secretName);
-            });
-        }
-
-        public void TrackUnknownSecretRequested(string secretName)
-        {
-            TrackMetric(Events.UnknownSecretRequested, 1, properties => {
-                properties.Add(SecretName, secretName);
-            });
-        }
-
-        public void TrackSecretRefreshFailure(string secretName)
-        {
-            TrackMetric(Events.SecretRefreshFailure, 1, properties => {
-                properties.Add(SecretName, secretName);
-            });
-        }
-
-        public void TrackSecretRefreshIteration()
-        {
-            TrackMetric(Events.SecretRefreshIteration, 1, _ => {});
-        }
-
-        public void TrackBackgroundRefreshTaskLeakedException()
-        {
-            TrackMetric(Events.BackgroundRefreshTaskLeakedException, 1, _ => { });
         }
     }
 }

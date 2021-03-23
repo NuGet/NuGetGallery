@@ -363,6 +363,10 @@ namespace NuGetGallery
                     yield return new object[] { "BackgroundRefreshTaskLeakedException",
                         (TrackAction)(s => s.TrackBackgroundRefreshTaskLeakedException())
                     };
+
+                    yield return new object[] { "SecretRefreshed",
+                        (TrackAction)(s => s.TrackSecretRefreshed("someSecret"))
+                    };
                 }
             }
 

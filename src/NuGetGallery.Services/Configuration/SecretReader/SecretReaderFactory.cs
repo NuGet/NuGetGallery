@@ -85,7 +85,7 @@ namespace NuGetGallery.Configuration.SecretReader
                 secretNames,
                 telemetryService,
                 logger,
-                refreshInterval: TimeSpan.FromDays(1),
+                refreshInterval: TimeSpan.FromMinutes(15),
                 backgroundThreadSleepInterval: TimeSpan.FromMinutes(1));
         }
 
