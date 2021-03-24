@@ -1409,6 +1409,7 @@ namespace NuGetGallery
                     .WithParameter(new ResolvedParameter(
                         (pi, ctx) => pi.ParameterType == typeof(Func<IFileStorageService>),
                         (pi, ctx) => ctx.ResolveKeyed<Func<IFileStorageService>>(dependent.BindingKey)))
+                    .AsSelf()
                     .As(dependent.InterfaceType);
 
                 if (dependent.IsSingleInstance)
