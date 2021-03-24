@@ -14,8 +14,8 @@ namespace NuGetGallery
     {
         private static ManualResetEventSlim _configurationSet = new ManualResetEventSlim(false);
 
-        private static IGalleryConfigurationService _configuration = null;
-        public static IGalleryConfigurationService Configuration
+        private static IAppConfiguration _configuration = null;
+        public static IAppConfiguration Configuration
         {
             get 
             {
@@ -48,17 +48,17 @@ namespace NuGetGallery
             // these session keys are different. Thereby causing the loss of session upon a slot swap. Manually setting these values on role start ensures same
             // keys are used by all the instances across all the slots of a Azure cloud service. See more analysis here: https://github.com/NuGet/Engineering/issues/1329
             Trace.TraceInformation($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Checking current gallery configuration.");
-            if (config.Current.EnableMachineKeyConfiguration
-                && !string.IsNullOrWhiteSpace(config.Current.MachineKeyDecryption)
-                && !string.IsNullOrWhiteSpace(config.Current.MachineKeyDecryptionKey)
-                && !string.IsNullOrWhiteSpace(config.Current.MachineKeyValidationAlgorithm)
-                && !string.IsNullOrWhiteSpace(config.Current.MachineKeyValidationKey))
+            if (config.EnableMachineKeyConfiguration
+                && !string.IsNullOrWhiteSpace(config.MachineKeyDecryption)
+                && !string.IsNullOrWhiteSpace(config.MachineKeyDecryptionKey)
+                && !string.IsNullOrWhiteSpace(config.MachineKeyValidationAlgorithm)
+                && !string.IsNullOrWhiteSpace(config.MachineKeyValidationKey))
             {
                 Trace.TraceInformation($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Using machine key settings from gallery configuration.");
-                xmlDoc.DocumentElement.SetAttribute("decryptionKey", config.Current.MachineKeyDecryptionKey);
-                xmlDoc.DocumentElement.SetAttribute("decryption", config.Current.MachineKeyDecryption);
-                xmlDoc.DocumentElement.SetAttribute("validationKey", config.Current.MachineKeyValidationKey);
-                xmlDoc.DocumentElement.SetAttribute("validation", config.Current.MachineKeyValidationAlgorithm);
+                xmlDoc.DocumentElement.SetAttribute("decryptionKey", config.MachineKeyDecryptionKey);
+                xmlDoc.DocumentElement.SetAttribute("decryption", config.MachineKeyDecryption);
+                xmlDoc.DocumentElement.SetAttribute("validationKey", config.MachineKeyValidationKey);
+                xmlDoc.DocumentElement.SetAttribute("validation", config.MachineKeyValidationAlgorithm);
             }
             else
             {

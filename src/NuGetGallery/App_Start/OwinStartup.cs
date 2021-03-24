@@ -72,7 +72,7 @@ namespace NuGetGallery
             // calling an API that uses the  machine key configuration). If this happens, the machine key will be
             // fetched from KeyVault seperately. This will be slightly slower (two KeyVault secret resolutions instead
             // of one) but will not be harmful.
-            GalleryMachineKeyConfigurationProvider.Configuration = config;
+            GalleryMachineKeyConfigurationProvider.Configuration = config.Current;
             ConfigurationManager.GetSection("system.web/machineKey");
 
             // Refresh the content for the ContentObjectService to guarantee it has loaded the latest configuration on startup.
