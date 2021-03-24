@@ -3,6 +3,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -36,7 +38,7 @@ namespace NuGetGallery
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
          {
             // TODO: Remove
-            Trace.TraceInformation($"CloudBlobClientWrapper age: {DateTime.UtcNow - _createdAt}");
+            Trace.TraceInformation($"CloudBlobClientWrapper age: {DateTime.UtcNow - _createdAt} {GetHash(_storageConnectionString)}");
 
             // For Azure blobs, the query string is assumed to be the SAS token.
             ISimpleCloudBlob blob;
@@ -60,7 +62,7 @@ namespace NuGetGallery
         public ICloudBlobContainer GetContainerReference(string containerAddress)
         {
             // TODO: Remove
-            Trace.TraceInformation($"CloudBlobClientWrapper age: {DateTime.UtcNow - _createdAt}");
+            Trace.TraceInformation($"CloudBlobClientWrapper age: {DateTime.UtcNow - _createdAt} {GetHash(_storageConnectionString)}");
 
             if (_blobClient == null)
             {
@@ -77,6 +79,15 @@ namespace NuGetGallery
             }
 
             return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
+        }
+
+        private static string GetHash(string str)
+        {
+            using (var hasher = SHA256.Create())
+            {
+                var hash = hasher.ComputeHash(Encoding.UTF8.GetBytes(str));
+                return BitConverter.ToString(hash).Replace("-", "");
+            }
         }
     }
 }
