@@ -97,7 +97,8 @@ namespace NuGetGallery
 
             var telemetryService = new TelemetryService(
                 new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
-                telemetryClient);
+                telemetryClient,
+                new GlobalMetricPropertyProvider());
 
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(

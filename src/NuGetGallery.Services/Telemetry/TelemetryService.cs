@@ -100,6 +100,7 @@ namespace NuGetGallery
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
+        private readonly IGlobalMetricPropertyProvider _globalMetricPropertyProvider;
         private readonly ITelemetryClient _telemetryClient;
 
         private readonly JsonSerializerSettings _defaultJsonSerializerSettings = new JsonSerializerSettings
@@ -236,10 +237,17 @@ namespace NuGetGallery
         // secret reader related properties
         public const string SecretName = "SecretName";
 
-        public TelemetryService(IDiagnosticsSource diagnosticsSource, ITelemetryClient telemetryClient)
+        // common properties
+        public const string HostName = "SecretName";
+
+        public TelemetryService(
+            IDiagnosticsSource diagnosticsSource,
+            ITelemetryClient telemetryClient,
+            IGlobalMetricPropertyProvider globalMetricPropertyProvider = null)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
             _diagnosticsSource = diagnosticsSource ?? throw new ArgumentNullException(nameof(diagnosticsSource));
+            _globalMetricPropertyProvider = globalMetricPropertyProvider; // OK to be null
         }
 
         public void TraceException(Exception exception)
@@ -1152,8 +1160,33 @@ namespace NuGetGallery
             var telemetryProperties = new Dictionary<string, string>();
 
             addProperties(telemetryProperties);
+            _globalMetricPropertyProvider?.AddProperties((propertyName, propertyValue)
+                => AddPropertyIfNotExist(telemetryProperties, propertyName, propertyValue));
 
             _telemetryClient.TrackMetric(metricName, value, telemetryProperties);
+        }
+
+        private static void AddPropertyIfNotExist(Dictionary<string, string> dictionary, string propertyName, string propertyValue)
+        {
+            if (propertyName == null)
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
+            if (propertyValue == null)
+            {
+                throw new ArgumentNullException(nameof(propertyValue));
+            }
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+            {
+                throw new ArgumentException($"{nameof(propertyName)} cannot be empty", nameof(propertyName));
+            }
+
+            if (!dictionary.ContainsKey(propertyName))
+            {
+                dictionary.Add(propertyName, propertyValue);
+            }
         }
 
         private string BuildArrayProperty(IEnumerable<string> list)
