@@ -1166,7 +1166,7 @@ The {1} Team</value>
     <value>The &lt;readme&gt; element is not currently supported.</value>
   </data>
   <data name="UploadPackage_InvalidReadmeFileExtension" xml:space="preserve">
-    <value>The readme file has an invalid extension '{0}'. Extension must be one of the following: {1}.</value>
+    <value>The readme file has an invalid extension '{0}'. Extension must be end in: {1}.</value>
     <comment>{0} is the readme file extension specified in the .nuspec, {1} is the list of allowed extensions</comment>
   </data>
   <data name="UploadPackage_ReadmeFileType" xml:space="preserve">
@@ -1214,5 +1214,8 @@ The {1} Team</value>
   </data>
   <data name="UploadPackage_OwnerlessIdNamespaceConflictHtml" xml:space="preserve">
     <value>The package ID is reserved. You can upload your package with a different package ID. Reach out to &lt;a href="mailto:support@nuget.org"&gt;support@nuget.org&lt;/a&gt; if you have questions.</value>
+  </data>
+  <data name="ReadmeErrorEmpty" xml:space="preserve">
+    <value>The readme file '{0}' cannot be empty</value>
   </data>
 </root>
