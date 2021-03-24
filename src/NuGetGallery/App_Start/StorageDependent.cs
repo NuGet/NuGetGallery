@@ -17,13 +17,13 @@ namespace NuGetGallery
     {
         private StorageDependent(
             string bindingKey,
-            string azureStorageConnectionString,
+            Func<IAppConfiguration, string> azureStorageConnectionStringFactory,
             Type implementationType,
             Type interfaceType,
             bool isSingleInstance)
         {
             BindingKey = bindingKey;
-            AzureStorageConnectionString = azureStorageConnectionString;
+            AzureStorageConnectionStringFactory = azureStorageConnectionStringFactory;
             ImplementationType = implementationType;
             InterfaceType = interfaceType;
             IsSingleInstance = isSingleInstance;
@@ -33,7 +33,7 @@ namespace NuGetGallery
         {
             return new StorageDependent(
                 bindingKey,
-                AzureStorageConnectionString,
+                AzureStorageConnectionStringFactory,
                 ImplementationType,
                 InterfaceType,
                 IsSingleInstance);
@@ -45,9 +45,9 @@ namespace NuGetGallery
         public string BindingKey { get; }
 
         /// <summary>
-        /// The connection string to be used for a <see cref="CloudBlobClientWrapper"/> instance.
+        /// The connection string factory to be used for a <see cref="CloudBlobClientWrapper"/> instance.
         /// </summary>
-        public string AzureStorageConnectionString { get; }
+        public Func<IAppConfiguration, string> AzureStorageConnectionStringFactory { get; }
 
         /// <summary>
         /// The storage dependent's implementation type.
@@ -65,11 +65,11 @@ namespace NuGetGallery
         public bool IsSingleInstance { get; }
 
         public static StorageDependent Create<TImplementation, TInterface>(
-            string azureStorageConnectionString, bool isSingleInstance) where TImplementation : TInterface
+            Func<IAppConfiguration, string> azureStorageConnectionStringFactory, bool isSingleInstance) where TImplementation : TInterface
         {
             return new StorageDependent(
                 typeof(TImplementation).FullName,
-                azureStorageConnectionString,
+                azureStorageConnectionStringFactory,
                 typeof(TImplementation),
                 typeof(TInterface),
                 isSingleInstance);
@@ -79,31 +79,31 @@ namespace NuGetGallery
         /// Group the storage dependents by Azure Storage connection string then generate a binding key so that
         /// <see cref="IFileStorageService"/> instances are shared.
         /// </summary>
-        public static IEnumerable<StorageDependent> GetAll(IAppConfiguration configuration)
+        public static IEnumerable<StorageDependent> GetAll(IAppConfiguration currentConfiguration)
         {
             const string DefaultBindingKey = "Default";
 
             /// This array must be added to as we implement more services that use <see cref="IFileStorageService"/>.
             var dependents = new[]
             {
-                Create<CertificateService, ICertificateService>(configuration.AzureStorage_UserCertificates_ConnectionString, isSingleInstance: false),
-                Create<ContentService, IContentService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true),
-                Create<PackageFileService, IPackageFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
-                Create<SymbolPackageFileService, ISymbolPackageFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
-                Create<UploadFileService, IUploadFileService>(configuration.AzureStorage_Uploads_ConnectionString, isSingleInstance: false),
-                Create<CoreLicenseFileService, ICoreLicenseFileService>(configuration.AzureStorage_FlatContainer_ConnectionString, isSingleInstance: false),
-                Create<CoreReadmeFileService, ICoreReadmeFileService>(configuration.AzureStorage_FlatContainer_ConnectionString, isSingleInstance: false),
-                Create<RevalidationStateService, IRevalidationStateService>(configuration.AzureStorage_Revalidation_ConnectionString, isSingleInstance: false),
-                Create<EditableFeatureFlagFileStorageService, IFeatureFlagStorageService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true)
+                Create<CertificateService, ICertificateService>(configuration => configuration.AzureStorage_UserCertificates_ConnectionString, isSingleInstance: false),
+                Create<ContentService, IContentService>(configuration => configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true),
+                Create<PackageFileService, IPackageFileService>(configuration => configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
+                Create<SymbolPackageFileService, ISymbolPackageFileService>(configuration => configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
+                Create<UploadFileService, IUploadFileService>(configuration => configuration.AzureStorage_Uploads_ConnectionString, isSingleInstance: false),
+                Create<CoreLicenseFileService, ICoreLicenseFileService>(configuration => configuration.AzureStorage_FlatContainer_ConnectionString, isSingleInstance: false),
+                Create<CoreReadmeFileService, ICoreReadmeFileService>(configuration => configuration.AzureStorage_FlatContainer_ConnectionString, isSingleInstance: false),
+                Create<RevalidationStateService, IRevalidationStateService>(configuration => configuration.AzureStorage_Revalidation_ConnectionString, isSingleInstance: false),
+                Create<EditableFeatureFlagFileStorageService, IFeatureFlagStorageService>(configuration => configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true)
             };
 
             var connectionStringToBindingKey = dependents
-                .GroupBy(d => d.AzureStorageConnectionString ?? DefaultBindingKey)
+                .GroupBy(d => d.AzureStorageConnectionStringFactory(currentConfiguration) ?? DefaultBindingKey)
                 .ToDictionary(g => g.Key, g => string.Join(" ", g.Select(d => d.BindingKey)));
 
             foreach (var dependent in dependents)
             {
-                var bindingKey = connectionStringToBindingKey[dependent.AzureStorageConnectionString ?? DefaultBindingKey];
+                var bindingKey = connectionStringToBindingKey[dependent.AzureStorageConnectionStringFactory(currentConfiguration) ?? DefaultBindingKey];
                 yield return dependent.SetBindingKey(bindingKey);
             }
         }
