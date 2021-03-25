@@ -10,7 +10,7 @@ namespace NuGet.Services.FeatureFlags
 {
     public class FeatureFlagCacheService : IFeatureFlagCacheService
     {
-        private readonly IFeatureFlagStorageService _storage;
+        private readonly Func<IFeatureFlagStorageService> _storageFactory;
         private readonly FeatureFlagOptions _options;
         private readonly IFeatureFlagTelemetryService _telemetryServiceOrNull;
         private readonly ILogger<FeatureFlagCacheService> _logger;
@@ -18,20 +18,20 @@ namespace NuGet.Services.FeatureFlags
         private FeatureFlagsAndRefreshTime _latestFlags;
 
         public FeatureFlagCacheService(
-            IFeatureFlagStorageService storage,
+            Func<IFeatureFlagStorageService> storageFactory,
             FeatureFlagOptions options,
             ILogger<FeatureFlagCacheService> logger)
-          : this(storage, options, telemetryService: null, logger: logger)
+          : this(storageFactory, options, telemetryService: null, logger: logger)
         {
         }
 
         public FeatureFlagCacheService(
-            IFeatureFlagStorageService storage,
+            Func<IFeatureFlagStorageService> storageFactory,
             FeatureFlagOptions options,
             IFeatureFlagTelemetryService telemetryService,
             ILogger<FeatureFlagCacheService> logger)
         {
-            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -52,7 +52,7 @@ namespace NuGet.Services.FeatureFlags
         public async Task RefreshAsync()
         {
             var refreshTime = DateTimeOffset.UtcNow;
-            var latestFlags = await _storage.GetAsync();
+            var latestFlags = await _storageFactory().GetAsync();
 
             _latestFlags = new FeatureFlagsAndRefreshTime(latestFlags, refreshTime);
         }

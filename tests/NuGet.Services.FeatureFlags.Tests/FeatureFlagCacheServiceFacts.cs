@@ -127,7 +127,7 @@ namespace NuGet.Services.FeatureFlags.Tests
             {
                 // Arrange
                 var target = new FeatureFlagCacheService(
-                    _storage.Object,
+                    () => _storage.Object,
                     _options,
                     telemetryService: null,
                     logger: Mock.Of<ILogger<FeatureFlagCacheService>>());
@@ -192,7 +192,7 @@ namespace NuGet.Services.FeatureFlags.Tests
                 _options = new FeatureFlagOptions();
 
                 _target = new FeatureFlagCacheService(
-                    _storage.Object,
+                    () => _storage.Object,
                     _options,
                     _telemetry.Object,
                     Mock.Of<ILogger<FeatureFlagCacheService>>());
