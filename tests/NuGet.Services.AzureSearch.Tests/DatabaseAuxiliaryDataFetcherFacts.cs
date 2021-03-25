@@ -120,6 +120,7 @@ namespace NuGet.Services.AzureSearch
             public DbSet<Certificate> Certificates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<PackageRegistration> PackageRegistrations { get; set; } = DbSetMockFactory.Create<PackageRegistration>();
             public DbSet<PackageDependency> PackageDependencies { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<PackageFramework> PackageFrameworks { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<Credential> Credentials { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<Scope> Scopes { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<User> Users { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
