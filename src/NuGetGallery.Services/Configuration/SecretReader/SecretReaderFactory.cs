@@ -86,7 +86,7 @@ namespace NuGetGallery.Configuration.SecretReader
                 telemetryService,
                 logger,
                 refreshInterval: TimeSpan.FromMinutes(15),
-                backgroundThreadSleepInterval: TimeSpan.FromMinutes(1));
+                backgroundTaskSleepInterval: TimeSpan.FromMinutes(1));
         }
 
         private bool GetOptionalKeyVaultBoolSettingValue(string settingName, bool defaultValue)
