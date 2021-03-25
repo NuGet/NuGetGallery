@@ -255,10 +255,13 @@
                 $(reportContainerElement).attr("data-bind", "template: { name: 'verify-metadata-template', data: data }");
                 $("#verify-package-container").append(reportContainerElement);
                 ko.applyBindings({ data: model }, reportContainerElement);
-                if (model.ReadmeFileContents.Content) {
-                    $('#import-readme-container').addClass('hidden');
-                } else {
+                //Content of ReadmeFileContents indicates if embedded readme exists in the package.
+                //Support legacy readme by displaying readme container if ReadmeFileContents is null.
+                //Disable legacy readme by hiding readme container only if embedded readme content is not null.
+                if (model.ReadmeFileContents == null) {
                     $('#import-readme-container').removeClass('hidden');
+                } else if (model.ReadmeFileContents.Content) {
+                    $('#import-readme-container').addClass('hidden');
                 }
 
                 var submitContainerElement = document.createElement("div");

@@ -87,9 +87,9 @@ namespace NuGetGallery
         Package FilterLatestPackageBySuffix(IReadOnlyCollection<Package> packages,
             string version, bool prerelease);
 
-        IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
+        IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false, bool includeVulnerabilities = false);
 
-        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
+        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false, bool includeVulnerabilities = false);
 
         IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
 
@@ -113,6 +113,8 @@ namespace NuGetGallery
         Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified);
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
+
+        IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package);
 
         IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles);
 

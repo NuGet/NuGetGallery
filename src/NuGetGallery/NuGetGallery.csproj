@@ -366,7 +366,6 @@
     <Compile Include="Helpers\StreamHelper.cs" />
     <Compile Include="Helpers\TextHelper.cs" />
     <Compile Include="Helpers\ZipArchiveHelpers.cs" />
-    <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
     <Compile Include="Infrastructure\Lucene\HttpClientWrapper.cs" />
     <Compile Include="Infrastructure\Lucene\IResilientSearchClient.cs" />

@@ -32,6 +32,7 @@ namespace NuGetGallery
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IContentObjectService _contentObjectService;
+        private readonly IFeatureFlagService _featureFlagService;
         private const int packagesDisplayed = 5;
 
         public PackageService(
@@ -42,7 +43,8 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
             IEntitiesContext entitiesContext,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            IFeatureFlagService featureFlagService)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
@@ -50,6 +52,7 @@ namespace NuGetGallery
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         /// <summary>
@@ -403,9 +406,12 @@ namespace NuGetGallery
             return package;
         }
 
-        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
+        public IEnumerable<Package> FindPackagesByOwner(User user, 
+            bool includeUnlisted, 
+            bool includeVersions = false,
+            bool includeVulnerabilities = false)
         {
-            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions);
+            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions, includeVulnerabilities);
         }
 
         /// <summary>
@@ -414,15 +420,17 @@ namespace NuGetGallery
         public IEnumerable<Package> FindPackagesByAnyMatchingOwner(
             User user,
             bool includeUnlisted,
-            bool includeVersions = false)
+            bool includeVersions = false,
+            bool includeVulnerabilities = false)
         {
             var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
             ownerKeys.Insert(0, user.Key);
 
-            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions);
+            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions, includeVulnerabilities);
         }
 
-        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
+        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted,
+            bool includeVersions, bool includeVulnerabilities)
         {
             IQueryable<Package> packages = _packageRepository.GetAll()
                 .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
@@ -434,7 +442,7 @@ namespace NuGetGallery
 
             if (!includeVersions)
             {
-                // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
+                // Do a best effort of retrieving the latest versions. Note that UpdateIsLatest has had concurrency issues
                 // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
                 // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
                 packages = packages
@@ -450,11 +458,17 @@ namespace NuGetGallery
                         .FirstOrDefault());
             }
 
-            return packages
+            var result = packages
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.PackageRegistration.RequiredSigners)
-                .ToList();
+                .Include(p => p.PackageRegistration.RequiredSigners);
+
+            if (includeVulnerabilities && _featureFlagService.IsManagePackagesVulnerabilitiesEnabled())
+            {
+                result = result.Include($"{nameof(Package.VulnerablePackageRanges)}.{nameof(VulnerablePackageVersionRange.Vulnerability)}");
+            }
+
+            return result.ToList();
         }
 
         public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
@@ -702,8 +716,15 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package) =>
-            GetSupportedFrameworks(package.NuspecReader, package.GetFiles().ToList());
+        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package)
+        {
+            if (_featureFlagService.ArePatternSetTfmHeuristicsEnabled())
+            {
+                return GetSupportedFrameworks(package.NuspecReader, package.GetFiles().ToList());
+            }
+
+            return package.GetSupportedFrameworks();
+        }
 
         /// <summary>
         /// This method combines the logic used in restore operations to make a determination about the TFM supported by the package.

@@ -30,9 +30,9 @@ namespace NuGetGallery
         public string CommandPrefix { get; set; }
 
         /// <summary>
-        /// A string that represents the command used to install a specific package.
+        /// One or more strings that represent the command(s) used to install a specific package.
         /// </summary>
-        public string InstallPackageCommand { get; set; }
+        public string[] InstallPackageCommands { get; set; }
 
         /// <summary>
         /// The alert message that contains clarifications about the command/scenario

@@ -185,6 +185,12 @@ namespace NuGetGallery.Services
 
             public Task SendAsync(IBrokeredMessage message)
             {
+                Send(message);
+                return Task.CompletedTask;
+            }
+
+            public void Send(IBrokeredMessage message)
+            {
                 ++SendAsyncCallCount;
                 if (ShouldFail)
                 {
@@ -192,23 +198,10 @@ namespace NuGetGallery.Services
                 }
 
                 LastSentMessage = message;
-                return Task.FromResult(0);
             }
 
-            public void Send(IBrokeredMessage message)
-            {
-                SendAsync(message);
-            }
-
-            public Task CloseAsync()
-            {
-                return Task.CompletedTask;
-            }
-
-            public void Close()
-            {
-
-            }
+            public void Close() => throw new NotImplementedException();
+            public Task CloseAsync() => throw new NotImplementedException();
         }
 
         [Schema(Name = AccountDeleteMessageSchemaName, Version = 1)]

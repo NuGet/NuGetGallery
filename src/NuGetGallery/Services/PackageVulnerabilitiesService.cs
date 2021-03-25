@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using NuGet.Services.Entities;
 
@@ -40,6 +41,21 @@ namespace NuGetGallery
 
             return !result.Any() ? null :
                 result.ToDictionary(kv => kv.Key, kv => kv.Value as IReadOnlyList<PackageVulnerability>);
+        }
+
+        public bool IsPackageVulnerable(Package package)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (package.VulnerablePackageRanges == null)
+            {
+                throw new ArgumentException($"{nameof(package.VulnerablePackageRanges)} should be included in package query");
+            }
+
+            return package.VulnerablePackageRanges.FirstOrDefault(vpr => vpr.Vulnerability != null) != null;
         }
     }
 }

@@ -17,7 +17,7 @@ namespace NuGetGallery.Authentication
         /// <returns><c>true</c> if the string matches the given pattern; otherwise <c>false</c>.</returns>
         public static bool MatchesPackagePattern(this string str, string globPattern)
         {
-            return new Regex(
+            return RegexEx.CreateWithTimeout(
                 "^" + Regex.Escape(globPattern).Replace(@"\*", ".*") + "$",
                 RegexOptions.IgnoreCase | RegexOptions.Singleline
             ).IsMatch(str);
