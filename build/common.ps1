@@ -562,9 +562,9 @@ Function Format-BuildNumber([int]$BuildNumber) {
 Function Clear-PackageCache {
     [CmdletBinding()]
     param()
-    Trace-Log 'Clearing package cache (except the web cache)'
+    Trace-Log 'Clearing package cache'
 
-    & $NuGetExe locals packages-cache -clear -verbosity detailed
+    & $NuGetExe locals http-cache -clear -verbosity detailed
     #& nuget locals global-packages -clear -verbosity detailed
     & $NuGetExe locals temp -clear -verbosity detailed
 }
