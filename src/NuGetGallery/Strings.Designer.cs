@@ -1589,7 +1589,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The readme file &apos;{0}&apos; cannot be empty.
+        ///   Looks up a localized string similar to The readme file &apos;{0}&apos; cannot be empty..
         /// </summary>
         public static string ReadmeErrorEmpty {
             get {
@@ -2607,7 +2607,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The readme file has an invalid extension &apos;{0}&apos;. Extension must be end in: {1}..
+        ///   Looks up a localized string similar to The readme file has an invalid extension &apos;{0}&apos;. The extension must be: &apos;{1}&apos;..
         /// </summary>
         public static string UploadPackage_InvalidReadmeFileExtension {
             get {
