@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -50,6 +51,9 @@ namespace NuGetGallery
         public IPackageUpdateService PackageUpdateService { get; set; }
         public IUserService UserService { get; set; }
         public IStatisticsService StatisticsService { get; set; }
+
+        private readonly Func<IAppConfiguration> _configurationFactory;
+
         public IContentService ContentService { get; set; }
         public ISearchService SearchService { get; set; }
         public IIndexingService IndexingService { get; set; }
@@ -156,7 +160,8 @@ namespace NuGetGallery
             ISymbolPackageUploadService symbolPackageUploadServivce,
             IAutocompletePackageIdsQuery autocompletePackageIdsQuery,
             IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery,
-            IFeatureFlagService featureFlagService)
+            IFeatureFlagService featureFlagService,
+            Func<IAppConfiguration> configurationFactory)
             : this(
                   apiScopeEvaluator, 
                   entitiesContext, 
@@ -186,6 +191,7 @@ namespace NuGetGallery
                   featureFlagService)
         {
             StatisticsService = statisticsService;
+            _configurationFactory = configurationFactory ?? throw new ArgumentNullException(nameof(configurationFactory));
         }
 
 
@@ -411,6 +417,21 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        // TODO: remove
+        [HttpGet]
+        [ActionName("Benchmark")]
+        public ActionResult Benchmark()
+        {
+            var sw = Stopwatch.StartNew();
+            for (int i = 0; i < 10000; ++i)
+            {
+                var config = _configurationFactory();
+            }
+            sw.Stop();
+
+            return Json(new { Iterations = 10000, Elapsed = sw.Elapsed, OPS = 10000 / sw.Elapsed.TotalSeconds }, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPut]
