@@ -140,15 +140,18 @@ namespace NuGetGallery
 
             builder.Register(c => configuration.Current)
                 .AsSelf()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces()
+                .InstancePerLifetimeScope();
 
             // Force the read of this configuration, so it will be initialized on startup
             builder.Register(c => configuration.Features)
-               .AsSelf()
-               .As<FeatureConfiguration>();
+                .AsSelf()
+                .As<FeatureConfiguration>()
+                .InstancePerLifetimeScope();
 
             builder.Register(c => configuration.PackageDelete)
-                .As<IPackageDeleteConfiguration>();
+                .As<IPackageDeleteConfiguration>()
+                .InstancePerLifetimeScope();
 
             builder.RegisterInstance(telemetryService)
                 .AsSelf()
