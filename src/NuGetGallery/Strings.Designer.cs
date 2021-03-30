@@ -1589,15 +1589,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The readme file &apos;{0}&apos; cannot be empty..
-        /// </summary>
-        public static string ReadmeErrorEmpty {
-            get {
-                return ResourceManager.GetString("ReadmeErrorEmpty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid Markdown Documentation source type..
         /// </summary>
         public static string ReadMeInvalidSourceType {
@@ -2607,7 +2598,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The readme file has an invalid extension &apos;{0}&apos;. The extension must be: &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The readme file has an invalid extension &apos;{0}&apos;. Extension must be one of the following: {1}..
         /// </summary>
         public static string UploadPackage_InvalidReadmeFileExtension {
             get {
