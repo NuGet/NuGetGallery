@@ -1,31 +1,47 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
     public class JsonAggregateStatsService : IAggregateStatsService
     {
-        private readonly string _connectionString;
-        private readonly bool _readAccessGeoRedundant;
+        private readonly IFeatureFlagService _featureFlagService;
+        private readonly IBlobStorageConfiguration _primaryStorageConfiguration;
+        private readonly IBlobStorageConfiguration _alternateBlobStorageConfiguration;
 
-        public JsonAggregateStatsService(string connectionString, bool readAccessGeoRedundant)
+        public JsonAggregateStatsService(
+            IFeatureFlagService featureFlagService,
+            IBlobStorageConfiguration primaryBlobStorageConfiguration,
+            IBlobStorageConfiguration alternateBlobStorageConfiguration)
         {
-            _connectionString = connectionString;
-            _readAccessGeoRedundant = readAccessGeoRedundant;
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _primaryStorageConfiguration = primaryBlobStorageConfiguration ?? throw new ArgumentNullException(nameof(primaryBlobStorageConfiguration));
+            _alternateBlobStorageConfiguration = alternateBlobStorageConfiguration;
         }
 
         public async Task<AggregateStats> GetAggregateStats()
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_connectionString);
+            var connectionString = _primaryStorageConfiguration.ConnectionString;
+            var readAccessGeoRedundant = _primaryStorageConfiguration.ReadAccessGeoRedundant;
+
+            if (_alternateBlobStorageConfiguration != null && _featureFlagService.IsAlternateStatisticsSourceEnabled())
+            {
+                connectionString = _alternateBlobStorageConfiguration.ConnectionString;
+                readAccessGeoRedundant = _alternateBlobStorageConfiguration.ReadAccessGeoRedundant;
+            }
+
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
-            if (_readAccessGeoRedundant)
+            if (readAccessGeoRedundant)
             {
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }
