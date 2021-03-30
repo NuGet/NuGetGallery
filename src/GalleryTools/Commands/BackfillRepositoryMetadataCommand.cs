@@ -5,6 +5,7 @@ using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
+using NuGetGallery;
 
 namespace GalleryTools.Commands
 {
@@ -38,7 +39,7 @@ namespace GalleryTools.Commands
             map.Map(x => x.Metadata.Commit).Index(6);
         }
 
-        protected override void UpdatePackage(Package package, RepositoryMetadata metadata)
+        protected override void UpdatePackage(Package package, RepositoryMetadata metadata, EntitiesContext context)
         {
             package.RepositoryUrl = metadata.Url;
 

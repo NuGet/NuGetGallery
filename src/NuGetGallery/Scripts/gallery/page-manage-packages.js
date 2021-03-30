@@ -35,6 +35,7 @@
             this.ShowRequiredSigner = packageItem.ShowRequiredSigner;
             this.ShowTextBox = packageItem.ShowTextBox;
             this.CanEditRequiredSigner = packageItem.CanEditRequiredSigner;
+            this.IsVulnerable = packageItem.IsVulnerable;
             this.CanEdit = packageItem.CanEdit;
             this.CanManageOwners = packageItem.CanManageOwners;
             this.CanDelete = packageItem.CanDelete;

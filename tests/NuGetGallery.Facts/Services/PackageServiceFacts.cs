@@ -33,7 +33,8 @@ namespace NuGetGallery
             Mock<ISecurityPolicyService> securityPolicyService = null,
             Action<Mock<PackageService>> setup = null,
             Mock<IEntitiesContext> context = null,
-            Mock<IContentObjectService> contentObjectService = null)
+            Mock<IContentObjectService> contentObjectService = null,
+            Mock<IFeatureFlagService> featureFlagService = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
@@ -49,6 +50,12 @@ namespace NuGetGallery
                 contentObjectService.Setup(x => x.QueryHintConfiguration).Returns(Mock.Of<IQueryHintConfiguration>());
             }
 
+            if (featureFlagService == null)
+            {
+                featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(x => x.ArePatternSetTfmHeuristicsEnabled()).Returns(true);
+            }
+
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
@@ -57,7 +64,8 @@ namespace NuGetGallery
                 telemetryService.Object,
                 securityPolicyService.Object,
                 context.Object,
-                contentObjectService.Object);
+                contentObjectService.Object,
+                featureFlagService.Object);
 
             packageService.CallBase = true;
 
@@ -971,6 +979,41 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData(false, new[] { "net40", "net5.0", "netcore21" })]
+            [InlineData(true, new[] { "net5.0", "netcore21" })]
+            private void UsesTfmHeuristicsBasedOnFeatureFlag(bool useNewTfmHeuristics, IEnumerable<string> expectedSupportedTfms)
+            {
+                // arrange
+                // - create a package that responds differently to each set of heuristics
+                var nuspec =
+                    $@"<?xml version=""1.0""?>
+                        <package xmlns = ""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                            <metadata>
+                                <id>Foo</id>
+                                <frameworkAssemblies>
+                                    <frameworkAssembly assemblyName=""System"" targetFramework="".NETFramework4.0"" />
+                                </frameworkAssemblies>
+                            </metadata>
+                        </package>";
+                var nuspecReader = new NuspecReader(XDocument.Parse(nuspec));
+                var files = new List<string> { "lib/netcore2.1/_._", "lib/net5.0/_._" };
+                var package = new MockPackageArchiveReader(nuspecReader, files);
+
+                // - create feature flag services and package services for both scenarios
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(x => x.ArePatternSetTfmHeuristicsEnabled()).Returns(useNewTfmHeuristics);
+
+                // act
+                var supportedFrameworks = CreateService(featureFlagService: featureFlagService).GetSupportedFrameworks(package)
+                    .Select(f => f.GetShortFolderName())
+                    .OrderBy(f => f)
+                    .ToList();
+
+                // assert
+                Assert.Equal<string>(expectedSupportedTfms, supportedFrameworks);
+            }
+
+            [Theory]
             [MemberData(nameof(TargetFrameworkCases))]
             private void DeterminesCorrectSupportedFrameworksFromFileList(bool isTools, List<string> files, List<string> expectedSupportedFrameworks)
             {
@@ -991,9 +1034,7 @@ namespace NuGetGallery
                                 <id>Foo</id>
                             </metadata>
                         </package>";
-                var xml = XDocument.Parse(nuspec);
-
-                var nuspecReader = new NuspecReader(xml);
+                var nuspecReader = new NuspecReader(XDocument.Parse(nuspec));
 
                 // act
                 var supportedFrameworks = CreateService().GetSupportedFrameworks(nuspecReader, files)

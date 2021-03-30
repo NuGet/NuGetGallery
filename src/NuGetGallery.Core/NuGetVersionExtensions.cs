@@ -36,7 +36,9 @@ namespace NuGetGallery
     public static class NuGetVersionExtensions
     {
         private const RegexOptions SemanticVersionRegexFlags = RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture;
-        private static readonly Regex SemanticVersionRegex = new Regex(@"^(?<Version>\d+(\s*\.\s*\d+){0,3})(?<Release>-[a-z][0-9a-z-]*)?$", SemanticVersionRegexFlags);
+        private static readonly Regex SemanticVersionRegex = RegexEx.CreateWithTimeout(
+            @"^(?<Version>\d+(\s*\.\s*\d+){0,3})(?<Release>-[a-z][0-9a-z-]*)?$",
+            SemanticVersionRegexFlags);
 
         public static string ToNormalizedStringSafe(this NuGetVersion self)
         {
