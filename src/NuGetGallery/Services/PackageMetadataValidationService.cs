@@ -458,16 +458,6 @@ namespace NuGetGallery
             }
 
             var readmeFileEntry = nuGetPackage.GetEntry(readmeFilePath);
-
-            if (readmeFileEntry.Length == 0)
-            {
-                return PackageValidationResult.Invalid(
-                    string.Format(
-                        Strings.ReadmeErrorEmpty,
-                        Strings.UploadPackage_ReadmeFileType,
-                        readmeFilePath));
-            }
-
             if (readmeFileEntry.Length > MaxAllowedReadmeLengthForUploading)
             {
                 return PackageValidationResult.Invalid(
