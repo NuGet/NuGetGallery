@@ -69,9 +69,9 @@ namespace NuGetGallery
             // request context because it will cause a deadlock.
             // 
             // Note that is is technically possible for some code before this to initialize the machine key (e.g. by
-            // calling an API that uses the  machine key configuration). If this happens, the machine key will be
-            // fetched from KeyVault seperately. This will be slightly slower (two KeyVault secret resolutions instead
-            // of one) but will not be harmful.
+            // calling an API that uses the  machine key configuration). If this happens,
+            // GalleryMachineKeyConfigurationProvider.Decrypt calls will block until valid configuration is supplied
+            // by the code below.
             GalleryMachineKeyConfigurationProvider.Configuration = config.Current;
             ConfigurationManager.GetSection("system.web/machineKey");
 

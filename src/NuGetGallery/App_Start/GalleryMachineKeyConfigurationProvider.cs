@@ -12,6 +12,15 @@ namespace NuGetGallery
 {
     public class GalleryMachineKeyConfigurationProvider : ProtectedConfigurationProvider
     {
+        /// <summary>
+        /// An event that when signaled indicates that the service configuration set up
+        /// has been done and <see cref="Configuration"/> contains valid value.
+        /// 
+        /// It is assumed that the <see cref="Configuration" /> property is set early in 
+        /// the service startup process.
+        /// 
+        /// All <see cref="Decrypt(XmlNode)"/> calls will block until the signal is set.
+        /// </summary>
         private static ManualResetEventSlim _configurationSet = new ManualResetEventSlim(false);
 
         private static IAppConfiguration _configuration = null;
