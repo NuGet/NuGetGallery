@@ -17,27 +17,20 @@ namespace NuGetGallery
         private readonly bool _readAccessGeoRedundant;
         private CloudBlobClient _blobClient;
 
-        private DateTime _createdAt;
-
         public CloudBlobClientWrapper(string storageConnectionString, bool readAccessGeoRedundant)
         {
             _storageConnectionString = storageConnectionString;
             _readAccessGeoRedundant = readAccessGeoRedundant;
-            _createdAt = DateTime.UtcNow;
         }
 
         public CloudBlobClientWrapper(string storageConnectionString, BlobRequestOptions defaultRequestOptions)
         {
             _storageConnectionString = storageConnectionString;
             _defaultRequestOptions = defaultRequestOptions;
-            _createdAt = DateTime.UtcNow;
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
          {
-            // TODO: Remove
-            Trace.TraceInformation($"CloudBlobClientWrapper age: {DateTime.UtcNow - _createdAt}");
-
             // For Azure blobs, the query string is assumed to be the SAS token.
             ISimpleCloudBlob blob;
             if (!string.IsNullOrEmpty(uri.Query))
@@ -59,9 +52,6 @@ namespace NuGetGallery
 
         public ICloudBlobContainer GetContainerReference(string containerAddress)
         {
-            // TODO: Remove
-            Trace.TraceInformation($"CloudBlobClientWrapper age: {DateTime.UtcNow - _createdAt}");
-
             if (_blobClient == null)
             {
                 _blobClient = CloudStorageAccount.Parse(_storageConnectionString).CreateCloudBlobClient();
