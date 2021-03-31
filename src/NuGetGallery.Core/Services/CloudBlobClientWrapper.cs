@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -30,7 +29,7 @@ namespace NuGetGallery
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
-         {
+        {
             // For Azure blobs, the query string is assumed to be the SAS token.
             ISimpleCloudBlob blob;
             if (!string.IsNullOrEmpty(uri.Query))
