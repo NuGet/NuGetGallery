@@ -707,18 +707,6 @@ namespace NuGetGallery
 
         private static void RegisterStatisticsServices(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryService telemetryService)
         {
-            // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
-            builder.RegisterInstance(new JsonAggregateStatsService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .AsSelf()
-                .As<IAggregateStatsService>()
-                .SingleInstance();
-
-            // when running on Windows Azure, pull the statistics from the warehouse via storage
-            builder.RegisterInstance(new CloudReportService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .AsSelf()
-                .As<IReportService>()
-                .SingleInstance();
-
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
             builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .SingleInstance()
@@ -727,6 +715,32 @@ namespace NuGetGallery
             builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
+
+            // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
+            builder.Register(c =>
+            {
+                var primaryConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
+                var alternateConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
+                var featureFlagService = c.Resolve<IFeatureFlagService>();
+                var jsonAggregateStatsService = new JsonAggregateStatsService(featureFlagService, primaryConfiguration, alternateConfiguration);
+                return jsonAggregateStatsService;
+            })
+                .AsSelf()
+                .As<IAggregateStatsService>()
+                .SingleInstance();
+
+            // when running on Windows Azure, pull the statistics from the warehouse via storage
+            builder.Register(c =>
+            {
+                var primaryConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
+                var alternateConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
+                var featureFlagService = c.Resolve<IFeatureFlagService>();
+                var cloudReportService = new CloudReportService(featureFlagService, primaryConfiguration, alternateConfiguration);
+                return cloudReportService;
+            })
+                .AsSelf()
+                .As<IReportService>()
+                .SingleInstance();
 
             builder.Register(c =>
             {
