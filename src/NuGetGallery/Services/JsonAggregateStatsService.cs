@@ -13,49 +13,25 @@ namespace NuGetGallery
 {
     public class JsonAggregateStatsService : IAggregateStatsService
     {
-        private readonly IFeatureFlagService _featureFlagService;
-        private readonly IBlobStorageConfiguration _primaryStorageConfiguration;
-        private readonly IBlobStorageConfiguration _alternateBlobStorageConfiguration;
+        private readonly Func<ICloudBlobClient> _cloudBlobClientFactory;
 
-        public JsonAggregateStatsService(
-            IFeatureFlagService featureFlagService,
-            IBlobStorageConfiguration primaryBlobStorageConfiguration,
-            IBlobStorageConfiguration alternateBlobStorageConfiguration)
+        public JsonAggregateStatsService(Func<ICloudBlobClient> cloudBlobClientFactory)
         {
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
-            _primaryStorageConfiguration = primaryBlobStorageConfiguration ?? throw new ArgumentNullException(nameof(primaryBlobStorageConfiguration));
-            _alternateBlobStorageConfiguration = alternateBlobStorageConfiguration;
+            _cloudBlobClientFactory = cloudBlobClientFactory ?? throw new ArgumentNullException(nameof(cloudBlobClientFactory));
         }
 
         public async Task<AggregateStats> GetAggregateStats()
         {
-            var connectionString = _primaryStorageConfiguration.ConnectionString;
-            var readAccessGeoRedundant = _primaryStorageConfiguration.ReadAccessGeoRedundant;
+            var blobClient = _cloudBlobClientFactory();
 
-            if (_alternateBlobStorageConfiguration != null && _featureFlagService.IsAlternateStatisticsSourceEnabled())
-            {
-                connectionString = _alternateBlobStorageConfiguration.ConnectionString;
-                readAccessGeoRedundant = _alternateBlobStorageConfiguration.ReadAccessGeoRedundant;
-            }
+            var container = blobClient.GetContainerReference("nuget-cdnstats");
+            var blob = container.GetBlobReference("stats-totals.json");
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-            if (readAccessGeoRedundant)
-            {
-                blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
-            }
-
-            CloudBlobContainer container = blobClient.GetContainerReference("nuget-cdnstats");
-            CloudBlockBlob blob = container.GetBlockBlobReference("stats-totals.json");
-
-            //Check if the report blob is present before processing it.
-            if (!blob.Exists())
+            string totals = await blob.DownloadTextIfExistAsync();
+            if (totals == null)
             {
                 throw new StatisticsReportNotFoundException();
             }
-
-            string totals = await blob.DownloadTextAsync();
             var json = JsonConvert.DeserializeObject<AggregateStats>(totals);
 
             return json;
