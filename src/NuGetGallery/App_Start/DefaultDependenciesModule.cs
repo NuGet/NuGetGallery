@@ -1436,7 +1436,11 @@ namespace NuGetGallery
 
             RegisterStatisticsServices(builder, configuration, telemetryService);
 
-            builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.Register(c =>
+                {
+                    var configurationFactory = c.Resolve<Func<IAppConfiguration>>();
+                    return new TableErrorLog(() => configurationFactory().AzureStorage_Errors_ConnectionString, configurationFactory().AzureStorageReadAccessGeoRedundant);
+                })
                 .As<ErrorLog>()
                 .SingleInstance();
 

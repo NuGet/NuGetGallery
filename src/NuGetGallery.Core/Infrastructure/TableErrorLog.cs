@@ -141,13 +141,11 @@ namespace NuGetGallery.Infrastructure
     {
         public const string TableName = "ElmahErrors";
 
-        private readonly string _connectionString;
         private readonly AzureEntityList<ErrorEntity> _entityList;
 
-        public TableErrorLog(string connectionString, bool readAccessGeoRedundant)
+        public TableErrorLog(Func<string> connectionStringFactory, bool readAccessGeoRedundant)
         {
-            _connectionString = connectionString;
-            _entityList = new AzureEntityList<ErrorEntity>(connectionString, TableName, readAccessGeoRedundant);
+            _entityList = new AzureEntityList<ErrorEntity>(connectionStringFactory, TableName, readAccessGeoRedundant);
         }
 
         public override ErrorLogEntry GetError(string id)
