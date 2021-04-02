@@ -59,7 +59,7 @@ namespace NuGetGallery
         /// resulting stream if blob exists.
         /// </summary>
         /// <param name="blob">Blob reference.</param>
-        /// <returns>Stream if the call was successful, false if blob does not exist.</returns>
+        /// <returns>Stream if the call was successful, null if blob does not exist.</returns>
         public static async Task<Stream> OpenReadIfExistAsync(this ISimpleCloudBlob blob)
         {
             try
