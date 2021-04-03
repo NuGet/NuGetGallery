@@ -21,17 +21,17 @@ namespace NuGetGallery.Auditing
     {
         public static readonly string DefaultContainerName = "auditing";
 
-        private CloudBlobContainer _auditContainer;
+        private Func<ICloudBlobContainer> _auditContainerFactory;
         private Func<Task<AuditActor>> _getOnBehalfOf;
 
-        public CloudAuditingService(string storageConnectionString, bool readAccessGeoRedundant, Func<Task<AuditActor>> getOnBehalfOf)
-            : this(GetContainer(storageConnectionString, readAccessGeoRedundant), getOnBehalfOf)
+        public CloudAuditingService(Func<ICloudBlobClient> cloudBlobClientFactory, Func<Task<AuditActor>> getOnBehalfOf)
+            : this(() => GetContainer(cloudBlobClientFactory), getOnBehalfOf)
         {
         }
 
-        public CloudAuditingService(CloudBlobContainer auditContainer, Func<Task<AuditActor>> getOnBehalfOf)
+        public CloudAuditingService(Func<ICloudBlobContainer> auditContainerFactory, Func<Task<AuditActor>> getOnBehalfOf)
         {
-            _auditContainer = auditContainer;
+            _auditContainerFactory = auditContainerFactory;
             _getOnBehalfOf = getOnBehalfOf;
         }
 
@@ -52,7 +52,8 @@ namespace NuGetGallery.Auditing
                 $"{filePath.Replace(Path.DirectorySeparatorChar, '/')}/" +
                 $"{Guid.NewGuid().ToString("N")}-{action.ToLowerInvariant()}.audit.v1.json";
 
-            var blob = _auditContainer.GetBlockBlobReference(fullPath);
+            var container = _auditContainerFactory();
+            var blob = container.GetBlobReference(fullPath);
             bool retry = false;
             try
             {
@@ -74,37 +75,24 @@ namespace NuGetGallery.Auditing
             {
                 // Create the container and try again,
                 // this time we let exceptions bubble out
-                await Task.Factory.FromAsync(
-                    (cb, s) => _auditContainer.BeginCreateIfNotExists(cb, s),
-                    ar => _auditContainer.EndCreateIfNotExists(ar),
-                    null);
+                var permissions = new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Off };
+                await container.CreateIfNotExistAsync(permissions);
                 await WriteBlob(auditData, fullPath, blob);
             }
         }
 
-        private static CloudBlobContainer GetContainer(string storageConnectionString, bool readAccessGeoRedundant)
+        private static ICloudBlobContainer GetContainer(Func<ICloudBlobClient> cloudBlobClientFactory)
         {
-            var cloudBlobClient = CloudStorageAccount.Parse(storageConnectionString).CreateCloudBlobClient();
-            if (readAccessGeoRedundant)
-            {
-                cloudBlobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
-            }
+            var cloudBlobClient = cloudBlobClientFactory();
             return cloudBlobClient.GetContainerReference(DefaultContainerName);
         }
 
-        private static async Task WriteBlob(string auditData, string fullPath, CloudBlockBlob blob)
+        private static async Task WriteBlob(string auditData, string fullPath, ISimpleCloudBlob blob)
         {
             try
             {
-                var strm = await Task.Factory.FromAsync(
-                    (cb, s) => blob.BeginOpenWrite(
-                        AccessCondition.GenerateIfNoneMatchCondition("*"),
-                        new BlobRequestOptions(),
-                        new OperationContext(),
-                        cb, s),
-                    ar => blob.EndOpenWrite(ar),
-                    null);
-                using (var writer = new StreamWriter(strm))
+                using (var stream = await blob.OpenWriteAsync(AccessCondition.GenerateIfNoneMatchCondition("*")))
+                using (var writer = new StreamWriter(stream))
                 {
                     await writer.WriteAsync(auditData);
                 }
@@ -125,7 +113,7 @@ namespace NuGetGallery.Auditing
 
         public Task<bool> IsAvailableAsync(BlobRequestOptions options, OperationContext operationContext)
         {
-            return _auditContainer.ExistsAsync(options, operationContext);
+            return _auditContainerFactory().ExistsAsync(options, operationContext);
         }
 
         public override string RenderAuditEntry(AuditEntry entry)

@@ -78,6 +78,8 @@ namespace NuGetGallery
             public const string EmailPublisherTopic = "EmailPublisherBindingKey";
 
             public const string PreviewSearchClient = "PreviewSearchClientBindingKey";
+
+            public const string AuditKey = "AuditKey";
         }
 
         public static class ParameterNames
@@ -1479,7 +1481,15 @@ namespace NuGetGallery
                 builder.Register(c =>
                     {
                         var configuration = c.Resolve<IAppConfiguration>();
-                        return new CloudAuditingService(configuration.AzureStorage_Auditing_ConnectionString, configuration.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
+                        return new CloudBlobClientWrapper(configuration.AzureStorage_Auditing_ConnectionString, configuration.AzureStorageReadAccessGeoRedundant);
+                    })
+                    .SingleInstance()
+                    .Keyed<ICloudBlobClient>(BindingKeys.AuditKey);
+
+                builder.Register(c =>
+                    {
+                        var blobClientFactory = c.ResolveKeyed<Func<ICloudBlobClient>>(BindingKeys.AuditKey);
+                        return new CloudAuditingService(blobClientFactory, AuditActor.GetAspNetOnBehalfOfAsync);
                     })
                     .SingleInstance()
                     .AsSelf()
