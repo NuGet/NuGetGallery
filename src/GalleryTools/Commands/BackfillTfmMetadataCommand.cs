@@ -20,6 +20,8 @@ namespace GalleryTools.Commands
         
         protected override Expression<Func<Package, object>> QueryIncludes => p => p.SupportedFrameworks;
 
+        protected override int CollectBatchSize => 1000;
+
         public static void Configure(CommandLineApplication config)
         {
             Configure<BackfillTfmMetadataCommand>(config);
