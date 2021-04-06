@@ -311,7 +311,7 @@ namespace NuGetGallery
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
 
-                // Note that there is no assertion on package identifier, because that's at the package registration level (and covered in another test).
+                Assert.Equal("theId", package.Id);
                 Assert.Equal("01.0.42.0", package.Version);
                 Assert.Equal("1.0.42", package.NormalizedVersion);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
@@ -594,7 +594,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillSaveTheCreatedPackageWhenANewPackageRegistrationIsCreated()
+            public async Task WillSaveTheCreatedPackageWhenANewPackageRegistrationIsCreated()
             {
                 var key = 0;
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
@@ -612,7 +612,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillSaveTheCreatedPackageWhenThePackageRegistrationAlreadyExisted()
+            public async Task WillSaveTheCreatedPackageWhenThePackageRegistrationAlreadyExisted()
             {
                 var currentUser = new User();
                 var packageRegistration = new PackageRegistration
@@ -631,7 +631,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowWhenThePackageRegistrationAndVersionAlreadyExists()
+            public async Task WillThrowWhenThePackageRegistrationAndVersionAlreadyExists()
             {
                 var currentUser = new User();
                 var packageId = "theId";
@@ -651,7 +651,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageIdIsLongerThanMaxPackageIdLength()
+            public async Task WillThrowIfTheNuGetPackageIdIsLongerThanMaxPackageIdLength()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: "theId".PadRight(131, '_'));
@@ -662,7 +662,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsADot()
+            public async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsADot()
             {
                 var user = new User();
                 var service = CreateService();
@@ -672,7 +672,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsOnlyNumbers()
+            public async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsOnlyNumbers()
             {
                 var user = new User();
                 var service = CreateService();
@@ -682,7 +682,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageAuthorsIsLongerThan4000()
+            public async Task WillThrowIfTheNuGetPackageAuthorsIsLongerThan4000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(authors: "theFirstAuthor".PadRight(2001, '_') + ", " + "theSecondAuthor".PadRight(2001, '_'));
@@ -693,7 +693,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageCopyrightIsLongerThan4000()
+            public async Task WillThrowIfTheNuGetPackageCopyrightIsLongerThan4000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(copyright: "theCopyright".PadRight(4001, '_'));
@@ -704,7 +704,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageReleaseNotesIsLongerThan35000()
+            public async Task WillThrowIfTheNuGetPackageReleaseNotesIsLongerThan35000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(releaseNotes: "theReleaseNotes".PadRight(35001, '_'));
@@ -715,7 +715,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheVersionIsLongerThan64Characters()
+            public async Task WillThrowIfTheVersionIsLongerThan64Characters()
             {
                 var service = CreateService();
                 var versionString = "1.0.0-".PadRight(65, 'a');
@@ -727,7 +727,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageDependenciesIsLongerThanInt16MaxValue()
+            public async Task WillThrowIfTheNuGetPackageDependenciesIsLongerThanInt16MaxValue()
             {
                 var service = CreateService();
                 var versionSpec = VersionRange.Parse("[1.0]");
@@ -752,7 +752,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfThePackageDependencyIdIsLongerThanMaxPackageIdLength()
+            public async Task WillThrowIfThePackageDependencyIdIsLongerThanMaxPackageIdLength()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(packageDependencyGroups: new[]
@@ -774,7 +774,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfThePackageContainsDuplicateDependencyGroups()
+            public async Task WillThrowIfThePackageContainsDuplicateDependencyGroups()
             {
                 var service = CreateService();
 
@@ -809,7 +809,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfThePackageDependencyVersionSpecIsLongerThan256()
+            public async Task WillThrowIfThePackageDependencyVersionSpecIsLongerThan256()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(packageDependencyGroups: new[]
@@ -843,7 +843,7 @@ namespace NuGetGallery
 
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageDescriptionIsLongerThan4000()
+            public async Task WillThrowIfTheNuGetPackageDescriptionIsLongerThan4000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(description: "theDescription".PadRight(4001, '_'));
@@ -854,7 +854,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageIconUrlIsLongerThan4000()
+            public async Task WillThrowIfTheNuGetPackageIconUrlIsLongerThan4000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(iconUrl: new Uri("http://theIconUrl/".PadRight(4001, '-'), UriKind.Absolute));
@@ -865,7 +865,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageLicenseUrlIsLongerThan4000()
+            public async Task WillThrowIfTheNuGetPackageLicenseUrlIsLongerThan4000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(licenseUrl: new Uri("http://theLicenseUrl/".PadRight(4001, '-'), UriKind.Absolute));
@@ -876,7 +876,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageProjectUrlIsLongerThan4000()
+            public async Task WillThrowIfTheNuGetPackageProjectUrlIsLongerThan4000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(projectUrl: new Uri("http://theProjectUrl/".PadRight(4001, '-'), UriKind.Absolute));
@@ -887,7 +887,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageSummaryIsLongerThan4000()
+            public async Task WillThrowIfTheNuGetPackageSummaryIsLongerThan4000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(summary: "theSummary".PadRight(4001, '_'));
@@ -898,7 +898,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageTagsIsLongerThan4000()
+            public async Task WillThrowIfTheNuGetPackageTagsIsLongerThan4000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(tags: "theTags".PadRight(4001, '_'));
@@ -909,7 +909,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageTitleIsLongerThan4000()
+            public async Task WillThrowIfTheNuGetPackageTitleIsLongerThan4000()
             {
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(title: "theTitle".PadRight(4001, '_'));
@@ -920,7 +920,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheNuGetPackageLanguageIsLongerThan20()
+            public async Task WillThrowIfTheNuGetPackageLanguageIsLongerThan20()
             {
                 // Arrange
                 var service = CreateService();
@@ -934,7 +934,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillSaveSupportedFrameworks()
+            public async Task WillSaveSupportedFrameworks()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
@@ -957,7 +957,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillNotSaveAnySupportedFrameworksWhenThereIsAnAnyTargetFramework()
+            public async Task WillNotSaveAnySupportedFrameworksWhenThereIsAnAnyTargetFramework()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
@@ -981,7 +981,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(false, new[] { "net40", "net5.0", "netcore21" })]
             [InlineData(true, new[] { "net5.0", "netcore21" })]
-            private void UsesTfmHeuristicsBasedOnFeatureFlag(bool useNewTfmHeuristics, IEnumerable<string> expectedSupportedTfms)
+            public void UsesTfmHeuristicsBasedOnFeatureFlag(bool useNewTfmHeuristics, IEnumerable<string> expectedSupportedTfms)
             {
                 // arrange
                 // - create a package that responds differently to each set of heuristics
@@ -1015,7 +1015,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(TargetFrameworkCases))]
-            private void DeterminesCorrectSupportedFrameworksFromFileList(bool isTools, List<string> files, List<string> expectedSupportedFrameworks)
+            public void DeterminesCorrectSupportedFrameworksFromFileList(bool isTools, List<string> files, List<string> expectedSupportedFrameworks)
             {
                 // arrange
                 var nuspec = isTools
@@ -1213,7 +1213,7 @@ namespace NuGetGallery
                 };
 
             [Fact]
-            private async Task WillThrowIfTheRepositoryTypeIsLongerThan100()
+            public async Task WillThrowIfTheRepositoryTypeIsLongerThan100()
             {
                 // Arrange
                 var service = CreateService();
@@ -1234,7 +1234,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            private async Task WillThrowIfTheRepositoryUrlIsLongerThan4000()
+            public async Task WillThrowIfTheRepositoryUrlIsLongerThan4000()
             {
                 // Arrange
                 var service = CreateService();

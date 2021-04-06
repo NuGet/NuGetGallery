@@ -109,7 +109,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             return new DeleteSearchResult
             {
-                PackageId = package.PackageRegistration.Id,
+                PackageId = package.Id,
                 PackageVersionNormalized = !string.IsNullOrEmpty(package.NormalizedVersion)
                     ? package.NormalizedVersion 
                     : NuGetVersion.Parse(package.Version).ToNormalizedString(),

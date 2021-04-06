@@ -303,6 +303,10 @@
     <Compile Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.designer.cs">
       <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202104060114373_AddVersionSpecificId.cs" />
+    <Compile Include="Migrations\202104060114373_AddVersionSpecificId.designer.cs">
+      <DependentUpon>202104060114373_AddVersionSpecificId.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="Services\ImageDomainValidator.cs" />
@@ -1639,6 +1643,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.resx">
       <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202104060114373_AddVersionSpecificId.resx">
+      <DependentUpon>202104060114373_AddVersionSpecificId.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
