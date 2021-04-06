@@ -270,6 +270,7 @@ namespace NuGet.Services.Entities
         /// the package registration. WARNING: this property should not be used for comparisons in LINQ to SQL because
         /// it may be null sometimes. Use <see cref="PackageRegistration.Id"/> instead.
         /// </summary>
+        [StringLength(Constants.MaxPackageIdLength)]
         public string Id
         {
             get => _id ?? PackageRegistration?.Id;

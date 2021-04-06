@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "202104060114373_AddVersionSpecificId"; }
+            get { return "202104062157118_AddVersionSpecificId"; }
         }
         
         string IMigrationMetadata.Source
