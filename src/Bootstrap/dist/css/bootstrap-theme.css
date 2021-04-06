@@ -732,6 +732,10 @@ img.reserved-indicator-icon {
   margin-top: 6px;
   margin-bottom: 6px;
 }
+.page-add-organization .required:after {
+  color: red;
+  content: " *";
+}
 .page-admin-index h2 {
   margin-bottom: 8px;
   margin-top: 32px;
