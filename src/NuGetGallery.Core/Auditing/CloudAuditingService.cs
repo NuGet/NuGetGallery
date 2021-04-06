@@ -75,8 +75,7 @@ namespace NuGetGallery.Auditing
             {
                 // Create the container and try again,
                 // this time we let exceptions bubble out
-                var permissions = new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Off };
-                await container.CreateIfNotExistAsync(permissions);
+                await container.CreateIfNotExistAsync(permissions: null);
                 await WriteBlob(auditData, fullPath, blob);
             }
         }
