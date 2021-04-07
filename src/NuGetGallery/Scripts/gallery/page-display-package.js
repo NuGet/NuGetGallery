@@ -74,6 +74,7 @@ $(function () {
         showLess.on('show.bs.collapse', function (e) {
             e.stopPropagation();
         });
+        return false;
     }
 
     // Configure expanders
