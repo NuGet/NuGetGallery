@@ -67,6 +67,7 @@ $(function () {
         $("#show-readme-more").click(function (e) {
             showLess.collapse("toggle");
             e.preventDefault();
+            return false;
         });
         showLess.on('hide.bs.collapse', function (e) {
             e.stopPropagation();
@@ -74,7 +75,6 @@ $(function () {
         showLess.on('show.bs.collapse', function (e) {
             e.stopPropagation();
         });
-        return false;
     }
 
     // Configure expanders
