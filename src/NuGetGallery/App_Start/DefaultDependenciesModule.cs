@@ -756,27 +756,24 @@ namespace NuGetGallery
 
             // when running on Windows Azure, pull the statistics from the warehouse via storage
             builder.Register(c => new CloudReportService(c.ResolveKeyed<Func<ICloudBlobClient>>(BindingKeys.FeatureFlaggedStatisticsKey)))
-                .AsSelf()
                 .As<IReportService>()
                 .SingleInstance();
 
             builder.Register(c =>
-            {
-                var cloudBlobClientFactory = c.ResolveKeyed<Func<ICloudBlobClient>>(BindingKeys.FeatureFlaggedStatisticsKey);
-                var telemetryService = c.Resolve<ITelemetryService>();
-                var downloadCountService = new CloudDownloadCountService(telemetryService, cloudBlobClientFactory);
+                {
+                    var cloudBlobClientFactory = c.ResolveKeyed<Func<ICloudBlobClient>>(BindingKeys.FeatureFlaggedStatisticsKey);
+                    var telemetryService = c.Resolve<ITelemetryService>();
+                    var downloadCountService = new CloudDownloadCountService(telemetryService, cloudBlobClientFactory);
 
-                var dlCountInterceptor = new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryService);
-                ObjectMaterializedInterception.AddInterceptor(dlCountInterceptor);
+                    var dlCountInterceptor = new DownloadCountObjectMaterializedInterceptor(downloadCountService, telemetryService);
+                    ObjectMaterializedInterception.AddInterceptor(dlCountInterceptor);
 
-                return downloadCountService;
-            })
-                .AsSelf()
+                    return downloadCountService;
+                })
                 .As<IDownloadCountService>()
                 .SingleInstance();
 
             builder.RegisterType<JsonStatisticsService>()
-                .AsSelf()
                 .As<IStatisticsService>()
                 .SingleInstance();
         }
