@@ -19,7 +19,7 @@ namespace NuGetGallery
 
         public override Task Execute()
         {
-            return _downloadCountService.Refresh();
+            return new Task(async () => { await _downloadCountService.Refresh(); });
         }
     }
 }
