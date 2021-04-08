@@ -11,6 +11,31 @@ namespace NuGetGallery.ViewModels
     public class PackageViewModelFacts
     {
         [Fact]
+        public void UsesVersionSpecificIdIfAvailable()
+        {
+            var package = new Package()
+            {
+                Version = "1.0.0",
+                Id = "NuGet.IoT",
+                PackageRegistration = new PackageRegistration { Id = "nugeT.ioT" },
+            };
+            var packageViewModel = CreatePackageViewModel(package);
+            Assert.Equal("NuGet.IoT", packageViewModel.Id);
+        }
+
+        [Fact]
+        public void UsesPackageRegistrationIdIfVersionSpecificIsNotAvailable()
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "nugeT.ioT" },
+            };
+            var packageViewModel = CreatePackageViewModel(package);
+            Assert.Equal("nugeT.ioT", packageViewModel.Id);
+        }
+
+        [Fact]
         public void UsesNormalizedVersionForDisplay()
         {
             var package = new Package()
