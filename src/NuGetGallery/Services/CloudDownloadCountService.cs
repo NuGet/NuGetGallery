@@ -151,7 +151,7 @@ namespace NuGetGallery
         protected virtual async Task<Stream> GetBlobStream()
         {
             var blob = GetBlobReference();
-            return await blob.OpenReadIfExistAsync();
+            return await blob.OpenReadIfExistsAsync();
         }
 
         private async Task RefreshCore()

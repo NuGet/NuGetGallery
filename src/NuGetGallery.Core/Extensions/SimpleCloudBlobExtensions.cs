@@ -19,7 +19,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="blob">Blob reference.</param>
         /// <returns>The text content of the blob or null if the blob does not exist.</returns>
-        public static async Task<string> DownloadTextIfExistAsync(this ISimpleCloudBlob blob)
+        public static async Task<string> DownloadTextIfExistsAsync(this ISimpleCloudBlob blob)
         {
             using (var stream = new MemoryStream())
             {
@@ -60,7 +60,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="blob">Blob reference.</param>
         /// <returns>Stream if the call was successful, null if blob does not exist.</returns>
-        public static async Task<Stream> OpenReadIfExistAsync(this ISimpleCloudBlob blob)
+        public static async Task<Stream> OpenReadIfExistsAsync(this ISimpleCloudBlob blob)
         {
             try
             {

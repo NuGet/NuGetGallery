@@ -737,11 +737,7 @@ namespace NuGetGallery
 
             builder.Register(c =>
                 {
-                    if (!hasSecondaryStatisticsSource)
-                    {
-                        return c.ResolveKeyed<ICloudBlobClient>(BindingKeys.PrimaryStatisticsKey);
-                    }
-                    if (c.Resolve<IFeatureFlagService>().IsAlternateStatisticsSourceEnabled())
+                    if (hasSecondaryStatisticsSource && c.Resolve<IFeatureFlagService>().IsAlternateStatisticsSourceEnabled())
                     {
                         return c.ResolveKeyed<ICloudBlobClient>(BindingKeys.AlternateStatisticsKey);
                     }

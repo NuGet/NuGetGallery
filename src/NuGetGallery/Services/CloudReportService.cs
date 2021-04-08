@@ -33,7 +33,7 @@ namespace NuGetGallery
             {
                 throw new StatisticsReportNotFoundException();
             }
-            string content = await blob.DownloadTextIfExistAsync();
+            string content = await blob.DownloadTextIfExistsAsync();
 
             return new StatisticsReport(content, blob.Properties.LastModified?.UtcDateTime);
         }

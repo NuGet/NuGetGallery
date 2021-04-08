@@ -27,7 +27,7 @@ namespace NuGetGallery
             var container = blobClient.GetContainerReference("nuget-cdnstats");
             var blob = container.GetBlobReference("stats-totals.json");
 
-            string totals = await blob.DownloadTextIfExistAsync();
+            string totals = await blob.DownloadTextIfExistsAsync();
             if (totals == null)
             {
                 throw new StatisticsReportNotFoundException();
