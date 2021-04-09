@@ -78,6 +78,8 @@ namespace NuGetGallery
             public const string EmailPublisherTopic = "EmailPublisherBindingKey";
 
             public const string PreviewSearchClient = "PreviewSearchClientBindingKey";
+
+            public const string AuditKey = "AuditKey";
         }
 
         public static class ParameterNames
@@ -468,24 +470,20 @@ namespace NuGetGallery
                 .As<IPrincipal>()
                 .InstancePerLifetimeScope();
 
-            IAuditingService defaultAuditingService = null;
-
             switch (configuration.Current.StorageType)
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
                     ConfigureForLocalFileSystem(builder, configuration);
-                    defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
                     break;
                 case StorageType.AzureStorage:
                     ConfigureForAzureStorage(builder, configuration, telemetryService);
-                    defaultAuditingService = GetAuditingServiceForAzureStorage(builder, configuration);
                     break;
             }
 
             RegisterAsynchronousValidation(builder, loggerFactory, configuration, secretInjector);
 
-            RegisterAuditingServices(builder, defaultAuditingService);
+            RegisterAuditingServices(builder, configuration.Current.StorageType);
 
             RegisterCookieComplianceService(configuration, loggerFactory);
 
@@ -707,18 +705,6 @@ namespace NuGetGallery
 
         private static void RegisterStatisticsServices(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryService telemetryService)
         {
-            // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
-            builder.RegisterInstance(new JsonAggregateStatsService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .AsSelf()
-                .As<IAggregateStatsService>()
-                .SingleInstance();
-
-            // when running on Windows Azure, pull the statistics from the warehouse via storage
-            builder.RegisterInstance(new CloudReportService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .AsSelf()
-                .As<IReportService>()
-                .SingleInstance();
-
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
             builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .SingleInstance()
@@ -727,6 +713,32 @@ namespace NuGetGallery
             builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
+
+            // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
+            builder.Register(c =>
+            {
+                var primaryConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
+                var alternateConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
+                var featureFlagService = c.Resolve<IFeatureFlagService>();
+                var jsonAggregateStatsService = new JsonAggregateStatsService(featureFlagService, primaryConfiguration, alternateConfiguration);
+                return jsonAggregateStatsService;
+            })
+                .AsSelf()
+                .As<IAggregateStatsService>()
+                .SingleInstance();
+
+            // when running on Windows Azure, pull the statistics from the warehouse via storage
+            builder.Register(c =>
+            {
+                var primaryConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
+                var alternateConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
+                var featureFlagService = c.Resolve<IFeatureFlagService>();
+                var cloudReportService = new CloudReportService(featureFlagService, primaryConfiguration, alternateConfiguration);
+                return cloudReportService;
+            })
+                .AsSelf()
+                .As<IReportService>()
+                .SingleInstance();
 
             builder.Register(c =>
             {
@@ -1362,10 +1374,10 @@ namespace NuGetGallery
                 .SingleInstance();
         }
 
-        private static IAuditingService GetAuditingServiceForLocalFileSystem(IGalleryConfigurationService configuration)
+        private static IAuditingService GetAuditingServiceForLocalFileSystem(IAppConfiguration configuration)
         {
             var auditingPath = Path.Combine(
-                FileSystemFileStorageService.ResolvePath(configuration.Current.FileStorageDirectory),
+                FileSystemFileStorageService.ResolvePath(configuration.FileStorageDirectory),
                 FileSystemAuditingService.DefaultContainerName);
 
             return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
@@ -1422,24 +1434,17 @@ namespace NuGetGallery
 
             RegisterStatisticsServices(builder, configuration, telemetryService);
 
-            builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.Register(c =>
+                {
+                    var configurationFactory = c.Resolve<Func<IAppConfiguration>>();
+                    return new TableErrorLog(() => configurationFactory().AzureStorage_Errors_ConnectionString, configurationFactory().AzureStorageReadAccessGeoRedundant);
+                })
                 .As<ErrorLog>()
                 .SingleInstance();
 
             builder.RegisterType<FlatContainerContentFileMetadataService>()
                 .As<IContentFileMetadataService>()
                 .SingleInstance();
-        }
-
-        private static IAuditingService GetAuditingServiceForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
-        {
-            var service = new CloudAuditingService(configuration.Current.AzureStorage_Auditing_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
-
-            builder.RegisterInstance(service)
-                .As<ICloudStorageStatusDependency>()
-                .SingleInstance();
-
-            return service;
         }
 
         private static IAuditingService CombineAuditingServices(IEnumerable<IAuditingService> services)
@@ -1473,19 +1478,54 @@ namespace NuGetGallery
             }
         }
 
-        private static void RegisterAuditingServices(ContainerBuilder builder, IAuditingService defaultAuditingService)
+        private static void RegisterAuditingServices(ContainerBuilder builder, string storageType)
         {
-            var auditingServices = GetAddInServices<IAuditingService>();
-            var services = new List<IAuditingService>(auditingServices);
-
-            if (defaultAuditingService != null)
+            if (storageType == StorageType.AzureStorage)
             {
-                services.Add(defaultAuditingService);
+                builder.Register(c =>
+                    {
+                        var configuration = c.Resolve<IAppConfiguration>();
+                        return new CloudBlobClientWrapper(configuration.AzureStorage_Auditing_ConnectionString, configuration.AzureStorageReadAccessGeoRedundant);
+                    })
+                    .SingleInstance()
+                    .Keyed<ICloudBlobClient>(BindingKeys.AuditKey);
+
+                builder.Register(c =>
+                    {
+                        var blobClientFactory = c.ResolveKeyed<Func<ICloudBlobClient>>(BindingKeys.AuditKey);
+                        return new CloudAuditingService(blobClientFactory, AuditActor.GetAspNetOnBehalfOfAsync);
+                    })
+                    .SingleInstance()
+                    .AsSelf()
+                    .As<ICloudStorageStatusDependency>();
             }
 
-            var service = CombineAuditingServices(services);
+            builder.Register(c =>
+                {
+                    var configuration = c.Resolve<IAppConfiguration>();
+                    IAuditingService defaultAuditingService = null;
+                    switch (storageType)
+                    {
+                        case StorageType.FileSystem:
+                        case StorageType.NotSpecified:
+                            defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
+                            break;
 
-            builder.RegisterInstance(service)
+                        case StorageType.AzureStorage:
+                            defaultAuditingService = c.Resolve<CloudAuditingService>();
+                            break;
+                    }
+
+                    var auditingServices = GetAddInServices<IAuditingService>();
+                    var services = new List<IAuditingService>(auditingServices);
+
+                    if (defaultAuditingService != null)
+                    {
+                        services.Add(defaultAuditingService);
+                    }
+
+                    return CombineAuditingServices(services);
+                })
                 .AsSelf()
                 .As<IAuditingService>()
                 .SingleInstance();

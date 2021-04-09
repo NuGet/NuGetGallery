@@ -22,25 +22,25 @@ namespace NuGetGallery.Infrastructure
         private const string IndexPartitionKey = "INDEX";
         private const string IndexRowKey = "0";
 
-        private CloudTable _tableRef;
+        private readonly string _tableName;
+        private readonly bool _readAccessGeoRedundant;
+        private readonly Func<string> _connectionStringFactory;
 
-        public AzureEntityList(string connStr, string tableName, bool readAccessGeoRedundant)
+        public AzureEntityList(Func<string> connectionStringFactory, string tableName, bool readAccessGeoRedundant)
         {
-            var tableClient = CloudStorageAccount.Parse(connStr).CreateCloudTableClient();
-            if (readAccessGeoRedundant)
-            {
-                tableClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
-            }
-            _tableRef = tableClient.GetTableReference(tableName);
+            _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
+            _readAccessGeoRedundant = readAccessGeoRedundant;
+            _connectionStringFactory = connectionStringFactory ?? throw new ArgumentNullException(nameof(connectionStringFactory));
 
+            var tableRef = GetTableReference();
             // Create the actual Azure Table, if it doesn't yet exist.
-            bool newTable = _tableRef.CreateIfNotExists();
+            bool newTable = tableRef.CreateIfNotExists();
 
             // Create the Index if it doesn't yet exist.
             bool needsIndex = newTable;
             if (!newTable)
             {
-                var indexResult = _tableRef.Execute(
+                var indexResult = tableRef.Execute(
                     TableOperation.Retrieve<Index>(IndexPartitionKey, IndexRowKey));
 
                 needsIndex = (indexResult.HttpStatusCode == 404);
@@ -49,7 +49,7 @@ namespace NuGetGallery.Infrastructure
             if (needsIndex)
             {
                 // Create the index
-                var result = _tableRef.Execute(
+                var result = tableRef.Execute(
                     TableOperation.Insert(new Index
                     {
                         Count = 0,
@@ -102,7 +102,8 @@ namespace NuGetGallery.Infrastructure
                 string partitionKey = FormatPartitionKey(page);
                 string rowKey = FormatRowKey(row);
 
-                var response = _tableRef.Execute(TableOperation.Retrieve<T>(partitionKey, rowKey));
+                var tableRef = GetTableReference();
+                var response = tableRef.Execute(TableOperation.Retrieve<T>(partitionKey, rowKey));
                 if (response.HttpStatusCode == 404)
                 {
                     throw new ArgumentOutOfRangeException(nameof(index), index, CoreStrings.Http404NotFound);
@@ -129,8 +130,10 @@ namespace NuGetGallery.Infrastructure
                 value.PartitionKey = FormatPartitionKey(page);
                 value.RowKey = FormatRowKey(row);
 
+                var tableRef = GetTableReference();
+
                 // Just do an unconditional update - if you wanted any *real* benefit of atomic update then you would need a more complex method signature that calls you back when optimistic updates fail ETAG checks!
-                _tableRef.Execute(TableOperation.Replace(value));
+                tableRef.Execute(TableOperation.Replace(value));
             }
         }
 
@@ -161,13 +164,14 @@ namespace NuGetGallery.Infrastructure
         /// </summary>
         public IEnumerator<T> GetEnumerator()
         {
+            var tableRef = GetTableReference();
             for (long page = 0;; page++)
             {
                 string partitionKey = FormatPartitionKey(page);
                 var chunkQuery = new TableQuery<T>().Where(
                     TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey));
 
-                var chunk = _tableRef.ExecuteQuery(chunkQuery).ToArray();
+                var chunk = tableRef.ExecuteQuery(chunkQuery).ToArray();
 
                 foreach (var item in chunk)
                 {
@@ -191,6 +195,7 @@ namespace NuGetGallery.Infrastructure
             int done = 0;
             long page = pos / 1000;
             long offset = pos % 1000;
+            var tableRef = GetTableReference();
             while (done < n)
             {
                 string partitionKey = FormatPartitionKey(page);
@@ -201,7 +206,7 @@ namespace NuGetGallery.Infrastructure
                         TableOperators.And,
                         TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThanOrEqual, rowKey)));
 
-                var chunk = _tableRef.ExecuteQuery(chunkQuery).ToArray();
+                var chunk = tableRef.ExecuteQuery(chunkQuery).ToArray();
                 if (chunk.Length == 0)
                 {
                     break; // Reached the end of the list
@@ -235,9 +240,10 @@ namespace NuGetGallery.Infrastructure
             // 2) use ETAG to do a conditional +1 update
             // 3) retry if that optimistic concurrency attempt failed
             long pos = -1; // To avoid compiler warnings, grr - should never be returned
+            var tableRef = GetTableReference();
             DoReplaceWithRetry(() =>
             {
-                var result1 = _tableRef.Execute(
+                var result1 = tableRef.Execute(
                     TableOperation.Retrieve<Index>(IndexPartitionKey, IndexRowKey));
 
                 ThrowIfErrorStatus(result1);
@@ -260,6 +266,7 @@ namespace NuGetGallery.Infrastructure
         private void InsertIfNotExistsWithRetry<T2>(Func<T2> valueGenerator) where T2 : ITableEntity
         {
             TableResult storeResult;
+            var tableRef = GetTableReference();
             do
             {
                 var entity = valueGenerator();
@@ -268,7 +275,7 @@ namespace NuGetGallery.Infrastructure
                 // - the dummy MERGES with existing data instead of overwriting it, so no data loss.
                 // 2) Use its ETAG to conditionally replace the item
                 // 3) return true if success, false to allow retry on failure
-                var dummyResult = _tableRef.Execute(
+                var dummyResult = tableRef.Execute(
                     TableOperation.InsertOrMerge(new HazardEntry
                     {
                         PartitionKey = entity.PartitionKey,
@@ -281,7 +288,7 @@ namespace NuGetGallery.Infrastructure
                 }
 
                 entity.ETag = dummyResult.Etag;
-                storeResult = _tableRef.Execute(TableOperation.Replace(entity));
+                storeResult = tableRef.Execute(TableOperation.Replace(entity));
             }
             while (storeResult.HttpStatusCode == 412);
             ThrowIfErrorStatus(storeResult);
@@ -290,9 +297,10 @@ namespace NuGetGallery.Infrastructure
         private void DoReplaceWithRetry<T2>(Func<T2> valueGenerator) where T2 : ITableEntity
         {
             TableResult storeResult;
+            var tableRef = GetTableReference();
             do
             {
-                storeResult = _tableRef.Execute(TableOperation.Replace(valueGenerator.Invoke()));
+                storeResult = tableRef.Execute(TableOperation.Replace(valueGenerator.Invoke()));
             }
             while (storeResult.HttpStatusCode == 412);
             ThrowIfErrorStatus(storeResult);
@@ -300,7 +308,8 @@ namespace NuGetGallery.Infrastructure
 
         private Index ReadIndex()
         {
-            var response = _tableRef.Execute(TableOperation.Retrieve<Index>(IndexPartitionKey, IndexRowKey));
+            var tableRef = GetTableReference();
+            var response = tableRef.Execute(TableOperation.Retrieve<Index>(IndexPartitionKey, IndexRowKey));
             return (Index)response.Result;
         }
 
@@ -331,6 +340,16 @@ namespace NuGetGallery.Infrastructure
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        private CloudTable GetTableReference()
+        {
+            var tableClient = CloudStorageAccount.Parse(_connectionStringFactory()).CreateCloudTableClient();
+            if (_readAccessGeoRedundant)
+            {
+                tableClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+            }
+            return tableClient.GetTableReference(_tableName);
         }
 
         class HazardEntry : ITableEntity

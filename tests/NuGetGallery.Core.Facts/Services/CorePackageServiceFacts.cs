@@ -379,6 +379,78 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task UpdatesPackageRegistrationIdIfDifferentFromLatestSemVer1()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "nugeT.ioT" };
+                var latestSemVer1 = new Package { PackageRegistration = packageRegistration, Id = "nuget.iot", Version = "1.0.0" };
+                packageRegistration.Packages.Add(latestSemVer1);
+
+                var service = CreateService();
+
+                // Act
+                await service.UpdateIsLatestAsync(packageRegistration, commitChanges: false);
+
+                // Assert
+                Assert.Equal("nuget.iot", packageRegistration.Id);
+            }
+
+            [Fact]
+            public async Task UpdatesPackageRegistrationIdIfDifferentFromLatestSemVer2()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "nugeT.ioT" };
+                var latestSemVer1 = new Package { PackageRegistration = packageRegistration, Id = "nuget.iot", Version = "1.0.0" };
+                packageRegistration.Packages.Add(latestSemVer1);
+                var latestSemVer2 = new Package { PackageRegistration = packageRegistration, Id = "NuGet.IoT", Version = "2.0.0-beta.1" };
+                packageRegistration.Packages.Add(latestSemVer2);
+
+                var service = CreateService();
+
+                // Act
+                await service.UpdateIsLatestAsync(packageRegistration, commitChanges: false);
+
+                // Assert
+                Assert.Equal("NuGet.IoT", packageRegistration.Id);
+            }
+
+            [Fact]
+            public async Task DoesNotUpdatePackageRegistrationIdIfLatestHasNoVersionSpecificId()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "nugeT.ioT" };
+                var latestSemVer1 = new Package { PackageRegistration = packageRegistration, Id = "nuget.iot", Version = "1.0.0" };
+                packageRegistration.Packages.Add(latestSemVer1);
+                var latestSemVer2 = new Package { PackageRegistration = packageRegistration, Version = "2.0.0-beta.1" };
+                packageRegistration.Packages.Add(latestSemVer2);
+
+                var service = CreateService();
+
+                // Act
+                await service.UpdateIsLatestAsync(packageRegistration, commitChanges: false);
+
+                // Assert
+                Assert.Equal("nugeT.ioT", packageRegistration.Id);
+            }
+
+            [Fact]
+            public async Task DoesNotUpdatePackageRegistrationIdIfNoLatest()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "nugeT.ioT" };
+                var latestSemVer1 = new Package { PackageRegistration = packageRegistration, Id = "nuget.iot", Listed = false, Version = "1.0.0" };
+                packageRegistration.Packages.Add(latestSemVer1);
+
+                var service = CreateService();
+
+                // Act
+                await service.UpdateIsLatestAsync(packageRegistration, commitChanges: false);
+
+                // Assert
+                Assert.Equal("nugeT.ioT", packageRegistration.Id);
+            }
+
+            [Fact]
             public async Task ResetsCurrentLatestPackageVersionsBeforeUpdate()
             {
                 // Arrange
