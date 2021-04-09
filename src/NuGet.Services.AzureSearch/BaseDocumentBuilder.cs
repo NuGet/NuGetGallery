@@ -85,6 +85,10 @@ namespace NuGet.Services.AzureSearch
             string packageId,
             Package package)
         {
+            // If the version-specific ID is available, use it. Not all records have this value populated so fall back
+            // to whatever package ID casing is provided.
+            packageId = package.Id ?? packageId;
+
             document.Authors = package.FlattenedAuthors;
             document.Copyright = package.Copyright;
             document.Created = AssumeUtc(package.Created);
