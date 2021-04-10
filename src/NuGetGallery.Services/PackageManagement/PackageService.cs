@@ -636,6 +636,8 @@ namespace NuGetGallery
             PackageStreamMetadata packageStreamMetadata,
             User user)
         {
+            package.Id = packageMetadata.Id;
+
             // Version must always be the exact string from the nuspec, which OriginalVersion will return to us.
             // However, we do also store a normalized copy for looking up later.
             package.Version = packageMetadata.Version.OriginalVersion;

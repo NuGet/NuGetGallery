@@ -79,6 +79,8 @@ namespace NuGetGallery
             public const string EmailPublisherTopic = "EmailPublisherBindingKey";
 
             public const string PreviewSearchClient = "PreviewSearchClientBindingKey";
+
+            public const string AuditKey = "AuditKey";
         }
 
         public static class ParameterNames
@@ -469,24 +471,20 @@ namespace NuGetGallery
                 .As<IPrincipal>()
                 .InstancePerLifetimeScope();
 
-            IAuditingService defaultAuditingService = null;
-
             switch (configuration.Current.StorageType)
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
                     ConfigureForLocalFileSystem(builder, configuration);
-                    defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
                     break;
                 case StorageType.AzureStorage:
                     ConfigureForAzureStorage(builder, configuration, telemetryService);
-                    defaultAuditingService = GetAuditingServiceForAzureStorage(builder, configuration);
                     break;
             }
 
             RegisterAsynchronousValidation(builder, loggerFactory, configuration, secretInjector);
 
-            RegisterAuditingServices(builder, defaultAuditingService);
+            RegisterAuditingServices(builder, configuration.Current.StorageType);
 
             RegisterCookieComplianceService(configuration, loggerFactory);
 
@@ -1386,10 +1384,10 @@ namespace NuGetGallery
                 .SingleInstance();
         }
 
-        private static IAuditingService GetAuditingServiceForLocalFileSystem(IGalleryConfigurationService configuration)
+        private static IAuditingService GetAuditingServiceForLocalFileSystem(IAppConfiguration configuration)
         {
             var auditingPath = Path.Combine(
-                FileSystemFileStorageService.ResolvePath(configuration.Current.FileStorageDirectory),
+                FileSystemFileStorageService.ResolvePath(configuration.FileStorageDirectory),
                 FileSystemAuditingService.DefaultContainerName);
 
             return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
@@ -1446,24 +1444,17 @@ namespace NuGetGallery
 
             RegisterStatisticsServices(builder, configuration);
 
-            builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
+            builder.Register(c =>
+                {
+                    var configurationFactory = c.Resolve<Func<IAppConfiguration>>();
+                    return new TableErrorLog(() => configurationFactory().AzureStorage_Errors_ConnectionString, configurationFactory().AzureStorageReadAccessGeoRedundant);
+                })
                 .As<ErrorLog>()
                 .SingleInstance();
 
             builder.RegisterType<FlatContainerContentFileMetadataService>()
                 .As<IContentFileMetadataService>()
                 .SingleInstance();
-        }
-
-        private static IAuditingService GetAuditingServiceForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
-        {
-            var service = new CloudAuditingService(configuration.Current.AzureStorage_Auditing_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
-
-            builder.RegisterInstance(service)
-                .As<ICloudStorageStatusDependency>()
-                .SingleInstance();
-
-            return service;
         }
 
         private static IAuditingService CombineAuditingServices(IEnumerable<IAuditingService> services)
@@ -1497,19 +1488,54 @@ namespace NuGetGallery
             }
         }
 
-        private static void RegisterAuditingServices(ContainerBuilder builder, IAuditingService defaultAuditingService)
+        private static void RegisterAuditingServices(ContainerBuilder builder, string storageType)
         {
-            var auditingServices = GetAddInServices<IAuditingService>();
-            var services = new List<IAuditingService>(auditingServices);
-
-            if (defaultAuditingService != null)
+            if (storageType == StorageType.AzureStorage)
             {
-                services.Add(defaultAuditingService);
+                builder.Register(c =>
+                    {
+                        var configuration = c.Resolve<IAppConfiguration>();
+                        return new CloudBlobClientWrapper(configuration.AzureStorage_Auditing_ConnectionString, configuration.AzureStorageReadAccessGeoRedundant);
+                    })
+                    .SingleInstance()
+                    .Keyed<ICloudBlobClient>(BindingKeys.AuditKey);
+
+                builder.Register(c =>
+                    {
+                        var blobClientFactory = c.ResolveKeyed<Func<ICloudBlobClient>>(BindingKeys.AuditKey);
+                        return new CloudAuditingService(blobClientFactory, AuditActor.GetAspNetOnBehalfOfAsync);
+                    })
+                    .SingleInstance()
+                    .AsSelf()
+                    .As<ICloudStorageStatusDependency>();
             }
 
-            var service = CombineAuditingServices(services);
+            builder.Register(c =>
+                {
+                    var configuration = c.Resolve<IAppConfiguration>();
+                    IAuditingService defaultAuditingService = null;
+                    switch (storageType)
+                    {
+                        case StorageType.FileSystem:
+                        case StorageType.NotSpecified:
+                            defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
+                            break;
 
-            builder.RegisterInstance(service)
+                        case StorageType.AzureStorage:
+                            defaultAuditingService = c.Resolve<CloudAuditingService>();
+                            break;
+                    }
+
+                    var auditingServices = GetAddInServices<IAuditingService>();
+                    var services = new List<IAuditingService>(auditingServices);
+
+                    if (defaultAuditingService != null)
+                    {
+                        services.Add(defaultAuditingService);
+                    }
+
+                    return CombineAuditingServices(services);
+                })
                 .AsSelf()
                 .As<IAuditingService>()
                 .SingleInstance();

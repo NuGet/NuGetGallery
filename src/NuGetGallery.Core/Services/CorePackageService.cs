@@ -202,6 +202,17 @@ namespace NuGetGallery
                 }
             }
 
+            // Update the ID on the PackageRegistration if the value differs only by case from the absolute latest
+            // (stable or prerelease) SemVer 2.0.0 package. This is a best effort flow because in general package IDs
+            // are compared in a case-insensitive manner and therefore the PackageRegistration ID casing should not
+            // have any functional impact. The specific casing is only a display concern.
+            if (latestSemVer2Package != null
+                && string.Equals(latestSemVer2Package.Id, packageRegistration.Id, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(latestSemVer2Package.Id, packageRegistration.Id, StringComparison.Ordinal))
+            {
+                packageRegistration.Id = latestSemVer2Package.Id;
+            }
+
             if (commitChanges)
             {
                 await _packageRepository.CommitChangesAsync();
