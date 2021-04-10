@@ -13,18 +13,11 @@ namespace NuGetGallery
     public class CloudReportService : IReportService
     {
         private const string _statsContainerName = "nuget-cdnstats";
-        private readonly IFeatureFlagService _featureFlagService;
-        private readonly IBlobStorageConfiguration _primaryStorageConfiguration;
-        private readonly IBlobStorageConfiguration _alternateBlobStorageConfiguration;
+        private readonly Func<ICloudBlobClient> _cloudBlobClientFactory;
 
-        public CloudReportService(
-            IFeatureFlagService featureFlagService,
-            IBlobStorageConfiguration primaryBlobStorageConfiguration,
-            IBlobStorageConfiguration alternateBlobStorageConfiguration)
+        public CloudReportService(Func<ICloudBlobClient> cloudBlobClientFactory)
         {
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
-            _primaryStorageConfiguration = primaryBlobStorageConfiguration ?? throw new ArgumentNullException(nameof(primaryBlobStorageConfiguration));
-            _alternateBlobStorageConfiguration = alternateBlobStorageConfiguration;
+            _cloudBlobClientFactory = cloudBlobClientFactory ?? throw new ArgumentNullException(nameof(cloudBlobClientFactory));
         }
 
         public async Task<StatisticsReport> Load(string reportName)
@@ -33,38 +26,21 @@ namespace NuGetGallery
             reportName = reportName.ToLowerInvariant();
 
             var container = GetCloudBlobContainer();
-            var blob = container.GetBlockBlobReference(reportName);
+            var blob = container.GetBlobReference(reportName);
 
             // Check if the report blob is present before processing it.
-            if (!blob.Exists())
+            if (!await blob.FetchAttributesIfExistsAsync())
             {
                 throw new StatisticsReportNotFoundException();
             }
-
-            await blob.FetchAttributesAsync();
-            string content = await blob.DownloadTextAsync();
+            string content = await blob.DownloadTextIfExistsAsync();
 
             return new StatisticsReport(content, blob.Properties.LastModified?.UtcDateTime);
         }
 
-        private CloudBlobContainer GetCloudBlobContainer()
+        private ICloudBlobContainer GetCloudBlobContainer()
         {
-            var connectionString = _primaryStorageConfiguration.ConnectionString;
-            var readAccessGeoRedundant = _primaryStorageConfiguration.ReadAccessGeoRedundant;
-
-            if(_alternateBlobStorageConfiguration != null && _featureFlagService.IsAlternateStatisticsSourceEnabled())
-            {
-                connectionString = _alternateBlobStorageConfiguration.ConnectionString;
-                readAccessGeoRedundant = _alternateBlobStorageConfiguration.ReadAccessGeoRedundant;
-            }
-
-            var storageAccount = CloudStorageAccount.Parse(connectionString);
-            var blobClient = storageAccount.CreateCloudBlobClient();
-
-            if (readAccessGeoRedundant)
-            {
-                blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
-            }
+            var blobClient = _cloudBlobClientFactory();
 
             return blobClient.GetContainerReference(_statsContainerName);
         }

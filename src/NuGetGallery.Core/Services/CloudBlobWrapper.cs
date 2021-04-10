@@ -194,6 +194,46 @@ namespace NuGetGallery
             return await _blob.OpenReadAsync(accessCondition, blobRequestOptions, operationContext, cancellationToken);
         }
 
+        public async Task<string> DownloadTextIfExistsAsync()
+        {
+            try
+            {
+                return await _blob.DownloadTextAsync();
+            }
+            catch (StorageException e) when (IsNotFoundException(e))
+            {
+                return null;
+            }
+        }
+
+        public async Task<bool> FetchAttributesIfExistsAsync()
+        {
+            try
+            {
+                await _blob.FetchAttributesAsync();
+            }
+            catch (StorageException e) when (IsNotFoundException(e))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public async Task<Stream> OpenReadIfExistsAsync()
+        {
+            try
+            {
+                return await OpenReadAsync(accessCondition: null);
+            }
+            catch (StorageException e) when (IsNotFoundException(e))
+            {
+                return null;
+            }
+        }
+
+        private static bool IsNotFoundException(StorageException e)
+            => ((e.InnerException as WebException)?.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound;
+
         private static bool IsBlobStorageUri(Uri uri)
         {
             return uri.Authority.EndsWith(".blob.core.windows.net");
