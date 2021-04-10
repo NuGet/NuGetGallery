@@ -39,7 +39,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 _content = $"[[\"{contentId}\",[\"4.6.0\",23],[\"4.6.2\",42]]";
-                await _target.Refresh();
+                await _target.RefreshAsync();
 
                 // Act
                 var found = _target.TryGetDownloadCountForPackageRegistration(inputId, out var actual);
@@ -59,7 +59,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 _content = $"[[\"{contentId}\",[\"4.6.0\",23],[\"4.6.2\",42]]";
-                await _target.Refresh();
+                await _target.RefreshAsync();
 
                 // Act
                 var found = _target.TryGetDownloadCountForPackageRegistration(inputId, out var actual);
@@ -94,7 +94,7 @@ namespace NuGetGallery
                     iteration++;
                     var version = $"0.0.0-beta{iteration}";
                     _content = $"[[\"{id}\",[\"{version}\",1]]";
-                    await _target.Refresh();
+                    await _target.RefreshAsync();
                     await Task.Delay(5);
                 }
             }
@@ -117,7 +117,7 @@ namespace NuGetGallery
             public async Task ReturnsZeroWhenVersionDoesNotExist()
             {
                 // Arrange
-                await _target.Refresh();
+                await _target.RefreshAsync();
 
                 // Act
                 var found = _target.TryGetDownloadCountForPackage("NuGet.Versioning", "9.9.9", out var actual);
@@ -131,7 +131,7 @@ namespace NuGetGallery
             public async Task ReturnsCountWhenVersionExists()
             {
                 // Arrange
-                await _target.Refresh();
+                await _target.RefreshAsync();
 
                 // Act
                 var found = _target.TryGetDownloadCountForPackage("NuGet.Versioning", "4.6.0", out var actual);
@@ -188,7 +188,7 @@ namespace NuGetGallery
                 return _baseFacts._calculateSum(versions);
             }
 
-            protected override Task<Stream> GetBlobStream()
+            protected override Task<Stream> GetBlobStreamAsync()
             {
                 if (_baseFacts._content == null)
                 {
