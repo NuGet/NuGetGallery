@@ -48,6 +48,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var uniqueIdentities = searchResults.Select(p => $"{p.PackageId} {p.PackageVersionNormalized}").Distinct();
                 Assert.Equal(searchResults.Count, uniqueIdentities.Count());
             }
+
+            [Fact]
+            public void UsesVersionSpecificIdIfAvailable()
+            {
+                // Arrange
+                _packages[0].Id = "nuget.versioning";
+
+                // Act
+                var result = _target.Search(_query);
+
+                // Assert
+                var jsonResult = Assert.IsType<JsonResult>(result);
+                var searchResults = Assert.IsType<List<DeleteSearchResult>>(jsonResult.Data);
+                Assert.Equal("NuGet.Versioning", searchResults[0].PackageId);
+                Assert.Equal("4.3.0", searchResults[0].PackageVersionNormalized);
+                Assert.Equal("nuget.versioning", searchResults[1].PackageId);
+                Assert.Equal("4.4.0", searchResults[1].PackageVersionNormalized);
+            }
         }
 
         public abstract class FactsBase : TestContainer

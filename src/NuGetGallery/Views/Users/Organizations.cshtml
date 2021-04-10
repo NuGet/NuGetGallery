@@ -25,73 +25,75 @@
                 <div>
                     <p>You have @(orgCountString).</p>
                 </div>
-                <table class="table user-package-list">
-                    <thead>
-                        <tr class="manage-package-headings">
-                            <th class="hidden-xs"></th>
-                            <th>Organization</th>
-                            <th>Membership</th>
-                            <th>Members</th>
-                            <th>Packages</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    @foreach (var organization in Model.Organizations)
-                    {
-                        <tbody>
-                            <tr class="manage-package-listing" data-bind="visible: Visible">
-                                <td class="align-middle hidden-xs">
-                                    <img src="@GravatarHelper.Url(Url, organization.EmailAddress, organization.OrganizationName, 256)"
-                                         class="package-icon img-responsive" aria-hidden="true" alt="" />
-                                </td>
-                                <td class="align-middle package-id">
-                                    <a title="View Organization Profile" href="@Url.User(organization.OrganizationName)">
-                                        @organization.OrganizationName
-                                    </a>
-                                    @if (organization.IsPendingRequest)
-                                    {
-                                        <span>(pending approval)</span>
-                                    }
-                                </td>
-                                <td class="align-middle">
-                                    @(organization.CurrentUserIsAdmin ? "Administrator" : "Collaborator")
-                                </td>
-                                <td class="align-middle text-nowrap">
-                                    @organization.MemberCount
-                                </td>
-                                <td class="align-middle text-nowrap">
-                                    @organization.PackagesCount
-                                </td>
-                                <td class="text-right align-middle package-controls">
-                                    @if (!organization.IsPendingRequest && !organization.IsPendingTransformRequest)
-                                    {
-                                        <a class="btn" href="@Url.ManageMyOrganization(organization.OrganizationName)" title="Edit Organization" aria-label="@("Edit Organization " + organization.OrganizationName)">
-                                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                                        </a>
-                                    }
-                                    else if (organization.IsPendingRequest)
-                                    {
-                                        var accept = organization.IsPendingTransformRequest ? Url.ConfirmTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.AcceptOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
-                                        var reject = organization.IsPendingTransformRequest ? Url.RejectTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.RejectOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
-
-                                        <form method="post" action="@accept">
-                                            @Html.AntiForgeryToken()
-                                            <button class="btn btn-default" type="submit" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
-                                                <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
-                                            </button>
-                                        </form>
-                                        <form method="post" action="@reject">
-                                            @Html.AntiForgeryToken()
-                                            <button class="btn btn-default" type="submit" title="Reject Organization Membership Request" aria-label="@("Reject Organization Membership Request for " + organization.OrganizationName)">
-                                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                            </button>
-                                        </form>
-                                    }
-                                </td>
+                <div class="table-container">
+                    <table class="table user-package-list">
+                        <thead>
+                            <tr class="manage-package-headings">
+                                <th class="hidden-xs"></th>
+                                <th>Organization</th>
+                                <th>Membership</th>
+                                <th>Members</th>
+                                <th>Packages</th>
+                                <th></th>
                             </tr>
-                        </tbody>
-                    }
-                </table>
+                        </thead>
+                        @foreach (var organization in Model.Organizations)
+                        {
+                            <tbody>
+                                <tr class="manage-package-listing" data-bind="visible: Visible">
+                                    <td class="align-middle hidden-xs">
+                                        <img src="@GravatarHelper.Url(Url, organization.EmailAddress, organization.OrganizationName, 256)"
+                                             class="package-icon img-responsive" aria-hidden="true" alt="" />
+                                    </td>
+                                    <td class="align-middle package-id">
+                                        <a title="View Organization Profile" href="@Url.User(organization.OrganizationName)">
+                                            @organization.OrganizationName
+                                        </a>
+                                        @if (organization.IsPendingRequest)
+                                        {
+                                            <span>(pending approval)</span>
+                                        }
+                                    </td>
+                                    <td class="align-middle">
+                                        @(organization.CurrentUserIsAdmin ? "Administrator" : "Collaborator")
+                                    </td>
+                                    <td class="align-middle text-nowrap">
+                                        @organization.MemberCount
+                                    </td>
+                                    <td class="align-middle text-nowrap">
+                                        @organization.PackagesCount
+                                    </td>
+                                    <td class="text-right align-middle package-controls">
+                                        @if (!organization.IsPendingRequest && !organization.IsPendingTransformRequest)
+                                        {
+                                            <a class="btn" href="@Url.ManageMyOrganization(organization.OrganizationName)" title="Edit Organization" aria-label="@("Edit Organization " + organization.OrganizationName)">
+                                                <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                            </a>
+                                        }
+                                        else if (organization.IsPendingRequest)
+                                        {
+                                            var accept = organization.IsPendingTransformRequest ? Url.ConfirmTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.AcceptOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
+                                            var reject = organization.IsPendingTransformRequest ? Url.RejectTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.RejectOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
+
+                                            <form method="post" action="@accept">
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-default" type="submit" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
+                                                    <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                            <form method="post" action="@reject">
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-default" type="submit" title="Reject Organization Membership Request" aria-label="@("Reject Organization Membership Request for " + organization.OrganizationName)">
+                                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            </tbody>
+                        }
+                    </table>
+                </div>
             }
             else
             {

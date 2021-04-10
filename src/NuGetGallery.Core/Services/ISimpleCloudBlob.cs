@@ -67,5 +67,24 @@ namespace NuGetGallery
             CancellationToken cancellationToken);
 
         Task SnapshotAsync(CancellationToken token);
+
+        /// <summary>
+        /// Retrieves the blob contents as a string assuming UTF8 encoding if the blob exists.
+        /// </summary>
+        /// <returns>The text content of the blob or null if the blob does not exist.</returns>
+        Task<string> DownloadTextIfExistsAsync();
+
+        /// <summary>
+        /// Calls <see cref="ISimpleCloudBlob.FetchAttributesAsync()"/> and determines if blob exists.
+        /// </summary>
+        /// <returns>True if <see cref="ISimpleCloudBlob.FetchAttributesAsync()"/> call succeeded, false if blob does not exist.</returns>
+        Task<bool> FetchAttributesIfExistsAsync();
+
+        /// <summary>
+        /// Calls <see cref="ISimpleCloudBlob.OpenReadAsync(AccessCondition)"/> without access condition and returns
+        /// resulting stream if blob exists.
+        /// </summary>
+        /// <returns>Stream if the call was successful, null if blob does not exist.</returns>
+        Task<Stream> OpenReadIfExistsAsync();
     }
 }

@@ -35,7 +35,7 @@ namespace NuGetGallery
 
             viewModel.FullVersion = NuGetVersionFormatter.ToFullString(package.Version);
 
-            viewModel.Id = package.PackageRegistration.Id;
+            viewModel.Id = package.Id;
             viewModel.Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
                 NuGetVersionFormatter.Normalize(package.Version) :
                 package.NormalizedVersion;

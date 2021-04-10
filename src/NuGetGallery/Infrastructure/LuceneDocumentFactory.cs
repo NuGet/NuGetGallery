@@ -49,23 +49,23 @@ namespace NuGetGallery
 
             // Style 1: As-Is Id, no tokenizing (so you can search using dot or dash-joined terms)
             // Boost this one
-            field = new Field("Id", package.PackageRegistration.Id, Field.Store.NO, Field.Index.ANALYZED);
+            field = new Field("Id", package.Id, Field.Store.NO, Field.Index.ANALYZED);
             document.Add(field);
 
             // Style 2: dot+dash tokenized (so you can search using undotted terms)
-            field = new Field("Id", SplitId(package.PackageRegistration.Id), Field.Store.NO, Field.Index.ANALYZED);
+            field = new Field("Id", SplitId(package.Id), Field.Store.NO, Field.Index.ANALYZED);
             field.Boost = 0.8f;
             document.Add(field);
 
             // Style 3: camel-case tokenized (so you can search using parts of the camelCasedWord). 
             // De-boosted since matches are less likely to be meaningful
-            field = new Field("Id", CamelSplitId(package.PackageRegistration.Id), Field.Store.NO, Field.Index.ANALYZED);
+            field = new Field("Id", CamelSplitId(package.Id), Field.Store.NO, Field.Index.ANALYZED);
             field.Boost = 0.25f;
             document.Add(field);
 
             // If an element does not have a Title, fall back to Id, same as the website.
             var workingTitle = String.IsNullOrEmpty(package.Title)
-                                   ? package.PackageRegistration.Id
+                                   ? package.Id
                                    : package.Title;
 
             // As-Is (stored for search results)
@@ -113,7 +113,7 @@ namespace NuGetGallery
             document.Add(new Field("FlattenedPackageTypes", package.FlattenedPackageTypes.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Hash", package.Hash.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("HashAlgorithm", package.HashAlgorithm.ToStringSafe(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("Id-Original", package.PackageRegistration.Id, Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Id-Original", package.Id, Field.Store.YES, Field.Index.NO));
             document.Add(new Field("IsVerified-Original", package.PackageRegistration.IsVerified.ToString(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("LastUpdated", package.LastUpdated.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             if (package.LastEdited != null)
