@@ -708,11 +708,9 @@ namespace NuGetGallery
         {
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
             builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
 
             builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
 
             builder.Register(c =>
@@ -720,7 +718,6 @@ namespace NuGetGallery
                     var blobConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
                     return new CloudBlobClientWrapper(blobConfiguration.ConnectionString, blobConfiguration.ReadAccessGeoRedundant);
                 })
-                .SingleInstance()
                 .Keyed<ICloudBlobClient>(BindingKeys.PrimaryStatisticsKey);
 
             builder.Register(c =>
@@ -728,7 +725,6 @@ namespace NuGetGallery
                     var blobConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
                     return new CloudBlobClientWrapper(blobConfiguration.ConnectionString, blobConfiguration.ReadAccessGeoRedundant);
                 })
-                .SingleInstance()
                 .Keyed<ICloudBlobClient>(BindingKeys.AlternateStatisticsKey);
 
             var hasSecondaryStatisticsSource = !string.IsNullOrWhiteSpace(configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate);
@@ -1408,7 +1404,6 @@ namespace NuGetGallery
                 if (completedBindingKeys.Add(dependent.BindingKey))
                 {
                     builder.Register(_ => new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                       .InstancePerLifetimeScope()
                        .Keyed<ICloudBlobClient>(dependent.BindingKey);
 
                     // Do not register the service as ICloudStorageStatusDependency because
@@ -1417,7 +1412,6 @@ namespace NuGetGallery
                         .WithParameter(new ResolvedParameter(
                            (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
-                        .InstancePerLifetimeScope()
                         .Keyed<IFileStorageService>(dependent.BindingKey);
                 }
 
@@ -1496,7 +1490,6 @@ namespace NuGetGallery
                         var configuration = c.Resolve<IAppConfiguration>();
                         return new CloudBlobClientWrapper(configuration.AzureStorage_Auditing_ConnectionString, configuration.AzureStorageReadAccessGeoRedundant);
                     })
-                    .SingleInstance()
                     .Keyed<ICloudBlobClient>(BindingKeys.AuditKey);
 
                 builder.Register(c =>
