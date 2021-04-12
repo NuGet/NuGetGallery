@@ -125,7 +125,7 @@ namespace GalleryTools.Commands
 
                 packages = packages
                     .Where(p => p.Created < lastCreateTime && p.Created > startTime)
-                    .Where(p => p.PackageStatusKey == PackageStatus.Available || p.PackageStatusKey == PackageStatus.Validating)
+                    .Where(p => p.PackageStatusKey == PackageStatus.Available)
                     .OrderBy(p => p.Created);
                 if (LimitTo > 0)
                 {
