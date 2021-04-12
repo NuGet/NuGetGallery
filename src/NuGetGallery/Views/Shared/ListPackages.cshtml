@@ -244,5 +244,9 @@
         $('#reset-advanced-search').on('click', function () {
             location.href = '?q=@Uri.EscapeDataString(Model.SearchTerm)';
         });
+
+        var listItemCount = @Model.Items.Count;
     </script>
+
+    @Scripts.Render("~/Scripts/gallery/page-list-packages.min.js")
 }
