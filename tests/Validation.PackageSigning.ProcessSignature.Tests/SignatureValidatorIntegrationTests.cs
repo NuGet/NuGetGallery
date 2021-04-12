@@ -222,6 +222,39 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.Empty(result.Issues);
         }
 
+        [AdminOnlyFact]
+        public async Task AcceptsExpiredAuthorSigningCertificate()
+        {
+            // Arrange
+            using (var certificate = await _fixture.CreateExpiringSigningCertificateAsync())
+            {
+                _packageStream = await _fixture.AuthorSignPackageStreamAsync(
+                    TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                    certificate,
+                    _output);
+
+                await SignatureTestUtility.WaitForCertificateExpirationAsync(certificate);
+
+                TestUtility.RequireSignedPackage(
+                    _corePackageService,
+                    TestResources.UnsignedPackageId,
+                    TestResources.UnsignedPackageVersion,
+                    certificate.ComputeSHA256Thumbprint());
+                _message = _unsignedPackageMessage;
+
+                // Act
+                var result = await _target.ValidateAsync(
+                   _packageKey,
+                   _packageStream,
+                   _message,
+                   _token);
+
+                // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
+            }
+        }
+
         [Fact(Skip = "Flaky")]
         public async Task RejectsUntrustedSigningCertificate()
         {
@@ -718,6 +751,42 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         }
 
         [AdminOnlyFact]
+        public async Task AcceptsExpiredRepositorySigningCertificate()
+        {
+            // Arrange
+            using (var certificate = await _fixture.CreateExpiringSigningCertificateAsync())
+            {
+                _packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                    TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                    certificate,
+                    _output);
+
+                await SignatureTestUtility.WaitForCertificateExpirationAsync(certificate);
+
+                TestUtility.RequireUnsignedPackage(
+                    _corePackageService,
+                    TestResources.UnsignedPackageId,
+                    TestResources.UnsignedPackageVersion);
+                _message = _unsignedPackageMessage;
+
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                // Act
+                var result = await target.ValidateAsync(
+                   _packageKey,
+                   _packageStream,
+                   _message,
+                   _token);
+
+                // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
+                Assert.Null(result.NupkgUri);
+            }
+        }
+
+        [AdminOnlyFact]
         public async Task StripsRepositorySignatureWithUnallowedSigningCertificate()
         {
             // Arrange
@@ -1134,6 +1203,36 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
             Assert.Empty(result.Issues);
             Assert.Null(result.NupkgUri);
+        }
+
+        [AdminOnlyFact]
+        public async Task AcceptsRepositoryCounterSignatureWithExpiredSigningCertificate()
+        {
+            // Arrange
+            using (var certificate = await _fixture.CreateExpiringSigningCertificateAsync())
+            {
+                _packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                    await GetAuthorSignedPackageStream1Async(),
+                    certificate,
+                    _output);
+
+                await SignatureTestUtility.WaitForCertificateExpirationAsync(certificate);
+
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                // Act
+                var result = await target.ValidateAsync(
+                   _packageKey,
+                   _packageStream,
+                   _message,
+                   _token);
+
+                // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
+                Assert.Null(result.NupkgUri);
+            }
         }
 
         [AdminOnlyFact]

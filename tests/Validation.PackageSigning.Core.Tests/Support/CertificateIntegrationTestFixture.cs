@@ -209,6 +209,24 @@ namespace Validation.PackageSigning.Core.Tests.Support
             return new UntrustedSigningCertificate(untrustedRootCertificate, certificate, disposable);
         }
 
+        public async Task<X509Certificate2> CreateExpiringSigningCertificateAsync()
+        {
+            var ca = await _certificateAuthority.Value;
+
+            void CustomizeExpiringSigningCertificate(X509V3CertificateGenerator generator)
+            {
+                generator.AddSigningEku();
+                generator.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: true);
+
+                generator.SetNotBefore(DateTime.UtcNow.AddSeconds(-2));
+                generator.SetNotAfter(DateTime.UtcNow.AddSeconds(10));
+            }
+
+            var (@public, certificate) = IssueCertificate(ca, "Expired Signing", CustomizeExpiringSigningCertificate);
+
+            return certificate;
+        }
+
         public async Task<CustomTimestampService> CreateCustomTimestampServiceAsync(TimestampServiceOptions options)
         {
             var testServer = await _testServer.Value;
