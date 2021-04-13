@@ -237,6 +237,68 @@ namespace NuGet.Services.AzureSearch
         public class PopulateMetadataWithPackage : Facts
         {
             [Fact]
+            public void PrefersVersionSpecificIdOverPackageRegistrationId()
+            {
+                var expected = "WINDOWSAZURE.storage";
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "windowsazure.STORAGE",
+                    },
+                    Id = expected,
+                    NormalizedVersion = Data.NormalizedVersion,
+                    LicenseExpression = "Unlicense",
+                    HasEmbeddedIcon = true,
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.PackageId, package);
+
+                VerifyFieldsDependingOnId(expected, full);
+            }
+
+            [Fact]
+            public void PrefersPackageRegistrationIdOverProvidedId()
+            {
+                var expected = "windowsazure.STORAGE";
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = expected,
+                    },
+                    NormalizedVersion = Data.NormalizedVersion,
+                    LicenseExpression = "Unlicense",
+                    HasEmbeddedIcon = true,
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.PackageId, package);
+
+                VerifyFieldsDependingOnId(expected, full);
+            }
+
+            [Fact]
+            public void UsesProvidedPackageId()
+            {
+                var package = new Package
+                {
+                    NormalizedVersion = Data.NormalizedVersion,
+                    LicenseExpression = "Unlicense",
+                    HasEmbeddedIcon = true,
+                };
+
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.PackageId, package);
+
+                VerifyFieldsDependingOnId(Data.PackageId, full);
+            }
+
+            [Fact]
             public void IfPackageHasEmbeddedIcon_LinksToFlatContainer()
             {
                 var package = new Package
@@ -301,6 +363,15 @@ namespace NuGet.Services.AzureSearch
                 Target.PopulateMetadata(full, Data.PackageId, package);
 
                 Assert.Null(full.IconUrl);
+            }
+
+            private static void VerifyFieldsDependingOnId(string expected, HijackDocument.Full full)
+            {
+                Assert.Equal(expected, full.PackageId);
+                Assert.Equal(expected, full.TokenizedPackageId);
+                Assert.Equal(expected, full.Title);
+                Assert.Equal($"{Data.GalleryBaseUrl}packages/{expected}/{Data.NormalizedVersion}/license", full.LicenseUrl);
+                Assert.Equal($"{Data.FlatContainerBaseUrl}{Data.FlatContainerContainerName}/{Data.LowerPackageId}/{Data.LowerNormalizedVersion}/icon", full.IconUrl);
             }
         }
 
