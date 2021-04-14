@@ -55,6 +55,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsDisplayBannerEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDisplayFuGetLinksEnabled()
         {
             throw new NotImplementedException();
