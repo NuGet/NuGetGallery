@@ -122,10 +122,11 @@ namespace GalleryTools.Commands
                 {
                     packages = packages.Include(QueryIncludes);
                 }
-                
+
                 packages = packages
                     .Where(p => p.Created < lastCreateTime && p.Created > startTime)
-                    .OrderBy(p => p.PackageRegistration.Id);
+                    .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                    .OrderBy(p => p.Created);
                 if (LimitTo > 0)
                 {
                     packages = packages.Take(LimitTo);
