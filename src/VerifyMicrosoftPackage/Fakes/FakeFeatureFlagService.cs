@@ -106,5 +106,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsDeletePackageApiEnabled(User user) => throw new NotImplementedException();
 
         public bool IsImageAllowlistEnabled() => throw new NotImplementedException();
+
+        public bool IsDisplayBannerEnabled() => throw new NotImplementedException();
     }
 }

@@ -122,8 +122,9 @@ namespace NuGetGallery
             var externalIdentityList = ClaimsExtensions.GetExternalCredentialIdentityList(identity);
             var showEnable2FAModal = _featureFlagService.IsShowEnable2FADialogEnabled();
             var getFeedbackOnModalDismiss = _featureFlagService.IsGet2FADismissFeedbackEnabled();
+            var displayBanner = _featureFlagService.IsDisplayBannerEnabled();
 
-            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, showEnable2FAModal, getFeedbackOnModalDismiss, externalIdentityList));
+            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, showEnable2FAModal, getFeedbackOnModalDismiss, displayBanner, externalIdentityList));
         }
 
         [HttpGet]
