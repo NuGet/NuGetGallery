@@ -308,22 +308,14 @@ namespace GalleryTools.Commands
         {
             var httpZipProvider = new HttpZipProvider(httpClient);
 
-            try
-            {
-                var zipDirectoryReader = await httpZipProvider.GetReaderAsync(new Uri(nupkgUri));
-                var zipDirectory = await zipDirectoryReader.ReadAsync();
-                var files = zipDirectory
-                    .Entries
-                    .Select(x => x.GetName())
-                    .ToList();
+            var zipDirectoryReader = await httpZipProvider.GetReaderAsync(new Uri(nupkgUri));
+            var zipDirectory = await zipDirectoryReader.ReadAsync();
+            var files = zipDirectory
+                .Entries
+                .Select(x => x.GetName())
+                .ToList();
 
-                return ReadMetadata(files, nuspecReader);
-            }
-            catch (Exception e)
-            {
-                await logger.LogPackageError(id, version, e);
-                return default;
-            }
+            return ReadMetadata(files, nuspecReader);
         }
 
         private static XDocument LoadDocument(Stream stream)
