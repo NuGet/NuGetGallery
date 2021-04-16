@@ -1,14 +1,9 @@
-$(function () {
+$(function() {
     'use strict';
 
-    for (var i = 0; i < listItemCount; i++) {
-        var id = "reserved-indicator-" + i;
-        configureCheckmarkImagePopover(id);
-    }
-
-    function configureCheckmarkImagePopover(id) {
-        var checkmarkImage = $('#' + id);
-        if (checkmarkImage.length == 1) {   // i.e. checkmark exists
+    $(".reserved-indicator").each(
+        function() {
+            var checkmarkImage = $(this);
             checkmarkImage.popover({ trigger: 'hover focus' });
             checkmarkImage.click(function() {
                 checkmarkImage.popover('show');
@@ -18,5 +13,5 @@ $(function () {
                     1000);
             });
         }
-    }
+    );
 });
