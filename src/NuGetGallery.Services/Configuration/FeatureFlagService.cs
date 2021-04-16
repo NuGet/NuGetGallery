@@ -47,6 +47,7 @@ namespace NuGetGallery
         private const string MarkdigMdRenderingFlightName = GalleryPrefix + "MarkdigMdRendering";
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
         private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
+        private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -325,6 +326,11 @@ namespace NuGetGallery
         public bool IsImageAllowlistEnabled()
         {
             return _client.IsEnabled(ImageAllowlistFlightName, defaultValue: false);
+        }
+
+        public bool IsDisplayBannerEnabled()
+        {
+            return _client.IsEnabled(DisplayBannerFlightName, defaultValue: false);
         }
     }
 }

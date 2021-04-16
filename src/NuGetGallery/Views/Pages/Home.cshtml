@@ -4,6 +4,7 @@
     ViewBag.ShowSearchInNavbar = false;
     ViewBag.AutofocusSearch = true;
     ViewBag.HasJumbotron = true;
+    ViewBag.DisplayBanner = Model.DisplayBannerFeatureEnabled;
     var AskUserToEnable2FA = TempData.ContainsKey("AskUserToEnable2FA")
         && Convert.ToBoolean(TempData["AskUserToEnable2FA"].ToString())
         && Model.ShowEnable2FAModalFeatureEnabled;

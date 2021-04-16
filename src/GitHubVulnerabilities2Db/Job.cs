@@ -5,14 +5,13 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using Autofac;
 using GitHubVulnerabilities2Db.Collector;
 using GitHubVulnerabilities2Db.Configuration;
+using GitHubVulnerabilities2Db.Fakes;
 using GitHubVulnerabilities2Db.Gallery;
 using GitHubVulnerabilities2Db.GraphQL;
 using GitHubVulnerabilities2Db.Ingest;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -24,7 +23,6 @@ using NuGet.Services.Storage;
 using NuGetGallery;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
-using NuGetGallery.Diagnostics;
 using NuGetGallery.Security;
 
 namespace GitHubVulnerabilities2Db
@@ -101,6 +99,10 @@ namespace GitHubVulnerabilities2Db
             containerBuilder
                 .RegisterType<ThrowingSecurityPolicyService>()
                 .As<ISecurityPolicyService>();
+
+            containerBuilder
+                .RegisterType<FakeFeatureFlagService>()
+                .As<IFeatureFlagService>();
 
             containerBuilder
                 .RegisterType<PackageService>()
@@ -180,20 +182,6 @@ namespace GitHubVulnerabilities2Db
             var storageFactory = ctx.Resolve<IStorageFactory>();
             var storage = storageFactory.Create();
             return new DurableCursor(storage.ResolveUri(getBlobName(config)), storage, DateTimeOffset.MinValue);
-        }
-    }
-
-    public class FakeContentService : IContentService
-    {
-        public void ClearCache()
-        {
-            //no-op
-        }
-
-        public Task<IHtmlString> GetContentItemAsync(string name, TimeSpan expiresIn)
-        {
-            // no-op
-            return Task.FromResult((IHtmlString)null);
         }
     }
 }
