@@ -1675,6 +1675,7 @@
     <Content Include="App_Data\Files\Content\Symbols-Configuration.json" />
     <Content Include="Scripts\gallery\instrumentation.js" />
     <Content Include="Scripts\gallery\knockout-3.5.1.js" />
+    <Content Include="Scripts\gallery\page-list-packages.js" />
     <Content Include="Views\Shared\SiteMenu.cshtml">
       <SubType>Code</SubType>
     </Content>
