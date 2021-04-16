@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace NuGet.Jobs.Validation.ContentScan
 {
-    public class CheckContentScanData
+    public class ContentScanData
     {
-        public static CheckContentScanData NewStartContentScanData(
+        public static ContentScanData NewStartContentScanData(
            Guid validationTrackingId,
            Uri contentUrl)
         {
-            return new CheckContentScanData(
+            return new ContentScanData(
                 ContentScanOperationType.StartScan,
                 startContentScan: new StartContentScanData(
                     validationTrackingId,
@@ -21,10 +21,10 @@ namespace NuGet.Jobs.Validation.ContentScan
                 deliveryCount: 0);
         }
 
-        public static CheckContentScanData NewCheckContentScanStatus(
+        public static ContentScanData NewCheckContentScanStatus(
           Guid validationTrackingId)
         {
-            return new CheckContentScanData(
+            return new ContentScanData(
                 ContentScanOperationType.CheckStatus,
                 startContentScan: null,
                 checkContentScanStatus: new CheckContentScanStatusData(
@@ -32,7 +32,7 @@ namespace NuGet.Jobs.Validation.ContentScan
                 deliveryCount: 0);
         }
 
-        internal CheckContentScanData(
+        internal ContentScanData(
            ContentScanOperationType type,
            StartContentScanData startContentScan,
            CheckContentScanStatusData checkContentScanStatus,

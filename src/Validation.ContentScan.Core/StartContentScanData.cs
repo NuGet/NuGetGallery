@@ -9,14 +9,25 @@ namespace NuGet.Jobs.Validation.ContentScan
     public class StartContentScanData
     {
         public StartContentScanData(
-            Guid validationTrackingId,
-            Uri blobUri)
+           Guid validationStepId,
+           Uri blobUri)
         {
-            ValidationTrackingId = validationTrackingId;
+            ValidationStepId = validationStepId;
             BlobUri = blobUri ?? throw new ArgumentNullException(nameof(blobUri));
         }
 
-        public Guid ValidationTrackingId { get; }
+        public StartContentScanData(
+            Guid validationStepId,
+            Uri blobUri,
+            string contentType)
+        {
+            ValidationStepId = validationStepId;
+            BlobUri = blobUri ?? throw new ArgumentNullException(nameof(blobUri));
+            ContentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
+        }
+
+        public Guid ValidationStepId { get; }
         public Uri BlobUri { get; }
+        public String ContentType { get; }
     }
 }

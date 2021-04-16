@@ -48,7 +48,7 @@
   <ItemGroup>
     <Compile Include="ContentScanStatusMessage.cs" />
     <Compile Include="ContentScanOperationType.cs" />
-    <Compile Include="CheckContentScanData.cs" />
+    <Compile Include="ContentScanData.cs" />
     <Compile Include="IContentScanEnqueuer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ContentScanEnqueuer.cs" />

@@ -97,9 +97,9 @@ namespace Validation.ContentScan.Tests
             await _target.EnqueueContentScanAsync(_validationRequest.ValidationStepId, _validationRequest.InputUrl);
 
             _serializerMock
-                .Verify(s => s.Serialize(It.IsAny<CheckContentScanData>()), Times.Once);
+                .Verify(s => s.Serialize(It.IsAny<ContentScanData>()), Times.Once);
 
-            Assert.Equal(_validationRequest.ValidationStepId, _capturedMessage.StartContentScan.ValidationTrackingId);
+            Assert.Equal(_validationRequest.ValidationStepId, _capturedMessage.StartContentScan.ValidationStepId);
             Assert.Equal(_validationRequest.InputUrl, _capturedMessage.StartContentScan.BlobUri);
             Assert.Equal(ContentScanOperationType.StartScan, _capturedMessage.Type);
         }
@@ -143,13 +143,13 @@ namespace Validation.ContentScan.Tests
     public class ContentScanEnqueuerFactsBase
     {
         protected Mock<ITopicClient> _topicClientMock;
-        protected Mock<IBrokeredMessageSerializer<CheckContentScanData>> _serializerMock;
+        protected Mock<IBrokeredMessageSerializer<ContentScanData>> _serializerMock;
         protected ILogger<ContentScanEnqueuer> _logger;
         protected Mock<IOptionsSnapshot<ContentScanEnqueuerConfiguration>> _configurationAccessorMock;
         protected ContentScanEnqueuerConfiguration _configuration;
         protected ContentScanEnqueuer _target;
 
-        protected CheckContentScanData _capturedMessage;
+        protected ContentScanData _capturedMessage;
         protected IBrokeredMessage _capturedBrokeredMessage;
         protected BrokeredMessageWrapper _serializedMessage;
 
@@ -159,7 +159,7 @@ namespace Validation.ContentScan.Tests
         public ContentScanEnqueuerFactsBase()
         {
             _topicClientMock = new Mock<ITopicClient>();
-            _serializerMock = new Mock<IBrokeredMessageSerializer<CheckContentScanData>>();
+            _serializerMock = new Mock<IBrokeredMessageSerializer<ContentScanData>>();
             _logger = Mock.Of<ILogger<ContentScanEnqueuer>>();
             _configurationAccessorMock = new Mock<IOptionsSnapshot<ContentScanEnqueuerConfiguration>>();
 
@@ -179,8 +179,8 @@ namespace Validation.ContentScan.Tests
             _serializedMessage = new BrokeredMessageWrapper("somedata");
 
             _serializerMock
-                .Setup(s => s.Serialize(It.IsAny<CheckContentScanData>()))
-                .Callback<CheckContentScanData>(m => _capturedMessage = m)
+                .Setup(s => s.Serialize(It.IsAny<ContentScanData>()))
+                .Callback<ContentScanData>(m => _capturedMessage = m)
                 .Returns(_serializedMessage);
 
             _topicClientMock

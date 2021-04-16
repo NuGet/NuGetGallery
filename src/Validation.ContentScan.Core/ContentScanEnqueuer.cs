@@ -13,13 +13,13 @@ namespace NuGet.Jobs.Validation.ContentScan
     public class ContentScanEnqueuer : IContentScanEnqueuer
     {
         private readonly ITopicClient _topicClient;
-        private readonly IBrokeredMessageSerializer<CheckContentScanData> _serializer;
+        private readonly IBrokeredMessageSerializer<ContentScanData> _serializer;
         private readonly ContentScanEnqueuerConfiguration _configuration;
         private readonly ILogger<IContentScanEnqueuer> _logger;
 
         public ContentScanEnqueuer(
             ITopicClient topicClient,
-            IBrokeredMessageSerializer<CheckContentScanData> serializer,
+            IBrokeredMessageSerializer<ContentScanData> serializer,
             IOptionsSnapshot<ContentScanEnqueuerConfiguration> configurationAccessor,
             ILogger<IContentScanEnqueuer> logger)
         {
@@ -63,13 +63,13 @@ namespace NuGet.Jobs.Validation.ContentScan
                 messageDeliveryDelayOverride);
 
             return SendContentScanMessageAsync(
-                CheckContentScanData.NewStartContentScanData(
+                ContentScanData.NewStartContentScanData(
                     validationStepId,
                     inputUrl),
                 messageDeliveryDelayOverride);
         }
 
-        private Task SendContentScanMessageAsync(CheckContentScanData message, TimeSpan? messageDeliveryDelayOverride)
+        private Task SendContentScanMessageAsync(ContentScanData message, TimeSpan? messageDeliveryDelayOverride)
         {
             var brokeredMessage = _serializer.Serialize(message);
 

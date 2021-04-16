@@ -9,11 +9,11 @@ namespace NuGet.Jobs.Validation.ContentScan
     public class CheckContentScanStatusData
     {
         public CheckContentScanStatusData(
-           Guid validationTrackingId)
+           Guid valiadtionStepId)
         {
-            ValidationTrackingId = validationTrackingId;
+            ValidationStepId = valiadtionStepId;
         }
 
-        public Guid ValidationTrackingId { get; }
+        public Guid ValidationStepId { get; }
     }
 }
