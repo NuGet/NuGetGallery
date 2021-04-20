@@ -67,7 +67,7 @@ namespace NuGet.Services.Validation.Orchestrator
             _validationSetProcessor = validationSetProcessor ?? throw new ArgumentNullException(nameof(validationSetProcessor));
             _validationOutcomeProcessor = validationOutcomeProcessor ?? throw new ArgumentNullException(nameof(validationOutcomeProcessor));
             _leaseService = leaseService ?? throw new ArgumentNullException(nameof(leaseService));
-            _validationEnqueuer = validationEnqueuer ?? throw new ArgumentNullException(nameof(leaseService));
+            _validationEnqueuer = validationEnqueuer ?? throw new ArgumentNullException(nameof(validationEnqueuer));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
