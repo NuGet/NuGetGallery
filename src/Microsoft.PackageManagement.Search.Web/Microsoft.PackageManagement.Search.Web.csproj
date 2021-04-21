@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <Import Project="..\..\SdkProjects.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
+
+    <!--
+    This reference is used to "lift" a transitive dependency of Microsoft.ApplicationInsights.AspNetCore to a version
+    that is accepted by Azure DevOps Component Governance, which scans the project.assets.json file. At runtime, the
+    real version this package are actually higher and is defined by the shared ASP.NET Core SDK installed on the
+    hosting machine.
+    -->
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -72,6 +72,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "src\Catalog\Properties\AssemblyInfo.g.cs",
             "src\CopyAzureContainer\Properties\AssemblyInfo.g.cs",
             "src\Gallery.CredentialExpiration\Properties\AssemblyInfo.g.cs",
+            "src\Microsoft.PackageManagement.Search.Web\Properties\AssemblyInfo.g.cs",
             "src\Ng\Properties\AssemblyInfo.g.cs",
             "src\NuGet.ApplicationInsights.Owin\Properties\AssemblyInfo.g.cs",
             "src\NuGet.Jobs.Auxiliary2AzureSearch\Properties\AssemblyInfo.g.cs",
@@ -144,6 +145,7 @@ Invoke-BuildStep 'Creating artifacts' {
         # don't need to be shared, hence no need for symbols for them
         $CsprojProjects =
             "src\Catalog\NuGet.Services.Metadata.Catalog.csproj",
+            "src\Microsoft.PackageManagement.Search.Web\Microsoft.PackageManagement.Search.Web.csproj",
             "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj",
             "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj",
             "src\NuGet.Protocol.Catalog\NuGet.Protocol.Catalog.csproj",
