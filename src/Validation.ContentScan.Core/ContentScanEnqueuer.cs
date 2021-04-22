@@ -44,7 +44,7 @@ namespace NuGet.Jobs.Validation.ContentScan
         public Task EnqueueContentScanAsync(Guid validationStepId, Uri inputUrl, TimeSpan messageDeliveryDelayOverride)
             => EnqueueScanImplAsync(validationStepId, inputUrl, messageDeliveryDelayOverride);
 
-        private Task EnqueueScanImplAsync(Guid validationStepId, Uri inputUrl, TimeSpan? messageDeliveryDelayOverride = null)
+        private async Task EnqueueScanImplAsync(Guid validationStepId, Uri inputUrl, TimeSpan? messageDeliveryDelayOverride = null)
         {
             if (inputUrl == null)
             {
@@ -62,14 +62,14 @@ namespace NuGet.Jobs.Validation.ContentScan
                 inputUrl,
                 messageDeliveryDelayOverride);
 
-            return SendContentScanMessageAsync(
+            await SendContentScanMessageAsync(
                 ContentScanData.NewStartContentScanData(
                     validationStepId,
                     inputUrl),
                 messageDeliveryDelayOverride);
         }
 
-        private Task SendContentScanMessageAsync(ContentScanData message, TimeSpan? messageDeliveryDelayOverride)
+        private async Task SendContentScanMessageAsync(ContentScanData message, TimeSpan? messageDeliveryDelayOverride)
         {
             var brokeredMessage = _serializer.Serialize(message);
 
@@ -78,7 +78,7 @@ namespace NuGet.Jobs.Validation.ContentScan
             var visibleAt = DateTimeOffset.UtcNow + delay;
             brokeredMessage.ScheduledEnqueueTimeUtc = visibleAt;
 
-            return _topicClient.SendAsync(brokeredMessage);
+            await _topicClient.SendAsync(brokeredMessage);
         }
     }
 }
