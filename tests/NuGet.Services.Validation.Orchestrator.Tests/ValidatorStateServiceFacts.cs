@@ -28,6 +28,9 @@ namespace NuGet.Services.Validation
         private static readonly Guid ValidationId = new Guid("fb9c0bac-3d4d-4cc7-ac2d-b3940e15b94d");
         private static readonly Guid OtherValidationId = new Guid("6593BD33-ABC0-4049-BDCF-915807F1D2B3");
         private const string NupkgUrl = "https://example/nuget.versioning/4.3.0/package.nupkg";
+        private static readonly Uri InputUrl = new Uri("https://example/vsix.versioning/4.3.0/package.vsix");
+        private static readonly Guid ValidationId1 = new Guid("fc9c0bac-3d4d-4cc7-ac2d-b3940e15b94d");
+        private static readonly Guid OtherValidationId1 = new Guid("6693BD33-ABC0-4049-BDCF-915807F1D2B3");
 
         private static readonly ValidationStatus[] possibleValidationStatuses = new ValidationStatus[]
         {
@@ -51,6 +54,14 @@ namespace NuGet.Services.Validation
             public Task CleanUpAsync(INuGetValidationRequest request) => throw new NotImplementedException();
             public Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request) => throw new NotImplementedException();
             public Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request) => throw new NotImplementedException();
+        }
+
+        [ValidatorName("CValidator")]
+        class CValidator : IValidator
+        {
+            public Task CleanUpAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task<IValidationResponse> GetResponseAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task<IValidationResponse> StartAsync(IValidationRequest request) => throw new NotImplementedException();
         }
 
         public class TheGetStatusMethod : FactsBase
@@ -446,6 +457,12 @@ namespace NuGet.Services.Validation
                 ValidatorName = nameof(AValidator),
             };
 
+            private ValidatorStatus NewStatusForUnifiedValidation => new ValidatorStatus
+            {
+                ValidationId = ValidationId1,
+                ValidatorName = nameof(CValidator),
+            };
+
             [Fact]
             public async Task HandlesUniqueConstraintViolationGracefully()
             {
@@ -463,6 +480,31 @@ namespace NuGet.Services.Validation
                 // Act
                 var result = await _target.TryAddValidatorStatusAsync(
                     _validationRequest.Object,
+                    status,
+                    ValidationStatus.Succeeded);
+
+                // Assert
+                Assert.Same(status, result);
+                _validationContext.Verify(x => x.ValidatorStatuses, Times.Exactly(2));
+            }
+
+            [Fact]
+            public async Task HandlesUniqueConstraintViolationGracefullyForUnifiedRequest()
+            {
+                // Arrange
+                var exception = new DbUpdateException(
+                    message: "Fail!",
+                    innerException: CreateSqlException(2627, "No can do, friend."));
+                _validationContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .ThrowsAsync(exception);
+
+                _validationContext.Mock(validatorStatusesMock: new Mock<IDbSet<ValidatorStatus>>());
+                var status = NewStatusForUnifiedValidation;
+
+                // Act
+                var result = await _targetValidatorServiceForUnifiedRequest.TryAddValidatorStatusAsync(
+                    _unifiedValidationRequest.Object,
                     status,
                     ValidationStatus.Succeeded);
 
@@ -499,6 +541,35 @@ namespace NuGet.Services.Validation
 
                 Assert.Equal(ValidationStatus.NotStarted, result.State);
             }
+
+            [Fact]
+            public async Task PersistsStatusForUnifiedValidationRequest()
+            {
+                // Arrange
+                var validatorName = nameof(CValidator);
+                var validatorStatuses = new Mock<IDbSet<ValidatorStatus>>();
+
+                _validationContext.Mock(validatorStatusesMock: validatorStatuses);
+
+                // Act & Assert
+                var result = await _targetValidatorServiceForUnifiedRequest.TryAddValidatorStatusAsync(
+                                            _unifiedValidationRequest.Object,
+                                            NewStatusForUnifiedValidation,
+                                            ValidationStatus.NotStarted);
+
+                _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+
+                validatorStatuses
+                    .Verify(statuses => statuses.Add(
+                        It.Is<ValidatorStatus>(
+                            s => s.ValidationId == ValidationId1
+                                && s.ValidatorName == validatorName
+                                && s.State == ValidationStatus.NotStarted)),
+                    Times.Once);
+
+                Assert.Equal(ValidationStatus.NotStarted, result.State);
+            }
+
         }
 
         public class TheTryUpdateValidationStatusAsyncMethod : FactsBase
@@ -512,6 +583,13 @@ namespace NuGet.Services.Validation
                 ValidationId = ValidationId,
                 PackageKey = PackageKey,
                 ValidatorName = nameof(AValidator),
+                State = ValidationStatus.NotStarted,
+            };
+
+            private ValidatorStatus ExistingStatusForUnifiedValidation => new ValidatorStatus
+            {
+                ValidationId = ValidationId,
+                ValidatorName = nameof(CValidator),
                 State = ValidationStatus.NotStarted,
             };
 
@@ -539,6 +617,30 @@ namespace NuGet.Services.Validation
                 _validationContext.Verify(x => x.ValidatorStatuses, Times.Exactly(2));
             }
 
+            [Fact(Skip = "Skip for now till PackageKey is made as nullable")]
+            public async Task HandlesUniqueConstraintViolationGracefullyForUnifiedValidation()
+            {
+                // Arrange
+                var exception = new DbUpdateConcurrencyException("Fail!");
+                _validationContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .ThrowsAsync(exception);
+
+                _validationContext.Mock(validatorStatusesMock: new Mock<IDbSet<ValidatorStatus>>());
+                var status = ExistingStatusForUnifiedValidation;
+                _validationContext.Object.ValidatorStatuses.Add(status);
+
+                // Act
+                var result = await _targetValidatorServiceForUnifiedRequest.TryUpdateValidationStatusAsync(
+                    _unifiedValidationRequest.Object,
+                    status,
+                    ValidationStatus.Succeeded);
+
+                // Assert
+                Assert.Same(status, result);
+                _validationContext.Verify(x => x.ValidatorStatuses, Times.Exactly(2));
+            }
+
             [Fact]
             public async Task PersistsStatus()
             {
@@ -554,10 +656,31 @@ namespace NuGet.Services.Validation
                                             ValidationStatus.Succeeded);
 
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
-                
+
                 Assert.Equal(ValidationStatus.Succeeded, existingStatus.State);
                 Assert.Same(existingStatus, result);
             }
+
+            [Fact(Skip = "Skip for now till PackageKey is made as nullable")]
+            public async Task PersistsStatusForUnifiedValidation()
+            {
+                // Arrange
+                var existingStatus = ExistingStatusForUnifiedValidation;
+
+                _validationContext.Mock(validatorStatuses: new[] { existingStatus });
+
+                // Act & Assert
+                var result = await _target.TryUpdateValidationStatusAsync(
+                                            _unifiedValidationRequest.Object,
+                                            existingStatus,
+                                            ValidationStatus.Succeeded);
+
+                _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+
+                Assert.Equal(ValidationStatus.Succeeded, existingStatus.State);
+                Assert.Same(existingStatus, result);
+            }
+
         }
 
         public abstract class FactsBase
@@ -566,7 +689,9 @@ namespace NuGet.Services.Validation
             protected readonly Mock<IValidationEntitiesContext> _validationContext;
             protected readonly ILogger<ValidatorStateService> _logger;
             protected readonly Mock<INuGetValidationRequest> _validationRequest;
+            protected readonly Mock<IValidationRequest> _unifiedValidationRequest;
             protected readonly ValidatorStateService _target;
+            protected readonly ValidatorStateService _targetValidatorServiceForUnifiedRequest;
 
             public FactsBase(ITestOutputHelper output)
             {
@@ -581,7 +706,12 @@ namespace NuGet.Services.Validation
                 _validationRequest.Setup(x => x.PackageVersion).Returns(PackageVersion);
                 _validationRequest.Setup(x => x.ValidationId).Returns(ValidationId);
 
+                _unifiedValidationRequest = new Mock<IValidationRequest>();
+                _unifiedValidationRequest.Setup(x => x.InputUrl).Returns(InputUrl);
+                _unifiedValidationRequest.Setup(x => x.ValidationStepId).Returns(ValidationId1);
+
                 _target = CreateValidatorStateService(ValidatorUtility.GetValidatorName(typeof(AValidator)));
+                _targetValidatorServiceForUnifiedRequest = CreateValidatorStateService(ValidatorUtility.GetValidatorName(typeof(CValidator)));
             }
 
             protected ValidatorStateService CreateValidatorStateService(string validatorName)

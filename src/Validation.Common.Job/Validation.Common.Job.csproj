@@ -17,6 +17,7 @@
     <Compile Remove="Validation\IValidationResponse.cs" />
     <Compile Remove="Validation\IValidator.cs" />
     <Compile Remove="SubscriptionProcessorJob.cs" />
+    <Compile Remove="Validation\ValidationResponse.cs" />
     <Compile Remove="ValidationJobBase.cs" />
   </ItemGroup>
 
