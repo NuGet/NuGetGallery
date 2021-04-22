@@ -16,6 +16,7 @@ namespace NuGet.Jobs.Validation.ContentScan
             new BrokeredMessageSerializer<StartContentScanData1>();
         private IBrokeredMessageSerializer<CheckContentScanStatusData1> _checkScanStatusSerializer =
             new BrokeredMessageSerializer<CheckContentScanStatusData1>();
+
         public ContentScanData Deserialize(IBrokeredMessage message)
         {
             var schemaName = message.GetSchemaName();

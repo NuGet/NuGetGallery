@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace NuGet.Jobs.Validation.ContentScan
-    {
+{
     public class CheckContentScanStatusData
     {
         public CheckContentScanStatusData(
-           Guid valiadtionStepId)
+           Guid validationStepId)
         {
-            ValidationStepId = valiadtionStepId;
+            ValidationStepId = validationStepId;
         }
 
         public Guid ValidationStepId { get; }
