@@ -21,26 +21,15 @@ namespace NuGetGallery
 
         public IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id)
         {
-            var result = new Dictionary<int, List<PackageVulnerability>>();
-            var packagesMatchingId = _entitiesContext.Packages
-                .Where(p => p.PackageRegistration != null && p.PackageRegistration.Id == id)
-                .Include($"{nameof(Package.VulnerablePackageRanges)}.{nameof(VulnerablePackageVersionRange.Vulnerability)}");
-            foreach (var package in packagesMatchingId)
-            {
-                if (package.VulnerablePackageRanges == null)
-                {
-                    continue;
-                }
 
-                if (package.VulnerablePackageRanges.Any())
-                {
-                    result.Add(package.Key,
-                        package.VulnerablePackageRanges.Select(vr => vr.Vulnerability).ToList());
-                }
-            }
+            var packageKeyAndVulnerability = _entitiesContext.VulnerableRanges
+                .Include(x => x.Vulnerability)
+                .Where(x => x.PackageId == id)
+                .SelectMany(x => x.Packages.Select(p => new { PackageKey = p.Key, x.Vulnerability }))
+                .ToList();
 
-            return !result.Any() ? null :
-                result.ToDictionary(kv => kv.Key, kv => kv.Value as IReadOnlyList<PackageVulnerability>);
+            return !packageKeyAndVulnerability.Any() ? null :
+                packageKeyAndVulnerability.ToDictionary(kv => kv.PackageKey, kv => kv.Vulnerability as IReadOnlyList<PackageVulnerability>);
         }
 
         public bool IsPackageVulnerable(Package package)
