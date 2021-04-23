@@ -5,16 +5,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
     public class PackageVulnerabilitiesService : IPackageVulnerabilitiesService
     {
+        private const int CachingLimitMinutes = 30;
         private readonly IEntitiesContext _entitiesContext;
+        private readonly IDictionary<string,
+            (DateTime cachedAt, IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> vulnerabilitiesById)> vulnerabilitiesByIdCache 
+            = new Dictionary<string, (DateTime, IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>>)>();
 
         public PackageVulnerabilitiesService(IEntitiesContext entitiesContext)
         {
@@ -23,6 +25,12 @@ namespace NuGetGallery
 
         public IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id)
         {
+            if (vulnerabilitiesByIdCache.ContainsKey(id)
+                && vulnerabilitiesByIdCache[id].cachedAt.AddMinutes(CachingLimitMinutes) > DateTime.Now)
+            {
+                return vulnerabilitiesByIdCache[id].vulnerabilitiesById;
+            }
+
             var packageKeyAndVulnerability = _entitiesContext.VulnerableRanges
                 .Include(x => x.Vulnerability)
                 .Where(x => x.PackageId == id)
@@ -30,8 +38,12 @@ namespace NuGetGallery
                 .GroupBy(pv => pv.PackageKey, pv => pv.Vulnerability)
                 .ToDictionary(pv => pv.Key, pv => pv.ToList().AsReadOnly() as IReadOnlyList<PackageVulnerability>);
 
-            return !packageKeyAndVulnerability.Any() ? null
+            var result = !packageKeyAndVulnerability.Any() ? null
                 : new ReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>>(packageKeyAndVulnerability);
+
+            vulnerabilitiesByIdCache[id] = (cachedAt: DateTime.Now, vulnerabilitiesById: result);
+
+            return result;
         }
 
         public bool IsPackageVulnerable(Package package)

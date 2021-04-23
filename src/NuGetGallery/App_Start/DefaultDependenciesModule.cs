@@ -47,7 +47,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
-using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
@@ -434,7 +433,7 @@ namespace NuGetGallery
 
             builder.RegisterType<PackageVulnerabilitiesService>()
                 .As<IPackageVulnerabilitiesService>()
-                .InstancePerLifetimeScope();
+                .SingleInstance();
 
             builder.RegisterType<PackageRenameService>()
                 .As<IPackageRenameService>()
