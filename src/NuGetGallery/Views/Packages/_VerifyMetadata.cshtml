@@ -59,24 +59,24 @@
         <div data-bind="if: $data">
             <!-- ko if: $data.Warnings && $data.Warnings.length > 0 -->
             @ViewHelpers.AlertWarning(
-                                            @<span>
-                                                We found the following issue(s):
-                                                <ul data-bind="foreach: $data.Warnings">
-                                                    <!-- ko if: typeof($data) === "string" -->
-                                                    <li><span data-bind="text: $data"></span></li>
-                                                    <!-- /ko -->
-                                                    <!-- ko if: typeof($data) === "object" -->
-                                                    <!-- ko if: $data.PlainTextMessage -->
-                                                    <li><span data-bind="text: $data.PlainTextMessage"></span></li>
-                                                    <!-- /ko -->
-                                                    <!-- ko ifnot: $data.PlainTextMessage -->
-                                                    <li><span data-bind="html: $data.RawHtmlMessage"></span></li>
-                                                    <!-- /ko -->
-                                                    <!-- /ko -->
-                                                </ul>
-                                                We recommend that you fix these issues and upload a new package.
-                                                <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more" aria-label="Read more about managing packages on nuget.org">Read more</a><br />
-                                            </span>)
+                @<span>
+                    We found the following issue(s):
+                    <ul data-bind="foreach: $data.Warnings">
+                        <!-- ko if: typeof($data) === "string" -->
+                        <li><span data-bind="text: $data"></span></li>
+                        <!-- /ko -->
+                        <!-- ko if: typeof($data) === "object" -->
+                        <!-- ko if: $data.PlainTextMessage -->
+                        <li><span data-bind="text: $data.PlainTextMessage"></span></li>
+                        <!-- /ko -->
+                        <!-- ko ifnot: $data.PlainTextMessage -->
+                        <li><span data-bind="html: $data.RawHtmlMessage"></span></li>
+                        <!-- /ko -->
+                        <!-- /ko -->
+                    </ul>
+                    We recommend that you fix these issues and upload a new package. To learn more about authoring great packages, view our
+                    <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about managing packages on nuget.org">Best Practices</a> page.<br />
+                </span>)
             <!-- /ko -->
 
             <div class="verify-package-field">
