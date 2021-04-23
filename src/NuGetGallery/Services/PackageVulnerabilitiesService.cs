@@ -26,17 +26,12 @@ namespace NuGetGallery
             var packageKeyAndVulnerability = _entitiesContext.VulnerableRanges
                 .Include(x => x.Vulnerability)
                 .Where(x => x.PackageId == id)
-                .SelectMany(x => x.Packages.Select(p => new {PackageKey = p.Key, x.Vulnerability}));
-
-            if (!packageKeyAndVulnerability.Any())
-            {
-                return null;
-            }
-
-            var packageVulnerabilitiesDictionary = packageKeyAndVulnerability
+                .SelectMany(x => x.Packages.Select(p => new {PackageKey = p.Key, x.Vulnerability}))
                 .GroupBy(pv => pv.PackageKey, pv => pv.Vulnerability)
                 .ToDictionary(pv => pv.Key, pv => pv.ToList().AsReadOnly() as IReadOnlyList<PackageVulnerability>);
-            return new ReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>>(packageVulnerabilitiesDictionary);
+
+            return !packageKeyAndVulnerability.Any() ? null
+                : new ReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>>(packageKeyAndVulnerability);
         }
 
         public bool IsPackageVulnerable(Package package)
