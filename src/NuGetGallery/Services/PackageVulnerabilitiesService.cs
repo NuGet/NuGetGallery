@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -21,15 +23,20 @@ namespace NuGetGallery
 
         public IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id)
         {
-
             var packageKeyAndVulnerability = _entitiesContext.VulnerableRanges
                 .Include(x => x.Vulnerability)
                 .Where(x => x.PackageId == id)
-                .SelectMany(x => x.Packages.Select(p => new { PackageKey = p.Key, x.Vulnerability }))
-                .ToList();
+                .SelectMany(x => x.Packages.Select(p => new {PackageKey = p.Key, x.Vulnerability}));
 
-            return !packageKeyAndVulnerability.Any() ? null :
-                packageKeyAndVulnerability.ToDictionary(kv => kv.PackageKey, kv => kv.Vulnerability as IReadOnlyList<PackageVulnerability>);
+            if (!packageKeyAndVulnerability.Any())
+            {
+                return null;
+            }
+
+            var packageVulnerabilitiesDictionary = packageKeyAndVulnerability
+                .GroupBy(pv => pv.PackageKey, pv => pv.Vulnerability)
+                .ToDictionary(pv => pv.Key, pv => pv.ToList().AsReadOnly() as IReadOnlyList<PackageVulnerability>);
+            return new ReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>>(packageVulnerabilitiesDictionary);
         }
 
         public bool IsPackageVulnerable(Package package)
