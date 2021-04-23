@@ -17,7 +17,7 @@
             @ViewHelpers.AjaxAntiForgeryToken(Html)
             @ViewHelpers.PackagesBreadcrumb(Url, CurrentUser, true, @<text>Upload</text>)
             <div class="text-left">
-                <p class="message">Your  package file will be uploaded and on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>
+                <p class="message">Your package file will be uploaded and on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>
                 <p class="message">
                     To learn more about authoring great packages, view our 
                     <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about publishing packages">Best Practices</a> page.
@@ -56,8 +56,7 @@
                     </div>
                 </div>
             </div>
-            @* @if (Model != null && Model.IsUploadInProgress)*@
-            @if (true)
+            @if (Model != null && Model.IsUploadInProgress)
             {
             <div id="warning-container">
                 @ViewHelpers.AlertInfo(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
