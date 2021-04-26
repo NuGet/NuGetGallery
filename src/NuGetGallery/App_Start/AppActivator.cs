@@ -121,7 +121,8 @@ namespace NuGetGallery
             newStyleBundle
                 .Include("~/Content/gallery/css/bootstrap.css")
                 .Include("~/Content/gallery/css/bootstrap-theme.css")
-                .Include("~/Content/gallery/css/fabric.css");
+                .Include("~/Content/gallery/css/fabric.css")
+                .Include("~/Content/gallery/css/bootstrap-fixes.css");
             BundleTable.Bundles.Add(newStyleBundle);
 
             var instrumentationBundle = new ScriptBundle("~/Scripts/gallery/instrumentation.min.js")
