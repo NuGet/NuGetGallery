@@ -27,6 +27,7 @@ namespace NuGetGallery
         public string Id { get; set; }
         public string Version { get; set; }
         public string FullVersion { get; set; }
+        public string NormalizedVersion { get; set; }
         public PackageStatusSummary PackageStatusSummary { get; set; }
         public bool IsVulnerable { get; set; }
 
