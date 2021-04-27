@@ -269,7 +269,7 @@ namespace NuGetGallery
                 if (cloudDownloadCountService != null)
                 {
                     // Perform initial refresh + schedule new refreshes every 15 minutes
-                    HostingEnvironment.QueueBackgroundWorkItem(_ => cloudDownloadCountService.Refresh());
+                    HostingEnvironment.QueueBackgroundWorkItem(_ => cloudDownloadCountService.RefreshAsync());
                     jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15), cloudDownloadCountService));
                 }
             }

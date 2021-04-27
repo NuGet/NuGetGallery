@@ -87,7 +87,7 @@ namespace NuGetGallery
             return false;
         }
 
-        public async Task Refresh()
+        public async Task RefreshAsync()
         {
             bool shouldRefresh = false;
             lock (_refreshLock)
@@ -104,7 +104,7 @@ namespace NuGetGallery
                 try
                 {
                     var stopwatch = Stopwatch.StartNew();
-                    await RefreshCore();
+                    await RefreshCoreAsync();
                     stopwatch.Stop();
                     _telemetryService.TrackDownloadJsonRefreshDuration(stopwatch.ElapsedMilliseconds);
 
@@ -148,19 +148,19 @@ namespace NuGetGallery
         /// This method is added for unit testing purposes. It can return a null stream if the blob does not exist
         /// and assumes the caller will properly dispose of the returned stream.
         /// </summary>
-        protected virtual async Task<Stream> GetBlobStream()
+        protected virtual async Task<Stream> GetBlobStreamAsync()
         {
             var blob = GetBlobReference();
             return await blob.OpenReadIfExistsAsync();
         }
 
-        private async Task RefreshCore()
+        private async Task RefreshCoreAsync()
         {
             try
             {
                 // The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.
                 // Sample.json : [["AutofacContrib.NSubstitute",["2.4.3.700",406],["2.5.0",137]],["Assman.Core",["2.0.7",138]]....
-                using (var blobStream = await GetBlobStream())
+                using (var blobStream = await GetBlobStreamAsync())
                 {
                     if (blobStream == null)
                     {
