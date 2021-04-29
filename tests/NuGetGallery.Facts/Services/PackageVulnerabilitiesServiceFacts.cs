@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
 using Xunit;
@@ -21,6 +22,7 @@ namespace NuGetGallery.Services
         private Package _packageVulnerable100;
         private Package _packageVulnerable110;
         private Package _packageVulnerable111;
+        private Package _packageVulnerable112;
 
         private Package _packageNotVulnerable;
 
@@ -29,9 +31,16 @@ namespace NuGetGallery.Services
         {
             // Arrange
             SetUp();
-            var vulnerableRanges = new[] {_versionRangeModerate, _versionRangeCritical};
+            var packages = new[]
+            {
+                _packageVulnerable100,
+                _packageVulnerable110,
+                _packageVulnerable111,
+                _packageVulnerable112,
+                _packageNotVulnerable
+            };
             var context = GetFakeContext();
-            context.VulnerableRanges.AddRange(vulnerableRanges);
+            context.Packages.AddRange(packages);
             var target = Get<PackageVulnerabilitiesService>();
 
             // Act
@@ -87,14 +96,12 @@ namespace NuGetGallery.Services
 
             _versionRangeCritical = new VulnerablePackageVersionRange
             {
-                PackageId = "Vulnerable",
                 Vulnerability = _vulnerabilityCritical,
                 PackageVersionRange = "1.1.1",
                 FirstPatchedPackageVersion = "1.1.2"
             };
             _versionRangeModerate = new VulnerablePackageVersionRange
             {
-                PackageId = "Vulnerable",
                 Vulnerability = _vulnerabilityModerate,
                 PackageVersionRange = "<=1.1.1",
                 FirstPatchedPackageVersion = "1.1.2"
@@ -122,7 +129,7 @@ namespace NuGetGallery.Services
             };
             _packageVulnerable111 = new Package
             {
-                Key = 2,
+                Key = 3, // simulate a different order in db - create a non-contiguous range of rows, even if the range is contiguous
                 PackageRegistration = _registrationVulnerable,
                 Version = "1.1.1",
                 VulnerablePackageRanges = new List<VulnerablePackageVersionRange>
@@ -131,15 +138,19 @@ namespace NuGetGallery.Services
                     _versionRangeCritical
                 }
             };
+            _packageVulnerable112 = new Package
+            {
+                Key = 2, // simulate a different order in db  - create a non-contiguous range of rows, even if the range is contiguous
+                PackageRegistration = _registrationVulnerable,
+                Version = "1.1.2",
+                VulnerablePackageRanges = new List<VulnerablePackageVersionRange>()
+            };
             _packageNotVulnerable = new Package
             {
-                Key = 3,
+                Key = 4,
                 PackageRegistration = new PackageRegistration { Id = "NotVulnerable" },
                 VulnerablePackageRanges = new List<VulnerablePackageVersionRange>()
             };
-
-            _versionRangeCritical.Packages = new List<Package> { _packageVulnerable111 };
-            _versionRangeModerate.Packages = new List<Package> { _packageVulnerable100, _packageVulnerable110, _packageVulnerable111 };
         }
     }
 }
