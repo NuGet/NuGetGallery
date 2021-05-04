@@ -287,7 +287,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
             {
                 if (!await destinationBlob.ExistsAsync(token))
                 {
-                    return await TryCopyInternalAsync(sourceBlobInformation.Blob.Uri, destinationBlob, destinationContainer);
+                    return await TryCopyInternalAsync(sourceBlobInformation.Blob, destinationBlob, destinationContainer);
                 }
                 else
                 {
@@ -297,7 +297,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                     var lease = destinationBlob.AcquireLease(TimeSpan.FromSeconds(CopyBlobLeaseTimeInSeconds), sourceBlobInformation.LeaseId);
                     var destinationAccessCondition = new AccessCondition { LeaseId = lease };
                     await destinationBlob.DeleteAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots, accessCondition: destinationAccessCondition, options: null, operationContext: null);
-                    var result = await TryCopyInternalAsync(sourceBlobInformation.Blob.Uri, destinationBlob, destinationContainer, destinationAccessCondition: destinationAccessCondition);
+                    var result = await TryCopyInternalAsync(sourceBlobInformation.Blob, destinationBlob, destinationContainer, destinationAccessCondition: destinationAccessCondition);
                     try
                     {
                         destinationBlob.ReleaseLease(destinationAccessCondition);
@@ -316,24 +316,30 @@ namespace Stats.AzureCdnLogs.Common.Collect
             }
         }
 
-        private async Task<bool> TryCopyInternalAsync(Uri sourceblobUri,
+        private async Task<bool> TryCopyInternalAsync(CloudBlob sourceBlob,
             CloudBlob destinationBlob,
             CloudBlobContainer destinationContainer,
             AccessCondition destinationAccessCondition = null)
         {
-            await destinationBlob.StartCopyAsync(sourceblobUri,
+            var copySourceblobUri = sourceBlob.Uri;
+            if (sourceBlob.ServiceClient.Credentials.IsSAS)
+            {
+                copySourceblobUri = new Uri(sourceBlob.Uri.AbsoluteUri + sourceBlob.ServiceClient.Credentials.SASToken);
+            }
+
+            await destinationBlob.StartCopyAsync(copySourceblobUri,
                 sourceAccessCondition: null,
                 destAccessCondition: destinationAccessCondition,
                 options: null,
                 operationContext: null);
 
             //round-trip to the server and get the information 
-            destinationBlob = (CloudBlob)destinationContainer.GetBlobReferenceFromServer(GetBlobNameFromUri(sourceblobUri));
+            destinationBlob = (CloudBlob)destinationContainer.GetBlobReferenceFromServer(GetBlobNameFromUri(sourceBlob.Uri));
 
             while (destinationBlob.CopyState.Status == CopyStatus.Pending)
             {
                 Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-                destinationBlob = (CloudBlob)destinationContainer.GetBlobReference(GetBlobNameFromUri(sourceblobUri));
+                destinationBlob = (CloudBlob)destinationContainer.GetBlobReference(GetBlobNameFromUri(sourceBlob.Uri));
             }
             return true;
         }
