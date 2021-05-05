@@ -38,31 +38,30 @@ namespace GalleryTools.Commands
             try
             {
                 supportedFrameworks = _packageService.GetSupportedFrameworks(nuspecReader, files);
+                foreach (var tfm in supportedFrameworks)
+                {
+                    // We wrap this in a try-catch because some poorly-crafted portable TFMs will make it through GetSupportedFrameworks and fail here, e.g. for a
+                    // non-existent profile name like "Profile1", which will cause GetShortFolderName to throw. We want to fail silently for these as this is a known
+                    // scenario (more useful error log) and not failing will allow us to  still capture all of the valid TFMs.
+                    // See https://github.com/NuGet/NuGet.Client/blob/ba008e14611f4fa518c2d02ed78dfe5969e4a003/src/NuGet.Core/NuGet.Frameworks/NuGetFramework.cs#L297
+                    // See https://github.com/NuGet/NuGet.Client/blob/ba008e14611f4fa518c2d02ed78dfe5969e4a003/src/NuGet.Core/NuGet.Frameworks/FrameworkNameProvider.cs#L487                }
+                    try
+                    {
+                        var tfmToAdd = tfm.ToShortNameOrNull();
+                        if (!string.IsNullOrEmpty(tfmToAdd))
+                        {
+                            supportedTFMs.Add(tfmToAdd);
+                        }
+                    }
+                    catch
+                    {
+                        // skip this TFM and only collect well-formatted ones
+                    }
+                }
             }
             catch (ArgumentException)
             {
                 // do nothing--this is a known scenario and we'll skip this package quietly, which will give us a more useful error log file
-            }
-
-            foreach (var tfm in supportedFrameworks)
-            {
-                // We wrap this in a try-catch because some poorly-crafted portable TFMs will make it through GetSupportedFrameworks and fail here, e.g. for a
-                // non-existent profile name like "Profile1", which will cause GetShortFolderName to throw. We want to fail silently for these as this is a known
-                // scenario (more useful error log) and not failing will allow us to  still capture all of the valid TFMs.
-                // See https://github.com/NuGet/NuGet.Client/blob/ba008e14611f4fa518c2d02ed78dfe5969e4a003/src/NuGet.Core/NuGet.Frameworks/NuGetFramework.cs#L297
-                // See https://github.com/NuGet/NuGet.Client/blob/ba008e14611f4fa518c2d02ed78dfe5969e4a003/src/NuGet.Core/NuGet.Frameworks/FrameworkNameProvider.cs#L487                }
-                try
-                {
-                    var tfmToAdd = tfm.ToShortNameOrNull();
-                    if (!string.IsNullOrEmpty(tfmToAdd))
-                    {
-                        supportedTFMs.Add(tfmToAdd);
-                    }
-                }
-                catch
-                {
-                    // skip this TFM and only collect well-formatted ones
-                }
             }
 
             return supportedTFMs;
@@ -79,16 +78,17 @@ namespace GalleryTools.Commands
         {
             // Note that extracting old TFMs may throw for formatting reasons. In this case we'll force a full replacement by leaving the collection empty.
             var existingTFMs = Enumerable.Empty<string>();
-            if (package.SupportedFrameworks != null)
+            try
             {
-                try
+                if (package.SupportedFrameworks != null)
                 {
-                    existingTFMs = package.SupportedFrameworks.Select(f => f.FrameworkName.GetShortFolderName()).OrderBy(f => f);
+                    // We'll force this enumerable to a list to force all potential throws
+                    existingTFMs = package.SupportedFrameworks.Select(f => f.FrameworkName.GetShortFolderName()).OrderBy(f => f).ToList();
                 }
-                catch
-                {
-                    // do nothing and replace in full
-                }
+            }
+            catch
+            {
+                // do nothing and replace in full
             }
 
             var newTFMs = metadata == null || metadata.Count == 0

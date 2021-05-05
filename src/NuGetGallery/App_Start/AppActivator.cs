@@ -170,6 +170,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/clamp.js");
             BundleTable.Bundles.Add(displayPackageScriptBundle);
 
+            var listPackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-list-packages.min.js")
+                .Include("~/Scripts/gallery/page-list-packages.js");
+            BundleTable.Bundles.Add(listPackagesScriptBundle);
+
             var managePackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-packages.min.js")
                 .Include("~/Scripts/gallery/page-manage-packages.js");
             BundleTable.Bundles.Add(managePackagesScriptBundle);
@@ -265,7 +269,7 @@ namespace NuGetGallery
                 if (cloudDownloadCountService != null)
                 {
                     // Perform initial refresh + schedule new refreshes every 15 minutes
-                    HostingEnvironment.QueueBackgroundWorkItem(_ => cloudDownloadCountService.Refresh());
+                    HostingEnvironment.QueueBackgroundWorkItem(_ => cloudDownloadCountService.RefreshAsync());
                     jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15), cloudDownloadCountService));
                 }
             }

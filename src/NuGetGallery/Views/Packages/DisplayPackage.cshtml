@@ -726,20 +726,20 @@
                 <table aria-label="Version History of @Model.Id" class="table borderless">
                     <thead>
                         <tr>
-                            <th>Version</th>
-                            <th>Downloads</th>
-                            <th>Last updated</th>
+                            <th scope="col">Version</th>
+                            <th scope="col">Downloads</th>
+                            <th scope="col">Last updated</th>
                             @if (Model.CanDisplayPrivateMetadata)
                             {
-                                <th>Status</th>
+                                <th scope="col">Status</th>
                             }
                             @if (Model.IsCertificatesUIEnabled)
                             {
-                                <th aria-hidden="true" abbr="Signature Information"></th>
+                                <th scope="col" aria-hidden="true" abbr="Signature Information"></th>
                             }
                             @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
                             {
-                                <th aria-hidden="true" abbr="Package Warnings"></th>
+                                <th scope="col" aria-hidden="true" abbr="Package Warnings"></th>
                             }
                         </tr>
                     </thead>
@@ -759,15 +759,15 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                    <td>
+                                    <td tabindex="0">
                                         <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
                                             @packageVersion.Version.Abbreviate(30)
                                         </a>
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         @packageVersion.DownloadCount.ToNuGetNumberString()
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                         @if (packageVersion.PushedBy != null)
                                         {
@@ -780,7 +780,7 @@
                                     {
                                         var packageStatusSummary = packageVersion.PackageStatusSummary;
 
-                                        <td>
+                                        <td tabindex="0">
                                             @if (packageStatusSummary == PackageStatusSummary.Listed ||
                                                  packageStatusSummary == PackageStatusSummary.Unlisted)
                                             {
@@ -801,7 +801,7 @@
                                         }
                                         else
                                         {
-                                            <td class="package-icon-cell">
+                                            <td tabindex="0" class="package-icon-cell">
                                                     <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
                                             </td>
                                         }
@@ -813,7 +813,7 @@
                                     }
                                     else
                                     {
-                                        <td class="package-icon-cell">
+                                        <td tabindex="0" class="package-icon-cell">
                                             <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
                                         </td>
                                     }
@@ -824,16 +824,16 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="deleted">
-                                    <td class="version">
+                                    <td tabindex="0" class="version">
                                         @packageVersion.Version
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         @packageVersion.DownloadCount
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         Deleted
                                     </td>
                                     <td colspan="2"></td>
