@@ -17,8 +17,8 @@ namespace NuGetGallery.Auditing
         public void CloudAuditServiceObfuscateAuditRecord()
         {
             // Arrange
-            CloudBlobContainer nullBlobContainer = null;
-            var service = new CloudAuditingService(nullBlobContainer, AuditActor.GetCurrentMachineActorAsync);
+            ICloudBlobContainer nullBlobContainer = null;
+            var service = new CloudAuditingService(() => nullBlobContainer, AuditActor.GetCurrentMachineActorAsync);
 
             AuditActor onBehalfOf = new AuditActor("machineName", "3.3.3.3", "userName1", "NoAuthentication", "someKey", DateTime.Now, null);
             AuditActor auditActor = new AuditActor("machineName", "2.2.2.2", "userName1", "NoAuthentication", "someKey", DateTime.Now, onBehalfOf);
@@ -56,8 +56,8 @@ namespace NuGetGallery.Auditing
         public void OnlyPackageAuditRecordsWillBeSaved(AuditRecord record, bool expectedResult)
         {
             // Arrange
-            CloudBlobContainer nullBlobContainer = null;
-            var service = new CloudAuditingService(nullBlobContainer, AuditActor.GetCurrentMachineActorAsync);
+            ICloudBlobContainer nullBlobContainer = null;
+            var service = new CloudAuditingService(() => nullBlobContainer, AuditActor.GetCurrentMachineActorAsync);
 
             // Act + Assert
             Assert.Equal<bool>(expectedResult, service.RecordWillBePersisted(record));

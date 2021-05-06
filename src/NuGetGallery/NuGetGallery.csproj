@@ -303,6 +303,10 @@
     <Compile Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.designer.cs">
       <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202104062157118_AddVersionSpecificId.cs" />
+    <Compile Include="Migrations\202104062157118_AddVersionSpecificId.designer.cs">
+      <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="Services\ImageDomainValidator.cs" />
@@ -1640,6 +1644,9 @@
     <EmbeddedResource Include="Migrations\202007220027197_AddEmbeddedReadmeTypeColumn.resx">
       <DependentUpon>202007220027197_AddEmbeddedReadmeTypeColumn.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202104062157118_AddVersionSpecificId.resx">
+      <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1668,6 +1675,7 @@
     <Content Include="App_Data\Files\Content\Symbols-Configuration.json" />
     <Content Include="Scripts\gallery\instrumentation.js" />
     <Content Include="Scripts\gallery\knockout-3.5.1.js" />
+    <Content Include="Scripts\gallery\page-list-packages.js" />
     <Content Include="Views\Shared\SiteMenu.cshtml">
       <SubType>Code</SubType>
     </Content>

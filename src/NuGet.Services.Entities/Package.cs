@@ -12,6 +12,7 @@ namespace NuGet.Services.Entities
     public class Package
         : IPackageEntity
     {
+        private string _id;
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
         public Package()
@@ -264,7 +265,17 @@ namespace NuGet.Services.Entities
 
         public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
 
-        public string Id => PackageRegistration.Id;
+        /// <summary>
+        /// The package ID with casing specific to this version if available, otherwise it will fallback to the ID on
+        /// the package registration. WARNING: this property should not be used for comparisons in LINQ to SQL because
+        /// it may be null sometimes. Use <see cref="PackageRegistration.Id"/> instead.
+        /// </summary>
+        [StringLength(Constants.MaxPackageIdLength)]
+        public string Id
+        {
+            get => _id ?? PackageRegistration?.Id;
+            set => _id = value;
+        }
 
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 

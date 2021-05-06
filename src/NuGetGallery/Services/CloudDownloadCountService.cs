@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -26,9 +28,7 @@ namespace NuGetGallery
         private const string TelemetryOriginForRefreshMethod = "CloudDownloadCountService.Refresh";
 
         private readonly ITelemetryService _telemetryService;
-        private readonly IFeatureFlagService _featureFlagService;
-        private readonly IBlobStorageConfiguration _primaryStorageConfiguration;
-        private readonly IBlobStorageConfiguration _alternateBlobStorageConfiguration;
+        private readonly Func<ICloudBlobClient> _cloudBlobClientFactory;
 
         private readonly object _refreshLock = new object();
         private bool _isRefreshing;
@@ -38,14 +38,10 @@ namespace NuGetGallery
 
         public CloudDownloadCountService(
             ITelemetryService telemetryService,
-            IFeatureFlagService featureFlagService,
-            IBlobStorageConfiguration primaryBlobStorageConfiguration,
-            IBlobStorageConfiguration alternateBlobStorageConfiguration)
+            Func<ICloudBlobClient> cloudBlobClientFactory)
         {
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
-            _primaryStorageConfiguration = primaryBlobStorageConfiguration ?? throw new ArgumentNullException(nameof(primaryBlobStorageConfiguration));
-            _alternateBlobStorageConfiguration = alternateBlobStorageConfiguration;
+            _cloudBlobClientFactory = cloudBlobClientFactory ?? throw new ArgumentNullException(nameof(cloudBlobClientFactory));
         }
 
         public bool TryGetDownloadCountForPackageRegistration(string id, out int downloadCount)
@@ -91,7 +87,7 @@ namespace NuGetGallery
             return false;
         }
 
-        public void Refresh()
+        public async Task RefreshAsync()
         {
             bool shouldRefresh = false;
             lock (_refreshLock)
@@ -108,7 +104,7 @@ namespace NuGetGallery
                 try
                 {
                     var stopwatch = Stopwatch.StartNew();
-                    RefreshCore();
+                    await RefreshCoreAsync();
                     stopwatch.Stop();
                     _telemetryService.TrackDownloadJsonRefreshDuration(stopwatch.ElapsedMilliseconds);
 
@@ -152,24 +148,19 @@ namespace NuGetGallery
         /// This method is added for unit testing purposes. It can return a null stream if the blob does not exist
         /// and assumes the caller will properly dispose of the returned stream.
         /// </summary>
-        protected virtual Stream GetBlobStream()
+        protected virtual async Task<Stream> GetBlobStreamAsync()
         {
             var blob = GetBlobReference();
-            if (blob == null)
-            {
-                return null;
-            }
-
-            return blob.OpenRead();
+            return await blob.OpenReadIfExistsAsync();
         }
 
-        private void RefreshCore()
+        private async Task RefreshCoreAsync()
         {
             try
             {
                 // The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.
                 // Sample.json : [["AutofacContrib.NSubstitute",["2.4.3.700",406],["2.5.0",137]],["Assman.Core",["2.0.7",138]]....
-                using (var blobStream = GetBlobStream())
+                using (var blobStream = await GetBlobStreamAsync())
                 {
                     if (blobStream == null)
                     {
@@ -180,15 +171,15 @@ namespace NuGetGallery
                     {
                         try
                         {
-                            jsonReader.Read();
+                            await jsonReader.ReadAsync();
 
-                            while (jsonReader.Read())
+                            while (await jsonReader.ReadAsync())
                             {
                                 try
                                 {
                                     if (jsonReader.TokenType == JsonToken.StartArray)
                                     {
-                                        JToken record = JToken.ReadFrom(jsonReader);
+                                        JToken record = await JToken.ReadFromAsync(jsonReader);
                                         string id = record[0].ToString().ToLowerInvariant();
 
                                         // The second entry in each record should be an array of versions, if not move on to next entry.
@@ -252,32 +243,13 @@ namespace NuGetGallery
             }
         }
 
-        private CloudBlockBlob GetBlobReference()
+        private ISimpleCloudBlob GetBlobReference()
         {
-            string connectionString = _primaryStorageConfiguration.ConnectionString;
-            bool readAccessGeoRedundant = _primaryStorageConfiguration.ReadAccessGeoRedundant;
-
-            if (_alternateBlobStorageConfiguration != null && _featureFlagService.IsAlternateStatisticsSourceEnabled())
-            {
-                connectionString = _alternateBlobStorageConfiguration.ConnectionString;
-                readAccessGeoRedundant = _alternateBlobStorageConfiguration.ReadAccessGeoRedundant;
-            }
-
-            var storageAccount = CloudStorageAccount.Parse(connectionString);
-            var blobClient = storageAccount.CreateCloudBlobClient();
-
-            if (readAccessGeoRedundant)
-            {
-                blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
-            }
+            var blobClient = _cloudBlobClientFactory();
 
             var container = blobClient.GetContainerReference(StatsContainerName);
-            var blob = container.GetBlockBlobReference(DownloadCountBlobName);
+            var blob = container.GetBlobReference(DownloadCountBlobName);
 
-            if (!blob.Exists())
-            {
-                return null;
-            }
             return blob;
         }
     }

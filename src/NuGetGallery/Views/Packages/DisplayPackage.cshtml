@@ -112,15 +112,13 @@
                 InstallPackageCommands = new [] { string.Format("paket add {0} --version {1}", Model.Id, Model.Version) },
             },
 
-            new PackageManagerViewModel("F# Interactive")
+            new PackageManagerViewModel("Script & Interactive")
             {
-                Id = "fsharp-interactive",
+                Id = "script-interactive",
                 CommandPrefix = "> ",
                 InstallPackageCommands = new [] { string.Format("#r \"nuget: {0}, {1}\"", Model.Id, Model.Version) },
                 AlertLevel = AlertLevel.Info,
-                AlertMessage = string.Format(
-                    "For F# scripts that support <a href=\"{0}\">#r syntax</a>, copy this into the source code to reference the package.",
-                    "https://docs.microsoft.com/en-us/dotnet/fsharp/tools/fsharp-interactive/#referencing-packages-in-f-interactive")
+                AlertMessage = "#r directive can be used in F# Interactive, C# scripting and .NET Interactive. Copy this into the interactive tool or source code of the script to reference the package."
             },
 
             new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/support/nuget")
@@ -728,20 +726,20 @@
                 <table aria-label="Version History of @Model.Id" class="table borderless">
                     <thead>
                         <tr>
-                            <th>Version</th>
-                            <th>Downloads</th>
-                            <th>Last updated</th>
+                            <th scope="col">Version</th>
+                            <th scope="col">Downloads</th>
+                            <th scope="col">Last updated</th>
                             @if (Model.CanDisplayPrivateMetadata)
                             {
-                                <th>Status</th>
+                                <th scope="col">Status</th>
                             }
                             @if (Model.IsCertificatesUIEnabled)
                             {
-                                <th aria-hidden="true" abbr="Signature Information"></th>
+                                <th scope="col" aria-hidden="true" abbr="Signature Information"></th>
                             }
                             @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
                             {
-                                <th aria-hidden="true" abbr="Package Warnings"></th>
+                                <th scope="col" aria-hidden="true" abbr="Package Warnings"></th>
                             }
                         </tr>
                     </thead>
@@ -761,15 +759,15 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                    <td>
+                                    <td tabindex="0">
                                         <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
                                             @packageVersion.Version.Abbreviate(30)
                                         </a>
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         @packageVersion.DownloadCount.ToNuGetNumberString()
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                         @if (packageVersion.PushedBy != null)
                                         {
@@ -782,7 +780,7 @@
                                     {
                                         var packageStatusSummary = packageVersion.PackageStatusSummary;
 
-                                        <td>
+                                        <td tabindex="0">
                                             @if (packageStatusSummary == PackageStatusSummary.Listed ||
                                                  packageStatusSummary == PackageStatusSummary.Unlisted)
                                             {
@@ -803,7 +801,7 @@
                                         }
                                         else
                                         {
-                                            <td class="package-icon-cell">
+                                            <td tabindex="0" class="package-icon-cell">
                                                     <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
                                             </td>
                                         }
@@ -815,7 +813,7 @@
                                     }
                                     else
                                     {
-                                        <td class="package-icon-cell">
+                                        <td tabindex="0" class="package-icon-cell">
                                             <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
                                         </td>
                                     }
@@ -826,16 +824,16 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="deleted">
-                                    <td class="version">
+                                    <td tabindex="0" class="version">
                                         @packageVersion.Version
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         @packageVersion.DownloadCount
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
-                                    <td>
+                                    <td tabindex="0">
                                         Deleted
                                     </td>
                                     <td colspan="2"></td>

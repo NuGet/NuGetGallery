@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using GalleryTools.Utils;
+using Microsoft.IdentityModel.JsonWebTokens;
 using NuGet.Services.Sql;
 
 namespace GalleryTools.Commands
@@ -116,16 +117,16 @@ namespace GalleryTools.Commands
 
                 var repository = new EntityRepository<Package>(context);
 
-                var packages = repository.GetAll()
-                    .Include(p => p.PackageRegistration);
+                var packages = repository.GetAll().Include(p => p.PackageRegistration);
                 if (QueryIncludes != null)
                 {
                     packages = packages.Include(QueryIncludes);
                 }
-                
+
                 packages = packages
                     .Where(p => p.Created < lastCreateTime && p.Created > startTime)
-                    .OrderBy(p => p.PackageRegistration.Id);
+                    .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                    .OrderBy(p => p.Created);
                 if (LimitTo > 0)
                 {
                     packages = packages.Take(LimitTo);
@@ -232,6 +233,10 @@ namespace GalleryTools.Commands
                 var repository = new EntityRepository<Package>(context);
 
                 var packages = repository.GetAll().Include(p => p.PackageRegistration);
+                if (QueryIncludes != null)
+                {
+                    packages = packages.Include(QueryIncludes);
+                }
 
                 using (var csv = CreateCsvReader(fileName))
                 {
@@ -307,22 +312,14 @@ namespace GalleryTools.Commands
         {
             var httpZipProvider = new HttpZipProvider(httpClient);
 
-            try
-            {
-                var zipDirectoryReader = await httpZipProvider.GetReaderAsync(new Uri(nupkgUri));
-                var zipDirectory = await zipDirectoryReader.ReadAsync();
-                var files = zipDirectory
-                    .Entries
-                    .Select(x => x.GetName())
-                    .ToList();
+            var zipDirectoryReader = await httpZipProvider.GetReaderAsync(new Uri(nupkgUri));
+            var zipDirectory = await zipDirectoryReader.ReadAsync();
+            var files = zipDirectory
+                .Entries
+                .Select(x => x.GetName())
+                .ToList();
 
-                return ReadMetadata(files, nuspecReader);
-            }
-            catch (Exception e)
-            {
-                await logger.LogPackageError(id, version, e);
-                return default;
-            }
+            return ReadMetadata(files, nuspecReader);
         }
 
         private static XDocument LoadDocument(Stream stream)
@@ -362,7 +359,9 @@ namespace GalleryTools.Commands
 
             var reader = new StreamReader(fileName);
 
-            return new CsvReader(reader, configuration);
+            var csvReader = new CsvReader(reader, configuration);
+            csvReader.Configuration.MissingFieldFound = null;
+            return csvReader;
         }
 
         private Configuration CreateCsvConfiguration()

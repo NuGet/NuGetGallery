@@ -51,6 +51,8 @@
     <Compile Include="Collector\IAdvisoryQueryBuilder.cs" />
     <Compile Include="Collector\IAdvisoryQueryService.cs" />
     <Compile Include="Configuration\GitHubVulnerabilities2DbConfiguration.cs" />
+    <Compile Include="Fakes\FakeContentService.cs" />
+    <Compile Include="Fakes\FakeFeatureFlagService.cs" />
     <Compile Include="Gallery\ThrowingAuditingService.cs" />
     <Compile Include="Gallery\ThrowingIndexingService.cs" />
     <Compile Include="Gallery\ThrowingSecurityPolicyService.cs" />

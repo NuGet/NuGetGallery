@@ -1,23 +1,23 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
     public class CloudReportService : IReportService
     {
         private const string _statsContainerName = "nuget-cdnstats";
-        private readonly string _connectionString;
-        private readonly bool _readAccessGeoRedundant;
+        private readonly Func<ICloudBlobClient> _cloudBlobClientFactory;
 
-        public CloudReportService(string connectionString, bool readAccessGeoRedundant)
+        public CloudReportService(Func<ICloudBlobClient> cloudBlobClientFactory)
         {
-            _connectionString = connectionString;
-            _readAccessGeoRedundant = readAccessGeoRedundant;
+            _cloudBlobClientFactory = cloudBlobClientFactory ?? throw new ArgumentNullException(nameof(cloudBlobClientFactory));
         }
 
         public async Task<StatisticsReport> Load(string reportName)
@@ -26,29 +26,21 @@ namespace NuGetGallery
             reportName = reportName.ToLowerInvariant();
 
             var container = GetCloudBlobContainer();
-            var blob = container.GetBlockBlobReference(reportName);
+            var blob = container.GetBlobReference(reportName);
 
             // Check if the report blob is present before processing it.
-            if (!blob.Exists())
+            if (!await blob.FetchAttributesIfExistsAsync())
             {
                 throw new StatisticsReportNotFoundException();
             }
-
-            await blob.FetchAttributesAsync();
-            string content = await blob.DownloadTextAsync();
+            string content = await blob.DownloadTextIfExistsAsync();
 
             return new StatisticsReport(content, blob.Properties.LastModified?.UtcDateTime);
         }
 
-        private CloudBlobContainer GetCloudBlobContainer()
+        private ICloudBlobContainer GetCloudBlobContainer()
         {
-            var storageAccount = CloudStorageAccount.Parse(_connectionString);
-            var blobClient = storageAccount.CreateCloudBlobClient();
-
-            if (_readAccessGeoRedundant)
-            {
-                blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
-            }
+            var blobClient = _cloudBlobClientFactory();
 
             return blobClient.GetContainerReference(_statsContainerName);
         }
