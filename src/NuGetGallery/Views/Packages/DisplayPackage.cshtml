@@ -247,7 +247,7 @@
             <div class="package-title">
                 <h1>
                     @Html.BreakWord(Model.Id)
-                    <small class="text-nowrap">@Model.NormalizedVersion</small>
+                    <small class="text-nowrap">@Model.Version</small>
 
                     @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                     {
@@ -768,7 +768,7 @@
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
                                     <td tabindex="0">
-                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
+                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                             @packageVersion.Version.Abbreviate(30)
                                         </a>
                                     </td>
