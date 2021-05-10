@@ -131,6 +131,7 @@
             </div>
             <!-- /ko -->
 
+            <!-- ko if: $data.LicenseFileContentsHtml || $data.LicenseFileContents -->
             <div class="verify-package-field common-licenses">
                 <label class="verify-package-field-heading">License file</label>
                 <!-- ko if: $data.LicenseFileContentsHtml -->
@@ -140,6 +141,7 @@
                 <pre class="license-file-contents custom-license-container" data-bind="text: $data.LicenseFileContents"></pre>
                 <!-- /ko -->
             </div>
+            <!-- /ko -->
 
             <!-- ko if: !$data.LicenseExpression && !$data.LicenseFileContents && !$data.LicenseExpressionSegments -->
             <div class="verify-package-field">
