@@ -508,7 +508,7 @@
 
                         @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
                         {
-                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme'>trusted domains</a>.</text>);
+                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>);
                         }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)
