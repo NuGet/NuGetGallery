@@ -55,6 +55,13 @@
                 Id = "cake-dotnet-tool",
                 InstallPackageCommands = new [] { Model.GetCakeInstallPackageCommand() },
             },
+
+            new ThirdPartyPackageManagerViewModel("NUKE", "https://nuke.build/docs/authoring-builds/cli-tools.html")
+            {
+                Id = "nuke",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("nuke :add-package {0} --version {1}", Model.Id, Model.Version) },
+            },
         };
     }
     else if (Model.IsDotnetNewTemplatePackageType)
