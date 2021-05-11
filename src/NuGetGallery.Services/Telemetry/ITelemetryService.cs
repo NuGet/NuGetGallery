@@ -404,5 +404,11 @@ namespace NuGetGallery
             bool isAuthenticated,
             int testBucket,
             int testPercentage);
+
+        /// <summary>
+        /// Tracks the current process uptime.
+        /// </summary>
+        /// <param name="uptime">The uptime to report.</param>
+        void TrackInstanceUptime(TimeSpan uptime);
     }
 }

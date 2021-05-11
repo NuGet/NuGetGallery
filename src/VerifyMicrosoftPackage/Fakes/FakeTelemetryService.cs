@@ -83,6 +83,11 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
+        public void TrackInstanceUptime(TimeSpan uptime)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackInvalidLicenseMetadata(string licenseValue)
         {
             throw new NotImplementedException();
