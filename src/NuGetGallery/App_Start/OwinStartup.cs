@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -160,6 +161,8 @@ namespace NuGetGallery
                 StartFeatureFlags(featureFlags);
             }
 
+            StartUptimeReports(DependencyResolver.Current.GetService<ITelemetryService>());
+
             // Catch unobserved exceptions from threads before they cause IIS to crash:
             TaskScheduler.UnobservedTaskException += (sender, exArgs) =>
             {
@@ -199,6 +202,22 @@ namespace NuGetGallery
             };
 
             HasRun = true;
+        }
+
+        private static void StartUptimeReports(ITelemetryService telemetryService)
+        {
+            if (telemetryService != null)
+            {
+                HostingEnvironment.QueueBackgroundWorkItem(async token => 
+                {
+                    var startTime = Process.GetCurrentProcess().StartTime.ToUniversalTime();
+                    while (!token.IsCancellationRequested)
+                    {
+                        telemetryService.TrackInstanceUptime(DateTime.UtcNow - startTime);
+                        await Task.Delay(TimeSpan.FromHours(1), token);
+                    }
+                });
+            }
         }
 
         private static void StartFeatureFlags(IFeatureFlagCacheService featureFlags)
