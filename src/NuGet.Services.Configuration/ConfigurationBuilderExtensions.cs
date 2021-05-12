@@ -15,9 +15,18 @@ namespace NuGet.Services.Configuration
             string path,
             ISecretInjector secretInjector)
         {
+            return configurationBuilder.AddInjectedJsonFile(path, secretInjector, optional: false);
+        }
+
+        public static IConfigurationBuilder AddInjectedJsonFile(
+            this IConfigurationBuilder configurationBuilder,
+            string path,
+            ISecretInjector secretInjector,
+            bool optional)
+        {
             configurationBuilder = configurationBuilder ?? throw new ArgumentNullException(nameof(configurationBuilder));
 
-            configurationBuilder.Add(new KeyVaultJsonInjectingConfigurationSource(path, secretInjector));
+            configurationBuilder.Add(new KeyVaultJsonInjectingConfigurationSource(path, secretInjector, optional));
 
             return configurationBuilder;
         }

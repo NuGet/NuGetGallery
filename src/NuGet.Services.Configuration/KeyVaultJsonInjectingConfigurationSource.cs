@@ -18,16 +18,23 @@ namespace NuGet.Services.Configuration
     {
         private readonly string _path;
         private readonly ISecretInjector _secretInjector;
+        private readonly bool _optional;
 
         public KeyVaultJsonInjectingConfigurationSource(string path, ISecretInjector secretInjector)
+            : this(path, secretInjector, optional: false)
+        {
+        }
+
+        public KeyVaultJsonInjectingConfigurationSource(string path, ISecretInjector secretInjector, bool optional)
         {
             _path = path ?? throw new ArgumentNullException(nameof(path));
             _secretInjector = secretInjector ?? throw new ArgumentNullException(nameof(secretInjector));
+            _optional = optional;
         }
 
         public Extensions.IConfigurationProvider Build(IConfigurationBuilder builder)
         {
-            var jsonSource = new JsonConfigurationSource { FileProvider = null, Path = _path, Optional = false, ReloadOnChange = false };
+            var jsonSource = new JsonConfigurationSource { FileProvider = null, Path = _path, Optional = _optional, ReloadOnChange = false };
             jsonSource.ResolveFileProvider();
             var jsonProvider = jsonSource.Build(builder);
 
