@@ -247,7 +247,7 @@
             <div class="package-title">
                 <h1>
                     @Html.BreakWord(Model.Id)
-                    <small class="text-nowrap">@Model.FullVersion</small>
+                    <small class="text-nowrap">@Model.Version</small>
 
                     @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                     {
@@ -346,6 +346,14 @@
                 @ViewHelpers.AlertInfo(
                     @<text>
                         This is a prerelease version of @(Model.Id).
+                    </text>
+                )
+            }
+            @if (Model.NuGetVersion.HasMetadata)
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
                     </text>
                 )
             }
@@ -760,7 +768,7 @@
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
                                     <td tabindex="0">
-                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
+                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                             @packageVersion.Version.Abbreviate(30)
                                         </a>
                                     </td>
