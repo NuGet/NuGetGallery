@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using System.Linq;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -22,5 +23,12 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="withdrawn">Whether or not the vulnerability was withdrawn.</param>
         Task UpdateVulnerabilityAsync(PackageVulnerability vulnerability, bool withdrawn);
+
+        /// <summary>
+        /// Get a package's collection of vulnerable ranges.
+        /// </summary>
+        /// <param name="packageId">The package's Id</param>
+        /// <returns>The package's vulnerable ranges, connecting it to <see cref="PackageVulnerability" /> instances</returns>
+        IQueryable<VulnerablePackageVersionRange> GetVulnerableRangesById(string packageId);
     }
 }

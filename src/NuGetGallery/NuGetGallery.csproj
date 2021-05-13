@@ -314,8 +314,10 @@
     <Compile Include="Services\IImageDomainValidator.cs" />
     <Compile Include="Services\IPackageVulnerabilitiesService.cs" />
     <Compile Include="Services\IPackageMetadataValidationService.cs" />
+    <Compile Include="Services\IPackageVulnerabilitiesCacheService.cs" />
     <Compile Include="Services\MarkdownService.cs" />
     <Compile Include="Services\OwnerlessNamespaceIdConflictMessage.cs" />
+    <Compile Include="Services\PackageVulnerabilitiesCacheService.cs" />
     <Compile Include="Services\PackageVulnerabilitiesService.cs" />
     <Compile Include="Services\PackageMetadataValidationService.cs" />
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />

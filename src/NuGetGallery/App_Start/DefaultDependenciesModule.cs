@@ -460,6 +460,11 @@ namespace NuGetGallery
                 .As<IPackageVulnerabilitiesManagementService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageVulnerabilitiesCacheService>()
+                .AsSelf()
+                .As<IPackageVulnerabilitiesCacheService>()
+                .SingleInstance();
+
             services.AddHttpClient();
             services.AddScoped<IGravatarProxyService, GravatarProxyService>();
 
