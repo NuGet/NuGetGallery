@@ -16,6 +16,7 @@ namespace NuGetGallery
         : Controller
     {
         private ICookieExpirationService _cookieExpirationService;
+        private IFeatureFlagService _featureFalgService;
 
         private IOwinContext _overrideContext;
 
@@ -46,6 +47,7 @@ namespace NuGetGallery
             NuGetContext = new NuGetContext(this);
 
             _cookieExpirationService = GetService<ICookieExpirationService>();
+            _featureFalgService = GetService<IFeatureFlagService>();
         }
 
         protected internal virtual T GetService<T>()
@@ -117,6 +119,7 @@ namespace NuGetGallery
         protected override void OnActionExecuted(ActionExecutedContext filterContext)
         {
             SetCookieCompliance(filterContext);
+            SetBannerFeatureFlag();
 
             base.OnActionExecuted(filterContext);
         }
@@ -133,6 +136,18 @@ namespace NuGetGallery
             else
             {
                 ViewBag.CanWriteAnalyticsCookies = true;
+            }
+        }
+
+        private void SetBannerFeatureFlag()
+        {
+            if (_featureFalgService.IsDisplayBannerEnabled())
+            {
+                ViewBag.DisplayBanner = true;
+            }
+            else
+            {
+                ViewBag.DisplayBanner = false;
             }
         }
     }
