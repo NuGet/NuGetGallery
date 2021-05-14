@@ -74,7 +74,6 @@ namespace NuGetGallery.Controllers
                 var featureFlagsService = GetMock<IFeatureFlagService>();
                 cookieExpirationService.Setup(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
                 featureFlagsService.Setup(e => e.IsDisplayBannerEnabled()).Returns(false);
-                
 
                 var httpContext = new Mock<HttpContextBase>();
                 var items = new Dictionary<string, bool>
