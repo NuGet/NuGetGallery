@@ -42,6 +42,14 @@ namespace NuGetGallery
             _cookieExpirationService = cookieExpirationService;
         }
 
+        /// <summary>
+        /// This method is used for the unit test.
+        /// </summary>
+        public void SetFeatureFlagsService(IFeatureFlagService featureFlagService)
+        {
+            _featureFalgService = featureFlagService;
+        }
+
         protected AppController()
         {
             NuGetContext = new NuGetContext(this);
