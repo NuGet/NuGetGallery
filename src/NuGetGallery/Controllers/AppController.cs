@@ -149,7 +149,7 @@ namespace NuGetGallery
 
         private void SetBannerFeatureFlag()
         {
-            if (_featureFalgService.IsDisplayBannerEnabled())
+            if (_featureFlagService.IsDisplayBannerEnabled())
             {
                 ViewBag.DisplayBanner = true;
             }
