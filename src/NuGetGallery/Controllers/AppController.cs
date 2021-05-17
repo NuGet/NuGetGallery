@@ -16,7 +16,7 @@ namespace NuGetGallery
         : Controller
     {
         private ICookieExpirationService _cookieExpirationService;
-        private IFeatureFlagService _featureFalgService;
+        private IFeatureFlagService _featureFlagService;
 
         private IOwinContext _overrideContext;
 
@@ -47,7 +47,7 @@ namespace NuGetGallery
         /// </summary>
         public void SetFeatureFlagsService(IFeatureFlagService featureFlagService)
         {
-            _featureFalgService = featureFlagService;
+            _featureFlagService = featureFlagService;
         }
 
         protected AppController()
@@ -55,7 +55,7 @@ namespace NuGetGallery
             NuGetContext = new NuGetContext(this);
 
             _cookieExpirationService = GetService<ICookieExpirationService>();
-            _featureFalgService = GetService<IFeatureFlagService>();
+            _featureFlagService = GetService<IFeatureFlagService>();
         }
 
         protected internal virtual T GetService<T>()
