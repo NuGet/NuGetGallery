@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NuGet.Jobs.Validation.ContentScan</RootNamespace>
-    <AssemblyName>NuGet.Jobs.Validation.ContentScan</AssemblyName>
+    <AssemblyName>NuGet.Jobs.Validation.ContentScan.Core</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
