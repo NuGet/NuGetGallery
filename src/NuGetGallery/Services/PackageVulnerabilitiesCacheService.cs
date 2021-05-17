@@ -12,22 +12,24 @@ namespace NuGetGallery
 {
     public class PackageVulnerabilitiesCacheService : IPackageVulnerabilitiesCacheService
     {
-        private const int CachingLimitMinutes = 30;
+        private const int CachingLimitMinutes = 1440; // We could make this 1 day instead (same value) but this is easier for spot testing the cache
         private readonly object Locker = new object();
-        private readonly IDictionary<string,
-            (DateTime cachedAt, IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> vulnerabilitiesById)> vulnerabilitiesByIdCache
-            = new Dictionary<string, (DateTime, IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>>)>();
+        private IDictionary<string,
+            (DateTime cachedAt, Dictionary<int, IReadOnlyList<PackageVulnerability>> vulnerabilitiesById)> vulnerabilitiesByIdCache
+            = new Dictionary<string, (DateTime, Dictionary<int, IReadOnlyList<PackageVulnerability>>)>();
 
-        public IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id,
-            IPackageVulnerabilitiesManagementService packageVulnerabilitiesManagementService)
+        private readonly IPackageVulnerabilitiesManagementService _packageVulnerabilitiesManagementService;
+        public PackageVulnerabilitiesCacheService(IPackageVulnerabilitiesManagementService packageVulnerabilitiesManagementService)
+        {
+            _packageVulnerabilitiesManagementService = packageVulnerabilitiesManagementService;
+            Initialize();
+        }
+
+        public IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id)
         {
             if (string.IsNullOrEmpty(id))
             {
                 throw new ArgumentException("Must have a value.", nameof(id));
-            }
-            if (packageVulnerabilitiesManagementService == null)
-            {
-                throw new ArgumentNullException(nameof(packageVulnerabilitiesManagementService));
             }
 
             if (ShouldCachedValueBeUpdated(id))
@@ -36,26 +38,42 @@ namespace NuGetGallery
                 {
                     if (ShouldCachedValueBeUpdated(id))
                     {
-                        var packageKeyAndVulnerability = packageVulnerabilitiesManagementService
+                        var packageKeyAndVulnerability = _packageVulnerabilitiesManagementService
                             .GetVulnerableRangesById(id)
                             .Include(x => x.Vulnerability)
-                            .Where(x => x.PackageId == id)
                             .SelectMany(x => x.Packages.Select(p => new {PackageKey = p.Key, x.Vulnerability}))
                             .GroupBy(pv => pv.PackageKey, pv => pv.Vulnerability)
                             .ToDictionary(pv => pv.Key,
                                 pv => pv.ToList().AsReadOnly() as IReadOnlyList<PackageVulnerability>);
 
-                        var result = !packageKeyAndVulnerability.Any()
-                            ? null
-                            : new ReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>>(
-                                packageKeyAndVulnerability);
-
-                        vulnerabilitiesByIdCache[id] = (cachedAt: DateTime.Now, vulnerabilitiesById: result);
+                        vulnerabilitiesByIdCache[id] = (cachedAt: DateTime.Now, vulnerabilitiesById: packageKeyAndVulnerability);
                     }
                 }
             }
 
-            return vulnerabilitiesByIdCache[id].vulnerabilitiesById;
+            return vulnerabilitiesByIdCache[id].vulnerabilitiesById.Any()
+                ? new ReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>>(vulnerabilitiesByIdCache[id].vulnerabilitiesById)
+                : null;
+        }
+
+        private void Initialize()
+        {
+            // We need to build a dictionary of dictionaries. Breaking it down:
+            // - this give us a list of all vulnerable package version ranges
+            vulnerabilitiesByIdCache = _packageVulnerabilitiesManagementService.GetAllVulnerableRanges()
+                .Include(x => x.Vulnerability) 
+            // - from these we want a list in this format: (<id>, (<package key>, <vulnerability>))
+            //   which will allow us to look up the dictionary by id, and return a dictionary of version -> vulnerability
+                .SelectMany(x => x.Packages.Select(p => new
+                    {PackageId = x.PackageId ?? string.Empty, KeyVulnerability = new {PackageKey = p.Key, x.Vulnerability}}))
+                .GroupBy(ikv => ikv.PackageId, ikv => ikv.KeyVulnerability)
+            // - build the outer dictionary, keyed by <id> - each inner dictionary is paired with a time of creation (for cache invalidation)
+                .ToDictionary(ikv => ikv.Key,
+                    ikv => (cachedAt: DateTime.Now, 
+                            vulnerabilitiesById: ikv.GroupBy(kv => kv.PackageKey, kv => kv.Vulnerability)
+            // - build the inner dictionaries, all under the same <id>, each keyed by <package key>
+                            .ToDictionary(kv => kv.Key,
+                                kv => kv.ToList().AsReadOnly() as IReadOnlyList<PackageVulnerability>)));
         }
 
         private bool ShouldCachedValueBeUpdated(string id) => !vulnerabilitiesByIdCache.ContainsKey(id) ||

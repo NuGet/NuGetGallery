@@ -15,7 +15,6 @@ namespace NuGetGallery
         /// <summary>
         /// This function is used to get the packages by id dictionary from the cache
         /// </summary>
-        IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id,
-            IPackageVulnerabilitiesManagementService packageVulnerabilitiesManagementService);
+        IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id);
     }
 }

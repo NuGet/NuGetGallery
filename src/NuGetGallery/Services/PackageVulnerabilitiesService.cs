@@ -12,23 +12,17 @@ namespace NuGetGallery
 {
     public class PackageVulnerabilitiesService : IPackageVulnerabilitiesService
     {
-        private readonly IPackageVulnerabilitiesManagementService _packageVulnerabilitiesManagementService;
         private readonly IPackageVulnerabilitiesCacheService _packageVulnerabilitiesCacheService;
 
-        public PackageVulnerabilitiesService(
-            IPackageVulnerabilitiesManagementService packageVulnerabilitiesManagementService,
-            IPackageVulnerabilitiesCacheService packageVulnerabilitiesCacheService)
+        public PackageVulnerabilitiesService(IPackageVulnerabilitiesCacheService packageVulnerabilitiesCacheService)
         {
-            _packageVulnerabilitiesManagementService = packageVulnerabilitiesManagementService ??
-                                                       throw new ArgumentNullException(
-                                                           nameof(packageVulnerabilitiesManagementService));
             _packageVulnerabilitiesCacheService = packageVulnerabilitiesCacheService ??
                                                   throw new ArgumentNullException(
                                                       nameof(packageVulnerabilitiesCacheService));
         }
 
         public IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id) =>
-            _packageVulnerabilitiesCacheService.GetVulnerabilitiesById(id, _packageVulnerabilitiesManagementService);
+            _packageVulnerabilitiesCacheService.GetVulnerabilitiesById(id);
 
         public bool IsPackageVulnerable(Package package)
         {
