@@ -149,7 +149,6 @@ namespace NuGetGallery.Controllers
                 InvokeOnActionExecutedMethod(controller.ControllerContext, httpContext.Object, controller);
 
                 // Assert
-                Assert.False(controller.ViewBag.CanWriteAnalyticsCookies);
                 Assert.Equal(isDisplayBannerEnabled, controller.ViewBag.DisplayBanner);
                 cookieExpirationService.Verify(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Once);
             }
