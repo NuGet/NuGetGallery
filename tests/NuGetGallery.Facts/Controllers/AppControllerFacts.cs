@@ -107,7 +107,9 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var cookieExpirationService = GetMock<ICookieExpirationService>();
+                var featureFlagsService = GetMock<IFeatureFlagService>();
                 cookieExpirationService.Setup(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
+                featureFlagsService.Setup(e => e.IsDisplayBannerEnabled()).Returns(false);
 
                 var httpContext = new Mock<HttpContextBase>();
                 var items = new Dictionary<string, bool>();
@@ -115,6 +117,7 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<TestableAppController>();
                 controller.SetCookieExpirationService(cookieExpirationService.Object);
+                controller.SetFeatureFlagsService(featureFlagsService.Object);
 
                 // Act
                 InvokeOnActionExecutedMethod(controller.ControllerContext, httpContext.Object, controller);
