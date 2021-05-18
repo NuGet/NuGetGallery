@@ -16,6 +16,7 @@ namespace NuGetGallery
         : Controller
     {
         private ICookieExpirationService _cookieExpirationService;
+        private IFeatureFlagService _featureFlagService;
 
         private IOwinContext _overrideContext;
 
@@ -41,11 +42,20 @@ namespace NuGetGallery
             _cookieExpirationService = cookieExpirationService;
         }
 
+        /// <summary>
+        /// This method is used for the unit test.
+        /// </summary>
+        public void SetFeatureFlagsService(IFeatureFlagService featureFlagService)
+        {
+            _featureFlagService = featureFlagService;
+        }
+
         protected AppController()
         {
             NuGetContext = new NuGetContext(this);
 
             _cookieExpirationService = GetService<ICookieExpirationService>();
+            _featureFlagService = GetService<IFeatureFlagService>();
         }
 
         protected internal virtual T GetService<T>()
@@ -117,6 +127,7 @@ namespace NuGetGallery
         protected override void OnActionExecuted(ActionExecutedContext filterContext)
         {
             SetCookieCompliance(filterContext);
+            SetBannerFeatureFlag();
 
             base.OnActionExecuted(filterContext);
         }
@@ -133,6 +144,18 @@ namespace NuGetGallery
             else
             {
                 ViewBag.CanWriteAnalyticsCookies = true;
+            }
+        }
+
+        private void SetBannerFeatureFlag()
+        {
+            if (_featureFlagService.IsDisplayBannerEnabled())
+            {
+                ViewBag.DisplayBanner = true;
+            }
+            else
+            {
+                ViewBag.DisplayBanner = false;
             }
         }
     }

@@ -641,6 +641,12 @@ img.reserved-indicator-icon {
   overflow: auto;
   max-height: 450px;
 }
+#readme-less img {
+  max-width: 100%;
+}
+#readme-more img {
+  max-width: 100%;
+}
 .user-package-list .manage-package-listing .package-icon {
   max-height: 2em;
   min-width: 20px;

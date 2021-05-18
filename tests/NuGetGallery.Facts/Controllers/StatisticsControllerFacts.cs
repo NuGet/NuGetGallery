@@ -725,6 +725,7 @@ namespace NuGetGallery
 
                 var controller = CreateController(aggregateStatsService, request);
                 controller.SetCookieExpirationService(Mock.Of<ICookieExpirationService>());
+                controller.SetFeatureFlagsService(Mock.Of<IFeatureFlagService>());
 
                 // Act
 
