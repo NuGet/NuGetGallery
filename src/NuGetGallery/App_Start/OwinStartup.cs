@@ -214,7 +214,7 @@ namespace NuGetGallery
                     while (!token.IsCancellationRequested)
                     {
                         telemetryService.TrackInstanceUptime(DateTime.UtcNow - startTime);
-                        await Task.Delay(TimeSpan.FromHours(1), token);
+                        await Task.Delay(TimeSpan.FromMinutes(1), token);
                     }
                 });
             }
