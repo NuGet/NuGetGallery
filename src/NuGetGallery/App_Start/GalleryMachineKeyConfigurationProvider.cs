@@ -4,6 +4,7 @@
 using System;
 using System.Configuration;
 using System.Diagnostics;
+using System.Threading;
 using System.Xml;
 using NuGetGallery.Configuration;
 
@@ -11,7 +12,30 @@ namespace NuGetGallery
 {
     public class GalleryMachineKeyConfigurationProvider : ProtectedConfigurationProvider
     {
-        public static IGalleryConfigurationService Configuration { get; set; }
+        /// <summary>
+        /// An event that when signaled indicates that the service configuration set up
+        /// has been done and <see cref="Configuration"/> contains valid value.
+        /// 
+        /// It is assumed that the <see cref="Configuration" /> property is set early in 
+        /// the service startup process.
+        /// 
+        /// All <see cref="Decrypt(XmlNode)"/> calls will block until the signal is set.
+        /// </summary>
+        private static ManualResetEventSlim _configurationSet = new ManualResetEventSlim(false);
+
+        private static IAppConfiguration _configuration = null;
+        public static IAppConfiguration Configuration
+        {
+            get 
+            {
+                return _configuration;
+            }
+            set 
+            {
+                _configuration = value;
+                _configurationSet.Set();
+            }
+        }
 
         public override XmlNode Decrypt(XmlNode encryptedNode)
         {
@@ -24,14 +48,8 @@ namespace NuGetGallery
             // Get the configuration used for fetching the machine key settings. These will be cached for the lifetime
             // of the process. This is acceptable because this function's outupt is also cached for the duration of the
             // process by the .NET Framework configuration system.
+            _configurationSet.Wait();
             var config = Configuration;
-            if (Configuration == null)
-            {
-                Trace.TraceWarning($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Initializing dedicated configuration service.");
-                config = ConfigurationService.Initialize();
-                Trace.TraceWarning($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Initialized dedicated configuration service.");
-                Configuration = config;
-            }
 
             // The machine keys are used for encrypting/decrypting cookies used by ASP.NET, these are usually set by IIS in 'Auto' mode. 
             // During a deployment to Azure cloud service the same machine key values are set on all the instances of a given cloud service,
@@ -39,17 +57,17 @@ namespace NuGetGallery
             // these session keys are different. Thereby causing the loss of session upon a slot swap. Manually setting these values on role start ensures same
             // keys are used by all the instances across all the slots of a Azure cloud service. See more analysis here: https://github.com/NuGet/Engineering/issues/1329
             Trace.TraceInformation($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Checking current gallery configuration.");
-            if (config.Current.EnableMachineKeyConfiguration
-                && !string.IsNullOrWhiteSpace(config.Current.MachineKeyDecryption)
-                && !string.IsNullOrWhiteSpace(config.Current.MachineKeyDecryptionKey)
-                && !string.IsNullOrWhiteSpace(config.Current.MachineKeyValidationAlgorithm)
-                && !string.IsNullOrWhiteSpace(config.Current.MachineKeyValidationKey))
+            if (config.EnableMachineKeyConfiguration
+                && !string.IsNullOrWhiteSpace(config.MachineKeyDecryption)
+                && !string.IsNullOrWhiteSpace(config.MachineKeyDecryptionKey)
+                && !string.IsNullOrWhiteSpace(config.MachineKeyValidationAlgorithm)
+                && !string.IsNullOrWhiteSpace(config.MachineKeyValidationKey))
             {
                 Trace.TraceInformation($"[{nameof(GalleryMachineKeyConfigurationProvider)}] Using machine key settings from gallery configuration.");
-                xmlDoc.DocumentElement.SetAttribute("decryptionKey", config.Current.MachineKeyDecryptionKey);
-                xmlDoc.DocumentElement.SetAttribute("decryption", config.Current.MachineKeyDecryption);
-                xmlDoc.DocumentElement.SetAttribute("validationKey", config.Current.MachineKeyValidationKey);
-                xmlDoc.DocumentElement.SetAttribute("validation", config.Current.MachineKeyValidationAlgorithm);
+                xmlDoc.DocumentElement.SetAttribute("decryptionKey", config.MachineKeyDecryptionKey);
+                xmlDoc.DocumentElement.SetAttribute("decryption", config.MachineKeyDecryption);
+                xmlDoc.DocumentElement.SetAttribute("validationKey", config.MachineKeyValidationKey);
+                xmlDoc.DocumentElement.SetAttribute("validation", config.MachineKeyValidationAlgorithm);
             }
             else
             {

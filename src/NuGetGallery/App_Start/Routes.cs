@@ -876,6 +876,12 @@ namespace NuGetGallery
                 "api/v2/query",
                 new { controller = "Api", action = "Query" });
 
+            // TODO: remove
+            routes.MapRoute(
+                "v2Benchmark",
+                "api/v2/benchmark",
+                new { controller = "Api", action = "Benchmark" });
+
             routes.MapRoute(
                 RouteName.StatisticsDownloadsApi,
                 "api/v2/stats/downloads/last6weeks",

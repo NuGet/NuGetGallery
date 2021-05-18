@@ -69,10 +69,10 @@ namespace NuGetGallery
             // request context because it will cause a deadlock.
             // 
             // Note that is is technically possible for some code before this to initialize the machine key (e.g. by
-            // calling an API that uses the  machine key configuration). If this happens, the machine key will be
-            // fetched from KeyVault seperately. This will be slightly slower (two KeyVault secret resolutions instead
-            // of one) but will not be harmful.
-            GalleryMachineKeyConfigurationProvider.Configuration = config;
+            // calling an API that uses the  machine key configuration). If this happens,
+            // GalleryMachineKeyConfigurationProvider.Decrypt calls will block until valid configuration is supplied
+            // by the code below.
+            GalleryMachineKeyConfigurationProvider.Configuration = config.Current;
             ConfigurationManager.GetSection("system.web/machineKey");
 
             // Refresh the content for the ContentObjectService to guarantee it has loaded the latest configuration on startup.
@@ -128,7 +128,7 @@ namespace NuGetGallery
             if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out localUserAuthenticator))
             {
                 // Configure cookie auth now
-                localUserAuthenticator.Startup(config, app).Wait();
+                localUserAuthenticator.Startup(config, app);
             }
 
             // Attach external sign-in cookie middleware
@@ -151,7 +151,7 @@ namespace NuGetGallery
                 .Select(p => p.Value);
             foreach (var auther in nonCookieAuthers)
             {
-                auther.Startup(config, app).Wait();
+                auther.Startup(config, app);
             }
 
             var featureFlags = DependencyResolver.Current.GetService<IFeatureFlagCacheService>();

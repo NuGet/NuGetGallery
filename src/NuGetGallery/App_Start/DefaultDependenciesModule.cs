@@ -92,24 +92,30 @@ namespace NuGetGallery
         {
             var services = new ServiceCollection();
 
-            var configuration = ConfigurationService.Initialize();
-            var secretInjector = configuration.SecretInjector;
+            var telemetryConfiguration = ConfigurationService.GetTelemetryConfiguration();
 
-            builder.RegisterInstance(secretInjector)
-                .AsSelf()
-                .As<ISecretInjector>()
-                .SingleInstance();
-
-            // Register the ILoggerFactory and configure AppInsights.
             var applicationInsightsConfiguration = ConfigureApplicationInsights(
-                configuration.Current,
+                telemetryConfiguration,
                 out ITelemetryClient telemetryClient);
+
+            var telemetryService = new TelemetryService(
+                new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
+                telemetryClient);
 
             var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
             var loggerFactory = LoggingSetup.CreateLoggerFactory(
                 loggerConfiguration,
                 telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
 
+            var configuration = ConfigurationService.Initialize(loggerFactory, telemetryService);
+            var secretInjector = configuration.SecretInjector;
+
+            builder.RegisterInstance(secretInjector)
+                .AsSelf()
+                .As<ISyncSecretInjector>()
+                .SingleInstance();
+
+            // Register the ILoggerFactory and configure AppInsights.
             builder.RegisterInstance(applicationInsightsConfiguration.TelemetryConfiguration)
                 .AsSelf()
                 .SingleInstance();
@@ -137,19 +143,18 @@ namespace NuGetGallery
 
             builder.Register(c => configuration.Current)
                 .AsSelf()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces()
+                .InstancePerLifetimeScope();
 
             // Force the read of this configuration, so it will be initialized on startup
             builder.Register(c => configuration.Features)
-               .AsSelf()
-               .As<FeatureConfiguration>();
+                .AsSelf()
+                .As<FeatureConfiguration>()
+                .InstancePerLifetimeScope();
 
             builder.Register(c => configuration.PackageDelete)
-                .As<IPackageDeleteConfiguration>();
-
-            var telemetryService = new TelemetryService(
-                new TraceDiagnosticsSource(nameof(TelemetryService), telemetryClient),
-                telemetryClient);
+                .As<IPackageDeleteConfiguration>()
+                .InstancePerLifetimeScope();
 
             builder.RegisterInstance(telemetryService)
                 .AsSelf()
@@ -517,7 +522,7 @@ namespace NuGetGallery
 
         // Internal for testing purposes
         internal static ApplicationInsightsConfiguration ConfigureApplicationInsights(
-            IAppConfiguration configuration,
+            ITelemetryConfiguration configuration,
             out ITelemetryClient telemetryClient)
         {
             var instrumentationKey = configuration.AppInsightsInstrumentationKey;
@@ -936,10 +941,10 @@ namespace NuGetGallery
             ILoggerFactory loggerFactory,
             string name,
             string connectionString,
-            ISecretInjector secretInjector)
+            ISyncSecretInjector secretInjector)
         {
             var logger = loggerFactory.CreateLogger($"AzureSqlConnectionFactory-{name}");
-            return new AzureSqlConnectionFactory(connectionString, secretInjector, logger);
+            return new AzureSqlConnectionFactory(connectionString, new AsyncSecretInjectorAdaptor(secretInjector), logger);
         }
 
         private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
@@ -951,7 +956,7 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ISecretInjector secretInjector)
+            ISyncSecretInjector secretInjector)
         {
             var galleryDbReadOnlyReplicaConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,
@@ -972,7 +977,7 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ISecretInjector secretInjector)
+            ISyncSecretInjector secretInjector)
         {
             var validationDbConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,
@@ -1001,7 +1006,7 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ISecretInjector secretInjector)
+            ISyncSecretInjector secretInjector)
         {
             builder
                 .RegisterType<NuGet.Services.Validation.ServiceBusMessageSerializer>()
@@ -1402,14 +1407,15 @@ namespace NuGetGallery
             /// connection string. Each group is given a binding key which refers to the appropriate instance of the
             /// <see cref="IFileStorageService"/>.
             var completedBindingKeys = new HashSet<string>();
-            foreach (var dependent in StorageDependent.GetAll(configuration.Current))
+            var dependents = StorageDependent.GetAll(configuration.Current).ToList();
+            foreach (var dependent in dependents)
             {
                 if (completedBindingKeys.Add(dependent.BindingKey))
                 {
-                    builder.RegisterInstance(new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                       .AsSelf()
-                       .As<ICloudBlobClient>()
-                       .SingleInstance()
+                    builder.Register(c => new CloudBlobClientWrapper(
+                            dependent.AzureStorageConnectionStringFactory(c.Resolve<IAppConfiguration>()),
+                            configuration.Current.AzureStorageReadAccessGeoRedundant))
+                       .InstancePerLifetimeScope()
                        .Keyed<ICloudBlobClient>(dependent.BindingKey);
 
                     // Do not register the service as ICloudStorageStatusDependency because
@@ -1418,17 +1424,17 @@ namespace NuGetGallery
                         .WithParameter(new ResolvedParameter(
                            (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
-                        .AsSelf()
-                        .As<IFileStorageService>()
-                        .As<ICoreFileStorageService>()
-                        .SingleInstance()
+                        .InstancePerLifetimeScope()
                         .Keyed<IFileStorageService>(dependent.BindingKey);
                 }
 
                 var registration = builder.RegisterType(dependent.ImplementationType)
                     .WithParameter(new ResolvedParameter(
-                       (pi, ctx) => pi.ParameterType.IsAssignableFrom(typeof(IFileStorageService)),
-                       (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
+                        (pi, ctx) => pi.ParameterType.IsAssignableFrom(typeof(IFileStorageService)),
+                        (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
+                    .WithParameter(new ResolvedParameter(
+                        (pi, ctx) => pi.ParameterType == typeof(Func<IFileStorageService>),
+                        (pi, ctx) => ctx.ResolveKeyed<Func<IFileStorageService>>(dependent.BindingKey)))
                     .AsSelf()
                     .As(dependent.InterfaceType);
 

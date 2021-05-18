@@ -120,6 +120,7 @@
     <Compile Include="Configuration\IQueryHintConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
     <Compile Include="Configuration\ISymbolsConfiguration.cs" />
+    <Compile Include="Configuration\ITelemetryConfiguration.cs" />
     <Compile Include="Configuration\ITrustedImageDomains.cs" />
     <Compile Include="Configuration\ITyposquattingConfiguration.cs" />
     <Compile Include="Configuration\LoginDiscontinuationConfiguration.cs" />

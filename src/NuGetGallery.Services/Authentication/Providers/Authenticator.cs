@@ -32,9 +32,9 @@ namespace NuGetGallery.Authentication.Providers
             BaseConfig = CreateConfigObject();
         }
 
-        public async Task Startup(IGalleryConfigurationService config, IAppBuilder app)
+        public void Startup(IGalleryConfigurationService config, IAppBuilder app)
         {
-            await Configure(config);
+            Configure(config);
 
             if (BaseConfig.Enabled)
             {
@@ -45,9 +45,15 @@ namespace NuGetGallery.Authentication.Providers
         protected virtual void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app) { }
 
         // Configuration Logic
-        protected virtual async Task Configure(IGalleryConfigurationService config)
+        /// <remarks>
+        /// The prefix generation logic is duplicated in
+        /// <see cref="ConfigurationService.GetAuthenticatorSecretNames(string)"/>
+        /// </remarks>
+        protected virtual void Configure(IGalleryConfigurationService config)
         {
-            BaseConfig = await config.ResolveConfigObject(BaseConfig, AuthPrefix + Name + ".");
+            // The same prefix logic is used in ConfigurationService to build a list of secrets to refresh.
+            // Make sure it is updated it if you change prefix here
+            BaseConfig = config.ResolveConfigObject(BaseConfig, AuthPrefix + Name + ".");
         }
 
         public static string GetName(Type authenticator)

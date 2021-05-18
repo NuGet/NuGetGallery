@@ -99,7 +99,7 @@ namespace NuGetGallery
             var dependents = StorageDependent.GetAll(config);
 
             // Assert
-            var typeToConnectionString = dependents.ToDictionary(x => x.ImplementationType, x => x.AzureStorageConnectionString);
+            var typeToConnectionString = dependents.ToDictionary(x => x.ImplementationType, x => x.AzureStorageConnectionStringFactory(config));
             Assert.Equal(typeToConnectionString[typeof(CertificateService)], config.AzureStorage_UserCertificates_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(ContentService)], config.AzureStorage_Content_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(PackageFileService)], config.AzureStorage_Packages_ConnectionString);

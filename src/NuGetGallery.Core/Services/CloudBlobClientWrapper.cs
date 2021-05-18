@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -16,20 +19,27 @@ namespace NuGetGallery
         private readonly bool _readAccessGeoRedundant;
         private CloudBlobClient _blobClient;
 
+        private DateTime _createdAt;
+
         public CloudBlobClientWrapper(string storageConnectionString, bool readAccessGeoRedundant)
         {
             _storageConnectionString = storageConnectionString;
             _readAccessGeoRedundant = readAccessGeoRedundant;
+            _createdAt = DateTime.UtcNow;
         }
 
         public CloudBlobClientWrapper(string storageConnectionString, BlobRequestOptions defaultRequestOptions)
         {
             _storageConnectionString = storageConnectionString;
             _defaultRequestOptions = defaultRequestOptions;
+            _createdAt = DateTime.UtcNow;
         }
 
         public ISimpleCloudBlob GetBlobFromUri(Uri uri)
-        {
+         {
+            // TODO: Remove
+            Trace.TraceInformation($"CloudBlobClientWrapper age: {DateTime.UtcNow - _createdAt} {GetHash(_storageConnectionString)}");
+
             // For Azure blobs, the query string is assumed to be the SAS token.
             ISimpleCloudBlob blob;
             if (!string.IsNullOrEmpty(uri.Query))
@@ -51,6 +61,9 @@ namespace NuGetGallery
 
         public ICloudBlobContainer GetContainerReference(string containerAddress)
         {
+            // TODO: Remove
+            Trace.TraceInformation($"CloudBlobClientWrapper age: {DateTime.UtcNow - _createdAt} {GetHash(_storageConnectionString)}");
+
             if (_blobClient == null)
             {
                 _blobClient = CloudStorageAccount.Parse(_storageConnectionString).CreateCloudBlobClient();
@@ -66,6 +79,15 @@ namespace NuGetGallery
             }
 
             return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
+        }
+
+        private static string GetHash(string str)
+        {
+            using (var hasher = SHA256.Create())
+            {
+                var hash = hasher.ComputeHash(Encoding.UTF8.GetBytes(str));
+                return BitConverter.ToString(hash).Replace("-", "");
+            }
         }
     }
 }

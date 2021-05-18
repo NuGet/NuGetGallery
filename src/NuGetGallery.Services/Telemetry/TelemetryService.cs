@@ -11,13 +11,14 @@ using Microsoft.Owin.Security.MicrosoftAccount;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
+using NuGet.Services.KeyVault;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
-    public class TelemetryService : ITelemetryService, IFeatureFlagTelemetryService
+    public class TelemetryService : ITelemetryService, IFeatureFlagTelemetryService, ICachingBackgroundRefreshingSecretReaderTelemetryService
     {
         public class Events
         {
@@ -91,6 +92,12 @@ namespace NuGetGallery
             public const string ABTestEvaluated = "ABTestEvaluated";
             public const string PackagePushDisconnect = "PackagePushDisconnect";
             public const string SymbolPackagePushDisconnect = "SymbolPackagePushDisconnect";
+            public const string ExpiredSecretRequested = "ExpiredSecretRequested";
+            public const string UnknownSecretRequested = "UnknownSecretRequested";
+            public const string SecretRefreshFailure = "SecretRefreshFailure";
+            public const string SecretRefreshIteration = "SecretRefreshIteration";
+            public const string BackgroundRefreshTaskLeakedException = "BackgroundRefreshTaskLeakedException";
+            public const string SecretRefreshed = "SecretRefreshed";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -226,6 +233,9 @@ namespace NuGetGallery
         public const string IsActive = "IsActive";
         public const string TestBucket = "TestBucket";
         public const string TestPercentage = "TestPercentage";
+
+        // secret reader related properties
+        public const string SecretName = "SecretName";
 
         public TelemetryService(IDiagnosticsSource diagnosticsSource, ITelemetryClient telemetryClient)
         {
@@ -1101,6 +1111,36 @@ namespace NuGetGallery
         public void TrackSymbolPackagePushDisconnectEvent()
         {
             TrackMetric(Events.SymbolPackagePushDisconnect, 1, p => { });
+        }
+
+        public void TrackExpiredSecretRequested(string secretName)
+        {
+            TrackMetric(Events.ExpiredSecretRequested, 1, properties => properties.Add(SecretName, secretName));
+        }
+
+        public void TrackUnknownSecretRequested(string secretName)
+        {
+            TrackMetric(Events.UnknownSecretRequested, 1, properties => properties.Add(SecretName, secretName));
+        }
+
+        public void TrackSecretRefreshFailure(string secretName)
+        {
+            TrackMetric(Events.SecretRefreshFailure, 1, properties => properties.Add(SecretName, secretName));
+        }
+
+        public void TrackSecretRefreshIteration()
+        {
+            TrackMetric(Events.SecretRefreshIteration, 1, _ => { });
+        }
+
+        public void TrackBackgroundRefreshTaskLeakedException()
+        {
+            TrackMetric(Events.BackgroundRefreshTaskLeakedException, 1, _ => { });
+        }
+
+        public void TrackSecretRefreshed(string secretName)
+        {
+            TrackMetric(Events.SecretRefreshed, 1, properties => properties.Add(SecretName, secretName));
         }
 
         /// <summary>
