@@ -150,7 +150,6 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 Assert.Equal(isDisplayBannerEnabled, controller.ViewBag.DisplayBanner);
-                cookieExpirationService.Verify(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Once);
             }
 
             private void InvokeOnActionExecutedMethod(ControllerContext controllerContext, HttpContextBase httpContext, AppController controller)
