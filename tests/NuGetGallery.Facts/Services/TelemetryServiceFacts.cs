@@ -343,6 +343,10 @@ namespace NuGetGallery
                     yield return new object[] { "SymbolPackagePushDisconnect",
                         (TrackAction)(s => s.TrackSymbolPackagePushDisconnectEvent())
                     };
+
+                    yield return new object[] { "VulnerabilitiesCacheRefreshDuration",
+                        (TrackAction)(s => s.TrackVulnerabilitiesCacheRefreshDuration(0))
+                    };
                 }
             }
 

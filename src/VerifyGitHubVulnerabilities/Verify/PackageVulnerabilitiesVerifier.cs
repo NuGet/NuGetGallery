@@ -71,7 +71,7 @@ namespace VerifyGitHubVulnerabilities.Verify
             return Task.CompletedTask;
         }
 
-        public IQueryable<VulnerablePackageVersionRange> GetVulnerableRangesById(string packageId) => throw new NotImplementedException();
+        public IQueryable<VulnerablePackageVersionRange> GetAllVulnerableRanges() => throw new NotImplementedException();
 
         private void VerifyVulnerabilityInDatabase(PackageVulnerability vulnerability, bool withdrawn)
         {

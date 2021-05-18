@@ -404,5 +404,11 @@ namespace NuGetGallery
             bool isAuthenticated,
             int testBucket,
             int testPercentage);
+
+        /// <summary>
+        /// Track how long it takes to populate the vulnerabilities cache
+        /// </summary>
+        /// <param name="milliseconds">Refresh duration for vulnerabilities cache</param>
+        void TrackVulnerabilitiesCacheRefreshDuration(long milliseconds);
     }
 }

@@ -265,12 +265,28 @@ namespace NuGetGallery
 
             if (configuration.StorageType == StorageType.AzureStorage)
             {
-                var cloudDownloadCountService = DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
+                var cloudDownloadCountService =
+                    DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
                 if (cloudDownloadCountService != null)
                 {
                     // Perform initial refresh + schedule new refreshes every 15 minutes
                     HostingEnvironment.QueueBackgroundWorkItem(_ => cloudDownloadCountService.RefreshAsync());
-                    jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15), cloudDownloadCountService));
+                    jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15),
+                        cloudDownloadCountService));
+                }
+            }
+
+            var packageVulnerabilitiesCacheService =
+                    DependencyResolver.Current.GetService<IPackageVulnerabilitiesCacheService>() as
+                        PackageVulnerabilitiesCacheService;
+            if (packageVulnerabilitiesCacheService != null)
+            {
+                // Perform initial refresh + schedule new refreshes every 30 minutes
+                HostingEnvironment.QueueBackgroundWorkItem(_ => packageVulnerabilitiesCacheService.RefreshCache());
+                if (configuration.StorageType == StorageType.AzureStorage)
+                {
+                    jobs.Add(new PackageVulnerabilitiesCacheRefreshJob(TimeSpan.FromMinutes(30),
+                        packageVulnerabilitiesCacheService));
                 }
             }
 

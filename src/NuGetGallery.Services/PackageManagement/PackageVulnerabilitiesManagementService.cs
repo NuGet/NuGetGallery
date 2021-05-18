@@ -73,9 +73,6 @@ namespace NuGetGallery
             }
         }
 
-        public IQueryable<VulnerablePackageVersionRange> GetVulnerableRangesById(string packageId) =>
-            _entitiesContext.VulnerableRanges.Where(x => x.PackageId == packageId);
-
         public IQueryable<VulnerablePackageVersionRange> GetAllVulnerableRanges() =>
             _entitiesContext.Set<VulnerablePackageVersionRange>();
 

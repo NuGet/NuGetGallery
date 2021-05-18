@@ -25,17 +25,9 @@ namespace NuGetGallery
         Task UpdateVulnerabilityAsync(PackageVulnerability vulnerability, bool withdrawn);
 
         /// <summary>
-        /// Get a package's collection of vulnerable ranges.
-        /// </summary>
-        /// <param name="packageId">The package's Id</param>
-        /// <returns>The package's vulnerable ranges, connecting it to <see cref="PackageVulnerability" /> instances</returns>
-        IQueryable<VulnerablePackageVersionRange> GetVulnerableRangesById(string packageId);
-
-        /// <summary>
         /// Get the full set of vulnerable package entities
         /// </summary>
         /// <returns>Vulnerable package version ranges</returns>
         IQueryable<VulnerablePackageVersionRange> GetAllVulnerableRanges();
-
     }
 }

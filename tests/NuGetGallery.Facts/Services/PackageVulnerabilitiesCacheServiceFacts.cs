@@ -13,23 +13,23 @@ namespace NuGetGallery.Services
     public class PackageVulnerabilitiesCacheServiceFacts : TestContainer
     {
         [Fact]
-        public void InitializesVulnerabilitiesCache()
+        public void RefreshesVulnerabilitiesCache()
         {
             // Arrange
             var vulnerableVersionRanges = GetVersionRanges();
             var pvmService = new Mock<IPackageVulnerabilitiesManagementService>();
             pvmService.Setup(stub => stub.GetAllVulnerableRanges()).Returns(vulnerableVersionRanges);
-            pvmService.Setup(stub => stub.GetVulnerableRangesById(It.IsAny<string>())).Verifiable();
-            var cacheService = new PackageVulnerabilitiesCacheService(pvmService.Object);
+            var telemetryService = new Mock<ITelemetryService>();
+            telemetryService.Setup(stub => stub.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<long>())).Verifiable();
+            var cacheService = new PackageVulnerabilitiesCacheService(pvmService.Object, telemetryService.Object);
+            cacheService.RefreshCache();
 
             // Act
             var vulnerabilitiesFoo = cacheService.GetVulnerabilitiesById("Foo");
             var vulnerabilitiesBar = cacheService.GetVulnerabilitiesById("Bar");
 
             // Assert
-            // This method should never be called (it's only called when cache can't provide, and these values are loaded into the cache on initialize)
-            pvmService.Verify(s => s.GetVulnerableRangesById(It.IsAny<string>()), Times.Never);
-            // Test cache contents
+            telemetryService.Verify(stub => stub.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<long>()), Times.Once);
             Assert.Equal(4, vulnerabilitiesFoo.Count);
             Assert.Equal(1, vulnerabilitiesFoo[0].Count);
             Assert.Equal(1, vulnerabilitiesFoo[1].Count);
