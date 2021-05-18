@@ -69,6 +69,16 @@ namespace NuGetGallery
             return _configuration.GetSiteRoot(useHttps);
         }
 
+        public static string GetCanonicalLinkUrl(this UrlHelper url)
+        {
+            var current = Current(url);
+            var siteRoot = new Uri(_configuration.Current.SiteRoot);
+
+            var builder = new UriBuilder(current);
+            builder.Host = siteRoot.Host;
+            return builder.Uri.ToString();
+        }
+
         private static string GetConfiguredSiteHostName()
         {
             // It doesn't matter which value we pass on here for the useHttps parameter.
