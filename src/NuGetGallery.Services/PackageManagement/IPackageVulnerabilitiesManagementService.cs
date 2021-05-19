@@ -23,11 +23,5 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="withdrawn">Whether or not the vulnerability was withdrawn.</param>
         Task UpdateVulnerabilityAsync(PackageVulnerability vulnerability, bool withdrawn);
-
-        /// <summary>
-        /// Get the full set of vulnerable package entities
-        /// </summary>
-        /// <returns>Vulnerable package version ranges</returns>
-        IQueryable<VulnerablePackageVersionRange> GetAllVulnerableRanges();
     }
 }

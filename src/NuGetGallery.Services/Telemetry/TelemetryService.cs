@@ -91,7 +91,7 @@ namespace NuGetGallery
             public const string ABTestEvaluated = "ABTestEvaluated";
             public const string PackagePushDisconnect = "PackagePushDisconnect";
             public const string SymbolPackagePushDisconnect = "SymbolPackagePushDisconnect";
-            public const string VulnerabilitiesCacheRefreshDuration = "VulnerabilitiesCacheRefreshDuration";
+            public const string VulnerabilitiesCacheRefreshDurationMs = "VulnerabilitiesCacheRefreshDurationMs";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -1104,9 +1104,9 @@ namespace NuGetGallery
             TrackMetric(Events.SymbolPackagePushDisconnect, 1, p => { });
         }
 
-        public void TrackVulnerabilitiesCacheRefreshDuration(long milliseconds)
+        public void TrackVulnerabilitiesCacheRefreshDurationMs(long milliseconds)
         {
-            TrackMetric(Events.VulnerabilitiesCacheRefreshDuration, milliseconds, properties => { });
+            TrackMetric(Events.VulnerabilitiesCacheRefreshDurationMs, milliseconds, properties => { });
         }
 
         /// <summary>

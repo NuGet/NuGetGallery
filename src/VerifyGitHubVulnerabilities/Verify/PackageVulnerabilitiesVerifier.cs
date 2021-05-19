@@ -71,8 +71,6 @@ namespace VerifyGitHubVulnerabilities.Verify
             return Task.CompletedTask;
         }
 
-        public IQueryable<VulnerablePackageVersionRange> GetAllVulnerableRanges() => throw new NotImplementedException();
-
         private void VerifyVulnerabilityInDatabase(PackageVulnerability vulnerability, bool withdrawn)
         {
             Console.WriteLine($"[Database] Verifying vulnerability {vulnerability.GitHubDatabaseKey}.");

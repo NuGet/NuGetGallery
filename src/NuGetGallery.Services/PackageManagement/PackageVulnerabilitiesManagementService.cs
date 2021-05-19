@@ -73,9 +73,6 @@ namespace NuGetGallery
             }
         }
 
-        public IQueryable<VulnerablePackageVersionRange> GetAllVulnerableRanges() =>
-            _entitiesContext.Set<VulnerablePackageVersionRange>();
-
         /// <summary>
         /// Updates the database with <paramref name="vulnerability"/>.
         /// </summary>

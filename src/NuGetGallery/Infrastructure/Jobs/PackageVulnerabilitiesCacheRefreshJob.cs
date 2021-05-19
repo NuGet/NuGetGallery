@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using WebBackgrounder;
 
 namespace NuGetGallery
@@ -10,16 +11,20 @@ namespace NuGetGallery
     public class PackageVulnerabilitiesCacheRefreshJob : Job
     {
         private readonly PackageVulnerabilitiesCacheService _packageVulnerabilitiesCacheService;
+        private IServiceScopeFactory _serviceScopeFactory;
 
-        public PackageVulnerabilitiesCacheRefreshJob(TimeSpan interval, PackageVulnerabilitiesCacheService packageVulnerabilitiesCacheService)
+        public PackageVulnerabilitiesCacheRefreshJob(TimeSpan interval, 
+            PackageVulnerabilitiesCacheService packageVulnerabilitiesCacheService,
+            IServiceScopeFactory serviceScopeFactory)
             : base("", interval)
         {
             _packageVulnerabilitiesCacheService = packageVulnerabilitiesCacheService;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         public override Task Execute()
         {
-            return new Task(() => _packageVulnerabilitiesCacheService.RefreshCache());
+            return new Task(() => _packageVulnerabilitiesCacheService.RefreshCache(_serviceScopeFactory));
         }
     }
 }

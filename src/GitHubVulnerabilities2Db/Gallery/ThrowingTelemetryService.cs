@@ -371,7 +371,7 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackVulnerabilitiesCacheRefreshDuration(long duration)
+        public void TrackVulnerabilitiesCacheRefreshDurationMs(long duration)
         {
             throw new NotImplementedException();
         }

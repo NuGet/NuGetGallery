@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Framework;
@@ -16,20 +19,30 @@ namespace NuGetGallery.Services
         public void RefreshesVulnerabilitiesCache()
         {
             // Arrange
-            var vulnerableVersionRanges = GetVersionRanges();
-            var pvmService = new Mock<IPackageVulnerabilitiesManagementService>();
-            pvmService.Setup(stub => stub.GetAllVulnerableRanges()).Returns(vulnerableVersionRanges);
+            var entitiesContext = new Mock<IEntitiesContext>();
+            entitiesContext.Setup(x => x.Set<VulnerablePackageVersionRange>()).Returns(GetVulnerableRanges());
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(x => x.GetService(typeof(IEntitiesContext))).Returns(entitiesContext.Object);
+            var serviceScope = new Mock<IServiceScope>();
+            serviceScope.Setup(x => x.ServiceProvider).Returns(serviceProvider.Object);
+            serviceScope.Setup(x => x.Dispose()).Verifiable();
+            var serviceScopeFactory = new Mock<IServiceScopeFactory>();
+            serviceScopeFactory.Setup(x => x.CreateScope()).Returns(serviceScope.Object);
             var telemetryService = new Mock<ITelemetryService>();
-            telemetryService.Setup(stub => stub.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<long>())).Verifiable();
-            var cacheService = new PackageVulnerabilitiesCacheService(pvmService.Object, telemetryService.Object);
-            cacheService.RefreshCache();
+            telemetryService.Setup(x => x.TrackVulnerabilitiesCacheRefreshDurationMs(It.IsAny<long>())).Verifiable();
+            var cacheService = new PackageVulnerabilitiesCacheService(telemetryService.Object);
+            cacheService.RefreshCache(serviceScopeFactory.Object);
 
             // Act
             var vulnerabilitiesFoo = cacheService.GetVulnerabilitiesById("Foo");
             var vulnerabilitiesBar = cacheService.GetVulnerabilitiesById("Bar");
 
             // Assert
-            telemetryService.Verify(stub => stub.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<long>()), Times.Once);
+            // - ensure telemetry is sent
+            telemetryService.Verify(x => x.TrackVulnerabilitiesCacheRefreshDurationMs(It.IsAny<long>()), Times.Once);
+            // - ensure scope is disposed
+            serviceScope.Verify(x => x.Dispose(), Times.AtLeastOnce);
+            // - ensure contants of cache are correct
             Assert.Equal(4, vulnerabilitiesFoo.Count);
             Assert.Equal(1, vulnerabilitiesFoo[0].Count);
             Assert.Equal(1, vulnerabilitiesFoo[1].Count);
@@ -43,7 +56,7 @@ namespace NuGetGallery.Services
             Assert.Equal(1, vulnerabilitiesBar[6].Count);
         }
 
-        private IQueryable<VulnerablePackageVersionRange> GetVersionRanges()
+        DbSet<VulnerablePackageVersionRange> GetVulnerableRanges()
         {
             var registrationFoo = new PackageRegistration { Id = "Foo" };
             var registrationBar = new PackageRegistration { Id = "Bar" };
@@ -151,12 +164,21 @@ namespace NuGetGallery.Services
                 }
             };
 
-            versionRangeCriticalFoo.Packages = new List<Package> {packageFoo111};
-            versionRangeModerateFoo.Packages = new List<Package> {packageFoo100, packageFoo110, packageFoo111, packageFoo112};
-            versionRangeCriticalBar.Packages = new List<Package> {packageBar100, packageBar110};
+            versionRangeCriticalFoo.Packages = new List<Package> { packageFoo111 };
+            versionRangeModerateFoo.Packages = new List<Package> { packageFoo100, packageFoo110, packageFoo111, packageFoo112 };
+            versionRangeCriticalBar.Packages = new List<Package> { packageBar100, packageBar110 };
 
-            return new List<VulnerablePackageVersionRange>
-                {versionRangeCriticalFoo, versionRangeModerateFoo, versionRangeCriticalBar}.AsQueryable();
+            var vulnerableRangeList = new List<VulnerablePackageVersionRange> { versionRangeCriticalFoo, versionRangeModerateFoo, versionRangeCriticalBar }.AsQueryable();
+            var vulnerableRangeDbSet = new Mock<DbSet<VulnerablePackageVersionRange>>();
+
+            // boilerplate mock DbSet redirects:
+            vulnerableRangeDbSet.As<IQueryable>().Setup(x => x.Provider).Returns(vulnerableRangeList.Provider);
+            vulnerableRangeDbSet.As<IQueryable>().Setup(x => x.Expression).Returns(vulnerableRangeList.Expression);
+            vulnerableRangeDbSet.As<IQueryable>().Setup(x => x.ElementType).Returns(vulnerableRangeList.ElementType);
+            vulnerableRangeDbSet.As<IQueryable>().Setup(x => x.GetEnumerator()).Returns(vulnerableRangeList.GetEnumerator());
+            vulnerableRangeDbSet.Setup(x => x.Include(It.IsAny<string>())).Returns(vulnerableRangeDbSet.Object); // bypass includes (which break the test)
+
+            return vulnerableRangeDbSet.Object;
         }
     }
 }

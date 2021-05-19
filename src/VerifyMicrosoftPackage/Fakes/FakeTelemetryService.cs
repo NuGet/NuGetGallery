@@ -373,7 +373,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
-        public void TrackVulnerabilitiesCacheRefreshDuration(long milliseconds)
+        public void TrackVulnerabilitiesCacheRefreshDurationMs(long milliseconds)
         {
             throw new NotImplementedException();
         }

@@ -344,8 +344,8 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackSymbolPackagePushDisconnectEvent())
                     };
 
-                    yield return new object[] { "VulnerabilitiesCacheRefreshDuration",
-                        (TrackAction)(s => s.TrackVulnerabilitiesCacheRefreshDuration(0))
+                    yield return new object[] { "VulnerabilitiesCacheRefreshDurationMs",
+                        (TrackAction)(s => s.TrackVulnerabilitiesCacheRefreshDurationMs(0))
                     };
                 }
             }
