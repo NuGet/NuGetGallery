@@ -29,7 +29,7 @@ namespace NuGetGallery.Services
             var serviceScopeFactory = new Mock<IServiceScopeFactory>();
             serviceScopeFactory.Setup(x => x.CreateScope()).Returns(serviceScope.Object);
             var telemetryService = new Mock<ITelemetryService>();
-            telemetryService.Setup(x => x.TrackVulnerabilitiesCacheRefreshDurationMs(It.IsAny<long>())).Verifiable();
+            telemetryService.Setup(x => x.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<TimeSpan>())).Verifiable();
             var cacheService = new PackageVulnerabilitiesCacheService(telemetryService.Object);
             cacheService.RefreshCache(serviceScopeFactory.Object);
 
@@ -39,7 +39,7 @@ namespace NuGetGallery.Services
 
             // Assert
             // - ensure telemetry is sent
-            telemetryService.Verify(x => x.TrackVulnerabilitiesCacheRefreshDurationMs(It.IsAny<long>()), Times.Once);
+            telemetryService.Verify(x => x.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<TimeSpan>()), Times.Once);
             // - ensure scope is disposed
             serviceScope.Verify(x => x.Dispose(), Times.AtLeastOnce);
             // - ensure contants of cache are correct

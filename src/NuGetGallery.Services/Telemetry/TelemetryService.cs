@@ -261,9 +261,9 @@ namespace NuGetGallery
             });
         }
 
-        public void TrackDownloadJsonRefreshDuration(long milliseconds)
+        public void TrackDownloadJsonRefreshDuration(TimeSpan duration)
         {
-            TrackMetric(Events.DownloadJsonRefreshDuration, milliseconds, properties => { });
+            TrackMetric(Events.DownloadJsonRefreshDuration, duration.TotalMilliseconds, properties => { });
         }
 
         public void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount)
@@ -1104,9 +1104,9 @@ namespace NuGetGallery
             TrackMetric(Events.SymbolPackagePushDisconnect, 1, p => { });
         }
 
-        public void TrackVulnerabilitiesCacheRefreshDurationMs(long milliseconds)
+        public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
         {
-            TrackMetric(Events.VulnerabilitiesCacheRefreshDurationMs, milliseconds, properties => { });
+            TrackMetric(Events.VulnerabilitiesCacheRefreshDurationMs, duration.TotalMilliseconds, properties => { });
         }
 
         /// <summary>

@@ -10,11 +10,11 @@ namespace NuGetGallery
 {
     public class PackageVulnerabilitiesCacheRefreshJob : Job
     {
-        private readonly PackageVulnerabilitiesCacheService _packageVulnerabilitiesCacheService;
+        private readonly IPackageVulnerabilitiesCacheService _packageVulnerabilitiesCacheService;
         private IServiceScopeFactory _serviceScopeFactory;
 
         public PackageVulnerabilitiesCacheRefreshJob(TimeSpan interval, 
-            PackageVulnerabilitiesCacheService packageVulnerabilitiesCacheService,
+            IPackageVulnerabilitiesCacheService packageVulnerabilitiesCacheService,
             IServiceScopeFactory serviceScopeFactory)
             : base("", interval)
         {

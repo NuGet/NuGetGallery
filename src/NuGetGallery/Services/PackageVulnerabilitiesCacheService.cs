@@ -24,7 +24,7 @@ namespace NuGetGallery
 
         public PackageVulnerabilitiesCacheService(ITelemetryService telemetryService)
         {
-            _telemetryService = telemetryService;
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id)
@@ -91,7 +91,7 @@ namespace NuGetGallery
 
                     stopwatch.Stop();
                     
-                    _telemetryService.TrackVulnerabilitiesCacheRefreshDurationMs(stopwatch.ElapsedMilliseconds);
+                    _telemetryService.TrackVulnerabilitiesCacheRefreshDuration(TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds));
                 }
                 catch (Exception ex)
                 {

@@ -265,8 +265,7 @@ namespace NuGetGallery
 
             if (configuration.StorageType == StorageType.AzureStorage)
             {
-                var cloudDownloadCountService =
-                    DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
+                var cloudDownloadCountService = DependencyResolver.Current.GetService<IDownloadCountService>() as CloudDownloadCountService;
                 if (cloudDownloadCountService != null)
                 {
                     // Perform initial refresh + schedule new refreshes every 15 minutes
@@ -276,20 +275,11 @@ namespace NuGetGallery
                 }
             }
 
-            var packageVulnerabilitiesCacheService =
-                    DependencyResolver.Current.GetService<IPackageVulnerabilitiesCacheService>() as
-                        PackageVulnerabilitiesCacheService;
-            if (packageVulnerabilitiesCacheService != null)
-            {
-                // Perform initial refresh + schedule new refreshes every 30 minutes
-                var serviceScopeFactory = DependencyResolver.Current.GetService<IServiceScopeFactory>();
-                HostingEnvironment.QueueBackgroundWorkItem(_ => packageVulnerabilitiesCacheService.RefreshCache(serviceScopeFactory));
-                if (configuration.StorageType == StorageType.AzureStorage)
-                {
-                    jobs.Add(new PackageVulnerabilitiesCacheRefreshJob(TimeSpan.FromMinutes(30),
-                        packageVulnerabilitiesCacheService, serviceScopeFactory));
-                }
-            }
+            // Perform initial refresh for vulnerabilities cache + schedule new refreshes every 30 minutes
+            var packageVulnerabilitiesCacheService = DependencyResolver.Current.GetService<IPackageVulnerabilitiesCacheService>();
+            var serviceScopeFactory = DependencyResolver.Current.GetService<IServiceScopeFactory>();
+            HostingEnvironment.QueueBackgroundWorkItem(_ => packageVulnerabilitiesCacheService.RefreshCache(serviceScopeFactory));
+            jobs.Add(new PackageVulnerabilitiesCacheRefreshJob(TimeSpan.FromMinutes(30), packageVulnerabilitiesCacheService, serviceScopeFactory));
 
             if (jobs.AnySafe())
             {

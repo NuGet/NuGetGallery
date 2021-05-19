@@ -66,7 +66,7 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackDownloadJsonRefreshDuration(long milliseconds)
+        public void TrackDownloadJsonRefreshDuration(TimeSpan duration)
         {
             throw new NotImplementedException();
         }
@@ -371,7 +371,7 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackVulnerabilitiesCacheRefreshDurationMs(long duration)
+        public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
         {
             throw new NotImplementedException();
         }

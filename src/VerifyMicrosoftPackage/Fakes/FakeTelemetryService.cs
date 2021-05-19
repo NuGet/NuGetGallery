@@ -63,7 +63,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
-        public void TrackDownloadJsonRefreshDuration(long milliseconds)
+        public void TrackDownloadJsonRefreshDuration(TimeSpan duration)
         {
             throw new NotImplementedException();
         }
@@ -373,7 +373,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
-        public void TrackVulnerabilitiesCacheRefreshDurationMs(long milliseconds)
+        public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
         {
             throw new NotImplementedException();
         }

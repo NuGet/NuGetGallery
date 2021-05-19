@@ -460,7 +460,7 @@ namespace NuGetGallery
                 .As<IPackageVulnerabilitiesManagementService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new PackageVulnerabilitiesCacheService(c.Resolve<ITelemetryService>()))
+            builder.RegisterType<PackageVulnerabilitiesCacheService>()
                 .AsSelf()
                 .As<IPackageVulnerabilitiesCacheService>()
                 .SingleInstance();
