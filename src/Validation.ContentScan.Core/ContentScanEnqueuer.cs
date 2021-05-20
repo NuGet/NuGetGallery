@@ -59,7 +59,7 @@ namespace NuGet.Jobs.Validation.ContentScan
             _logger.LogInformation(
                 "Requested scan only for validation {ValidationStepId} {BlobUrl}, delay override: {DelayOverride}",
                 validationStepId,
-                inputUrl,
+                new UriBuilder(inputUrl) { Query = "REDACTED" }.Uri.AbsoluteUri,
                 messageDeliveryDelayOverride);
 
             await SendContentScanMessageAsync(
