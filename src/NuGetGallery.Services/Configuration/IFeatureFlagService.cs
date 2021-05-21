@@ -174,6 +174,11 @@ namespace NuGetGallery
         bool AreEmbeddedReadmesEnabled(User user);
 
         /// <summary>
+        /// Weather the new design of the display package page is enabled.
+        /// </summary>
+        bool IsDisplayPackagePageV2Enabled();
+        
+        /// <summary>
         /// Whether the /Packages() endpoint is enabled for the V1 OData API.
         /// </summary>
         bool IsODataV1GetAllEnabled();

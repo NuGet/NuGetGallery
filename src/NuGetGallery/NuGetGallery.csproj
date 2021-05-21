@@ -1675,6 +1675,7 @@
     <Content Include="App_Data\Files\Content\Symbols-Configuration.json" />
     <Content Include="Scripts\gallery\instrumentation.js" />
     <Content Include="Scripts\gallery\knockout-3.5.1.js" />
+    <Content Include="Scripts\gallery\page-display-package-v2.js" />
     <Content Include="Scripts\gallery\page-list-packages.js" />
     <Content Include="Views\Shared\SiteMenu.cshtml">
       <SubType>Code</SubType>
@@ -1836,6 +1837,7 @@
     <Content Include="Scripts\gallery\page-api-keys.js" />
     <Content Include="Scripts\gallery\page-delete-package.js" />
     <Content Include="Scripts\gallery\page-display-package.js" />
+    <Content Include="Scripts\gallery\page-display-package-v2.js" />
     <Content Include="Scripts\gallery\page-edit-readme.js" />
     <Content Include="Scripts\gallery\page-home.js" />
     <Content Include="Scripts\gallery\page-manage-deprecation.js" />
@@ -2316,6 +2318,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Packages\_DisplayPackageVulnerabilities.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\DisplayPackageV2.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
