@@ -588,7 +588,7 @@ namespace NuGet.Services.Validation
 
             private ValidatorStatus ExistingStatusForUnifiedValidation => new ValidatorStatus
             {
-                ValidationId = ValidationId,
+                ValidationId = ValidationId1,
                 ValidatorName = nameof(CValidator),
                 State = ValidationStatus.NotStarted,
             };
@@ -617,7 +617,7 @@ namespace NuGet.Services.Validation
                 _validationContext.Verify(x => x.ValidatorStatuses, Times.Exactly(2));
             }
 
-            [Fact(Skip = "Skip for now till PackageKey is made as nullable")]
+            [Fact]
             public async Task HandlesUniqueConstraintViolationGracefullyForUnifiedValidation()
             {
                 // Arrange
@@ -661,7 +661,7 @@ namespace NuGet.Services.Validation
                 Assert.Same(existingStatus, result);
             }
 
-            [Fact(Skip = "Skip for now till PackageKey is made as nullable")]
+            [Fact]
             public async Task PersistsStatusForUnifiedValidation()
             {
                 // Arrange
@@ -670,7 +670,7 @@ namespace NuGet.Services.Validation
                 _validationContext.Mock(validatorStatuses: new[] { existingStatus });
 
                 // Act & Assert
-                var result = await _target.TryUpdateValidationStatusAsync(
+                var result = await _targetValidatorServiceForUnifiedRequest.TryUpdateValidationStatusAsync(
                                             _unifiedValidationRequest.Object,
                                             existingStatus,
                                             ValidationStatus.Succeeded);
