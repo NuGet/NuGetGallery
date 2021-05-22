@@ -94,6 +94,7 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
                 new[]
                 {
                     "Scripts/gallery/page-display-package-v2.js",
+                    "Scripts/gallery/clamp.js",
                 }
             },
             {

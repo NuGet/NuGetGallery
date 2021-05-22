@@ -239,9 +239,9 @@ namespace NuGetGallery
             return _client.IsEnabled(EmbeddedReadmeFlightName, user, defaultValue: false);
         }
 
-        public bool IsDisplayPackagePageV2Enabled() 
+        public bool IsDisplayPackagePageV2Enabled(User user) 
         {
-            return _client.IsEnabled(DisplayPackagePageV2FeatureName, defaultValue: false);
+            return _client.IsEnabled(DisplayPackagePageV2FeatureName, user, defaultValue: false);
         }
         
         public bool IsODataV1GetAllEnabled()

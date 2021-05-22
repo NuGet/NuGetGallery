@@ -1019,7 +1019,7 @@ namespace NuGetGallery
             }
             ViewBag.FacebookAppID = _config.FacebookAppId;
 
-            if (_featureFlagService.IsDisplayPackagePageV2Enabled()) 
+            if (_featureFlagService.IsDisplayPackagePageV2Enabled(GetCurrentUser())) 
             { 
                 return View("DisplayPackageV2", model);
             }

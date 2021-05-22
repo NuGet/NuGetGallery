@@ -26,8 +26,7 @@
     "NuGetGallery.ManagePackagesVulnerabilities": "Enabled",
     "NuGetGallery.DisplayFuGetLinks": "Enabled",
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
-    "NuGetGallery.EmbeddedIcons": "Enabled",
-    "NuGetGallery.DisplayPackagePageV2":  "Disabled"
+    "NuGetGallery.EmbeddedIcons": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
