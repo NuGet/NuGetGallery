@@ -150,7 +150,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 packageId = terms.First();
                 if (packageId.Length <= PackageIdValidator.MaxPackageIdLength
-                    && PackageIdValidator.IsValidPackageIdWithTimeout(packageId))
+                    && PackageIdValidator.IsValidPackageId(packageId))
                 {
                     return true;
                 }
@@ -183,7 +183,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             // Requests with bad parameters yield no results. For the package type case, by specification a package type
             // valid characters are the same as a package ID.
             return request.Skip > MaximumSkip
-                || (packageType != null && !PackageIdValidator.IsValidPackageIdWithTimeout(packageType));
+                || (packageType != null && !PackageIdValidator.IsValidPackageId(packageType));
         }
 
         private static bool PagedToFirstItem(SearchRequest request)
