@@ -88,11 +88,11 @@ namespace NuGet.Jobs.Validation.Leases
                     operationContext: null,
                     cancellationToken);
 
-                return LeaseResult.Success(leaseId); ;
+                return LeaseResult.Success(leaseId);
             }
             catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.Conflict)
             {
-                return LeaseResult.Failure(); ;
+                return LeaseResult.Failure();
             }
         }
 
