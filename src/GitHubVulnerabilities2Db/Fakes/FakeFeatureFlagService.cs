@@ -25,6 +25,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsDisplayPackagePageV2Enabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool ArePatternSetTfmHeuristicsEnabled()
         {
             throw new NotImplementedException();

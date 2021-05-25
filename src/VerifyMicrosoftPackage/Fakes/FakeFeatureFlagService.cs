@@ -71,6 +71,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool AreEmbeddedReadmesEnabled(User user) => throw new NotImplementedException();
 
+        public bool IsDisplayPackagePageV2Enabled(User user) => throw new NotImplementedException();
+
         public bool IsODataV1GetAllEnabled() => throw new NotImplementedException();
 
         public bool IsODataV1GetAllCountEnabled() => throw new NotImplementedException();

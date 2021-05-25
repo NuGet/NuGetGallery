@@ -174,7 +174,7 @@ namespace NuGetGallery
         bool AreEmbeddedReadmesEnabled(User user);
 
         /// <summary>
-        /// Weather the new design of the display package page is enabled.
+        /// Whether the new design of the display package page is enabled.
         /// </summary>
         bool IsDisplayPackagePageV2Enabled(User user);
         
