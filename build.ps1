@@ -105,7 +105,8 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "src\Validation.PackageSigning.ValidateCertificate\Properties\AssemblyInfo.g.cs",
             "src\Validation.ScanAndSign.Core\Properties\AssemblyInfo.g.cs",
             "src\Validation.Symbols.Core\Properties\AssemblyInfo.g.cs",
-            "src\Validation.Symbols\Properties\AssemblyInfo.g.cs"
+            "src\Validation.Symbols\Properties\AssemblyInfo.g.cs",
+            "src\Validation.ContentScan.Core\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
             # Ensure the directory exists before generating the version info file.
@@ -154,7 +155,8 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\NuGet.Services.V3\NuGet.Services.V3.csproj",
             "src\Validation.Common.Job\Validation.Common.Job.csproj",
             "src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj",
-            "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj"
+            "src\Validation.Symbols.Core\Validation.Symbols.Core.csproj",
+            "src\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj"
 
         $CsprojProjects | ForEach-Object {
             New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -Symbols

@@ -27,6 +27,13 @@ namespace NuGet.Jobs.Validation.Storage
         Task<ValidatorStatus> GetStatusAsync(Guid validationId);
 
         /// <summary>
+        /// Get the persisted <see cref="ValidatorStatus"/> for the given <see cref="IValidationRequest"/>.
+        /// </summary>
+        /// <param name="request">The request whose status should be fetched.</param>
+        /// <returns>The persisted status of the validation request, or, a new ValidatorStatus if no status has been persisted.</returns>
+        Task<ValidatorStatus> GetStatusAsync(IValidationRequest request);
+
+        /// <summary>
         /// Check if the request intends to revalidate a package that has already been validated by <see cref="TValidator"/> by
         /// a different validation request.
         /// </summary>
@@ -60,6 +67,16 @@ namespace NuGet.Jobs.Validation.Storage
         Task<ValidatorStatus> TryAddValidatorStatusAsync(INuGetValidationRequest request, ValidatorStatus status, ValidationStatus desiredState);
 
         /// <summary>
+        /// Try to persist a new validation request's validator status. If the add operation fails, the result of
+        /// <see cref="GetStatusAsync(IValidationRequest)"/> will be returned instead.
+        /// </summary>
+        /// <param name="request">The request to validate a package whose state should be updated.</param>
+        /// <param name="validatorStatus">The validaiton request's validator status that should be added to the database.</param>
+        /// <param name="desiredState">The desired state for the validator's status.</param>
+        /// <returns>The persisted state. This may not be the desired state if the add operation fails.</returns>
+        Task<ValidatorStatus> TryAddValidatorStatusAsync(IValidationRequest request, ValidatorStatus status, ValidationStatus desiredState);
+
+        /// <summary>
         /// Try to persist the validator's status. If the update fails, the result of <see cref="GetStatusAsync(INuGetValidationRequest)"/>
         /// will be returned instead.
         /// </summary>
@@ -68,5 +85,16 @@ namespace NuGet.Jobs.Validation.Storage
         /// <param name="desiredState">The desired state for the validator's status.</param>
         /// <returns>The persisted state. This may not be the desired state if the update operation fails.</returns>
         Task<ValidatorStatus> TryUpdateValidationStatusAsync(INuGetValidationRequest request, ValidatorStatus validatorStatus, ValidationStatus desiredState);
+
+        /// <summary>
+        /// Try to persist the validator's status. If the update fails, the result of <see cref="GetStatusAsync(IValidationRequest)"/>
+        /// will be returned instead.
+        /// </summary>
+        /// <param name="request">The request to validate a package whose state should be updated.</param>
+        /// <param name="validatorStatus">The state of the validator's validation request that should be updated.</param>
+        /// <param name="desiredState">The desired state for the validator's status.</param>
+        /// <returns>The persisted state. This may not be the desired state if the update operation fails.</returns>
+        Task<ValidatorStatus> TryUpdateValidationStatusAsync(IValidationRequest request, ValidatorStatus validatorStatus, ValidationStatus desiredState);
+
     }
 }
