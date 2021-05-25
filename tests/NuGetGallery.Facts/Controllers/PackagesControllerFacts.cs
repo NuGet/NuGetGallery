@@ -236,6 +236,9 @@ namespace NuGetGallery
             {
                 featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService.SetReturnsDefault<bool>(true);
+                featureFlagService
+                    .Setup(x => x.IsDisplayPackagePageV2Enabled(It.IsAny<User>()))
+                    .Returns(false);
             }
 
             renameService = renameService ?? new Mock<IPackageRenameService>();
@@ -507,7 +510,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(package.Id, package.Version);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal(id, model.Id);
                 searchService.Verify(x => x.RawSearch(It.IsAny<SearchFilter>()), Times.Exactly(searchTimes));
             }
@@ -842,7 +845,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, normalizedVersion);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
             }
@@ -909,7 +912,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
 
                 Assert.Equal(id, model.Id);
                 // The page should select the first package that is IsLatestSemVer2
@@ -958,7 +961,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage("Foo", LatestPackageRouteVerifier.SupportedRoutes.AbsoluteLatestUrlString);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
 
                 Assert.Equal(id, model.Id);
                 Assert.Equal(notLatestPackage.NormalizedVersion, model.Version);
@@ -1004,7 +1007,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage("Foo", null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Null(model.ReadMeHtml);
@@ -1020,7 +1023,7 @@ namespace NuGetGallery
                 var result = await GetResultWithReadMe(readMeMd, true);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal("<h2>Hello World!</h2>", model.ReadMeHtml);
             }
 
@@ -1034,7 +1037,7 @@ namespace NuGetGallery
                 var result = await GetResultWithReadMe(readMeMd, true);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
 
                 var htmlCount = model.ReadMeHtml.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
                 Assert.Equal(20, htmlCount);
@@ -1047,7 +1050,7 @@ namespace NuGetGallery
                 var result = await GetResultWithReadMe(null, true);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Null(model.ReadMeHtml);
             }
 
@@ -1058,7 +1061,7 @@ namespace NuGetGallery
                 var result = await GetResultWithReadMe(null, false);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Null(model.ReadMeHtml);
             }
 
@@ -1159,7 +1162,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage("Foo", version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal(model.PackageValidationIssues, expectedIssues);
             }
 
@@ -1212,7 +1215,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal(isAtomFeedEnabled, model.IsAtomFeedEnabled);
             }
 
@@ -1265,7 +1268,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
 
                 if (isDeprecationEnabled)
@@ -1324,7 +1327,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
 
                 if (isDeprecationEnabled)
@@ -1399,7 +1402,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
 
                 Assert.Equal("Hello", model.CustomMessage);
 
@@ -1495,7 +1498,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal(string.Format(expectedIconTitle, version), model.PackageWarningIconTitle);
 
                 deprecationService.Verify();
@@ -1609,7 +1612,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal(isDeprecationEnabled, model.IsPackageDeprecationEnabled);
                 Assert.Equal(isVulnerabilitiesEnabled, model.IsPackageVulnerabilitiesEnabled);
                 Assert.Equal(string.Format(expectedIconTitle, version, "moderate"), model.PackageWarningIconTitle);
@@ -1684,7 +1687,7 @@ namespace NuGetGallery
                 var result = await controller.DisplayPackage(id, version: null);
 
                 // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Equal(isRenamesEnabledForThisUser, model.IsPackageRenamesEnabled);
                 if (isRenamesEnabledForThisUser)
                 {
@@ -1749,7 +1752,7 @@ namespace NuGetGallery
                 splitterMock
                     .Verify(les => les.SplitExpression(It.IsAny<string>()), Times.Once);
 
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 Assert.Same(segments, model.LicenseExpressionSegments);
             }
 
@@ -1798,7 +1801,7 @@ namespace NuGetGallery
                     .Verifiable();
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
                 iconUrlProvider
                     .Verify(iup => iup.GetIconUrlString(package), Times.AtLeastOnce);
                 Assert.Equal(iconUrl, model.IconUrl);
@@ -1840,7 +1843,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
 
                 Assert.Null(model.PackageDependents);
                 packageService
@@ -1889,7 +1892,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
 
                 Assert.Null(model.PackageDependents);
                 packageService
@@ -1943,7 +1946,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
 
                 Assert.Same(pd, model.PackageDependents);
                 packageService
@@ -2005,7 +2008,7 @@ namespace NuGetGallery
                     .Returns(gitHubInformation);
 
                 var result = await controller.DisplayPackage(id, version: null);
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
 
                 packageService
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Once());
@@ -2069,9 +2072,9 @@ namespace NuGetGallery
                     .Returns(gitHubInformation);
 
                 var result1 = await controller.DisplayPackage(id1, version: null);
-                var model1 = ResultAssert.IsView<DisplayPackageViewModel>(result1);
+                var model1 = ResultAssert.IsView<DisplayPackageViewModel>(result1, "DisplayPackage");
                 var result2 = await controller.DisplayPackage(id2, version: null);
-                var model2 = ResultAssert.IsView<DisplayPackageViewModel>(result2);
+                var model2 = ResultAssert.IsView<DisplayPackageViewModel>(result2, "DisplayPackage");
 
                 Assert.Same(pd, model1.PackageDependents);
                 Assert.Same(pd, model2.PackageDependents);
