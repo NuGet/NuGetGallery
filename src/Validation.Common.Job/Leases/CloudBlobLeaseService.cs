@@ -69,6 +69,33 @@ namespace NuGet.Jobs.Validation.Leases
             }
         }
 
+        public async Task<LeaseResult> RenewAsync(string resourceName, string leaseId, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(leaseId))
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(leaseId),
+                    "The lease Id must be provided for renewing the lease.");
+            }
+
+            var blob = GetBlob(resourceName);
+
+            try
+            {
+                await blob.RenewLeaseAsync(
+                    AccessCondition.GenerateLeaseCondition(leaseId),
+                    options: null,
+                    operationContext: null,
+                    cancellationToken);
+
+                return LeaseResult.Success(leaseId); ;
+            }
+            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int)HttpStatusCode.Conflict)
+            {
+                return LeaseResult.Failure(); ;
+            }
+        }
+
         private async Task<LeaseResult> TryCreateAndAcquireAsync(CloudBlockBlob blob, TimeSpan leaseTime, CancellationToken cancellationToken)
         {
             try
