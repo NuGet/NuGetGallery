@@ -62,7 +62,7 @@ $(function () {
             "Show more");
 
         var showLess = $("#readme-less");
-        $clamp(showLess[0], { clamp: 10, useNativeClamp: false });
+        $clamp(showLess[0], { clamp: 30, useNativeClamp: false });
 
         $("#show-readme-more").click(function (e) {
             showLess.collapse("toggle");
