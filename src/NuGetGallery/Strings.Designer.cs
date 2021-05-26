@@ -2535,11 +2535,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID..
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflict {
             get {
                 return ResourceManager.GetString("UploadPackage_IdNamespaceConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to &lt;a href=&quot;https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation&quot;&gt;https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation&lt;/a&gt; learn more about Package ID prefix reservation..
+        /// </summary>
+        public static string UploadPackage_IdNamespaceConflictHtml {
+            get {
+                return ResourceManager.GetString("UploadPackage_IdNamespaceConflictHtml", resourceCulture);
             }
         }
         
