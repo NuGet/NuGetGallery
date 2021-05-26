@@ -16,7 +16,7 @@ namespace NuGetGallery
 
         void TrackGetPackageRegistrationDownloadCountFailed(string packageId);
 
-        void TrackDownloadJsonRefreshDuration(long milliseconds);
+        void TrackDownloadJsonRefreshDuration(TimeSpan duration);
 
         void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount);
 
@@ -404,5 +404,11 @@ namespace NuGetGallery
             bool isAuthenticated,
             int testBucket,
             int testPercentage);
+
+        /// <summary>
+        /// Track how long it takes to populate the vulnerabilities cache
+        /// </summary>
+        /// <param name="duration">Refresh duration for vulnerabilities cache</param>
+        void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration);
     }
 }

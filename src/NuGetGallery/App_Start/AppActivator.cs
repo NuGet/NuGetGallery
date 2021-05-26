@@ -15,7 +15,7 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
-using Microsoft.WindowsAzure.ServiceRuntime;
+using Microsoft.Extensions.DependencyInjection;
 using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -270,9 +270,16 @@ namespace NuGetGallery
                 {
                     // Perform initial refresh + schedule new refreshes every 15 minutes
                     HostingEnvironment.QueueBackgroundWorkItem(_ => cloudDownloadCountService.RefreshAsync());
-                    jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15), cloudDownloadCountService));
+                    jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15),
+                        cloudDownloadCountService));
                 }
             }
+
+            // Perform initial refresh for vulnerabilities cache + schedule new refreshes every 30 minutes
+            var packageVulnerabilitiesCacheService = DependencyResolver.Current.GetService<IPackageVulnerabilitiesCacheService>();
+            var serviceScopeFactory = DependencyResolver.Current.GetService<IServiceScopeFactory>();
+            HostingEnvironment.QueueBackgroundWorkItem(_ => packageVulnerabilitiesCacheService.RefreshCache(serviceScopeFactory));
+            jobs.Add(new PackageVulnerabilitiesCacheRefreshJob(TimeSpan.FromMinutes(30), packageVulnerabilitiesCacheService, serviceScopeFactory));
 
             if (jobs.AnySafe())
             {

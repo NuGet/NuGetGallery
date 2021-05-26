@@ -55,6 +55,13 @@
                 Id = "cake-dotnet-tool",
                 InstallPackageCommands = new [] { Model.GetCakeInstallPackageCommand() },
             },
+
+            new ThirdPartyPackageManagerViewModel("NUKE", "https://github.com/nuke-build/nuke/issues/new/choose")
+            {
+                Id = "nuke",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("nuke :add-package {0} --version {1}", Model.Id, Model.Version) },
+            },
         };
     }
     else if (Model.IsDotnetNewTemplatePackageType)
@@ -247,7 +254,7 @@
             <div class="package-title">
                 <h1>
                     @Html.BreakWord(Model.Id)
-                    <small class="text-nowrap">@Model.FullVersion</small>
+                    <small class="text-nowrap">@Model.Version</small>
 
                     @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                     {
@@ -346,6 +353,14 @@
                 @ViewHelpers.AlertInfo(
                     @<text>
                         This is a prerelease version of @(Model.Id).
+                    </text>
+                )
+            }
+            @if (Model.NuGetVersion.HasMetadata)
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
                     </text>
                 )
             }
@@ -508,7 +523,7 @@
 
                         @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
                         {
-                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme'>trusted domains</a>.</text>);
+                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>);
                         }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)
@@ -760,7 +775,7 @@
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
                                     <td tabindex="0">
-                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
+                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                             @packageVersion.Version.Abbreviate(30)
                                         </a>
                                     </td>
