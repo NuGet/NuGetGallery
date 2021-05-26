@@ -282,6 +282,14 @@
                         </text>
                     )
                 }
+                if (Model.HasEmbeddedReadmeFile)
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            The readme will become available once package validation has completed successfully.
+                        </text>
+                    )
+                }
 
                 if (Model.ValidatingTooLong)
                 {
