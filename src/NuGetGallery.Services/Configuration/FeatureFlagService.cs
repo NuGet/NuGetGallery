@@ -48,6 +48,7 @@ namespace NuGetGallery
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
         private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
         private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
+        private const string DisplayPackagePageV2FeatureName = GalleryPrefix + "DisplayPackagePageV2";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -238,6 +239,11 @@ namespace NuGetGallery
             return _client.IsEnabled(EmbeddedReadmeFlightName, user, defaultValue: false);
         }
 
+        public bool IsDisplayPackagePageV2Enabled(User user) 
+        {
+            return _client.IsEnabled(DisplayPackagePageV2FeatureName, user, defaultValue: false);
+        }
+        
         public bool IsODataV1GetAllEnabled()
         {
             return _client.IsEnabled(ODataV1GetAllNonHijackedFeatureName, defaultValue: true);

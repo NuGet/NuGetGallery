@@ -1,0 +1,1234 @@
+﻿@using NuGet.Services.Validation
+@using NuGet.Services.Licenses
+
+@model DisplayPackageViewModel
+@{
+    ViewBag.Title = Model.Id + " " + Model.Version;
+    ViewBag.Tab = "Packages";
+    ViewBag.BlockSearchEngineIndexing = !Model.Listed || !Model.Available;
+
+    var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
+
+    var hasSymbolsPackageAvailable = Model.LatestAvailableSymbolsPackage != null;
+    var showSymbolsPackageStatus = Model.LatestSymbolsPackage != null && Model.LatestSymbolsPackage.StatusKey != PackageStatus.Available;
+
+    PackageManagerViewModel[] packageManagers;
+
+    if (!string.IsNullOrWhiteSpace(Model.LicenseExpression))
+    {
+        Model.LicenseUrl = LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(Model.LicenseExpression);
+    }
+
+    if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+    {
+        Model.LicenseUrl = Url.License(Model);
+    }
+
+    if (Model.IsDotnetToolPackageType)
+    {
+        packageManagers = new PackageManagerViewModel[]
+        {
+            new PackageManagerViewModel(".NET CLI (Global)")
+            {
+                Id = "dotnet-cli-global",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version) },
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET tool</a> you can call from the shell/command line.",
+            },
+
+            new PackageManagerViewModel(".NET CLI (Local)")
+            {
+                Id = "dotnet-cli-local",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new []
+                {
+                    "dotnet new tool-manifest # if you are setting up this repo",
+                    string.Format("dotnet tool install --local {0} --version {1}", Model.Id, Model.Version),
+                },
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "This package contains a <a href='https://aka.ms/global-tools'>.NET tool</a> you can call from the shell/command line.",
+            },
+
+            new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/support/nuget")
+            {
+                Id = "cake-dotnet-tool",
+                InstallPackageCommands = new [] { Model.GetCakeInstallPackageCommand() },
+            },
+
+            new ThirdPartyPackageManagerViewModel("NUKE", "https://github.com/nuke-build/nuke/issues/new/choose")
+            {
+                Id = "nuke",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("nuke :add-package {0} --version {1}", Model.Id, Model.Version) },
+            },
+        };
+    }
+    else if (Model.IsDotnetNewTemplatePackageType)
+    {
+        packageManagers = new PackageManagerViewModel[]
+        {
+            new PackageManagerViewModel(".NET CLI")
+            {
+                Id = "dotnet-cli",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("dotnet new --install {0}::{1}", Model.Id, Model.Version) },
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "This package contains a <a href='https://aka.ms/dotnet-new'>.NET Core Template Package</a> you can call from the shell/command line.",
+            }
+        };
+    }
+    else
+    {
+        packageManagers = new PackageManagerViewModel[]
+        {
+            new PackageManagerViewModel("Package Manager")
+            {
+                Id = "package-manager",
+                CommandPrefix = "PM> ",
+                InstallPackageCommands = new [] { string.Format("Install-Package {0} -Version {1}", Model.Id, Model.Version) },
+            },
+
+            new PackageManagerViewModel(".NET CLI")
+            {
+                Id = "dotnet-cli",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version) },
+            },
+
+            new PackageManagerViewModel("PackageReference")
+            {
+                Id = "package-reference",
+                InstallPackageCommands = new [] { Model.DevelopmentDependency
+                    ? string.Format(string.Join(Environment.NewLine,
+                        "<PackageReference Include=\"{0}\" Version=\"{1}\">",
+                        "  <PrivateAssets>all</PrivateAssets>",
+                        "  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>",
+                        "</PackageReference>"), Model.Id, Model.Version)
+                    : string.Format("<PackageReference Include=\"{0}\" Version=\"{1}\" />", Model.Id, Model.Version) },
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = string.Format("For projects that support <a href=\"{0}\">PackageReference</a>, copy this XML node into the project file to reference the package.",
+                                             "https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files"),
+                CopyLabel = "Copy the PackageReference XML node",
+            },
+
+            new ThirdPartyPackageManagerViewModel("Paket CLI", "https://fsprojects.github.io/Paket/contact.html")
+            {
+                Id = "paket-cli",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("paket add {0} --version {1}", Model.Id, Model.Version) },
+            },
+
+            new PackageManagerViewModel("Script & Interactive")
+            {
+                Id = "script-interactive",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("#r \"nuget: {0}, {1}\"", Model.Id, Model.Version) },
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "#r directive can be used in F# Interactive, C# scripting and .NET Interactive. Copy this into the interactive tool or source code of the script to reference the package."
+            },
+
+            new ThirdPartyPackageManagerViewModel("Cake", "https://cakebuild.net/support/nuget")
+            {
+                Id = Model.IsCakeExtension() ? "cake-extension" : "cake",
+                InstallPackageCommands = new [] { Model.GetCakeInstallPackageCommand() },
+            },
+        };
+    }
+}
+
+@section SocialMeta {
+    @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
+    {
+        <meta property="fb:app_id" content="@ViewBag.FacebookAppID" />
+    }
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@("@nuget")">
+
+    <meta property="og:title" content="@Model.Id @Model.Version" />
+    <meta property="og:type" content="nugetgallery:package" />
+    <meta property="og:url" content="@absolutePackageUrl" />
+    <meta property="og:description" content="@Model.Description" />
+    <meta property="og:determiner" content="a" />
+    <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))" />
+
+    @if (Model.IsAtomFeedEnabled)
+    {
+        <link rel="alternate" type="application/atom+xml" title="Subscribe to @Model.Id updates" href="@Url.PackageAtomFeed(Model.Id)" />
+    }
+}
+
+@helper VersionListDivider(int rowCount, bool versionsExpanded)
+{
+    if (rowCount == GalleryConstants.VisibleVersions + 1)
+    {
+        @:</tbody><tbody class="no-border collapse @(versionsExpanded ? "in" : string.Empty)" id="hidden-versions">
+    }
+}
+
+@helper CommandTab(PackageManagerViewModel packageManager, bool active)
+{
+    <li role="presentation" class="@(active ? "active" : string.Empty)">
+        <a href="#@packageManager.Id" aria-expanded="@(active ? "true" : "false")"
+           id="@packageManager.Id-tab" class="package-manager-tab"
+           aria-selected="@(active ? "true" : "false")"
+           aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
+           title="Switch to tab panel which contains package installation command for @packageManager.Name">
+            @packageManager.Name
+        </a>
+    </li>
+}
+
+@helper CommandPanel(PackageManagerViewModel packageManager, bool active)
+{
+    var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
+    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
+        <div>
+            <div class="install-script-row">
+                @{
+                    var lastIndex = packageManager.InstallPackageCommands.Length - 1;
+                    var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
+                }
+                @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
+                <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
+                <div class="copy-button">
+                    <!--In order to statisfy the requirement to announce button status both on NVDA/Narrator, other screen reader like NVDA will
+                        announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover 
+                        because of known issue(https://github.com/twbs/bootstrap/issues/18618).
+                        We add aria-pressed to indicate the whether button is pressed or not, which is workaround only for Narrator announce the status change of button
+                    -->
+                    <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
+                            data-toggle="popover" data-placement="bottom" data-content="Copied."
+                            aria-label="@packageManager.CopyLabel" aria-pressed="false" aria-live="polite" role="button">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        @switch (packageManager.AlertLevel)
+        {
+            case AlertLevel.Info: 
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        @Html.Raw(packageManager.AlertMessage)
+                    </text>);
+                break;
+            case AlertLevel.Warning:
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        @Html.Raw(packageManager.AlertMessage)
+                    </text>);
+                break;
+            default:
+                break;
+        }
+    </div>
+}
+
+@helper AppendAvailableSymbolsMessage(bool hasSymbolsPackageAvailable)
+{
+    if(hasSymbolsPackageAvailable)
+    {
+        <br /><br />
+        <text><b>Please note:</b> The last successfully published symbols package is still available for debugging and download.</text>
+    }
+}
+
+@* The following two helpers must be on a single line each so no extra whitespace is introduced in the expression when rendered. *@
+@* Helpers themselves are needed not to introduce that extra whitespce, which happens if they are inlined. *@
+@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)" aria-label="License @segment.Value">@segment.Value</a>}
+@helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment) {<span>@segment.Value</span>}
+
+<section role="main" class="container main-container page-package-details-v2">
+    <div class="row">
+        <aside aria-label="Package icon" class="col-sm-1">
+            <h3>
+                <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+            </h3>
+        </aside>
+        <article class="col-sm-8 package-details-main">
+            <div class="package-title">
+                <h1>
+                    @Html.BreakWord(Model.Id)
+                    <small class="text-nowrap">@Model.Version</small>
+
+                    @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
+                    {
+                        <img class="reserved-indicator"
+                             src="~/Content/gallery/img/reserved-indicator.svg"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
+                             title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                    }
+                </h1>
+
+            </div>
+
+            @if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p>@Html.PreFormattedText(Model.Description, Config)</p>
+            }
+
+            @if (Model.Validating)
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        <strong>This package has not been published yet.</strong> It will appear in search results and
+                        will be available for install/restore after both validation and indexing are complete. Package
+                        validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
+                    </text>
+                )
+                if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            The license link will become available once package validation has completed successfully.
+                        </text>
+                    )
+                }
+
+                if (Model.ValidatingTooLong)
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            <strong>Package validation is taking longer than expected.</strong> This is not normal, but we are on it!
+                        </text>
+                    )
+                }
+            }
+
+            @if (Model.FailedValidation)
+            {
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>Package publishing failed.</strong> This package could not be published due to the following reason(s):
+                        <ul class="failed-validation-alert-list">
+                            @foreach (var issue in Model.PackageValidationIssues)
+                            {
+                                <li>@Html.Partial("_ValidationIssue", issue)</li>
+                            }
+                        </ul>
+                        @if (!Model.PackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                        {
+                            var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
+                            <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
+                        }
+                        else
+                        {
+                            <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
+                        }
+                    </text>)
+            }
+
+            @if (Model.Deleted)
+            {
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                        for install/restore.
+                    </text>
+                )
+            }
+
+            @if (Model.IsPackageVulnerabilitiesEnabled && Model.Vulnerabilities != null)
+            {
+                @Html.Partial("_DisplayPackageVulnerabilities")
+            }
+
+            @if (Model.IsPackageDeprecationEnabled && Model.DeprecationStatus != PackageDeprecationStatus.NotDeprecated)
+            {
+                @Html.Partial("_DisplayPackageDeprecation")
+            }
+
+            @if (Model.IsPackageRenamesEnabled && Model.PackageRenames != null && Model.PackageRenames.Count != 0)
+            {
+                @Html.Partial("_DisplayPackageRenames")
+            }
+
+            @if (Model.Prerelease)
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        This is a prerelease version of @(Model.Id).
+                    </text>
+                )
+            }
+            @if (Model.NuGetVersion.HasMetadata)
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
+                    </text>
+                )
+            }
+            @if (Model.VersionRequestedWasNotFound)
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        The specified version @Model.VersionRequested was not found. You have been taken to version @(Model.Version).
+                    </text>
+                )
+            }
+            @if (Model.HasNewerRelease)
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        There is a newer version of this package available.
+                        <br /> See the version list below for details.
+                    </text>
+                )
+            }
+            else if (Model.HasNewerPrerelease)
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        There is a newer prerelease version of this package available.
+                        <br /> See the version list below for details.
+                    </text>
+                )
+            }
+
+            @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        <strong>This package has not been indexed yet.</strong> It will appear in search results
+                        and will be available for install/restore after indexing is complete.
+                    </text>
+                )
+            }
+
+            @if (Model.HasEmbeddedIcon && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && (Model.Available || Model.Validating))
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        The package icon will become available after this package is indexed.
+                    </text>
+                )
+            }
+
+            @if (Model.CanDisplayPrivateMetadata && showSymbolsPackageStatus)
+            {
+                if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.Validating)
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            <strong>The symbols for this package have not been indexed yet.</strong> They are not available
+                            for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
+                            Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
+
+                        @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                        </text>
+                    )
+                }
+                else if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
+                {
+                    @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
+                        <ul class="failed-validation-alert-list">
+                            @foreach (var issue in Model.SymbolsPackageValidationIssues)
+                            {
+                                <li>@Html.Partial("_ValidationIssue", issue)</li>
+                            }
+                        </ul>
+                        @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                        {
+                            var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
+                            <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
+                        }
+                        else
+                        {
+                            <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
+                        }
+
+                        @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                    </text>)
+                }
+            }
+
+            @if (!Model.Listed && Model.Available)
+            {
+                if (Model.CanDisplayPrivateMetadata)
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            This package is unlisted and hidden from package listings.
+                            You can see the package because you are one of its owners. To list the package again,
+                            <a href="@Url.ManagePackage(Model)">change its listing setting</a>.
+                        </text>
+                    )
+                }
+                else
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            The owner has unlisted this package.
+                            This could mean that the package is deprecated, has security vulnerabilities or shouldn't be used anymore.
+                        </text>
+                    )
+                }
+            }
+
+            @if (!Model.Deleted && !String.IsNullOrEmpty(Model.MinClientVersion))
+            {
+                <p>Requires NuGet @Model.MinClientVersion or higher.</p>
+            }
+
+            @if (Model.Available)
+            {
+                <div class="install-tabs">
+                    <ul class="nav nav-tabs" role="tablist">
+                        @{ var firstPackageManager = true; }
+                        @foreach (var packageManager in packageManagers)
+                        {
+                            @CommandTab(packageManager, active: firstPackageManager)
+
+                            firstPackageManager = false;
+                        }
+                    </ul>
+                    <div class="tab-content">
+                        @{ firstPackageManager = true; }
+                        @foreach (var packageManager in packageManagers)
+                        {
+                            @CommandPanel(packageManager, active: firstPackageManager)
+
+                            firstPackageManager = false;
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (!Model.Deleted)
+            {
+                if (Model.ReadMeHtml != null)
+                {
+                    <div id="readme-collapser-container">
+                        <h2>
+                            <a href="#" role="button" data-toggle="collapse" data-target="#readme-container"
+                               aria-expanded="true" aria-controls="readme-container" id="show-readme-container">
+                                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                                <span>Readme</span>
+                            </a>
+                        </h2>
+                    </div>
+                    <div id="readme-container" class="collapse in">
+                        @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
+                        {
+                            @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
+                        }
+
+                        @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                        {
+                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>);
+                        }
+                        <div id="readme-less" class="collapse in">
+                            @Html.Raw(Model.ReadMeHtml)
+                        </div>
+                        <div id="readme-more" class="collapse">
+                            @Html.Raw(Model.ReadMeHtml)
+                        </div>
+
+                        <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#readme-more"
+                           aria-expanded="false" aria-controls="#readme-more, #readme-less"
+                           id="show-readme-more" data-track="show-package-documentation">
+                            <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
+                            <span>Show more</span>
+                        </a>
+                    </div>
+                }
+
+                if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
+                {
+                    <h2>Release Notes</h2>
+
+                    <p>@Html.PreFormattedText(Model.ReleaseNotes, Config)</p>
+                }
+
+                if (Model.Dependencies.DependencySets == null)
+                {
+                    if (Model.CanDisplayPrivateMetadata)
+                    {
+                        <h2>Dependencies</h2>
+                        <p>
+                            An error occurred processing dependencies.
+                            Your package can still be downloaded and installed, but dependencies cannot be shown.
+                            Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have any questions.
+                        </p>
+                        <p>
+                            <strong>Note: This message is only visible to you and any other package owners.</strong>
+                        </p>
+                    }
+                }
+                else
+                {
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#dependency-groups"
+                           aria-expanded="@(Model.Dependencies.DependencySets.Any() ? "false" : "true")" aria-controls="dependency-groups"
+                           id="show-dependency-groups">
+                            <i class="ms-Icon ms-Icon--@(Model.Dependencies.DependencySets.Any() ? "ChevronRight" : "ChevronDown")"
+                               aria-hidden="true"></i>
+                            <span>Dependencies</span>
+                        </a>
+                    </h2>
+
+                    if (Model.Dependencies.DependencySets.Any())
+                    {
+                        <ul class="list-unstyled panel-collapse collapse dependency-groups" id="dependency-groups">
+                            @foreach (var dependencySet in Model.Dependencies.DependencySets)
+                            {
+                                var dependencySetTitle = dependencySet.Key;
+                                <li>
+                                    @if (!Model.Dependencies.OnlyHasAllFrameworks)
+                                    {
+                                        <h4><span>@dependencySetTitle</span></h4>
+                                    }
+                                    <ul class="list-unstyled dependency-group">
+                                        @foreach (var dependency in dependencySet.Value)
+                                        {
+                                            <li>
+                                                @if (dependency == null)
+                                                {
+                                                    @:No dependencies.
+                                                }
+                                                else
+                                                {
+                                                    <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                                                    <span>@dependency.VersionSpec</span>
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="collapse in" id="dependency-groups">This package has no dependencies.</p>
+                    }
+                }
+            }
+
+            @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
+            {
+                <h2>
+                    <a href="#" role="button" data-toggle="collapse" data-target="#used-by"
+                       aria-expanded="false" aria-controls="used-by" id="show-used-by">
+                        <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
+                        <span>Used By</span>
+                    </a>
+                </h2>
+
+                <div class="used-by panel-collapse collapse" id="used-by">
+                    @if (Model.IsPackageDependentsEnabled)
+                    {
+                        if (Model.PackageDependents.TotalPackageCount > 0)
+                        {
+                            <h3>
+                                <strong>NuGet packages </strong> (@Model.PackageDependents.TotalPackageCount.ToKiloFormat())
+                            </h3>
+                            <p>
+                                Showing the top @(Model.PackageDependents.TopPackages.Count) NuGet packages that depend on @(Model.Id):
+                            </p>
+                            <table class="table borderless">
+                                <thead>
+                                    <tr>
+                                        <th class="used-by-adjust-table-head">Package</th>
+                                        <th class="used-by-adjust-table-head">Downloads</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="no-border">
+                                    @foreach (var item in Model.PackageDependents.TopPackages)
+                                    {
+                                        <tr>
+                                            <td class="used-by-desc-column">
+                                                <a class="text-left ngp-link" href="@Url.Package(item.Id)">
+                                                    @(item.Id)
+                                                </a>
+                                                @if (item.IsVerified)
+                                                {
+                                                    <img class="reserved-indicator"
+                                                         src="~/Content/gallery/img/reserved-indicator.svg"
+                                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
+                                                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                                }
+                                                <div class="row used-by-desc">
+                                                    <span>@(item.Description)</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <h3>
+                                <strong>NuGet packages</strong>
+                            </h3>
+                            <p>
+                                This package is not used by any NuGet packages.
+                            </p>
+                        }
+                    }
+
+                    @if (Model.IsGitHubUsageEnabled)
+                    {
+                        if (Model.GitHubDependenciesInformation.Repos.Any())
+                        {
+                            <h3>
+                                <strong>GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())
+                            </h3>
+                            <p>
+                                Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) popular GitHub repositories that depend on @(Model.Id):
+                            </p>
+                            <table class="table borderless">
+                                <thead>
+                                    <tr>
+                                        <th class="used-by-adjust-table-head">Repository</th>
+                                        <th class="used-by-adjust-table-head">Stars</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="no-border">
+                                    @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
+                                    {
+                                        <tr>
+                                            <td class="used-by-desc-column">
+                                                <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
+                                                    @(item.Value.Id)
+                                                </a>
+                                                <div class="row used-by-desc">
+                                                    <span>@(item.Value.Description)</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+
+                        else
+                        {
+                            <h3>
+                                <strong>GitHub repositories</strong>
+                            </h3>
+                            <p>
+                                This package is not used by any popular GitHub repositories.
+                            </p>
+                        }
+                    }
+                </div>
+            }
+
+            <h2>
+                <a href="#" role="button" data-toggle="collapse" data-target="#version-history"
+                   aria-expanded="true" aria-controls="version-history" id="show-version-history">
+                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                    <span>Version History</span>
+                </a>
+            </h2>
+            <div class="version-history panel-collapse collapse in" aria-expanded="true" id="version-history">
+                <table aria-label="Version History of @Model.Id" class="table borderless">
+                    <thead>
+                        <tr>
+                            <th scope="col">Version</th>
+                            <th scope="col">Downloads</th>
+                            <th scope="col">Last updated</th>
+                            @if (Model.CanDisplayPrivateMetadata)
+                            {
+                                <th scope="col">Status</th>
+                            }
+                            @if (Model.IsCertificatesUIEnabled)
+                            {
+                                <th scope="col" aria-hidden="true" abbr="Signature Information"></th>
+                            }
+                            @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
+                            {
+                                <th scope="col" aria-hidden="true" abbr="Package Warnings"></th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="no-border">
+                        @{
+                            var rowCount = 0;
+                            var versionsExpanded = Model
+                                .PackageVersions
+                                .Skip(GalleryConstants.VisibleVersions)
+                                .Any(v => v.IsCurrent(Model));
+                        }
+                        @foreach (var packageVersion in Model.PackageVersions)
+                        {
+                            if ((packageVersion.Available && packageVersion.Listed)
+                                || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
+                            {
+                                rowCount++;
+                                @VersionListDivider(rowCount, versionsExpanded)
+                                <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
+                                    <td tabindex="0">
+                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
+                                            @packageVersion.Version.Abbreviate(30)
+                                        </a>
+                                    </td>
+                                    <td tabindex="0">
+                                        @packageVersion.DownloadCount.ToNuGetNumberString()
+                                    </td>
+                                    <td tabindex="0">
+                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
+                                        @if (packageVersion.PushedBy != null)
+                                        {
+                                            <text>
+                                                by <span title="@packageVersion.PushedBy">@packageVersion.PushedBy.Abbreviate(15)</span>
+                                            </text>
+                                        }
+                                    </td>
+                                    @if (packageVersion.CanDisplayPrivateMetadata)
+                                    {
+                                        var packageStatusSummary = packageVersion.PackageStatusSummary;
+
+                                        <td tabindex="0">
+                                            @if (packageStatusSummary == PackageStatusSummary.Listed ||
+                                                 packageStatusSummary == PackageStatusSummary.Unlisted)
+                                            {
+                                                <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
+                                            }
+                                            else
+                                            {
+                                                @NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)
+                                            }
+                                        </td>
+                                    }
+
+                                    @if (Model.IsCertificatesUIEnabled)
+                                    {
+                                        if (string.IsNullOrEmpty(packageVersion.SignatureInformation))
+                                        {
+                                            <td class="package-icon-cell" aria-hidden="true"></td>
+                                        }
+                                        else
+                                        {
+                                            <td tabindex="0" class="package-icon-cell">
+                                                    <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
+                                            </td>
+                                        }
+                                    }
+
+                                    @if (string.IsNullOrEmpty(packageVersion.PackageWarningIconTitle))
+                                    {
+                                        <td class="package-icon-cell" aria-hidden="true"></td>
+                                    }
+                                    else
+                                    {
+                                        <td tabindex="0" class="package-icon-cell">
+                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                            else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
+                            {
+                                rowCount++;
+                                @VersionListDivider(rowCount, versionsExpanded)
+                                <tr class="deleted">
+                                    <td tabindex="0" class="version">
+                                        @packageVersion.Version
+                                    </td>
+                                    <td tabindex="0">
+                                        @packageVersion.DownloadCount
+                                    </td>
+                                    <td tabindex="0">
+                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
+                                    </td>
+                                    <td tabindex="0">
+                                        Deleted
+                                    </td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+                @if (rowCount > GalleryConstants.VisibleVersions)
+                {
+                    <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
+                       aria-expanded="@(versionsExpanded ? "true" : "false")" aria-controls="hidden-versions" id="show-hidden-versions">
+                        <i class="ms-Icon ms-Icon--Calculator@(versionsExpanded ? "Subtract" : "Addition")" aria-hidden="true"></i>
+                        <span>@(versionsExpanded ? "Show less" : "Show more")</span>
+                    </a>
+                }
+            </div>
+        </article>
+        <aside aria-label="Package details info" class="col-sm-3 package-details-info">
+            <h2>Info</h2>
+            <ul class="list-unstyled ms-Icon-ul">
+                <li>
+                    <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
+                    last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
+                </li>
+                @if (!Model.Deleted && Model.ProjectUrl != null)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
+                        <a href="@Model.ProjectUrl" data-track="outbound-project-url" title="Visit the project site to learn more about this package" rel="nofollow">
+                            @if (Model.ProjectUrl.Length <= 28)
+                            {
+                                @Model.ProjectUrl
+                            }
+                            else
+                            {
+                                @:Project Site
+                            }
+                        </a>
+                    </li>
+                }
+                @if (!Model.Deleted && Model.RepositoryUrl != null)
+                {
+                    <li>
+                        @switch (Model.RepositoryType)
+                        {
+                            case DisplayPackageViewModel.RepositoryKind.GitHub:
+                            case DisplayPackageViewModel.RepositoryKind.Git:
+                                <img class="icon" aria-hidden="true" alt="Git logo"
+                                     src="@Url.Absolute("~/Content/gallery/img/git.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />
+                                break;
+                            default:
+                                <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                                break;
+                        }
+
+                        <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
+                            Source repository
+                        </a>
+                    </li>
+                }
+                @if (!Model.Deleted && Model.LicenseUrl != null)
+                {
+                    if (Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent || !Model.Validating)
+                    {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
+                        @if (Model.LicenseExpressionSegments.AnySafe())
+                        {
+                            @:License:
+                            foreach (var segment in Model.LicenseExpressionSegments)
+                            {
+                                if (@ViewHelpers.IsLicenseOrException(segment))
+                                {
+                                    @MakeLicenseLink(segment);
+                                }
+                                else
+                                {
+                                    @MakeLicenseSpan(segment);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <a href="@Model.LicenseUrl"
+                               data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                @if (Model.LicenseNames.AnySafe())
+                                {
+                                    @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
+                                }
+                                else
+                                {
+                                    @:License Info
+                                }
+                            </a>
+                        }
+                    </li>
+                    }
+                }
+                <li>
+                    <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
+                    <a href="@Url.ContactOwners(Model)" title="Ask the package owners a question">Contact owners</a>
+                </li>
+                @if (Model.CanReportAsOwner)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
+                        <a href="@Url.ReportPackage(Model)" title="Contact the NuGet team for help with your package">
+                            Contact support
+                        </a>
+                    </li>
+                }
+                else if (Model.Available)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
+                        <a href="@Url.ReportAbuse(Model)" title="Report the package as abusive">
+                            Report
+                        </a>
+                    </li>
+                }
+
+                @if (Model.Available)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
+                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download package</a>
+                        &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
+                    </li>
+                    if (hasSymbolsPackageAvailable)
+                    {
+                        <li>
+                            <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
+                            <a href="@Url.SymbolPackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw snupkg file." rel="nofollow">Download symbols</a>
+                            &nbsp;(@Model.LatestSymbolsPackage.FileSize.ToUserFriendlyBytesLabel())
+                        </li>
+                    }
+                    <li class="no-clickonce">
+                        <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
+                        <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
+                    </li>
+                }
+
+                @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                        <a href="@Url.ManagePackage(Model)">Manage package</a>
+                    </li>
+                }
+                @if (!Model.Deleted && hasSymbolsPackageAvailable && Model.CanDeleteSymbolsPackage)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                        <a href="@Url.DeleteSymbolsPackage(Model)" class="delete">Delete symbols</a>
+                    </li>
+                }
+
+                @if (Model.Available && User.IsAdministrator())
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                        @ViewHelpers.PostLink(
+                            this,
+                            formId: "reflow-package-form",
+                            linkText: "Reflow package",
+                            actionName: "Reflow",
+                            controllerName: "Packages",
+                            role: "button",
+                            formValues: new Dictionary<string, string>
+                            {
+                                { "id", Model.Id },
+                                { "version", Model.Version },
+                            })
+                    </li>
+                }
+
+                @if (!Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                        @ViewHelpers.PostLink(
+                            this,
+                            formId: "revalidate-package-form",
+                            linkText: "Revalidate package",
+                            actionName: "Revalidate",
+                            controllerName: "Packages",
+                            role: string.Empty,
+                            formValues: new Dictionary<string, string>
+                            {
+                                { "id", Model.Id },
+                                { "version", Model.Version },
+                            })
+                    </li>
+
+                    if (Model.LatestSymbolsPackage != null)
+                    {
+                        <li>
+                            <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                            @ViewHelpers.PostLink(
+                                this,
+                                formId: "revalidate-symbols-form",
+                                linkText: "Revalidate symbols",
+                                actionName: "RevalidateSymbols",
+                                controllerName: "Packages",
+                                role: string.Empty,
+                                formValues: new Dictionary<string, string>
+                                {
+                                    { "id", Model.Id },
+                                    { "version", Model.Version },
+                                })
+                        </li>
+                    }
+                }
+
+                @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Health" aria-hidden="true"></i>
+                        <a href="@Url.ViewValidations(Model)">View validations</a>
+                    </li>
+                }
+
+                @if (Model.IsFuGetLinksEnabled && !string.IsNullOrEmpty(Model.FuGetUrl))
+                {
+                    var disclaimer = "fuget.org is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
+
+                    <li>
+                        <img class="icon"
+                             aria-label="@disclaimer" title="@disclaimer"
+                             src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
+                        <a href="@Model.FuGetUrl" data-track="outbound-repository-url"
+                           aria-label="open in fuget.org explorer"
+                           title="Explore additional package info on fuget.org" rel="nofollow">
+                            Open in FuGet Package Explorer
+                        </a>
+                    </li>
+                }
+                </ul>
+            @if (Model.LicenseNames.AnySafe())
+            {
+                <p>License info provided by <a href="http://sonatype.com/">Sonatype</a>.</p>
+            }
+
+            <h2>Statistics</h2>
+            <ul class="list-unstyled ms-Icon-ul">
+                <li>
+                    <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
+                    @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                </li>
+                <li>
+                    <i class="ms-Icon ms-Icon--Giftbox" aria-hidden="true"></i>
+                    @Model.DownloadCount.ToNuGetNumberString() @(Model.DownloadCount == 1 ? "download" : "downloads")
+                    of current version
+                </li>
+                <li>
+                    <i class="ms-Icon ms-Icon--Financial" aria-hidden="true"></i>
+                    @Model.DownloadsPerDayLabel @(Model.DownloadsPerDayLabel == "1" || Model.DownloadsPerDayLabel == "<1" ? "download" : "downloads")
+                    per day (avg)
+                </li>
+            </ul>
+            @if (StatisticsHelper.IsStatisticsPageAvailable)
+            {
+                <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">View full stats</a>
+            }
+
+            <h2>Owners</h2>
+            <ul class="list-unstyled owner-list">
+                @if (!Model.Owners.Any())
+                {
+                    @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
+                }
+                else
+                {
+                    foreach (var owner in Model.Owners)
+                    {
+                        <li>
+                            @if (!String.IsNullOrEmpty(owner.EmailAddress))
+                            {
+                                <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                    @ViewHelpers.GravatarImage(
+                                        Url,
+                                        owner.EmailAddress,
+                                        owner.Username,
+                                        GalleryConstants.GravatarElementSize)
+                                </a>
+                            }
+                            <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                @owner.Username
+                            </a>
+                        </li>
+                    }
+                }
+            </ul>
+
+            @if (!Model.Deleted)
+            {
+                if (!String.IsNullOrEmpty(Model.Authors))
+                {
+                    <h2>Authors</h2>
+                    <p>@Model.Authors</p>
+                }
+
+                if (!String.IsNullOrEmpty(Model.Copyright))
+                {
+                    <h2>Copyright</h2>
+                    <p>@Model.Copyright</p>
+                }
+
+                if (Model.Tags.AnySafe())
+                {
+                    <h2>Tags</h2>
+                    <p>
+                        @foreach (var tag in Model.Tags)
+                        {
+                            <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
+                        }
+                    </p>
+                }
+            }
+
+            @if (Model.Available)
+            {
+                <h2>Share</h2>
+                var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
+                <p class="share-buttons">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank">
+                        <img width="24" height="24" alt="Share this package on Facebook"
+                             src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank">
+                        <img width="24" height="24" alt="Tweet this package"
+                             src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
+                    </a>
+                    @if (Model.IsAtomFeedEnabled)
+                    {
+                        <a href="@Url.PackageAtomFeed(Model.Id)" data-track="atom-feed">
+                            <img width="24" height="24" alt="Use the Atom feed to subscribe to new versions of @Model.Id"
+                                 src="@Url.Absolute("~/Content/gallery/img/rss.svg")"
+                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/rss-24x24.png")) />
+                        </a>
+                    }
+                </p>
+            }
+        </aside>
+    </div>
+</section>
+
+
+
+@section BottomScripts {
+    @{
+        var packageManagersCss = string.Empty;
+
+        foreach (var packageManager in packageManagers)
+        {
+            if (string.IsNullOrWhiteSpace(packageManager.CommandPrefix))
+            {
+                continue;
+            }
+
+            packageManagersCss += "#" + packageManager.Id + " .install-command-row::before {";
+            packageManagersCss += "    content: \"" + packageManager.CommandPrefix + "\"";
+            packageManagersCss += "}";
+        }
+    }
+
+    <style type="text/css">
+        @Html.Raw(packageManagersCss)
+    </style>
+
+    <script type="text/javascript">
+        var packageId = @Html.ToJson(Model.Id);
+        var packageVersion = @Html.ToJson(Model.Version);
+        var packageManagers = @Html.ToJson(packageManagers.Select(pm => pm.Id).ToList());
+    </script>
+
+    @Scripts.Render("~/Scripts/gallery/page-display-package-v2.min.js")
+}
