@@ -410,5 +410,11 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="duration">Refresh duration for vulnerabilities cache</param>
         void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration);
+
+        /// <summary>
+        /// Tracks the current process uptime.
+        /// </summary>
+        /// <param name="uptime">The uptime to report.</param>
+        void TrackInstanceUptime(TimeSpan uptime);
     }
 }

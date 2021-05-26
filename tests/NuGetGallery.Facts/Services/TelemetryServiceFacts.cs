@@ -347,6 +347,10 @@ namespace NuGetGallery
                     yield return new object[] { "VulnerabilitiesCacheRefreshDurationMs",
                         (TrackAction)(s => s.TrackVulnerabilitiesCacheRefreshDuration(TimeSpan.FromMilliseconds(0)))
                     };
+
+                    yield return new object[] { "InstanceUptimeInDays",
+                        (TrackAction)(s => s.TrackInstanceUptime(TimeSpan.FromSeconds(1)))
+                    };
                 }
             }
 

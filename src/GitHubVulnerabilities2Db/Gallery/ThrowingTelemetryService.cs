@@ -86,6 +86,11 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
+        public void TrackInstanceUptime(TimeSpan uptime)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackInvalidLicenseMetadata(string licenseValue)
         {
             throw new NotImplementedException();
