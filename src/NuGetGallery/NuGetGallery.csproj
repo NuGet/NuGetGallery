@@ -1865,6 +1865,7 @@
     <Content Include="Views\Authentication\Register.cshtml" />
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
+    <Content Include="Views\Packages\DisplayPackageV2.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
@@ -1896,6 +1897,8 @@
     <Content Include="Views\Api\HealthProbeApi.cshtml" />
     <Content Include="Views\Pages\_Enable2FA.cshtml" />
     <Content Include="Views\Pages\SimulateError.cshtml" />
+    <Content Include="Views\Packages\_DisplayPackageRenames.cshtml" />
+    <Content Include="Views\Packages\_DisplayPackageVulnerabilities.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -2307,19 +2310,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\Packages\_DisplayPackageRenames.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="App_Data\Files\Content\Cache-Configuration.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\Files\Content\Query-Hint-Configuration.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\_DisplayPackageVulnerabilities.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\DisplayPackageV2.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

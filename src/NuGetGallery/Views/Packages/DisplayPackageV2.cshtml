@@ -42,7 +42,7 @@
                 Id = "dotnet-cli-local",
                 CommandPrefix = "> ",
                 InstallPackageCommands = new []
-        {
+                {
                     "dotnet new tool-manifest # if you are setting up this repo",
                     string.Format("dotnet tool install --local {0} --version {1}", Model.Id, Model.Version),
                 },
@@ -62,7 +62,7 @@
                 CommandPrefix = "> ",
                 InstallPackageCommands = new [] { string.Format("nuke :add-package {0} --version {1}", Model.Id, Model.Version) },
             },
-                };
+        };
     }
     else if (Model.IsDotnetNewTemplatePackageType)
     {
@@ -76,7 +76,7 @@
                 AlertLevel = AlertLevel.Info,
                 AlertMessage = "This package contains a <a href='https://aka.ms/dotnet-new'>.NET Core Template Package</a> you can call from the shell/command line.",
             }
-                };
+        };
     }
     else
     {
@@ -133,7 +133,7 @@
                 Id = Model.IsCakeExtension() ? "cake-extension" : "cake",
                 InstallPackageCommands = new [] { Model.GetCakeInstallPackageCommand() },
             },
-                };
+        };
     }
 }
 
@@ -164,7 +164,7 @@
     if (rowCount == GalleryConstants.VisibleVersions + 1)
     {
         @:</tbody><tbody class="no-border collapse @(versionsExpanded ? "in" : string.Empty)" id="hidden-versions">
-        }
+    }
 }
 
 @helper CommandTab(PackageManagerViewModel packageManager, bool active)
@@ -194,7 +194,7 @@
                 <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
                 <div class="copy-button">
                     <!--In order to statisfy the requirement to announce button status both on NVDA/Narrator, other screen reader like NVDA will
-                        announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover
+                        announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover 
                         because of known issue(https://github.com/twbs/bootstrap/issues/18618).
                         We add aria-pressed to indicate the whether button is pressed or not, which is workaround only for Narrator announce the status change of button
                     -->
@@ -209,17 +209,17 @@
 
         @switch (packageManager.AlertLevel)
         {
-            case AlertLevel.Info:
+            case AlertLevel.Info: 
                 @ViewHelpers.AlertInfo(
-                        @<text>
-                            @Html.Raw(packageManager.AlertMessage)
-                        </text>);
+                    @<text>
+                        @Html.Raw(packageManager.AlertMessage)
+                    </text>);
                 break;
             case AlertLevel.Warning:
                 @ViewHelpers.AlertWarning(
-                        @<text>
-                            @Html.Raw(packageManager.AlertMessage)
-                        </text>);
+                    @<text>
+                        @Html.Raw(packageManager.AlertMessage)
+                    </text>);
                 break;
             default:
                 break;
@@ -229,25 +229,17 @@
 
 @helper AppendAvailableSymbolsMessage(bool hasSymbolsPackageAvailable)
 {
-    if (hasSymbolsPackageAvailable)
+    if(hasSymbolsPackageAvailable)
     {
-        <br />
-        <br />
-        <text>
-            <b>Please note:</b> The last successfully published symbols package is still available for debugging and download.</text>
+        <br /><br />
+        <text><b>Please note:</b> The last successfully published symbols package is still available for debugging and download.</text>
     }
 }
 
 @* The following two helpers must be on a single line each so no extra whitespace is introduced in the expression when rendered. *@
 @* Helpers themselves are needed not to introduce that extra whitespce, which happens if they are inlined. *@
-@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment)
-{
-    <a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)" aria-label="License @segment.Value">@segment.Value</a>
-}
-@helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment)
-{
-    <span>@segment.Value</span>
-}
+@helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)" aria-label="License @segment.Value">@segment.Value</a>}
+@helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment) {<span>@segment.Value</span>}
 
 <section role="main" class="container main-container page-package-details-v2">
     <div class="row">
@@ -283,62 +275,62 @@
             @if (Model.Validating)
             {
                 @ViewHelpers.AlertWarning(
-                        @<text>
-                            <strong>This package has not been published yet.</strong> It will appear in search results and
-                            will be available for install/restore after both validation and indexing are complete. Package
-                            validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
-                        </text>
-)
+                    @<text>
+                        <strong>This package has not been published yet.</strong> It will appear in search results and
+                        will be available for install/restore after both validation and indexing are complete. Package
+                        validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
+                    </text>
+                )
                 if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
                     @ViewHelpers.AlertWarning(
-                            @<text>
-                                The license link will become available once package validation has completed successfully.
-                            </text>
-)
+                        @<text>
+                            The license link will become available once package validation has completed successfully.
+                        </text>
+                    )
                 }
 
                 if (Model.ValidatingTooLong)
                 {
                     @ViewHelpers.AlertWarning(
-                            @<text>
-                                <strong>Package validation is taking longer than expected.</strong> This is not normal, but we are on it!
-                            </text>
-)
+                        @<text>
+                            <strong>Package validation is taking longer than expected.</strong> This is not normal, but we are on it!
+                        </text>
+                    )
                 }
             }
 
             @if (Model.FailedValidation)
             {
                 @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>Package publishing failed.</strong> This package could not be published due to the following reason(s):
-                            <ul class="failed-validation-alert-list">
-                                @foreach (var issue in Model.PackageValidationIssues)
-                                     {
-                                    <li>@Html.Partial("_ValidationIssue", issue)</li>
-                                     }
-                            </ul>
-                            @if (!Model.PackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
-                                 {
-                                     var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
-                                <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
-                                 }
-                                 else
-                                 {
-                                <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
-                                 }
-                        </text>)
+                    @<text>
+                        <strong>Package publishing failed.</strong> This package could not be published due to the following reason(s):
+                        <ul class="failed-validation-alert-list">
+                            @foreach (var issue in Model.PackageValidationIssues)
+                            {
+                                <li>@Html.Partial("_ValidationIssue", issue)</li>
+                            }
+                        </ul>
+                        @if (!Model.PackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                        {
+                            var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
+                            <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
+                        }
+                        else
+                        {
+                            <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
+                        }
+                    </text>)
             }
 
             @if (Model.Deleted)
             {
                 @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>This package has been deleted from the gallery.</strong> It is no longer available
-                            for install/restore.
-                        </text>
-)
+                    @<text>
+                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                        for install/restore.
+                    </text>
+                )
             }
 
             @if (Model.IsPackageVulnerabilitiesEnabled && Model.Vulnerabilities != null)
@@ -359,63 +351,63 @@
             @if (Model.Prerelease)
             {
                 @ViewHelpers.AlertInfo(
-                        @<text>
-                            This is a prerelease version of @(Model.Id).
-                        </text>
-)
+                    @<text>
+                        This is a prerelease version of @(Model.Id).
+                    </text>
+                )
             }
             @if (Model.NuGetVersion.HasMetadata)
             {
                 @ViewHelpers.AlertInfo(
-                        @<text>
-                            This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
-                        </text>
-)
+                    @<text>
+                        This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
+                    </text>
+                )
             }
             @if (Model.VersionRequestedWasNotFound)
             {
                 @ViewHelpers.AlertWarning(
-                        @<text>
-                            The specified version @Model.VersionRequested was not found. You have been taken to version @(Model.Version).
-                        </text>
-)
+                    @<text>
+                        The specified version @Model.VersionRequested was not found. You have been taken to version @(Model.Version).
+                    </text>
+                )
             }
             @if (Model.HasNewerRelease)
             {
                 @ViewHelpers.AlertInfo(
-                        @<text>
-                            There is a newer version of this package available.
-                            <br /> See the version list below for details.
-                        </text>
-)
+                    @<text>
+                        There is a newer version of this package available.
+                        <br /> See the version list below for details.
+                    </text>
+                )
             }
             else if (Model.HasNewerPrerelease)
             {
                 @ViewHelpers.AlertInfo(
-                        @<text>
-                            There is a newer prerelease version of this package available.
-                            <br /> See the version list below for details.
-                        </text>
-)
+                    @<text>
+                        There is a newer prerelease version of this package available.
+                        <br /> See the version list below for details.
+                    </text>
+                )
             }
 
             @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
             {
                 @ViewHelpers.AlertWarning(
-                        @<text>
-                            <strong>This package has not been indexed yet.</strong> It will appear in search results
-                            and will be available for install/restore after indexing is complete.
-                        </text>
-)
+                    @<text>
+                        <strong>This package has not been indexed yet.</strong> It will appear in search results
+                        and will be available for install/restore after indexing is complete.
+                    </text>
+                )
             }
 
             @if (Model.HasEmbeddedIcon && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && (Model.Available || Model.Validating))
             {
                 @ViewHelpers.AlertWarning(
-                        @<text>
-                            The package icon will become available after this package is indexed.
-                        </text>
-)
+                    @<text>
+                        The package icon will become available after this package is indexed.
+                    </text>
+                )
             }
 
             @if (Model.CanDisplayPrivateMetadata && showSymbolsPackageStatus)
@@ -423,38 +415,38 @@
                 if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.Validating)
                 {
                     @ViewHelpers.AlertWarning(
-                            @<text>
-                                <strong>The symbols for this package have not been indexed yet.</strong> They are not available
-                                for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
-                                Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
+                        @<text>
+                            <strong>The symbols for this package have not been indexed yet.</strong> They are not available
+                            for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
+                            Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
 
-                                @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
-                            </text>
-)
+                        @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                        </text>
+                    )
                 }
                 else if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
                 {
                     @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
-                            <ul class="failed-validation-alert-list">
-                                @foreach (var issue in Model.SymbolsPackageValidationIssues)
-                                     {
-                                    <li>@Html.Partial("_ValidationIssue", issue)</li>
-                                     }
-                            </ul>
-                            @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
-                                 {
-                                     var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
-                                <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
-                                 }
-                                 else
-                                 {
-                                <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
-                                 }
+                    @<text>
+                        <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
+                        <ul class="failed-validation-alert-list">
+                            @foreach (var issue in Model.SymbolsPackageValidationIssues)
+                            {
+                                <li>@Html.Partial("_ValidationIssue", issue)</li>
+                            }
+                        </ul>
+                        @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                        {
+                            var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
+                            <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
+                        }
+                        else
+                        {
+                            <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
+                        }
 
-                            @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
-                        </text>)
+                        @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                    </text>)
                 }
             }
 
@@ -463,21 +455,21 @@
                 if (Model.CanDisplayPrivateMetadata)
                 {
                     @ViewHelpers.AlertWarning(
-                            @<text>
-                                This package is unlisted and hidden from package listings.
-                                You can see the package because you are one of its owners. To list the package again,
-                                <a href="@Url.ManagePackage(Model)">change its listing setting</a>.
-                            </text>
-)
+                        @<text>
+                            This package is unlisted and hidden from package listings.
+                            You can see the package because you are one of its owners. To list the package again,
+                            <a href="@Url.ManagePackage(Model)">change its listing setting</a>.
+                        </text>
+                    )
                 }
                 else
                 {
                     @ViewHelpers.AlertWarning(
-                            @<text>
-                                The owner has unlisted this package.
-                                This could mean that the package is deprecated, has security vulnerabilities or shouldn't be used anymore.
-                            </text>
-)
+                        @<text>
+                            The owner has unlisted this package.
+                            This could mean that the package is deprecated, has security vulnerabilities or shouldn't be used anymore.
+                        </text>
+                    )
                 }
             }
 
@@ -825,7 +817,7 @@
                                         else
                                         {
                                             <td tabindex="0" class="package-icon-cell">
-                                                <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
+                                                    <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
                                             </td>
                                         }
                                     }
@@ -923,38 +915,38 @@
                 {
                     if (Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent || !Model.Validating)
                     {
-                        <li>
-                            <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
-                            @if (Model.LicenseExpressionSegments.AnySafe())
+                    <li>
+                        <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
+                        @if (Model.LicenseExpressionSegments.AnySafe())
+                        {
+                            @:License:
+                            foreach (var segment in Model.LicenseExpressionSegments)
                             {
-                                @:License:
-                                foreach (var segment in Model.LicenseExpressionSegments)
+                                if (@ViewHelpers.IsLicenseOrException(segment))
                                 {
-                                    if (@ViewHelpers.IsLicenseOrException(segment))
-                                    {
-                                        @MakeLicenseLink(segment);
-                                    }
-                                    else
-                                    {
-                                        @MakeLicenseSpan(segment);
-                                    }
+                                    @MakeLicenseLink(segment);
+                                }
+                                else
+                                {
+                                    @MakeLicenseSpan(segment);
                                 }
                             }
-                            else
-                            {
-                                <a href="@Model.LicenseUrl"
-                                   data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
-                                    @if (Model.LicenseNames.AnySafe())
-                                    {
-                                        @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
-                                    }
-                                    else
-                                    {
-                                        @:License Info
-                                    }
-                                </a>
-                            }
-                        </li>
+                        }
+                        else
+                        {
+                            <a href="@Model.LicenseUrl"
+                               data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                @if (Model.LicenseNames.AnySafe())
+                                {
+                                    @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
+                                }
+                                else
+                                {
+                                    @:License Info
+                                }
+                            </a>
+                        }
+                    </li>
                     }
                 }
                 <li>
@@ -1097,7 +1089,7 @@
                         </a>
                     </li>
                 }
-            </ul>
+                </ul>
             @if (Model.LicenseNames.AnySafe())
             {
                 <p>License info provided by <a href="http://sonatype.com/">Sonatype</a>.</p>
