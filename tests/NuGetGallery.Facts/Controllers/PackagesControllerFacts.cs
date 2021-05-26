@@ -1167,6 +1167,57 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData(true, "DisplayPackageV2")]
+            [InlineData(false, "DisplayPackage")]
+            public async Task DisplayPackageV2(bool isDisplayV2Enabled, String expectedViewName)
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
+                var fileService = new Mock<IPackageFileService>();
+                var featureFlag = new Mock<IFeatureFlagService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    indexingService: indexingService,
+                    packageFileService: fileService,
+                    featureFlagService: featureFlag);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo",
+                        Owners = new List<User>()
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!",
+                };
+
+                var packages = new[] { package };
+                packageService.Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+                featureFlag
+                    .Setup(x => x.IsDisplayPackagePageV2Enabled(It.IsAny<User>()))
+                    .Returns(isDisplayV2Enabled);
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", version: null);
+
+                // Assert
+                ResultAssert.IsView<DisplayPackageViewModel>(result, expectedViewName);
+            }
+
+            [Theory]
             [InlineData(false)]
             [InlineData(true)]
             public async Task ShowsAtomFeedIfEnabled(bool isAtomFeedEnabled)
