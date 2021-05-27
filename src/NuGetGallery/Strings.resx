@@ -518,7 +518,7 @@ For more information, please contact '{2}'.</value>
     <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation.</value>
   </data>
   <data name="UploadPackage_IdNamespaceConflictHtml" xml:space="preserve">
-    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Click &lt;a href="https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation"&gt;here&lt;/a&gt; learn more about Package ID prefix reservation.</value>
+    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Click &lt;a href="https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation"&gt;here&lt;/a&gt; to learn more about Package ID prefix reservation.</value>
   </data>
   <data name="PreviewReadMe_ConversionFailed" xml:space="preserve">
     <value>Conversion of Markdown to HTML failed with '{0}'.</value>

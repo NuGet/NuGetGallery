@@ -2544,7 +2544,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Click &lt;a href=&quot;https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation&quot;&gt;here&lt;/a&gt; learn more about Package ID prefix reservation..
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Click &lt;a href=&quot;https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation&quot;&gt;here&lt;/a&gt; to learn more about Package ID prefix reservation..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflictHtml {
             get {
