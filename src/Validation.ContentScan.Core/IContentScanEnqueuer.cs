@@ -10,7 +10,7 @@ namespace NuGet.Jobs.Validation.ContentScan
     public interface IContentScanEnqueuer
     {
         /// <summary>
-        /// Enqueues Scan operation. The message delivery is going to be delayed by <see cref="ScanAndSignEnqueuerConfiguration.MessageDelay"/> setting.
+        /// Enqueues Scan operation. The message delivery is going to be delayed by <see cref="ContentScanEnqueuerConfiguration.MessageDelay"/> setting.
         /// </summary>
         /// <param name="validationStepId">Validation ID for which scan is requested.</param>
         /// <param name="contentUri">Url of the package to scan.</param>
@@ -23,5 +23,18 @@ namespace NuGet.Jobs.Validation.ContentScan
         /// <param name="contentUri">Url of the package to scan.</param>
         /// <param name="messageDeliveryDelayOverride">The message delivery delay.</param>
         Task EnqueueContentScanAsync(Guid validationStepId, Uri contentUri, TimeSpan messageDeliveryDelayOverride);
+
+        /// <summary>
+        /// Enqueues a message for checking status of in progress content scan. The message delivery is going to be delayed by <see cref="ContentScanEnqueuerConfiguration.MessageDelay"/> setting.
+        /// </summary>
+        /// <param name="validationStepId">Validation ID for which status check is requested.</param>
+        Task EnqueueContentScanStatusCheckAsync(Guid validationStepId);
+
+        /// <summary>
+        /// Enqueues a message for checking status of in progress content scan. The message delivery is going to be delayed by <paramref name="messageDeliveryDelayOverride"/>.
+        /// </summary>
+        /// <param name="validationStepId">Validation ID for which status check is requested.</param>
+        /// <param name="messageDeliveryDelayOverride">The message delivery delay.</param>
+        Task EnqueueContentScanStatusCheckAsync(Guid validationStepId, TimeSpan messageDeliveryDelayOverride);
     }
 }
