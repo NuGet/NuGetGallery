@@ -48,37 +48,7 @@
         });
     }
 
-    // Configure ReadMe container
-    var readmeContainer = $("#readme-container");
-    if (readmeContainer[0])
-    {
-        window.nuget.configureExpanderHeading("readme-container");
-
-        window.nuget.configureExpander(
-            "readme-more",
-            "CalculatorAddition",
-            "Show less",
-            "CalculatorSubtract",
-            "Show more");
-
-        var showLess = $("#readme-less");
-        $clamp(showLess[0], { clamp: 30, useNativeClamp: false });
-
-        $("#show-readme-more").click(function (e) {
-            showLess.collapse("toggle");
-            e.preventDefault();
-        });
-        showLess.on('hide.bs.collapse', function (e) {
-            e.stopPropagation();
-        });
-        showLess.on('show.bs.collapse', function (e) {
-            e.stopPropagation();
-        });
-    }
-
     // Configure expanders
-    window.nuget.configureExpanderHeading("dependency-groups");
-    window.nuget.configureExpanderHeading("used-by");
     window.nuget.configureExpanderHeading("version-history");
     window.nuget.configureExpander(
         "hidden-versions",
@@ -125,30 +95,37 @@
 
     var storage = window['localStorage'];
     if (storage) {
-        var key = 'preferred_tab';
+        var installationKey = 'preferred_tab';
 
         // Restore preferred tab selection from localStorage.
-        var preferredTab = storage.getItem(key);
-        if (preferredTab) {
-            $('#' + preferredTab).tab('show');
+        var preferredInstallationTab = storage.getItem(installationKey);
+        if (preferredInstallationTab) {
+            $('#' + preferredInstallationTab).tab('show');
         }
 
         // Make sure we save the user's preferred tab to localStorage.
         $('.package-manager-tab').on('shown.bs.tab', function (e) {
-            storage.setItem(key, e.target.id);
+            storage.setItem(installationKey, e.target.id);
+        });
+
+        // set perferred body tab 
+        var bodyKey = 'preferred_body_tab';
+
+        // Restore preferred tab selection from localStorage.
+        var preferredBodyTab = storage.getItem(bodyKey);
+        if (preferredBodyTab) {
+            $('#' + preferredBodyTab).tab('show');
+        }
+
+        // Make sure we save the user's preferred tab to localStorage.
+        $('.bodyTab').on('shown.bs.tab', function (e) {
+            console.log(e);
+            storage.setItem(bodyKey, e.target.id);
         });
     }
 
     if (window.nuget.isGaAvailable()) {
-        // Emit a Google Analytics event when the user expands or collapses the Dependencies section.
-        $("#dependency-groups").on('hide.bs.collapse show.bs.collapse', function (e) {
-            ga('send', 'event', 'dependencies', e.type);
-        });
-
-        // Emit a Google Analytics event when the user expands or collapses the Used By section.
-        $("#used-by").on('hide.bs.collapse show.bs.collapse', function (e) {
-            ga('send', 'event', 'used-by', e.type);
-        });
+        // TO-DO add telemetry events for when each tab is clicked
 
         // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Repos area of the Used By section.
         $(".gh-link").on('click', function (elem) {

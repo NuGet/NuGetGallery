@@ -1527,6 +1527,19 @@ img.reserved-indicator-icon {
   margin: 0;
   width: 100%;
 }
+.page-package-details-v2 .body-tabs .nav-tabs > li.active > a {
+  border-bottom-color: #0078D4;
+  border-bottom-width: 2px;
+  font-weight: bold;
+}
+.page-package-details-v2 .body-tabs .nav-tabs > li > a {
+  border-left: 0px;
+  border-right: 0px;
+  border-top: 0px;
+  font-size: 14px;
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #323130;
+}
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
