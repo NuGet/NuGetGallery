@@ -6553,7 +6553,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.Equal(Strings.UploadPackage_IdNamespaceConflictHtml, (result.Data as JsonValidationMessage[])[0].RawHtmlMessage);
-                Assert.Null((result.Data as JsonValidationMessage[])[0].RawHtmlMessage);
+                Assert.Null((result.Data as JsonValidationMessage[])[0].PlainTextMessage) ;
                 fakeTelemetryService.Verify(
                     x => x.TrackPackagePushNamespaceConflictEvent(
                         It.IsAny<string>(),
