@@ -869,176 +869,193 @@
                         }
                     </div>
                 </div>
-                <div class="col-sm-3">
-                    <aside aria-label="Package details info" class="package-details-info">
-                        <h2>Info</h2>
-                        <ul class="list-unstyled ms-Icon-ul">
+                <aside aria-label="Package details info" class="col-sm-3 package-details-info">
+                    <h2>Info</h2>
+                    <ul class="list-unstyled ms-Icon-ul">
+                        <li>
+                            <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
+                            last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
+                        </li>
+                        @if (!Model.Deleted && Model.ProjectUrl != null)
+                        {
                             <li>
-                                <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
-                                last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
-                            </li>
-                            @if (!Model.Deleted && Model.ProjectUrl != null)
-                            {
-                                <li>
-                                    <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
-                                    <a href="@Model.ProjectUrl" data-track="outbound-project-url" title="Visit the project site to learn more about this package" rel="nofollow">
-                                        @if (Model.ProjectUrl.Length <= 28)
-                                        {
-                                            @Model.ProjectUrl
-                                        }
-                                        else
-                                        {
-                                            @:Project Site
-                                        }
-                                    </a>
-                                </li>
-                            }
-                            @if (!Model.Deleted && Model.RepositoryUrl != null)
-                            {
-                                <li>
-                                    @switch (Model.RepositoryType)
+                                <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
+                                <a href="@Model.ProjectUrl" data-track="outbound-project-url" title="Visit the project site to learn more about this package" rel="nofollow">
+                                    @if (Model.ProjectUrl.Length <= 28)
                                     {
-                                        case DisplayPackageViewModel.RepositoryKind.GitHub:
-                                        case DisplayPackageViewModel.RepositoryKind.Git:
-                                            <img class="icon" aria-hidden="true" alt="Git logo"
-                                                 src="@Url.Absolute("~/Content/gallery/img/git.svg")"
-                                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />
-                                            break;
-                                        default:
-                                            <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
-                                            break;
+                                        @Model.ProjectUrl
                                     }
-
-                                    <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
-                                        Source repository
-                                    </a>
-                                </li>
-                            }
-                            @if (!Model.Deleted && Model.LicenseUrl != null)
-                            {
-                                if (Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent || !Model.Validating)
+                                    else
+                                    {
+                                        @:Project Site
+                                    }
+                                </a>
+                            </li>
+                        }
+                        @if (!Model.Deleted && Model.RepositoryUrl != null)
+                        {
+                            <li>
+                                @switch (Model.RepositoryType)
                                 {
-                                    <li>
-                                        <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
-                                        @if (Model.LicenseExpressionSegments.AnySafe())
+                                    case DisplayPackageViewModel.RepositoryKind.GitHub:
+                                    case DisplayPackageViewModel.RepositoryKind.Git:
+                                        <img class="icon" aria-hidden="true" alt="Git logo"
+                                             src="@Url.Absolute("~/Content/gallery/img/git.svg")"
+                                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />
+                                        break;
+                                    default:
+                                        <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                                        break;
+                                }
+
+                                <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
+                                    Source repository
+                                </a>
+                            </li>
+                        }
+                        @if (!Model.Deleted && Model.LicenseUrl != null)
+                        {
+                            if (Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent || !Model.Validating)
+                            {
+                                <li>
+                                    <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
+                                    @if (Model.LicenseExpressionSegments.AnySafe())
+                                    {
+                                        @:License:
+                                        foreach (var segment in Model.LicenseExpressionSegments)
                                         {
-                                            @:License:
-                                            foreach (var segment in Model.LicenseExpressionSegments)
+                                            if (@ViewHelpers.IsLicenseOrException(segment))
                                             {
-                                                if (@ViewHelpers.IsLicenseOrException(segment))
-                                                {
-                                                    @MakeLicenseLink(segment);
-                                                }
-                                                else
-                                                {
-                                                    @MakeLicenseSpan(segment);
-                                                }
+                                                @MakeLicenseLink(segment);
+                                            }
+                                            else
+                                            {
+                                                @MakeLicenseSpan(segment);
                                             }
                                         }
-                                        else
-                                        {
-                                            <a href="@Model.LicenseUrl"
-                                               data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
-                                                @if (Model.LicenseNames.AnySafe())
-                                                {
-                                                    @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
-                                                }
-                                                else
-                                                {
-                                                    @:License Info
-                                                }
-                                            </a>
-                                        }
-                                    </li>
-                                }
+                                    }
+                                    else
+                                    {
+                                        <a href="@Model.LicenseUrl"
+                                           data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
+                                            @if (Model.LicenseNames.AnySafe())
+                                            {
+                                                @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
+                                            }
+                                            else
+                                            {
+                                                @:License Info
+                                            }
+                                        </a>
+                                    }
+                                </li>
                             }
+                        }
+                        <li>
+                            <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
+                            <a href="@Url.ContactOwners(Model)" title="Ask the package owners a question">Contact owners</a>
+                        </li>
+                        @if (Model.CanReportAsOwner)
+                        {
                             <li>
-                                <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
-                                <a href="@Url.ContactOwners(Model)" title="Ask the package owners a question">Contact owners</a>
+                                <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
+                                <a href="@Url.ReportPackage(Model)" title="Contact the NuGet team for help with your package">
+                                    Contact support
+                                </a>
                             </li>
-                            @if (Model.CanReportAsOwner)
-                            {
-                                <li>
-                                    <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
-                                    <a href="@Url.ReportPackage(Model)" title="Contact the NuGet team for help with your package">
-                                        Contact support
-                                    </a>
-                                </li>
-                            }
-                            else if (Model.Available)
-                            {
-                                <li>
-                                    <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
-                                    <a href="@Url.ReportAbuse(Model)" title="Report the package as abusive">
-                                        Report
-                                    </a>
-                                </li>
-                            }
+                        }
+                        else if (Model.Available)
+                        {
+                            <li>
+                                <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
+                                <a href="@Url.ReportAbuse(Model)" title="Report the package as abusive">
+                                    Report
+                                </a>
+                            </li>
+                        }
 
-                            @if (Model.Available)
+                        @if (Model.Available)
+                        {
+                            <li>
+                                <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
+                                <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download package</a>
+                                &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
+                            </li>
+                            if (hasSymbolsPackageAvailable)
                             {
                                 <li>
                                     <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                                    <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download package</a>
-                                    &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
-                                </li>
-                                if (hasSymbolsPackageAvailable)
-                                {
-                                    <li>
-                                        <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                                        <a href="@Url.SymbolPackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw snupkg file." rel="nofollow">Download symbols</a>
-                                        &nbsp;(@Model.LatestSymbolsPackage.FileSize.ToUserFriendlyBytesLabel())
-                                    </li>
-                                }
-                                <li class="no-clickonce">
-                                    <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
-                                    <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
+                                    <a href="@Url.SymbolPackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw snupkg file." rel="nofollow">Download symbols</a>
+                                    &nbsp;(@Model.LatestSymbolsPackage.FileSize.ToUserFriendlyBytesLabel())
                                 </li>
                             }
+                            <li class="no-clickonce">
+                                <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
+                                <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
+                            </li>
+                        }
 
-                            @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
-                            {
-                                <li>
-                                    <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                                    <a href="@Url.ManagePackage(Model)">Manage package</a>
-                                </li>
-                            }
-                            @if (!Model.Deleted && hasSymbolsPackageAvailable && Model.CanDeleteSymbolsPackage)
-                            {
-                                <li>
-                                    <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                                    <a href="@Url.DeleteSymbolsPackage(Model)" class="delete">Delete symbols</a>
-                                </li>
-                            }
+                        @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
+                        {
+                            <li>
+                                <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                <a href="@Url.ManagePackage(Model)">Manage package</a>
+                            </li>
+                        }
+                        @if (!Model.Deleted && hasSymbolsPackageAvailable && Model.CanDeleteSymbolsPackage)
+                        {
+                            <li>
+                                <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                                <a href="@Url.DeleteSymbolsPackage(Model)" class="delete">Delete symbols</a>
+                            </li>
+                        }
 
-                            @if (Model.Available && User.IsAdministrator())
+                        @if (Model.Available && User.IsAdministrator())
+                        {
+                            <li>
+                                <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                                @ViewHelpers.PostLink(
+                                    this,
+                                    formId: "reflow-package-form",
+                                    linkText: "Reflow package",
+                                    actionName: "Reflow",
+                                    controllerName: "Packages",
+                                    role: "button",
+                                    formValues: new Dictionary<string, string>
+                                    {
+                                        { "id", Model.Id },
+                                        { "version", Model.Version },
+                                    })
+                            </li>
+                        }
+
+                        @if (!Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                        {
+                            <li>
+                                <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                                @ViewHelpers.PostLink(
+                                    this,
+                                    formId: "revalidate-package-form",
+                                    linkText: "Revalidate package",
+                                    actionName: "Revalidate",
+                                    controllerName: "Packages",
+                                    role: string.Empty,
+                                    formValues: new Dictionary<string, string>
+                                    {
+                                        { "id", Model.Id },
+                                        { "version", Model.Version },
+                                    })
+                            </li>
+
+                            if (Model.LatestSymbolsPackage != null)
                             {
                                 <li>
                                     <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
                                     @ViewHelpers.PostLink(
                                         this,
-                                        formId: "reflow-package-form",
-                                        linkText: "Reflow package",
-                                        actionName: "Reflow",
-                                        controllerName: "Packages",
-                                        role: "button",
-                                        formValues: new Dictionary<string, string>
-                                        {
-                                            { "id", Model.Id },
-                                            { "version", Model.Version },
-                                        })
-                                </li>
-                            }
-
-                            @if (!Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
-                            {
-                                <li>
-                                    <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                                    @ViewHelpers.PostLink(
-                                        this,
-                                        formId: "revalidate-package-form",
-                                        linkText: "Revalidate package",
-                                        actionName: "Revalidate",
+                                        formId: "revalidate-symbols-form",
+                                        linkText: "Revalidate symbols",
+                                        actionName: "RevalidateSymbols",
                                         controllerName: "Packages",
                                         role: string.Empty,
                                         formValues: new Dictionary<string, string>
@@ -1047,161 +1064,142 @@
                                             { "version", Model.Version },
                                         })
                                 </li>
-
-                                if (Model.LatestSymbolsPackage != null)
-                                {
-                                    <li>
-                                        <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                                        @ViewHelpers.PostLink(
-                                            this,
-                                            formId: "revalidate-symbols-form",
-                                            linkText: "Revalidate symbols",
-                                            actionName: "RevalidateSymbols",
-                                            controllerName: "Packages",
-                                            role: string.Empty,
-                                            formValues: new Dictionary<string, string>
-                                            {
-                                                { "id", Model.Id },
-                                                { "version", Model.Version },
-                                            })
-                                    </li>
-                                }
                             }
-
-                            @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
-                            {
-                                <li>
-                                    <i class="ms-Icon ms-Icon--Health" aria-hidden="true"></i>
-                                    <a href="@Url.ViewValidations(Model)">View validations</a>
-                                </li>
-                            }
-
-                            @if (Model.IsFuGetLinksEnabled && !string.IsNullOrEmpty(Model.FuGetUrl))
-                            {
-                                var disclaimer = "fuget.org is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
-
-                                <li>
-                                    <img class="icon"
-                                         aria-label="@disclaimer" title="@disclaimer"
-                                         src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
-                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
-                                    <a href="@Model.FuGetUrl" data-track="outbound-repository-url"
-                                       aria-label="open in fuget.org explorer"
-                                       title="Explore additional package info on fuget.org" rel="nofollow">
-                                        Open in FuGet Package Explorer
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                        @if (Model.LicenseNames.AnySafe())
-                        {
-                            <p>License info provided by <a href="http://sonatype.com/">Sonatype</a>.</p>
                         }
 
-                        <h2>Statistics</h2>
-                        <ul class="list-unstyled ms-Icon-ul">
-                            <li>
-                                <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
-                                @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
-                            </li>
-                            <li>
-                                <i class="ms-Icon ms-Icon--Giftbox" aria-hidden="true"></i>
-                                @Model.DownloadCount.ToNuGetNumberString() @(Model.DownloadCount == 1 ? "download" : "downloads")
-                                of current version
-                            </li>
-                            <li>
-                                <i class="ms-Icon ms-Icon--Financial" aria-hidden="true"></i>
-                                @Model.DownloadsPerDayLabel @(Model.DownloadsPerDayLabel == "1" || Model.DownloadsPerDayLabel == "<1" ? "download" : "downloads")
-                                per day (avg)
-                            </li>
-                        </ul>
-                        @if (StatisticsHelper.IsStatisticsPageAvailable)
+                        @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
                         {
-                            <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">View full stats</a>
+                            <li>
+                                <i class="ms-Icon ms-Icon--Health" aria-hidden="true"></i>
+                                <a href="@Url.ViewValidations(Model)">View validations</a>
+                            </li>
                         }
 
-                        <h2>Owners</h2>
-                        <ul class="list-unstyled owner-list">
-                            @if (!Model.Owners.Any())
-                            {
-                                @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
-                            }
-                            else
-                            {
-                                foreach (var owner in Model.Owners)
-                                {
-                                    <li>
-                                        @if (!String.IsNullOrEmpty(owner.EmailAddress))
-                                        {
-                                            <a href="@Url.User(owner.Username)" title="@owner.Username">
-                                                @ViewHelpers.GravatarImage(
-                                                    Url,
-                                                    owner.EmailAddress,
-                                                    owner.Username,
-                                                    GalleryConstants.GravatarElementSize)
-                                            </a>
-                                        }
-                                        <a href="@Url.User(owner.Username)" title="@owner.Username">
-                                            @owner.Username
-                                        </a>
-                                    </li>
-                                }
-                            }
-                        </ul>
-
-                        @if (!Model.Deleted)
+                        @if (Model.IsFuGetLinksEnabled && !string.IsNullOrEmpty(Model.FuGetUrl))
                         {
-                            if (!String.IsNullOrEmpty(Model.Authors))
-                            {
-                                <h2>Authors</h2>
-                                <p>@Model.Authors</p>
-                            }
+                            var disclaimer = "fuget.org is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
 
-                            if (!String.IsNullOrEmpty(Model.Copyright))
-                            {
-                                <h2>Copyright</h2>
-                                <p>@Model.Copyright</p>
-                            }
+                            <li>
+                                <img class="icon"
+                                     aria-label="@disclaimer" title="@disclaimer"
+                                     src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
+                                <a href="@Model.FuGetUrl" data-track="outbound-repository-url"
+                                   aria-label="open in fuget.org explorer"
+                                   title="Explore additional package info on fuget.org" rel="nofollow">
+                                    Open in FuGet Package Explorer
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    @if (Model.LicenseNames.AnySafe())
+                    {
+                        <p>License info provided by <a href="http://sonatype.com/">Sonatype</a>.</p>
+                    }
 
-                            if (Model.Tags.AnySafe())
+                    <h2>Statistics</h2>
+                    <ul class="list-unstyled ms-Icon-ul">
+                        <li>
+                            <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
+                            @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                        </li>
+                        <li>
+                            <i class="ms-Icon ms-Icon--Giftbox" aria-hidden="true"></i>
+                            @Model.DownloadCount.ToNuGetNumberString() @(Model.DownloadCount == 1 ? "download" : "downloads")
+                            of current version
+                        </li>
+                        <li>
+                            <i class="ms-Icon ms-Icon--Financial" aria-hidden="true"></i>
+                            @Model.DownloadsPerDayLabel @(Model.DownloadsPerDayLabel == "1" || Model.DownloadsPerDayLabel == "<1" ? "download" : "downloads")
+                            per day (avg)
+                        </li>
+                    </ul>
+                    @if (StatisticsHelper.IsStatisticsPageAvailable)
+                    {
+                        <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">View full stats</a>
+                    }
+
+                    <h2>Owners</h2>
+                    <ul class="list-unstyled owner-list">
+                        @if (!Model.Owners.Any())
+                        {
+                            @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
+                        }
+                        else
+                        {
+                            foreach (var owner in Model.Owners)
                             {
-                                <h2>Tags</h2>
-                                <p>
-                                    @foreach (var tag in Model.Tags)
+                                <li>
+                                    @if (!String.IsNullOrEmpty(owner.EmailAddress))
                                     {
-                                        <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
+                                        <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                            @ViewHelpers.GravatarImage(
+                                                Url,
+                                                owner.EmailAddress,
+                                                owner.Username,
+                                                GalleryConstants.GravatarElementSize)
+                                        </a>
                                     }
-                                </p>
+                                    <a href="@Url.User(owner.Username)" title="@owner.Username">
+                                        @owner.Username
+                                    </a>
+                                </li>
                             }
                         }
+                    </ul>
 
-                        @if (Model.Available)
+                    @if (!Model.Deleted)
+                    {
+                        if (!String.IsNullOrEmpty(Model.Authors))
                         {
-                            <h2>Share</h2>
-                            var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
-                            <p class="share-buttons">
-                                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank">
-                                    <img width="24" height="24" alt="Share this package on Facebook"
-                                         src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
-                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
-                                </a>
-                                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank">
-                                    <img width="24" height="24" alt="Tweet this package"
-                                         src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
-                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
-                                </a>
-                                @if (Model.IsAtomFeedEnabled)
+                            <h2>Authors</h2>
+                            <p>@Model.Authors</p>
+                        }
+
+                        if (!String.IsNullOrEmpty(Model.Copyright))
+                        {
+                            <h2>Copyright</h2>
+                            <p>@Model.Copyright</p>
+                        }
+
+                        if (Model.Tags.AnySafe())
+                        {
+                            <h2>Tags</h2>
+                            <p>
+                                @foreach (var tag in Model.Tags)
                                 {
-                                    <a href="@Url.PackageAtomFeed(Model.Id)" data-track="atom-feed">
-                                        <img width="24" height="24" alt="Use the Atom feed to subscribe to new versions of @Model.Id"
-                                             src="@Url.Absolute("~/Content/gallery/img/rss.svg")"
-                                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/rss-24x24.png")) />
-                                    </a>
+                                    <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
                                 }
                             </p>
                         }
-                    </aside>
-                </div>
+                    }
+
+                    @if (Model.Available)
+                    {
+                        <h2>Share</h2>
+                        var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
+                        <p class="share-buttons">
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank">
+                                <img width="24" height="24" alt="Share this package on Facebook"
+                                     src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
+                            </a>
+                            <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank">
+                                <img width="24" height="24" alt="Tweet this package"
+                                     src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
+                            </a>
+                            @if (Model.IsAtomFeedEnabled)
+                            {
+                                <a href="@Url.PackageAtomFeed(Model.Id)" data-track="atom-feed">
+                                    <img width="24" height="24" alt="Use the Atom feed to subscribe to new versions of @Model.Id"
+                                         src="@Url.Absolute("~/Content/gallery/img/rss.svg")"
+                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/rss-24x24.png")) />
+                                </a>
+                            }
+                        </p>
+                    }
+                </aside>
             </div>
         </article>
     </div>
