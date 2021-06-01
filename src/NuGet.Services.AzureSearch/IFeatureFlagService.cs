@@ -6,5 +6,7 @@ namespace NuGet.Services.AzureSearch
     public interface IFeatureFlagService
     {
         bool IsPopularityTransferEnabled();
+
+        bool IsDeepPagingDisabled();
     }
 }

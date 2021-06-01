@@ -10,16 +10,21 @@ namespace NuGet.Services.AzureSearch
     {
         private const string SearchPrefix = "Search.";
 
-        private readonly IFeatureFlagClient _featureFlagClient;
+        private readonly IFeatureFlagClient _features;
 
-        public FeatureFlagService(IFeatureFlagClient featureFlagClient)
+        public FeatureFlagService(IFeatureFlagClient features)
         {
-            _featureFlagClient = featureFlagClient ?? throw new ArgumentNullException(nameof(featureFlagClient));
+            _features = features ?? throw new ArgumentNullException(nameof(features));
         }
 
         public bool IsPopularityTransferEnabled()
         {
-            return _featureFlagClient.IsEnabled(SearchPrefix + "TransferPopularity", defaultValue: true);
+            return _features.IsEnabled(SearchPrefix + "TransferPopularity", defaultValue: true);
+        }
+
+        public bool IsDeepPagingDisabled()
+        {
+            return _features.IsEnabled(SearchPrefix + "DisableDeepPaging", defaultValue: false);
         }
     }
 }

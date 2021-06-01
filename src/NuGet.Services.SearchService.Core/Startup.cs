@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -11,11 +10,10 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.PackageManagement.Search.Web;
+using NuGet.Jobs.Validation;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.Logging;
@@ -26,6 +24,7 @@ namespace NuGet.Services.SearchService
     public class Startup
     {
         private const string ConfigurationSectionName = "SearchService";
+        private const string FeatureFlagSectionName = "FeatureFlags";
 
         public Startup(IConfiguration configuration)
         {
@@ -56,6 +55,7 @@ namespace NuGet.Services.SearchService
 
             services.Configure<AzureSearchConfiguration>(Configuration.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(Configuration.GetSection(ConfigurationSectionName));
+            services.Configure<FeatureFlagConfiguration>(Configuration.GetSection(FeatureFlagSectionName));
 
             services.AddApplicationInsightsTelemetry(o =>
             {
@@ -76,6 +76,7 @@ namespace NuGet.Services.SearchService
 
             services.AddHostedService<AuxiliaryFileReloaderBackgroundService>();
             services.AddHostedService<SecretRefresherBackgroundService>();
+            services.AddHostedService<FeatureFlagBackgroundService>();
 
             services.AddAzureSearch(new Dictionary<string, string>());
 
