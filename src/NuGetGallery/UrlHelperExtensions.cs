@@ -71,12 +71,14 @@ namespace NuGetGallery
 
         public static string GetCanonicalLinkUrl(this UrlHelper url)
         {
-            var current = Current(url);
+            var current = url.RequestContext.HttpContext.Request.Url;
             var siteRoot = new Uri(_configuration.Current.SiteRoot);
 
             var builder = new UriBuilder(current);
+            builder.Scheme = siteRoot.Scheme;
             builder.Host = siteRoot.Host;
-            return builder.Uri.ToString();
+            builder.Port = siteRoot.Port;
+            return builder.Uri.AbsoluteUri;
         }
 
         private static string GetConfiguredSiteHostName()
