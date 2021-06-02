@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Azure.Search.Models;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -28,6 +29,16 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Same(Parameters, actual.SearchParameters);
                 TextBuilder.Verify(x => x.Autocomplete(AutocompleteRequest), Times.Once);
                 ParametersBuilder.Verify(x => x.Autocomplete(AutocompleteRequest, It.IsAny<bool>()), Times.Once);
+            }
+
+            [Fact]
+            public void ReturnsEmptyQueryIfPastSkipLimit()
+            {
+                AutocompleteRequest.Skip = 100_001;
+
+                var actual = Build();
+
+                Assert.Equal(IndexOperationType.Empty, actual.Type);
             }
 
             [Fact]
@@ -68,6 +79,28 @@ namespace NuGet.Services.AzureSearch.SearchService
                 TextBuilder.Verify(x => x.ParseV3Search(V3SearchRequest), Times.Once);
                 TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
                 ParametersBuilder.Verify(x => x.V3Search(V3SearchRequest, It.IsAny<bool>()), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(false, 3_000, IndexOperationType.Search)]
+            [InlineData(false, 3_001, IndexOperationType.Search)]
+            [InlineData(false, 100_001, IndexOperationType.Empty)]
+            [InlineData(true, 3_000, IndexOperationType.Search)]
+            [InlineData(true, 3_001, IndexOperationType.Empty)]
+            [InlineData(true, 100_001, IndexOperationType.Empty)]
+
+            public void ReturnsEmptyQueryIfPastSkipLimit(bool disableDeepPaging, int skip, IndexOperationType expectedType)
+            {
+                Config.V3DeepPagingLimit = 3_000;
+                V3SearchRequest.Skip = skip;
+
+                Features
+                    .Setup(f => f.IsDeepPagingDisabled())
+                    .Returns(disableDeepPaging);
+
+                var actual = Build();
+
+                Assert.Equal(expectedType, actual.Type);
             }
 
             [Fact]
@@ -119,6 +152,28 @@ namespace NuGet.Services.AzureSearch.SearchService
                 TextBuilder.Verify(x => x.ParseV2Search(V2SearchRequest), Times.Once);
                 TextBuilder.Verify(x => x.Build(ParsedQuery), Times.Once);
                 ParametersBuilder.Verify(x => x.V2Search(V2SearchRequest, It.IsAny<bool>()), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(false, 30_000, IndexOperationType.Search)]
+            [InlineData(false, 30_001, IndexOperationType.Search)]
+            [InlineData(false, 100_001, IndexOperationType.Empty)]
+            [InlineData(true, 30_000, IndexOperationType.Search)]
+            [InlineData(true, 30_001, IndexOperationType.Empty)]
+            [InlineData(true, 100_001, IndexOperationType.Empty)]
+
+            public void ReturnsEmptyQueryIfPastSkipLimit(bool disableDeepPaging, int skip, IndexOperationType expectedType)
+            {
+                Config.V2DeepPagingLimit = 30_000;
+                V2SearchRequest.Skip = skip;
+
+                Features
+                    .Setup(f => f.IsDeepPagingDisabled())
+                    .Returns(disableDeepPaging);
+
+                var actual = Build();
+
+                Assert.Equal(expectedType, actual.Type);
             }
 
             [Fact]
@@ -508,6 +563,13 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 TextBuilder = new Mock<ISearchTextBuilder>();
                 ParametersBuilder = new Mock<ISearchParametersBuilder>();
+                Features = new Mock<IFeatureFlagService>();
+                Config = new SearchServiceConfiguration();
+
+                var options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
+                options
+                    .Setup(o => o.Value)
+                    .Returns(() => Config);
 
                 AutocompleteRequest = new AutocompleteRequest { Skip = 0, Take = 20 };
                 V2SearchRequest = new V2SearchRequest { Skip = 0, Take = 20 };
@@ -540,11 +602,15 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 Target = new IndexOperationBuilder(
                     TextBuilder.Object,
-                    ParametersBuilder.Object);
+                    ParametersBuilder.Object,
+                    Features.Object,
+                    options.Object);
             }
 
             public Mock<ISearchTextBuilder> TextBuilder { get; }
             public Mock<ISearchParametersBuilder> ParametersBuilder { get; }
+            public Mock<IFeatureFlagService> Features { get; }
+            public SearchServiceConfiguration Config { get; }
             public AutocompleteRequest AutocompleteRequest { get; }
             public V2SearchRequest V2SearchRequest { get; }
             public V3SearchRequest V3SearchRequest { get; }

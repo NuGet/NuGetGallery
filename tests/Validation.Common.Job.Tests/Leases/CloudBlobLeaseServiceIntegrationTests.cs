@@ -91,5 +91,59 @@ namespace Validation.Common.Job.Tests.Leases
             var acquireB = await Target.TryAcquireAsync(resource, LeaseTime, Token);
             Assert.True(acquireB.IsSuccess, "The lease should be re-acquired.");
         }
+
+        [BlobStorageFact]
+        public async Task AllowsRenewAfterLeaseTimeIsExpired()
+        {
+            var resource = Guid.NewGuid().ToString();
+
+            var leaseTime = TimeSpan.FromSeconds(15);
+
+            var acquireA = await Target.TryAcquireAsync(resource, leaseTime, Token);
+            Assert.True(acquireA.IsSuccess, "The lease should be acquired.");
+
+            await Task.Delay(leaseTime);
+
+            var acquireB = await Target.RenewAsync(resource, acquireA.LeaseId, Token);
+            Assert.True(acquireB.IsSuccess, "The lease should be re-acquired.");
+            Assert.Equal(acquireA.LeaseId, acquireB.LeaseId);
+        }
+
+        [BlobStorageFact]
+        public async Task AllowsRenewBeforeLeaseTimeIsExpired()
+        {
+            var resource = Guid.NewGuid().ToString();
+
+            var leaseTime = TimeSpan.FromSeconds(15);
+
+            var acquireA = await Target.TryAcquireAsync(resource, leaseTime, Token);
+            Assert.True(acquireA.IsSuccess, "The lease should be acquired.");
+
+            var waitTime = TimeSpan.FromSeconds(10);
+            await Task.Delay(leaseTime);
+
+            var acquireB = await Target.RenewAsync(resource, acquireA.LeaseId, Token);
+            Assert.True(acquireB.IsSuccess, "The lease should be re-acquired.");
+            Assert.Equal(acquireA.LeaseId, acquireB.LeaseId);
+        }
+
+        [BlobStorageFact]
+        public async Task DoesNotAllowsRenewAfterLeaseIsAcquiredAgain()
+        {
+            var resource = Guid.NewGuid().ToString();
+
+            var leaseTime = TimeSpan.FromSeconds(15);
+
+            var acquireA = await Target.TryAcquireAsync(resource, leaseTime, Token);
+            Assert.True(acquireA.IsSuccess, "The lease should be acquired.");
+
+            await Task.Delay(leaseTime);
+
+            var acquireB = await Target.TryAcquireAsync(resource, leaseTime, Token);
+            Assert.True(acquireA.IsSuccess, "The lease should be acquired.");
+
+            var acquireC = await Target.RenewAsync(resource, acquireA.LeaseId, Token);
+            Assert.False(acquireC.IsSuccess, "The lease should not be acquired.");
+        }
     }
 }

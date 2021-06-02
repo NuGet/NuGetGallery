@@ -69,7 +69,6 @@
     <Compile Include="Models\CommittedDocumentFacts.cs" />
     <Compile Include="AuxiliaryFiles\OwnerDataClientFacts.cs" />
     <Compile Include="DependencyInjectionExtensionsFacts.cs" />
-    <Compile Include="PackageIdValidatorFacts.cs" />
     <Compile Include="SearchIndexActionBuilderFacts.cs" />
     <Compile Include="Auxiliary2AzureSearch\UpdateOwnersCommandFacts.cs" />
     <Compile Include="Auxiliary2AzureSearch\DataSetComparerFacts.cs" />

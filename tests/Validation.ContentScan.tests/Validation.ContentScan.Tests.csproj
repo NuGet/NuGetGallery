@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{430F63C7-20C2-4872-AC3E-DDE846E50AA4}</ProjectGuid>
+    <ProjectGuid>{7607EAC8-B4C5-40AA-BCEE-4CEA8D4F9BF2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Validation.Common.Job.Tests</RootNamespace>
-    <AssemblyName>Validation.Common.Job.Tests</AssemblyName>
+    <RootNamespace>Validation.ContentScan.Tests</RootNamespace>
+    <AssemblyName>Validation.ContentScan.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,24 +40,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonTelemetryServiceFacts.cs" />
-    <Compile Include="FeatureFlags\FeatureFlagRefresherFacts.cs" />
-    <Compile Include="FileStreamUtilityFacts.cs" />
-    <Compile Include="Leases\BlobStorageCollection.cs" />
-    <Compile Include="Leases\BlobStorageFact.cs" />
-    <Compile Include="Leases\BlobStorageFixture.cs" />
-    <Compile Include="Leases\CloudBlobLeaseServiceIntegrationTests.cs" />
-    <Compile Include="LoggerDiagnosticSourceFacts.cs" />
-    <Compile Include="FileDownloaderFacts.cs" />
-    <Compile Include="PathUtilityFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SharedAccessSignatureServiceFacts.cs" />
-    <Compile Include="Storage\ProcessorPackageFileServiceFacts.cs" />
-    <Compile Include="StreamExtensionsFacts.cs" />
-    <Compile Include="TempFiles\DeleteOnCloseReadOnlyTempFileFacts.cs" />
-    <Compile Include="TempFiles\TempFileFacts.cs" />
-    <Compile Include="Validation\NuGetValidationResponseFacts.cs" />
-    <Compile Include="Validation\ValidationResponseFacts.cs" />
+    <Compile Include="ContentScanEnqueuerFacts.cs" />
+    <Compile Include="StartContentScanData.cs" />
+    <Compile Include="ContentScanValidatorFacts.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj">
+      <Project>{e6d094fb-9068-4578-b176-116f97e7506b}</Project>
+      <Name>NuGet.Services.Validation.Orchestrator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
+      <Project>{FA87D075-A934-4443-8D0B-5DB32640B6D7}</Project>
+      <Name>Validation.Common.Job</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj">
+      <Project>{912a81f7-f0d9-43ef-a589-9a341eb2d6b6}</Project>
+      <Name>Validation.ContentScan.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj">
+      <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
+      <Name>Tests.ContextHelpers</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq">
@@ -72,19 +75,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
-      <Project>{FA87D075-A934-4443-8D0B-5DB32640B6D7}</Project>
-      <Name>Validation.Common.Job</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TestUtil\TestUtil.csproj">
-      <Project>{c3f84bad-acfa-4ae3-8286-d12f5a5bbc62}</Project>
-      <Name>TestUtil</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

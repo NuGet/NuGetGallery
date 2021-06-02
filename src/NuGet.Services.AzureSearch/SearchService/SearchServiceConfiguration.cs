@@ -19,5 +19,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public TimeSpan SecretRefreshFailureRetryFrequency { get; set; } = TimeSpan.FromMinutes(5);
         public string DeploymentLabel { get; set; }
         public List<string> TestOwners { get; set; } = new List<string>();
+        public int V2DeepPagingLimit { get; set; } = 30_000;
+        public int V3DeepPagingLimit { get; set; } = 3_000;
     }
 }

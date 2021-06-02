@@ -59,6 +59,30 @@ namespace NuGet.Jobs.Validation.Storage
             return status;
         }
 
+        public async Task<ValidatorStatus> GetStatusAsync(IValidationRequest request)
+        {
+            var status = await GetStatusAsync(request.ValidationStepId);
+
+            if (status == null)
+            {
+                return new ValidatorStatus
+                {
+                    ValidationId = request.ValidationStepId,
+                    ValidatorName = _validatorName,
+                    State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
+                };
+            }
+            else if (status.ValidatorName != _validatorName)
+            {
+                throw new ArgumentException(
+                    $"Validation expected validator {_validatorName}, actual {status.ValidatorName}",
+                    nameof(request));
+            }
+
+            return status;
+        }
+
         public Task<ValidatorStatus> GetStatusAsync(Guid validationId)
         {
             return _validationContext
@@ -130,6 +154,29 @@ namespace NuGet.Jobs.Validation.Storage
 
         public async Task<ValidatorStatus> TryAddValidatorStatusAsync(INuGetValidationRequest request, ValidatorStatus status, ValidationStatus desiredState)
         {
+            return await TryAddValidatorStatusAsync(request.ValidationId, status, desiredState);
+        }
+
+        public async Task<ValidatorStatus> TryAddValidatorStatusAsync(IValidationRequest request, ValidatorStatus status, ValidationStatus desiredState)
+        {
+            return await TryAddValidatorStatusAsync(request.ValidationStepId, status, desiredState);
+        }
+
+        public async Task<ValidatorStatus> TryUpdateValidationStatusAsync(
+            INuGetValidationRequest request,
+            ValidatorStatus validatorStatus,
+            ValidationStatus desiredState)
+        {
+            return await TryUpdateValidationStatusAsync(request.ValidationId, validatorStatus, desiredState);
+        }
+
+        public async Task<ValidatorStatus> TryUpdateValidationStatusAsync(IValidationRequest request, ValidatorStatus validatorStatus, ValidationStatus desiredState)
+        {
+            return await TryUpdateValidationStatusAsync(request.ValidationStepId, validatorStatus, desiredState);
+        }
+
+        private async Task<ValidatorStatus> TryAddValidatorStatusAsync(Guid validationStepId, ValidatorStatus status, ValidationStatus desiredState)
+        {
             status.State = desiredState;
 
             var result = await AddStatusAsync(status);
@@ -141,12 +188,10 @@ namespace NuGet.Jobs.Validation.Storage
                 // the other add operation.
                 _logger.LogWarning(
                     Error.ValidatorStateServiceFailedToAddStatus,
-                    "Failed to add validation status for {ValidationId} ({PackageId} {PackageVersion}) as a record already exists",
-                    request.ValidationId,
-                    request.PackageId,
-                    request.PackageVersion);
+                    "Failed to add validation status for {ValidationId} as a record already exists",
+                    validationStepId);
 
-                return await GetStatusAsync(request);
+                return await GetStatusAsync(validationStepId);
             }
             else if (result != AddStatusResult.Success)
             {
@@ -156,10 +201,7 @@ namespace NuGet.Jobs.Validation.Storage
             return status;
         }
 
-        public async Task<ValidatorStatus> TryUpdateValidationStatusAsync(
-            INuGetValidationRequest request,
-            ValidatorStatus validatorStatus,
-            ValidationStatus desiredState)
+        private async Task<ValidatorStatus> TryUpdateValidationStatusAsync(Guid validationStepId, ValidatorStatus validatorStatus, ValidationStatus desiredState)
         {
             validatorStatus.State = desiredState;
 
@@ -172,12 +214,10 @@ namespace NuGet.Jobs.Validation.Storage
                 // from the other update.
                 _logger.LogWarning(
                     Error.ValidatorStateServiceFailedToUpdateStatus,
-                    "Failed to save validation status for {ValidationId} ({PackageId} {PackageVersion}) as the current status is stale",
-                    request.ValidationId,
-                    request.PackageId,
-                    request.PackageVersion);
+                    "Failed to save validation status for {ValidationId} as the current status is stale",
+                    validationStepId);
 
-                return await GetStatusAsync(request);
+                return await GetStatusAsync(validationStepId);
             }
             else if (result != SaveStatusResult.Success)
             {

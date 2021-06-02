@@ -53,6 +53,8 @@
     <Compile Include="ContainerBuilderExtensions.cs" />
     <Compile Include="Configuration\CoreMessageServiceConfiguration.cs" />
     <Compile Include="Configuration\EmailConfiguration.cs" />
+    <Compile Include="ContentScan\ContentScanValidator.cs" />
+    <Compile Include="ContentScan\ContentScanConfiguration.cs" />
     <Compile Include="EntityStatusProcessor.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="IValidatorProvider.cs" />
@@ -144,6 +146,10 @@
     <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj">
       <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
       <Name>Validation.Common.Job</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.ContentScan.Core\Validation.ContentScan.Core.csproj">
+      <Project>{912a81f7-f0d9-43ef-a589-9a341eb2d6b6}</Project>
+      <Name>Validation.ContentScan.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>

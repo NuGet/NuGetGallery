@@ -35,5 +35,16 @@ namespace NuGet.Jobs.Validation.Leases
         /// <param name="cancellationToken"></param>
         /// <returns>True if the lease was gracefully released. False otherwise.</returns>
         Task<bool> ReleaseAsync(string resourceName, string leaseId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Renew a lease that has already been acquired. If the lease has already been acquired by another thread or
+        /// if the lease ID is invalid, this method will fail in renewing the leasse. If the lease is expired or still leased with the
+        /// provided lease ID, this method will reset the expiration clock of existing lease.
+        /// </summary>
+        /// <param name="resourceName">The resource name the existing lease is associated with.</param>
+        /// <param name="leaseId">The lease ID obtained while acquiring the lease.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>The lease result.</returns>
+        Task<LeaseResult> RenewAsync(string resourceName, string leaseId, CancellationToken cancellationToken);
     }
 }

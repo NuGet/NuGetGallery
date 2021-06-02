@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.Extensions.Options;
 using NuGet.Packaging;
 using NuGet.Versioning;
 
@@ -18,13 +19,19 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private readonly ISearchTextBuilder _textBuilder;
         private readonly ISearchParametersBuilder _parametersBuilder;
+        private readonly IFeatureFlagService _features;
+        private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
 
         public IndexOperationBuilder(
             ISearchTextBuilder textBuilder,
-            ISearchParametersBuilder parametersBuilder)
+            ISearchParametersBuilder parametersBuilder,
+            IFeatureFlagService features,
+            IOptionsSnapshot<SearchServiceConfiguration> options)
         {
             _textBuilder = textBuilder ?? throw new ArgumentNullException(nameof(textBuilder));
             _parametersBuilder = parametersBuilder ?? throw new ArgumentNullException(nameof(parametersBuilder));
+            _features = features ?? throw new ArgumentNullException(nameof(features));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public IndexOperation V3Search(V3SearchRequest request)
@@ -91,7 +98,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         public IndexOperation Autocomplete(AutocompleteRequest request)
         {
-            if (HasInvalidParameters(request, request.PackageType))
+            if (HasInvalidParameters(request, MaximumSkip, request.PackageType))
             {
                 return IndexOperation.Empty();
             }
@@ -150,7 +157,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 packageId = terms.First();
                 if (packageId.Length <= PackageIdValidator.MaxPackageIdLength
-                    && PackageIdValidator.IsValidPackageIdWithTimeout(packageId))
+                    && PackageIdValidator.IsValidPackageId(packageId))
                 {
                     return true;
                 }
@@ -178,12 +185,40 @@ namespace NuGet.Services.AzureSearch.SearchService
             return false;
         }
 
-        private static bool HasInvalidParameters(SearchRequest request, string packageType)
+        private bool HasInvalidParameters(V2SearchRequest request, string packageType)
         {
-            // Requests with bad parameters yield no results. For the package type case, by specification a package type
+            var skipLimit = _features.IsDeepPagingDisabled()
+                ? Math.Min(_options.Value.V2DeepPagingLimit, MaximumSkip)
+                : MaximumSkip;
+
+            return HasInvalidParameters(request, skipLimit, packageType);
+        }
+
+        private bool HasInvalidParameters(V3SearchRequest request, string packageType)
+        {
+            var skipLimit = _features.IsDeepPagingDisabled()
+                ? Math.Min(_options.Value.V3DeepPagingLimit, MaximumSkip)
+                : MaximumSkip;
+
+            return HasInvalidParameters(request, skipLimit, packageType);
+        }
+
+        private static bool HasInvalidParameters(SearchRequest request, int skipLimit, string packageType)
+        {
+            // Requests with bad parameters yield no results.
+            if (request.Skip > skipLimit)
+            {
+                return true;
+            }
+
+            // For the package type case, by specification a package type
             // valid characters are the same as a package ID.
-            return request.Skip > MaximumSkip
-                || (packageType != null && !PackageIdValidator.IsValidPackageIdWithTimeout(packageType));
+            if (packageType != null && !PackageIdValidator.IsValidPackageId(packageType))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool PagedToFirstItem(SearchRequest request)

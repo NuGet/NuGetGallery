@@ -35,7 +35,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private static readonly List<string> CreatedAsc = new List<string> { IndexFields.Created + Asc }; // Newest first
         private static readonly List<string> CreatedDesc = new List<string> { IndexFields.Created + Desc }; // Oldest first
         private static readonly List<string> TotalDownloadsAsc = new List<string> { IndexFields.Search.TotalDownloadCount + Asc, IndexFields.Created + Asc }; // Least downloads first, then oldest
-        private static readonly List<string> TotalDownloadsDesc = new List<string> { IndexFields.Search.TotalDownloadCount + Desc, IndexFields.Created + Desc}; // Most downloads first, then newest
+        private static readonly List<string> TotalDownloadsDesc = new List<string> { IndexFields.Search.TotalDownloadCount + Desc, IndexFields.Created + Desc }; // Most downloads first, then newest
 
         public SearchParameters LastCommitTimestamp()
         {
@@ -104,7 +104,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     searchParameters.Select = PackageIdsAutocompleteSelect;
                     ApplyPaging(searchParameters, request);
                     break;
-                
+
                 // Package version autocomplete should only match a single document
                 // regardless of the request's parameters.
                 case AutocompleteRequestType.PackageVersions:
@@ -153,7 +153,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             // Verify that the package type only has valid package ID characters so we don't need to worry about
             // escaping quotes and such.
-            if (packageType != null && PackageIdValidator.IsValidPackageIdWithTimeout(packageType))
+            if (packageType != null && PackageIdValidator.IsValidPackageId(packageType))
             {
                 filterString += $" and {IndexFields.Search.FilterablePackageTypes}/any(p: p eq '{packageType.ToLowerInvariant()}')";
             }
