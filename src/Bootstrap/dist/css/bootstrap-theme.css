@@ -1252,6 +1252,281 @@ img.reserved-indicator-icon {
   margin: 0;
   width: 100%;
 }
+.page-package-details-v2 .no-border {
+  border: 0;
+}
+.page-package-details-v2 h1 {
+  margin-bottom: 0;
+}
+.page-package-details-v2 tr {
+  border-bottom: 1px solid lightgray;
+}
+.page-package-details-v2 .package-title {
+  margin-bottom: 24px;
+}
+.page-package-details-v2 .package-title div {
+  margin-top: 2px;
+}
+.page-package-details-v2 .package-title .reserved-indicator {
+  width: 25px;
+}
+.page-package-details-v2 .deprecation-container .deprecation-expander {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  vertical-align: middle;
+  width: 100%;
+}
+.page-package-details-v2 .deprecation-container .deprecation-expander .deprecation-expander-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+.page-package-details-v2 .deprecation-container .deprecation-expander .deprecation-expander-container .deprecation-expander-icon {
+  position: unset;
+  top: unset;
+}
+.page-package-details-v2 .deprecation-container .deprecation-expander .deprecation-expander-container .deprecation-expander-info-right {
+  padding-left: 15px;
+}
+.page-package-details-v2 .deprecation-container .deprecation-expander .deprecation-expander-container .deprecation-expander-severity-rating {
+  margin-left: 5px;
+}
+.page-package-details-v2 .deprecation-container .deprecation-content-container {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid lightgray;
+}
+.page-package-details-v2 .deprecation-container .deprecation-content-container p {
+  margin-top: 5px;
+}
+.page-package-details-v2 .deprecation-container .deprecation-content-container p:last-of-type {
+  margin-bottom: 0px;
+}
+.page-package-details-v2 .vulnerabilities-container .vulnerabilities-expander {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  vertical-align: middle;
+  width: 100%;
+}
+.page-package-details-v2 .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+.page-package-details-v2 .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container .vulnerabilities-expander-icon {
+  position: unset;
+  top: unset;
+}
+.page-package-details-v2 .vulnerabilities-container .vulnerabilities-expander .vulnerabilities-expander-container .vulnerabilities-expander-info-right {
+  padding-left: 15px;
+}
+.page-package-details-v2 .vulnerabilities-container .vulnerabilities-content-container {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid lightgray;
+}
+.page-package-details-v2 .vulnerabilities-container .vulnerabilities-content-container .vulnerabilities-list {
+  border-collapse: unset;
+}
+.page-package-details-v2 .vulnerabilities-container .vulnerabilities-severity-critical {
+  color: red;
+}
+.page-package-details-v2 .vulnerabilities-container .vulnerabilities-severity-high {
+  color: red;
+}
+.page-package-details-v2 .vulnerabilities-container .vulnerabilities-severity-moderate {
+  color: blue;
+}
+.page-package-details-v2 .failed-validation-alert-list {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.page-package-details-v2 .package-details-main {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: normal;
+  word-break: break-word;
+}
+.page-package-details-v2 .package-details-main .package-icon-cell {
+  cursor: default;
+  padding-left: 0;
+  padding-right: 0;
+  text-align: right;
+}
+.page-package-details-v2 .package-details-main .package-icon-cell .package-icon {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.page-package-details-v2 .package-details-info .ms-Icon-ul li {
+  margin-bottom: 15px;
+}
+.page-package-details-v2 .package-details-info .ms-Icon-ul img.icon {
+  position: absolute;
+  left: -24px;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+}
+.page-package-details-v2 .owner-list li {
+  margin-bottom: 8px;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.page-package-details-v2 .owner-list img {
+  margin-right: 8px;
+}
+.page-package-details-v2 .share-buttons img {
+  margin-right: 8px;
+  display: inline-block;
+}
+.page-package-details-v2 .used-by-desc {
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #333333;
+  margin: 4px 0 0 0;
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-height: 16px;
+  /* fallback */
+  max-height: 32px;
+  /* fallback */
+  -webkit-line-clamp: 2;
+  /* number of lines to show */
+  -webkit-box-orient: vertical;
+}
+.page-package-details-v2 .used-by-link {
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 19px;
+  color: #337ab7;
+  width: auto;
+}
+.page-package-details-v2 .gh-link,
+.page-package-details-v2 .ngp-link {
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 19px;
+  color: #337ab7;
+  width: auto;
+}
+.page-package-details-v2 .used-by-download-icon {
+  font-size: 14px;
+  line-height: 12px;
+}
+.page-package-details-v2 .used-by-count {
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: 400;
+  color: #586069;
+}
+.page-package-details-v2 .gh-star {
+  font-size: 14px;
+  line-height: 12px;
+  /* Use a slightly darker orange color to increase contrast for accessibility */
+  color: #d87e00;
+}
+.page-package-details-v2 .used-by h3 strong {
+  font-weight: 400;
+}
+.page-package-details-v2 .used-by .reserved-indicator {
+  width: 14px;
+  margin-bottom: 3px;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+.page-package-details-v2 .used-by-adjust-table-head {
+  word-break: normal;
+}
+.page-package-details-v2 .used-by-desc-column {
+  width: 85%;
+}
+.page-package-details-v2 .install-tabs {
+  font-size: 0.8em;
+}
+.page-package-details-v2 .install-tabs ul {
+  margin-left: 0;
+}
+.page-package-details-v2 .install-tabs .nav-tabs {
+  border: 0;
+}
+.page-package-details-v2 .install-tabs .nav-tabs > li {
+  margin-right: 5px;
+  padding: 0;
+  margin-bottom: 0;
+}
+.page-package-details-v2 .install-tabs .nav-tabs > li > a {
+  color: #000;
+  background-color: #eaeaea;
+  border: 0;
+  padding: 5px 10px;
+  margin: 0;
+}
+.page-package-details-v2 .install-tabs .nav-tabs > li.active > a {
+  background-color: #002440;
+  border: 0;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: underline;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane > div {
+  display: table;
+  height: 1px;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row {
+  display: table-row;
+  height: 100%;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .install-script {
+  display: table-cell;
+  background-color: #002440;
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  font-size: 1em;
+  color: #fff;
+  width: 100%;
+  max-width: 1px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  border-color: #002440;
+  border-style: solid;
+  border-width: 1px 0 1px 1px;
+  -webkit-user-select: all;
+  -moz-user-select: all;
+  -ms-user-select: all;
+  user-select: all;
+  vertical-align: middle;
+  word-break: break-word;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
+  height: 100%;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
+  height: 100%;
+  min-height: 42px;
+  line-height: 1.5;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .alert {
+  margin: 0;
+  width: 100%;
+}
 .page-downloads .list-tools li {
   margin-top: 20px;
 }

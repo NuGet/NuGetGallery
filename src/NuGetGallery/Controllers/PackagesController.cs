@@ -1017,9 +1017,16 @@ namespace NuGetGallery
                     model.IsIndexed = isIndexed;
                 }
             }
-
             ViewBag.FacebookAppID = _config.FacebookAppId;
-            return View(model);
+
+            if (_featureFlagService.IsDisplayPackagePageV2Enabled(GetCurrentUser())) 
+            { 
+                return View("DisplayPackageV2", model);
+            }
+            else 
+            { 
+                return View("DisplayPackage", model);
+            }
         }
 
         private PackageDependents GetPackageDependents(string id)

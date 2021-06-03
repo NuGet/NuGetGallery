@@ -92,6 +92,7 @@ namespace NuGetGallery
             public const string PackagePushDisconnect = "PackagePushDisconnect";
             public const string SymbolPackagePushDisconnect = "SymbolPackagePushDisconnect";
             public const string VulnerabilitiesCacheRefreshDurationMs = "VulnerabilitiesCacheRefreshDurationMs";
+            public const string InstanceUptime = "InstanceUptimeInDays";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -1096,12 +1097,17 @@ namespace NuGetGallery
 
         public void TrackPackagePushDisconnectEvent()
         {
-            TrackMetric(Events.PackagePushDisconnect, 1, p => { });
+            TrackMetric(Events.PackagePushDisconnect, 1, _ => { });
         }
 
         public void TrackSymbolPackagePushDisconnectEvent()
         {
-            TrackMetric(Events.SymbolPackagePushDisconnect, 1, p => { });
+            TrackMetric(Events.SymbolPackagePushDisconnect, 1, _ => { });
+        }
+
+        public void TrackInstanceUptime(TimeSpan uptime)
+        {
+            TrackMetric(Events.InstanceUptime, uptime.TotalDays, _ => { });
         }
 
         public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
