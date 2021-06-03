@@ -1,69 +1,84 @@
 [CmdletBinding()]
 param(
-    [string]$BuildBranch
+    [string]$BuildBranch = 'main'
 )
 
 # This file is downloaded to "build/init.ps1" so use the parent folder as the root
 $NuGetClientRoot = Split-Path -Path $PSScriptRoot -Parent
+$ServerCommonRoot = Join-Path $NuGetClientRoot "\ServerCommon";
 
 Function Get-BuildTools {
     param(
-        [string]$Branch
+        [string]$BuildBranch
     )
 
-    # Download common.ps1 and other tools used by this build script
-    $RootGitHubApiUri = "https://api.github.com/repos/NuGet/ServerCommon/contents"
-
-    if ($Branch) {
-        $Ref = '?ref=' + $Branch
-    } else {
-        $Ref = ''
+    if (-not (Test-Path $ServerCommonRoot))
+    {
+        Write-Host "Clonning ServerCommon repository with $BuildBranch branch"
+        & cmd /c "git clone -b $BuildBranch https://github.com/NuGet/ServerCommon.git 2>&1"
     }
+    Set-Location $ServerCommonRoot
+    $BuildBranchCommit = & cmd /c "git rev-parse origin/$BuildBranch 2>&1"
+    Write-Host "Latest commit in branch $BuildBranch is $BuildBranchCommit"
 
     Function Get-Folder {
         [CmdletBinding()]
         param(
             [string]$Path
         )
-        
+        # Create directory if not exists in root
         $DirectoryPath = (Join-Path $NuGetClientRoot $Path)
         if (-not (Test-Path $DirectoryPath)) {
             New-Item -Path $DirectoryPath -ItemType "directory"
         }
 
+        # Verifies if marker file on the directory contains latest commit
         $MarkerFile = Join-Path $DirectoryPath ".marker"
         if (Test-Path $MarkerFile) {
             $content = Get-Content $MarkerFile
-            if ($content -eq $Branch) {
-                Write-Host "Build tools directory '$Path' is already at '$Branch'."
+            if ($content -eq $BuildBranchCommit) {
+                Write-Host "Build tools directory '$Path' is already at '$BuildBranchCommit'."
                 return;
             }
         }
         
-        $FolderUri = "$RootGitHubApiUri/$Path$Ref"
-        Write-Host "Downloading files from $FolderUri"
-        $Files = wget -UseBasicParsing $FolderUri | ConvertFrom-Json
-        Foreach ($File in $Files) {
-            $FilePath = $File.path
-            if ($File.type -eq "file") {
-                $DownloadUrl = $File.download_url
-                Write-Host "Downloading file at $DownloadUrl"
-                wget -UseBasicParsing -Uri $DownloadUrl -OutFile (Join-Path $NuGetClientRoot $FilePath)
-            } elseif ($File.type -eq "dir") {
-                Get-Folder -Path $FilePath
+        # Recursively creates the inner directories
+        $FolderUri = Join-Path $ServerCommonRoot $Path
+        $InnerDirectories = Get-ChildItem -Path $FolderUri -Directory
+        foreach ($InnerDirectory in $InnerDirectories)
+        {
+            $InnerDirectoryPath = ($InnerDirectory.FullName).Replace("$ServerCommonRoot", "")
+            Get-Folder -Path $InnerDirectoryPath
+        }
+
+        # Gets all files from current repository directory and moves them to root directory
+        $FileDirectory = Join-Path $NuGetClientRoot $Path
+        $FilesToMove = Get-ChildItem -Path $FolderUri -File
+        Foreach ($File in $FilesToMove)
+        {
+            if (-not (Test-Path (Join-Path $FileDirectory $File)))
+            {
+                $File | Move-Item -Destination $FileDirectory
+            }
+            else
+            {
+                Write-Host "File $File Already created"
             }
         }
 
-        $Branch | Out-File $MarkerFile
+        # Creates the marker file for the current directory
+        $BuildBranchCommit | Out-File $MarkerFile
     }
 
-    $FoldersToDownload = "build", "tools"
-    foreach ($Folder in $FoldersToDownload) {
+    $FoldersToMove = "build", "tools"
+    foreach ($Folder in $FoldersToMove) {
         Get-Folder -Path $Folder
     }
 }
 
-Get-BuildTools -Branch $BuildBranch
+Get-BuildTools -BuildBranch $BuildBranch
+Set-Location $NuGetClientRoot
+Remove-Item -Path $ServerCommonRoot -Recurse -Force
 
 # Run common.ps1
 . "$NuGetClientRoot\build\common.ps1"
