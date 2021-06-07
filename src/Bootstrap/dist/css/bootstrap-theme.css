@@ -1548,7 +1548,12 @@ img.reserved-indicator-icon {
 .page-package-details-v2 .body-tab-content {
   padding-top: 30px;
 }
-.page-package-details-v2 .body-tab-content h3:first-of-type {
+.page-package-details-v2 .body-tab-content h1:first-child,
+.page-package-details-v2 .body-tab-content h2:first-child,
+.page-package-details-v2 .body-tab-content h3:first-child,
+.page-package-details-v2 .body-tab-content h4:first-child,
+.page-package-details-v2 .body-tab-content h5:first-child,
+.page-package-details-v2 .body-tab-content h6:first-child {
   margin-top: 0px;
 }
 .page-downloads .list-tools li {
