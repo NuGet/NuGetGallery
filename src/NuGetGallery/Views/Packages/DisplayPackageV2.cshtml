@@ -268,35 +268,30 @@
 
                 </div>
 
-                @if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
-                {
-                    <p>@Html.PreFormattedText(Model.Description, Config)</p>
-                }
-
                 @if (Model.Validating)
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            <strong>This package has not been published yet.</strong> It will appear in search results and
-                            will be available for install/restore after both validation and indexing are complete. Package
-                            validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
-                        </text>
+                            @<text>
+                                <strong>This package has not been published yet.</strong> It will appear in search results and
+                                will be available for install/restore after both validation and indexing are complete. Package
+                                validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
+                            </text>
                     )
                     if (Model.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                     {
                         @ViewHelpers.AlertWarning(
-                            @<text>
-                                The license link will become available once package validation has completed successfully.
-                            </text>
+                                @<text>
+                                    The license link will become available once package validation has completed successfully.
+                                </text>
                         )
                     }
 
                     if (Model.ValidatingTooLong)
                     {
                         @ViewHelpers.AlertWarning(
-                            @<text>
-                                <strong>Package validation is taking longer than expected.</strong> This is not normal, but we are on it!
-                            </text>
+                                @<text>
+                                    <strong>Package validation is taking longer than expected.</strong> This is not normal, but we are on it!
+                                </text>
                         )
                     }
                 }
@@ -304,33 +299,33 @@
                 @if (Model.FailedValidation)
                 {
                     @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>Package publishing failed.</strong> This package could not be published due to the following reason(s):
-                            <ul class="failed-validation-alert-list">
-                                @foreach (var issue in Model.PackageValidationIssues)
-                                {
-                                    <li>@Html.Partial("_ValidationIssue", issue)</li>
-                                }
-                            </ul>
-                            @if (!Model.PackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
-                            {
-                                var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
-                                <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
-                            }
-                            else
-                            {
-                                <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
-                            }
-                        </text>)
+                            @<text>
+                                <strong>Package publishing failed.</strong> This package could not be published due to the following reason(s):
+                                <ul class="failed-validation-alert-list">
+                                    @foreach (var issue in Model.PackageValidationIssues)
+                                     {
+                                        <li>@Html.Partial("_ValidationIssue", issue)</li>
+                                     }
+                                </ul>
+                                @if (!Model.PackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                                 {
+                                     var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
+                                    <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
+                                 }
+                                 else
+                                 {
+                                    <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
+                                 }
+                            </text>)
                 }
 
                 @if (Model.Deleted)
                 {
                     @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>This package has been deleted from the gallery.</strong> It is no longer available
-                            for install/restore.
-                        </text>
+                            @<text>
+                                <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                                for install/restore.
+                            </text>
                     )
                 }
 
@@ -352,62 +347,62 @@
                 @if (Model.Prerelease)
                 {
                     @ViewHelpers.AlertInfo(
-                        @<text>
-                            This is a prerelease version of @(Model.Id).
-                        </text>
+                            @<text>
+                                This is a prerelease version of @(Model.Id).
+                            </text>
                     )
                 }
                 @if (Model.NuGetVersion.HasMetadata)
                 {
                     @ViewHelpers.AlertInfo(
-                        @<text>
-                            This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
-                        </text>
+                            @<text>
+                                This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
+                            </text>
                     )
                 }
                 @if (Model.VersionRequestedWasNotFound)
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            The specified version @Model.VersionRequested was not found. You have been taken to version @(Model.Version).
-                        </text>
+                            @<text>
+                                The specified version @Model.VersionRequested was not found. You have been taken to version @(Model.Version).
+                            </text>
                     )
                 }
                 @if (Model.HasNewerRelease)
                 {
                     @ViewHelpers.AlertInfo(
-                        @<text>
-                            There is a newer version of this package available.
-                            <br /> See the version list below for details.
-                        </text>
+                            @<text>
+                                There is a newer version of this package available.
+                                <br /> See the version list below for details.
+                            </text>
                     )
                 }
                 else if (Model.HasNewerPrerelease)
                 {
                     @ViewHelpers.AlertInfo(
-                        @<text>
-                            There is a newer prerelease version of this package available.
-                            <br /> See the version list below for details.
-                        </text>
+                            @<text>
+                                There is a newer prerelease version of this package available.
+                                <br /> See the version list below for details.
+                            </text>
                     )
                 }
 
                 @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            <strong>This package has not been indexed yet.</strong> It will appear in search results
-                            and will be available for install/restore after indexing is complete.
-                        </text>
+                            @<text>
+                                <strong>This package has not been indexed yet.</strong> It will appear in search results
+                                and will be available for install/restore after indexing is complete.
+                            </text>
                     )
                 }
 
                 @if (Model.HasEmbeddedIcon && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && (Model.Available || Model.Validating))
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            The package icon will become available after this package is indexed.
-                        </text>
+                            @<text>
+                                The package icon will become available after this package is indexed.
+                            </text>
                     )
                 }
 
@@ -416,38 +411,38 @@
                     if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.Validating)
                     {
                         @ViewHelpers.AlertWarning(
-                            @<text>
-                                <strong>The symbols for this package have not been indexed yet.</strong> They are not available
-                                for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
-                                Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
+                                @<text>
+                                    <strong>The symbols for this package have not been indexed yet.</strong> They are not available
+                                    for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
+                                    Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
 
-                            @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
-                            </text>
+                                    @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                                </text>
                         )
                     }
                     else if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
                     {
                         @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
-                            <ul class="failed-validation-alert-list">
-                                @foreach (var issue in Model.SymbolsPackageValidationIssues)
-                                {
-                                    <li>@Html.Partial("_ValidationIssue", issue)</li>
-                                }
-                            </ul>
-                            @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
-                            {
-                                var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
-                                <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
-                            }
-                            else
-                            {
-                                <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
-                            }
+                            @<text>
+                                <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
+                                <ul class="failed-validation-alert-list">
+                                    @foreach (var issue in Model.SymbolsPackageValidationIssues)
+                                     {
+                                        <li>@Html.Partial("_ValidationIssue", issue)</li>
+                                     }
+                                </ul>
+                                @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                                 {
+                                     var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
+                                    <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
+                                 }
+                                 else
+                                 {
+                                    <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
+                                 }
 
-                            @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
-                        </text>)
+                                @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                            </text>)
                     }
                 }
 
@@ -456,20 +451,20 @@
                     if (Model.CanDisplayPrivateMetadata)
                     {
                         @ViewHelpers.AlertWarning(
-                            @<text>
-                                This package is unlisted and hidden from package listings.
-                                You can see the package because you are one of its owners. To list the package again,
-                                <a href="@Url.ManagePackage(Model)">change its listing setting</a>.
-                            </text>
+                                @<text>
+                                    This package is unlisted and hidden from package listings.
+                                    You can see the package because you are one of its owners. To list the package again,
+                                    <a href="@Url.ManagePackage(Model)">change its listing setting</a>.
+                                </text>
                         )
                     }
                     else
                     {
                         @ViewHelpers.AlertWarning(
-                            @<text>
-                                The owner has unlisted this package.
-                                This could mean that the package is deprecated, has security vulnerabilities or shouldn't be used anymore.
-                            </text>
+                                @<text>
+                                    The owner has unlisted this package.
+                                    This could mean that the package is deprecated, has security vulnerabilities or shouldn't be used anymore.
+                                </text>
                         )
                     }
                 }
@@ -501,27 +496,29 @@
                         </div>
                     </div>
                 }
-
-                @if (!Model.Deleted)
-                {
-                    <div class="body-tabs">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li role="presentation" class="active"><a href="#ReadMe" aria-controls="ReadMe" role="tab" data-toggle="tab" id="readMeBodyTab" class="bodyTab">README</a></li>
-                            <li role="presentation"><a href="#Dependencies" aria-controls="Dependencies" role="tab" data-toggle="tab" id="dependenciesBodyTab" class="bodyTab">Dependencies</a></li>
-                            <li role="presentation"><a href="#UsedBy" aria-controls="UsedBy" role="tab" data-toggle="tab" id="usedByBodyTab" class="bodyTab">Used By</a></li>
-                            <li role="presentation"><a href="#Versions" aria-controls="Versions" role="tab" data-toggle="tab" id="versionsBodyTab" class="bodyTab">Versions</a></li>
-                            <li role="presentation"><a href="#ReleaseNotes" aria-controls="ReleaseNotes" role="tab" data-toggle="tab" id="releaseBodyTab" class="bodyTab">Release Notes</a></li>
-                        </ul>
-                    </div>
-                }
+                <div class="body-tabs">
+                    <ul class="nav nav-tabs" role="tablist">
+                        @if (!Model.Deleted)
+                        {
+                            <li role="presentation" class="active"><a href="#readme-tab" aria-controls="ReadMe" role="tab" data-toggle="tab" id="readme-body-tab" class="body-tab">README</a></li>
+                            <li role="presentation"><a href="#dependencies-tab" aria-controls="Dependencies" role="tab" data-toggle="tab" id="dependencies-body-tab" class="body-tab">Dependencies</a></li>
+                        }
+                        <li role="presentation"><a href="#usedby-tab" aria-controls="UsedBy" role="tab" data-toggle="tab" id="usedby-body-tab" class="body-tab">Used By</a></li>
+                        <li role="presentation"><a href="#versions-tab" aria-controls="Versions" role="tab" data-toggle="tab" id="versions-body-tab" class="body-tab">Versions</a></li>
+                        @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes)) 
+                        { 
+                            <li role="presentation"><a href="#releasenotes-tab" aria-controls="ReleaseNotes" role="tab" data-toggle="tab" id="release-body-tab" class="body-tab">Release Notes</a></li>
+                        }
+                    </ul>
+                </div>
             </div>
             <div class="row">
                 <div class="col-sm-9">
-                    <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane active" id="ReadMe">
+                    <div class="tab-content body-tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="readme-tab">
                             @if (Model.ReadMeHtml != null)
                             {
-                                <div id="readme-container" class="collapse in">
+                                <div id="readme-container">
                                     @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
                                     {
                                         @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
@@ -532,11 +529,18 @@
                                         @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>);
                                     }
 
-                                        @Html.Raw(Model.ReadMeHtml)
+                                    @Html.Raw(Model.ReadMeHtml)
                                 </div>
                             }
+                            else
+                            {
+                                if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
+                                {
+                                    <p>@Html.PreFormattedText(Model.Description, Config)</p>
+                                }
+                            }
                         </div>
-                        <div role="tabpanel" class="tab-pane" id="Dependencies">
+                        <div role="tabpanel" class="tab-pane" id="dependencies-tab">
                             @if (!Model.Deleted)
                             {
                                 if (Model.Dependencies.DependencySets == null)
@@ -594,7 +598,7 @@
                                 }
                             }
                         </div>
-                        <div role="tabpanel" class="tab-pane" id="UsedBy">
+                        <div role="tabpanel" class="tab-pane" id="usedby-tab">
                             @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
                             {
                                 <div class="used-by" id="used-by">
@@ -704,8 +708,8 @@
                                 </div>
                             }
                         </div>
-                        <div role="tabpanel" class="tab-pane" id="Versions">
-                            <div class="version-history" aria-expanded="true" id="version-history">
+                        <div role="tabpanel" class="tab-pane" id="versions-tab">
+                            <div class="version-history" id="version-history">
                                 <table aria-label="Version History of @Model.Id" class="table borderless">
                                     <thead>
                                         <tr>
@@ -825,21 +829,13 @@
                                         }
                                     </tbody>
                                 </table>
-                                @if (rowCount > GalleryConstants.VisibleVersions)
-                                {
-                                    <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
-                                       aria-expanded="@(versionsExpanded ? "true" : "false")" aria-controls="hidden-versions" id="show-hidden-versions">
-                                        <i class="ms-Icon ms-Icon--Calculator@(versionsExpanded ? "Subtract" : "Addition")" aria-hidden="true"></i>
-                                        <span>@(versionsExpanded ? "Show less" : "Show more")</span>
-                                    </a>
-                                }
                             </div>
                         </div>
-                        <div role="tabpanel" class="tab-pane" id="ReleaseNotes">
-                            @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
-                            {
+                        <div role="tabpanel" class="tab-pane" id="releasenotes-tab">
+                            @if(!String.IsNullOrWhiteSpace(Model.ReleaseNotes)) 
+                            { 
                                 <p>@Html.PreFormattedText(Model.ReleaseNotes, Config)</p>
-                            }
+                            } 
                         </div>
                     </div>
                 </div>
@@ -948,7 +944,6 @@
                                 </a>
                             </li>
                         }
-                    }
 
                         @if (Model.Available)
                         {

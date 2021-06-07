@@ -334,6 +334,11 @@ img.reserved-indicator-icon {
 .sortable {
   cursor: pointer;
 }
+@media (max-width: 767.9px) {
+  .hidden-xs {
+    display: none !important;
+  }
+}
 .modal-backdrop.in {
   opacity: 0.8 !important;
   position: fixed;
@@ -1539,6 +1544,12 @@ img.reserved-indicator-icon {
   font-size: 14px;
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #323130;
+}
+.page-package-details-v2 .body-tab-content {
+  padding-top: 30px;
+}
+.page-package-details-v2 .body-tab-content h3:first-of-type {
+  margin-top: 0px;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;

@@ -48,15 +48,6 @@
         });
     }
 
-    // Configure expanders
-    window.nuget.configureExpanderHeading("version-history");
-    window.nuget.configureExpander(
-        "hidden-versions",
-        "CalculatorAddition",
-        "Show less",
-        "CalculatorSubtract",
-        "Show more");
-
     // Configure package manager copy buttons
     function configureCopyButton(id) {
         var copyButton = $('#' + id + '-button');
@@ -118,14 +109,13 @@
         }
 
         // Make sure we save the user's preferred tab to localStorage.
-        $('.bodyTab').on('shown.bs.tab', function (e) {
-            console.log(e);
+        $('.body-tab').on('shown.bs.tab', function (e) {
             storage.setItem(bodyKey, e.target.id);
         });
     }
 
     if (window.nuget.isGaAvailable()) {
-        // TO-DO add telemetry events for when each tab is clicked
+        // TO-DO add telemetry events for when each tab is clicked, see https://github.com/nuget/nugetgallery/issues/8613
 
         // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Repos area of the Used By section.
         $(".gh-link").on('click', function (elem) {
