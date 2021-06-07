@@ -413,6 +413,19 @@
 
         setupColumnSorting();
 
+        // Add popover to warning icons
+        var popoverFunction = function () {
+            var checkmarkImage = $(this);
+            checkmarkImage.popover({ trigger: 'hover focus' });
+            checkmarkImage.click(function () {
+                checkmarkImage.popover('show');
+                setTimeout(function () {
+                        checkmarkImage.popover('destroy');
+                    },
+                    1000);
+            });
+        };
+        $(".ms-Icon--Warning").each(popoverFunction);
     });
 
 })();

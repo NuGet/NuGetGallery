@@ -828,8 +828,8 @@
                                     }
                                     else
                                     {
-                                        <td tabindex="0" class="package-icon-cell">
-                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                        <td tabindex="0" class="package-icon-cell" aria-label="@packageVersion.PackageWarningIconTitle">
+                                            <i class="ms-Icon ms-Icon--Warning package-icon" data-content="@packageVersion.PackageWarningIconTitle" tabindex="0"></i>
                                         </td>
                                     }
                                 </tr>

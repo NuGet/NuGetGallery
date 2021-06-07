@@ -177,8 +177,10 @@
                         </td>
                     @if (Model.IsManagePackagesVulnerabilitiesEnabled)
                     {
-                        <td class="package-icon-cell">
-                            <i class="ms-Icon ms-Icon--Warning package-icon" data-bind="visible: IsVulnerable" title="This version has at least one known vulnerability. Click on the package name for details."></i>
+                        var title = "This version has at least one known vulnerability. Click on the package name for details.";
+                        <td class="package-icon-cell" aria-label="@title" tabindex="0">
+                            <i class="ms-Icon ms-Icon--Warning package-icon" data-bind="visible: IsVulnerable"
+                               data-content="@title" tabindex="0"></i>
                         </td>
                     }
                         <td class="text-right align-middle package-controls">
