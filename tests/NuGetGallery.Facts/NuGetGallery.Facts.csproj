@@ -104,6 +104,7 @@
     <Compile Include="Services\ImageDomainValidatorFacts.cs" />
     <Compile Include="Services\MarkdownServiceFacts.cs" />
     <Compile Include="Services\PackageVulnerabilitiesCacheServiceFacts.cs" />
+    <Compile Include="Services\DbMockHelpers.cs" />
     <Compile Include="Services\PackageVulnerabilitiesServiceFacts.cs" />
     <Compile Include="Services\PackageMetadataValidationServiceFacts.cs" />
     <Compile Include="Services\ConfigurationIconFileProviderFacts.cs" />

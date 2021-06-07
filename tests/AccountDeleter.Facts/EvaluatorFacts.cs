@@ -31,7 +31,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         public void NuGetDeleteevaluatorReturnsCorrectValueForUnconfirmed()
         {
             // Setup
-            _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()))
+            _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
                 .Returns(() =>
                 {
                     return new List<Package>();
@@ -58,7 +58,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         public void NuGetDeleteevaluatorReturnsCorrectValueForPackages(bool userHasPackages, bool expectedResult)
         {
             // Setup
-            _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()))
+            _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
                 .Returns(() =>
                 {
                     if (userHasPackages)
@@ -94,7 +94,7 @@ namespace NuGetGallery.AccountDeleter.Facts
         public void NuGetDeleteevaluatorReturnsCorrectValueForOrganizations(bool userHasOrgs, bool userIsAdmin, bool expectedResult)
         {
             // Setup
-            _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()))
+            _packageService.Setup(ps => ps.FindPackagesByOwner(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>()))
                 .Returns(() =>
                 {
                     return new List<Package>();
