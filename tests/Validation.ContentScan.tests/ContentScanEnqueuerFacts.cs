@@ -140,6 +140,55 @@ namespace Validation.ContentScan.Tests
         }
     }
 
+    public class EnqueueCheckContentScanStatusAsyncMethod : ContentScanEnqueuerFactsBase
+    {
+        [Fact]
+        public async Task PassesDataToSerializedMessage()
+        {
+            await _target.EnqueueContentScanStatusCheckAsync(_validationRequest.ValidationStepId);
+
+            _serializerMock
+                .Verify(s => s.Serialize(It.IsAny<ContentScanData>()), Times.Once);
+
+            Assert.Equal(_validationRequest.ValidationStepId, _capturedMessage.CheckContentScanStatus.ValidationStepId);
+            Assert.Equal(ContentScanOperationType.CheckStatus, _capturedMessage.Type);
+        }
+
+        [Fact]
+        public async Task SetsEnqueueTime()
+        {
+            const int messageDelayDays = 137;
+            _configuration.MessageDelay = TimeSpan.FromDays(messageDelayDays);
+
+            await _target.EnqueueContentScanStatusCheckAsync(_validationRequest.ValidationStepId);
+
+            Assert.Equal(messageDelayDays, (_serializedMessage.ScheduledEnqueueTimeUtc - DateTimeOffset.UtcNow).TotalDays, 0);
+        }
+
+        [Theory]
+        [InlineData(23, 25, 25)]
+        [InlineData(42, 25, 25)]
+        public async Task SetsEnqueueTimeWhenOverriden(int cfgDelayDays, int argDelayDays, int expectedDelayDays)
+        {
+            _configuration.MessageDelay = TimeSpan.FromDays(cfgDelayDays);
+
+            await _target.EnqueueContentScanStatusCheckAsync(
+                _validationRequest.ValidationStepId,
+                messageDeliveryDelayOverride: TimeSpan.FromDays(argDelayDays));
+
+            Assert.Equal(expectedDelayDays, (_serializedMessage.ScheduledEnqueueTimeUtc - DateTimeOffset.UtcNow).TotalDays, 0);
+        }
+
+        [Fact]
+        public async Task SendsMessage()
+        {
+            var request = new ValidationRequest(Guid.NewGuid(), new Uri("https://example.com/testpackage.nupkg"));
+            await _target.EnqueueContentScanStatusCheckAsync(request.ValidationStepId);
+
+            Assert.Same(_serializedMessage, _capturedBrokeredMessage);
+        }
+    }
+
     public class ContentScanEnqueuerFactsBase
     {
         protected Mock<ITopicClient> _topicClientMock;
