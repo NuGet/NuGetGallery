@@ -518,7 +518,7 @@ namespace NuGetGallery
                 {
                     var version = nuspec.GetVersion().ToNormalizedString();
                     _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
-                    return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(Strings.UploadPackage_IdNamespaceConflict) });
+                    return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(new UploadPackageIdNamespaceConflict()) });
                 }
                 else if (result == PermissionsCheckResult.OwnerlessReservedNamespaceFailure)
                 {

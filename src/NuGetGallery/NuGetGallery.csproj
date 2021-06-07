@@ -310,6 +310,7 @@
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
+    <Compile Include="Services\UploadPackageIdNamespaceConflict.cs" />
     <Compile Include="Services\ImageDomainValidator.cs" />
     <Compile Include="Services\IMarkdownService.cs" />
     <Compile Include="Services\IImageDomainValidator.cs" />
