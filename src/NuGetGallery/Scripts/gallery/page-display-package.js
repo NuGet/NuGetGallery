@@ -171,17 +171,6 @@ $(function () {
         });
     }
 
-    // Add popover to warning icons
-    var popoverFunction = function () {
-        var checkmarkImage = $(this);
-        checkmarkImage.popover({ trigger: 'hover focus' });
-        checkmarkImage.click(function () {
-            checkmarkImage.popover('show');
-            setTimeout(function () {
-                    checkmarkImage.popover('destroy');
-                },
-                1000);
-        });
-    };
-    $(".package-warning-icon").each(popoverFunction);
+    $(".reserved-indicator").each(window.nuget.setPopovers);
+    $(".package-warning-icon").each(window.nuget.setPopovers);
 });

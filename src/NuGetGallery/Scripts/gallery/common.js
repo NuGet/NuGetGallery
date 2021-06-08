@@ -462,6 +462,18 @@
         }
     };
 
+    nuget.setPopovers = function () {
+        var popoverElement = $(this);
+        popoverElement.popover({ trigger: 'hover focus' });
+        popoverElement.click(function () {
+            popoverElement.popover('show');
+            setTimeout(function () {
+                    popoverElement.popover('destroy');
+                },
+                1000);
+        });
+    };
+
     window.nuget = nuget;
 
     jQuery.extend(jQuery.expr.pseudos, {
