@@ -425,7 +425,7 @@
                     1000);
             });
         };
-        $(".ms-Icon--Warning").each(popoverFunction);
+        $(".package-warning-icon").each(popoverFunction);
     });
 
 })();

@@ -170,17 +170,18 @@
                         </td>
                     }
                         <td class="align-middle text-nowrap" data-bind="attr: { 'data-sortby': DownloadCount }">
-                            <span data-bind="text: FormattedDownloadCount"></span>
+                            <span data-bind="text: FormattedDownloadCount" tabindex="0"></span>
                         </td>
                         <td class="align-middle text-nowrap" data-bind="attr: { 'data-sortby': VersionSortOrder }">
-                            <span data-bind="text: LatestVersion"></span>
+                            <span data-bind="text: LatestVersion" tabindex="0"></span>
                         </td>
                     @if (Model.IsManagePackagesVulnerabilitiesEnabled)
                     {
                         var title = "This version has at least one known vulnerability. Click on the package name for details.";
-                        <td class="package-icon-cell" aria-label="@title" tabindex="0">
-                            <i class="ms-Icon ms-Icon--Warning package-icon" data-bind="visible: IsVulnerable"
-                               data-content="@title" tabindex="0"></i>
+                        <td class="package-icon-cell">
+                            <span class="package-warning-icon" aria-label="@title" data-content="@title" data-bind="visible: IsVulnerable" tabindex="0">
+                                <i class="ms-Icon ms-Icon--Warning package-icon"></i>
+                            </span>
                         </td>
                     }
                         <td class="text-right align-middle package-controls">
