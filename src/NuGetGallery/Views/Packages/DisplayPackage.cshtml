@@ -774,7 +774,7 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                    <td tabindex="0">
+                                    <td>
                                         <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                             @packageVersion.Version.Abbreviate(30)
                                         </a>
@@ -795,7 +795,7 @@
                                     {
                                         var packageStatusSummary = packageVersion.PackageStatusSummary;
 
-                                        <td tabindex="0">
+                                        <td>
                                             @if (packageStatusSummary == PackageStatusSummary.Listed ||
                                                  packageStatusSummary == PackageStatusSummary.Unlisted)
                                             {
@@ -828,8 +828,11 @@
                                     }
                                     else
                                     {
-                                        <td tabindex="0" class="package-icon-cell">
-                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                        <td class="package-icon-cell">
+                                            <span class="package-warning-icon" aria-label="@packageVersion.PackageWarningIconTitle" 
+                                                  data-content="@packageVersion.PackageWarningIconTitle" tabindex="0">
+                                                <i class="ms-Icon ms-Icon--Warning package-icon"></i>
+                                            </span>
                                         </td>
                                     }
                                 </tr>
