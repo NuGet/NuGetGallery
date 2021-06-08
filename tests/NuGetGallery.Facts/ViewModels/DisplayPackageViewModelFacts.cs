@@ -570,6 +570,58 @@ namespace NuGetGallery.ViewModels
             Assert.False(hasNewerRelease);
         }
 
+        [Fact]
+        public void HasEmbeddedReadmeFileTrueIfPackageHasEmbeddedReadme()
+        {
+            var package = new Package
+            {
+                Key = 123,
+                Version = "1.0.0",
+                HasReadMe = true,
+                EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                }
+            };
+
+            package.PackageRegistration.Packages = new[] { package };
+
+            var viewModel = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            //Act
+            var hasEmbeddedReadmeFile = viewModel.HasEmbeddedReadmeFile;
+
+            //Assert
+            Assert.True(hasEmbeddedReadmeFile);
+        }
+
+        [Fact]
+        public void HasEmbeddedReadmeFileFalseIfPackageHasLegacyReadme()
+        {
+            var package = new Package
+            {
+                Key = 123,
+                Version = "1.0.0",
+                HasReadMe = true,
+                EmbeddedReadmeType = EmbeddedReadmeFileType.Absent,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                }
+            };
+
+            package.PackageRegistration.Packages = new[] { package };
+
+            var viewModel = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            //Act
+            var hasEmbeddedReadmeFile = viewModel.HasEmbeddedReadmeFile;
+
+            //Assert
+            Assert.False(hasEmbeddedReadmeFile);
+        }
+
         private Package CreateTestPackage(string version, string dependencyVersion = null)
         {
             var package = new Package
