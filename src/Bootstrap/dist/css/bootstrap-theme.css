@@ -1439,6 +1439,39 @@ img.reserved-indicator-icon {
   height: 16px;
   margin-top: 3px;
 }
+.page-package-details-v2 .package-details-info .sidebar-headers {
+  font-size: 16px;
+  font-weight: 600;
+  color: #666666;
+  margin-bottom: 12px;
+}
+.page-package-details-v2 .package-details-info .sidebar-links {
+  font-size: 16px;
+}
+.page-package-details-v2 .package-details-info #title-links {
+  font-size: 14px;
+  font-weight: 400;
+}
+.page-package-details-v2 .package-details-info .sidebar-section {
+  margin-bottom: 32px;
+}
+.page-package-details-v2 .package-details-info .sidebar-table {
+  margin-top: 8px;
+}
+.page-package-details-v2 .package-details-info .sidebar-table tr {
+  border-style: hidden;
+}
+.page-package-details-v2 .package-details-info .sidebar-table th {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  color: #666666;
+}
+.page-package-details-v2 .package-details-info .sidebar-table td {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
 .page-package-details-v2 .owner-list li {
   margin-bottom: 8px;
   display: block;
@@ -1448,6 +1481,10 @@ img.reserved-indicator-icon {
 }
 .page-package-details-v2 .owner-list img {
   margin-right: 8px;
+  border-radius: 5px;
+}
+.page-package-details-v2 .support-links {
+  margin-bottom: 24px;
 }
 .page-package-details-v2 .share-buttons img {
   margin-right: 8px;
