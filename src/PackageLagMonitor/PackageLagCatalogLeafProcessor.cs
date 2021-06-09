@@ -109,7 +109,7 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             {
                 if (e is InvalidOperationException || e is ArgumentNullException)
                 {
-                    _logger.LogError("No queries succeeded for {PackageId} {PackageVersion}", packageId, version);
+                    _logger.LogError(e, "No queries succeeded for {PackageId} {PackageVersion}", packageId, version);
                     return null;
                 }
                 else
@@ -207,7 +207,7 @@ namespace NuGet.Jobs.Monitoring.PackageLag
             }
             catch (Exception e)
             {
-                _logger.LogError("{ServiceType}: Failed to compute lag for {PackageId} {PackageVersion}. {Exception}", instance.ServiceType, packageId, packageVersion, e);
+                _logger.LogError(e, "{ServiceType}: Failed to compute lag for {PackageId} {PackageVersion}. {Exception}", instance.ServiceType, packageId, packageVersion, e);
             }
 
             return null;

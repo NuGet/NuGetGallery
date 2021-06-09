@@ -36,7 +36,7 @@ namespace Gallery.Maintenance
                 }
                 catch (Exception exception)
                 {
-                    Logger.LogError("Task '{taskName}' failed: {Exception}", taskName, exception);
+                    Logger.LogError(exception, "Task '{taskName}' failed: {Exception}", taskName, exception);
                     failedTasks.Add(taskName);
                 }
             }

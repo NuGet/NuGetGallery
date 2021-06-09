@@ -189,7 +189,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 catch (Exception ex)
                 {
                     // logging other exceptions here to have proper scope in log message
-                    _logger.LogError("Exception while trying to access package blob {PackageUrl}: {Exception}",
+                    _logger.LogError(ex, "Exception while trying to access package blob {PackageUrl}: {Exception}",
                         packageUri.AbsoluteUri,
                         ex);
                     throw;
