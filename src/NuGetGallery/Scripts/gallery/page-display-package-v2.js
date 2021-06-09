@@ -99,7 +99,7 @@
             storage.setItem(installationKey, e.target.id);
         });
 
-        // set perferred body tab 
+        // set preferred body tab 
         var bodyKey = 'preferred_body_tab';
 
         // Restore preferred tab selection from localStorage.
