@@ -334,6 +334,11 @@ img.reserved-indicator-icon {
 .sortable {
   cursor: pointer;
 }
+@media (max-width: 767.9px) {
+  .hidden-xs {
+    display: none !important;
+  }
+}
 .modal-backdrop.in {
   opacity: 0.8 !important;
   position: fixed;
@@ -644,8 +649,20 @@ img.reserved-indicator-icon {
 #readme-less img {
   max-width: 100%;
 }
+#readme-less ul,
+#readme-less li {
+  list-style-type: none;
+}
 #readme-more img {
   max-width: 100%;
+}
+#readme-more ul,
+#readme-more li {
+  list-style-type: none;
+}
+#readme-preview ul,
+#readme-preview li {
+  list-style-type: none;
 }
 .user-package-list .manage-package-listing .package-icon {
   max-height: 2em;
