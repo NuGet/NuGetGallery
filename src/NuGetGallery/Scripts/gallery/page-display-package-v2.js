@@ -86,6 +86,7 @@
 
     var storage = window['localStorage'];
     if (storage) {
+        // set preferred installation instruction tab
         var installationKey = 'preferred_tab';
 
         // Restore preferred tab selection from localStorage.
@@ -102,13 +103,13 @@
         // set preferred body tab 
         var bodyKey = 'preferred_body_tab';
 
-        // Restore preferred tab selection from localStorage.
+        // Restore preferred body tab selection from localStorage.
         var preferredBodyTab = storage.getItem(bodyKey);
         if (preferredBodyTab) {
             $('#' + preferredBodyTab).tab('show');
         }
 
-        // Make sure we save the user's preferred tab to localStorage.
+        // Make sure we save the user's preferred body tab to localStorage.
         $('.body-tab').on('shown.bs.tab', function (e) {
             storage.setItem(bodyKey, e.target.id);
         });
