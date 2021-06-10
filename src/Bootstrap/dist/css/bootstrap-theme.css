@@ -649,19 +649,19 @@ img.reserved-indicator-icon {
 #readme-less img {
   max-width: 100%;
 }
-#readme-less ul,
-#readme-less li {
+#readme-less ul.contains-task-list,
+#readme-less li.task-list-item {
   list-style-type: none;
 }
 #readme-more img {
   max-width: 100%;
 }
-#readme-more ul,
-#readme-more li {
+#readme-more ul.contains-task-list,
+#readme-more li.task-list-item {
   list-style-type: none;
 }
-#readme-preview ul,
-#readme-preview li {
+#readme-preview ul.contains-task-list,
+#readme-preview li.task-list-item {
   list-style-type: none;
 }
 .user-package-list .manage-package-listing .package-icon {
