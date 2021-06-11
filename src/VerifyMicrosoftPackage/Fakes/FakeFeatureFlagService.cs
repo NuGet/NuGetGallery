@@ -103,6 +103,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsODataV2SearchCountNonHijackedEnabled() => throw new NotImplementedException();
 
+        public bool IsShowReportAbuseSafetyChangesEnabled() => throw new NotImplementedException();
+
         public bool IsMarkdigMdRenderingEnabled() => throw new NotImplementedException();
 
         public bool IsDeletePackageApiEnabled(User user) => throw new NotImplementedException();

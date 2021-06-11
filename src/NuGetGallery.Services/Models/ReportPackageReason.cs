@@ -24,5 +24,23 @@ namespace NuGetGallery
 
         [Description("The package was not intended to be published publicly on nuget.org")]
         ReleasedInPublicByAccident,
+
+        [Description("Child sexual exploitation or abuse")]
+        ChildSexualExploitationOrAbuse,
+
+        [Description("Terrorism or violent extremism")]
+        TerrorismOrViolentExtremism,
+
+        [Description("The package contains hate speech")]
+        HateSpeech,
+
+        [Description("The package contains content related to imminent harm")]
+        ImminentHarm,
+
+        [Description("The package contains non-consensual intimate imagery (i.e. \"revenge porn\")")]
+        RevengePorn,
+
+        [Description("Other nudity or pornography (not \"revenge porn\")")]
+        OtherNudityOrPornography,
     }
 }

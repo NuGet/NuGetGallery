@@ -205,6 +205,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsShowReportAbuseSafetyChangesEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsPackageDependentsEnabled(User user)
         {
             throw new NotImplementedException();

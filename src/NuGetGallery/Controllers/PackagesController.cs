@@ -67,6 +67,20 @@ namespace NuGetGallery
             ReportPackageReason.Other
         };
 
+        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseWithSafetyReasons = new[]
+        {
+            ReportPackageReason.ViolatesALicenseIOwn,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.HasABugOrFailedToInstall,
+            ReportPackageReason.ChildSexualExploitationOrAbuse,
+            ReportPackageReason.TerrorismOrViolentExtremism,
+            ReportPackageReason.HateSpeech,
+            ReportPackageReason.ImminentHarm,
+            ReportPackageReason.RevengePorn,
+            ReportPackageReason.OtherNudityOrPornography,
+            ReportPackageReason.Other
+        };
+
         private static readonly IReadOnlyList<ReportPackageReason> ReportMyPackageReasons = new[]
         {
             ReportPackageReason.ContainsPrivateAndConfidentialData,
@@ -1336,7 +1350,9 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                ReasonChoices = ReportAbuseReasons,
+                ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled() 
+                    ? ReportAbuseWithSafetyReasons
+                    : ReportAbuseReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
                 CopySender = true,
