@@ -78,12 +78,6 @@
         configureCopyButton(packageManagers[i]);
     }
 
-    // Enable the undo edit link.
-    $("#undo-pending-edits").click(function (e) {
-        e.preventDefault();
-        $(this).closest('form').submit();
-    })
-
     var storage = window['localStorage'];
     if (storage) {
         // set preferred installation instruction tab
