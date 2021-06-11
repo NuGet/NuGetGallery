@@ -88,12 +88,15 @@ namespace NuGet.Services.V3
                 else if (entry.CommitTimeStamp == max.CommitTimeStamp)
                 {
                     const string message = "There are multiple catalog leaves for a single package at one time.";
+                    var ex = new InvalidOperationException(message);
                     _logger.LogError(
+                        ex,
                         message + " ID: {PackageId}, version: {PackageVersion}, commit timestamp: {CommitTimestamp:O}",
                         entry.PackageIdentity.Id,
                         entry.PackageIdentity.Version.ToFullString(),
                         entry.CommitTimeStamp);
-                    throw new InvalidOperationException(message);
+
+                    throw ex;
                 }
             }
 

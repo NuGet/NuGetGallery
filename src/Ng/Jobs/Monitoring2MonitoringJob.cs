@@ -73,7 +73,7 @@ namespace Ng.Jobs
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError("Failed to requeue invalid package {PackageId} {PackageVersion}: {Exception}",
+                    Logger.LogError(e, "Failed to requeue invalid package {PackageId} {PackageVersion}: {Exception}",
                         invalidPackage.Package.Id, invalidPackage.Package.Version, e);
 
                     return Task.FromResult(0);

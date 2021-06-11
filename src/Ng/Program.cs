@@ -102,21 +102,21 @@ namespace Ng
             catch (ArgumentException ae)
             {
                 exitCode = 1;
-                _logger?.LogError("A required argument was not found or was malformed/invalid: {Exception}", ae);
+                _logger?.LogError(ae, "A required argument was not found or was malformed/invalid: {Exception}", ae);
 
                 Console.WriteLine(job != null ? job.GetUsage() : NgJob.GetUsageBase());
             }
             catch (KeyNotFoundException knfe)
             {
                 exitCode = 1;
-                _logger?.LogError("An expected key was not found. One possible cause of this is required argument has not been provided: {Exception}", knfe);
+                _logger?.LogError(knfe, "An expected key was not found. One possible cause of this is required argument has not been provided: {Exception}", knfe);
 
                 Console.WriteLine(job != null ? job.GetUsage() : NgJob.GetUsageBase());
             }
             catch (Exception e)
             {
                 exitCode = 1;
-                _logger?.LogCritical("A critical exception occured in ng.exe! {Exception}", e);
+                _logger?.LogCritical(e, "A critical exception occured in ng.exe! {Exception}", e);
             }
 
             applicationInsightsConfiguration.DiagnosticsTelemetryModule?.SetHeartbeatProperty(

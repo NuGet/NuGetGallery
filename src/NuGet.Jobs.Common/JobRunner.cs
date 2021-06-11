@@ -151,7 +151,7 @@ namespace NuGet.Jobs
             catch (Exception ex)
             {
                 exitCode = 1;
-                _logger.LogError("Job runner threw an exception: {Exception}", ex);
+                _logger.LogError(ex, "Job runner threw an exception: {Exception}", ex);
             }
 
             Trace.Close();
@@ -268,7 +268,7 @@ namespace NuGet.Jobs
                 catch (Exception e)
                 {
                     exitCode = 1;
-                    _logger.LogError("{JobState}: {Exception}", initialized ? JobFailed : JobUninitialized, e);
+                    _logger.LogError(e, "{JobState}: {Exception}", initialized ? JobFailed : JobUninitialized, e);
                 }
                 finally
                 {

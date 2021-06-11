@@ -122,7 +122,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 }
 
                 SqlConnection.ClearAllPools();
-                logger.LogError("SQL Invocation failed, retrying. {RemainingAttempts} attempts remaining. Exception: {Exception}", attempts, caught);
+                logger.LogError(caught, "SQL Invocation failed, retrying. {RemainingAttempts} attempts remaining. Exception: {Exception}", attempts, caught);
 
                 if (caught is SqlException sqlException && sqlException.InnerException is Win32Exception win32Exception)
                 {

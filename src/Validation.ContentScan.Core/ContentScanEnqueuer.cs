@@ -44,6 +44,30 @@ namespace NuGet.Jobs.Validation.ContentScan
         public Task EnqueueContentScanAsync(Guid validationStepId, Uri inputUrl, TimeSpan messageDeliveryDelayOverride)
             => EnqueueScanImplAsync(validationStepId, inputUrl, messageDeliveryDelayOverride);
 
+        public Task EnqueueContentScanStatusCheckAsync(Guid validationStepId)
+            => EnqueueStatusCheckImplAsync(validationStepId, messageDeliveryDelayOverride: null);
+
+        public Task EnqueueContentScanStatusCheckAsync(Guid validationStepId, TimeSpan messageDeliveryDelayOverride)
+            => EnqueueStatusCheckImplAsync(validationStepId, messageDeliveryDelayOverride);
+
+        private async Task EnqueueStatusCheckImplAsync(Guid validationStepId, TimeSpan? messageDeliveryDelayOverride = null)
+        {
+            if (messageDeliveryDelayOverride.HasValue && messageDeliveryDelayOverride < TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException(nameof(messageDeliveryDelayOverride), $"{nameof(messageDeliveryDelayOverride)} cannot be negative");
+            }
+
+            _logger.LogInformation(
+                "Requested status check for ContentScan validation {ValidationStepId}, delay override: {DelayOverride}",
+                validationStepId,
+                messageDeliveryDelayOverride);
+
+            await SendContentScanMessageAsync(
+                ContentScanData.NewCheckContentScanStatus(
+                    validationStepId),
+                messageDeliveryDelayOverride);
+        }
+
         private async Task EnqueueScanImplAsync(Guid validationStepId, Uri inputUrl, TimeSpan? messageDeliveryDelayOverride = null)
         {
             if (inputUrl == null)

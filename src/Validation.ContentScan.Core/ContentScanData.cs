@@ -67,6 +67,7 @@ namespace NuGet.Jobs.Validation.ContentScan
 
             Type = type;
             StartContentScan = startContentScan;
+            CheckContentScanStatus = checkContentScanStatus;
             DeliveryCount = deliveryCount;
         }
 

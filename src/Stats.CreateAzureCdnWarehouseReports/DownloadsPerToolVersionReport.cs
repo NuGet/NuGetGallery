@@ -80,7 +80,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError("Error writing report to storage account {StorageAccount}, container {ReportContainer}. {Exception}",
+                        _logger.LogError(ex, "Error writing report to storage account {StorageAccount}, container {ReportContainer}. {Exception}",
                             storageContainerTarget.StorageAccount.Credentials.AccountName,
                             storageContainerTarget.ContainerName,
                             ex);
