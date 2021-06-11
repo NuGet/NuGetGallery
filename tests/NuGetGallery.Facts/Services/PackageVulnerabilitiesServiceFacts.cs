@@ -17,27 +17,23 @@ namespace NuGetGallery.Services
     {
         private Package _packageVulnerable;
         private Package _packageNotVulnerable;
-        private List<VulnerablePackageVersionRange> _versionRanges;
+        private PackageVulnerability _vulnerabilityModerate;
 
         [Fact]
         public void GetsVulnerableStatusOfPackage()
         {
             // Arrange
             Setup();
-            var entitiesContext = new Mock<IEntitiesContext>();
-            entitiesContext.Setup(x => x.Set<VulnerablePackageVersionRange>()).Returns(
-                DbMockHelpers.ListToDbSet<VulnerablePackageVersionRange>(_versionRanges));
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(IEntitiesContext))).Returns(entitiesContext.Object);
-            var serviceScope = new Mock<IServiceScope>();
-            serviceScope.Setup(x => x.ServiceProvider).Returns(serviceProvider.Object);
-            serviceScope.Setup(x => x.Dispose()).Verifiable();
-            var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-            serviceScopeFactory.Setup(x => x.CreateScope()).Returns(serviceScope.Object);
-            var cacheService = new PackageVulnerabilitiesCacheService(new Mock<ITelemetryService>().Object);
-            cacheService.RefreshCache(serviceScopeFactory.Object);
+            var cacheService = new Mock<IPackageVulnerabilitiesCacheService>();
+            cacheService.Setup(x => x.GetVulnerabilitiesById(It.IsAny<string>())).Returns((string id) =>
+                id == _packageVulnerable.PackageRegistration.Id
+                    ? new Dictionary<int, IReadOnlyList<PackageVulnerability>> {
+                        { _packageVulnerable.Key, new List<PackageVulnerability> { _vulnerabilityModerate } }
+                    } 
+                    : null
+            );
 
-            var target = new PackageVulnerabilitiesService(cacheService);
+            var target = new PackageVulnerabilitiesService(cacheService.Object);
 
             // Act
             var shouldBeVulnerable = target.IsPackageVulnerable(_packageVulnerable);
@@ -52,7 +48,7 @@ namespace NuGetGallery.Services
         {
             var registrationVulnerable = new PackageRegistration { Id = "Vulnerable" };
 
-            var vulnerabilityModerate = new PackageVulnerability
+            _vulnerabilityModerate = new PackageVulnerability
             {
                 AdvisoryUrl = "http://theurl/5678",
                 GitHubDatabaseKey = 5678,
@@ -61,7 +57,7 @@ namespace NuGetGallery.Services
 
             var versionRangeModerate = new VulnerablePackageVersionRange
             {
-                Vulnerability = vulnerabilityModerate,
+                Vulnerability = _vulnerabilityModerate,
                 PackageId = registrationVulnerable.Id,
                 PackageVersionRange = "<=1.1.1",
                 FirstPatchedPackageVersion = "1.1.2"
@@ -82,8 +78,6 @@ namespace NuGetGallery.Services
             };
 
             versionRangeModerate.Packages = new List<Package> { _packageVulnerable };
-
-            _versionRanges = new List<VulnerablePackageVersionRange> { versionRangeModerate };
         }
     }
 }

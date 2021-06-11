@@ -15,16 +15,12 @@ namespace NuGetGallery.Services
 {
     public class PackageVulnerabilitiesCacheServiceFacts
     {
-        private List<VulnerablePackageVersionRange> _versionRanges;
-
         [Fact]
         public void RefreshesVulnerabilitiesCache()
         {
             // Arrange
-            Setup();
             var entitiesContext = new Mock<IEntitiesContext>();
-            entitiesContext.Setup(x => x.Set<VulnerablePackageVersionRange>()).Returns(
-                DbMockHelpers.ListToDbSet<VulnerablePackageVersionRange>(_versionRanges));
+            entitiesContext.Setup(x => x.Set<VulnerablePackageVersionRange>()).Returns(GetVulnerableRanges());
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(IEntitiesContext))).Returns(entitiesContext.Object);
             var serviceScope = new Mock<IServiceScope>();
@@ -60,7 +56,7 @@ namespace NuGetGallery.Services
             Assert.Equal(1, vulnerabilitiesBar[6].Count);
         }
 
-        void Setup()
+        DbSet<VulnerablePackageVersionRange> GetVulnerableRanges()
         {
             var registrationFoo = new PackageRegistration { Id = "Foo" };
             var registrationBar = new PackageRegistration { Id = "Bar" };
@@ -172,7 +168,17 @@ namespace NuGetGallery.Services
             versionRangeModerateFoo.Packages = new List<Package> { packageFoo100, packageFoo110, packageFoo111, packageFoo112 };
             versionRangeCriticalBar.Packages = new List<Package> { packageBar100, packageBar110 };
 
-            _versionRanges = new List<VulnerablePackageVersionRange> { versionRangeCriticalFoo, versionRangeModerateFoo, versionRangeCriticalBar };
+            var vulnerableRangeList = new List<VulnerablePackageVersionRange> { versionRangeCriticalFoo, versionRangeModerateFoo, versionRangeCriticalBar }.AsQueryable();
+            var vulnerableRangeDbSet = new Mock<DbSet<VulnerablePackageVersionRange>>();
+
+            // boilerplate mock DbSet redirects:
+            vulnerableRangeDbSet.As<IQueryable>().Setup(x => x.Provider).Returns(vulnerableRangeList.Provider);
+            vulnerableRangeDbSet.As<IQueryable>().Setup(x => x.Expression).Returns(vulnerableRangeList.Expression);
+            vulnerableRangeDbSet.As<IQueryable>().Setup(x => x.ElementType).Returns(vulnerableRangeList.ElementType);
+            vulnerableRangeDbSet.As<IQueryable>().Setup(x => x.GetEnumerator()).Returns(vulnerableRangeList.GetEnumerator());
+            vulnerableRangeDbSet.Setup(x => x.Include(It.IsAny<string>())).Returns(vulnerableRangeDbSet.Object); // bypass includes (which break the test)
+
+            return vulnerableRangeDbSet.Object;
         }
     }
 }
