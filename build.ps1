@@ -10,8 +10,9 @@ param (
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '948e06b7e5dc320eccd1f44a15a5faeb60384ed6',
-    [string]$VerifyMicrosoftPackageVersion = $null
+    [string]$BuildBranch = 'dj-azdo-patsupport',
+    [string]$VerifyMicrosoftPackageVersion = $null,
+    [string]$AccessToken
 )
 
 Set-StrictMode -Version 1.0
@@ -61,7 +62,7 @@ Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
 Invoke-BuildStep 'Cleaning test results' { Clean-Tests } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
+Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet -AccessToken $AccessToken } `
     -ev +BuildErrors
     
 Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
