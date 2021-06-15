@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -57,7 +58,10 @@ namespace Microsoft.PackageManagement.Search.Web
             };
         }
 
-        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(
+            IApplicationBuilder app,
+            IWebHostEnvironment env,
+            Action<CorsPolicyBuilder> configureCors = null)
         {
             if (env.IsDevelopment())
             {
@@ -65,6 +69,11 @@ namespace Microsoft.PackageManagement.Search.Web
             }
 
             app.UseRouting();
+
+            if (configureCors != null)
+            {
+                app.UseCors(configureCors);
+            }
 
             app.UseHsts();
 
