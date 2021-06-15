@@ -6606,8 +6606,8 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(Strings.UploadPackage_IdNamespaceConflict, (result.Data as JsonValidationMessage[])[0].PlainTextMessage);
-                Assert.Null((result.Data as JsonValidationMessage[])[0].RawHtmlMessage);
+                Assert.Equal(Strings.UploadPackage_IdNamespaceConflictHtml, (result.Data as JsonValidationMessage[])[0].RawHtmlMessage);
+                Assert.Null((result.Data as JsonValidationMessage[])[0].PlainTextMessage);
                 fakeTelemetryService.Verify(
                     x => x.TrackPackagePushNamespaceConflictEvent(
                         It.IsAny<string>(),

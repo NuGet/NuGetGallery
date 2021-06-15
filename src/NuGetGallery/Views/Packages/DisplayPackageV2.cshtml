@@ -268,11 +268,6 @@
 
                 </div>
 
-                @if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
-                {
-                    <p>@Html.PreFormattedText(Model.Description, Config)</p>
-                }
-
                 @if (Model.Validating)
                 {
                     @ViewHelpers.AlertWarning(
@@ -321,7 +316,8 @@
                             {
                                 <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
                             }
-                        </text>)
+                        </text>
+                    )
                 }
 
                 @if (Model.Deleted)
@@ -421,33 +417,34 @@
                                 for download from the NuGet.org symbol server. Symbols will be available for download after both validation and indexing are complete.
                                 Symbols validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetSymbolsPackageValidation">Read more</a>.
 
-                            @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                                @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
                             </text>
                         )
                     }
                     else if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
                     {
                         @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
-                            <ul class="failed-validation-alert-list">
-                                @foreach (var issue in Model.SymbolsPackageValidationIssues)
-                                {
-                                    <li>@Html.Partial("_ValidationIssue", issue)</li>
-                                }
-                            </ul>
-                            @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
-                            {
-                                var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
-                                <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
-                            }
-                            else
-                            {
-                                <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
-                            }
+                            @<text>
+                                <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
+                                <ul class="failed-validation-alert-list">
+                                    @foreach (var issue in Model.SymbolsPackageValidationIssues)
+                                     {
+                                        <li>@Html.Partial("_ValidationIssue", issue)</li>
+                                     }
+                                </ul>
+                                @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                                 {
+                                     var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
+                                    <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
+                                 }
+                                 else
+                                 {
+                                    <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
+                                 }
 
-                            @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
-                        </text>)
+                                @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
+                            </text>
+                        )
                     }
                 }
 
@@ -501,374 +498,350 @@
                         </div>
                     </div>
                 }
+                <div class="body-tabs">
+                    <ul class="nav nav-tabs" role="tablist">
+                        @if (!Model.Deleted)
+                        {
+                            <li role="presentation" class="active"><a href="#readme-tab" aria-controls="ReadMe" role="tab" data-toggle="tab" id="readme-body-tab" class="body-tab">README</a></li>
+                            <li role="presentation"><a href="#dependencies-tab" aria-controls="Dependencies" role="tab" data-toggle="tab" id="dependencies-body-tab" class="body-tab">Dependencies</a></li>
+                        }
+                        <li role="presentation"><a href="#usedby-tab" aria-controls="UsedBy" role="tab" data-toggle="tab" id="usedby-body-tab" class="body-tab">Used By</a></li>
+                        <li role="presentation"><a href="#versions-tab" aria-controls="Versions" role="tab" data-toggle="tab" id="versions-body-tab" class="body-tab">Versions</a></li>
+                        @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes)) 
+                        { 
+                            <li role="presentation"><a href="#releasenotes-tab" aria-controls="ReleaseNotes" role="tab" data-toggle="tab" id="release-body-tab" class="body-tab">Release Notes</a></li>
+                        }
+                    </ul>
+                </div>
             </div>
             <div class="row">
                 <div class="col-sm-9">
-                    @if (!Model.Deleted)
-                    {
-                        if (Model.ReadMeHtml != null)
+                    <div class="tab-content body-tab-content">
+                        @if (!Model.Deleted)
                         {
-                            <div id="readme-collapser-container">
-                                <h2>
-                                    <a href="#" role="button" data-toggle="collapse" data-target="#readme-container"
-                                       aria-expanded="true" aria-controls="readme-container" id="show-readme-container">
-                                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                                        <span>Readme</span>
-                                    </a>
-                                </h2>
-                            </div>
-                            <div id="readme-container" class="collapse in">
-                                @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
+                            <div role="tabpanel" class="tab-pane active" id="readme-tab">
+                                @if (Model.ReadMeHtml != null)
                                 {
-                                    @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
-                                }
+                                    <div id="readme-container">
+                                        @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
+                                        {
+                                            @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
+                                        }
 
-                                @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                                        @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                                        {
+                                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>);
+                                        }
+
+                                        @Html.Raw(Model.ReadMeHtml)
+                                    </div>
+                                }
+                                else if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
                                 {
-                                    @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>);
+                                    <p>@Html.PreFormattedText(Model.Description, Config)</p>
                                 }
-                                <div id="readme-less" class="collapse in">
-                                    @Html.Raw(Model.ReadMeHtml)
-                                </div>
-                                <div id="readme-more" class="collapse">
-                                    @Html.Raw(Model.ReadMeHtml)
-                                </div>
-
-                                <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#readme-more"
-                                   aria-expanded="false" aria-controls="#readme-more, #readme-less"
-                                   id="show-readme-more" data-track="show-package-documentation">
-                                    <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
-                                    <span>Show more</span>
-                                </a>
                             </div>
-                        }
-
-                        if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
-                        {
-                            <h2>Release Notes</h2>
-
-                            <p>@Html.PreFormattedText(Model.ReleaseNotes, Config)</p>
-                        }
-
-                        if (Model.Dependencies.DependencySets == null)
-                        {
-                            if (Model.CanDisplayPrivateMetadata)
-                            {
-                                <h2>Dependencies</h2>
-                                <p>
-                                    An error occurred processing dependencies.
-                                    Your package can still be downloaded and installed, but dependencies cannot be shown.
-                                    Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have any questions.
-                                </p>
-                                <p>
-                                    <strong>Note: This message is only visible to you and any other package owners.</strong>
-                                </p>
-                            }
-                        }
-                        else
-                        {
-                            <h2>
-                                <a href="#" role="button" data-toggle="collapse" data-target="#dependency-groups"
-                                   aria-expanded="@(Model.Dependencies.DependencySets.Any() ? "false" : "true")" aria-controls="dependency-groups"
-                                   id="show-dependency-groups">
-                                    <i class="ms-Icon ms-Icon--@(Model.Dependencies.DependencySets.Any() ? "ChevronRight" : "ChevronDown")"
-                                       aria-hidden="true"></i>
-                                    <span>Dependencies</span>
-                                </a>
-                            </h2>
-
-                            if (Model.Dependencies.DependencySets.Any())
-                            {
-                                <ul class="list-unstyled panel-collapse collapse dependency-groups" id="dependency-groups">
-                                    @foreach (var dependencySet in Model.Dependencies.DependencySets)
+                            <div role="tabpanel" class="tab-pane" id="dependencies-tab">
+                                @if (!Model.Deleted)
+                                {
+                                    if (Model.Dependencies.DependencySets == null)
                                     {
-                                        var dependencySetTitle = dependencySet.Key;
-                                        <li>
-                                            @if (!Model.Dependencies.OnlyHasAllFrameworks)
-                                            {
-                                                <h4><span>@dependencySetTitle</span></h4>
-                                            }
-                                            <ul class="list-unstyled dependency-group">
-                                                @foreach (var dependency in dependencySet.Value)
+                                        if (Model.CanDisplayPrivateMetadata)
+                                        {
+                                            <h2>Dependencies</h2>
+                                            <p>
+                                                An error occurred processing dependencies.
+                                                Your package can still be downloaded and installed, but dependencies cannot be shown.
+                                                Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have any questions.
+                                            </p>
+                                            <p>
+                                                <strong>Note: This message is only visible to you and any other package owners.</strong>
+                                            </p>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (Model.Dependencies.DependencySets.Any())
+                                        {
+                                            <ul class="list-unstyled dependency-groups" id="dependency-groups">
+                                                @foreach (var dependencySet in Model.Dependencies.DependencySets)
                                                 {
+                                                    var dependencySetTitle = dependencySet.Key;
                                                     <li>
-                                                        @if (dependency == null)
+                                                        @if (!Model.Dependencies.OnlyHasAllFrameworks)
                                                         {
-                                                            @:No dependencies.
+                                                            <h4><span>@dependencySetTitle</span></h4>
                                                         }
-                                                        else
-                                                        {
-                                                            <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
-                                                            <span>@dependency.VersionSpec</span>
-                                                        }
+                                                        <ul class="list-unstyled dependency-group">
+                                                            @foreach (var dependency in dependencySet.Value)
+                                                            {
+                                                                <li>
+                                                                    @if (dependency == null)
+                                                                    {
+                                                                        @:No dependencies.
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                                                                        <span>@dependency.VersionSpec</span>
+                                                                    }
+                                                                </li>
+                                                            }
+                                                        </ul>
                                                     </li>
                                                 }
                                             </ul>
-                                        </li>
+                                        }
+                                        else
+                                        {
+                                            <p id="dependency-groups">This package has no dependencies.</p>
+                                        }
                                     }
-                                </ul>
-                            }
-                            else
-                            {
-                                <p class="collapse in" id="dependency-groups">This package has no dependencies.</p>
-                            }
+                                }
+                            </div>
                         }
-                    }
-
-                    @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
-                    {
-                        <h2>
-                            <a href="#" role="button" data-toggle="collapse" data-target="#used-by"
-                               aria-expanded="false" aria-controls="used-by" id="show-used-by">
-                                <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
-                                <span>Used By</span>
-                            </a>
-                        </h2>
-
-                        <div class="used-by panel-collapse collapse" id="used-by">
-                            @if (Model.IsPackageDependentsEnabled)
+                        <div role="tabpanel" class="tab-pane" id="usedby-tab">
+                            @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
                             {
-                                if (Model.PackageDependents.TotalPackageCount > 0)
-                                {
-                                    <h3>
-                                        <strong>NuGet packages </strong> (@Model.PackageDependents.TotalPackageCount.ToKiloFormat())
-                                    </h3>
-                                    <p>
-                                        Showing the top @(Model.PackageDependents.TopPackages.Count) NuGet packages that depend on @(Model.Id):
-                                    </p>
-                                    <table class="table borderless">
-                                        <thead>
-                                            <tr>
-                                                <th class="used-by-adjust-table-head">Package</th>
-                                                <th class="used-by-adjust-table-head">Downloads</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="no-border">
-                                            @foreach (var item in Model.PackageDependents.TopPackages)
-                                            {
-                                                <tr>
-                                                    <td class="used-by-desc-column">
-                                                        <a class="text-left ngp-link" href="@Url.Package(item.Id)">
-                                                            @(item.Id)
-                                                        </a>
-                                                        @if (item.IsVerified)
-                                                        {
-                                                            <img class="reserved-indicator"
-                                                                 src="~/Content/gallery/img/reserved-indicator.svg"
-                                                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
-                                                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
-                                                        }
-                                                        <div class="row used-by-desc">
-                                                            <span>@(item.Description)</span>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                }
-                                else
-                                {
-                                    <h3>
-                                        <strong>NuGet packages</strong>
-                                    </h3>
-                                    <p>
-                                        This package is not used by any NuGet packages.
-                                    </p>
-                                }
-                            }
+                                <div class="used-by" id="used-by">
+                                    @if (Model.IsPackageDependentsEnabled)
+                                    {
+                                        if (Model.PackageDependents.TotalPackageCount > 0)
+                                        {
+                                            <h3>
+                                                <strong>NuGet packages </strong> (@Model.PackageDependents.TotalPackageCount.ToKiloFormat())
+                                            </h3>
+                                            <p>
+                                                Showing the top @(Model.PackageDependents.TopPackages.Count) NuGet packages that depend on @(Model.Id):
+                                            </p>
+                                            <table class="table borderless">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="used-by-adjust-table-head">Package</th>
+                                                        <th class="used-by-adjust-table-head">Downloads</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="no-border">
+                                                    @foreach (var item in Model.PackageDependents.TopPackages)
+                                                    {
+                                                        <tr>
+                                                            <td class="used-by-desc-column">
+                                                                <a class="text-left ngp-link" href="@Url.Package(item.Id)">
+                                                                    @(item.Id)
+                                                                </a>
+                                                                @if (item.IsVerified)
+                                                                {
+                                                                    <img class="reserved-indicator"
+                                                                         src="~/Content/gallery/img/reserved-indicator.svg"
+                                                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
+                                                                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                                                }
+                                                                <div class="row used-by-desc">
+                                                                    <span>@(item.Description)</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        }
+                                        else
+                                        {
+                                            <h3>
+                                                <strong>NuGet packages</strong>
+                                            </h3>
+                                            <p>
+                                                This package is not used by any NuGet packages.
+                                            </p>
+                                        }
+                                    }
 
-                            @if (Model.IsGitHubUsageEnabled)
-                            {
-                                if (Model.GitHubDependenciesInformation.Repos.Any())
-                                {
-                                    <h3>
-                                        <strong>GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())
-                                    </h3>
-                                    <p>
-                                        Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) popular GitHub repositories that depend on @(Model.Id):
-                                    </p>
-                                    <table class="table borderless">
-                                        <thead>
-                                            <tr>
-                                                <th class="used-by-adjust-table-head">Repository</th>
-                                                <th class="used-by-adjust-table-head">Stars</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="no-border">
-                                            @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
-                                            {
-                                                <tr>
-                                                    <td class="used-by-desc-column">
-                                                        <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
-                                                            @(item.Value.Id)
-                                                        </a>
-                                                        <div class="row used-by-desc">
-                                                            <span>@(item.Value.Description)</span>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                }
+                                    @if (Model.IsGitHubUsageEnabled)
+                                    {
+                                        if (Model.GitHubDependenciesInformation.Repos.Any())
+                                        {
+                                            <h3>
+                                                <strong>GitHub repositories </strong> (@Model.GitHubDependenciesInformation.TotalRepos.ToKiloFormat())
+                                            </h3>
+                                            <p>
+                                                Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) popular GitHub repositories that depend on @(Model.Id):
+                                            </p>
+                                            <table class="table borderless">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="used-by-adjust-table-head">Repository</th>
+                                                        <th class="used-by-adjust-table-head">Stars</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="no-border">
+                                                    @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
+                                                    {
+                                                        <tr>
+                                                            <td class="used-by-desc-column">
+                                                                <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
+                                                                    @(item.Value.Id)
+                                                                </a>
+                                                                <div class="row used-by-desc">
+                                                                    <span>@(item.Value.Description)</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        }
 
-                                else
-                                {
-                                    <h3>
-                                        <strong>GitHub repositories</strong>
-                                    </h3>
-                                    <p>
-                                        This package is not used by any popular GitHub repositories.
-                                    </p>
-                                }
+                                        else
+                                        {
+                                            <h3>
+                                                <strong>GitHub repositories</strong>
+                                            </h3>
+                                            <p>
+                                                This package is not used by any popular GitHub repositories.
+                                            </p>
+                                        }
+                                    }
+                                </div>
                             }
                         </div>
-                    }
-
-                    <h2>
-                        <a href="#" role="button" data-toggle="collapse" data-target="#version-history"
-                           aria-expanded="true" aria-controls="version-history" id="show-version-history">
-                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                            <span>Version History</span>
-                        </a>
-                    </h2>
-                    <div class="version-history panel-collapse collapse in" aria-expanded="true" id="version-history">
-                        <table aria-label="Version History of @Model.Id" class="table borderless">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Version</th>
-                                    <th scope="col">Downloads</th>
-                                    <th scope="col">Last updated</th>
-                                    @if (Model.CanDisplayPrivateMetadata)
-                                    {
-                                        <th scope="col">Status</th>
-                                    }
-                                    @if (Model.IsCertificatesUIEnabled)
-                                    {
-                                        <th scope="col" aria-hidden="true" abbr="Signature Information"></th>
-                                    }
-                                    @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
-                                    {
-                                        <th scope="col" aria-hidden="true" abbr="Package Warnings"></th>
-                                    }
-                                </tr>
-                            </thead>
-                            <tbody class="no-border">
-                                @{
-                                    var rowCount = 0;
-                                    var versionsExpanded = Model
-                                        .PackageVersions
-                                        .Skip(GalleryConstants.VisibleVersions)
-                                        .Any(v => v.IsCurrent(Model));
-                                }
-                                @foreach (var packageVersion in Model.PackageVersions)
-                                {
-                                    if ((packageVersion.Available && packageVersion.Listed)
-                                        || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
-                                    {
-                                        rowCount++;
-                                        @VersionListDivider(rowCount, versionsExpanded)
-                                        <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                            <td tabindex="0">
-                                                <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
-                                                    @packageVersion.Version.Abbreviate(30)
-                                                </a>
-                                            </td>
-                                            <td tabindex="0">
-                                                @packageVersion.DownloadCount.ToNuGetNumberString()
-                                            </td>
-                                            <td tabindex="0">
-                                                <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
-                                                @if (packageVersion.PushedBy != null)
-                                                {
-                                                    <text>
-                                                        by <span title="@packageVersion.PushedBy">@packageVersion.PushedBy.Abbreviate(15)</span>
-                                                    </text>
-                                                }
-                                            </td>
-                                            @if (packageVersion.CanDisplayPrivateMetadata)
+                        <div role="tabpanel" class="tab-pane" id="versions-tab">
+                            <div class="version-history" id="version-history">
+                                <table aria-label="Version History of @Model.Id" class="table borderless">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Version</th>
+                                            <th scope="col">Downloads</th>
+                                            <th scope="col">Last updated</th>
+                                            @if (Model.CanDisplayPrivateMetadata)
                                             {
-                                                var packageStatusSummary = packageVersion.PackageStatusSummary;
-
-                                                <td tabindex="0">
-                                                    @if (packageStatusSummary == PackageStatusSummary.Listed ||
-                                                         packageStatusSummary == PackageStatusSummary.Unlisted)
+                                                <th scope="col">Status</th>
+                                            }
+                                            @if (Model.IsCertificatesUIEnabled)
+                                            {
+                                                <th scope="col" aria-hidden="true" abbr="Signature Information"></th>
+                                            }
+                                            @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
+                                            {
+                                                <th scope="col" aria-hidden="true" abbr="Package Warnings"></th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody class="no-border">
+                                        @{
+                                            var rowCount = 0;
+                                            var versionsExpanded = Model
+                                                .PackageVersions
+                                                .Skip(GalleryConstants.VisibleVersions)
+                                                .Any(v => v.IsCurrent(Model));
+                                        }
+                                        @foreach (var packageVersion in Model.PackageVersions)
+                                        {
+                                            if ((packageVersion.Available && packageVersion.Listed)
+                                                || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
+                                            {
+                                                rowCount++;
+                                                @VersionListDivider(rowCount, versionsExpanded)
+                                                <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
+                                                    <td tabindex="0">
+                                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
+                                                            @packageVersion.Version.Abbreviate(30)
+                                                        </a>
+                                                    </td>
+                                                    <td tabindex="0">
+                                                        @packageVersion.DownloadCount.ToNuGetNumberString()
+                                                    </td>
+                                                    <td tabindex="0">
+                                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
+                                                        @if (packageVersion.PushedBy != null)
+                                                        {
+                                                            <text>
+                                                                by <span title="@packageVersion.PushedBy">@packageVersion.PushedBy.Abbreviate(15)</span>
+                                                            </text>
+                                                        }
+                                                    </td>
+                                                    @if (packageVersion.CanDisplayPrivateMetadata)
                                                     {
-                                                        <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
+                                                        var packageStatusSummary = packageVersion.PackageStatusSummary;
+
+                                                        <td tabindex="0">
+                                                            @if (packageStatusSummary == PackageStatusSummary.Listed ||
+                                                                 packageStatusSummary == PackageStatusSummary.Unlisted)
+                                                            {
+                                                                <a href="@Url.ManagePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
+                                                            }
+                                                            else
+                                                            {
+                                                                @NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)
+                                                            }
+                                                        </td>
+                                                    }
+
+                                                    @if (Model.IsCertificatesUIEnabled)
+                                                    {
+                                                        if (string.IsNullOrEmpty(packageVersion.SignatureInformation))
+                                                        {
+                                                            <td class="package-icon-cell" aria-hidden="true"></td>
+                                                        }
+                                                        else
+                                                        {
+                                                            <td tabindex="0" class="package-icon-cell">
+                                                                <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
+                                                            </td>
+                                                        }
+                                                    }
+
+                                                    @if (string.IsNullOrEmpty(packageVersion.PackageWarningIconTitle))
+                                                    {
+                                                        <td class="package-icon-cell" aria-hidden="true"></td>
                                                     }
                                                     else
                                                     {
-                                                        @NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)
+                                                        <td tabindex="0" class="package-icon-cell">
+                                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                                        </td>
                                                     }
-                                                </td>
+                                                </tr>
                                             }
-
-                                            @if (Model.IsCertificatesUIEnabled)
+                                            else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
                                             {
-                                                if (string.IsNullOrEmpty(packageVersion.SignatureInformation))
-                                                {
-                                                    <td class="package-icon-cell" aria-hidden="true"></td>
-                                                }
-                                                else
-                                                {
-                                                    <td tabindex="0" class="package-icon-cell">
-                                                        <i class="ms-Icon ms-Icon--Ribbon package-icon" title="@packageVersion.SignatureInformation"></i>
+                                                rowCount++;
+                                                @VersionListDivider(rowCount, versionsExpanded)
+                                                <tr class="deleted">
+                                                    <td tabindex="0" class="version">
+                                                        @packageVersion.Version
                                                     </td>
-                                                }
+                                                    <td tabindex="0">
+                                                        @packageVersion.DownloadCount
+                                                    </td>
+                                                    <td tabindex="0">
+                                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
+                                                    </td>
+                                                    <td tabindex="0">
+                                                        Deleted
+                                                    </td>
+                                                    <td colspan="2"></td>
+                                                </tr>
                                             }
-
-                                            @if (string.IsNullOrEmpty(packageVersion.PackageWarningIconTitle))
-                                            {
-                                                <td class="package-icon-cell" aria-hidden="true"></td>
-                                            }
-                                            else
-                                            {
-                                                <td tabindex="0" class="package-icon-cell">
-                                                    <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
-                                                </td>
-                                            }
-                                        </tr>
-                                    }
-                                    else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
-                                    {
-                                        rowCount++;
-                                        @VersionListDivider(rowCount, versionsExpanded)
-                                        <tr class="deleted">
-                                            <td tabindex="0" class="version">
-                                                @packageVersion.Version
-                                            </td>
-                                            <td tabindex="0">
-                                                @packageVersion.DownloadCount
-                                            </td>
-                                            <td tabindex="0">
-                                                <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
-                                            </td>
-                                            <td tabindex="0">
-                                                Deleted
-                                            </td>
-                                            <td colspan="2"></td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                        @if (rowCount > GalleryConstants.VisibleVersions)
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
                         {
-                            <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
-                               aria-expanded="@(versionsExpanded ? "true" : "false")" aria-controls="hidden-versions" id="show-hidden-versions">
-                                <i class="ms-Icon ms-Icon--Calculator@(versionsExpanded ? "Subtract" : "Addition")" aria-hidden="true"></i>
-                                <span>@(versionsExpanded ? "Show less" : "Show more")</span>
-                            </a>
+                            <div role="tabpanel" class="tab-pane" id="releasenotes-tab">
+                                <p>@Html.PreFormattedText(Model.ReleaseNotes, Config)</p>
+                            </div>
                         }
                     </div>
                 </div>
+                
                 <aside aria-label="Package details info" class="col-sm-3 package-details-info">
                     <h2>Info</h2>
                     <ul class="list-unstyled ms-Icon-ul">

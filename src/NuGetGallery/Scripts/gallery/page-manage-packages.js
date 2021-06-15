@@ -413,6 +413,7 @@
 
         setupColumnSorting();
 
+        $(".package-warning-icon").each(window.nuget.setPopovers);
     });
 
 })();

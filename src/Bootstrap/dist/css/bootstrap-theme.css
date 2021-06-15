@@ -334,6 +334,11 @@ img.reserved-indicator-icon {
 .sortable {
   cursor: pointer;
 }
+@media (max-width: 767.9px) {
+  .hidden-xs {
+    display: none !important;
+  }
+}
 .modal-backdrop.in {
   opacity: 0.8 !important;
   position: fixed;
@@ -1526,6 +1531,30 @@ img.reserved-indicator-icon {
 .page-package-details-v2 .install-tabs .tab-content .tab-pane .alert {
   margin: 0;
   width: 100%;
+}
+.page-package-details-v2 .body-tabs .nav-tabs > li.active > a {
+  border-bottom-color: #0078D4;
+  border-bottom-width: 2px;
+  font-weight: bold;
+}
+.page-package-details-v2 .body-tabs .nav-tabs > li > a {
+  border-left: 0px;
+  border-right: 0px;
+  border-top: 0px;
+  font-size: 14px;
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #323130;
+}
+.page-package-details-v2 .body-tab-content {
+  padding-top: 30px;
+}
+.page-package-details-v2 .body-tab-content h1:first-child,
+.page-package-details-v2 .body-tab-content h2:first-child,
+.page-package-details-v2 .body-tab-content h3:first-child,
+.page-package-details-v2 .body-tab-content h4:first-child,
+.page-package-details-v2 .body-tab-content h5:first-child,
+.page-package-details-v2 .body-tab-content h6:first-child {
+  margin-top: 0px;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;
