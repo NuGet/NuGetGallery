@@ -1266,7 +1266,7 @@ img.reserved-indicator-icon {
 .page-package-details-v2 tr {
   border-bottom: 1px solid lightgray;
 }
-.page-package-details-v2 .header {
+.page-package-details-v2 .package-header {
   margin-bottom: 36px;
 }
 .page-package-details-v2 .package-title {
