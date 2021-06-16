@@ -254,23 +254,23 @@
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                             </span>
 
-                            <span id="title">
+                            <span class="title">
                                 @Html.BreakWord(Model.Id)
                             </span>
-                            <span id="version-title">
+                            <span class="version-title">
                                 @Model.Version
                             </span>
                             @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                             {
-                                <span class="prefix-reserve-title">
-                                    <img id="reserved-indicator"
-                                         src="~/Content/gallery/img/reserved-indicator.svg"
-                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
-                                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
-                                    <a href="https://docs.microsoft.com/en-us/nuget/nuget-org/id-prefix-reservation" id="prefix-reserve-label">
-                                        Prefix Reserved
-                                    </a>
-                                </span>
+                            <span class="prefix-reserve-title">
+                                <img class="reserved-indicator"
+                                     src="~/Content/gallery/img/reserved-indicator.svg"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
+                                     title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                <a href="https://docs.microsoft.com/en-us/nuget/nuget-org/id-prefix-reservation" class="prefix-reserve-label">
+                                    Prefix Reserved
+                                </a>
+                            </span>
                             }
                         </h1>
                     </div>
