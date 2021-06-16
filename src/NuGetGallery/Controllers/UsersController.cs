@@ -526,8 +526,7 @@ namespace NuGetGallery
 
             var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
 
-            var packages = PackageService.FindPackagesByAnyMatchingOwner(
-                currentUser, includeUnlisted: true, includeVulnerabilities: true);
+            var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
 
             var listedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
                 p => p.Listed && p.PackageStatusKey == PackageStatus.Available);
