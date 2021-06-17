@@ -1285,8 +1285,9 @@ img.reserved-indicator-icon {
   margin-right: 14px;
 }
 .page-package-details-v2 .package-title h1 .package-icon {
-  height: 40px;
-  width: 40px;
+  height: 32px;
+  width: 32px;
+  margin-top: 8px;
   margin-right: 12px;
 }
 .page-package-details-v2 .package-title h1 .prefix-reserve-title {
@@ -1300,6 +1301,7 @@ img.reserved-indicator-icon {
   -ms-flex-align: center;
   align-items: center;
   border-radius: 100px;
+  vertical-align: bottom;
 }
 .page-package-details-v2 .package-title h1 .prefix-reserve-title .reserved-indicator {
   width: 18px;
@@ -1307,7 +1309,7 @@ img.reserved-indicator-icon {
   margin-left: 2px;
 }
 .page-package-details-v2 .package-title h1 .prefix-reserve-title .prefix-reserve-label {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   color: #2F6FA7;
   margin-top: 2px;
