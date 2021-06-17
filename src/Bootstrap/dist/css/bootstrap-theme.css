@@ -1283,6 +1283,7 @@ img.reserved-indicator-icon {
   font-weight: 400;
   color: #666666;
   margin-right: 14px;
+  vertical-align: middle;
 }
 .page-package-details-v2 .package-title h1 .package-icon {
   height: 32px;
@@ -1301,7 +1302,7 @@ img.reserved-indicator-icon {
   -ms-flex-align: center;
   align-items: center;
   border-radius: 100px;
-  vertical-align: bottom;
+  vertical-align: middle;
 }
 .page-package-details-v2 .package-title h1 .prefix-reserve-title .reserved-indicator {
   width: 18px;
