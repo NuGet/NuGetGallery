@@ -13,7 +13,7 @@ namespace NuGetGallery
     public class ImageDomainValidator: IImageDomainValidator
     {
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
-        private static readonly Regex GithubBadgeUrlRegEx = new Regex("^(https|http):\\/\\/github\\.com\\/[^/]+\\/[^/]+\\/workflows\\/.*badge\\.svg", RegexOptions.IgnoreCase, RegexTimeout);
+        private static readonly Regex GithubBadgeUrlRegEx = new Regex("^(https|http):\\/\\/github\\.com\\/[^/]+\\/[^/]+(\\/actions)?\\/workflows\\/.*badge\\.svg", RegexOptions.IgnoreCase, RegexTimeout);
 
         private readonly IContentObjectService _contentObjectService;
         public ImageDomainValidator (IContentObjectService contentObjectService)
