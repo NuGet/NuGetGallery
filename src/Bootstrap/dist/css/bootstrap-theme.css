@@ -656,6 +656,25 @@ img.reserved-indicator-icon {
 #readme-more img {
   max-width: 100%;
 }
+#readme-more ul.contains-task-list,
+#readme-more li.task-list-item {
+  list-style-type: none;
+}
+#readme-preview {
+  padding-top: 0.25em;
+}
+#readme-preview ul.contains-task-list,
+#readme-preview li.task-list-item {
+  list-style-type: none;
+}
+#edit-markdown {
+  padding-top: 3em;
+  padding-bottom: 3em;
+}
+#preview-html {
+  padding-top: 3em;
+  padding-bottom: 3em;
+}
 .user-package-list .manage-package-listing .package-icon {
   max-height: 2em;
   min-width: 20px;
