@@ -1665,7 +1665,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(testOrganization.Username, false))
                     .Returns(testOrganization);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testOrganization, It.IsAny<bool>(), false, false))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testOrganization, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, testOrganization))
@@ -1700,7 +1700,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(fakes.OrganizationOwnerAdmin);
 
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByAnyMatchingOwner(testOrganization, true, false, false))
+                    .Setup(x => x.FindPackagesByAnyMatchingOwner(testOrganization, true, false))
                     .Returns(new[] { new Package { Version = "1.0.0", PackageRegistration = new PackageRegistration { Owners = new[] { testOrganization } } } });
                 GetMock<IPackageService>()
                     .Setup(x => x.WillPackageBeOrphanedIfOwnerRemoved(It.IsAny<PackageRegistration>(), testOrganization))
@@ -2484,7 +2484,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(username, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false, false))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 const string iconUrl = "https://icon.test/url";
                 GetMock<IIconUrlProvider>()

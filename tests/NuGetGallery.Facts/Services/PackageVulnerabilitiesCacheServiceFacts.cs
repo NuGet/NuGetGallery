@@ -13,7 +13,7 @@ using Xunit;
 
 namespace NuGetGallery.Services
 {
-    public class PackageVulnerabilitiesCacheServiceFacts : TestContainer
+    public class PackageVulnerabilitiesCacheServiceFacts
     {
         [Fact]
         public void RefreshesVulnerabilitiesCache()

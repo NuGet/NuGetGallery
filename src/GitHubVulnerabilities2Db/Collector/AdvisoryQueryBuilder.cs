@@ -23,6 +23,7 @@ namespace GitHubVulnerabilities2Db.Collector
         databaseId
         permalink
         severity
+        withdrawnAt
         updatedAt
         " + CreateVulnerabilitiesConnectionQuery() + @"
       }
