@@ -12,36 +12,17 @@ namespace NuGetGallery
 {
     public class PackageVulnerabilitiesService : IPackageVulnerabilitiesService
     {
-        private readonly IEntitiesContext _entitiesContext;
+        private readonly IPackageVulnerabilitiesCacheService _packageVulnerabilitiesCacheService;
 
-        public PackageVulnerabilitiesService(IEntitiesContext entitiesContext)
+        public PackageVulnerabilitiesService(IPackageVulnerabilitiesCacheService packageVulnerabilitiesCacheService)
         {
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _packageVulnerabilitiesCacheService = packageVulnerabilitiesCacheService ??
+                                                  throw new ArgumentNullException(
+                                                      nameof(packageVulnerabilitiesCacheService));
         }
 
-        public IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id)
-        {
-            var result = new Dictionary<int, List<PackageVulnerability>>();
-            var packagesMatchingId = _entitiesContext.Packages
-                .Where(p => p.PackageRegistration != null && p.PackageRegistration.Id == id)
-                .Include($"{nameof(Package.VulnerablePackageRanges)}.{nameof(VulnerablePackageVersionRange.Vulnerability)}");
-            foreach (var package in packagesMatchingId)
-            {
-                if (package.VulnerablePackageRanges == null)
-                {
-                    continue;
-                }
-
-                if (package.VulnerablePackageRanges.Any())
-                {
-                    result.Add(package.Key,
-                        package.VulnerablePackageRanges.Select(vr => vr.Vulnerability).ToList());
-                }
-            }
-
-            return !result.Any() ? null :
-                result.ToDictionary(kv => kv.Key, kv => kv.Value as IReadOnlyList<PackageVulnerability>);
-        }
+        public IReadOnlyDictionary<int, IReadOnlyList<PackageVulnerability>> GetVulnerabilitiesById(string id) =>
+            _packageVulnerabilitiesCacheService.GetVulnerabilitiesById(id);
 
         public bool IsPackageVulnerable(Package package)
         {

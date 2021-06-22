@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
     'use strict';
 
     // Configure the rename information container
@@ -85,7 +85,7 @@ $(function () {
         "CalculatorAddition",
         "Show less",
         "CalculatorSubtract",
-        "Show more"); 
+        "Show more");
 
     // Configure package manager copy buttons
     function configureCopyButton(id) {
@@ -103,14 +103,14 @@ $(function () {
             }, 1000);
             setTimeout(function () {
                 copyButton.attr('aria-pressed', 'false');
-            }, 1500);  
+            }, 1500);
             window.nuget.sendMetric("CopyInstallCommand", 1, {
                 ButtonId: id,
                 PackageId: packageId,
                 PackageVersion: packageVersion
             });
         });
-    }  
+    }
 
     for (var i in packageManagers)
     {
@@ -170,7 +170,4 @@ $(function () {
             }
         });
     }
-
-    $(".reserved-indicator").each(window.nuget.setPopovers);
-    $(".package-warning-icon").each(window.nuget.setPopovers);
 });

@@ -26,7 +26,9 @@
     "NuGetGallery.ManagePackagesVulnerabilities": "Enabled",
     "NuGetGallery.DisplayFuGetLinks": "Enabled",
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
-    "NuGetGallery.EmbeddedIcons": "Enabled"
+    "NuGetGallery.EmbeddedIcons": "Enabled",
+    "NuGetGallery.MarkdigMdRendering": "Enabled",
+    "NuGetGallery.ImageAllowlist": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
@@ -91,6 +93,12 @@
     },
     "NuGetGallery.EmbeddedReadmes": {
       "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DisplayPackagePageV2": {
+      "All": false,
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []

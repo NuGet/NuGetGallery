@@ -71,7 +71,9 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var cookieExpirationService = GetMock<ICookieExpirationService>();
+                var featureFlagsService = GetMock<IFeatureFlagService>();
                 cookieExpirationService.Setup(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
+                featureFlagsService.Setup(e => e.IsDisplayBannerEnabled()).Returns(false);
 
                 var httpContext = new Mock<HttpContextBase>();
                 var items = new Dictionary<string, bool>
@@ -82,12 +84,14 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<TestableAppController>();
                 controller.SetCookieExpirationService(cookieExpirationService.Object);
+                controller.SetFeatureFlagsService(featureFlagsService.Object);
 
                 // Act
                 InvokeOnActionExecutedMethod(controller.ControllerContext, httpContext.Object, controller);
 
                 // Assert
                 Assert.Equal(canWriteAnalyticsCookies, controller.ViewBag.CanWriteAnalyticsCookies);
+                Assert.Equal(false, controller.ViewBag.DisplayBanner);
                 if (canWriteAnalyticsCookies)
                 {
                     cookieExpirationService.Verify(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Never);
@@ -103,7 +107,9 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var cookieExpirationService = GetMock<ICookieExpirationService>();
+                var featureFlagsService = GetMock<IFeatureFlagService>();
                 cookieExpirationService.Setup(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
+                featureFlagsService.Setup(e => e.IsDisplayBannerEnabled()).Returns(false);
 
                 var httpContext = new Mock<HttpContextBase>();
                 var items = new Dictionary<string, bool>();
@@ -111,6 +117,7 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<TestableAppController>();
                 controller.SetCookieExpirationService(cookieExpirationService.Object);
+                controller.SetFeatureFlagsService(featureFlagsService.Object);
 
                 // Act
                 InvokeOnActionExecutedMethod(controller.ControllerContext, httpContext.Object, controller);
@@ -118,6 +125,31 @@ namespace NuGetGallery.Controllers
                 // Assert
                 Assert.False(controller.ViewBag.CanWriteAnalyticsCookies);
                 cookieExpirationService.Verify(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void SetViewBagWithBannerWhenIsDisplayBannerEnabled(bool isDisplayBannerEnabled) {
+                // Arrange
+                var cookieExpirationService = GetMock<ICookieExpirationService>();
+                var featureFlagsService = GetMock<IFeatureFlagService>();
+                cookieExpirationService.Setup(e => e.ExpireAnalyticsCookies(It.IsAny<HttpContextBase>()));
+                featureFlagsService.Setup(e => e.IsDisplayBannerEnabled()).Returns(isDisplayBannerEnabled);
+
+                var httpContext = new Mock<HttpContextBase>();
+                var items = new Dictionary<string, bool>();
+                httpContext.Setup(c => c.Items).Returns(items);
+
+                var controller = GetController<TestableAppController>();
+                controller.SetCookieExpirationService(cookieExpirationService.Object);
+                controller.SetFeatureFlagsService(featureFlagsService.Object);
+
+                // Act
+                InvokeOnActionExecutedMethod(controller.ControllerContext, httpContext.Object, controller);
+
+                // Assert
+                Assert.Equal(isDisplayBannerEnabled, controller.ViewBag.DisplayBanner);
             }
 
             private void InvokeOnActionExecutedMethod(ControllerContext controllerContext, HttpContextBase httpContext, AppController controller)

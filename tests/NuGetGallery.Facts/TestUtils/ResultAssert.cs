@@ -74,8 +74,10 @@ namespace NuGetGallery
 
         public static TModel IsView<TModel>(ActionResult result, string viewName = "", string masterName = "", object viewData = null)
         {
-            var model = Assert.IsType<TModel>(IsView(result, viewName, masterName, viewData).Model);
-            return model;
+            var viewResult = IsView(result, viewName, masterName, viewData);
+            var model = viewResult.Model;
+
+            return Assert.IsType<TModel>(model);
         }
 
         public static HttpNotFoundResult IsNotFound(ActionResult result)

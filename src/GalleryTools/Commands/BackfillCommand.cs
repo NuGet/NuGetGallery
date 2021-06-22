@@ -36,6 +36,8 @@ namespace GalleryTools.Commands
 
         protected virtual string CursorFileName => "cursor.txt";
 
+        protected virtual string MonitoringCursorFileName => "monitoring_cursor.txt";
+
         protected virtual int CollectBatchSize => 10;
 
         protected virtual int UpdateBatchSize => 100;
@@ -204,6 +206,12 @@ namespace GalleryTools.Commands
                             logger.Log($"Writing {package.Created:u} to cursor...");
                             await cursor.Write(package.Created);
                             counter = 0;
+
+                            // Write a monitoring cursor (not locked) so for a large job we can inspect progress
+                            if (!string.IsNullOrEmpty(MonitoringCursorFileName))
+                            {
+                                File.WriteAllText(MonitoringCursorFileName, package.Created.ToString("G"));
+                            }
                         }
                     }
 
@@ -399,6 +407,12 @@ namespace GalleryTools.Commands
             if (cursorTime.HasValue)
             {
                 await cursor.Write(cursorTime.Value);
+
+                // Write a monitoring cursor (not locked) so for a large job we can inspect progress
+                if (!string.IsNullOrEmpty(MonitoringCursorFileName))
+                {
+                    File.WriteAllText(MonitoringCursorFileName, cursorTime.Value.ToString("G"));
+                }
             }
 
             logger.Log($"{count} packages saved.");

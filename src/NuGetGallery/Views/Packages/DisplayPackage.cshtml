@@ -55,6 +55,13 @@
                 Id = "cake-dotnet-tool",
                 InstallPackageCommands = new [] { Model.GetCakeInstallPackageCommand() },
             },
+
+            new ThirdPartyPackageManagerViewModel("NUKE", "https://github.com/nuke-build/nuke/issues/new/choose")
+            {
+                Id = "nuke",
+                CommandPrefix = "> ",
+                InstallPackageCommands = new [] { string.Format("nuke :add-package {0} --version {1}", Model.Id, Model.Version) },
+            },
         };
     }
     else if (Model.IsDotnetNewTemplatePackageType)
@@ -247,14 +254,14 @@
             <div class="package-title">
                 <h1>
                     @Html.BreakWord(Model.Id)
-                    <small class="text-nowrap">@Model.FullVersion</small>
+                    <small class="text-nowrap">@Model.Version</small>
 
                     @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                     {
                         <img class="reserved-indicator"
                              src="~/Content/gallery/img/reserved-indicator.svg"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
-                             title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                             data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0"/>
                     }
                 </h1>
 
@@ -279,6 +286,15 @@
                     @ViewHelpers.AlertWarning(
                         @<text>
                             The license link will become available once package validation has completed successfully.
+                        </text>
+                    )
+                }
+
+                if (Model.HasEmbeddedReadmeFile)
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            The readme will become available once package validation has completed successfully.
                         </text>
                     )
                 }
@@ -346,6 +362,14 @@
                 @ViewHelpers.AlertInfo(
                     @<text>
                         This is a prerelease version of @(Model.Id).
+                    </text>
+                )
+            }
+            @if (Model.NuGetVersion.HasMetadata)
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        This package has a SemVer 2.0.0 package version: @(Model.FullVersion).
                     </text>
                 )
             }
@@ -759,8 +783,8 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                    <td tabindex="0">
-                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
+                                    <td>
+                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                             @packageVersion.Version.Abbreviate(30)
                                         </a>
                                     </td>
@@ -780,7 +804,7 @@
                                     {
                                         var packageStatusSummary = packageVersion.PackageStatusSummary;
 
-                                        <td tabindex="0">
+                                        <td>
                                             @if (packageStatusSummary == PackageStatusSummary.Listed ||
                                                  packageStatusSummary == PackageStatusSummary.Unlisted)
                                             {
@@ -813,8 +837,11 @@
                                     }
                                     else
                                     {
-                                        <td tabindex="0" class="package-icon-cell">
-                                            <i class="ms-Icon ms-Icon--Warning package-icon" title="@packageVersion.PackageWarningIconTitle"></i>
+                                        <td class="package-icon-cell">
+                                            <span class="package-warning-icon" aria-label="@packageVersion.PackageWarningIconTitle" 
+                                                  data-content="@packageVersion.PackageWarningIconTitle" tabindex="0">
+                                                <i class="ms-Icon ms-Icon--Warning package-icon"></i>
+                                            </span>
                                         </td>
                                     }
                                 </tr>

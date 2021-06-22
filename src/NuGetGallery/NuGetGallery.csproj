@@ -227,6 +227,7 @@
     <Compile Include="Infrastructure\ABTestEnrollmentState.cs" />
     <Compile Include="Infrastructure\ABTestEnrollmentFactory.cs" />
     <Compile Include="Infrastructure\CookieBasedABTestService.cs" />
+    <Compile Include="Infrastructure\Jobs\PackageVulnerabilitiesCacheRefreshJob.cs" />
     <Compile Include="Infrastructure\RequestValidationExceptionFilter.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithHeadersResult.cs" />
     <Compile Include="Infrastructure\IABTestEnrollmentFactory.cs" />
@@ -309,13 +310,16 @@
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
+    <Compile Include="Services\UploadPackageIdNamespaceConflict.cs" />
     <Compile Include="Services\ImageDomainValidator.cs" />
     <Compile Include="Services\IMarkdownService.cs" />
     <Compile Include="Services\IImageDomainValidator.cs" />
     <Compile Include="Services\IPackageVulnerabilitiesService.cs" />
     <Compile Include="Services\IPackageMetadataValidationService.cs" />
+    <Compile Include="Services\IPackageVulnerabilitiesCacheService.cs" />
     <Compile Include="Services\MarkdownService.cs" />
     <Compile Include="Services\OwnerlessNamespaceIdConflictMessage.cs" />
+    <Compile Include="Services\PackageVulnerabilitiesCacheService.cs" />
     <Compile Include="Services\PackageVulnerabilitiesService.cs" />
     <Compile Include="Services\PackageMetadataValidationService.cs" />
     <Compile Include="Services\ConfigurationIconFileProvider.cs" />
@@ -1836,6 +1840,7 @@
     <Content Include="Scripts\gallery\page-api-keys.js" />
     <Content Include="Scripts\gallery\page-delete-package.js" />
     <Content Include="Scripts\gallery\page-display-package.js" />
+    <Content Include="Scripts\gallery\page-display-package-v2.js" />
     <Content Include="Scripts\gallery\page-edit-readme.js" />
     <Content Include="Scripts\gallery\page-home.js" />
     <Content Include="Scripts\gallery\page-manage-deprecation.js" />
@@ -1864,6 +1869,7 @@
     <Content Include="Views\Authentication\Register.cshtml" />
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
+    <Content Include="Views\Packages\DisplayPackageV2.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
@@ -1895,6 +1901,8 @@
     <Content Include="Views\Api\HealthProbeApi.cshtml" />
     <Content Include="Views\Pages\_Enable2FA.cshtml" />
     <Content Include="Views\Pages\SimulateError.cshtml" />
+    <Content Include="Views\Packages\_DisplayPackageRenames.cshtml" />
+    <Content Include="Views\Packages\_DisplayPackageVulnerabilities.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -2306,16 +2314,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\Packages\_DisplayPackageRenames.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="App_Data\Files\Content\Cache-Configuration.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\Files\Content\Query-Hint-Configuration.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\_DisplayPackageVulnerabilities.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
