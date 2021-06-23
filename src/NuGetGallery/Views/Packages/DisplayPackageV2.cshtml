@@ -520,7 +520,7 @@
                 </ul>
             </div>
             <div class="row">
-                <div class="col-sm-8">
+                <div class="col-sm-9">
                     <div class="tab-content body-tab-content">
                         @if (!Model.Deleted)
                         {
@@ -847,31 +847,33 @@
                     </div>
                 </div>
                 
-                <aside aria-label="Package details info" class="col-sm-4 package-details-info">
+                <aside aria-label="Package details info" class="col-sm-3 package-details-info">
                     <div class="sidebar-section">
-                        <div class="sidebar-headers">
-                            <span class="sidebar-headers">
+                        <div class="row sidebar-headers">
+                            <div class="col-md-6">
                                 Downloads
-                            </span>
-                            <span class="title-links pull-right">
-                                @if (StatisticsHelper.IsStatisticsPageAvailable) 
+                            </div>
+                            <div class="col-md-6 title-links">
+                                @if (true @*StatisticsHelper.IsStatisticsPageAvailable*@) 
                                 { 
-                                    <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics" id="title-links">Full stats →</a>
+                                    <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">Full stats →</a>
                                 }   
-                            </span>
+                            </div>
                         </div>
-                        <table class="sidebar-table" style="width:100%">
-                            <tr>
-                                <th>Total</th>
-                                <th>Current version</th>
-                                <th>Per day average</th>
-                            </tr>
-                            <tr>
-                                <td>@Model.TotalDownloadCount.ToKiloFormat()</td>
-                                <td>@Model.DownloadCount.ToKiloFormat()</td>
-                                <td>@Model.DownloadsPerDay.ToKiloFormat()</td>
-                            </tr>
-                        </table>
+                        <div class="download-info">
+                            <div class="download-info-row">
+                                <span class="download-info-header">Total</span>
+                                <span class="download-info-content">@Model.TotalDownloadCount.ToKiloFormat()</span>
+                            </div>
+                            <div class="download-info-row">
+                                <span class="download-info-header">Current version</span>
+                                <span class="download-info-content">@Model.DownloadCount.ToKiloFormat()</span>
+                            </div>
+                            <div class="download-info-row">
+                                <span class="download-info-header">Per day average</span>
+                                <span class="download-info-content">@Model.DownloadsPerDay.ToKiloFormat()</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="sidebar-section">
                         <div class="sidebar-headers">About Package</div>
@@ -889,6 +891,7 @@
                                     </a>
                                 </li>
                             }
+
                             @if (!Model.Deleted && Model.RepositoryUrl != null)
                             {
                                 <li>
@@ -908,27 +911,6 @@
                                     <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
                                         Source repository
                                     </a>
-                                </li>
-                            }
-
-                            @if (Model.Available)
-                            {
-                                <li>
-                                    <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                                    <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download package</a>
-                                    &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
-                                </li>
-                                if (hasSymbolsPackageAvailable)
-                                {
-                                    <li>
-                                        <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                                        <a href="@Url.SymbolPackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw snupkg file." rel="nofollow">Download symbols</a>
-                                        &nbsp;(@Model.LatestSymbolsPackage.FileSize.ToUserFriendlyBytesLabel())
-                                    </li>
-                                }
-                                <li class="no-clickonce">
-                                    <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
-                                    <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
                                 </li>
                             }
 
@@ -969,6 +951,28 @@
                                         }
                                     </li>
                                 }
+                            }
+                            <br />
+
+                            @if (Model.Available)
+                            {
+                                <li>
+                                    <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
+                                    <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download package</a>
+                                    &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
+                                </li>
+                                if (hasSymbolsPackageAvailable)
+                                {
+                                    <li>
+                                        <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
+                                        <a href="@Url.SymbolPackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw snupkg file." rel="nofollow">Download symbols</a>
+                                        &nbsp;(@Model.LatestSymbolsPackage.FileSize.ToUserFriendlyBytesLabel())
+                                    </li>
+                                }
+                                <li class="no-clickonce">
+                                    <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
+                                    <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
+                                </li>
                             }
 
                             @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
@@ -1074,13 +1078,13 @@
                         }
                     </div>
                     <div class="sidebar-section">
-                        <div class="sidebar-headers">
-                            <span class="sidebar-headers">
+                        <div class="row sidebar-headers">
+                            <div class="col-md-6">
                                 Owners
-                            </span>
-                            <span class="title-links pull-right">
-                                <a href="@Url.ContactOwners(Model)" title="Ask the package owners a question" id="title-links">Contact owners →</a>
-                            </span>
+                            </div>
+                            <div class="col-md-6 title-links">
+                                <a href="@Url.ContactOwners(Model)" title="Ask the package owners a question">Contact owners →</a>
+                            </div>
                         </div>
 
                         <ul class="list-unstyled owner-list">

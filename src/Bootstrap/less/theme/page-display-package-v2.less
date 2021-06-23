@@ -189,48 +189,52 @@
     .sidebar-headers {
       font-size: 16px;
       font-weight: 600;
-      color: #666666;
-      margin-bottom: 12px;
+      color: @gray-light;
+      margin-bottom: 14px;
     }
 
     .sidebar-links {
-      font-size: 16px; 
+      font-size: 16px;
     }
 
-    #title-links {
+    .title-links {
       font-size: 14px;
       font-weight: 400;
+      padding-top: 2px;
+
+      a {
+        @media (min-width: @screen-md-min) {
+          float: right;
+        }
+      }
     }
 
     .sidebar-section {
-      margin-bottom: 32px;
+      margin-top: 32px;
     }
 
-    .sidebar-table {
-      margin-top: 8px;
+    .download-info {
 
-      tr {
-        border-style: hidden;
+      .download-info-row {
+        margin-bottom: 17px; 
       }
 
-      th {
-        text-align: center;
+      .download-info-header {
         font-size: 14px;
         font-weight: 400;
-        color: #666666;
+        color: @gray-light;
       }
 
-      td {
+      .download-info-content {
         font-size: 16px;
         font-weight: 600;
-        text-align: center;
       }
     }
   }
 
   .owner-list {
     li {
-      margin-bottom: 8px;
+      margin-bottom: 38px;
       display: block;
       overflow: hidden;
       white-space: nowrap;

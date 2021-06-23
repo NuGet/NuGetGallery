@@ -1443,37 +1443,38 @@ img.reserved-indicator-icon {
   font-size: 16px;
   font-weight: 600;
   color: #666666;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .page-package-details-v2 .package-details-info .sidebar-links {
   font-size: 16px;
 }
-.page-package-details-v2 .package-details-info #title-links {
+.page-package-details-v2 .package-details-info .title-links {
   font-size: 14px;
   font-weight: 400;
+  padding-top: 2px;
+}
+@media (min-width: 992px) {
+  .page-package-details-v2 .package-details-info .title-links a {
+    float: right;
+  }
 }
 .page-package-details-v2 .package-details-info .sidebar-section {
-  margin-bottom: 32px;
+  margin-top: 32px;
 }
-.page-package-details-v2 .package-details-info .sidebar-table {
-  margin-top: 8px;
+.page-package-details-v2 .package-details-info .download-info .download-info-row {
+  margin-bottom: 17px;
 }
-.page-package-details-v2 .package-details-info .sidebar-table tr {
-  border-style: hidden;
-}
-.page-package-details-v2 .package-details-info .sidebar-table th {
-  text-align: center;
+.page-package-details-v2 .package-details-info .download-info .download-info-header {
   font-size: 14px;
   font-weight: 400;
   color: #666666;
 }
-.page-package-details-v2 .package-details-info .sidebar-table td {
+.page-package-details-v2 .package-details-info .download-info .download-info-content {
   font-size: 16px;
   font-weight: 600;
-  text-align: center;
 }
 .page-package-details-v2 .owner-list li {
-  margin-bottom: 8px;
+  margin-bottom: 38px;
   display: block;
   overflow: hidden;
   white-space: nowrap;
