@@ -1,4 +1,8 @@
-﻿var EditReadMeManager = (function () {
+﻿var SelectedVersion = (function () {
+    return $('.page-edit-package #input-select-readme');
+})
+
+var EditReadMeManager = (function () {
     'use strict';
 
     return new function () {
@@ -15,7 +19,7 @@
             _viewModel = model;
             _changedState = {};
 
-            _selectVersion = $('.page-edit-package #input-select-readme');
+            _selectVersion = SelectedVersion();
             var defaultVersion = _selectVersion.val();
 
             BindReadMeDataManager.init(previewUrl);
@@ -332,7 +336,7 @@ var BindReadMeDataManager = (function () {
 
             $('.readme-tabs').children().hide();
 
-            var selectedVersion = $('.page-edit-package #input-select-readme').val();
+            var selectedVersion = SelectedVersion().val();
             if (!selectedVersion || !_model.Versions[selectedVersion].HasEmbeddedReadme) {
                 $("#edit-markdown").removeClass("hidden");
             }
