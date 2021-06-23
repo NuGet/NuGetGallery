@@ -854,7 +854,7 @@
                                 Downloads
                             </div>
                             <div class="col-md-6 title-links">
-                                @if (true @*StatisticsHelper.IsStatisticsPageAvailable*@) 
+                                @if (StatisticsHelper.IsStatisticsPageAvailable) 
                                 { 
                                     <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">Full stats →</a>
                                 }   
