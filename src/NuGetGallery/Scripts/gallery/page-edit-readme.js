@@ -333,7 +333,7 @@ var BindReadMeDataManager = (function () {
             $('.readme-tabs').children().hide();
 
             var selectedVersion = $('.page-edit-package #input-select-readme').val();
-            if (!_model.Versions[selectedVersion].HasEmbeddedReadme) {
+            if (!selectedVersion || !_model.Versions[selectedVersion].HasEmbeddedReadme) {
                 $("#edit-markdown").removeClass("hidden");
             }
 
