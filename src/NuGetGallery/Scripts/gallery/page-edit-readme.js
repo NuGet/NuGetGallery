@@ -209,6 +209,7 @@ var BindReadMeDataManager = (function () {
 
     return new function () {
         var _previewUrl;
+        var _model;
 
         this.init = function (previewUrl) {
             _previewUrl = previewUrl;
@@ -219,6 +220,8 @@ var BindReadMeDataManager = (function () {
 
             if (model === null) {
                 return;
+            } else {
+                _model = model;
             }
 
             model.SelectedTab = ko.observable('written');
@@ -305,9 +308,9 @@ var BindReadMeDataManager = (function () {
                 contentType: false,
                 processData: false,
                 data: window.nuget.addAjaxAntiForgeryToken(formData),
-                success: function (model, resultCodeString, fullResponse) {
+                success: function (response, resultCodeString, fullResponse) {
                     clearReadMeError();
-                    displayReadMePreview(model);
+                    displayReadMePreview(response);
                 },
                 error: function (jqXHR, exception) {
                     var message = "";
@@ -329,7 +332,11 @@ var BindReadMeDataManager = (function () {
 
             $('.readme-tabs').children().hide();
 
-            $("#edit-markdown").removeClass("hidden");
+            var selectedVersion = $('.page-edit-package #input-select-readme').val();
+            if (!_model.Versions[selectedVersion].HasEmbeddedReadme) {
+                $("#edit-markdown").removeClass("hidden");
+            }
+
             $("#preview-html").addClass("hidden");
             clearReadMeError();
 
