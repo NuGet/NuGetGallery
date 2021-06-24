@@ -1,4 +1,8 @@
-﻿var EditReadMeManager = (function () {
+﻿var SelectedVersion = (function () {
+    return $('.page-edit-package #input-select-readme');
+})
+
+var EditReadMeManager = (function () {
     'use strict';
 
     return new function () {
@@ -15,7 +19,7 @@
             _viewModel = model;
             _changedState = {};
 
-            _selectVersion = $('.page-edit-package #input-select-readme');
+            _selectVersion = SelectedVersion();
             var defaultVersion = _selectVersion.val();
 
             BindReadMeDataManager.init(previewUrl);
@@ -209,6 +213,7 @@ var BindReadMeDataManager = (function () {
 
     return new function () {
         var _previewUrl;
+        var _model;
 
         this.init = function (previewUrl) {
             _previewUrl = previewUrl;
@@ -219,6 +224,8 @@ var BindReadMeDataManager = (function () {
 
             if (model === null) {
                 return;
+            } else {
+                _model = model;
             }
 
             model.SelectedTab = ko.observable('written');
@@ -305,9 +312,9 @@ var BindReadMeDataManager = (function () {
                 contentType: false,
                 processData: false,
                 data: window.nuget.addAjaxAntiForgeryToken(formData),
-                success: function (model, resultCodeString, fullResponse) {
+                success: function (response, resultCodeString, fullResponse) {
                     clearReadMeError();
-                    displayReadMePreview(model);
+                    displayReadMePreview(response);
                 },
                 error: function (jqXHR, exception) {
                     var message = "";
@@ -329,7 +336,11 @@ var BindReadMeDataManager = (function () {
 
             $('.readme-tabs').children().hide();
 
-            $("#edit-markdown").removeClass("hidden");
+            var selectedVersion = SelectedVersion().val();
+            if (!selectedVersion || !_model.Versions[selectedVersion].HasEmbeddedReadme) {
+                $("#edit-markdown").removeClass("hidden");
+            }
+
             $("#preview-html").addClass("hidden");
             clearReadMeError();
 
