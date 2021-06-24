@@ -30,8 +30,10 @@ namespace NuGetGallery.Services
             [InlineData("https://api.bintray.com/example/image.svg", true, "https://api.bintray.com/example/image.svg", true)]
             [InlineData("http://api.bintray.com/example/image.svg", true, "https://api.bintray.com/example/image.svg", true)]
             [InlineData("https://travis-ci.org/Azure/azure-relay-aspnetserver.svg?branch=dev", false, null, false)]
-            [InlineData("https://github.com/cedx/where.dart/workflows/.github/workflows/ci.yaml/badge.svg?branch=feature-1", false, "https://github.com/cedx/where.dart/workflows/.github/workflows/ci.yaml/badge.svg?branch=feature-1", true)]
-            [InlineData("https://git@github.com/peaceiris/actions-gh-pages/workflows/docker-image-ci/something/badge.svg", false, null, false)]
+            [InlineData("https://github.com/cedx/where.dart/actions/workflows/build.yaml/badge.svg?branch=develop", false, "https://github.com/cedx/where.dart/actions/workflows/build.yaml/badge.svg?branch=develop", true)]
+            [InlineData("https://git@github.com/peaceiris/actions-gh-pages/actions/workflows/dev-image.yml/something/badge.svg", false, null, false)]
+            [InlineData("https://github.com/cedx/where.dart/workflows/build.yaml/badge.svg?branch=develop", false, "https://github.com/cedx/where.dart/workflows/build.yaml/badge.svg?branch=develop", true)]
+            [InlineData("https://git@github.com/peaceiris/actions-gh-pages/workflows/dev-image.yml/something/badge.svg", false, null, false)]
             public void TryPrepareImageUrlForRendering(string input, bool istrusted,  string expectedOutput, bool expectConversion)
             {
                 _contentObjectService
