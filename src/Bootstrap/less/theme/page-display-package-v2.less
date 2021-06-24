@@ -197,6 +197,10 @@
       font-size: 16px;
     }
 
+    .pull-right {
+      float: right !important;
+    }
+
     .title-links {
       font-size: 14px;
       font-weight: 400;
@@ -204,7 +208,7 @@
 
       a {
         @media (min-width: @screen-md-min) {
-          float: right;
+          .pull-right();
         }
       }
     }
@@ -216,13 +220,14 @@
     .download-info {
 
       .download-info-row {
-        margin-bottom: 17px; 
+        margin-bottom: 17px;
       }
 
       .download-info-header {
         font-size: 14px;
         font-weight: 400;
         color: @gray-light;
+        margin-right: 12px;
       }
 
       .download-info-content {
@@ -248,7 +253,13 @@
   }
 
   .support-links {
-    margin-bottom: 24px;
+
+    .report-link {
+      i {
+        color: #BE0151;
+        font-weight: bold;
+      }
+    }
   }
 
   .share-buttons {

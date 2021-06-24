@@ -1448,6 +1448,9 @@ img.reserved-indicator-icon {
 .page-package-details-v2 .package-details-info .sidebar-links {
   font-size: 16px;
 }
+.page-package-details-v2 .package-details-info .pull-right {
+  float: right !important;
+}
 .page-package-details-v2 .package-details-info .title-links {
   font-size: 14px;
   font-weight: 400;
@@ -1455,7 +1458,7 @@ img.reserved-indicator-icon {
 }
 @media (min-width: 992px) {
   .page-package-details-v2 .package-details-info .title-links a {
-    float: right;
+    float: right !important;
   }
 }
 .page-package-details-v2 .package-details-info .sidebar-section {
@@ -1468,6 +1471,7 @@ img.reserved-indicator-icon {
   font-size: 14px;
   font-weight: 400;
   color: #666666;
+  margin-right: 12px;
 }
 .page-package-details-v2 .package-details-info .download-info .download-info-content {
   font-size: 16px;
@@ -1484,8 +1488,9 @@ img.reserved-indicator-icon {
   margin-right: 8px;
   border-radius: 5px;
 }
-.page-package-details-v2 .support-links {
-  margin-bottom: 24px;
+.page-package-details-v2 .support-links .report-link i {
+  color: #BE0151;
+  font-weight: bold;
 }
 .page-package-details-v2 .share-buttons img {
   margin-right: 8px;
