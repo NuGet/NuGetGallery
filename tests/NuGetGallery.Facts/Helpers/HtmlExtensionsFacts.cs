@@ -111,7 +111,7 @@ namespace NuGetGallery.Helpers
             }
 
             [Theory]
-/*            [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage\" rel=\"nofollow\">WindowsAzure.Storage</a>.")]
+            [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage\" rel=\"nofollow\">WindowsAzure.Storage</a>.")]
             [InlineData("MY PACKAGE IS HTTPS://WWW.NUGET.ORG/PACKAGES/WINDOWSAZURE.STORAGE.", "MY PACKAGE IS <a href=\"https://www.nuget.org/PACKAGES/WINDOWSAZURE.STORAGE\" rel=\"nofollow\">WINDOWSAZURE.STORAGE</a>.")]
             [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/!", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>!")]
             [InlineData("My package is http://www.nuget.org/packages/WindowsAzure.Storage/", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/\" rel=\"nofollow\">WindowsAzure.Storage</a>")]
@@ -128,7 +128,7 @@ namespace NuGetGallery.Helpers
             [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1\" rel=\"nofollow\">WindowsAzure.Storage/9.3.1</a>.")]
             [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1-preview.7", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1-preview.7\" rel=\"nofollow\">WindowsAzure.Storage/9.3.1-preview.7</a>")]
             [InlineData("My package is https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://www.nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">WindowsAzure.Storage/9.3.1</a>.")]
-            [InlineData("My package is https://nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">https://nuget.org/packages/WindowsAzure.Storage/9.3.1/</a>.")]*/
+            [InlineData("My package is https://nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">https://nuget.org/packages/WindowsAzure.Storage/9.3.1/</a>.")]
             [InlineData("My package is https://www.microsoft.com#https://nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://www.microsoft.com/#https://nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">https://www.microsoft.com/#https://nuget.org/packages/WindowsAzure.Storage/9.3.1/</a>.")]
             [InlineData("My package is http://www.microsoft.com#https://nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://www.microsoft.com/#https://nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">https://www.microsoft.com/#https://nuget.org/packages/WindowsAzure.Storage/9.3.1/</a>.")]
             [InlineData("My package is https://www.microsoft.com##https://nuget.org/packages/WindowsAzure.Storage/9.3.1/.", "My package is <a href=\"https://www.microsoft.com/##https://nuget.org/packages/WindowsAzure.Storage/9.3.1/\" rel=\"nofollow\">https://www.microsoft.com/##https://nuget.org/packages/WindowsAzure.Storage/9.3.1/</a>.")]
