@@ -545,7 +545,7 @@
                                 {
                                     if (Model.CanDisplayPrivateMetadata) 
                                     { 
-                                        @ViewHelpers.AlertWarning(@<text>The package description is shown below. To display a README instead, please follow these <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>instructions</a>.</text>);
+                                        @ViewHelpers.AlertWarning(@<text>The package description is shown below. Please update your package to <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>include a README</a>.</text>);
                                     }
 
                                     <p>@Html.PreFormattedText(Model.Description, Config)</p>
