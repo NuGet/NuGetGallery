@@ -854,10 +854,10 @@
                                 Downloads
                             </div>
                             <div class="col-md-6 title-links">
-                                @if (StatisticsHelper.IsStatisticsPageAvailable) 
-                                { 
+                                @if (StatisticsHelper.IsStatisticsPageAvailable)
+                                {
                                     <a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">Full stats →</a>
-                                }   
+                                }
                             </div>
                         </div>
                         <div class="download-info">
@@ -875,9 +875,10 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="sidebar-section">
                         <div class="sidebar-headers">About Package</div>
-                        <ul class="list-unstyled ms-Icon-ul sidebar-links">
+                        <ul class="list-unstyled ms-Icon-ul sidebar-links links-first-section">
                             <li>
                                 <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
                                 Last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
@@ -952,8 +953,9 @@
                                     </li>
                                 }
                             }
-                            <br />
-
+                        </ul>
+                        
+                        <ul class="list-unstyled ms-Icon-ul sidebar-links">
                             @if (Model.Available)
                             {
                                 <li>
@@ -1082,6 +1084,7 @@
                                         </a>
                                     </li>
                                 }
+                                
                                 else if (Model.Available)
                                 {
                                     <li class="report-link">
@@ -1098,6 +1101,7 @@
                             <p>License info provided by <a href="http://sonatype.com/">Sonatype</a>.</p>
                         }
                     </div>
+
                     <div class="sidebar-section">
                         <div class="row sidebar-headers">
                             <div class="col-md-6">

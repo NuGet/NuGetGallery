@@ -1448,8 +1448,9 @@ img.reserved-indicator-icon {
 .page-package-details-v2 .package-details-info .sidebar-links {
   font-size: 16px;
 }
-.page-package-details-v2 .package-details-info .pull-right {
-  float: right !important;
+.page-package-details-v2 .package-details-info .links-first-section {
+  padding-bottom: 35px;
+  margin-bottom: 0px;
 }
 .page-package-details-v2 .package-details-info .title-links {
   font-size: 14px;
