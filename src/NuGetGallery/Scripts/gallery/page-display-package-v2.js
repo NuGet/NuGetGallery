@@ -48,51 +48,18 @@
         });
     }
 
-    // Configure package manager copy buttons
-    function configureCopyButton(id) {
-        var copyButton = $('#' + id + '-button');
-        copyButton.popover({ trigger: 'manual' });
-
-        copyButton.click(function () {
-            var text = $('#' + id + '-text').text().trim();
-            window.nuget.copyTextToClipboard(text, copyButton);
-            copyButton.popover('show');
-            //This is workaround for Narrator announce the status changes of copy button to achieve accessibility.
-            copyButton.attr('aria-pressed', 'true');
-            setTimeout(function () {
-                copyButton.popover('destroy');
-            }, 1000);
-            setTimeout(function () {
-                copyButton.attr('aria-pressed', 'false');
-            }, 1500);
-            window.nuget.sendMetric("CopyInstallCommand", 1, {
-                ButtonId: id,
-                PackageId: packageId,
-                PackageVersion: packageVersion
-            });
-        });
-    }
-
-    for (var i in packageManagers)
-    {
-        configureCopyButton(packageManagers[i]);
-    }
-
     var storage = window['localStorage'];
+    var installationKey = 'preferred_instruction';
+
+    var currentPackageManagerId = packageManagers[0];
+    var packageManagerSelector = $('.installation-instructions-dropdown');
+
     if (storage) {
-        // set preferred installation instruction tab
-        var installationKey = 'preferred_tab';
-
-        // Restore preferred tab selection from localStorage.
-        var preferredInstallationTab = storage.getItem(installationKey);
-        if (preferredInstallationTab) {
-            $('#' + preferredInstallationTab).tab('show');
+        var preferredPackageManagerId = storage.getItem(installationKey);
+        if (preferredPackageManagerId) {
+            updatePackageManager(preferredPackageManagerId);
+            packageManagerSelector[0].value = preferredPackageManagerId;
         }
-
-        // Make sure we save the user's preferred tab to localStorage.
-        $('.package-manager-tab').on('shown.bs.tab', function (e) {
-            storage.setItem(installationKey, e.target.id);
-        });
 
         // set preferred body tab 
         var bodyKey = 'preferred_body_tab';
@@ -108,6 +75,50 @@
             storage.setItem(bodyKey, e.target.id);
         });
     }
+
+    // Finds the selected package manager installation instructions
+    packageManagerSelector.on('change', function (e) {
+        var newIndex = e.target.selectedIndex;
+        var newPackageManagerId = e.target[newIndex].value;
+
+        updatePackageManager(newPackageManagerId);
+
+        storage.setItem(installationKey, currentPackageManagerId);
+    });
+
+    // Used to switch installation instructions when a new package manager is selected 
+    function updatePackageManager(newPackageManagerId) {
+        var currentInstructionsId = '#' + currentPackageManagerId + '-instructions';
+        var newInstructionsId = '#' + newPackageManagerId + '-instructions';
+
+        $(currentInstructionsId).addClass('hidden');
+        $(newInstructionsId).removeClass('hidden');
+
+        currentPackageManagerId = newPackageManagerId;
+    }
+
+    // Configure package manager copy button
+    var copyButton = $('.installation-instructions-buttons');
+    copyButton.popover({ trigger: 'manual' });
+
+    copyButton.click(function () {
+        var text = $('#' + currentPackageManagerId + '-text').text().trim();
+        window.nuget.copyTextToClipboard(text, copyButton);
+        copyButton.popover('show');
+        //This is workaround for Narrator announce the status changes of copy button to achieve accessibility.
+        copyButton.attr('aria-pressed', 'true');
+        setTimeout(function () {
+            copyButton.popover('destroy');
+        }, 1000);
+        setTimeout(function () {
+            copyButton.attr('aria-pressed', 'false');
+        }, 1500);
+        window.nuget.sendMetric("CopyInstallCommand", 1, {
+            ButtonId: currentPackageManagerId,
+            PackageId: packageId,
+            PackageVersion: packageVersion
+        });
+    });
 
     if (window.nuget.isGaAvailable()) {
         // TO-DO add telemetry events for when each tab is clicked, see https://github.com/nuget/nugetgallery/issues/8613

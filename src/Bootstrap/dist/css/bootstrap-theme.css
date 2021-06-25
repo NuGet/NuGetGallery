@@ -1290,7 +1290,7 @@ img.reserved-indicator-icon {
   border-bottom: 1px solid lightgray;
 }
 .page-package-details-v2 .package-header {
-  margin-bottom: 36px;
+  margin-bottom: 35px;
 }
 .page-package-details-v2 .package-title {
   margin-bottom: 30px;
@@ -1427,6 +1427,38 @@ img.reserved-indicator-icon {
 .page-package-details-v2 .failed-validation-alert-list {
   margin-top: 15px;
   margin-bottom: 15px;
+}
+.page-package-details-v2 .installation-instructions {
+  background-color: #F3F2F1;
+}
+.page-package-details-v2 .installation-instructions .installation-instructions-dropdown {
+  font-size: 14px;
+  background-color: #F3F2F1;
+  height: 31px;
+  border-left: 0px;
+  border-top: 0px;
+  border-right: 0px;
+}
+.page-package-details-v2 .installation-instructions .instructions-displayed {
+  background-color: #FAF9F8;
+  font-family: 'Segoe UI';
+  font-size: 14px;
+}
+.page-package-details-v2 .installation-instructions .instructions-displayed pre {
+  border: 0px;
+}
+.page-package-details-v2 .installation-instructions-buttons {
+  background-color: #0078D4;
+  width: 32px;
+  height: 32px;
+  float: right;
+  padding: 0px;
+}
+.page-package-details-v2 .installation-instructions-buttons .ms-Icon--Copy {
+  color: #FFFFFF;
+  width: 16px;
+  height: 16px;
+  display: contents;
 }
 .page-package-details-v2 .package-details-main {
   overflow-wrap: break-word;
@@ -1647,6 +1679,7 @@ img.reserved-indicator-icon {
   border-bottom-color: #0078D4;
   border-bottom-width: 2px;
   font-weight: bold;
+  margin-bottom: -1px;
 }
 .page-package-details-v2 .body-tabs .nav-tabs > li > a {
   border-left: 0px;
