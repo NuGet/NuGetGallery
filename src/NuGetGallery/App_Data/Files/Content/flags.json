@@ -8,7 +8,6 @@
     "NuGetGallery.ODataCacheDurations": "Enabled",
     "NuGetGallery.ShowEnable2FADialog": "Enabled",
     "NuGetGallery.Get2FADismissFeedback": "Disabled",
-    "NuGetGallery.UsabillaEveryPage": "Enabled",
     "NuGetGallery.ODataV1GetAllNonHijacked": "Enabled",
     "NuGetGallery.ODataV1GetAllCountNonHijacked": "Enabled",
     "NuGetGallery.ODataV1GetSpecificNonHijacked": "Enabled",
@@ -22,7 +21,14 @@
     "NuGetGallery.ODataV2FindPackagesByIdNonHijacked": "Enabled",
     "NuGetGallery.ODataV2FindPackagesByIdCountNonHijacked": "Enabled",
     "NuGetGallery.ODataV2SearchNonHijacked": "Enabled",
-    "NuGetGallery.ODataV2SearchCountNonHijacked": "Enabled"
+    "NuGetGallery.ODataV2SearchCountNonHijacked": "Enabled",
+    "NuGetGallery.DisplayVulnerabilities": "Enabled",
+    "NuGetGallery.ManagePackagesVulnerabilities": "Enabled",
+    "NuGetGallery.DisplayFuGetLinks": "Enabled",
+    "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
+    "NuGetGallery.EmbeddedIcons": "Enabled",
+    "NuGetGallery.MarkdigMdRendering": "Enabled",
+    "NuGetGallery.ImageAllowlist": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
@@ -74,6 +80,24 @@
       "Domains": []
     },
     "NuGetGallery.DeletePackageApi": {
+      "All": false,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.EmbeddedIcons": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.EmbeddedReadmes": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DisplayPackagePageV2": {
       "All": false,
       "SiteAdmins": false,
       "Accounts": [],

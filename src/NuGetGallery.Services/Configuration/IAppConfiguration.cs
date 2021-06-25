@@ -76,6 +76,11 @@ namespace NuGetGallery.Configuration
         string AzureStorage_Statistics_ConnectionString { get; set; }
 
         /// <summary>
+        /// The Azure Storage connection string used for statistics. Secondary
+        /// </summary>
+        string AzureStorage_Statistics_ConnectionString_Alternate { get; set; }
+
+        /// <summary>
         /// The Azure Storage connection string used for package uploads, before publishing.
         /// </summary>
         string AzureStorage_Uploads_ConnectionString { get; set; }
@@ -455,12 +460,6 @@ namespace NuGetGallery.Configuration
         /// Deployment label to log with telemetry.
         /// </summary>
         string DeploymentLabel { get; set; }
-
-        /// <summary>
-        /// The Usabilla feedback button ID embedded in the JavaScript snippet obtained from Usabilla. The ID can found
-        /// in your button's JavaScript code. Look for "//w.usabilla.com/{button ID}.js".
-        /// </summary>
-        string UsabillaFeedbackButtonId { get; set; }
 
         /// <summary>
         /// Allows to override the default (or externally configured) minWorkerThreads setting. Must be specified with <see cref="MinIoThreads"/>.

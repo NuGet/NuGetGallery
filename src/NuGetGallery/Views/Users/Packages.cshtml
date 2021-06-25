@@ -116,10 +116,14 @@
                         <th class="sortable">Owners</th>
                     @if (Model.IsCertificatesUIEnabled)
                     {
-                        <th  class="sortable">Signing Owner</th>
+                        <th class="sortable">Signing Owner</th>
                     }
-                        <th  class="sortable">Downloads</th>
-                        <th  class="sortable">Latest Version</th>
+                        <th class="sortable">Downloads</th>
+                        <th class="sortable">Latest Version</th>
+                    @if (Model.IsManagePackagesVulnerabilitiesEnabled)
+                    {
+                        <th><span class="hidden">Package warnings</span></th>
+                    }
                         <th><span class="hidden">Icon</span></th>
                     </tr>
                 </thead>
@@ -166,11 +170,20 @@
                         </td>
                     }
                         <td class="align-middle text-nowrap" data-bind="attr: { 'data-sortby': DownloadCount }">
-                            <span data-bind="text: FormattedDownloadCount"></span>
+                            <span data-bind="text: FormattedDownloadCount" tabindex="0"></span>
                         </td>
                         <td class="align-middle text-nowrap" data-bind="attr: { 'data-sortby': VersionSortOrder }">
-                            <span data-bind="text: LatestVersion"></span>
+                            <span data-bind="text: LatestVersion" tabindex="0"></span>
                         </td>
+                    @if (Model.IsManagePackagesVulnerabilitiesEnabled)
+                    {
+                        var title = "This version has at least one known vulnerability. Click on the package name for details.";
+                        <td class="package-icon-cell">
+                            <span class="package-warning-icon" aria-label="@title" data-content="@title" data-bind="visible: IsVulnerable" tabindex="0">
+                                <i class="ms-Icon ms-Icon--Warning package-icon"></i>
+                            </span>
+                        </td>
+                    }
                         <td class="text-right align-middle package-controls">
                             <span data-bind="visible: CanEdit || CanManageOwners || CanDelete">
                                 <a class="btn" title="Manage Package" data-bind="attr: { href: ManageUrl,
@@ -353,7 +366,8 @@
             p.CanEditRequiredSigner,
             p.ShowRequiredSigner,
             p.ShowTextBox,
-            p.VersionSortOrder
+            p.VersionSortOrder,
+            p.IsVulnerable
         };
     }
 

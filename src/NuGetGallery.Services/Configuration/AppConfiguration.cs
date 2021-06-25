@@ -60,6 +60,9 @@ namespace NuGetGallery.Configuration
         [DisplayName("AzureStorage.Statistics.ConnectionString")]
         public string AzureStorage_Statistics_ConnectionString { get; set; }
 
+        [DisplayName("AzureStorage.Statistics.ConnectionString.Alternate")]
+        public string AzureStorage_Statistics_ConnectionString_Alternate { get; set; }
+
         [DisplayName("AzureStorage.Uploads.ConnectionString")]
         public string AzureStorage_Uploads_ConnectionString { get; set; }
 
@@ -402,8 +405,6 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue(null)]
         public string DeploymentLabel { get; set; }
-
-        public string UsabillaFeedbackButtonId { get; set; }
 
         [DefaultValue(null)]
         public int? MinWorkerThreads { get; set; }

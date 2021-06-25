@@ -54,8 +54,8 @@
 
             @ViewHelpers.Section(
                 this,
-                "Documentation",
-                "Documentation",
+                "Readme",
+                "Readme",
                 @<text>@Html.Partial("_ManageDocumentation", Model)</text>,
                 expanded: false)
         </div>
@@ -105,7 +105,7 @@
             EditReadMeManager.init(
                 readMeModel,
                 '@Url.PreviewReadMe()');
-
+            
             // Set up delete section
             var deleteVersionSelect = $('.page-delete-package #input-select-version');
             deleteVersionSelect.change(function () {

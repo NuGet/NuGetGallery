@@ -44,6 +44,7 @@
     <Compile Include="Fakes\FakeEntitiesContext.cs" />
     <Compile Include="Fakes\FakeEntityRepository.cs" />
     <Compile Include="Fakes\FakeSecurityPolicyService.cs" />
+    <Compile Include="Fakes\FakeFeatureFlagService.cs" />
     <Compile Include="Fakes\FakeTelemetryService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

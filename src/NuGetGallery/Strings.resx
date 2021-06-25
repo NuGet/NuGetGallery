@@ -515,7 +515,10 @@ For more information, please contact '{2}'.</value>
     <value>The ID prefix of this package has been reserved for one of the owners of this package by NuGet.org.</value>
   </data>
   <data name="UploadPackage_IdNamespaceConflict" xml:space="preserve">
-    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID.</value>
+    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation.</value>
+  </data>
+  <data name="UploadPackage_IdNamespaceConflictHtml" xml:space="preserve">
+    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href="https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation"&gt;Learn more about Package ID prefix reservation&lt;/a&gt;.</value>
   </data>
   <data name="PreviewReadMe_ConversionFailed" xml:space="preserve">
     <value>Conversion of Markdown to HTML failed with '{0}'.</value>
@@ -1166,7 +1169,7 @@ The {1} Team</value>
     <value>The &lt;readme&gt; element is not currently supported.</value>
   </data>
   <data name="UploadPackage_InvalidReadmeFileExtension" xml:space="preserve">
-    <value>The readme file has an invalid extension '{0}'. Extension must be one of the following: {1}.</value>
+    <value>The readme file has an invalid extension '{0}'. The extension must be: '{1}'.</value>
     <comment>{0} is the readme file extension specified in the .nuspec, {1} is the list of allowed extensions</comment>
   </data>
   <data name="UploadPackage_ReadmeFileType" xml:space="preserve">
@@ -1208,5 +1211,14 @@ The {1} Team</value>
   <data name="DeletePackage_TooManyDownloads" xml:space="preserve">
     <value>The provided package has more than {0} downloads and therefore cannot be deleted via API.</value>
     <comment>{0} is the download count limit.</comment>
+  </data>
+  <data name="UploadPackage_OwnerlessIdNamespaceConflict" xml:space="preserve">
+    <value>The package ID is reserved. You can upload your package with a different package ID. Reach out to support@nuget.org if you have questions.</value>
+  </data>
+  <data name="UploadPackage_OwnerlessIdNamespaceConflictHtml" xml:space="preserve">
+    <value>The package ID is reserved. You can upload your package with a different package ID. Reach out to &lt;a href="mailto:support@nuget.org"&gt;support@nuget.org&lt;/a&gt; if you have questions.</value>
+  </data>
+  <data name="ReadmeErrorEmpty" xml:space="preserve">
+    <value>The readme file '{0}' cannot be empty.</value>
   </data>
 </root>

@@ -49,7 +49,8 @@
     <Compile Include="Job.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Verify\PackageVulnerabilityServiceVerifier.cs" />
+    <Compile Include="Verify\IPackageVulnerabilitiesVerifier.cs" />
+    <Compile Include="Verify\PackageVulnerabilitiesVerifier.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

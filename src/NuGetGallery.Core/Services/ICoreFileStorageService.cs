@@ -25,6 +25,14 @@ namespace NuGetGallery
         /// <param name="ifNoneMatch">The <see cref="IFileReference.ContentId"/> value to use in an If-None-Match request</param>
         /// <returns>A <see cref="IFileReference"/> representing the file reference</returns>
         Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null);
+        
+        /// <summary>
+        /// Gets a file URI.
+        /// </summary>
+        /// <param name="folderName">The folder containing the file.</param>
+        /// <param name="fileName">The file within the <paramref name="folderName"/>.</param>
+        /// <returns>A <see cref="Uri"/> for the specified file.</returns>
+        Task<Uri> GetFileUriAsync(string folderName, string fileName);
 
         /// <summary>
         /// Generates the storage file URI (which is optionally time limited)

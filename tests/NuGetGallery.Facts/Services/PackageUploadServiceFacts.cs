@@ -32,7 +32,7 @@ namespace NuGetGallery
             Mock<IPackageService> packageService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
             Mock<IValidationService> validationService = null,
-            Mock<IPackageVulnerabilityService> vulnerabilityService = null)
+            Mock<IPackageVulnerabilitiesManagementService> vulnerabilityService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
 
@@ -64,7 +64,7 @@ namespace NuGetGallery
 
             if (vulnerabilityService == null)
             {
-                vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
             }
 
             validationService = validationService ?? new Mock<IValidationService>();
@@ -81,6 +81,7 @@ namespace NuGetGallery
                 reservedNamespaceService.Object,
                 validationService.Object,
                 Mock.Of<ICoreLicenseFileService>(),
+                Mock.Of<ICoreReadmeFileService>(),
                 diagnosticsService.Object,
                 vulnerabilityService.Object,
                 metadataValidationService.Object);
@@ -96,7 +97,7 @@ namespace NuGetGallery
                 var key = 0;
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                var vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                var vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
 
                 var id = "Microsoft.Aspnet.Mvc";
                 var packageUploadService = CreateService(packageService, vulnerabilityService: vulnerabilityService);
@@ -151,7 +152,7 @@ namespace NuGetGallery
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
                     .Returns(testNamespaces.ToList().AsReadOnly());
 
-                var vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                var vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
 
                 var packageUploadService = CreateService(
                     reservedNamespaceService: reservedNamespaceService, 
@@ -193,7 +194,7 @@ namespace NuGetGallery
                     .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
                     .Returns(testNamespaces.ToList().AsReadOnly());
 
-                var vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                var vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
 
                 var packageUploadService = CreateService(
                     reservedNamespaceService: reservedNamespaceService,
@@ -631,7 +632,7 @@ namespace NuGetGallery
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
-                _packageFileService.Verify(
+                _readmeFileService.Verify(
                     lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile),
                     expectedReadmeSave ? Times.Once() : Times.Never());
             }
@@ -651,7 +652,7 @@ namespace NuGetGallery
                     .Callback<Package, Stream>((_, stream) => stream.Position = 42)
                     .Returns(Task.CompletedTask);
 
-                _packageFileService
+                _readmeFileService
                     .Setup(lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile))
                     .Callback<Package, Stream>((_, stream) => stream.Position = 42)
                     .Returns(Task.CompletedTask);
@@ -664,7 +665,7 @@ namespace NuGetGallery
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
                 _licenseFileService.Verify(lfs => lfs.ExtractAndSaveLicenseFileAsync(_package, _packageFile), Times.Once);
-                _packageFileService.Verify(lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile), Times.Once);
+                _readmeFileService.Verify(lfs => lfs.ExtractAndSaveReadmeFileAsync(_package, _packageFile), Times.Once);
                 _packageFileService.Verify(pfs => pfs.SavePackageFileAsync(_package, _packageFile), Times.Once);
             }
 
@@ -694,8 +695,8 @@ namespace NuGetGallery
                     lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion),
                     expectedReadmeDelete ? Times.Once() : Times.Never());
 
-                _packageFileService.Verify(
-                    lfs => lfs.DeleteReadMeMdFileAsync(_package),
+                _readmeFileService.Verify(
+                    lfs => lfs.DeleteReadmeFileAsync(_package.Id, _package.NormalizedVersion),
                     expectedReadmeDelete ? Times.Once() : Times.Never());
             }
 
@@ -722,8 +723,8 @@ namespace NuGetGallery
                     lfs => lfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
                     expectedFileDelete ? Times.Once() : Times.Never());
 
-                _packageFileService.Verify(
-                    lfs => lfs.DeleteReadMeMdFileAsync(_package),
+                _readmeFileService.Verify(
+                    lfs => lfs.DeleteReadmeFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
                     expectedFileDelete ? Times.Once() : Times.Never());
             }
         }
@@ -740,8 +741,9 @@ namespace NuGetGallery
             protected readonly Mock<ITyposquattingService> _typosquattingService;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ICoreLicenseFileService> _licenseFileService;
+            protected readonly Mock<ICoreReadmeFileService> _readmeFileService;
             protected readonly Mock<IDiagnosticsService> _diagnosticsService;
-            protected readonly Mock<IPackageVulnerabilityService> _vulnerabilityService;
+            protected readonly Mock<IPackageVulnerabilitiesManagementService> _vulnerabilityService;
             protected readonly Mock<IPackageMetadataValidationService> _metadataValidationService;
             protected Package _package;
             protected Stream _packageFile;
@@ -778,13 +780,14 @@ namespace NuGetGallery
                 _conflictException = new FileAlreadyExistsException("Conflict!");
                 _token = CancellationToken.None;
                 _licenseFileService = new Mock<ICoreLicenseFileService>();
+                _readmeFileService = new Mock<ICoreReadmeFileService>();
                 _diagnosticsService = new Mock<IDiagnosticsService>();
 
                 _diagnosticsService
                     .Setup(ds => ds.GetSource(It.IsAny<string>()))
                     .Returns(Mock.Of<IDiagnosticsSource>());
 
-                _vulnerabilityService = new Mock<IPackageVulnerabilityService>();
+                _vulnerabilityService = new Mock<IPackageVulnerabilitiesManagementService>();
 
                 _metadataValidationService = new Mock<IPackageMetadataValidationService>();
 
@@ -795,6 +798,7 @@ namespace NuGetGallery
                     _reservedNamespaceService.Object,
                     _validationService.Object,
                     _licenseFileService.Object,
+                    _readmeFileService.Object,
                     _diagnosticsService.Object,
                     _vulnerabilityService.Object,
                     _metadataValidationService.Object);

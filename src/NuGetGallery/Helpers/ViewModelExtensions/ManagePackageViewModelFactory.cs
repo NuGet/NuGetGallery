@@ -86,8 +86,6 @@ namespace NuGetGallery
             var versionDeprecationStateDictionary = new Dictionary<string, ManagePackageViewModel.VersionDeprecationState>();
             viewModel.VersionDeprecationStateDictionary = versionDeprecationStateDictionary;
 
-            var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
-            var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
             foreach (var versionSelectPackage in versionSelectPackages)
             {
                 var text = PackageHelper.GetSelectListText(versionSelectPackage);
@@ -106,10 +104,7 @@ namespace NuGetGallery
                 var model = new TrivialPackageVersionModel(versionSelectPackage);
                 versionReadMeStateDictionary.Add(
                     value,
-                    new ManagePackageViewModel.VersionReadMeState(
-                        submitUrlTemplate.Resolve(model),
-                        getReadMeUrlTemplate.Resolve(model),
-                        null));
+                    GetVersionReadMeState(model, url));
 
                 versionDeprecationStateDictionary.Add(
                     value,
@@ -118,7 +113,7 @@ namespace NuGetGallery
 
             // Update edit model with the readme.md data.
             viewModel.ReadMe = new EditPackageVersionReadMeRequest();
-            if (package.HasReadMe)
+            if (package.HasReadMe && package.EmbeddedReadmeType == EmbeddedReadmeFileType.Absent)
             {
                 viewModel.ReadMe.ReadMe.SourceType = ReadMeService.TypeWritten;
                 viewModel.ReadMe.ReadMe.SourceText = readMe;
@@ -155,6 +150,22 @@ namespace NuGetGallery
                 result.CustomMessage = deprecation.CustomMessage;
             }
 
+            return result;
+        }
+
+        private static ManagePackageViewModel.VersionReadMeState GetVersionReadMeState(
+            TrivialPackageVersionModel model,
+            UrlHelper url)
+        {
+            var submitUrlTemplate = url.PackageVersionActionTemplate("Edit");
+            var getReadMeUrlTemplate = url.PackageVersionActionTemplate("GetReadMeMd");
+
+            var result = new ManagePackageViewModel.VersionReadMeState(
+                submitUrlTemplate.Resolve(model),
+                getReadMeUrlTemplate.Resolve(model),
+                readMe: null);
+
+            result.HasEmbeddedReadme = model.HasEmbeddedReadme;
             return result;
         }
     }

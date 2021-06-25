@@ -10,7 +10,9 @@ namespace NuGetGallery.Packaging
 {
     public static class PackageIdValidator
     {
-        private static readonly Regex IdRegex = new Regex(@"^\w+([_.-]\w+)*$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
+        private static readonly Regex IdRegex = RegexEx.CreateWithTimeout(
+            @"^\w+([.-]\w+)*$",
+            RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
         public static bool IsValidPackageId(string packageId)
         {

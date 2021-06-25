@@ -17,6 +17,7 @@ namespace NuGetGallery
         IODataCacheConfiguration ODataCacheConfiguration { get; }
         ICacheConfiguration CacheConfiguration { get; }
         IQueryHintConfiguration QueryHintConfiguration { get; }
+        ITrustedImageDomains TrustedImageDomains { get; }
 
         Task Refresh();
     }

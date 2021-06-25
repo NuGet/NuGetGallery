@@ -1,11 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGet.Versioning;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -111,6 +114,10 @@ namespace NuGetGallery
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 
+        IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package);
+
+        IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles);
+
         Task PublishPackageAsync(string id, string version, bool commitChanges = true);
         Task PublishPackageAsync(Package package, bool commitChanges = true);
 
@@ -155,5 +162,13 @@ namespace NuGetGallery
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="registration" />
         /// is <c>null</c>.</exception>
         Task SetRequiredSignerAsync(PackageRegistration registration, User signer, bool commitChanges = true);
+
+        /// <summary>
+        /// Get a package's status, or <c>null</c> if the package does not exist.
+        /// </summary>
+        /// <param name="packageId">The package's ID.</param>
+        /// <param name="packageVersion">The package's version.</param>
+        /// <returns>The package's status, or <c>null</c> is the package does not exist.</returns>
+        PackageStatus? GetPackageStatus(string packageId, NuGetVersion packageVersion);
     }
 }

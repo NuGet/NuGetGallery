@@ -109,6 +109,7 @@
     <Compile Include="Configuration\FeatureFlagService.cs" />
     <Compile Include="Configuration\IABTestConfiguration.cs" />
     <Compile Include="Configuration\IAppConfiguration.cs" />
+    <Compile Include="Configuration\IBlobStorageConfiguration.cs" />
     <Compile Include="Configuration\ICacheConfiguration.cs" />
     <Compile Include="Configuration\ICertificatesConfiguration.cs" />
     <Compile Include="Configuration\IFeatureFlagService.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="Configuration\IQueryHintConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
     <Compile Include="Configuration\ISymbolsConfiguration.cs" />
+    <Compile Include="Configuration\ITrustedImageDomains.cs" />
     <Compile Include="Configuration\ITyposquattingConfiguration.cs" />
     <Compile Include="Configuration\LoginDiscontinuationConfiguration.cs" />
     <Compile Include="Configuration\ODataCacheConfiguration.cs" />
@@ -127,7 +129,9 @@
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
+    <Compile Include="Configuration\SimpleBlobStorageConfiguration.cs" />
     <Compile Include="Configuration\SymbolsConfiguration.cs" />
+    <Compile Include="Configuration\TrustedImageDomains.cs" />
     <Compile Include="Configuration\TyposquattingConfiguration.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
@@ -161,7 +165,7 @@
     <Compile Include="PackageManagement\IPackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\IPackageService.cs" />
     <Compile Include="PackageManagement\IPackageUpdateService.cs" />
-    <Compile Include="PackageManagement\IPackageVulnerabilityService.cs" />
+    <Compile Include="PackageManagement\IPackageVulnerabilitiesManagementService.cs" />
     <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
     <Compile Include="PackageManagement\PackageDeleteDecision.cs" />
     <Compile Include="PackageManagement\PackageFilter.cs" />
@@ -170,7 +174,7 @@
     <Compile Include="PackageManagement\PackageOwnerRequestService.cs" />
     <Compile Include="PackageManagement\PackageOwnershipManagementService.cs" />
     <Compile Include="PackageManagement\PackageService.cs" />
-    <Compile Include="PackageManagement\PackageVulnerabilityService.cs" />
+    <Compile Include="PackageManagement\PackageVulnerabilitiesManagementService.cs" />
     <Compile Include="PackageManagement\ReservedNamespaceService.cs" />
     <Compile Include="Permissions\ActionRequiringAccountPermissions.cs" />
     <Compile Include="Permissions\ActionRequiringEntityPermissions.cs" />
@@ -299,16 +303,16 @@
       <Version>4.1.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>5.8.0-preview.3.6823</Version>
+      <Version>5.9.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>5.8.0-preview.3.6823</Version>
+      <Version>5.9.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.79.0</Version>
+      <Version>2.86.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.79.0</Version>
+      <Version>2.86.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.WebBackgrounder">
       <Version>0.2.0</Version>

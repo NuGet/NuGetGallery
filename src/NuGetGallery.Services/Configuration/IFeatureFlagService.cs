@@ -9,6 +9,12 @@ namespace NuGetGallery
     public interface IFeatureFlagService
     {
         /// <summary>
+        /// Whether downloads.v1.json hould be pulled from primary or secondary location.
+        /// If true, the secondary location will be used to download downloads.v1.json.
+        /// </summary>
+        bool IsAlternateStatisticsSourceEnabled();
+
+        /// <summary>
         /// Whether account deletes are performed asychronously or not.
         /// If true, account deletes will be attempted to be performed asychronously
         /// and fall back to old method if the async delete fails
@@ -55,6 +61,21 @@ namespace NuGetGallery
         /// Whether or not the user can manage their package's deprecation state through the API.
         /// </summary>
         bool IsManageDeprecationApiEnabled(User user);
+
+        /// <summary>
+        /// Whether or not a package owner can view vulnerability advisory information on their package.
+        /// </summary>
+        bool IsDisplayVulnerabilitiesEnabled();
+
+        /// <summary>
+        /// Whether or not a package owner can view vulnerability advisory information on the Manage Packages page.
+        /// </summary>
+        bool IsManagePackagesVulnerabilitiesEnabled();
+
+        /// <summary>
+        /// Whether or not a fuget.org link is visible on a package's details page.
+        /// </summary>
+        bool IsDisplayFuGetLinksEnabled();
 
         /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.
@@ -138,20 +159,25 @@ namespace NuGetGallery
         bool IsGet2FADismissFeedbackEnabled();
 
         /// <summary>
-        /// Whether we should enable the Usabilla feedback button on every page.
-        /// </summary>
-        bool IsUsabillaButtonEnabledOnEveryPage();
-
-        /// <summary>
         /// Whether the user is able to see or manage the package renames information.
         /// </summary>
         bool IsPackageRenamesEnabled(User user);
+
+        /// <summary>
+        /// Whether we're using pattern set based TFM determination on ingested packages
+        /// </summary>
+        bool ArePatternSetTfmHeuristicsEnabled();
 
         /// <summary>
         /// Whether the user is able to publish the package with an embedded readme file.
         /// </summary>
         bool AreEmbeddedReadmesEnabled(User user);
 
+        /// <summary>
+        /// Whether the new design of the display package page is enabled.
+        /// </summary>
+        bool IsDisplayPackagePageV2Enabled(User user);
+        
         /// <summary>
         /// Whether the /Packages() endpoint is enabled for the V1 OData API.
         /// </summary>
@@ -227,8 +253,22 @@ namespace NuGetGallery
         bool IsODataV2SearchCountNonHijackedEnabled();
 
         /// <summary>
+        /// Whether rendering Markdown content to HTML using Markdig is enabled
+        /// </summary>
+        bool IsMarkdigMdRenderingEnabled();
+        
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);
+
+        /// <summary>
+        /// Whether the allowlist is enabled for checking the image sources
+        /// </summary>
+        bool IsImageAllowlistEnabled();
+
+        /// <summary>
+        /// Whether or not display the banner on nuget.org
+        /// </summary>
+        bool IsDisplayBannerEnabled();
     }
 }

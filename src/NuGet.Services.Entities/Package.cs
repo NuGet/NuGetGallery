@@ -12,6 +12,7 @@ namespace NuGet.Services.Entities
     public class Package
         : IPackageEntity
     {
+        private string _id;
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
         public Package()
@@ -24,7 +25,7 @@ namespace NuGet.Services.Entities
             SymbolPackages = new HashSet<SymbolPackage>();
             Deprecations = new HashSet<PackageDeprecation>();
             AlternativeOf = new HashSet<PackageDeprecation>();
-            Vulnerabilities = new HashSet<VulnerablePackageVersionRange>();
+            VulnerablePackageRanges = new HashSet<VulnerablePackageVersionRange>();
             Listed = true;
         }
 #pragma warning restore 618
@@ -156,6 +157,18 @@ namespace NuGet.Services.Entities
             }
         }
 
+        /// <summary>
+        /// Signifies whether or not the embedded Readme exists
+        /// </summary>
+        [NotMapped]
+        public bool HasEmbeddedReadme
+        {
+            get
+            {
+                return HasReadMe && EmbeddedReadmeType != EmbeddedReadmeFileType.Absent;
+            }
+        }
+
         public bool RequiresLicenseAcceptance { get; set; }
 
         public bool DevelopmentDependency { get; set; }
@@ -252,7 +265,17 @@ namespace NuGet.Services.Entities
 
         public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
 
-        public string Id => PackageRegistration.Id;
+        /// <summary>
+        /// The package ID with casing specific to this version if available, otherwise it will fallback to the ID on
+        /// the package registration. WARNING: this property should not be used for comparisons in LINQ to SQL because
+        /// it may be null sometimes. Use <see cref="PackageRegistration.Id"/> instead.
+        /// </summary>
+        [StringLength(Constants.MaxPackageIdLength)]
+        public string Id
+        {
+            get => _id ?? PackageRegistration?.Id;
+            set => _id = value;
+        }
 
         public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
 
@@ -277,9 +300,9 @@ namespace NuGet.Services.Entities
         public virtual ICollection<PackageDeprecation> AlternativeOf { get; set; }
 
         /// <summary>
-        /// Gets or sets the list of vulnerabilites that this package has.
+        /// Gets or sets the list of vulnerable package ranges connecting this package to vulnerabilities.
         /// </summary>
-        public ICollection<VulnerablePackageVersionRange> Vulnerabilities { get; set; }
+        public ICollection<VulnerablePackageVersionRange> VulnerablePackageRanges { get; set; }
 
         /// <summary>
         /// A flag that indicates that the package metadata had an embedded icon specified.

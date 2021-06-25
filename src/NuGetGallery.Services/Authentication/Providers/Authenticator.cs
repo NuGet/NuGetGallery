@@ -16,7 +16,9 @@ namespace NuGetGallery.Authentication.Providers
     public abstract class Authenticator
     {
         public const string AuthPrefix = "Auth.";
-        private static readonly Regex NameShortener = new Regex(@"^(?<shortname>[A-Za-z0-9_]*)Authenticator$");
+        private static readonly Regex NameShortener = RegexEx.CreateWithTimeout(
+            @"^(?<shortname>[A-Za-z0-9_]*)Authenticator$",
+            RegexOptions.None);
 
         public AuthenticatorConfiguration BaseConfig { get; private set; }
 

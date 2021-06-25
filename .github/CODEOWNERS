@@ -2,4 +2,4 @@
 # the repo. Unless a later match takes precedence,
 # review when someone opens a pull request.
 # For more on how to customize the CODEOWNERS file - https://help.github.com/en/articles/about-code-owners
-*       @agr @cristinamanum @dannyjdev @drewgillies @joelverhagen @loic-sharma @lyndaidaii @ryuyu @skofman1 @shishirx34 @xavierdecoster @zhhyu 
+*       @NuGet/gallery-team

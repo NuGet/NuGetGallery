@@ -803,13 +803,13 @@ namespace NuGetGallery.Services
         public class TheShouldMarkNewPackageVerifiedMethod
         {
             [Theory]
-            [InlineData("Microsoft.Aspnet")]
-            [InlineData("microsoft.aspnet")]
-            [InlineData("Microsoft.Aspnet.Newpackage")]
-            [InlineData("microsoft.aspnet.newpackage")]
-            [InlineData("jquery")]
-            [InlineData("jQuery")]
-            public void NonOwnedNamespacesRejectPush(string id)
+            [InlineData("Microsoft.Aspnet", PermissionsCheckResult.ReservedNamespaceFailure)]
+            [InlineData("microsoft.aspnet", PermissionsCheckResult.ReservedNamespaceFailure)]
+            [InlineData("Microsoft.Aspnet.Newpackage", PermissionsCheckResult.ReservedNamespaceFailure)]
+            [InlineData("microsoft.aspnet.newpackage", PermissionsCheckResult.ReservedNamespaceFailure)]
+            [InlineData("jquery", PermissionsCheckResult.OwnerlessReservedNamespaceFailure)]
+            [InlineData("jQuery", PermissionsCheckResult.OwnerlessReservedNamespaceFailure)]
+            public void NonOwnedNamespacesRejectPush(string id, PermissionsCheckResult expected)
             {
                 var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
@@ -823,7 +823,24 @@ namespace NuGetGallery.Services
                 var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(lastUser, lastUser, new ActionOnNewPackageContext(id, service));
                 var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(lastUser, id, out var matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
-                Assert.Equal(PermissionsCheckResult.ReservedNamespaceFailure, isPushAllowed);
+                Assert.Equal(expected, isPushAllowed);
+            }
+
+            [Fact]
+            public void OwnerlessNamespacesRejectPush()
+            {
+                var id = "microsoft.myown";
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var prefix = "microsoft.";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
+                var user = testUsers.Last();
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(user, user, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(user, id, out var matchingNamespaces);
+                Assert.Empty(matchingNamespaces);
+                Assert.Equal(PermissionsCheckResult.OwnerlessReservedNamespaceFailure, isPushAllowed);
             }
 
             [Theory]

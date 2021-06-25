@@ -15,6 +15,7 @@ namespace NuGetGallery
         private const string GalleryPrefix = "NuGetGallery.";
 
         private const string ABTestingFlightName = GalleryPrefix + "ABTesting";
+        private const string AlternateStatisticsSourceFeatureName = GalleryPrefix + "AlternateStatisticsSource";
         private const string AsyncAccountDeleteFeatureName = GalleryPrefix + "AsyncAccountDelete";
         private const string SelfServiceAccountDeleteFeatureName = GalleryPrefix + "SelfServiceAccountDelete";
         private const string EmbeddedIconFlightName = GalleryPrefix + "EmbeddedIcons";
@@ -25,6 +26,9 @@ namespace NuGetGallery
         private const string ManageDeprecationFeatureName = GalleryPrefix + "ManageDeprecation";
         private const string ManageDeprecationForManyVersionsFeatureName = GalleryPrefix + "ManageDeprecationMany";
         private const string ManageDeprecationApiFeatureName = GalleryPrefix + "ManageDeprecationApi";
+        private const string DisplayVulnerabilitiesFeatureName = GalleryPrefix + "DisplayVulnerabilities";
+        private const string ManagePackagesVulnerabilitiesFeatureName = GalleryPrefix + "ManagePackagesVulnerabilities";
+        private const string DisplayFuGetLinksFeatureName = GalleryPrefix + "DisplayFuGetLinks";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
@@ -36,11 +40,15 @@ namespace NuGetGallery
         private const string ODataCacheDurationsFeatureName = GalleryPrefix + "ODataCacheDurations";
         private const string ShowEnable2FADialog = GalleryPrefix + "ShowEnable2FADialog";
         private const string Get2FADismissFeedback = GalleryPrefix + "Get2FADismissFeedback";
-        private const string UsabillaOnEveryPageFeatureName = GalleryPrefix + "UsabillaEveryPage";
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
+        private const string PatternSetTfmHeuristicsFeatureName = GalleryPrefix + "PatternSetTfmHeuristics";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
         private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
+        private const string MarkdigMdRenderingFlightName = GalleryPrefix + "MarkdigMdRendering";
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
+        private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
+        private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
+        private const string DisplayPackagePageV2FeatureName = GalleryPrefix + "DisplayPackagePageV2";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -63,6 +71,11 @@ namespace NuGetGallery
         public FeatureFlagService(IFeatureFlagClient client)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+        }
+
+        public bool IsAlternateStatisticsSourceEnabled()
+        {
+            return _client.IsEnabled(AlternateStatisticsSourceFeatureName, defaultValue: false);
         }
 
         public bool IsAsyncAccountDeleteEnabled()
@@ -124,6 +137,21 @@ namespace NuGetGallery
         public bool IsManageDeprecationApiEnabled(User user)
         {
             return _client.IsEnabled(ManageDeprecationApiFeatureName, user, defaultValue: false);
+        }
+
+        public bool IsDisplayVulnerabilitiesEnabled()
+        {
+            return _client.IsEnabled(DisplayVulnerabilitiesFeatureName, defaultValue: false);
+        }
+
+        public bool IsManagePackagesVulnerabilitiesEnabled()
+        {
+            return _client.IsEnabled(ManagePackagesVulnerabilitiesFeatureName, defaultValue: false);
+        }
+
+        public bool IsDisplayFuGetLinksEnabled()
+        {
+            return _client.IsEnabled(DisplayFuGetLinksFeatureName, defaultValue: false);
         }
 
         public bool AreEmbeddedIconsEnabled(User user)
@@ -196,14 +224,14 @@ namespace NuGetGallery
             return _client.IsEnabled(Get2FADismissFeedback, defaultValue: false);
         }
 
-        public bool IsUsabillaButtonEnabledOnEveryPage()
-        {
-            return _client.IsEnabled(UsabillaOnEveryPageFeatureName, defaultValue: false);
-        }
-
         public bool IsPackageRenamesEnabled(User user)
         {
             return _client.IsEnabled(PackageRenamesFeatureName, user, defaultValue: false);
+        }
+
+        public bool ArePatternSetTfmHeuristicsEnabled()
+        {
+            return _client.IsEnabled(PatternSetTfmHeuristicsFeatureName, defaultValue: false);
         }
 
         public bool AreEmbeddedReadmesEnabled(User user)
@@ -211,6 +239,11 @@ namespace NuGetGallery
             return _client.IsEnabled(EmbeddedReadmeFlightName, user, defaultValue: false);
         }
 
+        public bool IsDisplayPackagePageV2Enabled(User user) 
+        {
+            return _client.IsEnabled(DisplayPackagePageV2FeatureName, user, defaultValue: false);
+        }
+        
         public bool IsODataV1GetAllEnabled()
         {
             return _client.IsEnabled(ODataV1GetAllNonHijackedFeatureName, defaultValue: true);
@@ -286,9 +319,24 @@ namespace NuGetGallery
             return _client.IsEnabled(ODataV2SearchCountNonHijackedFeatureName, defaultValue: true);
         }
 
+        public bool IsMarkdigMdRenderingEnabled()
+        {
+            return _client.IsEnabled(MarkdigMdRenderingFlightName, defaultValue: false);
+        }
+        
         public bool IsDeletePackageApiEnabled(User user)
         {
             return _client.IsEnabled(DeletePackageApiFlightName, user, defaultValue: false);
+        }
+
+        public bool IsImageAllowlistEnabled()
+        {
+            return _client.IsEnabled(ImageAllowlistFlightName, defaultValue: false);
+        }
+
+        public bool IsDisplayBannerEnabled()
+        {
+            return _client.IsEnabled(DisplayBannerFlightName, defaultValue: false);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace NuGetGallery
 
         void TrackGetPackageRegistrationDownloadCountFailed(string packageId);
 
-        void TrackDownloadJsonRefreshDuration(long milliseconds);
+        void TrackDownloadJsonRefreshDuration(TimeSpan duration);
 
         void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount);
 
@@ -60,6 +60,8 @@ namespace NuGetGallery
         void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity);
 
         void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity);
+
+        void TrackPackagePushOwnerlessNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity);
 
         void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode);
 
@@ -402,5 +404,17 @@ namespace NuGetGallery
             bool isAuthenticated,
             int testBucket,
             int testPercentage);
+
+        /// <summary>
+        /// Track how long it takes to populate the vulnerabilities cache
+        /// </summary>
+        /// <param name="duration">Refresh duration for vulnerabilities cache</param>
+        void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration);
+
+        /// <summary>
+        /// Tracks the current process uptime.
+        /// </summary>
+        /// <param name="uptime">The uptime to report.</param>
+        void TrackInstanceUptime(TimeSpan uptime);
     }
 }

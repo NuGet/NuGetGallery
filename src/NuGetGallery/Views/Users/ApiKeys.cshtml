@@ -322,6 +322,7 @@
                 <label class="required" data-bind="attr: { for: PackageOwnerId,
                                             id: PackageOwnerId() + '-label' }">Package Owner</label>
                 <select class="form-control"
+                        aria-required="true"
                         data-bind="attr: { id: PackageOwnerId,
                                                     name: PackageOwnerId,
                                                     'aria-labelledby': PackageOwnerId() + '-label' },
@@ -353,11 +354,11 @@
                                 <div class="radio">
                                     <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePush"
-                                               aria-labelledby="select-scopes-push-package select-scopes"
                                                data-bind="checked: PushScope, enable: PushNewEnabled,
                                                           attr: { id: PackagePushId }" />
                                     </div>
-                                    <label id="select-scopes-push-package" data-bind="attr: { for: PackagePushId }">
+                                    <label id="select-scopes-push-package" data-bind="attr: { for: PackagePushId }"
+                                           aria-labelledby="select-scopes-push-package select-scopes">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePush)
                                     </label>
                                 </div>
@@ -366,11 +367,11 @@
                                 <div class="radio">
                                     <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
-                                               aria-labelledby="select-scopes-push-package-version select-scopes"
                                                data-bind="checked: PushScope, enable: PushExistingEnabled,
                                                           attr: { id: PackagePushVersionId }" />
                                     </div>
-                                    <label id="select-scopes-push-package-version" data-bind="attr: { for: PackagePushVersionId }">
+                                    <label id="select-scopes-push-package-version" data-bind="attr: { for: PackagePushVersionId }" 
+                                           aria-labelledby="select-scopes-push-package-version select-scopes">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
                                     </label>
                                 </div>
@@ -498,7 +499,7 @@
                                            id: CancelEditId },
                                    enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
                                    click: CancelEdit"
-                        class="btn btn-default btn-block" data-toggle="collapse">
+                        class="btn btn-default btn-block">
                     Cancel
                 </button>
             </div>

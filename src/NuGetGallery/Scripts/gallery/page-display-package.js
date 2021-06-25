@@ -4,23 +4,37 @@ $(function () {
     // Configure the rename information container
     window.nuget.configureExpander("rename-content-container", "ChevronDown", null, "ChevronUp");
     configureExpanderWithEnterKeydown($('#show-rename-content-container'));
+    var expanderAttributes = ['data-toggle', 'data-target', 'aria-expanded', 'aria-controls', 'tabindex'];
+
+    // Configure the vulnerability information container
+    var vulnerabilitiesContainer = $('#show-vulnerabilities-content-container');
+    if ($('#vulnerabilities-content-container').children().length) {
+        // If the vulnerability information container has content, configure it as an expander.
+        window.nuget.configureExpander("vulnerabilities-content-container", "ChevronDown", null, "ChevronUp");
+        configureExpanderWithEnterKeydown(vulnerabilitiesContainer);
+    } else {
+        // If the container does not have content, remove its expander attributes
+        expanderAttributes.forEach(attribute => vulnerabilitiesContainer.removeAttr(attribute));
+
+        // The expander should not be clickable when it doesn't have content
+        vulnerabilitiesContainer.find('.vulnerabilities-expander').removeAttr('role');
+
+        $('#vulnerabilities-expander-icon-right').hide();
+    }
 
     // Configure the deprecation information container
-    var container = $('#show-deprecation-content-container');
+    var deprecationContainer = $('#show-deprecation-content-container');
     if ($('#deprecation-content-container').children().length) {
         // If the deprecation information container has content, configure it as an expander.
         window.nuget.configureExpander("deprecation-content-container", "ChevronDown", null, "ChevronUp");
-        configureExpanderWithEnterKeydown(container)
+        configureExpanderWithEnterKeydown(deprecationContainer);
     }
     else {
         // If the container does not have content, remove its expander attributes
-        var expanderAttributes = ['data-toggle', 'data-target', 'aria-expanded', 'aria-controls', 'tabindex'];
-        for (var i in expanderAttributes) {
-            container.removeAttr(expanderAttributes[i]);
-        }
+        expanderAttributes.forEach(attribute => deprecationContainer.removeAttr(attribute));
 
         // The expander should not be clickable when it doesn't have content
-        container.find('.deprecation-expander').removeAttr('role');
+        deprecationContainer.find('.deprecation-expander').removeAttr('role');
 
         $('#deprecation-expander-icon-right').hide();
     }
@@ -48,7 +62,7 @@ $(function () {
             "Show more");
 
         var showLess = $("#readme-less");
-        $clamp(showLess[0], { clamp: 10, useNativeClamp: false });
+        $clamp(showLess[0], { clamp: 30, useNativeClamp: false });
 
         $("#show-readme-more").click(function (e) {
             showLess.collapse("toggle");
@@ -82,9 +96,14 @@ $(function () {
             var text = $('#' + id + '-text').text().trim();
             window.nuget.copyTextToClipboard(text, copyButton);
             copyButton.popover('show');
+            //This is workaround for Narrator announce the status changes of copy button to achieve accessibility.
+            copyButton.attr('aria-pressed', 'true');
             setTimeout(function () {
                 copyButton.popover('destroy');
             }, 1000);
+            setTimeout(function () {
+                copyButton.attr('aria-pressed', 'false');
+            }, 1500);  
             window.nuget.sendMetric("CopyInstallCommand", 1, {
                 ButtonId: id,
                 PackageId: packageId,
@@ -151,4 +170,7 @@ $(function () {
             }
         });
     }
+
+    $(".reserved-indicator").each(window.nuget.setPopovers);
+    $(".package-warning-icon").each(window.nuget.setPopovers);
 });

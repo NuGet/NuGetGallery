@@ -320,6 +320,10 @@ img.reserved-indicator-icon {
   margin-right: auto;
 }
 
+.table-container {
+  overflow-x: auto;
+}
+
 .package-list {
   margin-top: 8px;
   margin-bottom: 8px;
@@ -413,17 +417,13 @@ img.reserved-indicator-icon {
   }
 }
 
-.usabilla-button {
-  top: auto !important;
-  margin-top: -65px;
-  bottom: 20%;
-  width: 40px;
-  height: 130px;
-  position: fixed;
-  z-index: 99999;
-  right: 0;
-}
-
 .sortable {
 	cursor: pointer;
+}
+
+// Workaround. See https://github.com/NuGet/NuGetGallery/issues/8264
+@media (max-width: 767.9px) {
+    .hidden-xs {
+        display: none !important;
+    }
 }

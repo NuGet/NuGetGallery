@@ -51,6 +51,8 @@
     <Compile Include="Collector\IAdvisoryQueryBuilder.cs" />
     <Compile Include="Collector\IAdvisoryQueryService.cs" />
     <Compile Include="Configuration\GitHubVulnerabilities2DbConfiguration.cs" />
+    <Compile Include="Fakes\FakeContentService.cs" />
+    <Compile Include="Fakes\FakeFeatureFlagService.cs" />
     <Compile Include="Gallery\ThrowingAuditingService.cs" />
     <Compile Include="Gallery\ThrowingIndexingService.cs" />
     <Compile Include="Gallery\ThrowingSecurityPolicyService.cs" />
@@ -89,7 +91,7 @@
       <Version>4.3.0-dev-3612825</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.79.0</Version>
+      <Version>2.86.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

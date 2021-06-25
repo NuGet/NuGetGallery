@@ -1,12 +1,50 @@
 .readme {
-    .readme-container{
-        display: block;
-        padding: 10.5px;
-        background-color: @pre-bg;
-        border: 1px solid #ccc;
-        word-break: normal;
-        margin-bottom: @default-margin-bottom;
-        overflow: auto;
-        max-height: 450px;
-    }
+  .readme-container {
+    display: block;
+    padding: 10.5px;
+    background-color: @pre-bg;
+    border: 1px solid #ccc;
+    word-break: normal;
+    margin-bottom: @default-margin-bottom;
+    overflow: auto;
+    max-height: 450px;
+  }
+}
+
+#readme-less {
+  img {
+    max-width: 100%;
+  }
+
+  ul.contains-task-list, li.task-list-item {
+    list-style-type: none;
+  }
+}
+
+#readme-more {
+  img {
+    max-width: 100%;
+  }
+
+  ul.contains-task-list, li.task-list-item {
+    list-style-type: none;
+  }
+}
+
+#readme-preview {
+  padding-top: 0.25em;
+
+  ul.contains-task-list, li.task-list-item {
+    list-style-type: none;
+  }
+}
+
+#edit-markdown {
+  padding-top: 3em;
+  padding-bottom: 3em;
+}
+
+#preview-html {
+  padding-top: 3em;
+  padding-bottom: 3em;
 }

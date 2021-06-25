@@ -61,7 +61,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "DownloadJsonRefreshDuration",
-                        (TrackAction)(s => s.TrackDownloadJsonRefreshDuration(0))
+                        (TrackAction)(s => s.TrackDownloadJsonRefreshDuration(TimeSpan.FromMilliseconds(0)))
                     };
 
                     yield return new object[] { "DownloadCountDecreasedDuringRefresh",
@@ -150,6 +150,10 @@ namespace NuGetGallery
 
                     yield return new object[] { "PackagePushNamespaceConflict",
                         (TrackAction)(s => s.TrackPackagePushNamespaceConflictEvent(fakes.Package.Id, package.Version, fakes.User, identity))
+                    };
+
+                    yield return new object[] { "PackagePushOwnerlessNamespaceConflict",
+                        (TrackAction)(s => s.TrackPackagePushOwnerlessNamespaceConflictEvent(fakes.Package.Id, package.Version, fakes.User, identity))
                     };
 
                     yield return new object[] { "NewUserRegistration",
@@ -338,6 +342,14 @@ namespace NuGetGallery
 
                     yield return new object[] { "SymbolPackagePushDisconnect",
                         (TrackAction)(s => s.TrackSymbolPackagePushDisconnectEvent())
+                    };
+
+                    yield return new object[] { "VulnerabilitiesCacheRefreshDurationMs",
+                        (TrackAction)(s => s.TrackVulnerabilitiesCacheRefreshDuration(TimeSpan.FromMilliseconds(0)))
+                    };
+
+                    yield return new object[] { "InstanceUptimeInDays",
+                        (TrackAction)(s => s.TrackInstanceUptime(TimeSpan.FromSeconds(1)))
                     };
                 }
             }

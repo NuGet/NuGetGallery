@@ -28,15 +28,18 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageFileService _packageFileService;
         private readonly IMarkdownService _markdownService;
+        private readonly ICoreReadmeFileService _coreReadmeFileService;
 
         public ReadMeService(
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
-            IMarkdownService markdownService)
+            IMarkdownService markdownService,
+            ICoreReadmeFileService coreReadmeFileService)
         {
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _markdownService = markdownService ?? throw new ArgumentNullException(nameof(markdownService));
+            _coreReadmeFileService = coreReadmeFileService ?? throw new ArgumentNullException(nameof(coreReadmeFileService));
         }
 
         /// <summary>
@@ -89,7 +92,8 @@ namespace NuGetGallery
             var result = new RenderedMarkdownResult
             {
                 Content = readMeMd,
-                ImagesRewritten = false
+                ImagesRewritten = false,
+                ImageSourceDisallowed = false
             };
 
             return string.IsNullOrEmpty(readMeMd) ?
@@ -111,7 +115,8 @@ namespace NuGetGallery
             var result = new RenderedMarkdownResult
             {
                 Content = readmeMd,
-                ImagesRewritten = false
+                ImagesRewritten = false,
+                ImageSourceDisallowed = false
             };
 
             return string.IsNullOrEmpty(readmeMd) ?
@@ -128,7 +133,14 @@ namespace NuGetGallery
         {
             if (package.HasReadMe)
             {
-                return await _packageFileService.DownloadReadMeMdFileAsync(package);
+                if (package.HasEmbeddedReadme)
+                {
+                    return await _coreReadmeFileService.DownloadReadmeFileAsync(package);
+                }
+                else
+                {
+                    return await _packageFileService.DownloadReadMeMdFileAsync(package);
+                }
             }
 
             return null;
@@ -310,7 +322,7 @@ namespace NuGetGallery
             return encoding.GetString(buffer).Trim('\0');
         }
 
-        private static readonly Regex NewLineRegex = new Regex(@"\n|\r\n");
+        private static readonly Regex NewLineRegex = RegexEx.CreateWithTimeout(@"\n|\r\n", RegexOptions.None);
 
         private static string NormalizeNewLines(string content)
         {

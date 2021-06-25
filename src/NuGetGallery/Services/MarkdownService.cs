@@ -3,10 +3,18 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Management;
 using System.Text.RegularExpressions;
+using System.Timers;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
+using Markdig;
+using Markdig.Parsers;
+using Markdig.Renderers;
+using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 
 namespace NuGetGallery
 {
@@ -14,19 +22,64 @@ namespace NuGetGallery
     {
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
-        private static readonly Regex CommonMarkLinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
+        private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
+
+        private readonly IFeatureFlagService _features;
+        private readonly IImageDomainValidator _imageDomainValidator;
+
+        public MarkdownService(IFeatureFlagService features,
+            IImageDomainValidator imageDomainValidator)
+        {
+            _features = features ?? throw new ArgumentNullException(nameof(features));
+            _imageDomainValidator = imageDomainValidator ?? throw new ArgumentNullException(nameof(imageDomainValidator));
+        }
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString)
         {
-            return GetHtmlFromMarkdown(markdownString, 1);
+            if (markdownString == null)
+            {
+                throw new ArgumentNullException(nameof(markdownString));
+            }
+
+            if (_features.IsMarkdigMdRenderingEnabled()) 
+            { 
+                return GetHtmlFromMarkdownMarkdig(markdownString, 1);
+            }
+            else
+            {
+                return GetHtmlFromMarkdownCommonMark(markdownString, 1);
+            }
         }
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString, int incrementHeadersBy)
         {
+            if (markdownString == null)
+            {
+                throw new ArgumentNullException(nameof(markdownString));
+            }
+
+            if (incrementHeadersBy < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(incrementHeadersBy), $"{nameof(incrementHeadersBy)} must be greater than or equal to 0");
+            }
+
+            if (_features.IsMarkdigMdRenderingEnabled())
+            {
+                return GetHtmlFromMarkdownMarkdig(markdownString, incrementHeadersBy);
+            }
+            else
+            {
+                return GetHtmlFromMarkdownCommonMark(markdownString, incrementHeadersBy);
+            }
+        }
+
+        private RenderedMarkdownResult GetHtmlFromMarkdownCommonMark(string markdownString, int incrementHeadersBy)
+        {
             var output = new RenderedMarkdownResult()
             {
                 ImagesRewritten = false,
-                Content = ""
+                Content = "",
+                ImageSourceDisallowed = false
             };
 
             var readmeWithoutBom = markdownString.StartsWith("\ufeff") ? markdownString.Replace("\ufeff", "") : markdownString;
@@ -87,14 +140,30 @@ namespace NuGetGallery
 
                         else if (inline.Tag == InlineTag.Image)
                         {
-                            if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                            if (_features.IsImageAllowlistEnabled())
                             {
-                                inline.TargetUrl = string.Empty;
+                                if (!_imageDomainValidator.TryPrepareImageUrlForRendering(inline.TargetUrl, out string readyUriString))
+                                {
+                                    inline.TargetUrl = string.Empty;
+                                    output.ImageSourceDisallowed = true;
+                                }
+                                else
+                                {
+                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
+                                    inline.TargetUrl = readyUriString;
+                                }
                             }
                             else
                             {
-                                output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
-                                inline.TargetUrl = readyUriString;
+                                if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
+                                {
+                                    inline.TargetUrl = string.Empty;
+                                }
+                                else
+                                {
+                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
+                                    inline.TargetUrl = readyUriString;
+                                }
                             }
                         }
                     }
@@ -105,8 +174,102 @@ namespace NuGetGallery
             using (var htmlWriter = new StringWriter())
             {
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
+                output.Content = LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"noopener noreferrer nofollow\"").Trim();
 
-                output.Content = CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
+                return output;
+            }
+        }
+
+        private RenderedMarkdownResult GetHtmlFromMarkdownMarkdig(string markdownString, int incrementHeadersBy)
+        {
+            var output = new RenderedMarkdownResult()
+            {
+                ImagesRewritten = false,
+                Content = "",
+                ImageSourceDisallowed = false
+            };
+
+            var readmeWithoutBom = markdownString.TrimStart('\ufeff');
+
+            var pipeline = new MarkdownPipelineBuilder()
+                .UseGridTables()
+                .UsePipeTables()
+                .UseListExtras()
+                .UseTaskLists()
+                .UseSoftlineBreakAsHardlineBreak()
+                .UseEmojiAndSmiley()
+                .UseAutoLinks()
+                .UseReferralLinks("noopener noreferrer nofollow")
+                .DisableHtml() //block inline html
+                .Build();
+
+            using (var htmlWriter = new StringWriter())
+            {
+                var renderer = new HtmlRenderer(htmlWriter);
+                pipeline.Setup(renderer);
+
+                var document = Markdown.Parse(readmeWithoutBom, pipeline);
+
+                foreach (var node in document.Descendants())
+                {
+                    if (node is Markdig.Syntax.Block)
+                    {
+                        // Demote heading tags so they don't overpower expander headings.
+                        if (node is HeadingBlock heading)
+                        {
+                            heading.Level = Math.Min(heading.Level + incrementHeadersBy, 6);
+                        }
+                    }
+                    else if (node is Markdig.Syntax.Inlines.Inline)
+                    {
+                        if (node is LinkInline linkInline)
+                        {
+                            if (linkInline.IsImage)
+                            {
+                                if (_features.IsImageAllowlistEnabled())
+                                {
+                                    if (!_imageDomainValidator.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString))
+                                    {
+                                        linkInline.Url = string.Empty;
+                                        output.ImageSourceDisallowed = true;
+                                    }
+                                    else
+                                    {
+                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                        linkInline.Url = readyUriString;
+                                    }
+                                }
+                                else
+                                {
+                                    if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
+                                    {
+                                        linkInline.Url = string.Empty;
+                                    }
+                                    else
+                                    {
+                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                        linkInline.Url = readyUriString;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // Allow only http or https links in markdown. Transform link to https for known domains.
+                                if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
+                                {
+                                    linkInline.Url = string.Empty;
+                                }
+                                else
+                                {
+                                    linkInline.Url = readyUriString;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                renderer.Render(document);
+                output.Content = htmlWriter.ToString().Trim();
                 return output;
             }
         }

@@ -15,7 +15,7 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using Elmah;
-using Microsoft.WindowsAzure.ServiceRuntime;
+using Microsoft.Extensions.DependencyInjection;
 using NuGetGallery;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -170,6 +170,15 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/clamp.js");
             BundleTable.Bundles.Add(displayPackageScriptBundle);
 
+            var displayPackageV2ScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package-v2.min.js")
+                .Include("~/Scripts/gallery/page-display-package-v2.js")
+                .Include("~/Scripts/gallery/clamp.js");
+            BundleTable.Bundles.Add(displayPackageV2ScriptBundle);
+
+            var listPackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-list-packages.min.js")
+                .Include("~/Scripts/gallery/page-list-packages.js");
+            BundleTable.Bundles.Add(listPackagesScriptBundle);
+
             var managePackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-packages.min.js")
                 .Include("~/Scripts/gallery/page-manage-packages.js");
             BundleTable.Bundles.Add(managePackagesScriptBundle);
@@ -265,10 +274,17 @@ namespace NuGetGallery
                 if (cloudDownloadCountService != null)
                 {
                     // Perform initial refresh + schedule new refreshes every 15 minutes
-                    HostingEnvironment.QueueBackgroundWorkItem(cancellationToken => cloudDownloadCountService.Refresh());
-                    jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15), cloudDownloadCountService));
+                    HostingEnvironment.QueueBackgroundWorkItem(_ => cloudDownloadCountService.RefreshAsync());
+                    jobs.Add(new CloudDownloadCountServiceRefreshJob(TimeSpan.FromMinutes(15),
+                        cloudDownloadCountService));
                 }
             }
+
+            // Perform initial refresh for vulnerabilities cache + schedule new refreshes every 30 minutes
+            var packageVulnerabilitiesCacheService = DependencyResolver.Current.GetService<IPackageVulnerabilitiesCacheService>();
+            var serviceScopeFactory = DependencyResolver.Current.GetService<IServiceScopeFactory>();
+            HostingEnvironment.QueueBackgroundWorkItem(_ => packageVulnerabilitiesCacheService.RefreshCache(serviceScopeFactory));
+            jobs.Add(new PackageVulnerabilitiesCacheRefreshJob(TimeSpan.FromMinutes(30), packageVulnerabilitiesCacheService, serviceScopeFactory));
 
             if (jobs.AnySafe())
             {

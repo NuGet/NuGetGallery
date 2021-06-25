@@ -57,9 +57,21 @@ namespace NuGetGallery
                 return PermissionsCheckResult.Allowed;
             }
 
+            var hasAnyOwners = reservedNamespaces.Any(rn => rn.Owners.Any());
+
             // Permissions on only a single namespace are required to perform the action.
-            return reservedNamespaces.Any(rn => PermissionsHelpers.IsRequirementSatisfied(ReservedNamespacePermissionsRequirement, account, rn)) ?
-                PermissionsCheckResult.Allowed : PermissionsCheckResult.ReservedNamespaceFailure;
+            if (reservedNamespaces.Any(rn => PermissionsHelpers.IsRequirementSatisfied(ReservedNamespacePermissionsRequirement, account, rn)))
+            {
+                return PermissionsCheckResult.Allowed;
+            }
+            else if (hasAnyOwners)
+            {
+                return PermissionsCheckResult.ReservedNamespaceFailure;
+            }
+            else
+            {
+                return PermissionsCheckResult.OwnerlessReservedNamespaceFailure;
+            }
         }
 
         public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, ActionOnNewPackageContext newPackageContext)

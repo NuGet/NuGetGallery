@@ -1589,6 +1589,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The readme file &apos;{0}&apos; cannot be empty..
+        /// </summary>
+        public static string ReadmeErrorEmpty {
+            get {
+                return ResourceManager.GetString("ReadmeErrorEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid Markdown Documentation source type..
         /// </summary>
         public static string ReadMeInvalidSourceType {
@@ -2526,11 +2535,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID..
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation learn more about Package ID prefix reservation..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflict {
             get {
                 return ResourceManager.GetString("UploadPackage_IdNamespaceConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID. &lt;a href=&quot;https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation&quot;&gt;Learn more about Package ID prefix reservation&lt;/a&gt;..
+        /// </summary>
+        public static string UploadPackage_IdNamespaceConflictHtml {
+            get {
+                return ResourceManager.GetString("UploadPackage_IdNamespaceConflictHtml", resourceCulture);
             }
         }
         
@@ -2598,7 +2616,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The readme file has an invalid extension &apos;{0}&apos;. Extension must be one of the following: {1}..
+        ///   Looks up a localized string similar to The readme file has an invalid extension &apos;{0}&apos;. The extension must be: &apos;{1}&apos;..
         /// </summary>
         public static string UploadPackage_InvalidReadmeFileExtension {
             get {
@@ -2774,6 +2792,24 @@ namespace NuGetGallery {
         public static string UploadPackage_NotAcceptingPackagesWithLicense {
             get {
                 return ResourceManager.GetString("UploadPackage_NotAcceptingPackagesWithLicense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package ID is reserved. You can upload your package with a different package ID. Reach out to support@nuget.org if you have questions..
+        /// </summary>
+        public static string UploadPackage_OwnerlessIdNamespaceConflict {
+            get {
+                return ResourceManager.GetString("UploadPackage_OwnerlessIdNamespaceConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package ID is reserved. You can upload your package with a different package ID. Reach out to &lt;a href=&quot;mailto:support@nuget.org&quot;&gt;support@nuget.org&lt;/a&gt; if you have questions..
+        /// </summary>
+        public static string UploadPackage_OwnerlessIdNamespaceConflictHtml {
+            get {
+                return ResourceManager.GetString("UploadPackage_OwnerlessIdNamespaceConflictHtml", resourceCulture);
             }
         }
         

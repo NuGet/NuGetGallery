@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
+using Microsoft.Owin.Security.MicrosoftAccount;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -28,6 +29,7 @@ namespace NuGetGallery
             public const string VerifyPackageKey = "VerifyPackageKey";
             public const string PackageReadMeChanged = "PackageReadMeChanged";
             public const string PackagePushNamespaceConflict = "PackagePushNamespaceConflict";
+            public const string PackagePushOwnerlessNamespaceConflict = "PackagePushOwnerlessNamespaceConflict";
             public const string NewUserRegistration = "NewUserRegistration";
             public const string CredentialAdded = "CredentialAdded";
             public const string CredentialUsed = "CredentialUsed";
@@ -89,6 +91,8 @@ namespace NuGetGallery
             public const string ABTestEvaluated = "ABTestEvaluated";
             public const string PackagePushDisconnect = "PackagePushDisconnect";
             public const string SymbolPackagePushDisconnect = "SymbolPackagePushDisconnect";
+            public const string VulnerabilitiesCacheRefreshDurationMs = "VulnerabilitiesCacheRefreshDurationMs";
+            public const string InstanceUptime = "InstanceUptimeInDays";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -258,9 +262,9 @@ namespace NuGetGallery
             });
         }
 
-        public void TrackDownloadJsonRefreshDuration(long milliseconds)
+        public void TrackDownloadJsonRefreshDuration(TimeSpan duration)
         {
-            TrackMetric(Events.DownloadJsonRefreshDuration, milliseconds, properties => { });
+            TrackMetric(Events.DownloadJsonRefreshDuration, duration.TotalMilliseconds, properties => { });
         }
 
         public void TrackDownloadCountDecreasedDuringRefresh(string packageId, string packageVersion, long oldCount, long newCount)
@@ -362,6 +366,11 @@ namespace NuGetGallery
         public void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
         {
             TrackMetricForPackage(Events.PackagePushNamespaceConflict, packageId, packageVersion, user, identity);
+        }
+
+        public void TrackPackagePushOwnerlessNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
+        {
+            TrackMetricForPackage(Events.PackagePushOwnerlessNamespaceConflict, packageId, packageVersion, user, identity);
         }
 
         public void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity)
@@ -1088,12 +1097,22 @@ namespace NuGetGallery
 
         public void TrackPackagePushDisconnectEvent()
         {
-            TrackMetric(Events.PackagePushDisconnect, 1, p => { });
+            TrackMetric(Events.PackagePushDisconnect, 1, _ => { });
         }
 
         public void TrackSymbolPackagePushDisconnectEvent()
         {
-            TrackMetric(Events.SymbolPackagePushDisconnect, 1, p => { });
+            TrackMetric(Events.SymbolPackagePushDisconnect, 1, _ => { });
+        }
+
+        public void TrackInstanceUptime(TimeSpan uptime)
+        {
+            TrackMetric(Events.InstanceUptime, uptime.TotalDays, _ => { });
+        }
+
+        public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
+        {
+            TrackMetric(Events.VulnerabilitiesCacheRefreshDurationMs, duration.TotalMilliseconds, properties => { });
         }
 
         /// <summary>

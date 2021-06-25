@@ -121,6 +121,7 @@ namespace NuGetGallery
         private readonly ILicenseExpressionSplitter _licenseExpressionSplitter;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageDeprecationService _deprecationService;
+        private readonly IPackageVulnerabilitiesService _vulnerabilitiesService;
         private readonly IPackageRenameService _renameService;
         private readonly IABTestService _abTestService;
         private readonly IMarkdownService _markdownService;
@@ -161,6 +162,7 @@ namespace NuGetGallery
             ILicenseExpressionSplitter licenseExpressionSplitter,
             IFeatureFlagService featureFlagService,
             IPackageDeprecationService deprecationService,
+            IPackageVulnerabilitiesService vulnerabilitiesService,
             IPackageRenameService renameService,
             IABTestService abTestService,
             IIconUrlProvider iconUrlProvider,
@@ -197,6 +199,7 @@ namespace NuGetGallery
             _licenseExpressionSplitter = licenseExpressionSplitter ?? throw new ArgumentNullException(nameof(licenseExpressionSplitter));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _deprecationService = deprecationService ?? throw new ArgumentNullException(nameof(deprecationService));
+            _vulnerabilitiesService = vulnerabilitiesService ?? throw new ArgumentNullException(nameof(vulnerabilitiesService));
             _renameService = renameService ?? throw new ArgumentNullException(nameof(renameService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
@@ -504,15 +507,29 @@ namespace NuGetGallery
             var id = nuspec.GetId();
             existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
             // For a new package id verify if the user is allowed to use it.
-            if (existingPackageRegistration == null &&
-                ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
-                    currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
+            if (existingPackageRegistration == null)
             {
-                var version = nuspec.GetVersion().ToNormalizedString();
-                _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
+                var result = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
+                    currentUser,
+                    new ActionOnNewPackageContext(id, _reservedNamespaceService),
+                    out accountsAllowedOnBehalfOf);
 
-                return Json(HttpStatusCode.Conflict, new[] {
-                    new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict)) });
+                if (result == PermissionsCheckResult.ReservedNamespaceFailure)
+                {
+                    var version = nuspec.GetVersion().ToNormalizedString();
+                    _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
+                    return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(new UploadPackageIdNamespaceConflict()) });
+                }
+                else if (result == PermissionsCheckResult.OwnerlessReservedNamespaceFailure)
+                {
+                    var version = nuspec.GetVersion().ToNormalizedString();
+                    _telemetryService.TrackPackagePushOwnerlessNamespaceConflictEvent(id, version, currentUser, User.Identity);
+                    return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(new OwnerlessNamespaceIdConflictMessage()) });
+                }
+                else if (result != PermissionsCheckResult.Allowed)
+                {
+                    throw new InvalidOperationException($"When checking if a new package ID can be created, result '{result}' is not expected.");
+                }
             }
 
             // For existing package id verify if it is owned by the current user
@@ -655,7 +672,7 @@ namespace NuGetGallery
                 string licenseFileContents,
                 IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments,
                 EmbeddedIconInformation embeddedIconInformation,
-                string readmeFileContents)
+                RenderedMarkdownResult readmeFileContents)
             {
                 PackageMetadata = packageMetadata;
                 Warnings = warnings;
@@ -671,7 +688,7 @@ namespace NuGetGallery
             public string LicenseFileContents { get; }
             public IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> LicenseExpressionSegments { get; }
             public EmbeddedIconInformation EmbeddedIconInformation { get; }
-            public string ReadmeFileContents { get; }
+            public RenderedMarkdownResult ReadmeFileContents { get; }
         }
 
         private class EmbeddedIconInformation
@@ -695,7 +712,7 @@ namespace NuGetGallery
             IReadOnlyCollection<CompositeLicenseExpressionSegmentViewModel> licenseExpressionSegments = null;
             PackageMetadata packageMetadata = null;
             EmbeddedIconInformation embeddedIconInformation = null;
-            string readmeFileContents = null;
+            RenderedMarkdownResult readmeFileContents = null;
 
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -812,7 +829,7 @@ namespace NuGetGallery
             return new EmbeddedIconInformation(imageContentType, imageData);
         }
 
-        private async Task<string> GetReadmeFileContentsOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
+        private async Task<RenderedMarkdownResult> GetReadmeFileContentsOrNullAsync(PackageMetadata packageMetadata, PackageArchiveReader packageArchiveReader)
         {
             if (string.IsNullOrWhiteSpace(packageMetadata.ReadmeFile))
             {
@@ -821,7 +838,7 @@ namespace NuGetGallery
 
             var readmeFilename = FileNameHelper.GetZipEntryPath(packageMetadata.ReadmeFile);
             var readmeResult = await _readMeService.GetReadMeHtmlAsync(readmeFilename, packageArchiveReader, Encoding.UTF8);
-            return readmeResult?.Content;
+            return readmeResult;
         }
 
         private static async Task<byte[]> ReadPackageFile(PackageArchiveReader packageArchiveReader, string filename)
@@ -870,10 +887,18 @@ namespace NuGetGallery
             }
 
             var readme = await _readMeService.GetReadMeHtmlAsync(package);
-            var deprecations = _deprecationService.GetDeprecationsById(id);
-            var packageKeyToDeprecation = deprecations
-                .GroupBy(d => d.PackageKey)
-                .ToDictionary(g => g.Key, g => g.First());
+
+            var isPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            var packageKeyToDeprecation = isPackageDeprecationEnabled
+                ? _deprecationService.GetDeprecationsById(id)
+                    .GroupBy(d => d.PackageKey)
+                    .ToDictionary(g => g.Key, g => g.First())
+                : null;
+
+            var isPackageVulnerabilitiesEnabled = _featureFlagService.IsDisplayVulnerabilitiesEnabled();
+            var packageKeyToVulnerabilities = isPackageVulnerabilitiesEnabled
+                ? _vulnerabilitiesService.GetVulnerabilitiesById(id)
+                : null;
 
             IReadOnlyList<PackageRename> packageRenames = null;
             if (_featureFlagService.IsPackageRenamesEnabled(currentUser))
@@ -886,6 +911,7 @@ namespace NuGetGallery
                 allVersions,
                 currentUser,
                 packageKeyToDeprecation,
+                packageKeyToVulnerabilities,
                 packageRenames,
                 readme);
 
@@ -894,7 +920,9 @@ namespace NuGetGallery
             model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.IsAtomFeedEnabled = _featureFlagService.IsPackagesAtomFeedEnabled();
-            model.IsPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
+            model.IsPackageDeprecationEnabled = isPackageDeprecationEnabled;
+            model.IsPackageVulnerabilitiesEnabled = isPackageVulnerabilitiesEnabled;
+            model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
            
@@ -989,9 +1017,16 @@ namespace NuGetGallery
                     model.IsIndexed = isIndexed;
                 }
             }
-
             ViewBag.FacebookAppID = _config.FacebookAppId;
-            return View(model);
+
+            if (_featureFlagService.IsDisplayPackagePageV2Enabled(GetCurrentUser())) 
+            { 
+                return View("DisplayPackageV2", model);
+            }
+            else 
+            { 
+                return View("DisplayPackage", model);
+            }
         }
 
         private PackageDependents GetPackageDependents(string id)
@@ -2412,8 +2447,9 @@ namespace NuGetGallery
             }
             catch (Exception ex)
             {
+                ex.Log();
                 _telemetryService.TrackPackagePushFailureEvent(id: null, version: null);
-                throw ex;
+                throw;
             }
         }
 
@@ -2562,9 +2598,13 @@ namespace NuGetGallery
                             // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
                             var version = packageVersion.ToNormalizedString();
                             _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
-
-                            var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
-                            return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(message) });
+                            return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(Strings.UploadPackage_IdNamespaceConflict) });
+                        }
+                        else if (checkPermissionsOfUploadNewId == PermissionsCheckResult.OwnerlessReservedNamespaceFailure)
+                        {
+                            var version = packageVersion.ToNormalizedString();
+                            _telemetryService.TrackPackagePushOwnerlessNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
+                            return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(new OwnerlessNamespaceIdConflictMessage()) });
                         }
 
                         // An unknown error occurred.

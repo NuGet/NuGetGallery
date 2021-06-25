@@ -3729,7 +3729,7 @@ namespace NuGetGallery
                 packageRegistration.Id = Id;
                 packageRegistration.Owners.Add(_testUser);
 
-                var userPackage1 = new Package()
+                var userPackage1 = new Package
                 {
                     Key = Key,
                     Version = Version,
@@ -3747,8 +3747,8 @@ namespace NuGetGallery
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.AlphaPackage", 1, "1.0.0", "first");
                 PackageRegistration packageRegistration3 = CreatePackageRegistration("Company.NormalPackage", 1, "1.0.0", "middle");
 
-                var userPackages = new List<Package>() { 
-                    packageRegistration1.Packages.First() ,
+                var userPackages = new List<Package> { 
+                    packageRegistration1.Packages.First(),
                     packageRegistration2.Packages.First(),
                     packageRegistration3.Packages.First()
                 };
@@ -3775,8 +3775,8 @@ namespace NuGetGallery
                 PackageRegistration packageRegistration2 = CreatePackageRegistration("Company.NormalPackage", 1, "0.0.1", "first");
                 PackageRegistration packageRegistration3 = CreatePackageRegistration("Company.AlphaPackage", 1, "1.1.0", "last");
 
-                var userPackages = new List<Package>() {
-                    packageRegistration1.Packages.First() ,
+                var userPackages = new List<Package> {
+                    packageRegistration1.Packages.First(),
                     packageRegistration2.Packages.First(),
                     packageRegistration3.Packages.First()
                 };
@@ -3821,6 +3821,37 @@ namespace NuGetGallery
                 GetMock<IIconUrlProvider>()
                     .Verify(iup => iup.GetIconUrlString(userPackage), Times.AtLeastOnce);
                 Assert.Equal(iconUrl, model.ListedPackages.Single().IconUrl);
+            }
+
+            [Fact]
+            public void AssessesVulnerabilities()
+            {
+                PackageRegistration zebraRegistration = CreatePackageRegistration("Company.ZebraPackage", 1, "1.0.0", "test zebra vulnerable");
+                PackageRegistration alphaRegistration = CreatePackageRegistration("Company.AlphaPackage", 1, "1.1.1", "test alpha clean");
+                var versionRange = new VulnerablePackageVersionRange
+                {
+                    PackageVersionRange = "1.0.0"
+                };
+                var zebraPackage = zebraRegistration.Packages.First();
+                var alphaPackage = alphaRegistration.Packages.First();
+                zebraPackage.VulnerablePackageRanges = new List<VulnerablePackageVersionRange> { versionRange };
+                versionRange.Vulnerability = new PackageVulnerability();
+                var latestPackages = new List<Package> { zebraPackage, alphaPackage };
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName, false))
+                    .Returns(_testUser);
+                GetMock<IPackageVulnerabilitiesService>()
+                    .Setup(stub => stub.IsPackageVulnerable(It.IsAny<Package>()))
+                    .Returns<Package>(package => (package?.Id ?? "") == "Company.ZebraPackage"); // this is the vulnerable package - true if this
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(latestPackages);
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.False(model.ListedPackages.ToArray()[0].IsVulnerable);  // alpha
+                Assert.True(model.ListedPackages.ToArray()[1].IsVulnerable);   // zebra
             }
         }
 

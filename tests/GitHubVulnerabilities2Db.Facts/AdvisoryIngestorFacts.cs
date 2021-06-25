@@ -52,6 +52,7 @@ namespace GitHubVulnerabilities2Db.Facts
                         Assert.Equal(advisory.DatabaseId, vulnerability.GitHubDatabaseKey);
                         Assert.Equal(PackageVulnerabilitySeverity.Moderate, vulnerability.Severity);
                         Assert.Equal(advisory.Permalink, vulnerability.AdvisoryUrl);
+                        Assert.Equal(withdrawn, advisory.WithdrawnAt != null);
                     })
                     .Returns(Task.CompletedTask)
                     .Verifiable();
@@ -132,14 +133,14 @@ namespace GitHubVulnerabilities2Db.Facts
         {
             public MethodFacts()
             {
-                PackageVulnerabilityServiceMock = new Mock<IPackageVulnerabilityService>();
+                PackageVulnerabilityServiceMock = new Mock<IPackageVulnerabilitiesManagementService>();
                 GitHubVersionRangeParserMock = new Mock<IGitHubVersionRangeParser>();
                 Ingestor = new AdvisoryIngestor(
                     PackageVulnerabilityServiceMock.Object,
                     GitHubVersionRangeParserMock.Object);
             }
 
-            public Mock<IPackageVulnerabilityService> PackageVulnerabilityServiceMock { get; }
+            public Mock<IPackageVulnerabilitiesManagementService> PackageVulnerabilityServiceMock { get; }
             public Mock<IGitHubVersionRangeParser> GitHubVersionRangeParserMock { get; }
             public AdvisoryIngestor Ingestor { get; }
         }

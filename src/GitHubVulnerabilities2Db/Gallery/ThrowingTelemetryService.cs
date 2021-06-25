@@ -66,7 +66,7 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackDownloadJsonRefreshDuration(long milliseconds)
+        public void TrackDownloadJsonRefreshDuration(TimeSpan duration)
         {
             throw new NotImplementedException();
         }
@@ -82,6 +82,11 @@ namespace GitHubVulnerabilities2Db.Gallery
         }
 
         public void TrackGetPackageRegistrationDownloadCountFailed(string packageId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackInstanceUptime(TimeSpan uptime)
         {
             throw new NotImplementedException();
         }
@@ -256,6 +261,11 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
+        public void TrackPackagePushOwnerlessNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState)
         {
             throw new NotImplementedException();
@@ -362,6 +372,11 @@ namespace GitHubVulnerabilities2Db.Gallery
         }
 
         public void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
         {
             throw new NotImplementedException();
         }
