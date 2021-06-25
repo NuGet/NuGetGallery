@@ -543,6 +543,11 @@
                                 }
                                 else if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
                                 {
+                                    if (Model.CanDisplayPrivateMetadata) 
+                                    { 
+                                        @ViewHelpers.AlertWarning(@<text>The package description is shown below. Please update your package to <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>include a README</a>.</text>);
+                                    }
+
                                     <p>@Html.PreFormattedText(Model.Description, Config)</p>
                                 }
                             </div>
