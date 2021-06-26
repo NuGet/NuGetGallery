@@ -33,7 +33,7 @@ if (-not (Test-Path "$PSScriptRoot/build")) {
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 wget -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranchCommit/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
-. "$PSScriptRoot/build/init.ps1" -BuildBranchCommit "$BuildBranchCommit"
+. "$PSScriptRoot/build/init.ps1" -BuildBranchCommit $BuildBranchCommit
 
 Function Clean-Tests {
     [CmdletBinding()]
