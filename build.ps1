@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch = 'zlocal',
     [string]$CommitSHA,
-    [string]$BuildBranch = 'snapshot'
+    [string]$BuildBranchCommit = 'ade39b693d49b266ec5cac5d939edac7dda2fd92'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -28,8 +28,8 @@ if (-not (Test-Path "$PSScriptRoot/build")) {
 # Enable TLS 1.2 since GitHub requires it.
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-wget -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranch/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
-. "$PSScriptRoot/build/init.ps1" -BuildBranch "$BuildBranch"
+wget -UseBasicParsing -Uri "https://raw.githubusercontent.com/NuGet/ServerCommon/$BuildBranchCommit/build/init.ps1" -OutFile "$PSScriptRoot/build/init.ps1"
+. "$PSScriptRoot/build/init.ps1" -BuildBranchCommit "$BuildBranchCommit"
 
 Function Clean-Tests {
     [CmdletBinding()]
