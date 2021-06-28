@@ -98,13 +98,14 @@ namespace NuGet.Services.SearchService
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            StartupHelper.Configure(app, env);
-
-            app.UseCors(cors => cors
-                .AllowAnyOrigin()
-                .WithHeaders("Content-Type", "If-Match", "If-Modified-Since", "If-None-Match", "If-Unmodified-Since", "Accept-Encoding")
-                .WithMethods("GET", "HEAD", "OPTIONS")
-                .WithExposedHeaders("Content-Type", "Content-Length", "Last-Modified", "Transfer-Encoding", "ETag", "Date", "Vary", "Server", "X-Hit", "X-CorrelationId"));
+            StartupHelper.Configure(
+                app,
+                env,
+                cors => cors
+                    .AllowAnyOrigin()
+                    .WithHeaders("Content-Type", "If-Match", "If-Modified-Since", "If-None-Match", "If-Unmodified-Since", "Accept-Encoding")
+                    .WithMethods("GET", "HEAD", "OPTIONS")
+                    .WithExposedHeaders("Content-Type", "Content-Length", "Last-Modified", "Transfer-Encoding", "ETag", "Date", "Vary", "Server", "X-Hit", "X-CorrelationId"));
         }
     }
 }

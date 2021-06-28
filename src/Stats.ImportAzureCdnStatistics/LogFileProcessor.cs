@@ -183,11 +183,11 @@ namespace Stats.ImportAzureCdnStatistics
                                 lineNumber,
                                 rawLogLine,
                                 (e, line) => _logger.LogError(
-                                    LogEvents.FailedToParseLogFileEntry,
                                     e,
-                                    LogMessages.ParseLogEntryLineFailed,
+                                    "Failed to parse W3C log entry in {LogFileName} at line {LineNumber}: {RawLogLine}",
                                     fileName,
-                                    line));
+                                    line,
+                                    rawLogLine));
 
                             if (logEntry != null)
                             {

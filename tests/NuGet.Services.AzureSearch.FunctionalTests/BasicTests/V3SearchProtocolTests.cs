@@ -130,7 +130,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
 
             // The result count should be different for included prerelease results, 
             // else it means the search term responded with same results i.e. no results have prerelease versions
-            Assert.True(resultsWithPrerelease.TotalHits > resultsWithoutPrerelease.TotalHits, 
+            Assert.True(resultsWithPrerelease.TotalHits > resultsWithoutPrerelease.TotalHits,
                 $"The search term {searchTerm} does not seem to have any prerelease versions in the search index.");
 
             var hasPrereleaseVersions = resultsWithPrerelease
@@ -427,6 +427,27 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             {
                 return Enumerable.Range(1, 10).Select(i => new object[] { i });
             }
+        }
+
+        [Fact]
+        public async Task EnablesCors()
+        {
+            // Arrange
+            Client.DefaultRequestHeaders.Add("Origin", "https://foo.test");
+
+            // Act
+            var response = await Client.GetAsync("/query");
+
+            // Assert
+            Assert.True(response.Headers.Contains("Access-Control-Allow-Origin"));
+            var allowedOrigin = Assert.Single(response.Headers.GetValues("Access-Control-Allow-Origin"));
+            Assert.Equal("*", allowedOrigin);
+
+            Assert.True(response.Headers.Contains("Access-Control-Expose-Headers"));
+            var exposedHeaders = Assert.Single(response.Headers.GetValues("Access-Control-Expose-Headers"));
+            Assert.Equal(
+                "Content-Type,Content-Length,Last-Modified,Transfer-Encoding,ETag,Date,Vary,Server,X-Hit,X-CorrelationId",
+                exposedHeaders);
         }
     }
 }
