@@ -940,14 +940,7 @@
                                         {
                                             <a href="@Model.LicenseUrl"
                                                data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
-                                                @if (Model.LicenseNames.AnySafe())
-                                                {
-                                                    @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
-                                                }
-                                                else
-                                                {
-                                                    @:License Info
-                                                }
+                                                License Info
                                             </a>
                                         }
                                     </li>
