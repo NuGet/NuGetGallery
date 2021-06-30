@@ -1478,8 +1478,11 @@ img.reserved-indicator-icon {
   font-size: 16px;
   font-weight: 600;
 }
+.page-package-details-v2 .owner-list {
+  margin-bottom: 40px;
+}
 .page-package-details-v2 .owner-list li {
-  margin-bottom: 38px;
+  margin-bottom: 14px;
   display: block;
   overflow: hidden;
   white-space: nowrap;
