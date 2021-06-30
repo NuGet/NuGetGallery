@@ -174,7 +174,7 @@
   .package-details-info {
     .ms-Icon-ul {
       li {
-        margin-bottom: 15px;
+        margin-bottom: 18px;
       }
 
       img.icon {
@@ -185,11 +185,64 @@
         margin-top: 3px;
       }
     }
+
+    .sidebar-headers {
+      font-size: 16px;
+      font-weight: 600;
+      color: @gray-light;
+      margin-bottom: 14px;
+    }
+
+    .sidebar-links {
+      font-size: 16px;
+    }
+
+    .links-first-section {
+      padding-bottom: 35px;
+      margin-bottom: 0px;
+    }
+
+    .title-links {
+      font-size: 14px;
+      font-weight: 400;
+      padding-top: 2px;
+
+      a {
+        @media (min-width: @screen-md-min) {
+          float: right !important;
+        }
+      }
+    }
+
+    .sidebar-section {
+      margin-top: 32px;
+    }
+
+    .download-info {
+
+      .download-info-row {
+        margin-bottom: 15px;
+      }
+
+      .download-info-header {
+        font-size: 14px;
+        font-weight: 400;
+        color: @gray-light;
+        margin-right: 12px;
+      }
+
+      .download-info-content {
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
   }
 
   .owner-list {
+    margin-bottom: 40px;
+
     li {
-      margin-bottom: 8px;
+      margin-bottom: 14px;
       display: block;
       overflow: hidden;
       white-space: nowrap;
@@ -198,6 +251,17 @@
 
     img {
       margin-right: 8px;
+      border-radius: 5px;
+    }
+  }
+
+  .support-links {
+
+    .report-link {
+      i {
+        color: #BE0151;
+        font-weight: bold;
+      }
     }
   }
 
