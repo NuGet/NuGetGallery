@@ -806,7 +806,7 @@ namespace NuGetGallery.Services
                 if (_user != null)
                 {
                     packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(
-                        _user, true, It.IsAny<bool>(), It.IsAny<bool>())).Returns(_userPackages);
+                        _user, true, It.IsAny<bool>())).Returns(_userPackages);
                     var packageRegistraionList = new List<PackageRegistration>();
                     if(_userPackagesRegistration != null)
                     {

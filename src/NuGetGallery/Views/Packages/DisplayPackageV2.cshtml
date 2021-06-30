@@ -243,29 +243,34 @@
 
 <section role="main" class="container main-container page-package-details-v2">
     <div class="row">
-        <aside aria-label="Package icon" class="col-sm-1">
-            <h3>
-                <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
-            </h3>
-        </aside>
-        <article class="col-sm-11 package-details-main">
-            <div class="row">
+        <div class="package-details-main">
+            <div class="package-header">
                 <div class="package-title">
                     <h1>
-                        @Html.BreakWord(Model.Id)
-                        <small class="text-nowrap">@Model.Version</small>
-
+                        <span class="pull-left">
+                            <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                                 src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+                        </span>
+                        <span class="title">
+                            @Html.BreakWord(Model.Id)
+                        </span>
+                        <span class="version-title">
+                            @Model.Version
+                        </span>
                         @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                         {
-                            <img class="reserved-indicator"
-                                 src="~/Content/gallery/img/reserved-indicator.svg"
-                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
-                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                            <span class="prefix-reserve-title">
+                                <img class="reserved-indicator"
+                                     src="~/Content/gallery/img/reserved-indicator.svg"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
+                                     title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                <a href="https://docs.microsoft.com/en-us/nuget/nuget-org/id-prefix-reservation" class="prefix-reserve-label">
+                                    Prefix Reserved
+                                </a>
+                            </span>
                         }
                     </h1>
-
                 </div>
 
                 @if (Model.Validating)
@@ -311,11 +316,11 @@
                             {
                                 var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
                                 <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
-                            }
-                            else
-                            {
+                             }
+                             else
+                             {
                                 <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
-                            }
+                             }
                         </text>
                     )
                 }
@@ -428,19 +433,19 @@
                                 <strong>Symbols package publishing failed.</strong> The associated symbols package could not be published due to the following reason(s):
                                 <ul class="failed-validation-alert-list">
                                     @foreach (var issue in Model.SymbolsPackageValidationIssues)
-                                     {
+                                    {
                                         <li>@Html.Partial("_ValidationIssue", issue)</li>
-                                     }
+                                    }
                                 </ul>
                                 @if (!Model.SymbolsPackageValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
-                                 {
-                                     var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
+                                {
+                                    var issuePluralString = Model.SymbolsPackageValidationIssues.Count() > 1 ? "all the issues" : "the issue";
                                     <text>Once you've fixed @issuePluralString with your symbols package, you can re-upload it.</text>
-                                 }
-                                 else
-                                 {
+                                }
+                                else
+                                {
                                     <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your symbols package.</text>
-                                 }
+                                }
 
                                 @AppendAvailableSymbolsMessage(hasSymbolsPackageAvailable)
                             </text>
@@ -498,21 +503,21 @@
                         </div>
                     </div>
                 }
-                <div class="body-tabs">
-                    <ul class="nav nav-tabs" role="tablist">
-                        @if (!Model.Deleted)
-                        {
-                            <li role="presentation" class="active"><a href="#readme-tab" aria-controls="ReadMe" role="tab" data-toggle="tab" id="readme-body-tab" class="body-tab">README</a></li>
-                            <li role="presentation"><a href="#dependencies-tab" aria-controls="Dependencies" role="tab" data-toggle="tab" id="dependencies-body-tab" class="body-tab">Dependencies</a></li>
-                        }
-                        <li role="presentation"><a href="#usedby-tab" aria-controls="UsedBy" role="tab" data-toggle="tab" id="usedby-body-tab" class="body-tab">Used By</a></li>
-                        <li role="presentation"><a href="#versions-tab" aria-controls="Versions" role="tab" data-toggle="tab" id="versions-body-tab" class="body-tab">Versions</a></li>
-                        @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes)) 
-                        { 
-                            <li role="presentation"><a href="#releasenotes-tab" aria-controls="ReleaseNotes" role="tab" data-toggle="tab" id="release-body-tab" class="body-tab">Release Notes</a></li>
-                        }
-                    </ul>
-                </div>
+            </div>
+            <div class="body-tabs">
+                <ul class="nav nav-tabs" role="tablist">
+                    @if (!Model.Deleted)
+                    {
+                        <li role="presentation" class="active"><a href="#readme-tab" aria-controls="ReadMe" role="tab" data-toggle="tab" id="readme-body-tab" class="body-tab">README</a></li>
+                        <li role="presentation"><a href="#dependencies-tab" aria-controls="Dependencies" role="tab" data-toggle="tab" id="dependencies-body-tab" class="body-tab">Dependencies</a></li>
+                    }
+                    <li role="presentation"><a href="#usedby-tab" aria-controls="UsedBy" role="tab" data-toggle="tab" id="usedby-body-tab" class="body-tab">Used By</a></li>
+                    <li role="presentation"><a href="#versions-tab" aria-controls="Versions" role="tab" data-toggle="tab" id="versions-body-tab" class="body-tab">Versions</a></li>
+                    @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
+                    {
+                        <li role="presentation"><a href="#releasenotes-tab" aria-controls="ReleaseNotes" role="tab" data-toggle="tab" id="release-body-tab" class="body-tab">Release Notes</a></li>
+                    }
+                </ul>
             </div>
             <div class="row">
                 <div class="col-sm-9">
@@ -538,6 +543,11 @@
                                 }
                                 else if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
                                 {
+                                    if (Model.CanDisplayPrivateMetadata) 
+                                    { 
+                                        @ViewHelpers.AlertWarning(@<text>The package description is shown below. Please update your package to <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>include a README</a>.</text>);
+                                    }
+
                                     <p>@Html.PreFormattedText(Model.Description, Config)</p>
                                 }
                             </div>
@@ -841,7 +851,7 @@
                         }
                     </div>
                 </div>
-                
+
                 <aside aria-label="Package details info" class="col-sm-3 package-details-info">
                     <h2>Info</h2>
                     <ul class="list-unstyled ms-Icon-ul">
@@ -1174,7 +1184,7 @@
                     }
                 </aside>
             </div>
-        </article>
+        </div>
     </div>
 </section>
 

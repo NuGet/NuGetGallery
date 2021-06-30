@@ -406,12 +406,9 @@ namespace NuGetGallery
             return package;
         }
 
-        public IEnumerable<Package> FindPackagesByOwner(User user, 
-            bool includeUnlisted, 
-            bool includeVersions = false,
-            bool includeVulnerabilities = false)
+        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
         {
-            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions, includeVulnerabilities);
+            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions);
         }
 
         /// <summary>
@@ -420,17 +417,15 @@ namespace NuGetGallery
         public IEnumerable<Package> FindPackagesByAnyMatchingOwner(
             User user,
             bool includeUnlisted,
-            bool includeVersions = false,
-            bool includeVulnerabilities = false)
+            bool includeVersions = false)
         {
             var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
             ownerKeys.Insert(0, user.Key);
 
-            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions, includeVulnerabilities);
+            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions);
         }
 
-        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted,
-            bool includeVersions, bool includeVulnerabilities)
+        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
         {
             IQueryable<Package> packages = _packageRepository.GetAll()
                 .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
@@ -458,17 +453,11 @@ namespace NuGetGallery
                         .FirstOrDefault());
             }
 
-            var result = packages
+            return packages
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.PackageRegistration.RequiredSigners);
-
-            if (includeVulnerabilities && _featureFlagService.IsManagePackagesVulnerabilitiesEnabled())
-            {
-                result = result.Include($"{nameof(Package.VulnerablePackageRanges)}.{nameof(VulnerablePackageVersionRange.Vulnerability)}");
-            }
-
-            return result.ToList();
+                .Include(p => p.PackageRegistration.RequiredSigners)
+                .ToList();
         }
 
         public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
