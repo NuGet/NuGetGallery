@@ -88,7 +88,6 @@ namespace NuGetGallery
             var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readmeWithoutBom), "> ");
 
             var settings = CommonMarkSettings.Default.Clone();
-            settings.RenderSoftLineBreaksAsLineBreaks = true;
 
             // Parse executes CommonMarkConverter's ProcessStage1 and ProcessStage2.
             var document = CommonMarkConverter.Parse(encodedMarkdown, settings);
@@ -196,7 +195,6 @@ namespace NuGetGallery
                 .UsePipeTables()
                 .UseListExtras()
                 .UseTaskLists()
-                .UseSoftlineBreakAsHardlineBreak()
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
                 .UseReferralLinks("noopener noreferrer nofollow")
