@@ -42,9 +42,16 @@ namespace NuGetGallery.Filters
                     else if (expirationPeriod.TotalDays <= controller.NuGetContext.Config.Current.WarnAboutExpirationInDaysForApiKeyV1)
                     {
                         // about to expire warning
+                        var expirationDays = Math.Round(expirationPeriod.TotalDays, 0);
+                        var expiration = expirationDays + " " + (expirationDays == 1 ? "day" : "days");
+
                         filterContext.HttpContext.Response.Headers.Add(
                             GalleryConstants.WarningHeaderName,
-                            string.Format(CultureInfo.InvariantCulture, Strings.WarningApiKeyAboutToExpire, Math.Round(expirationPeriod.TotalDays, 0), accountUrl));
+                            string.Format(
+                                CultureInfo.InvariantCulture,
+                                Strings.WarningApiKeyAboutToExpire,
+                                expiration,
+                                accountUrl));
                     }
                 }
             }
