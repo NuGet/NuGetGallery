@@ -40,8 +40,8 @@ body:
       description: What steps can the NuGet team take to reproduce this issue?
       placeholder: |
         Steps to reproduce the behavior:
-        1. Using this git commit of NuGetGallery '...'
-        2. Run this code '....'
+        1. On this URL '...'
+        2. Perform this operation '...'
         3. See error
     validations:
       required: true
