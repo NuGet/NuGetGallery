@@ -73,6 +73,8 @@ namespace NuGetGallery
             [Theory]
             [InlineData("# Heading", "<h2>Heading</h2>", false, true)]
             [InlineData("# Heading", "<h2>Heading</h2>", false, false)]
+            [InlineData("<!-- foo --> <!-- foo \n bar --> baz", "<p>baz</p>", false, true)]
+            [InlineData("<!-- foo --> <!-- foo \n bar --> baz", "<p>baz</p>", false, false)]
             [InlineData("\ufeff# Heading with BOM", "<h2>Heading with BOM</h2>", false, true)]
             [InlineData("\ufeff# Heading with BOM", "<h2>Heading with BOM</h2>", false, false)]
             [InlineData("- List", "<ul>\n<li>List</li>\n</ul>", false, true)]
