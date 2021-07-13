@@ -1,0 +1,35 @@
+name: Feature Request
+description: "When you want a new feature for something that doesn't already exist"
+title: "[Feature]: "
+labels: ["feature-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+       Thank you for taking the time to file this issue. In order to best understand what you're asking and what your needs are, we just need a few details from you.
+
+       Please note that designs are usually affected by our own product development processes, and we can't guarantee any particular timeline for when this change might be made.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Related Problem
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: |
+        A clear and concise description of what the problem is.
+        Example: I am trying to do [...] but [...]
+    validations:
+      required: false
+  - type: textarea
+    id: desired
+    attributes:
+      label: The Elevator Pitch
+      description: Pitch us the feature! What can NuGet do better for you?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context and Details
+      description: Any other context or details you want to share about this. Why is it important to you? What do other registries do? etc.
+    validations:
+      required: false
