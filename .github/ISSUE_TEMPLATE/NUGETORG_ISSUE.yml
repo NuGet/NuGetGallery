@@ -20,7 +20,7 @@ body:
       multiple: false
       description: How does this issue impact you?
       options:
-        - I'm unable to use this version
+        - I'm unable to use NuGet.org
         - It's more difficult to complete my work
         - It bothers me. A fix would be nice
         - Other
