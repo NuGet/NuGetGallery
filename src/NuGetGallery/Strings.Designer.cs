@@ -3184,7 +3184,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your API key expires in {0} days. Visit {1} to regenerate your API key..
+        ///   Looks up a localized string similar to Your API key expires in {0}. Visit {1} to regenerate your API key..
         /// </summary>
         public static string WarningApiKeyAboutToExpire {
             get {
