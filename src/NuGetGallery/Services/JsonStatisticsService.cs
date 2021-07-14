@@ -20,7 +20,7 @@ namespace NuGetGallery
         /// <summary>
         /// How often statistics reports should be refreshed using the <see cref="_reportService"/>.
         /// </summary>
-        private readonly TimeSpan _refreshInterval = TimeSpan.FromHours(1);
+        private readonly TimeSpan _refreshInterval = TimeSpan.FromMinutes(15);
 
         /// <summary>
         /// The last time the reports were loaded, or null.
