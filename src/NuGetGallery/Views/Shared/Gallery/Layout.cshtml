@@ -8,6 +8,12 @@
     {
         <meta name="robots" content="noindex">
     }
+
+    @if (!string.IsNullOrEmpty(Config.Current.SiteRoot))
+    {
+        <link rel="canonical" href="@Url.GetCanonicalLinkUrl()">
+    }
+
     @RenderSection("SocialMeta", required: false)
     @RenderSection("Meta", required: false)
 
