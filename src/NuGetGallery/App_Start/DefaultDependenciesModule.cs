@@ -713,11 +713,9 @@ namespace NuGetGallery
         {
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
             builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
 
             builder.Register(c => new SimpleBlobStorageConfiguration(configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                .SingleInstance()
                 .Keyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
 
             builder.Register(c =>
@@ -725,7 +723,6 @@ namespace NuGetGallery
                     var blobConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.PrimaryStatisticsKey);
                     return new CloudBlobClientWrapper(blobConfiguration.ConnectionString, blobConfiguration.ReadAccessGeoRedundant);
                 })
-                .SingleInstance()
                 .Keyed<ICloudBlobClient>(BindingKeys.PrimaryStatisticsKey);
 
             builder.Register(c =>
@@ -733,7 +730,6 @@ namespace NuGetGallery
                     var blobConfiguration = c.ResolveKeyed<IBlobStorageConfiguration>(BindingKeys.AlternateStatisticsKey);
                     return new CloudBlobClientWrapper(blobConfiguration.ConnectionString, blobConfiguration.ReadAccessGeoRedundant);
                 })
-                .SingleInstance()
                 .Keyed<ICloudBlobClient>(BindingKeys.AlternateStatisticsKey);
 
             var hasSecondaryStatisticsSource = !string.IsNullOrWhiteSpace(configuration.Current.AzureStorage_Statistics_ConnectionString_Alternate);
@@ -1407,14 +1403,12 @@ namespace NuGetGallery
             /// connection string. Each group is given a binding key which refers to the appropriate instance of the
             /// <see cref="IFileStorageService"/>.
             var completedBindingKeys = new HashSet<string>();
-            foreach (var dependent in StorageDependent.GetAll(configuration.Current))
+            var dependents = StorageDependent.GetAll(configuration.Current).ToList();
+            foreach (var dependent in dependents)
             {
                 if (completedBindingKeys.Add(dependent.BindingKey))
                 {
-                    builder.RegisterInstance(new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
-                       .AsSelf()
-                       .As<ICloudBlobClient>()
-                       .SingleInstance()
+                    builder.Register(_ => new CloudBlobClientWrapper(dependent.AzureStorageConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                        .Keyed<ICloudBlobClient>(dependent.BindingKey);
 
                     // Do not register the service as ICloudStorageStatusDependency because
@@ -1423,17 +1417,16 @@ namespace NuGetGallery
                         .WithParameter(new ResolvedParameter(
                            (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
-                        .AsSelf()
-                        .As<IFileStorageService>()
-                        .As<ICoreFileStorageService>()
-                        .SingleInstance()
                         .Keyed<IFileStorageService>(dependent.BindingKey);
                 }
 
                 var registration = builder.RegisterType(dependent.ImplementationType)
                     .WithParameter(new ResolvedParameter(
-                       (pi, ctx) => pi.ParameterType.IsAssignableFrom(typeof(IFileStorageService)),
-                       (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
+                        (pi, ctx) => pi.ParameterType.IsAssignableFrom(typeof(IFileStorageService)),
+                        (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
+                    .WithParameter(new ResolvedParameter(
+                        (pi, ctx) => pi.ParameterType == typeof(Func<IFileStorageService>),
+                        (pi, ctx) => ctx.ResolveKeyed<Func<IFileStorageService>>(dependent.BindingKey)))
                     .AsSelf()
                     .As(dependent.InterfaceType);
 
@@ -1502,7 +1495,6 @@ namespace NuGetGallery
                         var configuration = c.Resolve<IAppConfiguration>();
                         return new CloudBlobClientWrapper(configuration.AzureStorage_Auditing_ConnectionString, configuration.AzureStorageReadAccessGeoRedundant);
                     })
-                    .SingleInstance()
                     .Keyed<ICloudBlobClient>(BindingKeys.AuditKey);
 
                 builder.Register(c =>
