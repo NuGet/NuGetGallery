@@ -10,11 +10,11 @@ namespace NuGetGallery
 {
     public static class Routes
     {
-        public static void RegisterRoutes(RouteCollection routes, bool feedOnlyMode = false)
+        public static void RegisterRoutes(RouteCollection routes, bool feedOnlyMode = false, bool adminPanelEnabled = false)
         {
             if (!feedOnlyMode)
             {
-                RegisterUIRoutes(routes);
+                RegisterUIRoutes(routes, adminPanelEnabled);
             }
             else
             {
@@ -29,7 +29,7 @@ namespace NuGetGallery
             RegisterApiV2Routes(routes);
         }
 
-        public static void RegisterUIRoutes(RouteCollection routes)
+        public static void RegisterUIRoutes(RouteCollection routes, bool adminPanelEnabled)
         {
             routes.MapRoute(
                 RouteName.Home,
@@ -449,11 +449,14 @@ namespace NuGetGallery
                 "account/changeMultiFactorAuthentication",
                 new { controller = "Users", action = "ChangeMultiFactorAuthentication" });
 
-            routes.MapRoute(
-                RouteName.AdminDeleteAccount,
-                "account/delete/{accountName}",
-                new { controller = "Users", action = "Delete" },
-                new RouteExtensions.ObfuscatedPathMetadata(2, Obfuscator.DefaultTelemetryUserName));
+            if (adminPanelEnabled)
+            {
+                routes.MapRoute(
+                    RouteName.AdminDeleteAccount,
+                    "account/delete/{accountName}",
+                    new { controller = "Users", action = "Delete" },
+                    new RouteExtensions.ObfuscatedPathMetadata(2, Obfuscator.DefaultTelemetryUserName));
+            }
 
             routes.MapRoute(
                 RouteName.UserDeleteAccount,
