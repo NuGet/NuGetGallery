@@ -187,15 +187,15 @@
             {
                 case AlertLevel.Info:
                     @ViewHelpers.AlertInfo(
-                            @<text>
-                                @Html.Raw(packageManager.AlertMessage)
-                            </text>);
+                        @<text>
+                            @Html.Raw(packageManager.AlertMessage)
+                        </text>);
                     break;
                 case AlertLevel.Warning:
                     @ViewHelpers.AlertWarning(
-                            @<text>
-                                @Html.Raw(packageManager.AlertMessage)
-                            </text>);
+                        @<text>
+                            @Html.Raw(packageManager.AlertMessage)
+                        </text>);
                     break;
                 default:
                     break;
@@ -460,20 +460,26 @@
                 @if (Model.Available)
                 {
                     <div class="installation-instructions">
-                        <div class="top-content-instructions">
+                        <div>
                             <select name="installation-instructions" class="installation-instructions-dropdown">
                                 @foreach (var packageManager in packageManagers)
                                 {
-                                    <option value=@packageManager.Id>@packageManager.Name</option>
+                                    <option value="@packageManager.Id">@packageManager.Name</option>
                                 }
                             </select>
-                            <button class="btn btn-default installation-instructions-buttons" type="button"
+
+                            <!--In order to statisfy the requirement to announce button status both on NVDA/Narrator, other screen reader like NVDA will
+                                announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover
+                                because of known issue (https://github.com/twbs/bootstrap/issues/18618).
+                                We add aria-pressed to indicate the whether button is pressed or not, which is workaround only for Narrator announce the status change of button
+                            -->
+                            <button class="btn btn-blue" type="button"
                                     data-toggle="popover" data-placement="bottom" data-content="Copied."
                                     aria-label="CopyLabel" aria-pressed="false" aria-live="polite" role="button">
                                 <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                             </button>
                         </div>
-                       
+
                         @{ var firstPackageManager = true; }
                         @foreach (var packageManager in packageManagers)
                         {

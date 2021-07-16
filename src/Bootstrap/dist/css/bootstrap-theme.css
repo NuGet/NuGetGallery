@@ -1445,20 +1445,19 @@ img.reserved-indicator-icon {
   font-size: 14px;
 }
 .page-package-details-v2 .installation-instructions .instructions-displayed pre {
+  background-color: #FAF9F8;
   border: 0px;
 }
-.page-package-details-v2 .installation-instructions-buttons {
-  background-color: #0078D4;
+.page-package-details-v2 button {
   width: 32px;
   height: 32px;
   float: right;
   padding: 0px;
 }
-.page-package-details-v2 .installation-instructions-buttons .ms-Icon--Copy {
+.page-package-details-v2 button .ms-Icon--Copy {
   color: #FFFFFF;
   width: 16px;
   height: 16px;
-  display: contents;
 }
 .page-package-details-v2 .package-details-main {
   overflow-wrap: break-word;

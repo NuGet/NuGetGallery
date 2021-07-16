@@ -28,8 +28,7 @@
         // If the deprecation information container has content, configure it as an expander.
         window.nuget.configureExpander("deprecation-content-container", "ChevronDown", null, "ChevronUp");
         configureExpanderWithEnterKeydown(deprecationContainer);
-    }
-    else {
+    } else {
         // If the container does not have content, remove its expander attributes
         expanderAttributes.forEach(attribute => deprecationContainer.removeAttr(attribute));
 
@@ -48,57 +47,69 @@
         });
     }
 
-    var storage = window['localStorage'];
-    var installationKey = 'preferred_instruction';
-
+    // Set up our state for the currently selected package manager.
     var currentPackageManagerId = packageManagers[0];
     var packageManagerSelector = $('.installation-instructions-dropdown');
 
+    // Restore previously selected package manager and body tab.
+    var storage = window['localStorage'];
+    var packageManagerStorageKey = 'preferred_package_manager';
+    var bodyStorageKey = 'preferred_body_tab';
+
     if (storage) {
-        var preferredPackageManagerId = storage.getItem(installationKey);
+        // Restore preferred package manager selection from localStorage.
+        var preferredPackageManagerId = storage.getItem(packageManagerStorageKey);
         if (preferredPackageManagerId) {
-            updatePackageManager(preferredPackageManagerId);
-            packageManagerSelector[0].value = preferredPackageManagerId;
+            updatePackageManager(preferredPackageManagerId, true);
         }
 
-        // set preferred body tab 
-        var bodyKey = 'preferred_body_tab';
-
         // Restore preferred body tab selection from localStorage.
-        var preferredBodyTab = storage.getItem(bodyKey);
+        var preferredBodyTab = storage.getItem(bodyStorageKey);
         if (preferredBodyTab) {
             $('#' + preferredBodyTab).tab('show');
         }
 
         // Make sure we save the user's preferred body tab to localStorage.
         $('.body-tab').on('shown.bs.tab', function (e) {
-            storage.setItem(bodyKey, e.target.id);
+            storage.setItem(bodyStorageKey, e.target.id);
         });
     }
 
-    // Finds the selected package manager installation instructions
     packageManagerSelector.on('change', function (e) {
         var newIndex = e.target.selectedIndex;
         var newPackageManagerId = e.target[newIndex].value;
 
-        updatePackageManager(newPackageManagerId);
+        updatePackageManager(newPackageManagerId, false);
 
-        storage.setItem(installationKey, currentPackageManagerId);
+        // Make sure we save the user's preferred package manager to localStorage.
+        if (storage) {
+            storage.setItem(packageManagerStorageKey, currentPackageManagerId);
+        }
     });
 
     // Used to switch installation instructions when a new package manager is selected 
-    function updatePackageManager(newPackageManagerId) {
-        var currentInstructionsId = '#' + currentPackageManagerId + '-instructions';
-        var newInstructionsId = '#' + newPackageManagerId + '-instructions';
+    function updatePackageManager(newPackageManagerId, updateSelector) {
+        var currentInstructions = $('#' + currentPackageManagerId + '-instructions');
+        var newInstructions = $('#' + newPackageManagerId + '-instructions');
 
-        $(currentInstructionsId).addClass('hidden');
-        $(newInstructionsId).removeClass('hidden');
+        // Ignore if the new instructions do not exist. This may happen if we restore
+        // a preferred package manager that has been renamed or removed. 
+        if (newInstructions.length === 0) {
+            return;
+        }
+
+        currentInstructions.addClass('hidden');
+        newInstructions.removeClass('hidden');
 
         currentPackageManagerId = newPackageManagerId;
+
+        if (updateSelector) {
+            packageManagerSelector[0].value = preferredPackageManagerId;
+        }
     }
 
     // Configure package manager copy button
-    var copyButton = $('.installation-instructions-buttons');
+    var copyButton = $('.installation-instructions button');
     copyButton.popover({ trigger: 'manual' });
 
     copyButton.click(function () {
