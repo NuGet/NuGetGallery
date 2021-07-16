@@ -12,6 +12,29 @@ using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
+    public class UnlistController : AdminControllerBase
+    {
+        private readonly IPackageService _packageService;
+
+        public UnlistController(IPackageService packageService)
+        {
+            _packageService = packageService;
+        }
+
+        [HttpGet]
+        public virtual ActionResult Search(string query)
+        {
+            var packages = SearchForPackages(_packageService, query);
+            var results = new List<PackageSearchResult>();
+            foreach (var package in packages)
+            {
+                results.Add(CreatePackageSearchResult(package));
+            }
+
+            return Json(results, JsonRequestBehavior.AllowGet);
+        }
+    }
+
     public class DeleteController : AdminControllerBase
     {
         private readonly IPackageService _packageService;
@@ -49,39 +72,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public virtual ActionResult Search(string query)
         {
             var packages = SearchForPackages(_packageService, query);
-            var results = new List<DeleteSearchResult>();
+            var results = new List<PackageSearchResult>();
             foreach (var package in packages)
             {
-                results.Add(CreateDeleteSearchResult(package));
+                results.Add(CreatePackageSearchResult(package));
             }
             
             return Json(results, JsonRequestBehavior.AllowGet);
-        }
-
-        private DeleteSearchResult CreateDeleteSearchResult(Package package)
-        {
-            return new DeleteSearchResult
-            {
-                PackageId = package.Id,
-                PackageVersionNormalized = !string.IsNullOrEmpty(package.NormalizedVersion)
-                    ? package.NormalizedVersion 
-                    : NuGetVersion.Parse(package.Version).ToNormalizedString(),
-                DownloadCount = package.DownloadCount,
-                Created = package.Created.ToNuGetShortDateString(),
-                Listed = package.Listed,
-                PackageStatus = package.PackageStatusKey.ToString(),
-                Owners = package
-                    .PackageRegistration
-                    .Owners
-                    .Select(u => u.Username)
-                    .OrderBy(u => u)
-                    .Select(username => new UserViewModel
-                    {
-                        Username = username,
-                        ProfileUrl = Url.User(username),
-                    })
-                    .ToList()
-            };
         }
 
         [HttpGet]

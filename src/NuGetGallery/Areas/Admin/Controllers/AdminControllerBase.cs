@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Filters;
 
 namespace NuGetGallery.Areas.Admin.Controllers
@@ -77,6 +78,32 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             return uniquePackages;
+        }
+
+        internal PackageSearchResult CreatePackageSearchResult(Package package)
+        {
+            return new PackageSearchResult
+            {
+                PackageId = package.Id,
+                PackageVersionNormalized = !string.IsNullOrEmpty(package.NormalizedVersion)
+                    ? package.NormalizedVersion
+                    : NuGetVersion.Parse(package.Version).ToNormalizedString(),
+                DownloadCount = package.DownloadCount,
+                Created = package.Created.ToNuGetShortDateString(),
+                Listed = package.Listed,
+                PackageStatus = package.PackageStatusKey.ToString(),
+                Owners = package
+                    .PackageRegistration
+                    .Owners
+                    .Select(u => u.Username)
+                    .OrderBy(u => u, StringComparer.OrdinalIgnoreCase)
+                    .Select(username => new UserViewModel
+                    {
+                        Username = username,
+                        ProfileUrl = Url.User(username),
+                    })
+                    .ToList()
+            };
         }
     }
 }

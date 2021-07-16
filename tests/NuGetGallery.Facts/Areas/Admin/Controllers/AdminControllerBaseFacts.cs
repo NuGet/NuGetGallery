@@ -4,14 +4,55 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class AdminControllerBaseFacts
     {
+        public class TheCreatePackageSearchResultMethod : FactsBase
+        {
+            [Fact]
+            public void MapsExpectedProperties()
+            {
+                var package = new Package
+                {
+                    Id = "Newtonsoft.Json",
+                    NormalizedVersion = "9.0.1",
+                    DownloadCount = 1337,
+                    Created = new DateTime(2021, 7, 6, 13, 5, 30),
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Available,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Owners = new List<User>
+                        {
+                            new User { Username = "gates" },
+                            new User { Username = "bill" },
+                        },
+                    }
+                };
+
+                var result = Target.CreatePackageSearchResult(package);
+
+                Assert.Equal("Newtonsoft.Json", result.PackageId);
+                Assert.Equal("9.0.1", result.PackageVersionNormalized);
+                Assert.Equal(1337, result.DownloadCount);
+                Assert.Equal(package.Created.ToNuGetShortDateString(), result.Created);
+                Assert.True(result.Listed);
+                Assert.Equal("Available", result.PackageStatus);
+                Assert.Equal(2, result.Owners.Count);
+                Assert.Equal("bill", result.Owners[0].Username);
+                Assert.Equal("/profiles/bill", result.Owners[0].ProfileUrl);
+                Assert.Equal("gates", result.Owners[1].Username);
+                Assert.Equal("/profiles/gates", result.Owners[1].ProfileUrl);
+            }
+        }
+
         public class TheSearchForPackagesMethod : FactsBase
         {
             [Fact]
@@ -114,7 +155,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
-        public class FactsBase
+        public class FactsBase : TestContainer
         {
             public FactsBase()
             {
@@ -162,6 +203,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         .FirstOrDefault());
 
                 Target = new AdminControllerBase();
+
+                var httpContextBase = new Mock<HttpContextBase>();
+                TestUtility.SetupHttpContextMockForUrlGeneration(httpContextBase, Target);
             }
 
             public Mock<IPackageService> PackageService { get; }

@@ -195,7 +195,7 @@
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
     <Compile Include="Areas\Admin\Services\ValidationEntityRepository.cs" />
-    <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\HomeViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceResultModel.cs" />

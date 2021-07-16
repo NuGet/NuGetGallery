@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class DeleteSearchResult
+    public class PackageSearchResult
     {
         public string PackageId { get; set; }
         public string PackageVersionNormalized { get; set; }
