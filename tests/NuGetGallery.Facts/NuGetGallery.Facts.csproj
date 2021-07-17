@@ -70,6 +70,7 @@
     <Compile Include="Areas\Admin\Controllers\LockPackageControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
+    <Compile Include="Areas\Admin\Controllers\UpdateListedControllerFacts.cs" />
     <Compile Include="Areas\Admin\HelperFacts.cs" />
     <Compile Include="Areas\Admin\Services\RevalidationAdminServiceFacts.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminServiceFacts.cs" />

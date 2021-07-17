@@ -46,7 +46,7 @@ namespace NuGetGallery
             public const string PackageReflow = "PackageReflow";
             public const string PackageUnlisted = "PackageUnlisted";
             public const string PackageListed = "PackageListed";
-            public const string PackageUpdateListed = "PackageUpdateListed";
+            public const string PackagesUpdateListed = "PackagesUpdateListed";
             public const string PackageDelete = "PackageDelete";
             public const string PackageDeprecate = "PackageDeprecate";
             public const string PackageReupload = "PackageReupload";
@@ -467,7 +467,7 @@ namespace NuGetGallery
         public void TrackPackagesUpdateListed(IReadOnlyList<Package> packages, bool listed)
         {
             TrackMetricForPackageVersions(
-                Events.PackageUpdateListed,
+                Events.PackagesUpdateListed,
                 packages,
                 properties =>
                 {

@@ -27,11 +27,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpGet]
         public virtual ActionResult Index()
         {
-            return View(new UpdateListedRequest());
+            return View();
         }
 
         [HttpGet]
-        public virtual ActionResult Search(string query)
+        public ActionResult Search(string query)
         {
             var packages = SearchForPackages(_packageService, query);
             var results = new List<PackageSearchResult>();
@@ -47,69 +47,61 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateListed(UpdateListedRequest updateListed)
         {
-            if (ModelState.IsValid)
+            var idToVersions = updateListed
+                .Packages
+                .Select(x => x.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+                .Where(x => x.Length == 2)
+                .GroupBy(x => x[0], x => x[1], StringComparer.OrdinalIgnoreCase);
+
+            var packageRegistrationCount = 0;
+            var packageCount = 0;
+            var noOpCount = 0;
+            foreach (var group in idToVersions)
             {
-                var idToVersions = updateListed
-                    .Packages
-                    .Select(x => x.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
-                    .Where(x => x.Length == 2)
-                    .GroupBy(x => x[0], x => x[1], StringComparer.OrdinalIgnoreCase);
+                var normalizedVersions = group
+                    .Select(x => NuGetVersionFormatter.Normalize(x))
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                var packageRegistrationCount = 0;
-                var packageCount = 0;
-                var noOpCount = 0;
-                foreach (var group in idToVersions)
+                List<Package> packages;
+                if (normalizedVersions.Count == 1)
                 {
-                    var normalizedVersions = group
-                        .Select(x => NuGetVersionFormatter.Normalize(x))
-                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                    List<Package> packages;
-                    if (normalizedVersions.Count == 1)
+                    packages = new List<Package>();
+                    var package = _packageService.FindPackageByIdAndVersionStrict(group.Key, normalizedVersions.First());
+                    if (package != null)
                     {
-                        packages = new List<Package>();
-                        var package = _packageService.FindPackageByIdAndVersionStrict(group.Key, normalizedVersions.First());
-                        if (package != null)
-                        {
-                            packages.Add(package);
-                        }
-                    }
-                    else
-                    {
-                        // Include the deprecation information since it is used in the auditing event.
-                        packages = _packageService.FindPackagesById(
-                                group.Key,
-                                PackageDeprecationFieldsToInclude.DeprecationAndRelationships)
-                            .Where(x => normalizedVersions.Contains(x.NormalizedVersion))
-                            .ToList();
-                    }
-
-                    packages = packages
-                        .Where(x => x.Listed != updateListed.Listed)
-                        .Where(x => x.PackageStatusKey != PackageStatus.Deleted)
-                        .Where(x => x.PackageStatusKey != PackageStatus.FailedValidation)
-                        .ToList();
-
-                    packageCount += packages.Count;
-                    noOpCount += normalizedVersions.Count - packages.Count;
-
-                    if (packages.Any())
-                    {
-                        packageRegistrationCount++;
-                        await _packageUpdateService.UpdateListedInBulkAsync(packages, updateListed.Listed);
+                        packages.Add(package);
                     }
                 }
+                else
+                {
+                    // Include the deprecation information since it is used in the auditing event.
+                    packages = _packageService.FindPackagesById(
+                            group.Key,
+                            PackageDeprecationFieldsToInclude.DeprecationAndRelationships)
+                        .Where(x => normalizedVersions.Contains(x.NormalizedVersion))
+                        .ToList();
+                }
 
-                TempData["Message"] = $"{packageCount} packages across {packageRegistrationCount} package IDs have " +
-                    $"been {(updateListed.Listed ? "relisted" : "unlisted")}. {noOpCount} packages were already " +
-                    $"up-to-date and were left unchanged.";
-                return RedirectToAction(nameof(Index));
+                packages = packages
+                    .Where(x => x.Listed != updateListed.Listed)
+                    .Where(x => x.PackageStatusKey != PackageStatus.Deleted)
+                    .Where(x => x.PackageStatusKey != PackageStatus.FailedValidation)
+                    .ToList();
+
+                packageCount += packages.Count;
+                noOpCount += normalizedVersions.Count - packages.Count;
+
+                if (packages.Any())
+                {
+                    packageRegistrationCount++;
+                    await _packageUpdateService.UpdateListedInBulkAsync(packages, updateListed.Listed);
+                }
             }
-            else
-            {
-                TempData["Message"] = "The provided input is not valid.";
-                return RedirectToAction(nameof(Index));
-            }
+
+            TempData["Message"] = $"{packageCount} packages across {packageRegistrationCount} package IDs have " +
+                $"been {(updateListed.Listed ? "relisted" : "unlisted")}. {noOpCount} packages were already " +
+                $"up-to-date and were left unchanged.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }
