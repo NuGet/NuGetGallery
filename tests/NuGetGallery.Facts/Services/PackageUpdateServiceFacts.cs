@@ -130,7 +130,7 @@ namespace NuGetGallery.Services
 
                 var telemetryService = GetMock<ITelemetryService>();
                 telemetryService
-                    .Setup(x => x.TrackPackagesUpdateListed(packages, listed))
+                    .Setup(x => x.TrackPackagesUpdateListed(It.Is<IReadOnlyList<Package>>(l => l.Count == 1), listed))
                     .Verifiable();
 
                 var service = Get<PackageUpdateService>();
