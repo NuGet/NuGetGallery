@@ -63,9 +63,28 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     var normalizedVersions = group
                         .Select(x => NuGetVersionFormatter.Normalize(x))
                         .ToHashSet(StringComparer.OrdinalIgnoreCase);
-                    var packages = _packageService
-                        .FindPackagesById(group.Key, PackageDeprecationFieldsToInclude.DeprecationAndRelationships)
-                        .Where(x => normalizedVersions.Contains(x.NormalizedVersion))
+
+                    List<Package> packages;
+                    if (normalizedVersions.Count == 1)
+                    {
+                        packages = new List<Package>();
+                        var package = _packageService.FindPackageByIdAndVersionStrict(group.Key, normalizedVersions.First());
+                        if (package != null)
+                        {
+                            packages.Add(package);
+                        }
+                    }
+                    else
+                    {
+                        // Include the deprecation information since it is used in the auditing event.
+                        packages = _packageService.FindPackagesById(
+                                group.Key,
+                                PackageDeprecationFieldsToInclude.DeprecationAndRelationships)
+                            .Where(x => normalizedVersions.Contains(x.NormalizedVersion))
+                            .ToList();
+                    }
+
+                    packages = packages
                         .Where(x => x.Listed != updateListed.Listed)
                         .Where(x => x.PackageStatusKey != PackageStatus.Deleted)
                         .Where(x => x.PackageStatusKey != PackageStatus.FailedValidation)
