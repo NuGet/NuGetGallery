@@ -46,6 +46,7 @@ namespace NuGetGallery
             public const string PackageReflow = "PackageReflow";
             public const string PackageUnlisted = "PackageUnlisted";
             public const string PackageListed = "PackageListed";
+            public const string PackageUpdateListed = "PackageUpdateListed";
             public const string PackageDelete = "PackageDelete";
             public const string PackageDeprecate = "PackageDeprecate";
             public const string PackageReupload = "PackageReupload";
@@ -130,6 +131,9 @@ namespace NuGetGallery
         public const string PackageId = "PackageId";
         public const string PackageVersion = "PackageVersion";
         public const string PackageVersions = "PackageVersions";
+
+        // Package listed properties
+        public const string Listed = "Listed";
 
         // Package deprecate properties
         public const string DeprecationReason = "PackageDeprecationReason";
@@ -458,6 +462,17 @@ namespace NuGetGallery
         public void TrackPackageListed(Package package)
         {
             TrackMetricForPackage(Events.PackageListed, package);
+        }
+
+        public void TrackPackagesUpdateListed(IReadOnlyList<Package> packages, bool listed)
+        {
+            TrackMetricForPackageVersions(
+                Events.PackageUpdateListed,
+                packages,
+                properties =>
+                {
+                    properties.Add(Listed, listed.ToString());
+                });
         }
 
         public void TrackPackageDelete(Package package, bool isHardDelete)

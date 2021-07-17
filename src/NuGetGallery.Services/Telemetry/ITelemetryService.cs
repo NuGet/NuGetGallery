@@ -38,6 +38,8 @@ namespace NuGetGallery
 
         void TrackPackageListed(Package package);
 
+		void TrackPackagesUpdateListed(IReadOnlyList<Package> packages, bool listed);
+
         void TrackPackageDelete(Package package, bool isHardDelete);
 
         void TrackPackageReupload(Package package);
