@@ -12,29 +12,6 @@ using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
-    public class UnlistController : AdminControllerBase
-    {
-        private readonly IPackageService _packageService;
-
-        public UnlistController(IPackageService packageService)
-        {
-            _packageService = packageService;
-        }
-
-        [HttpGet]
-        public virtual ActionResult Search(string query)
-        {
-            var packages = SearchForPackages(_packageService, query);
-            var results = new List<PackageSearchResult>();
-            foreach (var package in packages)
-            {
-                results.Add(CreatePackageSearchResult(package));
-            }
-
-            return Json(results, JsonRequestBehavior.AllowGet);
-        }
-    }
-
     public class DeleteController : AdminControllerBase
     {
         private readonly IPackageService _packageService;

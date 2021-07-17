@@ -38,13 +38,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         continue;
                     }
 
-                    var resultingRegistration = packageService.FindPackageRegistrationById(id);
-                    if (resultingRegistration != null)
-                    {
-                        packages.AddRange(resultingRegistration
-                            .Packages
-                            .OrderBy(p => NuGetVersion.Parse(p.NormalizedVersion)));
-                    }
+                    packages.AddRange(packageService.FindPackagesById(id).OrderBy(p => NuGetVersion.Parse(p.NormalizedVersion)));
                 }
                 else if (spitQuery.Length == 2)
                 {
