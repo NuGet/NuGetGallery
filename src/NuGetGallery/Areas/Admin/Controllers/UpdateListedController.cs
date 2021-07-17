@@ -67,13 +67,18 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         .FindPackagesById(group.Key, PackageDeprecationFieldsToInclude.DeprecationAndRelationships)
                         .Where(x => normalizedVersions.Contains(x.NormalizedVersion))
                         .Where(x => x.Listed != updateListed.Listed)
+                        .Where(x => x.PackageStatusKey != PackageStatus.Deleted)
+                        .Where(x => x.PackageStatusKey != PackageStatus.FailedValidation)
                         .ToList();
 
-                    packageRegistrationCount++;
                     packageCount += packages.Count;
                     noOpCount += normalizedVersions.Count - packages.Count;
 
-                    await _packageUpdateService.UpdateListedInBulkAsync(packages, updateListed.Listed);
+                    if (packages.Any())
+                    {
+                        packageRegistrationCount++;
+                        await _packageUpdateService.UpdateListedInBulkAsync(packages, updateListed.Listed);
+                    }
                 }
 
                 TempData["Message"] = $"{packageCount} packages across {packageRegistrationCount} package IDs have " +

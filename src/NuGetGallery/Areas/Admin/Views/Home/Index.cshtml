@@ -56,6 +56,17 @@
         </li>
         <li>
             <h2>
+                <a href="@Url.Action(actionName: "Index", controllerName: "UpdateListed")">
+                    <i class="ms-Icon ms-Icon--Hide"></i>
+                    <span>Unlist/relist Packages</span>
+                </a>
+            </h2>
+            <p>
+                Unlist or relist many packages at once.
+            </p>
+        </li>
+        <li>
+            <h2>
                 <a href="@Url.Action(actionName: "Index", controllerName: "Lucene")">
                     <i class="ms-Icon ms-Icon--DocumentSearch"></i>
                     <span>Lucene Index Maintenance</span>
@@ -82,13 +93,13 @@
                     this,
                     formId: "clear-content-cache-form",
                     htmlContent: @<text>
-                        <i class="ms-Icon ms-Icon--Refresh"></i>
-                        <span>Clear Content Cache</span>
+                            <i class="ms-Icon ms-Icon--Refresh"></i>
+                            <span>Clear Content Cache</span>
                     </text>,
-                    actionName: "ClearContentCache",
-                    controllerName: "Home",
-                    role: string.Empty,
-                    area: "Admin")
+             actionName: "ClearContentCache",
+             controllerName: "Home",
+             role: string.Empty,
+             area: "Admin")
             </h2>
             <p>
                 Clear Content Cache
