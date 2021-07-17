@@ -214,6 +214,7 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Extensions\CakeBuildManagerExtensions.cs" />
     <Compile Include="Extensions\ImageExtensions.cs" />
+    <Compile Include="Helpers\AdminHelper.cs" />
     <Compile Include="Helpers\ValidationHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelFactory.cs" />

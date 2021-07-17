@@ -82,7 +82,7 @@
                         {
                             @DisplayNavigationItem("Statistics", Url.Statistics())
                         }
-                        @if (Request.IsAuthenticated && User.IsInRole(CoreConstants.AdminRoleName))
+                        @if (Request.IsAuthenticated && AdminHelper.IsAdminPanelEnabled && User.IsInRole(CoreConstants.AdminRoleName))
                         {
                             @DisplayNavigationItem("Admin", Url.Admin())
                         }
@@ -126,7 +126,7 @@
                                                 <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(25)</span>
                                             </div>
                                         </li>
-                                        @if (Request.IsAuthenticated && User.IsInRole(CoreConstants.AdminRoleName))
+                                        @if (Request.IsAuthenticated && AdminHelper.IsAdminPanelEnabled && User.IsInRole(CoreConstants.AdminRoleName))
                                         {
                                             <li class="divider"></li>
                                             <li role="presentation"><a href="@Url.Admin()" role="menuitem">Admin</a></li>

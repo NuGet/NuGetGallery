@@ -1387,6 +1387,7 @@ namespace NuGetGallery
 
         public static string Admin(this UrlHelper url, bool relativeUrl = true)
         {
+            // TODO: change to something when admin panel is disabled?
             return GetActionLink(
                 url,
                 "Index",

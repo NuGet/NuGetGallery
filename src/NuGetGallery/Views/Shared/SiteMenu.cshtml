@@ -14,7 +14,7 @@
     {
         <li class="@classes["Statistics"]"><a href="@Url.Statistics()">Statistics</a></li>
     }
-    @if (Request.IsAuthenticated && User.IsInRole(CoreConstants.AdminRoleName))
+    @if (Request.IsAuthenticated && AdminHelper.IsAdminPanelEnabled && User.IsInRole(CoreConstants.AdminRoleName))
     {
         <li class="@classes["Admin"]"><a href="@Url.Admin()">Admin</a></li>
     }
