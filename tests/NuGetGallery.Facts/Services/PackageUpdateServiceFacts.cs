@@ -24,6 +24,133 @@ namespace NuGetGallery.Services
             LatestStableSemVer2
         }
 
+
+        public class TheUpdateDeprecationMethod : TestContainer
+        {
+            public static IEnumerable<object[]> ThrowsIfPackagesEmpty_Data => MemberDataHelper.AsDataSet(null, new Package[0]);
+
+            [Theory]
+            [MemberData(nameof(ThrowsIfPackagesEmpty_Data))]
+            public async Task ThrowsIfPackagesEmpty(IReadOnlyList<Package> packages)
+            {
+                var service = Get<PackageUpdateService>();
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(
+                    () => service.UpdateListedInBulkAsync(packages, listed: false));
+                Assert.Equal("At least one package must be provided.", ex.Message);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Deleted, "A deleted package cannot have its listed status changed.")]
+            [InlineData(PackageStatus.FailedValidation, "A package that failed validation cannot have its listed status changed.")]
+            public async Task ThrowsIfPackageHasInvalidStatus(PackageStatus packageStatus, string message)
+            {
+                var service = Get<PackageUpdateService>();
+
+                var packages = new[]
+                {
+                    new Package { PackageStatusKey = packageStatus },
+                };
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(
+                    () => service.UpdateListedInBulkAsync(packages, listed: true));
+                Assert.Equal(message, ex.Message);
+            }
+
+            [Fact]
+            public async Task ThrowsIfPackagesHaveDifferentRegistrations()
+            {
+                var service = Get<PackageUpdateService>();
+
+                var packages = new[]
+                {
+                    new Package { PackageRegistrationKey = 1 },
+                    new Package { PackageRegistrationKey = 2 },
+                };
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(
+                    () => service.UpdateListedInBulkAsync(packages, listed: true));
+                Assert.StartsWith("All packages to change the listing status of must have the same ID.", ex.Message);
+            }
+
+            [Theory]
+            [InlineData(false, AuditedPackageAction.Unlist, "WHERE [Key] IN (20002)")]
+            [InlineData(true, AuditedPackageAction.List, "WHERE [Key] IN (10001)")]
+            public async Task UpdateListedStatus(bool listed, AuditedPackageAction action, string sqlWhere)
+            {
+                // Arrange
+                var id = "theId";
+                var registration = new PackageRegistration { Id = id };
+                var listedPackage = new Package
+                {
+                    Key = 20002,
+                    PackageRegistration = registration,
+                    NormalizedVersion = "1.0.0",
+                    Listed = true,
+                };
+
+                var unlistedPackage = new Package
+                {
+                    Key = 10001,
+                    PackageRegistration = registration,
+                    NormalizedVersion = "2.0.0",
+                    Listed = false,
+                };
+
+                var packages = new[]
+                {
+                    listedPackage,
+                    unlistedPackage,
+                };
+
+                var packageServiceMock = GetMock<IPackageService>();
+                packageServiceMock
+                    .Setup(x => x.UpdateIsLatestAsync(registration, false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                var transactionMock = new Mock<IDbContextTransaction>();
+                transactionMock
+                    .Setup(x => x.Commit())
+                    .Verifiable();
+
+                var databaseMock = new Mock<IDatabase>();
+                databaseMock
+                    .Setup(x => x.BeginTransaction())
+                    .Returns(transactionMock.Object);
+                databaseMock
+                    .Setup(x => x.ExecuteSqlCommandAsync(It.Is<string>(q => q.Contains(sqlWhere)), It.IsAny<object[]>()))
+                    .ReturnsAsync(2)
+                    .Verifiable();
+
+                var context = GetFakeContext();
+                context.SetupDatabase(databaseMock.Object);
+
+                var auditingService = GetService<IAuditingService>();
+
+                var telemetryService = GetMock<ITelemetryService>();
+                telemetryService
+                    .Setup(x => x.TrackPackagesUpdateListed(packages, listed))
+                    .Verifiable();
+
+                var service = Get<PackageUpdateService>();
+
+                // Act
+                await service.UpdateListedInBulkAsync(packages, listed);
+
+                // Assert
+                packageServiceMock.Verify();
+                context.VerifyCommitChanges();
+                databaseMock.Verify();
+                transactionMock.Verify();
+                telemetryService.Verify();
+
+                Assert.Equal(listed, listedPackage.Listed);
+                Assert.Equal(listed, unlistedPackage.Listed);
+                auditingService.WroteRecord<PackageAuditRecord>(r => r.Action == action);
+            }
+        }
+
         public class TheMarkPackageListedMethod : TestContainer
         {
             [Fact]
