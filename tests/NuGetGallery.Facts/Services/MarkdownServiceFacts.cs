@@ -112,19 +112,6 @@ namespace NuGetGallery
                 Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
             }
 
-            [Fact]
-            public void TestToHtmlWithExtension()
-            {
-                var originalMd = @"soft line break line 1  
-line2  
-line3  ";
-                var expectedHtml = "<p>This is a paragraph<br />\nwith a break inside</p>";
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
-                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
-                Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.False(readMeResult.ImagesRewritten);
-            }
-
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
