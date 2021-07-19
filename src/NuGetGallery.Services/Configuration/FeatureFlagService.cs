@@ -29,6 +29,7 @@ namespace NuGetGallery
         private const string DisplayVulnerabilitiesFeatureName = GalleryPrefix + "DisplayVulnerabilities";
         private const string ManagePackagesVulnerabilitiesFeatureName = GalleryPrefix + "ManagePackagesVulnerabilities";
         private const string DisplayFuGetLinksFeatureName = GalleryPrefix + "DisplayFuGetLinks";
+        private const string DisplayNuGetPackageExplorerLinkFeatureName = GalleryPrefix + "DisplayNuGetPackageExplorerLink";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
@@ -153,6 +154,11 @@ namespace NuGetGallery
         public bool IsDisplayFuGetLinksEnabled()
         {
             return _client.IsEnabled(DisplayFuGetLinksFeatureName, defaultValue: false);
+        }
+
+        public bool IsDisplayNuGetPackageExplorerLinkEnabled()
+        {
+            return _client.IsEnabled(DisplayNuGetPackageExplorerLinkFeatureName, defaultValue: false);
         }
 
         public bool AreEmbeddedIconsEnabled(User user)
