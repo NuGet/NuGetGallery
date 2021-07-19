@@ -79,6 +79,8 @@ namespace NuGetGallery
             [InlineData("- List", "<ul>\r\n<li>List</li>\r\n</ul>", false, false)]
             [InlineData("This is a paragraph\nwithout a break inside", "<p>This is a paragraph\nwithout a break inside</p>", false, true)]
             [InlineData("This is a paragraph\r\nwithout a break inside", "<p>This is a paragraph\r\nwithout a break inside</p>", false, false)]
+            [InlineData("Hello world\n\nI expect a break between these two lines", "<p>Hello world</p>\n<p>I expect a break between these two lines</p>", false, true)]
+            [InlineData("Hello world\n\nI expect a break between these two lines", "<p>Hello world</p>\r\n<p>I expect a break between these two lines</p>", false, false)]
             [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
             [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
             [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
