@@ -7,6 +7,7 @@ using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Infrastructure.Annotations;
+using NuGet.Services.Validation.Entities;
 
 namespace NuGet.Services.Validation
 {
@@ -60,7 +61,7 @@ namespace NuGet.Services.Validation
 
         private const string ValidatorStatusesTable = "ValidatorStatuses";
         private const string ValidatorStatusesPackageKeyIndex = "IX_ValidatorStatuses_PackageKey";
-        
+
         private const string PackageSigningStatesTable = "PackageSigningStates";
         private const string PackageSigningStatesPackageIdPackageVersionIndex = "IX_PackageSigningStates_PackageId_PackageNormalizedVersion";
 
@@ -98,6 +99,9 @@ namespace NuGet.Services.Validation
 
         private const string SymbolsServerRequestSymbolsKeyIndex = "IX_SymbolServerRequests_SymbolsKey";
 
+        private const string ContentScanOperationStateValidationStepIdTypeStatusIndex = "IX_ContentScanOperationState_ValidationStepId_Type_StatusIndex";
+        private const string ContentScanOperationStateCreatedIndex = "IX_ContentScanOperationState_CreatedIndex";
+
         static ValidationEntitiesContext()
         {
             // Don't run migrations, ever!
@@ -120,6 +124,7 @@ namespace NuGet.Services.Validation
         public IDbSet<ScanOperationState> ScanOperationStates { get; set; }
         public IDbSet<PackageRevalidation> PackageRevalidations { get; set; }
         public IDbSet<SymbolsServerRequest> SymbolsServerRequests { get; set; }
+        public IDbSet<ContentScanOperationState> ContentScanOperationState { get; set; }
 
         public ValidationEntitiesContext(string nameOrConnectionString) : base(nameOrConnectionString)
         {
@@ -332,7 +337,7 @@ namespace NuGet.Services.Validation
             RegisterScanningEntities(modelBuilder);
             RegisterRevalidationEntities(modelBuilder);
             RegisterSymbolEntities(modelBuilder);
-
+            RegisterCvsScanEntities(modelBuilder);
             base.OnModelCreating(modelBuilder);
         }
 
@@ -761,6 +766,73 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<SymbolsServerRequest>()
                .Property(s => s.RowVersion)
                .IsRowVersion();
+        }
+
+        private void RegisterCvsScanEntities(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ContentScanOperationState>()
+                .HasKey(p => p.Key);
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(s => s.ValidationStepId)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(ContentScanOperationStateValidationStepIdTypeStatusIndex, 0)
+                    }));
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(s => s.Type)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(ContentScanOperationStateValidationStepIdTypeStatusIndex, 1)
+                    }));
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(s => s.Status)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(ContentScanOperationStateValidationStepIdTypeStatusIndex, 2)
+                    }));
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(s => s.CreatedAt)
+                .IsRequired()
+                .HasColumnType("datetime2")
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(ContentScanOperationStateCreatedIndex, 0)
+                    }));
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(s => s.FinishedAt)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(s => s.PolledAt)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(s => s.JobId);
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(s => s.ContentPath)
+                .HasMaxLength(4096);
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(s => s.FileId)
+                .HasMaxLength(64);
+
+            modelBuilder.Entity<ContentScanOperationState>()
+                .Property(pvs => pvs.RowVersion)
+                .IsRowVersion();
         }
     }
 }
