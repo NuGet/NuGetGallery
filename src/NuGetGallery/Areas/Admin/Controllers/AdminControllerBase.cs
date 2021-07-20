@@ -16,7 +16,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
     {
         internal List<Package> SearchForPackages(IPackageService packageService, string query)
         {
-            // Search suports several options:
+            // Search supports several options:
             //   1) Full package id (e.g. jQuery)
             //   2) Full package id + version (e.g. jQuery 1.9.0, jQuery/1.9.0)
             //   3) Any of the above separated by comma
