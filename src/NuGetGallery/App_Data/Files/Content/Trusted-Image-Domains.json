@@ -2,6 +2,7 @@
     "TrustedImageDomainList": [
         "api.bintray.com",
         "api.codacy.com",
+        "app.codacy.com",
         "api.codeclimate.com",
         "api.dependabot.com",
         "api.travis-ci.com",

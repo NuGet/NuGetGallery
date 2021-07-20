@@ -79,6 +79,12 @@ namespace NuGetGallery
             [InlineData("\ufeff# Heading with BOM", "<h2>Heading with BOM</h2>", false, false)]
             [InlineData("- List", "<ul>\n<li>List</li>\n</ul>", false, true)]
             [InlineData("- List", "<ul>\r\n<li>List</li>\r\n</ul>", false, false)]
+            [InlineData("This is a paragraph\nwithout a break inside", "<p>This is a paragraph\nwithout a break inside</p>", false, true)]
+            [InlineData("This is a paragraph\r\nwithout a break inside", "<p>This is a paragraph\r\nwithout a break inside</p>", false, false)]
+            [InlineData("soft line break line1  \nline2  \nline3  ", "<p>soft line break line1<br />\nline2<br />\nline3</p>", false, true)]
+            [InlineData("soft line break line1  \r\nline2  \r\nline3  ", "<p>soft line break line1<br />\r\nline2<br />\r\nline3</p>", false, false)]
+            [InlineData("hard line break line1\n\nline2\n\nline3", "<p>hard line break line1</p>\n<p>line2</p>\n<p>line3</p>", false, true)]
+            [InlineData("hard line break line1\r\n\r\nline2\r\n\r\nline3", "<p>hard line break line1</p>\r\n<p>line2</p>\r\n<p>line3</p>", false, false)]
             [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
             [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
             [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
@@ -141,17 +147,6 @@ namespace NuGetGallery
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.True(readMeResult.ImageSourceDisallowed);
-            }
-
-            [Fact]
-            public void TestToHtmlWithExtension()
-            {
-                var originalMd = "This is a paragraph\r\n with a break inside";
-                var expectedHtml = "<p>This is a paragraph<br />\nwith a break inside</p>";
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
-                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
-                Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.False(readMeResult.ImagesRewritten);
             }
 
             [Fact]

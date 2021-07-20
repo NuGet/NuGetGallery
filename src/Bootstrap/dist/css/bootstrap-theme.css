@@ -1441,7 +1441,7 @@ img.reserved-indicator-icon {
   text-align: right;
 }
 .page-package-details-v2 .package-details-info .ms-Icon-ul li {
-  margin-bottom: 15px;
+  margin-bottom: 18px;
 }
 .page-package-details-v2 .package-details-info .ms-Icon-ul img.icon {
   position: absolute;
@@ -1450,8 +1450,50 @@ img.reserved-indicator-icon {
   height: 16px;
   margin-top: 3px;
 }
+.page-package-details-v2 .package-details-info .sidebar-headers {
+  font-size: 16px;
+  font-weight: 600;
+  color: #666666;
+  margin-bottom: 14px;
+}
+.page-package-details-v2 .package-details-info .sidebar-links {
+  font-size: 16px;
+}
+.page-package-details-v2 .package-details-info .links-first-section {
+  padding-bottom: 35px;
+  margin-bottom: 0px;
+}
+.page-package-details-v2 .package-details-info .title-links {
+  font-size: 14px;
+  font-weight: 400;
+  padding-top: 2px;
+}
+@media (min-width: 992px) {
+  .page-package-details-v2 .package-details-info .title-links a {
+    float: right !important;
+  }
+}
+.page-package-details-v2 .package-details-info .sidebar-section {
+  margin-top: 32px;
+}
+.page-package-details-v2 .package-details-info .download-info .download-info-row {
+  margin-bottom: 15px;
+}
+.page-package-details-v2 .package-details-info .download-info .download-info-header {
+  font-size: 14px;
+  font-weight: 400;
+  color: #666666;
+  margin-right: 12px;
+}
+.page-package-details-v2 .package-details-info .download-info .download-info-content {
+  font-size: 16px;
+  font-weight: 600;
+}
+.page-package-details-v2 .owner-list {
+  margin-bottom: 40px;
+}
 .page-package-details-v2 .owner-list li {
-  margin-bottom: 8px;
+  margin-bottom: 14px;
   display: block;
   overflow: hidden;
   white-space: nowrap;
@@ -1459,6 +1501,11 @@ img.reserved-indicator-icon {
 }
 .page-package-details-v2 .owner-list img {
   margin-right: 8px;
+  border-radius: 5px;
+}
+.page-package-details-v2 .support-links .report-link i {
+  color: #BE0151;
+  font-weight: bold;
 }
 .page-package-details-v2 .share-buttons img {
   margin-right: 8px;
@@ -1717,7 +1764,7 @@ img.reserved-indicator-icon {
   left: 377px;
   top: 10px;
   float: left;
-  width: 200px;
+  width: 230px;
 }
 .page-home .circuit-board .circuit-board-pd.triangle:after {
   left: 20px;

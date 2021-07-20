@@ -329,7 +329,7 @@
     <value>API key can not be the default Guid.</value>
   </data>
   <data name="WarningApiKeyAboutToExpire" xml:space="preserve">
-    <value>Your API key expires in {0} days. Visit {1} to regenerate your API key.</value>
+    <value>Your API key expires in {0}. Visit {1} to regenerate your API key.</value>
   </data>
   <data name="WarningApiKeyExpired" xml:space="preserve">
     <value>Your API key has expired. Visit {0} to generate a new API key.</value>
