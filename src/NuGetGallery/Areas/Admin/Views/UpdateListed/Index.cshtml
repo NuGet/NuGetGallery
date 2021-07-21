@@ -47,10 +47,10 @@
 
         <div class="danger-zone" style="display: none;" data-bind="visible: arePackagesSelected">
             <div class="form-group">
-                <button type="submit" class="btn btn-danger form-control" name="listed" value="true">Mark selected packages as <b>LISTED</b>.</button>
+                <button type="submit" class="btn btn-danger form-control" name="listed" value="true">Make selected packages <b>LISTED</b>.</button>
             </div>
             <div class="form-group">
-                <button type="submit" class="btn btn-danger form-control" name="listed" value="false">Mark selected packages as <b>UNLISTED</b>.</button>
+                <button type="submit" class="btn btn-danger form-control" name="listed" value="false">Make selected packages <b>UNLISTED</b>.</button>
             </div>
         </div>
     }
@@ -84,7 +84,7 @@
                         $self.selectAllState(false);
                         $self.searchResults.removeAll();
                         for (var i = 0; i < data.length; i++) {
-                            data[i].Selected = ko.observable(false);
+                            data[i].Selected = ko.observable(!!data[i].Listed);
                         }
                         $self.searchResults(data);
                     }

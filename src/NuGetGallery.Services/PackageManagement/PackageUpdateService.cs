@@ -61,36 +61,28 @@ namespace NuGetGallery
             using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
-                var updatedPackages = new List<Package>();
                 foreach (var package in packages)
                 {
-                    if (package.Listed != listed)
-                    {
-                        package.Listed = listed;
-                        updatedPackages.Add(package);
-                    }
+                    package.Listed = listed;
                 }
 
-                if (updatedPackages.Any())
+                await _packageService.UpdateIsLatestAsync(registration, commitChanges: false);
+
+                await _entitiesContext.SaveChangesAsync();
+
+                await UpdatePackagesAsync(packages);
+
+                transaction.Commit();
+
+                _telemetryService.TrackPackagesUpdateListed(packages, listed);
+
+                foreach (var package in packages)
                 {
-                    await _packageService.UpdateIsLatestAsync(registration, commitChanges: false);
+                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(
+                        package,
+                        listed ? AuditedPackageAction.List : AuditedPackageAction.Unlist));
 
-                    await _entitiesContext.SaveChangesAsync();
-
-                    await UpdatePackagesAsync(updatedPackages);
-
-                    transaction.Commit();
-
-                    _telemetryService.TrackPackagesUpdateListed(updatedPackages, listed);
-
-                    foreach (var package in updatedPackages)
-                    {
-                        await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(
-                            package,
-                            listed ? AuditedPackageAction.List : AuditedPackageAction.Unlist));
-
-                        _indexingService.UpdatePackage(package);
-                    }
+                    _indexingService.UpdatePackage(package);
                 }
             }
         }

@@ -83,7 +83,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
 
                 packages = packages
-                    .Where(x => x.Listed != updateListed.Listed)
                     .Where(x => x.PackageStatusKey != PackageStatus.Deleted)
                     .Where(x => x.PackageStatusKey != PackageStatus.FailedValidation)
                     .ToList();
@@ -99,8 +98,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             TempData["Message"] = $"{packageCount} packages across {packageRegistrationCount} package IDs have " +
-                $"been {(updateListed.Listed ? "relisted" : "unlisted")}. {noOpCount} packages were already " +
-                $"up-to-date and were left unchanged.";
+                $"been {(updateListed.Listed ? "relisted" : "unlisted")}. {noOpCount} packages were skipped because " +
+                $"they are deleted or they failed validation.";
+
             return RedirectToAction(nameof(Index));
         }
     }

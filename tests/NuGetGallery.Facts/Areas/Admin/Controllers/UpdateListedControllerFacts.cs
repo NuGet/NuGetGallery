@@ -67,7 +67,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     x => x.UpdateListedInBulkAsync(It.Is<IReadOnlyList<Package>>(l => l.All(i => i.Id == "NuGet.Frameworks")), false),
                     Times.Once);
                 Assert.Equal(
-                    "4 packages across 2 package IDs have been unlisted. 1 packages were already up-to-date and were left unchanged.",
+                    "4 packages across 2 package IDs have been unlisted. 1 packages were skipped because they are deleted or they failed validation.",
                     Target.TempData["Message"]);
             }
 
@@ -99,12 +99,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     x => x.UpdateListedInBulkAsync(It.Is<IReadOnlyList<Package>>(l => l.Single().NormalizedVersion == "4.4.0"), false),
                     Times.Once);
                 Assert.Equal(
-                    "1 packages across 1 package IDs have been unlisted. 1 packages were already up-to-date and were left unchanged.",
+                    "1 packages across 1 package IDs have been unlisted. 1 packages were skipped because they are deleted or they failed validation.",
                     Target.TempData["Message"]);
             }
 
             [Fact]
-            public async Task FiltersOutPackagesWithMatchingListed()
+            public async Task DoesNotFilterOutPackagesWithMatchingListed()
             {
                 // Arrange
                 var input = new UpdateListedRequest
@@ -126,10 +126,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     x => x.FindPackagesById("NuGet.Versioning", PackageDeprecationFieldsToInclude.DeprecationAndRelationships),
                     Times.Once);
                 PackageUpdateService.Verify(
-                    x => x.UpdateListedInBulkAsync(It.Is<IReadOnlyList<Package>>(l => l.Single().NormalizedVersion == "4.4.0"), false),
+                    x => x.UpdateListedInBulkAsync(It.Is<IReadOnlyList<Package>>(l => l.Count == 2), false),
                     Times.Once);
                 Assert.Equal(
-                    "1 packages across 1 package IDs have been unlisted. 1 packages were already up-to-date and were left unchanged.",
+                    "2 packages across 1 package IDs have been unlisted. 0 packages were skipped because they are deleted or they failed validation.",
                     Target.TempData["Message"]);
             }
 
@@ -160,7 +160,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     x => x.UpdateListedInBulkAsync(It.Is<IReadOnlyList<Package>>(l => l.Single().NormalizedVersion == "4.4.0"), false),
                     Times.Once);
                 Assert.Equal(
-                    "1 packages across 1 package IDs have been unlisted. 0 packages were already up-to-date and were left unchanged.",
+                    "1 packages across 1 package IDs have been unlisted. 0 packages were skipped because they are deleted or they failed validation.",
                     Target.TempData["Message"]);
             }
         }

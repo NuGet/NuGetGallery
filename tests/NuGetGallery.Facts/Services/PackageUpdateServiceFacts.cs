@@ -74,9 +74,9 @@ namespace NuGetGallery.Services
             }
 
             [Theory]
-            [InlineData(false, AuditedPackageAction.Unlist, "WHERE [Key] IN (20002)")]
-            [InlineData(true, AuditedPackageAction.List, "WHERE [Key] IN (10001)")]
-            public async Task UpdateListedStatus(bool listed, AuditedPackageAction action, string sqlWhere)
+            [InlineData(false, AuditedPackageAction.Unlist)]
+            [InlineData(true, AuditedPackageAction.List)]
+            public async Task UpdateListedStatus(bool listed, AuditedPackageAction action)
             {
                 // Arrange
                 var id = "theId";
@@ -119,8 +119,8 @@ namespace NuGetGallery.Services
                     .Setup(x => x.BeginTransaction())
                     .Returns(transactionMock.Object);
                 databaseMock
-                    .Setup(x => x.ExecuteSqlCommandAsync(It.Is<string>(q => q.Contains(sqlWhere)), It.IsAny<object[]>()))
-                    .ReturnsAsync(2)
+                    .Setup(x => x.ExecuteSqlCommandAsync(It.Is<string>(q => q.Contains("WHERE [Key] IN (10001, 20002)")), It.IsAny<object[]>()))
+                    .ReturnsAsync(4)
                     .Verifiable();
 
                 var context = GetFakeContext();
@@ -130,7 +130,7 @@ namespace NuGetGallery.Services
 
                 var telemetryService = GetMock<ITelemetryService>();
                 telemetryService
-                    .Setup(x => x.TrackPackagesUpdateListed(It.Is<IReadOnlyList<Package>>(l => l.Count == 1), listed))
+                    .Setup(x => x.TrackPackagesUpdateListed(It.Is<IReadOnlyList<Package>>(l => l.Count == 2), listed))
                     .Verifiable();
 
                 var service = Get<PackageUpdateService>();
