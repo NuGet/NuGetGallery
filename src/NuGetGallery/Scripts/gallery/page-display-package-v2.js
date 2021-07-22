@@ -28,8 +28,7 @@
         // If the deprecation information container has content, configure it as an expander.
         window.nuget.configureExpander("deprecation-content-container", "ChevronDown", null, "ChevronUp");
         configureExpanderWithEnterKeydown(deprecationContainer);
-    }
-    else {
+    } else {
         // If the container does not have content, remove its expander attributes
         expanderAttributes.forEach(attribute => deprecationContainer.removeAttr(attribute));
 
@@ -48,66 +47,89 @@
         });
     }
 
-    // Configure package manager copy buttons
-    function configureCopyButton(id) {
-        var copyButton = $('#' + id + '-button');
-        copyButton.popover({ trigger: 'manual' });
+    // Set up our state for the currently selected package manager.
+    var currentPackageManagerId = packageManagers[0];
+    var packageManagerSelector = $('.installation-instructions-dropdown');
 
-        copyButton.click(function () {
-            var text = $('#' + id + '-text').text().trim();
-            window.nuget.copyTextToClipboard(text, copyButton);
-            copyButton.popover('show');
-            //This is workaround for Narrator announce the status changes of copy button to achieve accessibility.
-            copyButton.attr('aria-pressed', 'true');
-            setTimeout(function () {
-                copyButton.popover('destroy');
-            }, 1000);
-            setTimeout(function () {
-                copyButton.attr('aria-pressed', 'false');
-            }, 1500);
-            window.nuget.sendMetric("CopyInstallCommand", 1, {
-                ButtonId: id,
-                PackageId: packageId,
-                PackageVersion: packageVersion
-            });
-        });
-    }
-
-    for (var i in packageManagers)
-    {
-        configureCopyButton(packageManagers[i]);
-    }
-
+    // Restore previously selected package manager and body tab.
     var storage = window['localStorage'];
-    if (storage) {
-        // set preferred installation instruction tab
-        var installationKey = 'preferred_tab';
+    var packageManagerStorageKey = 'preferred_package_manager';
+    var bodyStorageKey = 'preferred_body_tab';
 
-        // Restore preferred tab selection from localStorage.
-        var preferredInstallationTab = storage.getItem(installationKey);
-        if (preferredInstallationTab) {
-            $('#' + preferredInstallationTab).tab('show');
+    if (storage) {
+        // Restore preferred package manager selection from localStorage.
+        var preferredPackageManagerId = storage.getItem(packageManagerStorageKey);
+        if (preferredPackageManagerId) {
+            updatePackageManager(preferredPackageManagerId, true);
         }
 
-        // Make sure we save the user's preferred tab to localStorage.
-        $('.package-manager-tab').on('shown.bs.tab', function (e) {
-            storage.setItem(installationKey, e.target.id);
-        });
-
-        // set preferred body tab 
-        var bodyKey = 'preferred_body_tab';
-
         // Restore preferred body tab selection from localStorage.
-        var preferredBodyTab = storage.getItem(bodyKey);
+        var preferredBodyTab = storage.getItem(bodyStorageKey);
         if (preferredBodyTab) {
             $('#' + preferredBodyTab).tab('show');
         }
 
         // Make sure we save the user's preferred body tab to localStorage.
         $('.body-tab').on('shown.bs.tab', function (e) {
-            storage.setItem(bodyKey, e.target.id);
+            storage.setItem(bodyStorageKey, e.target.id);
         });
     }
+
+    packageManagerSelector.on('change', function (e) {
+        var newIndex = e.target.selectedIndex;
+        var newPackageManagerId = e.target[newIndex].value;
+
+        updatePackageManager(newPackageManagerId, false);
+
+        // Make sure we save the user's preferred package manager to localStorage.
+        if (storage) {
+            storage.setItem(packageManagerStorageKey, currentPackageManagerId);
+        }
+    });
+
+    // Used to switch installation instructions when a new package manager is selected 
+    function updatePackageManager(newPackageManagerId, updateSelector) {
+        var currentInstructions = $('#' + currentPackageManagerId + '-instructions');
+        var newInstructions = $('#' + newPackageManagerId + '-instructions');
+
+        // Ignore if the new instructions do not exist. This may happen if we restore
+        // a preferred package manager that has been renamed or removed. 
+        if (newInstructions.length === 0) {
+            return;
+        }
+
+        currentInstructions.addClass('hidden');
+        newInstructions.removeClass('hidden');
+
+        currentPackageManagerId = newPackageManagerId;
+
+        if (updateSelector) {
+            packageManagerSelector[0].value = preferredPackageManagerId;
+        }
+    }
+
+    // Configure package manager copy button
+    var copyButton = $('.installation-instructions button');
+    copyButton.popover({ trigger: 'manual' });
+
+    copyButton.click(function () {
+        var text = $('#' + currentPackageManagerId + '-text').text().trim();
+        window.nuget.copyTextToClipboard(text, copyButton);
+        copyButton.popover('show');
+        //This is workaround for Narrator announce the status changes of copy button to achieve accessibility.
+        copyButton.attr('aria-pressed', 'true');
+        setTimeout(function () {
+            copyButton.popover('destroy');
+        }, 1000);
+        setTimeout(function () {
+            copyButton.attr('aria-pressed', 'false');
+        }, 1500);
+        window.nuget.sendMetric("CopyInstallCommand", 1, {
+            ButtonId: currentPackageManagerId,
+            PackageId: packageId,
+            PackageVersion: packageVersion
+        });
+    });
 
     if (window.nuget.isGaAvailable()) {
         // TO-DO add telemetry events for when each tab is clicked, see https://github.com/nuget/nugetgallery/issues/8613

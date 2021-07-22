@@ -167,63 +167,40 @@
     }
 }
 
-@helper CommandTab(PackageManagerViewModel packageManager, bool active)
-{
-    <li role="presentation" class="@(active ? "active" : string.Empty)">
-        <a href="#@packageManager.Id" aria-expanded="@(active ? "true" : "false")"
-           id="@packageManager.Id-tab" class="package-manager-tab"
-           aria-selected="@(active ? "true" : "false")"
-           aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
-           title="Switch to tab panel which contains package installation command for @packageManager.Name">
-            @packageManager.Name
-        </a>
-    </li>
-}
-
 @helper CommandPanel(PackageManagerViewModel packageManager, bool active)
 {
     var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
-    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
-        <div>
-            <div class="install-script-row">
-                @{
-                    var lastIndex = packageManager.InstallPackageCommands.Length - 1;
-                    var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
-                }
-                @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
-                <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
-                <div class="copy-button">
-                    <!--In order to statisfy the requirement to announce button status both on NVDA/Narrator, other screen reader like NVDA will
-                        announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover 
-                        because of known issue(https://github.com/twbs/bootstrap/issues/18618).
-                        We add aria-pressed to indicate the whether button is pressed or not, which is workaround only for Narrator announce the status change of button
-                    -->
-                    <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
-                            data-toggle="popover" data-placement="bottom" data-content="Copied."
-                            aria-label="@packageManager.CopyLabel" aria-pressed="false" aria-live="polite" role="button">
-                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
-                    </button>
+    <div class="instructions-displayed @(active ? string.Empty : "hidden")" id="@packageManager.Id-instructions">
+        <div id="@packageManager.Id">
+            <div>
+                <div class="install-script-row">
+                    @{
+                        var lastIndex = packageManager.InstallPackageCommands.Length - 1;
+                        var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
+                    }
+                    @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
+                    <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
                 </div>
             </div>
-        </div>
 
-        @switch (packageManager.AlertLevel)
-        {
-            case AlertLevel.Info: 
-                @ViewHelpers.AlertInfo(
-                    @<text>
-                        @Html.Raw(packageManager.AlertMessage)
-                    </text>);
-                break;
-            case AlertLevel.Warning:
-                @ViewHelpers.AlertWarning(
-                    @<text>
-                        @Html.Raw(packageManager.AlertMessage)
-                    </text>);
-                break;
-            default:
-                break;
-        }
+            @switch (packageManager.AlertLevel)
+            {
+                case AlertLevel.Info:
+                    @ViewHelpers.AlertInfo(
+                        @<text>
+                            @Html.Raw(packageManager.AlertMessage)
+                        </text>);
+                    break;
+                case AlertLevel.Warning:
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            @Html.Raw(packageManager.AlertMessage)
+                        </text>);
+                    break;
+                default:
+                    break;
+            }
+        </div>   
     </div>
 }
 
@@ -482,25 +459,34 @@
                 }
                 @if (Model.Available)
                 {
-                    <div class="install-tabs">
-                        <ul class="nav nav-tabs" role="tablist">
-                            @{ var firstPackageManager = true; }
-                            @foreach (var packageManager in packageManagers)
-                            {
-                                @CommandTab(packageManager, active: firstPackageManager)
+                    <div class="installation-instructions">
+                        <div>
+                            <select name="installation-instructions" class="installation-instructions-dropdown">
+                                @foreach (var packageManager in packageManagers)
+                                {
+                                    <option value="@packageManager.Id">@packageManager.Name</option>
+                                }
+                            </select>
 
-                                firstPackageManager = false;
-                            }
-                        </ul>
-                        <div class="tab-content">
-                            @{ firstPackageManager = true; }
-                            @foreach (var packageManager in packageManagers)
-                            {
-                                @CommandPanel(packageManager, active: firstPackageManager)
-
-                                firstPackageManager = false;
-                            }
+                            <!--In order to statisfy the requirement to announce button status both on NVDA/Narrator, other screen reader like NVDA will
+                                announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover
+                                because of known issue (https://github.com/twbs/bootstrap/issues/18618).
+                                We add aria-pressed to indicate the whether button is pressed or not, which is workaround only for Narrator announce the status change of button
+                            -->
+                            <button class="btn btn-blue" type="button"
+                                    data-toggle="popover" data-placement="bottom" data-content="Copied."
+                                    aria-label="CopyLabel" aria-pressed="false" aria-live="polite" role="button">
+                                <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                            </button>
                         </div>
+
+                        @{ var firstPackageManager = true; }
+                        @foreach (var packageManager in packageManagers)
+                        {
+                            @CommandPanel(packageManager, active: firstPackageManager)
+
+                            firstPackageManager = false;
+                        }
                     </div>
                 }
             </div>
