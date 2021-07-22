@@ -112,5 +112,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsImageAllowlistEnabled() => throw new NotImplementedException();
 
         public bool IsDisplayBannerEnabled() => throw new NotImplementedException();
+
+        public bool IsDisplayNuGetPackageExplorerLinkEnabled() => throw new NotImplementedException();
     }
 }

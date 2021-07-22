@@ -999,10 +999,6 @@
                             &nbsp;(@Model.LatestSymbolsPackage.FileSize.ToUserFriendlyBytesLabel())
                         </li>
                     }
-                    <li class="no-clickonce">
-                        <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
-                        <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
-                    </li>
                 }
 
                 @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
@@ -1085,7 +1081,21 @@
                     </li>
                 }
 
-                @if (Model.IsFuGetLinksEnabled && !string.IsNullOrEmpty(Model.FuGetUrl))
+                @if (Model.CanDisplayNuGetPackageExplorerLink())
+                {
+                    var disclaimer = "nuget.info is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
+
+                    <li>
+                        <i class="ms-Icon ms-Icon--FabricFolderSearch" aria-hidden="true" aria-label="@disclaimer" title="@disclaimer"></i>
+                        <a href="@Model.NuGetPackageExplorerUrl" data-track="outbound-nugetpackageexplorer-url"
+                           aria-label="open in NuGet Package Explorer"
+                           title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow">
+                            Open in NuGet Package Explorer
+                        </a>
+                    </li>
+                }
+
+                @if (Model.CanDisplayFuGetLink())
                 {
                     var disclaimer = "fuget.org is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
 
@@ -1094,9 +1104,9 @@
                              aria-label="@disclaimer" title="@disclaimer"
                              src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
-                        <a href="@Model.FuGetUrl" data-track="outbound-repository-url"
+                        <a href="@Model.FuGetUrl" data-track="outbound-fuget-url"
                            aria-label="open in fuget.org explorer"
-                           title="Explore additional package info on fuget.org" rel="nofollow">
+                           title="Explore additional package info on fuget.org" target="_blank" rel="nofollow">
                             Open in FuGet Package Explorer
                         </a>
                     </li>
