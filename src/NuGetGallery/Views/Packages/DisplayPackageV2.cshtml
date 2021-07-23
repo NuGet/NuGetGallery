@@ -494,14 +494,25 @@
                 <ul class="nav nav-tabs" role="tablist">
                     @if (!Model.Deleted)
                     {
-                        <li role="presentation" class="active"><a href="#readme-tab" aria-controls="ReadMe" role="tab" data-toggle="tab" id="readme-body-tab" class="body-tab">README</a></li>
-                        <li role="presentation"><a href="#dependencies-tab" aria-controls="Dependencies" role="tab" data-toggle="tab" id="dependencies-body-tab" class="body-tab">Dependencies</a></li>
+                        <li role="presentation" class="active" id="show-readme-container">
+                            <a href="#readme-tab" aria-controls="readme-tab" role="tab" data-toggle="tab" id="readme-body-tab" class="body-tab">README</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#dependencies-tab" aria-controls="dependencies-tab" role="tab" data-toggle="tab" id="dependencies-body-tab" class="body-tab">Dependencies</a>
+                        </li>
                     }
-                    <li role="presentation"><a href="#usedby-tab" aria-controls="UsedBy" role="tab" data-toggle="tab" id="usedby-body-tab" class="body-tab">Used By</a></li>
-                    <li role="presentation"><a href="#versions-tab" aria-controls="Versions" role="tab" data-toggle="tab" id="versions-body-tab" class="body-tab">Versions</a></li>
+                    <li role="presentation">
+                        <a href="#usedby-tab" aria-controls="usedby-tab" role="tab" data-toggle="tab" id="usedby-body-tab" class="body-tab">Used By</a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#versions-tab" aria-controls="versions-tab" role="tab" data-toggle="tab" id="versions-body-tab" class="body-tab">Versions</a>
+                    </li>
+
                     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
                     {
-                        <li role="presentation"><a href="#releasenotes-tab" aria-controls="ReleaseNotes" role="tab" data-toggle="tab" id="release-body-tab" class="body-tab">Release Notes</a></li>
+                        <li role="presentation">
+                            <a href="#releasenotes-tab" aria-controls="releasenotes-tab" role="tab" data-toggle="tab" id="release-body-tab" class="body-tab">Release Notes</a>
+                        </li>
                     }
                 </ul>
             </div>

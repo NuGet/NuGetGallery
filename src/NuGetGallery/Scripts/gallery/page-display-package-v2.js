@@ -56,6 +56,14 @@
     var packageManagerStorageKey = 'preferred_package_manager';
     var bodyStorageKey = 'preferred_body_tab';
 
+    // The V3 registration API links to the display package page's README using
+    // the 'show-readme-container' URL fragment.
+    var restorePreferredBodyTab = true;
+    if (window.location.hash === '#show-readme-container') {
+        $('#readme-body-tab').focus();
+        restorePreferredBodyTab = false;
+    }
+
     if (storage) {
         // Restore preferred package manager selection from localStorage.
         var preferredPackageManagerId = storage.getItem(packageManagerStorageKey);
@@ -64,9 +72,11 @@
         }
 
         // Restore preferred body tab selection from localStorage.
-        var preferredBodyTab = storage.getItem(bodyStorageKey);
-        if (preferredBodyTab) {
-            $('#' + preferredBodyTab).tab('show');
+        if (restorePreferredBodyTab) {
+            var preferredBodyTab = storage.getItem(bodyStorageKey);
+            if (preferredBodyTab) {
+                $('#' + preferredBodyTab).tab('show');
+            }
         }
 
         // Make sure we save the user's preferred body tab to localStorage.
