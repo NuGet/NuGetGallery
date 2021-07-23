@@ -92,14 +92,14 @@
                 @ViewHelpers.PostLink(
                     this,
                     formId: "clear-content-cache-form",
+                    actionName: "ClearContentCache",
+                    controllerName: "Home",
+                    role: string.Empty,
+                    area: "Admin",
                     htmlContent: @<text>
                             <i class="ms-Icon ms-Icon--Refresh"></i>
                             <span>Clear Content Cache</span>
-                    </text>,
-             actionName: "ClearContentCache",
-             controllerName: "Home",
-             role: string.Empty,
-             area: "Admin")
+                    </text>)
             </h2>
             <p>
                 Clear Content Cache

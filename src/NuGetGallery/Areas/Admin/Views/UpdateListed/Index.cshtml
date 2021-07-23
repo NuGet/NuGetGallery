@@ -8,6 +8,8 @@
     <form>
         <textarea placeholder="Search for packages to unlist/relist (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
         <input type="button" value="Search" data-bind="click: search" />
+        <button type="button" class="btn btn-link" data-bind="click: selectListed">Select listed</button>
+        <button type="button" class="btn btn-link" data-bind="click: selectUnlisted">Select unlisted</button>
     </form>
 
     @using (Html.BeginForm("UpdateListed", "UpdateListed", new { area = "Admin" }, FormMethod.Post, new { id = "update-listed-form" }))
@@ -84,7 +86,7 @@
                         $self.selectAllState(false);
                         $self.searchResults.removeAll();
                         for (var i = 0; i < data.length; i++) {
-                            data[i].Selected = ko.observable(!!data[i].Listed);
+                            data[i].Selected = ko.observable(false);
                         }
                         $self.searchResults(data);
                     }
@@ -101,6 +103,24 @@
 
             this.toggleSelectAll = function (e) {
                 $self.selectAllState(!$self.selectAllState());
+                return true;
+            };
+
+            this.selectListed = function (e) {
+                ko.utils.arrayForEach($self.searchResults(), function (result) {
+                    if (result.Listed) {
+                        result.Selected(true);
+                    }
+                });
+                return true;
+            };
+
+            this.selectUnlisted = function (e) {
+                ko.utils.arrayForEach($self.searchResults(), function (result) {
+                    if (!result.Listed) {
+                        result.Selected(true);
+                    }
+                });
                 return true;
             };
 
