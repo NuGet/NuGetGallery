@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Services.Entities;
-using NuGetGallery.Auditing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -70,7 +70,7 @@ namespace NuGetGallery
 
                 await _entitiesContext.SaveChangesAsync();
 
-                await UpdatePackagesAsync(packages);
+                await UpdatePackagesAsync(packages, updateIndex: true);
 
                 transaction.Commit();
 
@@ -81,8 +81,6 @@ namespace NuGetGallery
                     await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(
                         package,
                         listed ? AuditedPackageAction.List : AuditedPackageAction.Unlist));
-
-                    _indexingService.UpdatePackage(package);
                 }
             }
         }

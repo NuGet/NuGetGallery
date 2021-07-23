@@ -29,10 +29,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             foreach (var queryPart in queryParts)
             {
                 var splitQuery = queryPart.Split(new[] { ' ', '/' }, StringSplitOptions.RemoveEmptyEntries);
-                if (spitQuery.Length == 1)
+                if (splitQuery.Length == 1)
                 {
                     // Don't make the same query twice.
-                    var id = spitQuery[0].Trim();
+                    var id = splitQuery[0].Trim();
                     if (!completedQueries.Add(id))
                     {
                         continue;
@@ -46,11 +46,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                             .OrderBy(p => NuGetVersion.Parse(p.NormalizedVersion)));
                     }
                 }
-                else if (spitQuery.Length == 2)
+                else if (splitQuery.Length == 2)
                 {
                     // Don't make the same query twice.
-                    var id = spitQuery[0].Trim();
-                    var version = spitQuery[1].Trim();
+                    var id = splitQuery[0].Trim();
+                    var version = splitQuery[1].Trim();
                     if (!completedQueries.Add(id + "/" + version))
                     {
                         continue;
