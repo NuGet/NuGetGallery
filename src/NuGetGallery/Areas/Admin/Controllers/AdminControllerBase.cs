@@ -28,7 +28,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var completedQueries = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var queryPart in queryParts)
             {
-                var spitQuery = queryPart.Split(new[] { ' ', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                var splitQuery = queryPart.Split(new[] { ' ', '/' }, StringSplitOptions.RemoveEmptyEntries);
                 if (spitQuery.Length == 1)
                 {
                     // Don't make the same query twice.
