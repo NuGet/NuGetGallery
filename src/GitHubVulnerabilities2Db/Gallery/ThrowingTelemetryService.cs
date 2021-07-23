@@ -291,6 +291,11 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
+        public void TrackPackagesUpdateListed(IReadOnlyList<Package> packages, bool listed)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackPackageUnlisted(Package package)
         {
             throw new NotImplementedException();
