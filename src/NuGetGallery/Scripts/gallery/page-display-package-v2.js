@@ -78,12 +78,20 @@
                 $('#' + preferredBodyTab).tab('show');
             }
         }
-
-        // Make sure we save the user's preferred body tab to localStorage.
-        $('.body-tab').on('shown.bs.tab', function (e) {
-            storage.setItem(bodyStorageKey, e.target.id);
-        });
     }
+
+    // Make sure we save the user's preferred body tab to localStorage.
+    $('.body-tab').on('shown.bs.tab', function (e) {
+        if (storage) {
+            storage.setItem(bodyStorageKey, e.target.id);
+        }
+
+        window.nuget.sendMetric("ShowDisplayPackageTab", 1, {
+            TabId: e.target.id,
+            PackageId: packageId,
+            PackageVersion: packageVersion
+        });
+    });
 
     packageManagerSelector.on('change', function (e) {
         var newIndex = e.target.selectedIndex;
@@ -93,8 +101,14 @@
 
         // Make sure we save the user's preferred package manager to localStorage.
         if (storage) {
-            storage.setItem(packageManagerStorageKey, currentPackageManagerId);
+            storage.setItem(packageManagerStorageKey, newPackageManagerId);
         }
+
+        window.nuget.sendMetric("ShowInstallCommand", 1, {
+            PackageManagerId: e.target.id,
+            PackageId: packageId,
+            PackageVersion: packageVersion
+        });
     });
 
     // Used to switch installation instructions when a new package manager is selected 
@@ -142,8 +156,6 @@
     });
 
     if (window.nuget.isGaAvailable()) {
-        // TO-DO add telemetry events for when each tab is clicked, see https://github.com/nuget/nugetgallery/issues/8613
-
         // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Repos area of the Used By section.
         $(".gh-link").on('click', function (elem) {
             if (!elem.delegateTarget.dataset.indexNumber) {
