@@ -105,7 +105,7 @@
         }
 
         window.nuget.sendMetric("ShowInstallCommand", 1, {
-            PackageManagerId: e.target.id,
+            PackageManagerId: newPackageManagerId,
             PackageId: packageId,
             PackageVersion: packageVersion
         });
