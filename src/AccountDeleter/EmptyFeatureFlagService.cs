@@ -66,6 +66,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsDisplayNuGetPackageExplorerLinkEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDisplayPackagePageV2Enabled(User user)
         {
             throw new NotImplementedException();
