@@ -225,27 +225,33 @@ namespace NuGetGallery
             this UrlHelper url,
             string id,
             string version,
-            bool relativeUrl = true)
+            bool relativeUrl = true,
+            bool preview = false)
         {
-            string normalized = (version != null) ? NuGetVersionFormatter.Normalize(version) : version;
+            var normalized = (version != null) ? NuGetVersionFormatter.Normalize(version) : version;
 
-            string result = GetRouteLink(
+            var result = GetRouteLink(
                 url,
                 RouteName.DisplayPackage,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", id },
-                    { "version", normalized }
+                    { "version", normalized },
+                    { "preview", preview ? "1" : null }
                 });
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
-        public static string Package(this UrlHelper url, Package package, bool relativeUrl = true)
+        public static string Package(
+            this UrlHelper url,
+            Package package,
+            bool relativeUrl = true,
+            bool preview = false)
         {
-            return url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl);
+            return url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl, preview);
         }
 
         public static string Package(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)

@@ -49,6 +49,7 @@ namespace NuGetGallery
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
         private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
         private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
+        private const string DisplayPackagePageV2PreviewFeatureName = GalleryPrefix + "DisplayPackagePageV2Preview";
         private const string DisplayPackagePageV2FeatureName = GalleryPrefix + "DisplayPackagePageV2";
         private const string ShowReportAbuseSafetyChanges = GalleryPrefix + "ShowReportAbuseSafetyChanges";
 
@@ -244,6 +245,11 @@ namespace NuGetGallery
         public bool AreEmbeddedReadmesEnabled(User user)
         {
             return _client.IsEnabled(EmbeddedReadmeFlightName, user, defaultValue: false);
+        }
+
+        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
+        {
+            return _client.IsEnabled(DisplayPackagePageV2PreviewFeatureName, user, defaultValue: false);
         }
 
         public bool IsDisplayPackagePageV2Enabled(User user) 

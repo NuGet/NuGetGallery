@@ -76,6 +76,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDisplayVulnerabilitiesEnabled()
         {
             throw new NotImplementedException();
