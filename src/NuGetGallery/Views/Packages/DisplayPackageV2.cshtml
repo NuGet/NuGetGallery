@@ -137,6 +137,10 @@
     }
 }
 
+@section Meta {
+    <meta name="description" content="@Model.ShortDescription">
+}
+
 @section SocialMeta {
     @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
     {
@@ -1056,7 +1060,7 @@
                                     <i class="ms-Icon ms-Icon--FabricFolderSearch" aria-hidden="true" aria-label="@disclaimer" title="@disclaimer"></i>
                                     <a href="@Model.NuGetPackageExplorerUrl" data-track="outbound-nugetpackageexplorer-url"
                                        aria-label="open in NuGet Package Explorer"
-                                       title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow">
+                                       title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow noreferrer">
                                         Open in NuGet Package Explorer
                                     </a>
                                 </li>
@@ -1073,15 +1077,14 @@
                                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
                                     <a href="@Model.FuGetUrl" data-track="outbound-fuget-url"
                                        aria-label="open in fuget.org explorer"
-                                       title="Explore additional package info on fuget.org" target="_blank" rel="nofollow">
+                                       title="Explore additional package info on fuget.org" target="_blank" rel="nofollow noreferrer">
                                         Open in FuGet Package Explorer
                                     </a>
                                 </li>
                             }
 
-                            <div class="support-links">
-                                @if (Model.CanReportAsOwner)
-                                {
+                            @if (Model.CanReportAsOwner)
+                            {
                                 <li>
                                     <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
                                     <a href="@Url.ReportPackage(Model)" title="Contact the NuGet team for help with your package">
@@ -1099,7 +1102,6 @@
                                     </a>
                                 </li>
                             }
-</div>
                         </ul>
                     </div>
 
@@ -1113,17 +1115,17 @@
                             </div>
                         </div>
 
-                        <ul class="list-unstyled owner-list">
-                            @if (!Model.Owners.Any())
-                            {
-                                @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
-                            }
-                            else
-                            {
-                                foreach (var owner in Model.Owners)
+                        @if (!Model.Owners.Any())
+                        {
+                            @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
+                        }
+                        else
+                        {
+                            <ul class="list-unstyled owner-list">
+                                @foreach (var owner in Model.Owners)
                                 {
                                     <li>
-                                        @if (!String.IsNullOrEmpty(owner.EmailAddress))
+                                        @if (!string.IsNullOrEmpty(owner.EmailAddress))
                                         {
                                             <a href="@Url.User(owner.Username)" title="@owner.Username">
                                                 @ViewHelpers.GravatarImage(
@@ -1138,8 +1140,10 @@
                                         </a>
                                     </li>
                                 }
-                            }
-                        </ul>
+                            </ul>
+                        }
+
+
                     </div>
                     
                     @if (!Model.Deleted)
@@ -1165,12 +1169,12 @@
                     {
                         var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
                         <p class="share-buttons">
-                            <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank">
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank" rel="nofollow noreferrer">
                                 <img width="24" height="24" alt="Share this package on Facebook"
                                      src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
                             </a>
-                            <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank">
+                            <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank" rel="nofollow noreferrer">
                                 <img width="24" height="24" alt="Tweet this package"
                                      src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
@@ -1190,8 +1194,6 @@
         </div>
     </div>
 </section>
-
-
 
 @section BottomScripts {
     @{
