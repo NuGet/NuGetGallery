@@ -159,14 +159,6 @@
     }
 }
 
-@helper VersionListDivider(int rowCount, bool versionsExpanded)
-{
-    if (rowCount == GalleryConstants.VisibleVersions + 1)
-    {
-        @:</tbody><tbody class="no-border collapse @(versionsExpanded ? "in" : string.Empty)" id="hidden-versions">
-    }
-}
-
 @helper CommandPanel(PackageManagerViewModel packageManager, bool active)
 {
     var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
@@ -501,9 +493,14 @@
                             <a href="#dependencies-tab" aria-controls="dependencies-tab" role="tab" data-toggle="tab" id="dependencies-body-tab" class="body-tab">Dependencies</a>
                         </li>
                     }
-                    <li role="presentation">
-                        <a href="#usedby-tab" aria-controls="usedby-tab" role="tab" data-toggle="tab" id="usedby-body-tab" class="body-tab">Used By</a>
-                    </li>
+
+                    @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
+                    {
+                        <li role="presentation">
+                            <a href="#usedby-tab" aria-controls="usedby-tab" role="tab" data-toggle="tab" id="usedby-body-tab" class="body-tab">Used By</a>
+                        </li>
+                    }
+
                     <li role="presentation">
                         <a href="#versions-tab" aria-controls="versions-tab" role="tab" data-toggle="tab" id="versions-body-tab" class="body-tab">Versions</a>
                     </li>
@@ -555,7 +552,6 @@
                                     {
                                         if (Model.CanDisplayPrivateMetadata)
                                         {
-                                            <h2>Dependencies</h2>
                                             <p>
                                                 An error occurred processing dependencies.
                                                 Your package can still be downloaded and installed, but dependencies cannot be shown.
@@ -740,20 +736,11 @@
                                         </tr>
                                     </thead>
                                     <tbody class="no-border">
-                                        @{
-                                            var rowCount = 0;
-                                            var versionsExpanded = Model
-                                                .PackageVersions
-                                                .Skip(GalleryConstants.VisibleVersions)
-                                                .Any(v => v.IsCurrent(Model));
-                                        }
                                         @foreach (var packageVersion in Model.PackageVersions)
                                         {
                                             if ((packageVersion.Available && packageVersion.Listed)
                                                 || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
                                             {
-                                                rowCount++;
-                                                @VersionListDivider(rowCount, versionsExpanded)
                                                 <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
                                                     <td tabindex="0">
                                                         <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
@@ -817,8 +804,6 @@
                                             }
                                             else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
                                             {
-                                                rowCount++;
-                                                @VersionListDivider(rowCount, versionsExpanded)
                                                 <tr class="deleted">
                                                     <td tabindex="0" class="version">
                                                         @packageVersion.Version
