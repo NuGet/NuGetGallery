@@ -239,6 +239,9 @@ namespace NuGetGallery
                 featureFlagService
                     .Setup(x => x.IsDisplayPackagePageV2Enabled(It.IsAny<User>()))
                     .Returns(false);
+                featureFlagService
+                    .Setup(x => x.IsDisplayPackagePageV2PreviewEnabled(It.IsAny<User>()))
+                    .Returns(false);
             }
 
             renameService = renameService ?? new Mock<IPackageRenameService>();
@@ -1167,9 +1170,21 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(true, "DisplayPackageV2")]
-            [InlineData(false, "DisplayPackage")]
-            public async Task DisplayPackageV2(bool isDisplayV2Enabled, String expectedViewName)
+            [InlineData(false, false, null, "DisplayPackage", false, false)]
+            [InlineData(false, false, "1", "DisplayPackage", false, false)]
+            [InlineData(false, true, null, "DisplayPackage", true, false)]
+            [InlineData(false, true, "1", "DisplayPackageV2", false, true)]
+            [InlineData(true, false, null, "DisplayPackageV2", false, false)]
+            [InlineData(true, false, "1", "DisplayPackageV2", false, false)]
+            [InlineData(true, true, null, "DisplayPackageV2", false, true)]
+            [InlineData(true, true, "1", "DisplayPackageV2", false, true)]
+            public async Task DisplayPackageV2(
+                bool enableV2,
+                bool enablePreview,
+                string previewParam,
+                string expectedViewName,
+                bool expectPreviewBanner,
+                bool expectSurveyBanner)
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -1198,23 +1213,35 @@ namespace NuGetGallery
                 };
 
                 var packages = new[] { package };
-                packageService.Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
+                packageService
+                    .Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
-                packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+                indexingService
+                    .Setup(i => i.GetLastWriteTime())
+                    .Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 featureFlag
                     .Setup(x => x.IsDisplayPackagePageV2Enabled(It.IsAny<User>()))
-                    .Returns(isDisplayV2Enabled);
+                    .Returns(enableV2);
+                featureFlag
+                    .Setup(x => x.IsDisplayPackagePageV2PreviewEnabled(It.IsAny<User>()))
+                    .Returns(enablePreview);
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", version: null);
+                var result = await controller.DisplayPackage("Foo", version: null, preview: previewParam);
 
                 // Assert
                 ResultAssert.IsView<DisplayPackageViewModel>(result, expectedViewName);
+
+                var view = (ViewResult)result;
+
+                Assert.Equal(expectPreviewBanner, view.ViewBag.ShowRedesignPreviewBanner);
+                Assert.Equal(expectSurveyBanner, view.ViewBag.ShowRedesignSurveyBanner);
             }
 
             [Theory]
