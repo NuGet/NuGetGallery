@@ -289,11 +289,11 @@
                             {
                                 var issuePluralString = Model.PackageValidationIssues.Count > 1 ? "all the issues" : "the issue";
                                 <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
-                             }
-                             else
-                             {
+                            }
+                            else
+                            {
                                 <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
-                             }
+                            }
                         </text>
                     )
                 }
@@ -523,7 +523,15 @@
                         @if (!Model.Deleted)
                         {
                             <div role="tabpanel" class="tab-pane active" id="readme-tab">
-                                @if (Model.ReadMeHtml != null)
+                                @if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
+                                {
+                                    @ViewHelpers.AlertWarning(
+                                        @<text>
+                                            The readme will become available once package validation has completed successfully.
+                                        </text>
+                                    )
+                                }
+                                else if (Model.ReadMeHtml != null)
                                 {
                                     <div id="readme-container">
                                         @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
@@ -539,7 +547,7 @@
                                         @Html.Raw(Model.ReadMeHtml)
                                     </div>
                                 }
-                                else if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
+                                else
                                 {
                                     if (Model.CanDisplayPrivateMetadata) 
                                     { 
