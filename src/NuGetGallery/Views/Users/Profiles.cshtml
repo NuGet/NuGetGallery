@@ -28,7 +28,7 @@
                     <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
                 </div>
             </div>
-            @if (User.IsAdministrator())
+            @if (AdminHelper.IsAdminPanelEnabled && User.IsAdministrator())
             {
                 <div class="additional-info">
                     <dl>
@@ -53,7 +53,7 @@
                     {
                         <a href="@(Model.UserIsOrganization ? Url.ManageMyOrganization(Model.Username) : Url.AccountSettings())" aria-label="Manage this account"><i class="ms-Icon ms-Icon--Edit ms-font-xl"></i></a>
                     }
-                    @if (User.IsAdministrator())
+                    @if (AdminHelper.IsAdminPanelEnabled && User.IsAdministrator())
                     {
                         var deleteUrl = Model.UserIsOrganization ? Url.AdminDeleteOrganization(Model.Username) : Url.AdminDeleteAccount(Model.Username);
                         <a href="@deleteUrl" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl" aria-hidden="true"></i></a>
