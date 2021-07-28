@@ -271,20 +271,28 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "SetLicenseReportVisibility", visible = false },
                 new { version = new VersionRouteConstraint() });
 
-            routes.MapRoute(
-                RouteName.PackageReflowAction,
-                "packages/manage/reflow",
-                new { controller = "Packages", action = nameof(PackagesController.Reflow) });
+            if (adminPanelEnabled)
+            {
+                routes.MapRoute(
+                    RouteName.PackageReflowAction,
+                    "packages/manage/reflow",
+                    new { controller = "Packages", action = nameof(PackagesController.Reflow) });
 
-            routes.MapRoute(
-                RouteName.PackageRevalidateAction,
-                "packages/manage/revalidate",
-                new { controller = "Packages", action = nameof(PackagesController.Revalidate) });
+                routes.MapRoute(
+                    RouteName.PackageRevalidateAction,
+                    "packages/manage/revalidate",
+                    new { controller = "Packages", action = nameof(PackagesController.Revalidate) });
 
-            routes.MapRoute(
-                RouteName.PackageRevalidateSymbolsAction,
-                "packages/manage/revalidate-symbols",
-                new { controller = "Packages", action = nameof(PackagesController.RevalidateSymbols) });
+                routes.MapRoute(
+                    RouteName.PackageRevalidateSymbolsAction,
+                    "packages/manage/revalidate-symbols",
+                    new { controller = "Packages", action = nameof(PackagesController.RevalidateSymbols) });
+
+                routes.MapRoute(
+                    RouteName.PackageDeleteAction,
+                    "packages/manage/delete",
+                    new { controller = "Packages", action = "Delete" });
+            }
 
             var packageVersionActionRoute = routes.MapRoute(
                 RouteName.PackageVersionAction,
@@ -296,11 +304,6 @@ namespace NuGetGallery
                 RouteName.PackageAction,
                 "packages/{id}/{action}",
                 new { controller = "Packages" });
-
-            var packageDeleteRoute = routes.MapRoute(
-                RouteName.PackageDeleteAction,
-                "packages/manage/delete",
-                new { controller = "Packages", action = "Delete" });
 
             var confirmationRequiredRoute = routes.MapRoute(
                 "ConfirmationRequired",
