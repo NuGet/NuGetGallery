@@ -1387,7 +1387,11 @@ namespace NuGetGallery
 
         public static string Admin(this UrlHelper url, bool relativeUrl = true)
         {
-            // TODO: change to something when admin panel is disabled?
+            if (!AdminHelper.IsAdminPanelEnabled)
+            {
+                throw new InvalidOperationException("Admin panel is disabled, can't produce a link to it");
+            }
+
             return GetActionLink(
                 url,
                 "Index",
