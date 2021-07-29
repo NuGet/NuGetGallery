@@ -488,13 +488,24 @@
   .body-tab-content {
     padding-top: 30px;
 
-    h1:first-child,
-    h2:first-child,
-    h3:first-child,
-    h4:first-child,
-    h5:first-child,
-    h6:first-child {
-      margin-top: 0px;
+    // The "README", "Used By", and "Dependencies" tabs can start with headers.
+    // which add additional whitespace between the tab and the content.
+    // Undo that whitespace.
+    #readme-tab, #usedby-tab {
+      h1:first-child,
+      h2:first-child,
+      h3:first-child,
+      h4:first-child,
+      h5:first-child,
+      h6:first-child {
+        margin-top: 0px;
+      }
+    }
+
+    #dependencies-tab {
+      li:first-child h4 {
+        margin-top: 0px;
+      }
     }
   }
 }
