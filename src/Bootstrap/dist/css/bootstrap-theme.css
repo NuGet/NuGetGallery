@@ -1441,7 +1441,6 @@ img.reserved-indicator-icon {
 }
 .page-package-details-v2 .installation-instructions .instructions-displayed {
   background-color: #FAF9F8;
-  font-family: 'Segoe UI';
   font-size: 14px;
 }
 .page-package-details-v2 .installation-instructions .instructions-displayed pre {
