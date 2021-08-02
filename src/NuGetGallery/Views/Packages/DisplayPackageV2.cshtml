@@ -844,7 +844,7 @@
                     }
                 </div>
             </div>
-            
+
             <aside aria-label="Package details info" class="col-sm-3 package-details-info">
                 <div class="sidebar-section">
                     <div class="row sidebar-headers">
@@ -875,8 +875,8 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <div class="sidebar-headers">About Package</div>
-                    <ul class="list-unstyled ms-Icon-ul sidebar-links links-first-section">
+                    <div class="sidebar-headers">About</div>
+                    <ul class="list-unstyled ms-Icon-ul sidebar-links">
                         <li>
                             <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
                             Last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
@@ -944,9 +944,7 @@
                                 </li>
                             }
                         }
-                    </ul>
-                    
-                    <ul class="list-unstyled ms-Icon-ul sidebar-links">
+
                         @if (Model.Available)
                         {
                             <li>
@@ -962,86 +960,6 @@
                                     &nbsp;(@Model.LatestSymbolsPackage.FileSize.ToUserFriendlyBytesLabel())
                                 </li>
                             }
-                        }
-
-                        @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
-                        {
-                            <li>
-                                <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                                <a href="@Url.ManagePackage(Model)">Manage package</a>
-                            </li>
-                        }
-                        @if (!Model.Deleted && hasSymbolsPackageAvailable && Model.CanDeleteSymbolsPackage)
-                        {
-                            <li>
-                                <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                                <a href="@Url.DeleteSymbolsPackage(Model)" class="delete">Delete symbols</a>
-                            </li>
-                        }
-
-                        @if (Model.Available && User.IsAdministrator())
-                        {
-                            <li>
-                                <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                                @ViewHelpers.PostLink(
-                                    this,
-                                    formId: "reflow-package-form",
-                                    linkText: "Reflow package",
-                                    actionName: "Reflow",
-                                    controllerName: "Packages",
-                                    role: "button",
-                                    formValues: new Dictionary<string, string>
-                                    {
-                                        { "id", Model.Id },
-                                        { "version", Model.Version },
-                                    })
-                            </li>
-                        }
-
-                        @if (!Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
-                        {
-                            <li>
-                                <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                                @ViewHelpers.PostLink(
-                                    this,
-                                    formId: "revalidate-package-form",
-                                    linkText: "Revalidate package",
-                                    actionName: "Revalidate",
-                                    controllerName: "Packages",
-                                    role: string.Empty,
-                                    formValues: new Dictionary<string, string>
-                                    {
-                                        { "id", Model.Id },
-                                        { "version", Model.Version },
-                                    })
-                            </li>
-
-                            if (Model.LatestSymbolsPackage != null)
-                            {
-                                <li>
-                                    <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                                    @ViewHelpers.PostLink(
-                                        this,
-                                        formId: "revalidate-symbols-form",
-                                        linkText: "Revalidate symbols",
-                                        actionName: "RevalidateSymbols",
-                                        controllerName: "Packages",
-                                        role: string.Empty,
-                                        formValues: new Dictionary<string, string>
-                                        {
-                                            { "id", Model.Id },
-                                            { "version", Model.Version },
-                                        })
-                                </li>
-                            }
-                        }
-
-                        @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
-                        {
-                            <li>
-                                <i class="ms-Icon ms-Icon--Health" aria-hidden="true"></i>
-                                <a href="@Url.ViewValidations(Model)">View validations</a>
-                            </li>
                         }
 
                         @if (Model.CanDisplayNuGetPackageExplorerLink())
@@ -1075,17 +993,7 @@
                             </li>
                         }
 
-                        @if (Model.CanReportAsOwner)
-                        {
-                            <li>
-                                <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
-                                <a href="@Url.ReportPackage(Model)" title="Contact the NuGet team for help with your package">
-                                    Contact support
-                                </a>
-                            </li>
-                        }
-
-                        else if (Model.Available)
+                        @if (!Model.CanReportAsOwner && Model.Available)
                         {
                             <li class="report-link">
                                 <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
@@ -1096,6 +1004,104 @@
                         }
                     </ul>
                 </div>
+
+                @if (Model.CanDisplayPrivateMetadata)
+                {
+                    <div class="sidebar-section">
+                        <div class="sidebar-headers">Manage</div>
+                        <ul class="list-unstyled ms-Icon-ul sidebar-links">
+                            @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
+                            {
+                                <li>
+                                    <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                    <a href="@Url.ManagePackage(Model)">Manage package</a>
+                                </li>
+                            }
+                            @if (!Model.Deleted && hasSymbolsPackageAvailable && Model.CanDeleteSymbolsPackage)
+                            {
+                                <li>
+                                    <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                                    <a href="@Url.DeleteSymbolsPackage(Model)" class="delete">Delete symbols</a>
+                                </li>
+                            }
+
+                            @if (Model.Available && User.IsAdministrator())
+                            {
+                                <li>
+                                    <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                                    @ViewHelpers.PostLink(
+                                        this,
+                                        formId: "reflow-package-form",
+                                        linkText: "Reflow package",
+                                        actionName: "Reflow",
+                                        controllerName: "Packages",
+                                        role: "button",
+                                        formValues: new Dictionary<string, string>
+                                        {
+                                            { "id", Model.Id },
+                                            { "version", Model.Version },
+                                        })
+                                </li>
+                            }
+
+                            @if (!Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                            {
+                                <li>
+                                    <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                                    @ViewHelpers.PostLink(
+                                        this,
+                                        formId: "revalidate-package-form",
+                                        linkText: "Revalidate package",
+                                        actionName: "Revalidate",
+                                        controllerName: "Packages",
+                                        role: string.Empty,
+                                        formValues: new Dictionary<string, string>
+                                        {
+                                            { "id", Model.Id },
+                                            { "version", Model.Version },
+                                        })
+                                </li>
+
+                                if (Model.LatestSymbolsPackage != null)
+                                {
+                                    <li>
+                                        <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                                        @ViewHelpers.PostLink(
+                                            this,
+                                            formId: "revalidate-symbols-form",
+                                            linkText: "Revalidate symbols",
+                                            actionName: "RevalidateSymbols",
+                                            controllerName: "Packages",
+                                            role: string.Empty,
+                                            formValues: new Dictionary<string, string>
+                                            {
+                                                { "id", Model.Id },
+                                                { "version", Model.Version },
+                                            })
+                                    </li>
+                                }
+                            }
+
+                            @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                            {
+                                <li>
+                                    <i class="ms-Icon ms-Icon--Health" aria-hidden="true"></i>
+                                    <a href="@Url.ViewValidations(Model)">View validations</a>
+                                </li>
+                            }
+
+                            @if (Model.CanReportAsOwner)
+                            {
+                                <li>
+                                    <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
+                                    <a href="@Url.ReportPackage(Model)" title="Contact the NuGet team for help with your package">
+                                        Contact support
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
 
                 <div class="sidebar-section">
                     <div class="row sidebar-headers">
