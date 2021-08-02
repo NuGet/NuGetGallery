@@ -1439,13 +1439,18 @@ img.reserved-indicator-icon {
   border-top: 0px;
   border-right: 0px;
 }
-.page-package-details-v2 .installation-instructions .instructions-displayed {
+.page-package-details-v2 .installation-instructions .installation-instruction {
   background-color: #FAF9F8;
   font-size: 14px;
 }
-.page-package-details-v2 .installation-instructions .instructions-displayed pre {
+.page-package-details-v2 .installation-instructions .installation-instruction pre {
   background-color: #FAF9F8;
   border: 0px;
+  margin-bottom: 0px;
+  width: 100%;
+}
+.page-package-details-v2 .installation-instructions .installation-instruction .alert {
+  margin-top: 0px;
 }
 .page-package-details-v2 button {
   width: 32px;
@@ -1633,46 +1638,6 @@ img.reserved-indicator-icon {
   font-weight: 600;
   text-decoration: underline;
 }
-.page-package-details-v2 .install-tabs .tab-content .tab-pane > div {
-  display: table;
-  height: 1px;
-}
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row {
-  display: table-row;
-  height: 100%;
-}
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .install-script {
-  display: table-cell;
-  background-color: #002440;
-  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
-  font-size: 1em;
-  color: #fff;
-  width: 100%;
-  max-width: 1px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  border-color: #002440;
-  border-style: solid;
-  border-width: 1px 0 1px 1px;
-  -webkit-user-select: all;
-  -moz-user-select: all;
-  -ms-user-select: all;
-  user-select: all;
-  vertical-align: middle;
-  word-break: break-word;
-}
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
-  height: 100%;
-}
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
-  height: 100%;
-  min-height: 42px;
-  line-height: 1.5;
-}
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .alert {
-  margin: 0;
-  width: 100%;
-}
 .page-package-details-v2 .body-tabs .nav-tabs > li.active > a {
   border-bottom-color: #0078D4;
   border-bottom-width: 2px;
@@ -1706,6 +1671,9 @@ img.reserved-indicator-icon {
 }
 .page-package-details-v2 .body-tab-content #dependencies-tab li:first-child h4 {
   margin-top: 0px;
+}
+.page-package-details-v2 .body-tab-content #readme-tab img {
+  max-width: 100%;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;
