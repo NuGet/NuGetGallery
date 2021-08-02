@@ -1665,6 +1665,10 @@ img.reserved-indicator-icon {
 .page-package-details-v2 .body-tab-content #usedby-tab h6:first-child {
   margin-top: 0px;
 }
+.page-package-details-v2 .body-tab-content #readme-tab div.alert:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab div.alert:first-child {
+  margin-top: 0px;
+}
 .page-package-details-v2 .body-tab-content #dependencies-tab li:first-child h4 {
   margin-top: 0px;
 }
