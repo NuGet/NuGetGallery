@@ -682,6 +682,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 doc.Summary = null;
                 doc.Tags = null;
                 doc.Authors = null;
+                doc.Owners = null;
 
                 var response = Target.V3FromSearch(
                     _v3Request,
@@ -695,6 +696,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal(string.Empty, result.Summary);
                 Assert.Empty(result.Tags);
                 Assert.Equal(string.Empty, Assert.Single(result.Authors));
+                Assert.Empty(result.Owners);
             }
 
             [Fact]
@@ -884,6 +886,10 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""authors"": [
         ""Microsoft""
       ],
+      ""owners"": [
+        ""Microsoft"",
+        ""azure-sdk""
+      ],
       ""totalDownloads"": 1001,
       ""verified"": true,
       ""packageTypes"": [
@@ -1057,6 +1063,10 @@ namespace NuGet.Services.AzureSearch.SearchService
       ],
       ""authors"": [
         ""Microsoft""
+      ],
+      ""owners"": [
+        ""Microsoft"",
+        ""azure-sdk""
       ],
       ""totalDownloads"": 1001,
       ""verified"": true,

@@ -64,6 +64,10 @@ namespace NuGet.Services.AzureSearch.SearchService
         [JsonPropertyName("authors")]
         public string[] Authors { get; set; }
 
+        [JsonProperty("owners")]
+        [JsonPropertyName("owners")]
+        public string[] Owners { get; set; }
+
         [JsonProperty("totalDownloads")]
         [JsonPropertyName("totalDownloads")]
         public long TotalDownloads { get; set; }

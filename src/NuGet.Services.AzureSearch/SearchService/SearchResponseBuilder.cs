@@ -377,6 +377,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 ProjectUrl = result.ProjectUrl,
                 Tags = result.Tags ?? Array.Empty<string>(),
                 Authors = new[] { result.Authors ?? string.Empty },
+                Owners = result.Owners ?? Array.Empty<string>(),
                 TotalDownloads = AuxiliaryData.GetTotalDownloadCount(result.PackageId),
                 Verified = AuxiliaryData.IsVerified(result.PackageId),
                 PackageTypes = GetV3SearchPackageTypes(result),
