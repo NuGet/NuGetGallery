@@ -68,7 +68,7 @@ namespace NuGetGallery
                 package.EmbeddedLicenseType == EmbeddedLicenseFileType.Markdown && 
                 licenseFileContents != null)
             {
-                viewModel.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(licenseFileContents)?.Content;
+                viewModel.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(licenseFileContents);
             }
 
             return viewModel;

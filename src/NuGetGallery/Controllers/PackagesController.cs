@@ -658,7 +658,7 @@ namespace NuGetGallery
                 packageMetadata.LicenseMetadata?.Type == LicenseType.File &&
                 Path.GetExtension(license).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
             {
-                model.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(packageContentData.LicenseFileContents, incrementHeadersBy: 2)?.Content;
+                model.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(packageContentData.LicenseFileContents, incrementHeadersBy: 2);
             }
 
             model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;

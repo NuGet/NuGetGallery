@@ -15,6 +15,6 @@ namespace NuGetGallery
         public IReadOnlyCollection<string> LicenseNames { get; set; }
         public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
         public string LicenseFileContents { get; set; }
-        public string LicenseFileContentsHtml { get; set; }
+        public RenderedMarkdownResult LicenseFileContentsHtml { get; set; }
     }
 }

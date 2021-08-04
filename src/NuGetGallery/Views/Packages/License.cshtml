@@ -68,9 +68,14 @@
                     <div class="common-licenses">
                         @if (Model.LicenseFileContentsHtml != null)
                         {
-                            @Html.Raw(Model.LicenseFileContentsHtml)
-                        } 
-                        else 
+                            if (Model.LicenseFileContentsHtml.ImageSourceDisallowed)
+                            {
+                                @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>)
+
+                            }
+                            @Html.Raw(Model.LicenseFileContentsHtml.Content)
+                        }
+                        else
                         {
                             <pre class="license-file-contents custom-license-container">@Model.LicenseFileContents</pre>
                         }
