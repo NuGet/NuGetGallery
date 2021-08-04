@@ -135,7 +135,7 @@
             <div class="verify-package-field common-licenses">
                 <label class="verify-package-field-heading">License file</label>
                 <!-- ko if: $data.LicenseFileContentsHtml -->
-                <span data-bind="html: $data.LicenseFileContentsHtml"></span>
+                <div class="license-html-file-container data-bind="html: $data.LicenseFileContentsHtml"></div>
                 <!-- /ko -->
                 <!-- ko ifnot: $data.LicenseFileContentsHtml -->
                 <pre class="license-file-contents custom-license-container" data-bind="text: $data.LicenseFileContents"></pre>
