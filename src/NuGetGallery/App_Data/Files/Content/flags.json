@@ -25,6 +25,7 @@
     "NuGetGallery.DisplayVulnerabilities": "Enabled",
     "NuGetGallery.ManagePackagesVulnerabilities": "Enabled",
     "NuGetGallery.DisplayFuGetLinks": "Enabled",
+    "NuGetGallery.DisplayNuGetPackageExplorerLink": "Enabled",
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
     "NuGetGallery.EmbeddedIcons": "Enabled",
     "NuGetGallery.MarkdigMdRendering": "Enabled",
@@ -99,6 +100,12 @@
     },
     "NuGetGallery.DisplayPackagePageV2": {
       "All": false,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DisplayPackagePageV2Preview": {
+      "All": true,
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []

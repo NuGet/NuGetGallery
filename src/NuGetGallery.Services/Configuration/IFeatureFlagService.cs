@@ -78,6 +78,11 @@ namespace NuGetGallery
         bool IsDisplayFuGetLinksEnabled();
 
         /// <summary>
+        /// Whether or not a nuget.info (NuGet Package Explorer) link is visible on a package's details page.
+        /// </summary>
+        bool IsDisplayNuGetPackageExplorerLinkEnabled();
+
+        /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.
         /// </summary>
         bool AreEmbeddedIconsEnabled(User user);
@@ -172,6 +177,11 @@ namespace NuGetGallery
         /// Whether the user is able to publish the package with an embedded readme file.
         /// </summary>
         bool AreEmbeddedReadmesEnabled(User user);
+
+        /// <summary>
+        /// Whether the preview of the new design of the display package page is enabled.
+        /// </summary>
+        bool IsDisplayPackagePageV2PreviewEnabled(User user);
 
         /// <summary>
         /// Whether the new design of the display package page is enabled.

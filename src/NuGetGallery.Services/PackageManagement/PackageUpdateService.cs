@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Services.Entities;
-using NuGetGallery.Auditing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -32,6 +32,59 @@ namespace NuGetGallery
             _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
 
+        public async Task UpdateListedInBulkAsync(IReadOnlyList<Package> packages, bool listed)
+        {
+            if (packages == null || !packages.Any())
+            {
+                throw new ArgumentException("At least one package must be provided.");
+            }
+
+            foreach (var package in packages)
+            {
+                if (package.PackageStatusKey == PackageStatus.Deleted)
+                {
+                    throw new ArgumentException("A deleted package cannot have its listed status changed.");
+                }
+
+                if (package.PackageStatusKey == PackageStatus.FailedValidation)
+                {
+                    throw new ArgumentException("A package that failed validation cannot have its listed status changed.");
+                }
+            }
+
+            var registration = packages.First().PackageRegistration;
+            if (packages.Select(p => p.PackageRegistrationKey).Distinct().Count() > 1)
+            {
+                throw new ArgumentException("All packages to change the listing status of must have the same ID.", nameof(packages));
+            }
+
+            using (var strategy = new SuspendDbExecutionStrategy())
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+            {
+                foreach (var package in packages)
+                {
+                    package.Listed = listed;
+                }
+
+                await _packageService.UpdateIsLatestAsync(registration, commitChanges: false);
+
+                await _entitiesContext.SaveChangesAsync();
+
+                await UpdatePackagesAsync(packages, updateIndex: true);
+
+                transaction.Commit();
+
+                _telemetryService.TrackPackagesUpdateListed(packages, listed);
+
+                foreach (var package in packages)
+                {
+                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(
+                        package,
+                        listed ? AuditedPackageAction.List : AuditedPackageAction.Unlist));
+                }
+            }
+        }
+
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true, bool updateIndex = true)
         {
             if (package == null)
@@ -46,12 +99,12 @@ namespace NuGetGallery
 
             if (package.PackageStatusKey == PackageStatus.Deleted)
             {
-                throw new InvalidOperationException("A deleted package should never be listed!");
+                throw new InvalidOperationException("A deleted package should never be listed.");
             }
 
             if (package.PackageStatusKey == PackageStatus.FailedValidation)
             {
-                throw new InvalidOperationException("A package that failed validation should never be listed!");
+                throw new InvalidOperationException("A package that failed validation should never be listed.");
             }
 
             package.Listed = true;
