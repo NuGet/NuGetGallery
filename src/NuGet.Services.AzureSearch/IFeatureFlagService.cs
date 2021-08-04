@@ -8,5 +8,7 @@ namespace NuGet.Services.AzureSearch
         bool IsPopularityTransferEnabled();
 
         bool IsDeepPagingDisabled();
+
+        bool IsV3OwnersPropertyEnabled();
     }
 }
