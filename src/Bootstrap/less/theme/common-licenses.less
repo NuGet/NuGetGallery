@@ -4,7 +4,14 @@
         word-break: normal;
     }
 
-    .custom-license-container {
+    .custom-license-container, .license-file-html-container{
+        display: block;
+        padding: 10.5px;
+        background-color: @pre-bg;
+        border: 1px solid #ccc;
+        word-break: normal;
         margin-bottom: @default-margin-bottom;
+        overflow: auto;
+        max-height: 450px;
     }
 }
