@@ -334,6 +334,11 @@ img.reserved-indicator-icon {
 .sortable {
   cursor: pointer;
 }
+@media (max-width: 767.9px) {
+  .hidden-xs {
+    display: none !important;
+  }
+}
 .modal-backdrop.in {
   opacity: 0.8 !important;
   position: fixed;
@@ -644,8 +649,31 @@ img.reserved-indicator-icon {
 #readme-less img {
   max-width: 100%;
 }
+#readme-less ul.contains-task-list,
+#readme-less li.task-list-item {
+  list-style-type: none;
+}
 #readme-more img {
   max-width: 100%;
+}
+#readme-more ul.contains-task-list,
+#readme-more li.task-list-item {
+  list-style-type: none;
+}
+#readme-preview {
+  padding-top: 0.25em;
+}
+#readme-preview ul.contains-task-list,
+#readme-preview li.task-list-item {
+  list-style-type: none;
+}
+#edit-markdown {
+  padding-top: 3em;
+  padding-bottom: 3em;
+}
+#preview-html {
+  padding-top: 3em;
+  padding-bottom: 3em;
 }
 .user-package-list .manage-package-listing .package-icon {
   max-height: 2em;
@@ -1261,14 +1289,59 @@ img.reserved-indicator-icon {
 .page-package-details-v2 tr {
   border-bottom: 1px solid lightgray;
 }
+.page-package-details-v2 .package-header {
+  margin-bottom: 35px;
+}
 .page-package-details-v2 .package-title {
-  margin-bottom: 24px;
+  margin-bottom: 30px;
+}
+.page-package-details-v2 .package-title h1 .title {
+  font-size: 32px;
+  margin-top: 40px;
+  font-weight: 400;
+  margin-right: 18px;
+}
+.page-package-details-v2 .package-title h1 .version-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: #666666;
+  margin-right: 14px;
+  vertical-align: middle;
+}
+.page-package-details-v2 .package-title h1 .package-icon {
+  height: 32px;
+  width: 32px;
+  margin-top: 8px;
+  margin-right: 12px;
+}
+.page-package-details-v2 .package-title h1 .prefix-reserve-title {
+  background-color: #F3F2F1;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 100px;
+  vertical-align: middle;
+}
+.page-package-details-v2 .package-title h1 .prefix-reserve-title .reserved-indicator {
+  width: 18px;
+  margin-right: 5px;
+  margin-left: 2px;
+}
+.page-package-details-v2 .package-title h1 .prefix-reserve-title .prefix-reserve-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: #2F6FA7;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  margin-right: 10px;
 }
 .page-package-details-v2 .package-title div {
   margin-top: 2px;
-}
-.page-package-details-v2 .package-title .reserved-indicator {
-  width: 25px;
 }
 .page-package-details-v2 .deprecation-container .deprecation-expander {
   display: -webkit-box;
@@ -1355,6 +1428,41 @@ img.reserved-indicator-icon {
   margin-top: 15px;
   margin-bottom: 15px;
 }
+.page-package-details-v2 .installation-instructions {
+  background-color: #F3F2F1;
+}
+.page-package-details-v2 .installation-instructions .installation-instructions-dropdown {
+  font-size: 14px;
+  background-color: #F3F2F1;
+  height: 31px;
+  border-left: 0px;
+  border-top: 0px;
+  border-right: 0px;
+}
+.page-package-details-v2 .installation-instructions .installation-instruction {
+  background-color: #FAF9F8;
+  font-size: 14px;
+}
+.page-package-details-v2 .installation-instructions .installation-instruction pre {
+  background-color: #FAF9F8;
+  border: 0px;
+  margin-bottom: 0px;
+  width: 100%;
+}
+.page-package-details-v2 .installation-instructions .installation-instruction .alert {
+  margin-top: 0px;
+}
+.page-package-details-v2 button {
+  width: 32px;
+  height: 32px;
+  float: right;
+  padding: 0px;
+}
+.page-package-details-v2 button .ms-Icon--Copy {
+  color: #FFFFFF;
+  width: 16px;
+  height: 16px;
+}
 .page-package-details-v2 .package-details-main {
   overflow-wrap: break-word;
   word-wrap: break-word;
@@ -1367,12 +1475,8 @@ img.reserved-indicator-icon {
   padding-right: 0;
   text-align: right;
 }
-.page-package-details-v2 .package-details-main .package-icon-cell .package-icon {
-  padding-left: 6px;
-  padding-right: 6px;
-}
 .page-package-details-v2 .package-details-info .ms-Icon-ul li {
-  margin-bottom: 15px;
+  margin-bottom: 18px;
 }
 .page-package-details-v2 .package-details-info .ms-Icon-ul img.icon {
   position: absolute;
@@ -1381,8 +1485,46 @@ img.reserved-indicator-icon {
   height: 16px;
   margin-top: 3px;
 }
+.page-package-details-v2 .package-details-info .sidebar-headers {
+  font-size: 16px;
+  font-weight: 600;
+  color: #666666;
+  margin-bottom: 14px;
+}
+.page-package-details-v2 .package-details-info .sidebar-links {
+  font-size: 16px;
+}
+.page-package-details-v2 .package-details-info .title-links {
+  font-size: 14px;
+  font-weight: 400;
+  padding-top: 2px;
+}
+@media (min-width: 992px) {
+  .page-package-details-v2 .package-details-info .title-links a {
+    float: right !important;
+  }
+}
+.page-package-details-v2 .package-details-info .sidebar-section {
+  margin-top: 32px;
+}
+.page-package-details-v2 .package-details-info .download-info .download-info-row {
+  margin-bottom: 15px;
+}
+.page-package-details-v2 .package-details-info .download-info .download-info-header {
+  font-size: 14px;
+  font-weight: 400;
+  color: #666666;
+  margin-right: 12px;
+}
+.page-package-details-v2 .package-details-info .download-info .download-info-content {
+  font-size: 16px;
+  font-weight: 600;
+}
+.page-package-details-v2 .owner-list {
+  margin-bottom: 40px;
+}
 .page-package-details-v2 .owner-list li {
-  margin-bottom: 8px;
+  margin-bottom: 14px;
   display: block;
   overflow: hidden;
   white-space: nowrap;
@@ -1390,6 +1532,11 @@ img.reserved-indicator-icon {
 }
 .page-package-details-v2 .owner-list img {
   margin-right: 8px;
+  border-radius: 5px;
+}
+.page-package-details-v2 .report-link i {
+  color: #BE0151;
+  font-weight: bold;
 }
 .page-package-details-v2 .share-buttons img {
   margin-right: 8px;
@@ -1487,51 +1634,52 @@ img.reserved-indicator-icon {
   font-weight: 600;
   text-decoration: underline;
 }
-.page-package-details-v2 .install-tabs .tab-content .tab-pane > div {
-  display: table;
-  height: 1px;
+.page-package-details-v2 .body-tabs .nav-tabs > li.active > a {
+  border-bottom-color: #0078D4;
+  border-bottom-width: 2px;
+  font-weight: bold;
+  margin-bottom: -1px;
 }
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row {
-  display: table-row;
-  height: 100%;
+.page-package-details-v2 .body-tabs .nav-tabs > li > a {
+  border-left: 0px;
+  border-right: 0px;
+  border-top: 0px;
+  font-size: 14px;
+  font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #323130;
 }
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .install-script {
-  display: table-cell;
-  background-color: #002440;
-  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
-  font-size: 1em;
-  color: #fff;
-  width: 100%;
-  max-width: 1px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  border-color: #002440;
-  border-style: solid;
-  border-width: 1px 0 1px 1px;
-  -webkit-user-select: all;
-  -moz-user-select: all;
-  -ms-user-select: all;
-  user-select: all;
-  vertical-align: middle;
-  word-break: break-word;
+.page-package-details-v2 .body-tab-content {
+  padding-top: 30px;
 }
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
-  height: 100%;
+.page-package-details-v2 .body-tab-content #readme-tab h1:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h1:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h2:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h2:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h3:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h3:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h4:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h4:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h5:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h5:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h6:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h6:first-child {
+  margin-top: 0px;
 }
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
-  height: 100%;
-  min-height: 42px;
-  line-height: 1.5;
+.page-package-details-v2 .body-tab-content #readme-tab div.alert:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab div.alert:first-child {
+  margin-top: 0px;
 }
-.page-package-details-v2 .install-tabs .tab-content .tab-pane .alert {
-  margin: 0;
-  width: 100%;
+.page-package-details-v2 .body-tab-content #dependencies-tab li:first-child h4 {
+  margin-top: 0px;
+}
+.page-package-details-v2 .body-tab-content #readme-tab img {
+  max-width: 100%;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
 .page-edit-package .readme-tabs {
-  margin-top: 40px;
+  margin-top: 0.5em;
 }
 .page-edit-package .readonly {
   display: none;
@@ -1624,7 +1772,7 @@ img.reserved-indicator-icon {
   left: 377px;
   top: 10px;
   float: left;
-  width: 200px;
+  width: 230px;
 }
 .page-home .circuit-board .circuit-board-pd.triangle:after {
   left: 20px;

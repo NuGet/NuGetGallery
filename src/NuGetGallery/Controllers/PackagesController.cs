@@ -67,6 +67,20 @@ namespace NuGetGallery
             ReportPackageReason.Other
         };
 
+        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseWithSafetyReasons = new[]
+        {
+            ReportPackageReason.ViolatesALicenseIOwn,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.HasABugOrFailedToInstall,
+            ReportPackageReason.ChildSexualExploitationOrAbuse,
+            ReportPackageReason.TerrorismOrViolentExtremism,
+            ReportPackageReason.HateSpeech,
+            ReportPackageReason.ImminentHarm,
+            ReportPackageReason.RevengePorn,
+            ReportPackageReason.OtherNudityOrPornography,
+            ReportPackageReason.Other
+        };
+
         private static readonly IReadOnlyList<ReportPackageReason> ReportMyPackageReasons = new[]
         {
             ReportPackageReason.ContainsPrivateAndConfidentialData,
@@ -518,7 +532,7 @@ namespace NuGetGallery
                 {
                     var version = nuspec.GetVersion().ToNormalizedString();
                     _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
-                    return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(Strings.UploadPackage_IdNamespaceConflict) });
+                    return Json(HttpStatusCode.Conflict, new[] { new JsonValidationMessage(new UploadPackageIdNamespaceConflict()) });
                 }
                 else if (result == PermissionsCheckResult.OwnerlessReservedNamespaceFailure)
                 {
@@ -858,7 +872,7 @@ namespace NuGetGallery
             => new HttpStatusCodeWithHeadersResult(HttpStatusCode.MethodNotAllowed, new NameValueCollection() { { "allow", "GET" } });
 
         [HttpGet]
-        public virtual async Task<ActionResult> DisplayPackage(string id, string version)
+        public virtual async Task<ActionResult> DisplayPackage(string id, string version, string preview = null)
         {
             // Attempt to normalize the version but allow version strings that are not actually SemVer strings. For
             // example, "absoluteLatest" is allowed as the version string as a reference to the absolute latest version
@@ -923,6 +937,7 @@ namespace NuGetGallery
             model.IsPackageDeprecationEnabled = isPackageDeprecationEnabled;
             model.IsPackageVulnerabilitiesEnabled = isPackageVulnerabilitiesEnabled;
             model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
+            model.IsNuGetPackageExplorerLinkEnabled = _featureFlagService.IsDisplayNuGetPackageExplorerLinkEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
            
@@ -1019,7 +1034,28 @@ namespace NuGetGallery
             }
             ViewBag.FacebookAppID = _config.FacebookAppId;
 
-            if (_featureFlagService.IsDisplayPackagePageV2Enabled(GetCurrentUser())) 
+            var enableRedesign = _featureFlagService.IsDisplayPackagePageV2Enabled(currentUser);
+
+            if (_featureFlagService.IsDisplayPackagePageV2PreviewEnabled(currentUser))
+            {
+                if (!string.IsNullOrEmpty(preview))
+                {
+                    enableRedesign = true;
+                }
+
+                // If the user is on the current design, show the banner to preview the redesign.
+                // If the user is on the preview design, show the banner that links to the feedback survey.
+                ViewBag.ShowRedesignPreviewBanner = !enableRedesign;
+                ViewBag.ShowRedesignSurveyBanner = enableRedesign;
+                ViewBag.ShowRedesignUrl = Url.Package(package, preview: true);
+            }
+            else
+            {
+                ViewBag.ShowRedesignPreviewBanner = false;
+                ViewBag.ShowRedesignSurveyBanner = false;
+            }
+
+            if (enableRedesign)
             { 
                 return View("DisplayPackageV2", model);
             }
@@ -1336,7 +1372,9 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                ReasonChoices = ReportAbuseReasons,
+                ReasonChoices = _featureFlagService.IsShowReportAbuseSafetyChangesEnabled() 
+                    ? ReportAbuseWithSafetyReasons
+                    : ReportAbuseReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
                 CopySender = true,
@@ -2969,7 +3007,11 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible)
         {
-            return await SetLicenseReportVisibility(id, version, visible, Url.Package);
+            return await SetLicenseReportVisibility(
+                id,
+                version,
+                visible,
+                (package, relativeUrl) => Url.Package(package, relativeUrl));
         }
 
         internal virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, bool, string> urlFactory)

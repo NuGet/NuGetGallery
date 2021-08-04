@@ -78,6 +78,11 @@ namespace NuGetGallery
         bool IsDisplayFuGetLinksEnabled();
 
         /// <summary>
+        /// Whether or not a nuget.info (NuGet Package Explorer) link is visible on a package's details page.
+        /// </summary>
+        bool IsDisplayNuGetPackageExplorerLinkEnabled();
+
+        /// <summary>
         /// Whether the user is allowed to publish packages with an embedded icon.
         /// </summary>
         bool AreEmbeddedIconsEnabled(User user);
@@ -174,6 +179,11 @@ namespace NuGetGallery
         bool AreEmbeddedReadmesEnabled(User user);
 
         /// <summary>
+        /// Whether the preview of the new design of the display package page is enabled.
+        /// </summary>
+        bool IsDisplayPackagePageV2PreviewEnabled(User user);
+
+        /// <summary>
         /// Whether the new design of the display package page is enabled.
         /// </summary>
         bool IsDisplayPackagePageV2Enabled(User user);
@@ -248,9 +258,15 @@ namespace NuGetGallery
         /// </summary>
         bool IsLicenseMdRenderingEnabled(User user);
 
+        /// <summary>
         /// Whether the /Search()/$count endpoint is enabled for non-hijacked queries for the V2 OData API.
         /// </summary>
         bool IsODataV2SearchCountNonHijackedEnabled();
+
+        /// <summary>
+        /// Whether the online safety changes to the report abuse form have been enabled
+        /// </summary>
+        bool IsShowReportAbuseSafetyChangesEnabled();
 
         /// <summary>
         /// Whether rendering Markdown content to HTML using Markdig is enabled

@@ -52,6 +52,7 @@ namespace GitHubVulnerabilities2Db.Facts
                         Assert.Equal(advisory.DatabaseId, vulnerability.GitHubDatabaseKey);
                         Assert.Equal(PackageVulnerabilitySeverity.Moderate, vulnerability.Severity);
                         Assert.Equal(advisory.Permalink, vulnerability.AdvisoryUrl);
+                        Assert.Equal(withdrawn, advisory.WithdrawnAt != null);
                     })
                     .Returns(Task.CompletedTask)
                     .Verifiable();

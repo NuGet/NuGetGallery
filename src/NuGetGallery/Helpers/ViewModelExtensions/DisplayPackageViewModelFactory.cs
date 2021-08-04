@@ -135,6 +135,7 @@ namespace NuGetGallery
             viewModel.ReadMeImagesRewritten = readmeResult != null ? readmeResult.ImagesRewritten : false;
             viewModel.ReadmeImageSourceDisallowed = readmeResult != null ? readmeResult.ImageSourceDisallowed : false;
             viewModel.HasEmbeddedIcon = package.HasEmbeddedIcon;
+            viewModel.HasEmbeddedReadmeFile = package.HasEmbeddedReadme;
 
             return viewModel;
         }
@@ -168,6 +169,12 @@ namespace NuGetGallery
             if (PackageHelper.TryPrepareUrlForRendering(fugetUrl, out string fugetReadyUrl))
             {
                 viewModel.FuGetUrl = fugetReadyUrl;
+            }
+
+            var nugetPackageExplorerUrl = $"https://nuget.info/packages/{package.Id}/{package.NormalizedVersion}";
+            if (PackageHelper.TryPrepareUrlForRendering(nugetPackageExplorerUrl, out string nugetPackageExplorerReadyUrl))
+            {
+                viewModel.NuGetPackageExplorerUrl = nugetPackageExplorerReadyUrl;
             }
 
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;

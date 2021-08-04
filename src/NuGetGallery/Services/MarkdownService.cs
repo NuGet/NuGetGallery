@@ -23,6 +23,7 @@ namespace NuGetGallery
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
+        private static readonly Regex HtmlCommentPattern = new Regex("<!--.*?-->", RegexOptions.Singleline, RegexTimeout);
 
         private readonly IFeatureFlagService _features;
         private readonly IImageDomainValidator _imageDomainValidator;
@@ -82,13 +83,14 @@ namespace NuGetGallery
                 ImageSourceDisallowed = false
             };
 
-            var readmeWithoutBom = markdownString.StartsWith("\ufeff") ? markdownString.Replace("\ufeff", "") : markdownString;
+            var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
+
+            var markdownWithoutBom = markdownWithoutComments.StartsWith("\ufeff") ? markdownWithoutComments.Replace("\ufeff", "") : markdownWithoutComments;
 
             // HTML encode markdown, except for block quotes, to block inline html.
-            var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readmeWithoutBom), "> ");
+            var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(markdownWithoutBom), "> ");
 
             var settings = CommonMarkSettings.Default.Clone();
-            settings.RenderSoftLineBreaksAsLineBreaks = true;
 
             // Parse executes CommonMarkConverter's ProcessStage1 and ProcessStage2.
             var document = CommonMarkConverter.Parse(encodedMarkdown, settings);
@@ -189,14 +191,15 @@ namespace NuGetGallery
                 ImageSourceDisallowed = false
             };
 
-            var readmeWithoutBom = markdownString.TrimStart('\ufeff');
+            var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
+
+            var markdownWithoutBom = markdownWithoutComments.TrimStart('\ufeff');
 
             var pipeline = new MarkdownPipelineBuilder()
                 .UseGridTables()
                 .UsePipeTables()
                 .UseListExtras()
                 .UseTaskLists()
-                .UseSoftlineBreakAsHardlineBreak()
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
                 .UseReferralLinks("noopener noreferrer nofollow")
@@ -208,7 +211,7 @@ namespace NuGetGallery
                 var renderer = new HtmlRenderer(htmlWriter);
                 pipeline.Setup(renderer);
 
-                var document = Markdown.Parse(readmeWithoutBom, pipeline);
+                var document = Markdown.Parse(markdownWithoutBom, pipeline);
 
                 foreach (var node in document.Descendants())
                 {

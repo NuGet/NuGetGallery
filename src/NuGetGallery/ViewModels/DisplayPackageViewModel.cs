@@ -36,6 +36,7 @@ namespace NuGetGallery
         public bool IsPackageDeprecationEnabled { get; set; }
         public bool IsPackageVulnerabilitiesEnabled { get; set; }
         public bool IsFuGetLinksEnabled { get; set; }
+        public bool IsNuGetPackageExplorerLinkEnabled { get; set; }
         public bool IsPackageRenamesEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
         public bool IsPackageDependentsEnabled { get; set; }
@@ -80,6 +81,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
         public string FuGetUrl { get; set; }
+        public string NuGetPackageExplorerUrl { get; set; }
         public IReadOnlyCollection<string> LicenseNames { get; set; }
         public string LicenseExpression { get; set; }
         public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
@@ -122,6 +124,16 @@ namespace NuGetGallery
                     RepositoryType = RepositoryKind.Git;
                 }
             }
+        }
+
+        public bool CanDisplayNuGetPackageExplorerLink()
+        {
+            return IsNuGetPackageExplorerLinkEnabled && !string.IsNullOrEmpty(NuGetPackageExplorerUrl) && Available;
+        }
+
+        public bool CanDisplayFuGetLink()
+        {
+            return IsFuGetLinksEnabled && !string.IsNullOrEmpty(FuGetUrl) && Available;
         }
 
         public enum RepositoryKind

@@ -11,15 +11,63 @@
     border-bottom: 1px solid lightgray;
   }
 
+  .package-header {
+    margin-bottom: 35px;
+  }
+
   .package-title {
-    margin-bottom: 24px;
+    margin-bottom: 30px;
+
+    h1 {
+
+      .title {
+        font-size: 32px;
+        margin-top: 40px;
+        font-weight: 400;
+        margin-right: 18px;
+      }
+
+      .version-title {
+        font-size: 16px;
+        font-weight: 400;
+        color: @gray-light;
+        margin-right: 14px;
+        vertical-align: middle;
+      }
+
+      .package-icon {
+        height: 32px;
+        width: 32px;
+        margin-top: 8px;
+        margin-right: 12px;
+      }
+
+      .prefix-reserve-title {
+        background-color: #F3F2F1;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 100px;
+        vertical-align: middle;
+
+        .reserved-indicator {
+          width: 18px;
+          margin-right: 5px;
+          margin-left: 2px;
+        }
+
+        .prefix-reserve-label {
+          font-size: 14px;
+          font-weight: 400;
+          color: #2F6FA7;
+          margin-top: 2px;
+          margin-bottom: 2px;
+          margin-right: 10px;
+        }
+      }
+    }
 
     div {
       margin-top: 2px;
-    }
-
-    .reserved-indicator {
-      width: 25px;
     }
   }
 
@@ -112,6 +160,48 @@
     margin-bottom: 15px;
   }
 
+  .installation-instructions {
+    background-color: #F3F2F1;
+
+    .installation-instructions-dropdown {
+      font-size: 14px;
+      background-color: #F3F2F1;
+      height: 31px;
+      border-left: 0px;
+      border-top: 0px;
+      border-right: 0px;
+    }
+
+    .installation-instruction {
+      background-color: #FAF9F8;
+      font-size: 14px;
+
+      pre {
+        background-color: #FAF9F8;
+        border: 0px;
+        margin-bottom: 0px;
+        width: 100%;
+      }
+
+      .alert {
+        margin-top: 0px;
+      }
+    }
+  }
+
+  button {
+    width: 32px;
+    height: 32px;
+    float: right;
+    padding: 0px;
+
+    .ms-Icon--Copy {
+      color: #FFFFFF;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
   .package-details-main {
     .break-word;
 
@@ -120,18 +210,13 @@
       padding-left: 0;
       padding-right: 0;
       text-align: right;
-
-      .package-icon {
-        padding-left: 6px;
-        padding-right: 6px;
-      }
     }
   }
 
   .package-details-info {
     .ms-Icon-ul {
       li {
-        margin-bottom: 15px;
+        margin-bottom: 18px;
       }
 
       img.icon {
@@ -142,11 +227,59 @@
         margin-top: 3px;
       }
     }
+
+    .sidebar-headers {
+      font-size: 16px;
+      font-weight: 600;
+      color: @gray-light;
+      margin-bottom: 14px;
+    }
+
+    .sidebar-links {
+      font-size: 16px;
+    }
+
+    .title-links {
+      font-size: 14px;
+      font-weight: 400;
+      padding-top: 2px;
+
+      a {
+        @media (min-width: @screen-md-min) {
+          float: right !important;
+        }
+      }
+    }
+
+    .sidebar-section {
+      margin-top: 32px;
+    }
+
+    .download-info {
+
+      .download-info-row {
+        margin-bottom: 15px;
+      }
+
+      .download-info-header {
+        font-size: 14px;
+        font-weight: 400;
+        color: @gray-light;
+        margin-right: 12px;
+      }
+
+      .download-info-content {
+        font-size: 16px;
+        font-weight: 600;
+      }
+    }
   }
 
   .owner-list {
+    margin-bottom: 40px;
+
     li {
-      margin-bottom: 8px;
+      margin-bottom: 14px;
       display: block;
       overflow: hidden;
       white-space: nowrap;
@@ -155,6 +288,14 @@
 
     img {
       margin-right: 8px;
+      border-radius: 5px;
+    }
+  }
+
+  .report-link {
+    i {
+      color: #BE0151;
+      font-weight: bold;
     }
   }
 
@@ -274,53 +415,57 @@
       font-weight: 600;
       text-decoration: underline;
     }
+  }
 
-    .tab-content {
-      .tab-pane {
-        > div {
-          display: table;
-          height: 1px;
-        }
+  .body-tabs {
+    .nav-tabs > li.active > a {
+      border-bottom-color: #0078D4;
+      border-bottom-width: 2px;
+      font-weight: bold;
+      margin-bottom: -1px;
+    }
 
-        .install-script-row {
-          display: table-row;
-          height: 100%;
+    .nav-tabs > li > a {
+      border-left: 0px;
+      border-right: 0px;
+      border-top: 0px;
+      font-size: 14px;
+      font-family: @font-family-base;
+      color: #323130;
+    }
+  }
 
-          .install-script {
-            display: table-cell;
-            background-color: @panel-footer-bg;
-            font-family: @font-family-monospace;
-            font-size: 1em;
-            color: #fff;
-            width: 100%;
-            max-width: 1px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            // Add a border with the same color as the background to support visual callout
-            // in high contrast mode (since borders are shown).
-            border-color: @panel-footer-bg;
-            border-style: solid;
-            border-width: 1px 0 1px 1px;
-            user-select: all;
-            vertical-align: middle;
-            word-break: break-word;
-          }
+  .body-tab-content {
+    padding-top: 30px;
 
-          .copy-button {
-            height: 100%;
+    // The "README", "Used By", and "Dependencies" tabs can start with headers.
+    // which add additional whitespace between the tab and the content.
+    // Undo that whitespace.
+    #readme-tab, #usedby-tab {
+      h1:first-child,
+      h2:first-child,
+      h3:first-child,
+      h4:first-child,
+      h5:first-child,
+      h6:first-child {
+        margin-top: 0px;
+      }
 
-            button {
-              height: 100%;
-              min-height: 42px;
-              line-height: 1.5;
-            }
-          }
-        }
+      div.alert:first-child {
+        margin-top: 0px;
+      }
+    }
 
-        .alert {
-          margin: 0;
-          width: 100%;
-        }
+    #dependencies-tab {
+      li:first-child h4 {
+        margin-top: 0px;
+      }
+    }
+
+    #readme-tab {
+      // Don't allow README images to overflow
+      img {
+        max-width: 100%;
       }
     }
   }

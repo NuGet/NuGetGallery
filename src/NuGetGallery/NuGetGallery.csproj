@@ -143,6 +143,7 @@
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SiteAdminsController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
+    <Compile Include="Areas\Admin\Controllers\UpdateListedController.cs" />
     <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
       <DependentUpon>Url_Edit.ascx</DependentUpon>
@@ -195,7 +196,7 @@
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
     <Compile Include="Areas\Admin\Services\ValidationEntityRepository.cs" />
-    <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\HomeViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceResultModel.cs" />
@@ -310,6 +311,8 @@
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
+    <Compile Include="RequestModels\UpdateListedRequest.cs" />
+    <Compile Include="Services\UploadPackageIdNamespaceConflict.cs" />
     <Compile Include="Services\ImageDomainValidator.cs" />
     <Compile Include="Services\IMarkdownService.cs" />
     <Compile Include="Services\IImageDomainValidator.cs" />
@@ -2317,6 +2320,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\Files\Content\Query-Hint-Configuration.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Admin\Views\UpdateListed\Index.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

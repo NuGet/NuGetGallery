@@ -29,6 +29,7 @@ namespace NuGetGallery
         private const string DisplayVulnerabilitiesFeatureName = GalleryPrefix + "DisplayVulnerabilities";
         private const string ManagePackagesVulnerabilitiesFeatureName = GalleryPrefix + "ManagePackagesVulnerabilities";
         private const string DisplayFuGetLinksFeatureName = GalleryPrefix + "DisplayFuGetLinks";
+        private const string DisplayNuGetPackageExplorerLinkFeatureName = GalleryPrefix + "DisplayNuGetPackageExplorerLink";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
         private const string PackagesAtomFeedFeatureName = GalleryPrefix + "PackagesAtomFeed";
         private const string SearchSideBySideFlightName = GalleryPrefix + "SearchSideBySide";
@@ -48,7 +49,9 @@ namespace NuGetGallery
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
         private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
         private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
+        private const string DisplayPackagePageV2PreviewFeatureName = GalleryPrefix + "DisplayPackagePageV2Preview";
         private const string DisplayPackagePageV2FeatureName = GalleryPrefix + "DisplayPackagePageV2";
+        private const string ShowReportAbuseSafetyChanges = GalleryPrefix + "ShowReportAbuseSafetyChanges";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -154,6 +157,11 @@ namespace NuGetGallery
             return _client.IsEnabled(DisplayFuGetLinksFeatureName, defaultValue: false);
         }
 
+        public bool IsDisplayNuGetPackageExplorerLinkEnabled()
+        {
+            return _client.IsEnabled(DisplayNuGetPackageExplorerLinkFeatureName, defaultValue: false);
+        }
+
         public bool AreEmbeddedIconsEnabled(User user)
         {
             return _client.IsEnabled(EmbeddedIconFlightName, user, defaultValue: false);
@@ -239,6 +247,11 @@ namespace NuGetGallery
             return _client.IsEnabled(EmbeddedReadmeFlightName, user, defaultValue: false);
         }
 
+        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
+        {
+            return _client.IsEnabled(DisplayPackagePageV2PreviewFeatureName, user, defaultValue: false);
+        }
+
         public bool IsDisplayPackagePageV2Enabled(User user) 
         {
             return _client.IsEnabled(DisplayPackagePageV2FeatureName, user, defaultValue: false);
@@ -317,6 +330,11 @@ namespace NuGetGallery
         public bool IsODataV2SearchCountNonHijackedEnabled()
         {
             return _client.IsEnabled(ODataV2SearchCountNonHijackedFeatureName, defaultValue: true);
+        }
+
+        public bool IsShowReportAbuseSafetyChangesEnabled()
+        {
+            return _client.IsEnabled(ShowReportAbuseSafetyChanges, defaultValue: false);
         }
 
         public bool IsMarkdigMdRenderingEnabled()

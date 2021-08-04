@@ -103,6 +103,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsODataV2SearchCountNonHijackedEnabled() => throw new NotImplementedException();
 
+        public bool IsShowReportAbuseSafetyChangesEnabled() => throw new NotImplementedException();
+
         public bool IsMarkdigMdRenderingEnabled() => throw new NotImplementedException();
 
         public bool IsDeletePackageApiEnabled(User user) => throw new NotImplementedException();
@@ -110,5 +112,12 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsImageAllowlistEnabled() => throw new NotImplementedException();
 
         public bool IsDisplayBannerEnabled() => throw new NotImplementedException();
+
+        public bool IsDisplayNuGetPackageExplorerLinkEnabled() => throw new NotImplementedException();
+
+        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

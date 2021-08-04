@@ -77,11 +77,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("https://nuget.org", true, "/packages/id/1.0.0")]
-            [InlineData("https://nuget.org", false, "https://nuget.org/packages/id/1.0.0")]
-            [InlineData("https://localhost:66", true, "/packages/id/1.0.0")]
-            [InlineData("https://localhost:66", false, "https://localhost:66/packages/id/1.0.0")]
-            public void ReturnsCorrectRouteLink(string siteRoot, bool relativeUrl, string expectedUrl)
+            [InlineData("https://nuget.org", true, false, "/packages/id/1.0.0")]
+            [InlineData("https://nuget.org", false, false, "https://nuget.org/packages/id/1.0.0")]
+            [InlineData("https://localhost:66", true, false, "/packages/id/1.0.0")]
+            [InlineData("https://localhost:66", false, false, "https://localhost:66/packages/id/1.0.0")]
+            [InlineData("https://nuget.org", true, true, "/packages/id/1.0.0?preview=1")]
+            [InlineData("https://nuget.org", false, true, "https://nuget.org/packages/id/1.0.0?preview=1")]
+            [InlineData("https://localhost:66", true, true, "/packages/id/1.0.0?preview=1")]
+            [InlineData("https://localhost:66", false, true, "https://localhost:66/packages/id/1.0.0?preview=1")]
+            public void ReturnsCorrectRouteLink(string siteRoot, bool relativeUrl, bool preview, string expectedUrl)
             {
                 // Arrange
                 var configurationService = GetConfigurationService();
@@ -90,7 +94,7 @@ namespace NuGetGallery
                 var urlHelper = TestUtility.MockUrlHelper(siteRoot);
 
                 // Act
-                var result = urlHelper.Package("id", "1.0.0", relativeUrl);
+                var result = urlHelper.Package("id", "1.0.0", relativeUrl, preview);
 
                 // Assert
                 Assert.Equal(expectedUrl, result);

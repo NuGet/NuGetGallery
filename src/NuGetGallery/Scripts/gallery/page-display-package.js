@@ -170,4 +170,7 @@ $(function () {
             }
         });
     }
+
+    $(".reserved-indicator").each(window.nuget.setPopovers);
+    $(".package-warning-icon").each(window.nuget.setPopovers);
 });

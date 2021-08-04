@@ -31,12 +31,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
 
-            if (package.VulnerablePackageRanges == null)
-            {
-                throw new ArgumentException($"{nameof(package.VulnerablePackageRanges)} should be included in package query");
-            }
-
-            return package.VulnerablePackageRanges.FirstOrDefault(vpr => vpr.Vulnerability != null) != null;
+            return GetVulnerabilitiesById(package.PackageRegistration.Id)?.Where(p => p.Key == package.Key).Any() ?? false;
         }
     }
 }

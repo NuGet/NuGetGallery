@@ -35,6 +35,35 @@
     </div>
 }
 
+@if (ViewBag.ShowRedesignPreviewBanner == true)
+{
+    <div class="container-fluid banner banner-info text-center">
+        <div class="row">
+            <div class="col-sm-12">
+                <span>
+                    &#128075; Changes are coming to this page!
+                    Test out the <a href="@ViewBag.ShowRedesignUrl">new design</a> and
+                    <a href="https://aka.ms/NuGetRedesignSurvey" target="_blank">tell us what you think</a>.
+                </span>
+            </div>
+        </div>
+    </div>
+}
+
+@if (ViewBag.ShowRedesignSurveyBanner == true)
+{
+    <div class="container-fluid banner banner-info text-center">
+        <div class="row">
+            <div class="col-sm-12">
+                <span>
+                    &#128075; What do you think about the new design?
+                    <a href="https://aka.ms/NuGetRedesignSurvey" target="_blank">Take the survey (3 min.)</a>
+                </span>
+            </div>
+        </div>
+    </div>
+}
+
 @helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
 {
     <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)" role="presentation">

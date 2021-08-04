@@ -103,7 +103,7 @@ namespace NuGetGallery.Helpers
                     // Format links to NuGet packages
                     Match packageMatch = RegexEx.MatchWithTimeoutOrNull(
                         formattedUri,
-                        $@"({Regex.Escape(siteRoot)}\/packages\/(?<name>\w+([_.-]\w+)*(\/[0-9a-zA-Z-.]+)?)\/?$)",
+                        $@"(^{Regex.Escape(siteRoot)}\/packages\/(?<name>\w+([_.-]\w+)*(\/[0-9a-zA-Z-.]+)?)\/?$)",
                         RegexOptions.IgnoreCase);
                     if (packageMatch != null && packageMatch.Groups["name"].Success)
                     {
