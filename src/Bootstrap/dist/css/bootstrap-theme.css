@@ -45,6 +45,9 @@ body h3 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.form-inline-empty {
+  display: inline-block;
+}
 .footer {
   background-color: #002440;
   color: #e3ebf1;

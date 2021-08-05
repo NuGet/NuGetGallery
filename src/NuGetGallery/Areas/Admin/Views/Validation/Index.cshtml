@@ -17,7 +17,37 @@
 <section role="main" class="container main-container">
     <h2>Package Validations</h2>
 
-    <p>Get <a href="@Url.Action(actionName:"Pending")">pending validations</a>.</p>
+    <div>
+        <a href="@Url.Action(actionName:"Pending")">Get pending validations</a>
+        |
+        @ViewHelpers.PostLink(
+            this,
+            formId: "revalidate-pending-packages",
+            linkText: "Revalidate pending packages",
+            actionName: "RevalidatePending",
+            controllerName: "Validation",
+            role: string.Empty,
+            area: "Admin",
+            classes: "form-inline-empty",
+            formValues: new Dictionary<string, string>
+            {
+                { "validatingType", ValidatingType.Package.ToString() },
+            })
+        |
+        @ViewHelpers.PostLink(
+            this,
+            formId: "revalidate-pending-symbol-packages",
+            linkText: "Revalidate pending symbol packages",
+            actionName: "RevalidatePending",
+            controllerName: "Validation",
+            role: string.Empty,
+            area: "Admin",
+            classes: "form-inline-empty",
+            formValues: new Dictionary<string, string>
+            {
+                { "validatingType", ValidatingType.SymbolPackage.ToString() },
+            })
+    </div>
 
     <form method="get" action="@Url.Action(actionName: "Search")">
         <p>
@@ -195,8 +225,21 @@
                         </table>
                     }
                 </div>
-                
+
             }
         </div>
     }
 </section>
+
+@section BottomScripts {
+    <script>
+    $(document).ready(function () {
+        $('#revalidate-pending-packages, #revalidate-pending-symbol-packages').submit(function (e) {
+            var operation = $(".post-link[data-form-id='" + e.target.id + "']").text().toLowerCase();
+            if (!operation || !confirm('Are you sure you want to ' + operation + '?')) {
+                e.preventDefault();
+            }
+        });
+    });
+    </script>
+}
