@@ -78,7 +78,7 @@
                     {
                         @ViewHelpers.PostLink(
                             this,
-                            formId: "revalidate-package-form",
+                            formId: "revalidate-package-form-" + package.PackageKey,
                             linkText: "Revalidate package",
                             actionName: "Revalidate",
                             controllerName: "Packages",
@@ -94,7 +94,7 @@
                     {
                         @ViewHelpers.PostLink(
                             this,
-                            formId: "revalidate-symbols-form",
+                            formId: "revalidate-symbols-form-" + package.PackageKey,
                             linkText: "Revalidate symbols",
                             actionName: "RevalidateSymbols",
                             controllerName: "Packages",
