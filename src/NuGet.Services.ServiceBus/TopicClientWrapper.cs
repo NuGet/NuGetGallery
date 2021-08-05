@@ -13,9 +13,23 @@ namespace NuGet.Services.ServiceBus
     {
         private readonly TopicClient _client;
 
+        /// <summary>
+        /// Create an instance of wrapper for <see cref="TopicClient"/>. Use the managed identity authentication if the `SharedAccessKey` is not
+        /// spcified in the <paramref name="connectionString"/>.
+        /// </summary>
+        /// <param name="connectionString">This can be a connection string with shared access key or a service bus endpoint URL string to be used with managed identities.
+        /// The connection string examples:
+        /// <list type="number">
+        /// <item>Using connection string: "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=<access key name>;SharedAccessKey=<access key>" </item>
+        /// <item>Using managed identity: "sb://nugetdev.servicebus.windows.net/"</item>
+        /// </list>
+        /// </param>
+        /// <param name="path">Path of the topic name</param>
         public TopicClientWrapper(string connectionString, string path)
         {
-            _client = TopicClient.CreateFromConnectionString(connectionString, path);
+            _client = connectionString.Contains(Constants.SharedAccessKeytoken)
+                ? TopicClient.CreateFromConnectionString(connectionString, path)
+                : TopicClient.CreateWithManagedIdentity(new Uri(connectionString), path);
         }
 
         public TopicClientWrapper(string clientId, string clientSecret, string tenantId, string serviceBusUrl, string path)

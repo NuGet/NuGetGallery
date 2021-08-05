@@ -13,9 +13,25 @@ namespace NuGet.Services.ServiceBus
         private readonly SubscriptionClient _client;
         private readonly ILogger<SubscriptionClientWrapper> _logger;
 
+        /// <summary>
+        /// Create an instance of wrapper for <see cref="SubscriptionClient"/>. Use the managed identity authentication if the `SharedAccessKey` is not
+        /// spcified in the <paramref name="connectionString"/>.
+        /// </summary>
+        /// <param name="connectionString">This can be a connection string with shared access key or a service bus endpoint URL string to be used with managed identities.
+        /// The connection string examples:
+        /// <list type="number">
+        /// <item>Using connection string: "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=<access key name>;SharedAccessKey=<access key>" </item>
+        /// <item>Using managed identity: "sb://nugetdev.servicebus.windows.net/"</item>
+        /// </list>
+        /// </param>
+        /// <param name="topicPath">Path of the topic name</param>
+        /// <param name="name"/>Subscription name</param>
+        /// <param name="logger"><see cref="ILogger"/> instance</param>
         public SubscriptionClientWrapper(string connectionString, string topicPath, string name, ILogger<SubscriptionClientWrapper> logger)
         {
-            _client = SubscriptionClient.CreateFromConnectionString(connectionString, topicPath, name);
+            _client = connectionString.Contains(Constants.SharedAccessKeytoken)
+                ? SubscriptionClient.CreateFromConnectionString(connectionString, topicPath, name)
+                : SubscriptionClient.CreateWithManagedIdentity(new Uri(connectionString), topicPath, name);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
