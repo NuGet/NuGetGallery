@@ -16,15 +16,18 @@ namespace NuGet.Services.AzureSearch.SearchService
     {
         private static readonly V2SearchDependency[] EmptyDependencies = new V2SearchDependency[0];
         private readonly Lazy<IAuxiliaryData> _lazyAuxiliaryData;
+        private readonly IFeatureFlagService _featureFlagService;
         private readonly IOptionsSnapshot<SearchServiceConfiguration> _options;
         private readonly FlatContainerPackagePathProvider _pathProvider;
         private readonly Uri _flatContainerBaseUrl;
 
         public SearchResponseBuilder(
             Lazy<IAuxiliaryData> auxiliaryData,
+            IFeatureFlagService featureFlagService,
             IOptionsSnapshot<SearchServiceConfiguration> options)
         {
             _lazyAuxiliaryData = auxiliaryData ?? throw new ArgumentNullException(nameof(auxiliaryData));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _options = options ?? throw new ArgumentNullException(nameof(options));
 
             if (_options.Value.SemVer1RegistrationsBaseUrl == null)
@@ -362,7 +365,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         private V3SearchPackage ToV3SearchPackage(SearchDocument.Full result, string registrationsBaseUrl)
         {
             var registrationIndexUrl = RegistrationUrlBuilder.GetIndexUrl(registrationsBaseUrl, result.PackageId);
-            return new V3SearchPackage
+            var package = new V3SearchPackage
             {
                 AtId = registrationIndexUrl,
                 Type = "Package",
@@ -395,6 +398,13 @@ namespace NuGet.Services.AzureSearch.SearchService
                     })
                     .ToList(),
             };
+
+            if (_featureFlagService.IsV3OwnersPropertyEnabled())
+            {
+                package.Owners = result.Owners ?? Array.Empty<string>();
+            }
+
+            return package;
         }
 
         private List<V3SearchPackageType> GetV3SearchPackageTypes(SearchDocument.UpdateLatest document)

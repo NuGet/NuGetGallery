@@ -26,5 +26,10 @@ namespace NuGet.Services.AzureSearch
         {
             return _features.IsEnabled(SearchPrefix + "DisableDeepPaging", defaultValue: false);
         }
+
+        public bool IsV3OwnersPropertyEnabled()
+        {
+            return _features.IsEnabled(SearchPrefix + "V3Owners", defaultValue: false);
+        }
     }
 }

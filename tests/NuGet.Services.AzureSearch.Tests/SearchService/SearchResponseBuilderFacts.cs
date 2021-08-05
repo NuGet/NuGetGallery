@@ -675,6 +675,22 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Fact]
+            public void DoesNotIncludeOwnersWhenFeatureIsOff()
+            {
+                _featureFlagService.Setup(x => x.IsV3OwnersPropertyEnabled()).Returns(false);
+                var doc = _searchResult.Results[0].Document;
+
+                var response = Target.V3FromSearch(
+                    _v3Request,
+                    _text,
+                    _searchParameters,
+                    _searchResult,
+                    _duration);
+
+                Assert.Null(response.Data[0].Owners);
+            }
+
+            [Fact]
             public void CoalescesSomeNullFields()
             {
                 var doc = _searchResult.Results[0].Document;
@@ -682,6 +698,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 doc.Summary = null;
                 doc.Tags = null;
                 doc.Authors = null;
+                doc.Owners = null;
 
                 var response = Target.V3FromSearch(
                     _v3Request,
@@ -695,6 +712,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 Assert.Equal(string.Empty, result.Summary);
                 Assert.Empty(result.Tags);
                 Assert.Equal(string.Empty, Assert.Single(result.Authors));
+                Assert.Empty(result.Owners);
             }
 
             [Fact]
@@ -884,6 +902,10 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""authors"": [
         ""Microsoft""
       ],
+      ""owners"": [
+        ""Microsoft"",
+        ""azure-sdk""
+      ],
       ""totalDownloads"": 1001,
       ""verified"": true,
       ""packageTypes"": [
@@ -1058,6 +1080,10 @@ namespace NuGet.Services.AzureSearch.SearchService
       ""authors"": [
         ""Microsoft""
       ],
+      ""owners"": [
+        ""Microsoft"",
+        ""azure-sdk""
+      ],
       ""totalDownloads"": 1001,
       ""verified"": true,
       ""packageTypes"": [
@@ -1105,6 +1131,21 @@ namespace NuGet.Services.AzureSearch.SearchService
                     _duration);
 
                 Assert.Equal(Data.FlatContainerIconUrl, response.Data[0].IconUrl);
+            }
+
+            [Fact]
+            public void DoesNotIncludeOwnersWhenFeatureIsOff()
+            {
+                _featureFlagService.Setup(x => x.IsV3OwnersPropertyEnabled()).Returns(false);
+                var doc = _searchResult.Results[0].Document;
+
+                var response = Target.V3FromSearchDocument(
+                    _v3Request,
+                    doc.Key,
+                    doc,
+                    _duration);
+
+                Assert.Null(response.Data[0].Owners);
             }
 
             [Fact]
@@ -1375,6 +1416,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public abstract class BaseFacts
         {
             protected readonly Mock<IAuxiliaryData> _auxiliaryData;
+            protected readonly Mock<IFeatureFlagService> _featureFlagService;
             protected readonly SearchServiceConfiguration _config;
             protected readonly Mock<IOptionsSnapshot<SearchServiceConfiguration>> _options;
             protected readonly V2SearchRequest _v2Request;
@@ -1392,6 +1434,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
             public SearchResponseBuilder Target => new SearchResponseBuilder(
                 new Lazy<IAuxiliaryData>(() => _auxiliaryData.Object),
+                _featureFlagService.Object,
                 _options.Object);
 
             public static IEnumerable<object[]> MissingTitles = new[]
@@ -1405,6 +1448,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             public BaseFacts()
             {
                 _auxiliaryData = new Mock<IAuxiliaryData>();
+                _featureFlagService = new Mock<IFeatureFlagService>();
                 _config = new SearchServiceConfiguration();
                 _options = new Mock<IOptionsSnapshot<SearchServiceConfiguration>>();
                 _options.Setup(x => x.Value).Returns(() => _config);
@@ -1448,6 +1492,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _auxiliaryData
                     .Setup(x => x.GetPopularityTransfers(It.IsAny<string>()))
                     .Returns(() => new[] { "transfer1", "transfer2" });
+                _featureFlagService.SetReturnsDefault<bool>(true);
 
                 _v2Request = new V2SearchRequest
                 {
