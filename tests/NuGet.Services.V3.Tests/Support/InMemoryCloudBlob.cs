@@ -75,6 +75,11 @@ namespace NuGet.Services
             return Task.CompletedTask;
         }
 
+        public Task<string> DownloadTextIfExistsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task DownloadToStreamAsync(Stream target)
         {
             throw new NotImplementedException();
@@ -94,6 +99,11 @@ namespace NuGet.Services
         }
 
         public Task FetchAttributesAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> FetchAttributesIfExistsAsync()
         {
             throw new NotImplementedException();
         }
@@ -127,6 +137,11 @@ namespace NuGet.Services
 
                 return new MemoryStream(Bytes);
             }
+        }
+
+        public Task<Stream> OpenReadIfExistsAsync()
+        {
+            throw new NotImplementedException();
         }
 
         public Task<Stream> OpenReadStreamAsync(TimeSpan serverTimeout, TimeSpan maxExecutionTime, CancellationToken cancellationToken)
