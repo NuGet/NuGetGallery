@@ -149,13 +149,12 @@ namespace NuGet.Services.DatabaseMigration
             }
         }
 
-        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            throw new NotImplementedException();
         }
     }
 }
