@@ -48,7 +48,7 @@ namespace VerifyGitHubVulnerabilities
             ConfigureInitializationSection<VerifyGitHubVulnerabilitiesConfiguration>(services, configurationRoot);
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             containerBuilder
                 .RegisterAdapter<IOptionsSnapshot<VerifyGitHubVulnerabilitiesConfiguration>, VerifyGitHubVulnerabilitiesConfiguration>(c => c.Value);
