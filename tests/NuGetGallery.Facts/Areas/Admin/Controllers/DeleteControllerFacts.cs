@@ -44,7 +44,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 // Assert
                 var jsonResult = Assert.IsType<JsonResult>(result);
-                var searchResults = Assert.IsType<List<DeleteSearchResult>>(jsonResult.Data);
+                var searchResults = Assert.IsType<List<PackageSearchResult>>(jsonResult.Data);
                 var uniqueIdentities = searchResults.Select(p => $"{p.PackageId} {p.PackageVersionNormalized}").Distinct();
                 Assert.Equal(searchResults.Count, uniqueIdentities.Count());
             }
@@ -60,7 +60,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 // Assert
                 var jsonResult = Assert.IsType<JsonResult>(result);
-                var searchResults = Assert.IsType<List<DeleteSearchResult>>(jsonResult.Data);
+                var searchResults = Assert.IsType<List<PackageSearchResult>>(jsonResult.Data);
                 Assert.Equal("NuGet.Versioning", searchResults[0].PackageId);
                 Assert.Equal("4.3.0", searchResults[0].PackageVersionNormalized);
                 Assert.Equal("nuget.versioning", searchResults[1].PackageId);

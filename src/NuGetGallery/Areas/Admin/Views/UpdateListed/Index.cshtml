@@ -1,0 +1,158 @@
+﻿@{
+    ViewBag.Title = "Unlist/relist Packages";
+}
+
+<section role="main" class="container main-container">
+    <h2>Unlist/relist packages</h2>
+
+    <form>
+        <textarea placeholder="Search for packages to unlist/relist (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
+        <input type="button" value="Search" data-bind="click: search" />
+        <button type="button" class="btn btn-link" data-bind="click: selectListed">Select listed</button>
+        <button type="button" class="btn btn-link" data-bind="click: selectUnlisted">Select unlisted</button>
+    </form>
+
+    @using (Html.BeginForm("UpdateListed", "UpdateListed", new { area = "Admin" }, FormMethod.Post, new { id = "update-listed-form" }))
+    {
+        @Html.AntiForgeryToken()
+        <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
+                    <th>Package</th>
+                    <th>Version</th>
+                    <th>Downloads</th>
+                    <th>Created</th>
+                    <th>Listed?</th>
+                    <th>Status</th>
+                    <th>Owners</th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: searchResults">
+                <tr>
+                    <td><input type="checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data)" /></td>
+                    <td><a href="#" data-bind="text: PackageId, attr: { href: $parent.generatePackageUrl($data) }"></a></td>
+                    <td><span data-bind="text: PackageVersionNormalized"></span></td>
+                    <td><span data-bind="text: DownloadCount"></span></td>
+                    <td><span data-bind="text: Created"></span></td>
+                    <td><span data-bind="text: Listed"></span></td>
+                    <td><span data-bind="text: PackageStatus"></span></td>
+                    <td data-bind="foreach: Owners">
+                        <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="display: none" data-bind="visible: searchResults().length === 0 && doneSearching()">
+            <p>No packages found.</p>
+        </div>
+
+        <div class="danger-zone" style="display: none;" data-bind="visible: arePackagesSelected">
+            <div class="form-group">
+                <button type="submit" class="btn btn-danger form-control" name="listed" value="true">Make selected packages <b>LISTED</b>.</button>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-danger form-control" name="listed" value="false">Make selected packages <b>UNLISTED</b>.</button>
+            </div>
+        </div>
+    }
+</section>
+
+@section BottomScripts {
+    <script>
+    $(document).ready(function () {
+        $('#update-listed-form').submit(function (e) {
+            var packageCount = $(e.target).serializeArray().filter(function (el) { return el.name === "Packages[]" }).length;
+            var operation = e.originalEvent.submitter.value === "true" ? "relist" : "unlist";
+            var messageEnd = packageCount == 1 ? "this 1 package" : "these " + packageCount + " packages";
+            if (!confirm('Are you sure you want to ' + operation + ' ' + messageEnd + '?')) {
+                e.preventDefault();
+            }
+        });
+
+        var viewModel = function () {
+            var $self = this;
+
+            this.searchQuery = ko.observable('');
+            $self.doneSearching = ko.observable(false);
+
+            this.search = function () {
+                $self.doneSearching = ko.observable(false);
+                $.ajax({
+                    url: '@Url.Action("Search", "UpdateListed", new { area = "Admin" })?query=' + encodeURIComponent($self.searchQuery()),
+                    cache: false,
+                    dataType: 'json',
+                    success: function (data) {
+                        $self.selectAllState(false);
+                        $self.searchResults.removeAll();
+                        for (var i = 0; i < data.length; i++) {
+                            data[i].Selected = ko.observable(false);
+                        }
+                        $self.searchResults(data);
+                    }
+                })
+                    .fail(function (jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    })
+                    .always(function () {
+                        $self.doneSearching(true);
+                    });
+            };
+
+            this.selectAllState = ko.observable(false);
+
+            this.toggleSelectAll = function (e) {
+                $self.selectAllState(!$self.selectAllState());
+                return true;
+            };
+
+            this.selectListed = function (e) {
+                ko.utils.arrayForEach($self.searchResults(), function (result) {
+                    if (result.Listed) {
+                        result.Selected(true);
+                    }
+                });
+                return true;
+            };
+
+            this.selectUnlisted = function (e) {
+                ko.utils.arrayForEach($self.searchResults(), function (result) {
+                    if (!result.Listed) {
+                        result.Selected(true);
+                    }
+                });
+                return true;
+            };
+
+            this.generateValue = function (package) {
+                return package.PackageId + '|' + package.PackageVersionNormalized;
+            };
+
+            this.generatePackageUrl = function (package) {
+                return '/packages/' + package.PackageId + '/' + package.PackageVersionNormalized;
+            };
+
+            this.searchResults = ko.observableArray([]);
+
+            this.arePackagesSelected = ko.computed(function () {
+                for (var i = 0; i < $self.searchResults().length; i++) {
+                    if ($self.searchResults()[i].Selected()) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            this.selectAllState.subscribe(function () {
+                var state = $self.selectAllState();
+
+                ko.utils.arrayForEach($self.searchResults(), function (result) {
+                    result.Selected(state);
+                });
+            });
+        };
+
+        ko.applyBindings(new viewModel(), $('.main-container').get(0));
+    });
+    </script>
+}

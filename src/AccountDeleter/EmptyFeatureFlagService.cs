@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.Services.Entities;
 using System;
 using System.Collections.Generic;
-using NuGet.Services.Entities;
-using NuGetGallery;
 
-namespace GitHubVulnerabilities2Db.Fakes
+namespace NuGetGallery.AccountDeleter
 {
-    public class FakeFeatureFlagService : IFeatureFlagService
+    public class EmptyFeatureFlagService : IFeatureFlagService
     {
         public bool AreDynamicODataCacheDurationsEnabled()
         {
@@ -25,14 +24,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayPackagePageV2Enabled(User user)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool ArePatternSetTfmHeuristicsEnabled()
         {
-            throw new NotImplementedException();
+            //Until this feature is enabled by default, we will assume it is turned off here.
+            //This is the only used feature flag that was added.
+            return false;
         }
 
         public bool IsABTestingEnabled(User user)
@@ -66,6 +62,21 @@ namespace GitHubVulnerabilities2Db.Fakes
         }
 
         public bool IsDisplayFuGetLinksEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsDisplayNuGetPackageExplorerLinkEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsDisplayPackagePageV2Enabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
         {
             throw new NotImplementedException();
         }
@@ -205,11 +216,6 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsShowReportAbuseSafetyChangesEnabled()
-        {
-            throw new NotImplementedException();
-        }
-
         public bool IsPackageDependentsEnabled(User user)
         {
             throw new NotImplementedException();
@@ -245,6 +251,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsShowReportAbuseSafetyChangesEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsTyposquattingEnabled()
         {
             throw new NotImplementedException();
@@ -256,16 +267,6 @@ namespace GitHubVulnerabilities2Db.Fakes
         }
 
         public bool ProxyGravatarEnSubdomain()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsDisplayNuGetPackageExplorerLinkEnabled()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
         {
             throw new NotImplementedException();
         }

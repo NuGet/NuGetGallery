@@ -112,6 +112,10 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackPackageDelete(package, isHardDelete: true))
                     };
 
+                    yield return new object[] { "PackagesUpdateListed",
+                        (TrackAction)(s => s.TrackPackagesUpdateListed(new[] { package }, listed: true))
+                    };
+
                     yield return new object[] { "PackageReupload",
                         (TrackAction)(s => s.TrackPackageReupload(package))
                     };

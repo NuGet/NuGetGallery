@@ -171,6 +171,12 @@ namespace NuGetGallery
                 viewModel.FuGetUrl = fugetReadyUrl;
             }
 
+            var nugetPackageExplorerUrl = $"https://nuget.info/packages/{package.Id}/{package.NormalizedVersion}";
+            if (PackageHelper.TryPrepareUrlForRendering(nugetPackageExplorerUrl, out string nugetPackageExplorerReadyUrl))
+            {
+                viewModel.NuGetPackageExplorerUrl = nugetPackageExplorerReadyUrl;
+            }
+
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;
 

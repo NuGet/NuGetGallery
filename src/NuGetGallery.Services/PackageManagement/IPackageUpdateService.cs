@@ -18,6 +18,15 @@ namespace NuGetGallery
         Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true, bool updateIndex = true);
 
         /// <summary>
+        /// Updates the listed status on a batch of packages. All of the packages must be related to the same package registration.
+        /// Packages that are deleted or have failed validation are not allowed. Packages that already have a matching listed state
+        /// will not be skipped, to enable reflow of listed status.
+        /// </summary>
+        /// <param name="packages">The packages to update.</param>
+        /// <param name="listed">True to make the packages listed, false to make the packages unlisted.</param>
+        Task UpdateListedInBulkAsync(IReadOnlyList<Package> packages, bool listed);
+
+        /// <summary>
         /// Marks <paramref name="package"/> as listed.
         /// </summary>
         /// <param name="package">The package to list.</param>

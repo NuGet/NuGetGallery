@@ -54,6 +54,7 @@
     <Compile Include="Configuration\GalleryConfiguration.cs" />
     <Compile Include="Configuration\MailTemplateConfiguration.cs" />
     <Compile Include="Configuration\SourceConfiguration.cs" />
+    <Compile Include="EmptyFeatureFlagService.cs" />
     <Compile Include="EmptyIndexingService.cs" />
     <Compile Include="Evaluators\AccountConfirmedEvaluator.cs" />
     <Compile Include="Evaluators\AggregateEvaluator.cs" />
