@@ -1911,7 +1911,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("revalidate a package")]
-        public virtual async Task<ActionResult> Revalidate(string id, string version)
+        public virtual async Task<ActionResult> Revalidate(string id, string version, string returnUrl = null)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
@@ -1933,14 +1933,21 @@ namespace NuGetGallery
                 TempData["Message"] = $"An error occurred while revalidating the package. {ex.Message}";
             }
 
-            return SafeRedirect(Url.Package(id, version));
+            if (string.IsNullOrEmpty(returnUrl))
+            {
+                return SafeRedirect(Url.Package(id, version));
+            }
+            else
+            {
+                return SafeRedirect(returnUrl);
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("revalidate a symbols package")]
-        public virtual async Task<ActionResult> RevalidateSymbols(string id, string version)
+        public virtual async Task<ActionResult> RevalidateSymbols(string id, string version, string returnUrl = null)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
@@ -1988,7 +1995,14 @@ namespace NuGetGallery
                 TempData["Message"] = $"An error occurred while revalidating the symbols package. {ex.Message}";
             }
 
-            return SafeRedirect(Url.Package(id, version));
+            if (string.IsNullOrEmpty(returnUrl))
+            {
+                return SafeRedirect(Url.Package(id, version));
+            }
+            else
+            {
+                return SafeRedirect(returnUrl);
+            }
         }
 
         /// <summary>

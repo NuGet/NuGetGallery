@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation;
@@ -27,6 +28,59 @@ namespace NuGetGallery.Areas.Admin.Services
                 // Assert
                 Assert.Equal(1, actual.Count);
                 Assert.Same(_validationSet, actual[0]);
+            }
+        }
+
+        public class TheRevalidatePendingMethod : FactsBase
+        {
+            [Fact]
+            public async Task RevalidatesValidatingPackagesAsync()
+            {
+                _packages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new Package { Key = 1, PackageStatusKey = PackageStatus.Available },
+                        new Package { Key = 2, PackageStatusKey = PackageStatus.Validating },
+                        new Package { Key = 3, PackageStatusKey = PackageStatus.Validating },
+                        new Package { Key = 4, PackageStatusKey = PackageStatus.Deleted },
+                        new Package { Key = 5, PackageStatusKey = PackageStatus.FailedValidation },
+                    }.AsQueryable());
+
+                var revalidatedCount = await _target.RevalidatePendingAsync(ValidatingType.Package);
+
+                Assert.Equal(2, revalidatedCount);
+                _validationService.Verify(x => x.RevalidateAsync(It.IsAny<Package>()), Times.Exactly(2));
+                _validationService.Verify(x => x.RevalidateAsync(It.Is<Package>(p => p.Key == 2)), Times.Once);
+                _validationService.Verify(x => x.RevalidateAsync(It.Is<Package>(p => p.Key == 3)), Times.Once);
+            }
+
+            [Fact]
+            public async Task RevalidatesValidatingSymbolsPackagesAsync()
+            {
+                _symbolPackages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new SymbolPackage { Key = 1, StatusKey = PackageStatus.Available },
+                        new SymbolPackage { Key = 2, StatusKey = PackageStatus.Validating },
+                        new SymbolPackage { Key = 3, StatusKey = PackageStatus.Validating },
+                        new SymbolPackage { Key = 4, StatusKey = PackageStatus.Deleted },
+                        new SymbolPackage { Key = 5, StatusKey = PackageStatus.FailedValidation },
+                    }.AsQueryable());
+
+                var revalidatedCount = await _target.RevalidatePendingAsync(ValidatingType.SymbolPackage);
+
+                Assert.Equal(2, revalidatedCount);
+                _validationService.Verify(x => x.RevalidateAsync(It.IsAny<SymbolPackage>()), Times.Exactly(2));
+                _validationService.Verify(x => x.RevalidateAsync(It.Is<SymbolPackage>(p => p.Key == 2)), Times.Once);
+                _validationService.Verify(x => x.RevalidateAsync(It.Is<SymbolPackage>(p => p.Key == 3)), Times.Once);
+            }
+
+            [Fact]
+            public async Task RejectsUnknownPackageStatusKey()
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => _target.RevalidatePendingAsync(ValidatingType.Generic));
             }
         }
 
@@ -133,6 +187,7 @@ namespace NuGetGallery.Areas.Admin.Services
             protected readonly Mock<IEntityRepository<PackageValidation>> _validations;
             protected readonly Mock<IEntityRepository<Package>> _packages;
             protected readonly Mock<IEntityRepository<SymbolPackage>> _symbolPackages;
+            protected readonly Mock<IValidationService> _validationService;
             protected readonly ValidationAdminService _target;
 
             public FactsBase()
@@ -160,6 +215,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 _validations = new Mock<IEntityRepository<PackageValidation>>();
                 _packages = new Mock<IEntityRepository<Package>>();
                 _symbolPackages = new Mock<IEntityRepository<SymbolPackage>>();
+                _validationService = new Mock<IValidationService>();
 
                 _packages
                     .Setup(x => x.GetAll())
@@ -178,7 +234,8 @@ namespace NuGetGallery.Areas.Admin.Services
                     _validationSets.Object,
                     _validations.Object,
                     _packages.Object,
-                    _symbolPackages.Object);
+                    _symbolPackages.Object,
+                    _validationService.Object);
             }
         }
     }

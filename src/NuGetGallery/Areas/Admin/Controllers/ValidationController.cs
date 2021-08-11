@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Services;
@@ -38,6 +40,25 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var query = string.Join("\r\n", validationSetIds);
 
             return View(nameof(Index), new ValidationPageViewModel(query, packageValidations));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<RedirectToRouteResult> RevalidatePending(ValidatingType validatingType)
+        {
+            var revalidatedCount = await _validationAdminService.RevalidatePendingAsync(validatingType);
+
+            if (revalidatedCount == 0)
+            {
+                TempData["Message"] = $"There are no {validatingType} instances that are in the {PackageStatus.Validating} state so no validations were enqueued.";
+            }
+            else
+            {
+                TempData["Message"] = $"{revalidatedCount} validations were enqueued for {validatingType} instances that are in the {PackageStatus.Validating} state. " +
+                    $"It may take some time for the new validations to appear as the validation subsystem reacts to the enqueued messages.";
+            }
+
+            return RedirectToAction(nameof(Pending));
         }
 
         [HttpGet]

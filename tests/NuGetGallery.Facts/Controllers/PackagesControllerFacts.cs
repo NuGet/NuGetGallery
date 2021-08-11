@@ -9174,6 +9174,21 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task RedirectsToCustomReturnUrl()
+            {
+                // Arrange & Act
+                var result = await _target.Revalidate(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    "/Admin");
+
+                // Assert
+                var redirect = Assert.IsType<SafeRedirectResult>(result);
+                Assert.Equal("/Admin", redirect.Url);
+                Assert.Equal("/", redirect.SafeUrl);
+            }
+
+            [Fact]
             public async Task RedirectsAfterRevalidatingPackage()
             {
                 // Arrange & Act
@@ -9259,6 +9274,21 @@ namespace NuGetGallery
                 _validationService.Verify(
                     x => x.RevalidateAsync(_symbolPacakge),
                     Times.Once);
+            }
+
+            [Fact]
+            public async Task RedirectsToCustomReturnUrl()
+            {
+                // Arrange & Act
+                var result = await _target.RevalidateSymbols(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    "/Admin");
+
+                // Assert
+                var redirect = Assert.IsType<SafeRedirectResult>(result);
+                Assert.Equal("/Admin", redirect.Url);
+                Assert.Equal("/", redirect.SafeUrl);
             }
 
             [Theory]
