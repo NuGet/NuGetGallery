@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGet.Versioning;
@@ -20,17 +21,20 @@ namespace NuGetGallery.Areas.Admin.Services
         private readonly IEntityRepository<PackageValidation> _validations;
         private readonly IEntityRepository<Package> _packages;
         private readonly IEntityRepository<SymbolPackage> _symbolPackages;
+        private readonly IValidationService _validationService;
 
         public ValidationAdminService(
             IEntityRepository<PackageValidationSet> validationSets,
             IEntityRepository<PackageValidation> validations,
             IEntityRepository<Package> packages,
-            IEntityRepository<SymbolPackage> symbolPackages)
+            IEntityRepository<SymbolPackage> symbolPackages,
+            IValidationService validationService)
         {
             _validationSets = validationSets ?? throw new ArgumentNullException(nameof(validationSets));
             _validations = validations ?? throw new ArgumentNullException(nameof(validations));
             _packages = packages ?? throw new ArgumentNullException(nameof(packages));
             _symbolPackages = symbolPackages ?? throw new ArgumentNullException(nameof(symbolPackages));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
         }
 
         /// <summary>
@@ -81,6 +85,45 @@ namespace NuGetGallery.Areas.Admin.Services
             AddPendingValidationSets(pendingValidations, pendingSymbolPackages, ValidatingType.SymbolPackage);
 
             return pendingValidations;
+        }
+
+        public async Task<int> RevalidatePendingAsync(ValidatingType validatingType)
+        {
+            if (validatingType == ValidatingType.Package)
+            {
+                var pendingPackages = _packages
+                    .GetAll()
+                    .Include(p => p.PackageRegistration)
+                    .Where(p => p.PackageStatusKey == PackageStatus.Validating)
+                    .ToList();
+
+                foreach (var package in pendingPackages)
+                {
+                    await _validationService.RevalidateAsync(package);
+                }
+
+                return pendingPackages.Count;
+            }
+            else if (validatingType == ValidatingType.SymbolPackage)
+            {
+                var pendingSymbolPackages = _symbolPackages
+                    .GetAll()
+                    .Include(p => p.Package)
+                    .Include(p => p.Package.PackageRegistration)
+                    .Where(s => s.StatusKey == PackageStatus.Validating)
+                    .ToList();
+
+                foreach (var symbolPackage in pendingSymbolPackages)
+                {
+                    await _validationService.RevalidateAsync(symbolPackage);
+                }
+
+                return pendingSymbolPackages.Count;
+            }
+            else
+            {
+                throw new NotSupportedException("The validating type " + validatingType + " is not supported.");
+            }
         }
 
         public PackageDeletedStatus GetDeletedStatus(int key, ValidatingType validatingType)

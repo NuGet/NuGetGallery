@@ -178,7 +178,7 @@ namespace NuGetGallery.AccountDeleter
             }
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             ConfigureDefaultSubscriptionProcessor(containerBuilder);
             containerBuilder.RegisterType<EntityRepository<User>>()

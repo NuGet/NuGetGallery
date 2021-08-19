@@ -47,7 +47,7 @@ namespace GitHubVulnerabilities2Db
             _client.Dispose();
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             containerBuilder
                 .RegisterAdapter<IOptionsSnapshot<GitHubVulnerabilities2DbConfiguration>, GitHubVulnerabilities2DbConfiguration>(c => c.Value);

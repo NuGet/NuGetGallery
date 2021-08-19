@@ -50,7 +50,7 @@
                     <img class="reserved-indicator"
                          src="~/Content/gallery/img/reserved-indicator.svg"
                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
-                         data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0" />
+                         data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0" role="presentation"/>
                 }
 
                 @if (showEditButton && (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist))
