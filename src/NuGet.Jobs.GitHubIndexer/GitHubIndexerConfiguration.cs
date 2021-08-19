@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace NuGet.Jobs.GitHubIndexer
 {
@@ -46,5 +47,10 @@ namespace NuGet.Jobs.GitHubIndexer
         /// How long to sleep after succeeding. If the job fails this setting will be ignored.
         /// </summary>
         public TimeSpan SleepAfterSuccess { get; set; }
+
+        /// <summary>
+        /// The list of repositories to be ignored by the indexing job. ("{repoOwner}/{repoName}")
+        /// </summary>
+        public HashSet<string> IgnoreList { get; set; }
     }
 }

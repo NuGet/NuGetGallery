@@ -134,11 +134,20 @@ namespace NuGet.Jobs.GitHubIndexer
                         return resultList;
                     }
 
-                    // TODO: Block unwanted repos (https://github.com/NuGet/NuGetGallery/issues/7298)
-                    resultList.AddRange(response);
+                    var ignoreList = _configuration.Value.IgnoreList;
+                    var filteredRepoList = response.Where(x =>
+                    {
+                        var isValidRepo = !ignoreList.Contains(x.Id, StringComparer.OrdinalIgnoreCase);
+                        if (!isValidRepo)
+                        {
+                            _logger.LogInformation("Found {RepoName} in the ignore list", x.Id);
+                        }
+                        return isValidRepo;
+                    });
+                    resultList.AddRange(filteredRepoList);
                     page++;
 
-                    if (page == lastPage && response.First().Stars == response.Last().Stars)
+                    if (page == (int)lastPage && response.First().Stars == response.Last().Stars)
                     {
                         // GitHub throttles us after a certain number of results per query.
                         // We can only construct queries based on number of stars a repository has.

@@ -18,16 +18,6 @@ namespace NuGet.SupportRequests.Notifications
         public string EmailPublisherTopicName { get; set; }
 
         /// <summary>
-        /// Obsolete: replace with incident API configuration
-        /// </summary>
-        public string PagerDutyAccountName { get; set; }
-
-        /// <summary>
-        /// Obsolete: replace with incident API configuration
-        /// </summary>
-        public string PagerDutyApiKey { get; set; }
-
-        /// <summary>
         /// Email address to which the weekly report is sent.
         /// </summary>
         public string TargetEmailAddress { get; set; }
