@@ -143,6 +143,7 @@
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SiteAdminsController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
+    <Compile Include="Areas\Admin\Controllers\PackageOwnershipController.cs" />
     <Compile Include="Areas\Admin\Controllers\UpdateListedController.cs" />
     <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
@@ -190,6 +191,7 @@
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ApiKeyRevokeViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageOwnershipViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SiteAdminsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\NuGetPackageValidationViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
@@ -2314,6 +2316,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\Admin\Views\UpdateListed\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Admin\Views\PackageOwnership\Index.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
