@@ -6,7 +6,7 @@ using System.Web;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public enum PackageOwnershipStateType
+    public enum PackageOwnershipState
     {
         /// <summary>
         /// This user is an owner of the package and will not be modified.
@@ -29,6 +29,11 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         AlreadyOwnerRequest,
 
         /// <summary>
+        /// This user is not currently an owner but the requestor has access to this user so it will be immediately added as an owner.
+        /// </summary>
+        NewOwner,
+
+        /// <summary>
         /// This user is not currently an owner so an ownership request will be sent.
         /// </summary>
         NewOwnerRequest,
@@ -39,31 +44,23 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         RemoveOwner,
 
         /// <summary>
-        /// This user current has an ownership request which will be removed.
+        /// This user currently has an ownership request which will be removed.
         /// </summary>
         RemoveOwnerRequest,
+
+        /// <summary>
+        /// This user is not currently an owner and does not have an ownership request. No change will occur for this package and user combination.
+        /// </summary>
+        RemoveNoOp,
     }
 
-    public class PackageOwnershipState
+    public class PackageRegistrationOwnershipChangeModel
     {
-        public PackageOwnershipState(string username, PackageOwnershipStateType type)
-        {
-            Username = username ?? throw new ArgumentNullException(nameof(username));
-            Type = type;
-        }
-
-        public string Username { get; }
-        public PackageOwnershipStateType Type { get; }
-    }
-
-
-    public class PackageRegistrationOwnershipChangeViewModel
-    {
-        public PackageRegistrationOwnershipChangeViewModel(string id, bool requestorHasPermissions, IReadOnlyList<PackageOwnershipState> ownershipStates)
+        public PackageRegistrationOwnershipChangeModel(string id, bool requestorHasPermissions, IReadOnlyDictionary<string, PackageOwnershipState> usernameToState)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
             RequestorHasPermissions = requestorHasPermissions;
-            OwnershipStates = ownershipStates ?? throw new ArgumentNullException(nameof(ownershipStates));
+            UsernameToState = usernameToState ?? throw new ArgumentNullException(nameof(usernameToState));
         }
 
         /// <summary>
@@ -79,7 +76,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         /// <summary>
         /// The state of all current, added, and removed owners on this package registration.
         /// </summary>
-        public IReadOnlyList<PackageOwnershipState> OwnershipStates { get; }
+        public IReadOnlyDictionary<string, PackageOwnershipState> UsernameToState { get; }
     }
 
     public class PackageOwnershipChangesInput
@@ -97,23 +94,26 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public string Message { get; set; }
     }
 
-    public class PackageOwnershipChangesViewModel
+    public class PackageOwnershipChangesModel
     {
-        public PackageOwnershipChangesViewModel(
+        public PackageOwnershipChangesModel(
             PackageOwnershipChangesInput input,
-            string requestorUsername,
-            string message,
-            IReadOnlyList<PackageRegistrationOwnershipChangeViewModel> packageRegistrationOwnershipChanges)
+            IReadOnlyList<string> addOwners,
+            IReadOnlyList<string> removeOwners,
+            IReadOnlyList<PackageRegistrationOwnershipChangeModel> changes)
         {
-            Input = input ?? throw new ArgumentNullException(nameof(requestorUsername));
-            RequestorUsername = requestorUsername ?? throw new ArgumentNullException(nameof(requestorUsername));
-            Message = message;
-            PackageRegistrationOwnershipChanges = packageRegistrationOwnershipChanges ?? throw new ArgumentNullException(nameof(packageRegistrationOwnershipChanges));
+            Input = input;
+            AddOwners = addOwners;
+            RemoveOwners = removeOwners;
+            Changes = changes;
         }
 
         public PackageOwnershipChangesInput Input { get; }
-        public string RequestorUsername { get; }
-        public string Message { get; }
-        public IReadOnlyList<PackageRegistrationOwnershipChangeViewModel> PackageRegistrationOwnershipChanges { get; }
+        public string Requestor => Input.Requestor;
+        public IEnumerable<string> PackageIds => Changes.Select(x => x.Id);
+        public IReadOnlyList<string> AddOwners { get; }
+        public IReadOnlyList<string> RemoveOwners { get; }
+        public string Message => Input.Message;
+        public IReadOnlyList<PackageRegistrationOwnershipChangeModel> Changes { get; }
     }
 }
