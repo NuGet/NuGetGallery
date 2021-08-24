@@ -92,6 +92,8 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public string RemoveOwners { get; set; }
 
         public string Message { get; set; }
+
+        public bool SkipRequestFlow { get; set; }
     }
 
     public class PackageOwnershipChangesModel
@@ -114,6 +116,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public IReadOnlyList<string> AddOwners { get; }
         public IReadOnlyList<string> RemoveOwners { get; }
         public string Message => Input.Message;
+        public bool SkipRequestFlow => Input.SkipRequestFlow;
         public IReadOnlyList<PackageRegistrationOwnershipChangeModel> Changes { get; }
     }
 }

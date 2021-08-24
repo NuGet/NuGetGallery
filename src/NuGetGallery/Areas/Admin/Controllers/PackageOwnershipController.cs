@@ -64,25 +64,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             errorViewResult = null;
             validatedModel = null;
 
-            // Find all package registrations, by package ID
-            var idToPackageRegistration = new Dictionary<string, PackageRegistration>(StringComparer.OrdinalIgnoreCase);
-            foreach (var packageId in SplitAndTrim(input.PackageIds, separator: '\n'))
-            {
-                var packageRegistration = _packageService.FindPackageRegistrationById(packageId);
-                if (packageRegistration == null)
-                {
-                    errorViewResult = ShowError(input, nameof(PackageOwnershipChangesInput.PackageIds), $"The package ID '{packageId}' does not exist.");
-                    return false;
-                }
-                idToPackageRegistration.Add(packageRegistration.Id, packageRegistration);
-            }
-
-            if (idToPackageRegistration.Count == 0)
-            {
-                errorViewResult = ShowError(input, nameof(PackageOwnershipChangesInput.PackageIds), "You must provide at least one valid package ID.");
-                return false;
-            }
-
             // Find all of the users, by username
             var requestorUsername = (input.Requestor ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(requestorUsername))
@@ -127,6 +108,37 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 usernameToUser.Add(user.Username, user);
             }
 
+            if (usernameToUser[requestorUsername] is Organization)
+            {
+                errorViewResult = ShowError(input, nameof(PackageOwnershipChangesInput.Requestor), "The requestor cannot be an organization.");
+                return false;
+            }
+
+            // Find all package registrations, by package ID
+            var idToPackageRegistration = new SortedDictionary<string, PackageRegistration>(StringComparer.OrdinalIgnoreCase);
+            foreach (var packageId in SplitAndTrim(input.PackageIds, separator: '\n'))
+            {
+                var packageRegistration = _packageService.FindPackageRegistrationById(packageId);
+                if (packageRegistration == null)
+                {
+                    errorViewResult = ShowError(input, nameof(PackageOwnershipChangesInput.PackageIds), $"The package ID '{packageId}' does not exist.");
+                    return false;
+                }
+                idToPackageRegistration.Add(packageRegistration.Id, packageRegistration);
+            }
+
+            if (idToPackageRegistration.Count == 0)
+            {
+                errorViewResult = ShowError(input, nameof(PackageOwnershipChangesInput.PackageIds), "You must provide at least one valid package ID.");
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(input.Message) && input.SkipRequestFlow)
+            {
+                errorViewResult = ShowError(input, nameof(PackageOwnershipChangesInput.Message), "The message is not allowed when skipping the request flow.");
+                return false;
+            }    
+
             // Determine the ownership status for each each relevant user, on each package
             validatedModel = CalculateChanges(
                 idToPackageRegistration,
@@ -134,17 +146,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 requestorUsername,
                 addUsernames,
                 removeUsernames,
-                input.Message);
+                input.Message,
+                input.SkipRequestFlow);
             return true;
         }
 
         private PackageOwnershipChangesModel CalculateChanges(
             IReadOnlyDictionary<string, PackageRegistration> idToPackageRegistration,
-            IReadOnlyDictionary<string, User> usernameToUser,
+            Dictionary<string, User> usernameToUser,
             string requestorUsername,
             IReadOnlyList<string> addOwners,
             IReadOnlyList<string> removeOwners,
-            string message)
+            string message,
+            bool skipRequestFlow)
         {
             var changes = new List<PackageRegistrationOwnershipChangeModel>();
             foreach (var packageRegistration in idToPackageRegistration.Values.OrderBy(x => x.Id, StringComparer.OrdinalIgnoreCase))
@@ -153,6 +167,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 foreach (var owner in packageRegistration.Owners)
                 {
                     usernameToState.Add(owner.Username, PackageOwnershipState.ExistingOwner);
+
+                    foreach (var user in packageRegistration.Owners)
+                    {
+                        usernameToUser[user.Username] = user;
+                    }
                 }
 
                 var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(packageRegistration);
@@ -162,6 +181,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     {
                         usernameToState.Add(request.NewOwner.Username, PackageOwnershipState.ExistingOwnerRequest);
                     }
+
+                    usernameToUser[request.NewOwner.Username] = request.NewOwner;
                 }
 
                 foreach (var addUsername in addOwners)
@@ -186,7 +207,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                             .HandlePackageOwnershipRequest
                             .CheckPermissions(usernameToUser[requestorUsername], usernameToUser[addUsername]);
 
-                        if (autoAccept == PermissionsCheckResult.Allowed)
+                        if (autoAccept == PermissionsCheckResult.Allowed || skipRequestFlow)
                         {
                             usernameToState[addUsername] = PackageOwnershipState.NewOwner;
                         }
@@ -245,6 +266,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 AddOwners = string.Join(", ", addOwners.Select(x => usernameToUser[x].Username)),
                 RemoveOwners = string.Join(", ", removeOwners.Select(x => usernameToUser[x].Username)),
                 Message = message?.Trim() ?? string.Empty,
+                SkipRequestFlow = skipRequestFlow
             };
 
             return new PackageOwnershipChangesModel(

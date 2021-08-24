@@ -54,6 +54,9 @@
                 <pre>@Model.Message</pre>
             }
         </li>
+        <li>
+            <b>Skip request flow:</b> @(Model.SkipRequestFlow ? "yes" : "no")
+        </li>
     </ul>
 
     <h2>Change preview</h2>
@@ -79,55 +82,55 @@
                     <td class="text-center">
                         @if (changes.RequestorHasPermissions)
                         {
-                            <span title="@Model.Input.Requestor has permissions to change owners on @changes.Id">✔️</span>
+                            <span title="Requestor @Model.Input.Requestor has permissions to change owners on @changes.Id">✔️</span>
                         }
                         else
                         {
-                            <span title="@Model.Input.Requestor does not have permissions to change owners on @changes.Id">❌</span>
+                            <span title="Requestor @Model.Input.Requestor does not have permissions to change owners on @changes.Id">❌</span>
                         }
                     </td>
                     <td>
                         @foreach (var pair in changes.UsernameToState.Where(x => x.Value == PackageOwnershipState.ExistingOwner))
                         {
-                            <a title="@pair.Key is an existing owner of @changes.Id" href="@Url.User(pair.Key)">@pair.Key</a>
+                            <a title="@pair.Key is an existing owner of @changes.Id" href="@Url.User(pair.Key)">@pair.Key</a><br />
                         }
                         @foreach (var pair in changes.UsernameToState.Where(x => x.Value == PackageOwnershipState.AlreadyOwner))
                         {
-                            <b title="@pair.Key is already an owner of @changes.Id">⚠️ <a href="@Url.User(pair.Key)">@pair.Key</a></b>
+                            <b title="@pair.Key is already an owner of @changes.Id"><a href="@Url.User(pair.Key)">@pair.Key</a></b><br />
                         }
                     </td>
                     <td>
                         @foreach (var pair in changes.UsernameToState.Where(x => x.Value == PackageOwnershipState.ExistingOwnerRequest))
                         {
-                            <a title="@pair.Key has an existing ownership request for @changes.Id" href="@Url.User(pair.Key)">@pair.Key</a>
+                            <a title="@pair.Key has an existing ownership request for @changes.Id" href="@Url.User(pair.Key)">@pair.Key</a><br />
                         }
                         @foreach (var pair in changes.UsernameToState.Where(x => x.Value == PackageOwnershipState.AlreadyOwnerRequest))
                         {
-                            <b title="@pair.Key already has an ownership request for @changes.Id">⚠️ <a href="@Url.User(pair.Key)">@pair.Key</a></b>
+                            <b title="@pair.Key already has an ownership request for @changes.Id"><a href="@Url.User(pair.Key)">@pair.Key</a></b><br />
                         }
                     </td>
                     <td class="warning">
                         @foreach (var pair in changes.UsernameToState.Where(x => x.Value == PackageOwnershipState.NewOwner))
                         {
-                            <b title="@pair.Key will be immediately added as an owner of @changes.Id">➕ <a href="@Url.User(pair.Key)">@pair.Key</a></b>
+                            <b title="@pair.Key will be immediately added as an owner of @changes.Id">➕ <a href="@Url.User(pair.Key)">@pair.Key</a></b><br />
                         }
                     </td>
                     <td class="warning">
                         @foreach (var pair in changes.UsernameToState.Where(x => x.Value == PackageOwnershipState.NewOwnerRequest))
                         {
-                            <b title="@pair.Key will have an ownership request sent for @changes.Id">➕ <a href="@Url.User(pair.Key)">@pair.Key</a></b>
+                            <b title="@pair.Key will have an ownership request sent for @changes.Id">➕ <a href="@Url.User(pair.Key)">@pair.Key</a></b><br />
                         }
                     </td>
                     <td class="warning">
                         @foreach (var pair in changes.UsernameToState.Where(x => x.Value == PackageOwnershipState.RemoveOwner))
                         {
-                            <b title="@pair.Key will be immediately removed as an owner from @changes.Id">➖ <a href="@Url.User(pair.Key)">@pair.Key</a></b>
+                            <b title="@pair.Key will be immediately removed as an owner from @changes.Id">➖ <a href="@Url.User(pair.Key)">@pair.Key</a></b><br />
                         }
                     </td>
                     <td class="warning">
                         @foreach (var pair in changes.UsernameToState.Where(x => x.Value == PackageOwnershipState.RemoveOwnerRequest))
                         {
-                            <b title="@pair.Key will have an ownership request removed from @changes.Id">➖ <a href="@Url.User(pair.Key)">@pair.Key</a></b>
+                            <b title="@pair.Key will have an ownership request removed from @changes.Id">➖ <a href="@Url.User(pair.Key)">@pair.Key</a></b><br />
                         }
                     </td>
                 </tr>

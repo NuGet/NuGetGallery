@@ -1,7 +1,8 @@
 ﻿@model PackageOwnershipChangesInput
 
-@Html.HiddenFor(x => x.PackageIds)
-@Html.HiddenFor(x => x.Requestor)
-@Html.HiddenFor(x => x.AddOwners)
-@Html.HiddenFor(x => x.RemoveOwners)
-@Html.HiddenFor(x => x.Message)
+<input type="hidden" name="packageIds" value="@Model.PackageIds" />
+<input type="hidden" name="requestor" value="@Model.Requestor" />
+<input type="hidden" name="addOwners" value="@Model.AddOwners" />
+<input type="hidden" name="removeOwners" value="@Model.RemoveOwners" />
+<input type="hidden" name="message" value="@Model.Message" />
+<input type="hidden" name="skipRequestFlow" value="@(Model.SkipRequestFlow ? "true" : "false")" />
