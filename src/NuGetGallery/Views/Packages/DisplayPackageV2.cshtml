@@ -456,7 +456,9 @@
             {
                 <div class="installation-instructions">
                     <div>
-                        <select name="installation-instructions" class="installation-instructions-dropdown">
+                        <select name="installation-instructions"
+                                class="installation-instructions-dropdown"
+                                aria-label="Select a package manager">
                             @foreach (var packageManager in packageManagers)
                             {
                                 <option value="@packageManager.Id">@packageManager.Name</option>
