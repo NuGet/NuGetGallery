@@ -64,14 +64,18 @@
                 }
                 else
                 {
-                    <label>License text</label>
+                    <label>License file</label>
                     <div class="common-licenses">
                         @if (Model.LicenseFileContentsHtml != null)
                         {
-                            if (Model.LicenseFileContentsHtml.ImageSourceDisallowed)
+                            if (Model.LicenseFileContentsHtml.ImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
                             {
-                                @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>)
+                                @ViewHelpers.AlertImageSourceDisallowed();
+                            }
 
+                            if (Model.LicenseFileContentsHtml.ImagesRewritten && Model.CanDisplayPrivateMetadata)
+                            {
+                                @ViewHelpers.AlertImagesRewritten();
                             }
                             @Html.Raw(Model.LicenseFileContentsHtml.Content)
                         }

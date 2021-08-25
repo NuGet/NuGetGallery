@@ -49,6 +49,7 @@ namespace NuGetGallery
             string licenseFileContents,
             User currentUser)
         {
+            viewModel.CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;
             if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
@@ -72,6 +73,11 @@ namespace NuGetGallery
             }
 
             return viewModel;
+        }
+
+        private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
+        {
+            return action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
         }
     }
 }

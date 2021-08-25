@@ -16,5 +16,6 @@ namespace NuGetGallery
         public IReadOnlyCollection<CompositeLicenseExpressionSegment> LicenseExpressionSegments { get; set; }
         public string LicenseFileContents { get; set; }
         public RenderedMarkdownResult LicenseFileContentsHtml { get; set; }
+        public bool CanDisplayPrivateMetadata { get; set; }
     }
 }

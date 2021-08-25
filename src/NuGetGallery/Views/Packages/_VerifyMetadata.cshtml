@@ -136,7 +136,10 @@
                 <label class="verify-package-field-heading">License file</label>
                 <!-- ko if: $data.LicenseFileContentsHtml -->
                 <!-- ko if: $data.LicenseFileContentsHtml.ImageSourceDisallowed-->
-                @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>)
+                @ViewHelpers.AlertImageSourceDisallowed();
+                <!-- /ko -->
+                <!-- ko if: $data.LicenseFileContentsHtml.ImagesRewritten-->
+                @ViewHelpers.AlertImagesRewritten();
                 <!-- /ko -->
                 <span class="license-file-html-container" data-bind="html: $data.LicenseFileContentsHtml.Content"></span>
                 <!-- /ko -->
