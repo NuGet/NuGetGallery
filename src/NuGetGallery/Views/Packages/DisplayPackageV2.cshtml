@@ -163,40 +163,58 @@
     }
 }
 
+@helper CommandTab(PackageManagerViewModel packageManager, bool active)
+{
+    <li role="presentation" class="@(active ? "active" : string.Empty)">
+        <a href="#@packageManager.Id" aria-expanded="@(active ? "true" : "false")"
+           id="@packageManager.Id-tab" class="package-manager-tab"
+           aria-selected="@(active ? "true" : "false")"
+           aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
+           title="Switch to tab panel which contains package installation command for @packageManager.Name">
+            @packageManager.Name
+        </a>
+    </li>
+}
+
 @helper CommandPanel(PackageManagerViewModel packageManager, bool active)
 {
     var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
-    <div class="installation-instruction @(active ? string.Empty : "hidden")" id="@packageManager.Id-instructions">
-        <div id="@packageManager.Id">
-            <div>
-                <div class="install-script-row">
-                    @{
-                        var lastIndex = packageManager.InstallPackageCommands.Length - 1;
-                        var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
-                    }
-                    @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
-                    <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
+    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
+        <div>
+            <div class="install-script-row">
+                @{
+                    var lastIndex = packageManager.InstallPackageCommands.Length - 1;
+                    var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
+                }
+                @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
+                <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
+                <div class="copy-button">
+                    <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
+                            data-toggle="popover" data-placement="bottom" data-content="Copied."
+                            aria-label="@packageManager.CopyLabel" aria-live="polite" role="button">
+                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                    </button>
                 </div>
             </div>
+        </div>
 
-            @switch (packageManager.AlertLevel)
-            {
-                case AlertLevel.Info:
-                    @ViewHelpers.AlertInfo(
-                        @<text>
-                            @Html.Raw(packageManager.AlertMessage)
-                        </text>);
-                    break;
-                case AlertLevel.Warning:
-                    @ViewHelpers.AlertWarning(
-                        @<text>
-                            @Html.Raw(packageManager.AlertMessage)
-                        </text>);
-                    break;
-                default:
-                    break;
-            }
-        </div>   
+        @switch (packageManager.AlertLevel)
+        {
+            case AlertLevel.Info:
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        @Html.Raw(packageManager.AlertMessage)
+                    </text>);
+                break;
+            case AlertLevel.Warning:
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        @Html.Raw(packageManager.AlertMessage)
+                    </text>);
+                break;
+            default:
+                break;
+        }
     </div>
 }
 
@@ -452,33 +470,28 @@
             {
                 <p>Requires NuGet @Model.MinClientVersion or higher.</p>
             }
+
             @if (Model.Available)
             {
-                <div class="installation-instructions">
-                    <div>
-                        <select name="installation-instructions"
-                                class="installation-instructions-dropdown"
-                                aria-label="Select a package manager">
-                            @foreach (var packageManager in packageManagers)
-                            {
-                                <option value="@packageManager.Id">@packageManager.Name</option>
-                            }
-                        </select>
+                <div class="install-tabs">
+                    <ul class="nav nav-tabs" role="tablist">
+                        @{ var firstPackageManager = true; }
+                        @foreach (var packageManager in packageManagers)
+                        {
+                            @CommandTab(packageManager, active: firstPackageManager)
 
-                        <button class="btn btn-blue" type="button"
-                                data-toggle="popover" data-placement="bottom" data-content="Copied."
-                                aria-label="CopyLabel" aria-live="polite" role="button">
-                            <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
-                        </button>
+                            firstPackageManager = false;
+                        }
+                    </ul>
+                    <div class="tab-content">
+                        @{ firstPackageManager = true; }
+                        @foreach (var packageManager in packageManagers)
+                        {
+                            @CommandPanel(packageManager, active: firstPackageManager)
+
+                            firstPackageManager = false;
+                        }
                     </div>
-
-                    @{ var firstPackageManager = true; }
-                    @foreach (var packageManager in packageManagers)
-                    {
-                        @CommandPanel(packageManager, active: firstPackageManager)
-
-                        firstPackageManager = false;
-                    }
                 </div>
             }
         </div>
