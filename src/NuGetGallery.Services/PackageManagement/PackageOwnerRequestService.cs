@@ -7,16 +7,21 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
     public class PackageOwnerRequestService : IPackageOwnerRequestService
     {
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
+        private readonly IAuditingService _auditingService;
 
-        public PackageOwnerRequestService(IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository)
+        public PackageOwnerRequestService(
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
+            IAuditingService auditingService)
         {
             _packageOwnerRequestRepository = packageOwnerRequestRepository ?? throw new ArgumentNullException(nameof(packageOwnerRequestRepository));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         public PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User newOwner, string token)
@@ -101,18 +106,33 @@ namespace NuGetGallery
 
             _packageOwnerRequestRepository.InsertOnCommit(newRequest);
             await _packageOwnerRequestRepository.CommitChangesAsync();
+
+            await _auditingService.SaveAuditRecordAsync(PackageRegistrationAuditRecord.CreateForAddOwnershipRequest(
+                package,
+                requestingOwner.Username,
+                newOwner.Username));
+
             return newRequest;
         }
 
         public async Task DeletePackageOwnershipRequest(PackageOwnerRequest request, bool commitChanges = true)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             _packageOwnerRequestRepository.DeleteOnCommit(request);
 
             if (commitChanges)
             {
                 await _packageOwnerRequestRepository.CommitChangesAsync();
             }
+
+            await _auditingService.SaveAuditRecordAsync(PackageRegistrationAuditRecord.CreateForDeleteOwnershipRequest(
+                request.PackageRegistration,
+                request.RequestingOwner.Username,
+                request.NewOwner.Username));
         }
-        
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -39,7 +40,7 @@ namespace NuGetGallery.Services
             [InlineData(2, 2, "token", false)]
             [InlineData(1, 1, "token", false)]
             [InlineData(1, 2, "token2", false)]
-            private void ReturnsSuccessIfPackageOwnerRequestMatches(int packageId, int userId, string token, bool success)
+            public void ReturnsSuccessIfPackageOwnerRequestMatches(int packageId, int userId, string token, bool success)
             {
                 // Arrange
                 const int actualKey = 1;
@@ -115,10 +116,11 @@ namespace NuGetGallery.Services
             public async Task CreatesPackageOwnerRequest()
             {
                 var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
-                var package = new PackageRegistration { Key = 1 };
-                var owner = new User { Key = 100 };
-                var newOwner = new User { Key = 200 };
+                var auditingService = new Mock<IAuditingService>();
+                var service = CreateService(packageOwnerRequestRepository, auditingService);
+                var package = new PackageRegistration { Id = "NuGet.Versioning", Key = 1 };
+                var owner = new User { Username = "NuGet", Key = 100 };
+                var newOwner = new User { Username = "Microsoft", Key = 200 };
 
                 await service.AddPackageOwnershipRequest(package, owner, newOwner);
 
@@ -126,6 +128,11 @@ namespace NuGetGallery.Services
                     r => r.InsertOnCommit(
                         It.Is<PackageOwnerRequest>(req => req.PackageRegistrationKey == 1 && req.RequestingOwnerKey == 100 && req.NewOwnerKey == 200))
                     );
+                auditingService.Verify(x => x.SaveAuditRecordAsync(It.Is<PackageRegistrationAuditRecord>(r => 
+                    r.Id == "NuGet.Versioning"
+                    && r.RequestingOwner == "NuGet"
+                    && r.NewOwner == "Microsoft"
+                    && r.Action == AuditedPackageRegistrationAction.AddOwnershipRequest)), Times.Once);
             }
 
             [Fact]
@@ -153,21 +160,62 @@ namespace NuGetGallery.Services
                             NewOwnerKey = newOwner.Key
                         }
                     }.AsQueryable());
-                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var auditingService = new Mock<IAuditingService>();
+                var service = CreateService(packageOwnerRequestRepository, auditingService);
 
                 // Act
                 var request = await service.AddPackageOwnershipRequest(package, newRequestingOwner, newOwner);
 
                 // Assert
                 Assert.Equal(existingRequestingOwner.Key, request.RequestingOwnerKey);
+                auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Never);
             }
         }
 
-        private static IPackageOwnerRequestService CreateService(Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null)
+        public class TheDeletePackageOwnershipRequestMethod
+        {
+            [Fact]
+            public async Task NullRequestThrowsException()
+            {
+                var service = CreateService();
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DeletePackageOwnershipRequest(request: null));
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task DeletesPackageOwnerRequest(bool commitChanges)
+            {
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                var auditingService = new Mock<IAuditingService>();
+                var service = CreateService(packageOwnerRequestRepository, auditingService);
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = new PackageRegistration { Id = "NuGet.Versioning" },
+                    RequestingOwner = new User { Username = "NuGet" },
+                    NewOwner = new User { Username = "Microsoft" },
+                };
+
+                await service.DeletePackageOwnershipRequest(request, commitChanges);
+
+                packageOwnerRequestRepository.Verify(r => r.DeleteOnCommit(request), Times.Once);
+                packageOwnerRequestRepository.Verify(r => r.CommitChangesAsync(), commitChanges ? Times.Once() : Times.Never());
+                auditingService.Verify(x => x.SaveAuditRecordAsync(It.Is<PackageRegistrationAuditRecord>(r =>
+                    r.Id == "NuGet.Versioning"
+                    && r.RequestingOwner == "NuGet"
+                    && r.NewOwner == "Microsoft"
+                    && r.Action == AuditedPackageRegistrationAction.DeleteOwnershipRequest)), Times.Once);
+            }
+        }
+
+        private static IPackageOwnerRequestService CreateService(
+            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
+            Mock<IAuditingService> auditingService = null)
         {
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
+            auditingService = auditingService ?? new Mock<IAuditingService>();
 
-            return new PackageOwnerRequestService(packageOwnerRequestRepo.Object);
+            return new PackageOwnerRequestService(packageOwnerRequestRepo.Object, auditingService.Object);
         }
     }
 }
