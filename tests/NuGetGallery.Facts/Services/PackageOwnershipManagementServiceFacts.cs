@@ -109,7 +109,7 @@ namespace NuGetGallery
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 packageService.Verify(x => x.AddPackageOwnerAsync(package, pendingOwner, true));
-                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequests(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
+                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
                 packageOwnerRequestService.Verify(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true));
             }
 
@@ -127,7 +127,7 @@ namespace NuGetGallery
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 packageService.Verify(x => x.AddPackageOwnerAsync(package, pendingOwner, true));
-                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequests(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
+                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
                 packageOwnerRequestService.Verify(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true), Times.Never);
             }
 
@@ -147,7 +147,7 @@ namespace NuGetGallery
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), true, true));
-                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequests(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
+                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
                 packageOwnerRequestService.Verify(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true));
                 reservedNamespaceService.Verify(x => x.AddPackageRegistrationToNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>()), Times.Once);
                 Assert.True(package.IsVerified);
