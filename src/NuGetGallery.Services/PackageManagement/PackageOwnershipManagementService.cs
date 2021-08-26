@@ -95,12 +95,22 @@ namespace NuGetGallery
 
             await _packageService.AddPackageOwnerAsync(packageRegistration, user, commitChanges);
 
-            await DeletePackageOwnershipRequestAsync(packageRegistration, user, commitChanges);
+            // Delete any ownership request related to this new owner, since the work is done. Don't audit since the
+            // "add owner" operation is audited itself. Having a "delete package ownership" audit here would be confusing
+            // because the intended user action was to add an owner, not to reject (delete) an ownership request.
+            await DeletePackageOwnershipRequestAsync(packageRegistration, user, commitChanges, saveAudit: false);
         }
 
         public async Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
         {
-            return await _packageOwnerRequestService.AddPackageOwnershipRequest(packageRegistration, requestingOwner, newOwner);
+            var request = await _packageOwnerRequestService.AddPackageOwnershipRequest(packageRegistration, requestingOwner, newOwner);
+
+            await _auditingService.SaveAuditRecordAsync(PackageRegistrationAuditRecord.CreateForAddOwnershipRequest(
+                packageRegistration,
+                requestingOwner.Username,
+                newOwner.Username));
+
+            return request;
         }
 
         public PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User pendingOwner, string token)
@@ -185,6 +195,11 @@ namespace NuGetGallery
 
         public async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner, bool commitChanges = true)
         {
+            await DeletePackageOwnershipRequestAsync(packageRegistration, newOwner, commitChanges, saveAudit: true);
+        }
+
+        private async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner, bool commitChanges, bool saveAudit)
+        {
             if (packageRegistration == null)
             {
                 throw new ArgumentNullException(nameof(packageRegistration));
@@ -200,7 +215,17 @@ namespace NuGetGallery
                 .FirstOrDefault();
             if (request != null)
             {
+                var auditRecord = PackageRegistrationAuditRecord.CreateForDeleteOwnershipRequest(
+                    request.PackageRegistration,
+                    request.RequestingOwner.Username,
+                    request.NewOwner.Username);
+
                 await _packageOwnerRequestService.DeletePackageOwnershipRequest(request, commitChanges);
+
+                if (saveAudit)
+                {
+                    await _auditingService.SaveAuditRecordAsync(auditRecord);
+                }
             }
         }
 

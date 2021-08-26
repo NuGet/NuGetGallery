@@ -14,14 +14,10 @@ namespace NuGetGallery
     public class PackageOwnerRequestService : IPackageOwnerRequestService
     {
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
-        private readonly IAuditingService _auditingService;
 
-        public PackageOwnerRequestService(
-            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
-            IAuditingService auditingService)
+        public PackageOwnerRequestService(IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository)
         {
             _packageOwnerRequestRepository = packageOwnerRequestRepository ?? throw new ArgumentNullException(nameof(packageOwnerRequestRepository));
-            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         public PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User newOwner, string token)
@@ -134,11 +130,6 @@ namespace NuGetGallery
             _packageOwnerRequestRepository.InsertOnCommit(newRequest);
             await _packageOwnerRequestRepository.CommitChangesAsync();
 
-            await _auditingService.SaveAuditRecordAsync(PackageRegistrationAuditRecord.CreateForAddOwnershipRequest(
-                package,
-                requestingOwner.Username,
-                newOwner.Username));
-
             return newRequest;
         }
 
@@ -149,19 +140,12 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var auditRecord = PackageRegistrationAuditRecord.CreateForDeleteOwnershipRequest(
-                request.PackageRegistration,
-                request.RequestingOwner.Username,
-                request.NewOwner.Username);
-
             _packageOwnerRequestRepository.DeleteOnCommit(request);
 
             if (commitChanges)
             {
                 await _packageOwnerRequestRepository.CommitChangesAsync();
             }
-
-            await _auditingService.SaveAuditRecordAsync(auditRecord);
         }
     }
 }
