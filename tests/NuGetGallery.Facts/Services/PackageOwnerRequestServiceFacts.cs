@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
-using NuGetGallery.Auditing;
 using Xunit;
 
 namespace NuGetGallery.Services
