@@ -195,7 +195,9 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(newOwner));
             }
 
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: packageRegistration, newOwner: newOwner).FirstOrDefault();
+            var request = _packageOwnerRequestService
+                .GetPackageOwnershipRequestWithUsers(package: packageRegistration, newOwner: newOwner)
+                .FirstOrDefault();
             if (request != null)
             {
                 await _packageOwnerRequestService.DeletePackageOwnershipRequest(request, commitChanges);

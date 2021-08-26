@@ -515,7 +515,7 @@ namespace NuGetGallery
                         NewOwner = user1,
                         ConfirmationCode = "token"
                     };
-                packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequests(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new[] { pendingRequest }).Verifiable();
+                packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new[] { pendingRequest }).Verifiable();
                 packageOwnerRequestService.Setup(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true)).Returns(Task.CompletedTask).Verifiable();
                 var service = CreateService(packageOwnerRequestService: packageOwnerRequestService, useDefaultSetup: false);
                 await service.DeletePackageOwnershipRequestAsync(packageRegistration: package, newOwner: user1);
