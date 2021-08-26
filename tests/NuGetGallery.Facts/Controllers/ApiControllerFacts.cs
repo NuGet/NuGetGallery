@@ -2659,10 +2659,10 @@ namespace NuGetGallery
 
         public class PackageVerificationKeyContainer : TestContainer
         {
-            public static int UserKey = 1234;
-            public static string Username = "testuser";
-            public static string PackageId = "foo";
-            public static string PackageVersion = "1.0.0";
+            public const int UserKey = 1234;
+            public const string Username = "testuser";
+            public const string PackageId = "foo";
+            public string PackageVersion = "1.0.0";
 
             internal TestableApiController SetupController(string keyType, Scope scope, Package package, bool isOwner = true)
             {
