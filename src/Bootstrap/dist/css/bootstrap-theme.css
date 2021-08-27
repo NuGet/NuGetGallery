@@ -1481,8 +1481,12 @@ img.reserved-indicator-icon {
 .page-package-details-v2 .package-details-info .ms-Icon-ul li {
   margin-bottom: 18px;
 }
+.page-package-details-v2 .package-details-info .ms-Icon-ul .ms-Icon {
+  top: 1px;
+}
 .page-package-details-v2 .package-details-info .ms-Icon-ul img.icon {
   position: absolute;
+  top: 1px;
   left: -24px;
   width: 16px;
   height: 16px;
@@ -1650,6 +1654,10 @@ img.reserved-indicator-icon {
   font-size: 14px;
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #323130;
+}
+.page-package-details-v2 .body-tabs .nav-tabs > li > a .ms-Icon {
+  position: relative;
+  top: 2px;
 }
 .page-package-details-v2 .body-tab-content {
   padding-top: 30px;
