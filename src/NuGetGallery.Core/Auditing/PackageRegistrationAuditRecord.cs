@@ -14,6 +14,8 @@ namespace NuGetGallery.Auditing
         public string Owner { get; }
         public string PreviousRequiredSigner { get; private set; }
         public string NewRequiredSigner { get; private set; }
+        public string RequestingOwner { get; private set; }
+        public string NewOwner { get; private set; }
 
         public PackageRegistrationAuditRecord(
             string id, AuditedPackageRegistration registrationRecord, AuditedPackageRegistrationAction action, string owner)
@@ -54,6 +56,59 @@ namespace NuGetGallery.Auditing
             record.NewRequiredSigner = newRequiredSigner;
 
             return record;
+        }
+
+        private static PackageRegistrationAuditRecord CreateForOwnerRequest(
+            PackageRegistration registration,
+            string requestingOwner,
+            string newOwner,
+            AuditedPackageRegistrationAction action)
+        {
+            if (registration == null)
+            {
+                throw new ArgumentNullException(nameof(registration));
+            }
+
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            if (newOwner == null)
+            {
+                throw new ArgumentNullException(nameof(newOwner));
+            }
+
+            var record = new PackageRegistrationAuditRecord(registration, action, owner: null);
+
+            record.RequestingOwner = requestingOwner;
+            record.NewOwner = newOwner;
+
+            return record;
+        }
+
+        public static PackageRegistrationAuditRecord CreateForAddOwnershipRequest(
+            PackageRegistration registration,
+            string requestingOwner,
+            string newOwner)
+        {
+            return CreateForOwnerRequest(
+                registration,
+                requestingOwner,
+                newOwner,
+                AuditedPackageRegistrationAction.AddOwnershipRequest);
+        }
+
+        public static PackageRegistrationAuditRecord CreateForDeleteOwnershipRequest(
+            PackageRegistration registration,
+            string requestingOwner,
+            string newOwner)
+        {
+            return CreateForOwnerRequest(
+                registration,
+                requestingOwner,
+                newOwner,
+                AuditedPackageRegistrationAction.DeleteOwnershipRequest);
         }
     }
 }
