@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NuGet.Services.Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -54,11 +55,28 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         RemoveNoOp,
     }
 
+    public class PackageRegistrationUserChangeModel
+    {
+        public PackageRegistrationUserChangeModel(PackageOwnershipState state, User owner, PackageOwnerRequest request)
+        {
+            State = state;
+            Owner = owner;
+            Request = request;
+        }
+
+        public PackageOwnershipState State { get; }
+        public User Owner { get; }
+        public PackageOwnerRequest Request { get; }
+    }
+
     public class PackageRegistrationOwnershipChangeModel
     {
-        public PackageRegistrationOwnershipChangeModel(string id, bool requestorHasPermissions, IReadOnlyDictionary<string, PackageOwnershipState> usernameToState)
+        public PackageRegistrationOwnershipChangeModel(
+            PackageRegistration packageRegistration,
+            bool requestorHasPermissions,
+            IReadOnlyDictionary<string, PackageRegistrationUserChangeModel> usernameToState)
         {
-            Id = id ?? throw new ArgumentNullException(nameof(id));
+            PackageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
             RequestorHasPermissions = requestorHasPermissions;
             UsernameToState = usernameToState ?? throw new ArgumentNullException(nameof(usernameToState));
         }
@@ -66,7 +84,12 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         /// <summary>
         /// The package ID this ownership change relates to.
         /// </summary>
-        public string Id { get; }
+        public string Id => PackageRegistration.Id;
+
+        /// <summary>
+        /// The package registration this ownership change relates to.
+        /// </summary>
+        public PackageRegistration PackageRegistration { get; }
 
         /// <summary>
         /// Whether or not the request has permissions to make ownership changes on this package.
@@ -76,7 +99,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         /// <summary>
         /// The state of all current, added, and removed owners on this package registration.
         /// </summary>
-        public IReadOnlyDictionary<string, PackageOwnershipState> UsernameToState { get; }
+        public IReadOnlyDictionary<string, PackageRegistrationUserChangeModel> UsernameToState { get; }
     }
 
     public class PackageOwnershipChangesInput
@@ -100,18 +123,21 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     {
         public PackageOwnershipChangesModel(
             PackageOwnershipChangesInput input,
+            User requestor,
             IReadOnlyList<string> addOwners,
             IReadOnlyList<string> removeOwners,
             IReadOnlyList<PackageRegistrationOwnershipChangeModel> changes)
         {
             Input = input;
+            Requestor = requestor;
             AddOwners = addOwners;
             RemoveOwners = removeOwners;
             Changes = changes;
         }
 
         public PackageOwnershipChangesInput Input { get; }
-        public string Requestor => Input.Requestor;
+        public User Requestor { get; }
+        public string RequestorUsername => Requestor.Username;
         public IEnumerable<string> PackageIds => Changes.Select(x => x.Id);
         public IReadOnlyList<string> AddOwners { get; }
         public IReadOnlyList<string> RemoveOwners { get; }

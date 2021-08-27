@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+﻿ // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Services.Entities;
@@ -54,6 +54,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             if (!ValidateInput(input, out var errorViewResult, out var validatedModel))
             {
                 return errorViewResult;
+            }
+
+            foreach (var model in validatedModel.Changes)
+            {
             }
 
             return Json(new { success = true });
@@ -160,87 +164,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
             string message,
             bool skipRequestFlow)
         {
+            var requestor = usernameToUser[requestorUsername];
+
             var changes = new List<PackageRegistrationOwnershipChangeModel>();
             foreach (var packageRegistration in idToPackageRegistration.Values.OrderBy(x => x.Id, StringComparer.OrdinalIgnoreCase))
             {
-                var usernameToState = new SortedDictionary<string, PackageOwnershipState>(StringComparer.OrdinalIgnoreCase);
-                foreach (var owner in packageRegistration.Owners)
-                {
-                    usernameToState.Add(owner.Username, PackageOwnershipState.ExistingOwner);
+                var usernameToState = new SortedDictionary<string, PackageRegistrationUserChangeModel>(StringComparer.OrdinalIgnoreCase);
 
-                    foreach (var user in packageRegistration.Owners)
-                    {
-                        usernameToUser[user.Username] = user;
-                    }
-                }
+                InitializeExistingOwnersAndRequests(usernameToState, usernameToUser, packageRegistration);
 
-                var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(packageRegistration);
-                foreach (var request in requests)
-                {
-                    if (!usernameToState.ContainsKey(request.NewOwner.Username))
-                    {
-                        usernameToState.Add(request.NewOwner.Username, PackageOwnershipState.ExistingOwnerRequest);
-                    }
+                AddOwnersAndRequests(usernameToState, usernameToUser, requestor, addOwners, skipRequestFlow);
 
-                    usernameToUser[request.NewOwner.Username] = request.NewOwner;
-                }
+                RemoveOwnersAndRequests(usernameToState, removeOwners);
 
-                foreach (var addUsername in addOwners)
-                {
-                    if (usernameToState.TryGetValue(addUsername, out var state))
-                    {
-                        switch (state)
-                        {
-                            case PackageOwnershipState.ExistingOwner:
-                                usernameToState[addUsername] = PackageOwnershipState.AlreadyOwner;
-                                break;
-                            case PackageOwnershipState.ExistingOwnerRequest:
-                                usernameToState[addUsername] = PackageOwnershipState.AlreadyOwnerRequest;
-                                break;
-                            default:
-                                throw new NotImplementedException();
-                        }
-                    }
-                    else
-                    {
-                        var autoAccept = ActionsRequiringPermissions
-                            .HandlePackageOwnershipRequest
-                            .CheckPermissions(usernameToUser[requestorUsername], usernameToUser[addUsername]);
-
-                        if (autoAccept == PermissionsCheckResult.Allowed || skipRequestFlow)
-                        {
-                            usernameToState[addUsername] = PackageOwnershipState.NewOwner;
-                        }
-                        else
-                        {
-                            usernameToState[addUsername] = PackageOwnershipState.NewOwnerRequest;
-                        }
-                    }
-                }
-
-                foreach (var removeUsername in removeOwners)
-                {
-                    if (usernameToState.TryGetValue(removeUsername, out var state))
-                    {
-                        switch (state)
-                        {
-                            case PackageOwnershipState.ExistingOwner:
-                                usernameToState[removeUsername] = PackageOwnershipState.RemoveOwner;
-                                break;
-                            case PackageOwnershipState.ExistingOwnerRequest:
-                                usernameToState[removeUsername] = PackageOwnershipState.RemoveOwnerRequest;
-                                break;
-                            default:
-                                throw new NotImplementedException();
-                        }
-                    }
-                    else
-                    {
-                        usernameToState[removeUsername] = PackageOwnershipState.RemoveNoOp;
-                    }
-                }
-
-                // Fix up username casing to match the database
+                // Fix up username casing to match the database. This makes usernames in views look like the user expects.
                 foreach (var username in usernameToState.Keys.ToList())
                 {
                     var state = usernameToState[username];
@@ -253,27 +190,148 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .CheckPermissionsOnBehalfOfAnyAccount(usernameToUser[requestorUsername], packageRegistration) == PermissionsCheckResult.Allowed;
 
                 changes.Add(new PackageRegistrationOwnershipChangeModel(
-                    packageRegistration.Id,
+                    packageRegistration,
                     requestorHasPermissions,
                     usernameToState));
             }
 
-            // Normalize the input to account for non-standard username or package ID casing.
             var normalizedInput = new PackageOwnershipChangesInput
             {
-                Requestor = usernameToUser[requestorUsername].Username,
+                Requestor = requestor.Username,
                 PackageIds = string.Join(Environment.NewLine, idToPackageRegistration.Select(x => x.Value.Id)),
                 AddOwners = string.Join(", ", addOwners.Select(x => usernameToUser[x].Username)),
                 RemoveOwners = string.Join(", ", removeOwners.Select(x => usernameToUser[x].Username)),
                 Message = message?.Trim() ?? string.Empty,
-                SkipRequestFlow = skipRequestFlow
+                SkipRequestFlow = skipRequestFlow,
             };
 
             return new PackageOwnershipChangesModel(
                 normalizedInput,
+                requestor,
                 addOwners,
                 removeOwners,
                 changes);
+        }
+
+        private static void RemoveOwnersAndRequests(
+            IDictionary<string, PackageRegistrationUserChangeModel> usernameToState,
+            IReadOnlyList<string> removeOwners)
+        {
+            foreach (var removeUsername in removeOwners)
+            {
+                if (usernameToState.TryGetValue(removeUsername, out var model))
+                {
+                    switch (model.State)
+                    {
+                        case PackageOwnershipState.ExistingOwner:
+                            usernameToState[removeUsername] = new PackageRegistrationUserChangeModel(
+                                 PackageOwnershipState.RemoveOwner,
+                                 model.Owner,
+                                 model.Request);
+                            break;
+                        case PackageOwnershipState.ExistingOwnerRequest:
+                            usernameToState[removeUsername] = new PackageRegistrationUserChangeModel(
+                                 PackageOwnershipState.RemoveOwnerRequest,
+                                 model.Owner,
+                                 model.Request);
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                }
+                else
+                {
+                    usernameToState[removeUsername] = new PackageRegistrationUserChangeModel(
+                        PackageOwnershipState.RemoveNoOp,
+                        owner: null,
+                        request: null);
+                }
+            }
+        }
+
+        private static void AddOwnersAndRequests(
+            IDictionary<string, PackageRegistrationUserChangeModel> usernameToState,
+            IReadOnlyDictionary<string, User> usernameToUser,
+            User requestor,
+            IReadOnlyList<string> addOwners,
+            bool skipRequestFlow)
+        {
+            foreach (var addUsername in addOwners)
+            {
+                if (usernameToState.TryGetValue(addUsername, out var model))
+                {
+                    switch (model.State)
+                    {
+                        case PackageOwnershipState.ExistingOwner:
+                            usernameToState[addUsername] = new PackageRegistrationUserChangeModel(
+                                PackageOwnershipState.AlreadyOwner,
+                                owner: model.Owner,
+                                request: model.Request);
+                            break;
+                        case PackageOwnershipState.ExistingOwnerRequest:
+                            usernameToState[addUsername] = new PackageRegistrationUserChangeModel(
+                                PackageOwnershipState.AlreadyOwnerRequest,
+                                owner: model.Owner,
+                                request: model.Request);
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                }
+                else
+                {
+                    var newOwner = usernameToUser[addUsername];
+                    var autoAccept = ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(requestor, newOwner);
+
+                    if (autoAccept == PermissionsCheckResult.Allowed || skipRequestFlow)
+                    {
+                        usernameToState[addUsername] = new PackageRegistrationUserChangeModel(
+                            PackageOwnershipState.NewOwner,
+                            owner: newOwner,
+                            request: null);
+                    }
+                    else
+                    {
+                        usernameToState[addUsername] = new PackageRegistrationUserChangeModel(
+                            PackageOwnershipState.NewOwnerRequest,
+                            owner: newOwner,
+                            request: null);
+                    }
+                }
+            }
+        }
+
+        private void InitializeExistingOwnersAndRequests(
+            IDictionary<string, PackageRegistrationUserChangeModel> usernameToState,
+            IDictionary<string, User> usernameToUser,
+            PackageRegistration packageRegistration)
+        {
+            foreach (var owner in packageRegistration.Owners)
+            {
+                usernameToState.Add(owner.Username, new PackageRegistrationUserChangeModel(
+                    PackageOwnershipState.ExistingOwner,
+                    owner: owner,
+                    request: null));
+
+                foreach (var user in packageRegistration.Owners)
+                {
+                    usernameToUser[user.Username] = user;
+                }
+            }
+
+            var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(packageRegistration);
+            foreach (var request in requests)
+            {
+                if (!usernameToState.ContainsKey(request.NewOwner.Username))
+                {
+                    usernameToState.Add(request.NewOwner.Username, new PackageRegistrationUserChangeModel(
+                        PackageOwnershipState.ExistingOwnerRequest,
+                        owner: null,
+                        request: request));
+                }
+
+                usernameToUser[request.NewOwner.Username] = request.NewOwner;
+            }
         }
 
         private static IReadOnlyList<string> SplitAndTrim(string input, char separator)
