@@ -25,7 +25,7 @@ namespace NuGetGallery
         /// <param name="requestingOwner">If nonnull, only returns <see cref="PackageOwnerRequest"/>s that were requested by this owner.</param>
         /// <param name="newOwner">If nonnull, only returns <see cref="PackageOwnerRequest"/>s that are for this user to become an owner.</param>
         /// <returns>An <see cref="IEnumerable{PackageOwnerRequest}"/> containing all objects that matched the conditions.</returns>
-        IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequestWithUsers(PackageRegistration package = null, User requestingOwner = null, User newOwner = null);
+        IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequestsWithUsers(PackageRegistration package = null, User requestingOwner = null, User newOwner = null);
 
         /// <summary>
         /// Checks if the pending owner has a request for this package which matches the specified token.

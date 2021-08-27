@@ -211,10 +211,13 @@ namespace NuGetGallery
             }
 
             var request = _packageOwnerRequestService
-                .GetPackageOwnershipRequestWithUsers(package: packageRegistration, newOwner: newOwner)
+                .GetPackageOwnershipRequestsWithUsers(package: packageRegistration, newOwner: newOwner)
                 .FirstOrDefault();
             if (request != null)
             {
+                // We must capture this audit record prior to the actual deletion operation. Deletion of an entity in
+                // Entity Framework clears the relationship properties cause us to lose the information needed to create
+                // the audit record. The package ID and usernames become unavailable.
                 var auditRecord = PackageRegistrationAuditRecord.CreateForDeleteOwnershipRequest(
                     request.PackageRegistration,
                     request.RequestingOwner.Username,

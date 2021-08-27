@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
@@ -191,6 +193,178 @@ namespace NuGetGallery.Services
                 packageOwnerRequestRepository.Verify(r => r.DeleteOnCommit(request), Times.Once);
                 packageOwnerRequestRepository.Verify(r => r.CommitChangesAsync(), commitChanges ? Times.Once() : Times.Never());
             }
+        }
+
+        public class TheGetPackageOwnershipRequestsMethod : Facts
+        {
+            [Fact]
+            public void IncludesThePackageRegistrationRelationship()
+            {
+                Target.GetPackageOwnershipRequests(package: PackageRegistration);
+
+                DbSet.Verify(x => x.Include(It.IsAny<string>()), Times.Once);
+                DbSet.Verify(x => x.Include(nameof(PackageOwnerRequest.PackageRegistration)), Times.Once);
+            }
+
+            [Fact]
+            public void ReturnsRequestsFilteredByPackageRegistration()
+            {
+                var requests = Target.GetPackageOwnershipRequests(package: PackageRegistration);
+
+                Assert.Same(Entities[0], Assert.Single(requests));
+            }
+
+            [Fact]
+            public void UsesPackageRegistrationKeyForFiltering()
+            {
+                PackageRegistration.Key++;
+
+                var requests = Target.GetPackageOwnershipRequests(package: PackageRegistration);
+
+                Assert.Empty(requests);
+            }
+
+            [Fact]
+            public void ReturnsRequestsFilteredByRequestingOwner()
+            {
+                var requests = Target.GetPackageOwnershipRequests(requestingOwner: RequestingOwner);
+
+                Assert.Same(Entities[0], Assert.Single(requests));
+            }
+
+            [Fact]
+            public void UsesRequestOwnerKeyForFiltering()
+            {
+                RequestingOwner.Key++;
+
+                var requests = Target.GetPackageOwnershipRequests(requestingOwner: RequestingOwner);
+
+                Assert.Empty(requests);
+            }
+
+            [Fact]
+            public void ReturnsRequestsFilteredByNewOwner()
+            {
+                var requests = Target.GetPackageOwnershipRequests(newOwner: NewOwner);
+
+                Assert.Same(Entities[0], Assert.Single(requests));
+            }
+
+            [Fact]
+            public void UsesNewOwnerKeyForFiltering()
+            {
+                NewOwner.Key++;
+
+                var requests = Target.GetPackageOwnershipRequests(newOwner: NewOwner);
+
+                Assert.Empty(requests);
+            }
+        }
+
+        public class TheGetPackageOwnershipRequestsWithUsersMethod : Facts
+        {
+            [Fact]
+            public void IncludesThePackageRegistrationRelationship()
+            {
+                Target.GetPackageOwnershipRequestsWithUsers(package: PackageRegistration);
+
+                DbSet.Verify(x => x.Include(It.IsAny<string>()), Times.Exactly(3));
+                DbSet.Verify(x => x.Include(nameof(PackageOwnerRequest.PackageRegistration)), Times.Once);
+                DbSet.Verify(x => x.Include(nameof(PackageOwnerRequest.RequestingOwner)), Times.Once);
+                DbSet.Verify(x => x.Include(nameof(PackageOwnerRequest.NewOwner)), Times.Once);
+            }
+
+            [Fact]
+            public void ReturnsRequestsFilteredByPackageRegistration()
+            {
+                var requests = Target.GetPackageOwnershipRequestsWithUsers(package: PackageRegistration);
+
+                Assert.Same(Entities[0], Assert.Single(requests));
+            }
+
+            [Fact]
+            public void UsesPackageRegistrationKeyForFiltering()
+            {
+                PackageRegistration.Key++;
+
+                var requests = Target.GetPackageOwnershipRequestsWithUsers(package: PackageRegistration);
+
+                Assert.Empty(requests);
+            }
+
+            [Fact]
+            public void ReturnsRequestsFilteredByRequestingOwner()
+            {
+                var requests = Target.GetPackageOwnershipRequestsWithUsers(requestingOwner: RequestingOwner);
+
+                Assert.Same(Entities[0], Assert.Single(requests));
+            }
+
+            [Fact]
+            public void UsesRequestOwnerKeyForFiltering()
+            {
+                RequestingOwner.Key++;
+
+                var requests = Target.GetPackageOwnershipRequestsWithUsers(requestingOwner: RequestingOwner);
+
+                Assert.Empty(requests);
+            }
+
+            [Fact]
+            public void ReturnsRequestsFilteredByNewOwner()
+            {
+                var requests = Target.GetPackageOwnershipRequestsWithUsers(newOwner: NewOwner);
+
+                Assert.Same(Entities[0], Assert.Single(requests));
+            }
+
+            [Fact]
+            public void UsesNewOwnerKeyForFiltering()
+            {
+                NewOwner.Key++;
+
+                var requests = Target.GetPackageOwnershipRequestsWithUsers(newOwner: NewOwner);
+
+                Assert.Empty(requests);
+            }
+        }
+
+        public abstract class Facts
+        {
+            public Facts()
+            {
+                PackageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+
+                PackageRegistration = new PackageRegistration { Key = 1, Id = "NuGet.Versioning" };
+                RequestingOwner = new User { Key = 2, Username = "NuGet" };
+                NewOwner = new User { Key = 3, Username = "Microsoft" };
+                Entities = new List<PackageOwnerRequest>
+                {
+                    new PackageOwnerRequest
+                    {
+                        PackageRegistration = PackageRegistration,
+                        PackageRegistrationKey = PackageRegistration.Key,
+                        RequestingOwner = RequestingOwner,
+                        RequestingOwnerKey = RequestingOwner.Key,
+                        NewOwner = NewOwner,
+                        NewOwnerKey = NewOwner.Key,
+                    },
+                };
+                DbSet = Entities.MockDbSet();
+
+                PackageOwnerRequestRepository.Setup(x => x.GetAll()).Returns(() => DbSet.Object);
+                DbSet.Setup(x => x.Include(It.IsAny<string>())).Returns(() => DbSet.Object);
+
+                Target = new PackageOwnerRequestService(PackageOwnerRequestRepository.Object);
+            }
+
+            public Mock<IEntityRepository<PackageOwnerRequest>> PackageOwnerRequestRepository { get; }
+            public PackageRegistration PackageRegistration { get; }
+            public User RequestingOwner { get; }
+            public User NewOwner { get; }
+            public List<PackageOwnerRequest> Entities { get; }
+            public Mock<DbSet<PackageOwnerRequest>> DbSet { get; }
+            public PackageOwnerRequestService Target { get; }
         }
 
         private static IPackageOwnerRequestService CreateService(

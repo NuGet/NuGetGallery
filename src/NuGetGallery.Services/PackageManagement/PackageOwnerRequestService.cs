@@ -53,7 +53,7 @@ namespace NuGetGallery
             return GetPackageOwnershipRequests(includeUsers: false, package, requestingOwner, newOwner);
         }
 
-        public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequestWithUsers(
+        public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequestsWithUsers(
             PackageRegistration package = null,
             User requestingOwner = null,
             User newOwner = null)

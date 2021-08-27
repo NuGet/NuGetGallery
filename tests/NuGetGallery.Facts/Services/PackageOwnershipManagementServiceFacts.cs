@@ -65,7 +65,7 @@ namespace NuGetGallery
                     .Verifiable();
 
                 packageOwnerRequestService
-                    .Setup(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()))
+                    .Setup(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()))
                     .Returns<PackageRegistration, User, User>((pr, ro, no) => new[]
                     {
                         new PackageOwnerRequest
@@ -119,7 +119,7 @@ namespace NuGetGallery
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 packageService.Verify(x => x.AddPackageOwnerAsync(package, pendingOwner, true));
-                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
+                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
                 packageOwnerRequestService.Verify(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true));
             }
 
@@ -137,7 +137,7 @@ namespace NuGetGallery
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 packageService.Verify(x => x.AddPackageOwnerAsync(package, pendingOwner, true));
-                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
+                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
                 packageOwnerRequestService.Verify(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true), Times.Never);
             }
 
@@ -157,7 +157,7 @@ namespace NuGetGallery
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), true, true));
-                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
+                packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
                 packageOwnerRequestService.Verify(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true));
                 reservedNamespaceService.Verify(x => x.AddPackageRegistrationToNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>()), Times.Once);
                 Assert.True(package.IsVerified);
@@ -536,7 +536,7 @@ namespace NuGetGallery
                         NewOwner = user2,
                         ConfirmationCode = "token"
                     };
-                packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new[] { pendingRequest }).Verifiable();
+                packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new[] { pendingRequest }).Verifiable();
                 packageOwnerRequestService.Setup(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true)).Returns(Task.CompletedTask).Verifiable();
                 var service = CreateService(packageOwnerRequestService: packageOwnerRequestService, auditingService: auditingService.Object, useDefaultSetup: false);
                 await service.DeletePackageOwnershipRequestAsync(packageRegistration: package, newOwner: user2);
@@ -557,7 +557,7 @@ namespace NuGetGallery
                 var user2 = new User { Key = 101, Username = "user2" };
                 var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
                 var auditingService = new Mock<IAuditingService>();
-                packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequestWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new PackageOwnerRequest[0]).Verifiable();
+                packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new PackageOwnerRequest[0]).Verifiable();
                 var service = CreateService(packageOwnerRequestService: packageOwnerRequestService, auditingService: auditingService.Object, useDefaultSetup: false);
                 await service.DeletePackageOwnershipRequestAsync(packageRegistration: package, newOwner: user2);
                 packageOwnerRequestService.Verify(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), It.IsAny<bool>()), Times.Never);
