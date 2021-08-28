@@ -136,13 +136,7 @@ namespace NuGetGallery
 
                 if (model.CurrentUserCanAcceptOnBehalfOfUser)
                 {
-                    await _packageOwnershipManagementService.AddPackageOwnerAsync(model.Package, model.User);
-
-                    foreach (var owner in model.Package.Owners)
-                    {
-                        var emailMessage = new PackageOwnerAddedMessage(_appConfiguration, owner, model.User, model.Package, packageUrl);
-                        await _messageService.SendMessageAsync(emailMessage);
-                    }
+                    await _packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(model.Package, model.User);
                 }
                 else
                 {

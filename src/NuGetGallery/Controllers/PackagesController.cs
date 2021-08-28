@@ -2333,9 +2333,7 @@ namespace NuGetGallery
             
             if (accept)
             {
-                await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
-
-                await SendAddPackageOwnerNotificationAsync(package, user);
+                await _packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(package, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
@@ -2387,26 +2385,6 @@ namespace NuGetGallery
             }
 
             return Redirect(Url.ManagePackageOwnership(id));
-        }
-
-        /// <summary>
-        /// Send notification that a new package owner was added.
-        /// </summary>
-        /// <param name="package">Package to which owner was added.</param>
-        /// <param name="newOwner">Owner added.</param>
-        private Task SendAddPackageOwnerNotificationAsync(PackageRegistration package, User newOwner)
-        {
-            var packageUrl = Url.Package(package.Id, version: null, relativeUrl: false);
-            Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
-
-            // Notify existing owners
-            var notNewOwners = package.Owners.Where(notNewOwner).ToList();
-            var tasks = notNewOwners.Select(owner =>
-            {
-                var emailMessage = new PackageOwnerAddedMessage(_config, owner, newOwner, package, packageUrl);
-                return _messageService.SendMessageAsync(emailMessage);
-            });
-            return Task.WhenAll(tasks);
         }
 
         [UIAuthorize]

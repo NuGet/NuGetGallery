@@ -7,29 +7,54 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using NuGetGallery.Auditing;
 using NuGet.Services.Entities;
+using System.Web.Mvc;
+using NuGet.Services.Messaging.Email;
+using NuGetGallery.Infrastructure.Mail.Messages;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class PackageOwnershipManagementService : IPackageOwnershipManagementService
     {
-        private readonly IPackageService _packageService;
         private readonly IEntitiesContext _entitiesContext;
+        private readonly IPackageService _packageService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IAuditingService _auditingService;
+        private readonly IUrlHelper _urlHelper;
+        private readonly IAppConfiguration _appConfiguration;
+        private readonly IMessageService _messageService;
 
         public PackageOwnershipManagementService(
             IEntitiesContext entitiesContext,
             IPackageService packageService,
             IReservedNamespaceService reservedNamespaceService,
             IPackageOwnerRequestService packageOwnerRequestService,
-            IAuditingService auditingService)
+            IAuditingService auditingService,
+            IUrlHelper urlHelper,
+            IAppConfiguration appConfiguration,
+            IMessageService messageService)
         {
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            _urlHelper = urlHelper ?? throw new ArgumentNullException(nameof(urlHelper));
+            _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+        }
+
+        public async Task AddPackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User user)
+        {
+            await AddPackageOwnerAsync(packageRegistration, user, commitChanges: true);
+
+            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
+            foreach (var owner in packageRegistration.Owners)
+            {
+                var emailMessage = new PackageOwnerAddedMessage(_appConfiguration, owner, user, packageRegistration, packageUrl);
+                await _messageService.SendMessageAsync(emailMessage);
+            }
         }
 
         public async Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user, bool commitChanges = true)

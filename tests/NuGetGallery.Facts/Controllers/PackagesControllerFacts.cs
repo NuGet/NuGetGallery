@@ -2775,7 +2775,7 @@ namespace NuGetGallery
 
             private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForConfirmOwnershipRequestExpression(PackageRegistration package, User user)
             {
-                return packageOwnershipManagementService => packageOwnershipManagementService.AddPackageOwnerAsync(package, user, true);
+                return packageOwnershipManagementService => packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(package, user);
             }
 
             private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User user)

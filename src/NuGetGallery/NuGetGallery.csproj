@@ -384,7 +384,6 @@
     <Compile Include="Infrastructure\Lucene\SearchClientPolicies.cs" />
     <Compile Include="Infrastructure\Mail\ConfirmationEmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\EmailMessageFooter.cs" />
-    <Compile Include="Infrastructure\Mail\GalleryEmailRecipientsUtility.cs" />
     <Compile Include="Infrastructure\Mail\Messages\AccountDeleteNoticeMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ContactOwnersMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessage.cs" />
@@ -405,7 +404,6 @@
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRequestMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageDeletedNoticeMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnerRemovedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestCanceledMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestDeclinedMessage.cs" />
@@ -732,6 +730,7 @@
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
+    <Compile Include="UrlHelperWrapper.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />

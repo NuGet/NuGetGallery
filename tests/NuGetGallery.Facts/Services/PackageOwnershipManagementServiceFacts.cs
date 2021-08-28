@@ -7,7 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.TestUtils;
 using Xunit;
@@ -22,6 +24,9 @@ namespace NuGetGallery
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
             Mock<IPackageOwnerRequestService> packageOwnerRequestService = null,
             IAuditingService auditingService = null,
+            Mock<IUrlHelper> urlHelper = null,
+            Mock<IAppConfiguration> appConfiguration = null,
+            Mock<IMessageService> messageService = null,
             bool useDefaultSetup = true)
         {
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
@@ -32,10 +37,12 @@ namespace NuGetGallery
             reservedNamespaceService = reservedNamespaceService ?? new Mock<IReservedNamespaceService>();
             packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
             auditingService = auditingService ?? new TestAuditingService();
+            urlHelper = urlHelper ?? new Mock<IUrlHelper>();
+            appConfiguration = appConfiguration ?? new Mock<IAppConfiguration>();
+            messageService = messageService ?? new Mock<IMessageService>();
 
             if (useDefaultSetup)
             {
-
                 packageService
                     .Setup(x => x.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), true))
                     .Returns(Task.CompletedTask)
@@ -77,6 +84,8 @@ namespace NuGetGallery
                     }).Verifiable();
                 packageOwnerRequestService.Setup(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true)).Returns(Task.CompletedTask).Verifiable();
                 packageOwnerRequestService.Setup(x => x.AddPackageOwnershipRequest(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(Task.FromResult(new PackageOwnerRequest())).Verifiable();
+
+                urlHelper.SetReturnsDefault<string>("https://some-url");
             }
 
             var packageOwnershipManagementService = new Mock<PackageOwnershipManagementService>(
@@ -84,7 +93,10 @@ namespace NuGetGallery
                 packageService.Object,
                 reservedNamespaceService.Object,
                 packageOwnerRequestService.Object,
-                auditingService);
+                auditingService,
+                urlHelper.Object,
+                appConfiguration.Object,
+                messageService.Object);
 
             return packageOwnershipManagementService.Object;
         }
