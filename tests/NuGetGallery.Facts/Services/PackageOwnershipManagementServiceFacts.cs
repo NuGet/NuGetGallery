@@ -11,6 +11,7 @@ using NuGet.Services.Messaging.Email;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.TestUtils;
 using Xunit;
 
@@ -44,7 +45,8 @@ namespace NuGetGallery
             if (useDefaultSetup)
             {
                 packageService
-                    .Setup(x => x.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), true))
+                    .Setup(x => x.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Callback<PackageRegistration, User, bool>((pr, u, c) => pr.Owners.Add(u))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
                 packageService
@@ -101,14 +103,74 @@ namespace NuGetGallery
             return packageOwnershipManagementService.Object;
         }
 
-        public class TheAddPackageOwnerAsyncMethod
+        public class TheAddPackageOwnerWithMessagesAsyncMethod : TheAddPackageOwnerAsyncMethodFacts
         {
+            [Fact]
+            public async Task SendsMessagesToAllOwners()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1" };
+                var existingOwner = new User { Key = 99, Username = "microsoft" };
+                package.Owners.Add(existingOwner);
+                var pendingOwner = new User { Key = 100, Username = "aspnet" };
+                var messageService = new Mock<IMessageService>();
+
+                var service = CreateService(messageService: messageService);
+                await AddPackageOwnerAsync(service, package, pendingOwner);
+
+                messageService.Verify(
+                    x => x.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Exactly(2));
+                messageService.Verify(
+                    x => x.SendMessageAsync(
+                        It.Is<PackageOwnerAddedMessage>(m => m.PackageUrl == "https://some-url" && m.NewOwner == pendingOwner && m.ToUser == existingOwner),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()));
+                messageService.Verify(
+                    x => x.SendMessageAsync(
+                        It.Is<PackageOwnerAddedMessage>(m => m.PackageUrl == "https://some-url" && m.NewOwner == pendingOwner && m.ToUser == pendingOwner),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()));
+            }
+
+            protected override async Task AddPackageOwnerAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User user)
+            {
+                await service.AddPackageOwnerWithMessagesAsync(packageRegistration, user);
+            }
+        }
+
+        public class TheAddPackageOwnerAsyncMethod : TheAddPackageOwnerAsyncMethodFacts
+        {
+            [Fact]
+            public async Task SendsNoMessages()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1" };
+                var pendingOwner = new User { Key = 100, Username = "aspnet" };
+                var messageService = new Mock<IMessageService>();
+
+                var service = CreateService(messageService: messageService);
+                await AddPackageOwnerAsync(service, package, pendingOwner);
+
+                messageService.Verify(
+                    x => x.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Never);
+            }
+
+            protected override async Task AddPackageOwnerAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User user)
+            {
+                await service.AddPackageOwnerAsync(packageRegistration, user);
+            }
+        }
+
+        public abstract class TheAddPackageOwnerAsyncMethodFacts
+        {
+            protected abstract Task AddPackageOwnerAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User user);
+
             [Fact]
             public async Task NullPackageRegistrationThrowsException()
             {
                 var service = CreateService();
                 var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddPackageOwnerAsync(packageRegistration: null, user: testUsers.First()));
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await AddPackageOwnerAsync(service, packageRegistration: null, user: testUsers.First()));
             }
 
             [Fact]
@@ -116,7 +178,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddPackageOwnerAsync(packageRegistration: testPackageRegistrations.First(), user: null));
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await AddPackageOwnerAsync(service, packageRegistration: testPackageRegistrations.First(), user: null));
             }
 
             [Fact]
@@ -128,7 +190,7 @@ namespace NuGetGallery
                 var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
 
                 var service = CreateService(packageService: packageService, packageOwnerRequestService: packageOwnerRequestService);
-                await service.AddPackageOwnerAsync(package, pendingOwner);
+                await AddPackageOwnerAsync(service, package, pendingOwner);
 
                 packageService.Verify(x => x.AddPackageOwnerAsync(package, pendingOwner, true));
                 packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
@@ -146,7 +208,7 @@ namespace NuGetGallery
                 packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequests(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new List<PackageOwnerRequest>()).Verifiable();
 
                 var service = CreateService(packageService: packageService, packageOwnerRequestService: packageOwnerRequestService, useDefaultSetup: false);
-                await service.AddPackageOwnerAsync(package, pendingOwner);
+                await AddPackageOwnerAsync(service, package, pendingOwner);
 
                 packageService.Verify(x => x.AddPackageOwnerAsync(package, pendingOwner, true));
                 packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
@@ -166,7 +228,7 @@ namespace NuGetGallery
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
 
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
-                await service.AddPackageOwnerAsync(package, pendingOwner);
+                await AddPackageOwnerAsync(service, package, pendingOwner);
 
                 packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), true, true));
                 packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
@@ -188,7 +250,7 @@ namespace NuGetGallery
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
 
                 var service = CreateService(reservedNamespaceService: reservedNamespaceService);
-                await service.AddPackageOwnerAsync(package, pendingOwner);
+                await AddPackageOwnerAsync(service, package, pendingOwner);
 
                 reservedNamespaceService.Verify(x => x.AddPackageRegistrationToNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>()), Times.Exactly(2));
             }
@@ -205,7 +267,7 @@ namespace NuGetGallery
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
 
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService);
-                await service.AddPackageOwnerAsync(package, pendingOwner);
+                await AddPackageOwnerAsync(service, package, pendingOwner);
 
                 reservedNamespaceService.Verify(x => x.AddPackageRegistrationToNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>()), Times.Never);
                 packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
@@ -221,7 +283,7 @@ namespace NuGetGallery
                 var service = CreateService(auditingService: auditingService);
 
                 // Act
-                await service.AddPackageOwnerAsync(package, pendingOwner);
+                await AddPackageOwnerAsync(service, package, pendingOwner);
 
                 // Assert
                 Assert.True(auditingService.WroteRecord<PackageRegistrationAuditRecord>(ar =>

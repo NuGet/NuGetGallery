@@ -2950,7 +2950,8 @@ namespace NuGetGallery
                                 new EmailMessageVerificationForOwnershipRequest(EmailMessageVerificationForConfirmOwnershipRequest),
                                 ConfirmOwnershipResult.Success,
                                 tokenValid,
-                                isOrganizationAdministrator
+                                isOrganizationAdministrator,
+                                false,
                             };
                             yield return new object[]
                             {
@@ -2960,7 +2961,8 @@ namespace NuGetGallery
                                 new EmailMessageVerificationForOwnershipRequest(EmailMessageVerificationForDeclineOwnershipRequest),
                                 ConfirmOwnershipResult.Rejected,
                                 tokenValid,
-                                isOrganizationAdministrator
+                                isOrganizationAdministrator,
+                                true,
                             };
                         }
                     }
@@ -2976,7 +2978,8 @@ namespace NuGetGallery
                 EmailMessageVerificationForOwnershipRequest emailVerifier,
                 ConfirmOwnershipResult successState,
                 bool tokenValid,
-                bool isOrganizationAdministrator)
+                bool isOrganizationAdministrator,
+                bool sendsEmail)
             {
                 // Arrange
                 var token = "token";
@@ -3055,7 +3058,7 @@ namespace NuGetGallery
                 messageService
                     .Verify(
                     svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
-                    tokenValid ? Times.Once() : Times.Never());
+                    sendsEmail && tokenValid ? Times.Once() : Times.Never());
             }
 
             public class TheCancelPendingOwnershipRequestMethod : TestContainer
