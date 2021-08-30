@@ -47,6 +47,13 @@ namespace NuGetGallery
         Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
 
         /// <summary>
+        /// Remove the user as from the list of owners of the package and then sends notification messages. Immediately
+        /// commits the changes to the database. Same behavior as <see cref="RemovePackageOwnerAsync(PackageRegistration, User, User, bool)" />
+        /// with the addition of sending messages.
+        /// </summary>
+        Task RemovePackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved);
+
+        /// <summary>
         /// Remove the user as from the list of owners of the package. Also remove the package registration
         /// from the reserved namespaces owned by this user if the Id matches any of the reserved prefixes
         /// and the user is the only package owner that owns the namespace that matches the package registration.
@@ -56,6 +63,15 @@ namespace NuGetGallery
         /// <param name="userToBeRemoved">The user to remove as an owner from the package.</param>
         /// <param name="commitChanges">Whether or not to commit the changes.</param>
         Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved, bool commitChanges);
+
+        /// <summary>
+        /// Remove the pending ownership request and then sends notification messages. Immediately commits the changes
+        /// to the database. Same behavior as <see cref="DeletePackageOwnershipRequestAsync(PackageRegistration, User, bool)"/>
+        /// with the addition of sending messages.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
+        /// <param name="newOwner">The user to be removed from pending ownership.</param>
+        Task DeletePackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
 
         /// <summary>
         /// Remove the pending ownership request.

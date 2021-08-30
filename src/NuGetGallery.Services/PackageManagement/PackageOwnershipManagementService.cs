@@ -215,6 +215,14 @@ namespace NuGetGallery
             return _packageOwnerRequestService.GetPackageOwnershipRequests(package, requestingOwner, newOwner);
         }
 
+        public async Task RemovePackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved)
+        {
+            await RemovePackageOwnerAsync(packageRegistration, requestingOwner, ownerToBeRemoved);
+
+            var emailMessage = new PackageOwnerRemovedMessage(_appConfiguration, requestingOwner, ownerToBeRemoved, packageRegistration);
+            await _messageService.SendMessageAsync(emailMessage);
+        }
+
         public async Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved, bool commitChanges = true)
         {
             if (packageRegistration == null)
@@ -283,6 +291,14 @@ namespace NuGetGallery
             {
                 await _entitiesContext.SaveChangesAsync();
             }
+        }
+
+        public async Task DeletePackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+        {
+            await DeletePackageOwnershipRequestAsync(packageRegistration, newOwner);
+
+            var emailMessage = new PackageOwnershipRequestCanceledMessage(_appConfiguration, requestingOwner, newOwner, packageRegistration);
+            await _messageService.SendMessageAsync(emailMessage);
         }
 
         public async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner, bool commitChanges = true)

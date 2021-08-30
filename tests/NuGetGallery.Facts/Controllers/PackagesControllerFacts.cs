@@ -2771,16 +2771,16 @@ namespace NuGetGallery
                 packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, user, true));
             }
 
-            public delegate Expression<Func<IPackageOwnershipManagementService, Task>> PackageOwnershipManagementServiceRequestExpression(PackageRegistration package, User user);
+            public delegate Expression<Func<IPackageOwnershipManagementService, Task>> PackageOwnershipManagementServiceRequestExpression(PackageRegistration package, User requestingOwner, User newOwner);
 
-            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForConfirmOwnershipRequestExpression(PackageRegistration package, User user)
+            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForConfirmOwnershipRequestExpression(PackageRegistration package, User requestingOwner, User newOwner)
             {
-                return packageOwnershipManagementService => packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(package, user);
+                return packageOwnershipManagementService => packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(package, newOwner);
             }
 
-            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User user)
+            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User requestingOwner, User newOwner)
             {
-                return packageOwnershipManagementService => packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user, true);
+                return packageOwnershipManagementService => packageOwnershipManagementService.DeletePackageOwnershipRequestWithMessagesAsync(package, requestingOwner, newOwner);
             }
 
             public delegate IEmailBuilder EmailBuilderForOwnershipRequest(IMessageServiceConfiguration configuration, PackageOwnerRequest request, string packageUrl);
@@ -2927,7 +2927,7 @@ namespace NuGetGallery
                     Assert.Equal(package.Id, model.PackageId);
                 }
                 packageOwnershipManagementService.Verify(
-                    packageOwnershipManagementServiceExpression(package, newOwner),
+                    packageOwnershipManagementServiceExpression(package, currentUser, newOwner),
                     Times.Never);
                 messageService.Verify(
                     svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
@@ -2951,7 +2951,6 @@ namespace NuGetGallery
                                 ConfirmOwnershipResult.Success,
                                 tokenValid,
                                 isOrganizationAdministrator,
-                                false,
                             };
                             yield return new object[]
                             {
@@ -2962,7 +2961,6 @@ namespace NuGetGallery
                                 ConfirmOwnershipResult.Rejected,
                                 tokenValid,
                                 isOrganizationAdministrator,
-                                true,
                             };
                         }
                     }
@@ -2978,8 +2976,7 @@ namespace NuGetGallery
                 EmailMessageVerificationForOwnershipRequest emailVerifier,
                 ConfirmOwnershipResult successState,
                 bool tokenValid,
-                bool isOrganizationAdministrator,
-                bool sendsEmail)
+                bool isOrganizationAdministrator)
             {
                 // Arrange
                 var token = "token";
@@ -3018,7 +3015,6 @@ namespace NuGetGallery
                     .Returns(tokenValid ? request : null);
 
                 var configurationService = GetConfigurationService();
-                var messageService = new Mock<IMessageService>();
 
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByUsername(newOwner.Username, false)).Returns(newOwner);
@@ -3027,20 +3023,8 @@ namespace NuGetGallery
                     configurationService,
                     httpContext: mockHttpContext,
                     packageService: packageService,
-                    messageService: messageService,
                     packageOwnershipManagementService: packageOwnershipManagementService,
                     userService: userService);
-
-                var packageUrl = controller.Url.Package(package.Id, version: null, relativeUrl: false);
-
-                var emailMessage = emailBuilder(configurationService.Current, request, packageUrl);
-                messageService
-                    .Setup(svc => svc.SendMessageAsync(
-                        emailMessage,
-                        false,
-                        false))
-                    .Returns(Task.CompletedTask)
-                    .Verifiable();
 
                 controller.SetCurrentUser(currentUser);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
@@ -3053,12 +3037,7 @@ namespace NuGetGallery
                 var expectedResult = tokenValid ? successState : ConfirmOwnershipResult.Failure;
                 Assert.Equal(expectedResult, model.Result);
                 Assert.Equal(package.Id, model.PackageId);
-                packageOwnershipManagementService.Verify(packageOwnershipManagementServiceExpression(package, newOwner), tokenValid ? Times.Once() : Times.Never());
-
-                messageService
-                    .Verify(
-                    svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
-                    sendsEmail && tokenValid ? Times.Once() : Times.Never());
+                packageOwnershipManagementService.Verify(packageOwnershipManagementServiceExpression(package, requestingOwner, newOwner), tokenValid ? Times.Once() : Times.Never());
             }
 
             public class TheCancelPendingOwnershipRequestMethod : TestContainer

@@ -185,17 +185,11 @@ namespace NuGetGallery
                         return Json(new { success = false, message = "You can't remove the only owner from a package." }, JsonRequestBehavior.AllowGet);
                     }
 
-                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User, commitChanges: true);
-
-                    var emailMessage = new PackageOwnerRemovedMessage(_appConfiguration, model.CurrentUser, model.User, model.Package);
-                    await _messageService.SendMessageAsync(emailMessage);
+                    await _packageOwnershipManagementService.RemovePackageOwnerWithMessagesAsync(model.Package, model.CurrentUser, model.User);
                 }
                 else
                 {
-                    await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(model.Package, model.User);
-
-                    var emailMessage = new PackageOwnershipRequestCanceledMessage(_appConfiguration, model.CurrentUser, model.User, model.Package);
-                    await _messageService.SendMessageAsync(emailMessage);
+                    await _packageOwnershipManagementService.DeletePackageOwnershipRequestWithMessagesAsync(model.Package, model.CurrentUser, model.User);
                 }
 
                 return Json(new { success = true });

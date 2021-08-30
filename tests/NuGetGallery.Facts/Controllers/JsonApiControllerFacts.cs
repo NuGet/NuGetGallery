@@ -538,17 +538,7 @@ namespace NuGetGallery.Controllers
                         // Assert
                         Assert.True(data.success);
 
-                        packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, requestedUser, true));
-
-                        GetMock<IMessageService>()
-                            .Verify(x => x.SendMessageAsync(
-                                It.Is<PackageOwnershipRequestCanceledMessage>(
-                                    msg =>
-                                    msg.RequestingOwner == currentUser
-                                    && msg.NewOwner == requestedUser
-                                    && msg.PackageRegistration == package),
-                                false,
-                                false));
+                        packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestWithMessagesAsync(package, currentUser, requestedUser));
                     }
 
                     [Theory]
@@ -624,17 +614,7 @@ namespace NuGetGallery.Controllers
                         // Assert
                         Assert.True(data.success);
 
-                        packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerAsync(package, currentUser, userToRemove, It.IsAny<bool>()));
-
-                        GetMock<IMessageService>()
-                            .Verify(x => x.SendMessageAsync(
-                                It.Is<PackageOwnerRemovedMessage>(
-                                    msg =>
-                                    msg.FromUser == currentUser
-                                    && msg.ToUser == userToRemove
-                                    && msg.PackageRegistration == package),
-                                false,
-                                false));
+                        packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerWithMessagesAsync(package, currentUser, userToRemove));
                     }
                 }
 
