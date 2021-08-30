@@ -316,8 +316,101 @@ namespace NuGetGallery
             }
         }
 
-        public class TheAddPackageOwnershipRequestAsyncMethod
+        public class TheAddPackageOwnershipRequestWithMessagesAsyncMethod : TheAddPackageOwnershipRequestAsyncMethodFacts
         {
+            [Fact]
+            public async Task SendsMessagesToAllOwners()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1" };
+                var requestingOwner = new User { Key = 99, Username = "MicrosoftA" };
+                var existingOwner = new User { Key = 100, Username = "MicrosoftB" };
+                package.Owners.Add(requestingOwner);
+                package.Owners.Add(existingOwner);
+                var newOwner = new User { Key = 101, Username = "aspnet" };
+                var messageService = new Mock<IMessageService>();
+
+                var service = CreateService(messageService: messageService);
+                await AddPackageOwnershipRequestAsync(service, package, requestingOwner, newOwner);
+
+                messageService.Verify(
+                    x => x.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Exactly(3));
+                messageService.Verify(
+                    x => x.SendMessageAsync(
+                        It.Is<PackageOwnershipRequestInitiatedMessage>(m => m.NewOwner == newOwner && m.ReceivingOwner == requestingOwner && m.RequestingOwner == m.RequestingOwner),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()));
+                messageService.Verify(
+                    x => x.SendMessageAsync(
+                        It.Is<PackageOwnershipRequestInitiatedMessage>(m => m.NewOwner == newOwner && m.ReceivingOwner == existingOwner && m.RequestingOwner == m.RequestingOwner),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()));
+                messageService.Verify(
+                    x => x.SendMessageAsync(
+                        It.Is<PackageOwnershipRequestMessage>(m => m.ToUser == newOwner && m.FromUser == requestingOwner),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()));
+            }
+
+            [Fact]
+            public async Task SendsAllMessagesEvenIfOneFails()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1" };
+                package.Owners.Add(new User { Key = 96, Username = "microsoftA" });
+                package.Owners.Add(new User { Key = 97, Username = "microsoftB" });
+                package.Owners.Add(new User { Key = 98, Username = "microsoftC" });
+                var requestingOwner = new User { Key = 100, Username = "MicrosoftD" };
+                package.Owners.Add(requestingOwner);
+                var newOwner = new User { Key = 100, Username = "aspnet" };
+                var messageService = new Mock<IMessageService>();
+                messageService
+                    .Setup(x => x.SendMessageAsync(It.Is<PackageOwnershipRequestInitiatedMessage>(m => m.ReceivingOwner.Username == "microsoftC"), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .ThrowsAsync(new InvalidOperationException("The message could not be sent."));
+
+                var service = CreateService(messageService: messageService);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => AddPackageOwnershipRequestAsync(service, package, requestingOwner, newOwner));
+
+                messageService.Verify(
+                    x => x.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Exactly(5));
+            }
+
+            protected override async Task AddPackageOwnershipRequestAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+            {
+                await service.AddPackageOwnershipRequestWithMessagesAsync(packageRegistration, requestingOwner, newOwner, message: string.Empty);
+            }
+        }
+
+        public class TheAddPackageOwnershipRequestAsyncMethod : TheAddPackageOwnershipRequestAsyncMethodFacts
+        {
+            [Fact]
+            public async Task SendsNoMessages()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1" };
+                var requestingOwner = new User { Key = 99, Username = "Microsoft" };
+                package.Owners.Add(requestingOwner);
+                var newOwner = new User { Key = 100, Username = "aspnet" };
+                var messageService = new Mock<IMessageService>();
+
+                var service = CreateService(messageService: messageService);
+                await AddPackageOwnershipRequestAsync(service, package, requestingOwner, newOwner);
+
+                messageService.Verify(
+                    x => x.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Never);
+            }
+
+            protected override async Task AddPackageOwnershipRequestAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+            {
+                await service.AddPackageOwnershipRequestAsync(packageRegistration, requestingOwner, newOwner);
+            }
+        }
+
+        public abstract class TheAddPackageOwnershipRequestAsyncMethodFacts
+        {
+            protected abstract Task AddPackageOwnershipRequestAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User requestingOwner, User newOwner);
+
             [Fact]
             public async Task RequestIsAddedSuccessfully()
             {
@@ -327,7 +420,7 @@ namespace NuGetGallery
                 var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
                 var auditingService = new Mock<IAuditingService>();
                 var service = CreateService(packageOwnerRequestService: packageOwnerRequestService, auditingService: auditingService.Object);
-                await service.AddPackageOwnershipRequestAsync(packageRegistration: package, requestingOwner: user1, newOwner: user2);
+                await AddPackageOwnershipRequestAsync(service, packageRegistration: package, requestingOwner: user1, newOwner: user2);
                 packageOwnerRequestService.Verify(x => x.AddPackageOwnershipRequest(package, user1,user2));
                 auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<PackageRegistrationAuditRecord>()), Times.Once);
                 auditingService.Verify(x => x.SaveAuditRecordAsync(It.Is<PackageRegistrationAuditRecord>(r =>

@@ -407,8 +407,6 @@
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnerRemovedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestCanceledMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestDeclinedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestInitiatedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PasswordResetInstructionsMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessage.cs" />
