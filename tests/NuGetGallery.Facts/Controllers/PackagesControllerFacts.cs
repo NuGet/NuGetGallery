@@ -2783,47 +2783,6 @@ namespace NuGetGallery
                 return packageOwnershipManagementService => packageOwnershipManagementService.DeletePackageOwnershipRequestWithMessagesAsync(package, requestingOwner, newOwner);
             }
 
-            public delegate IEmailBuilder EmailBuilderForOwnershipRequest(IMessageServiceConfiguration configuration, PackageOwnerRequest request, string packageUrl);
-            public delegate IEmailBuilder EmailMessageVerificationForOwnershipRequest(PackageOwnerRequest request);
-
-            private static IEmailBuilder EmailBuilderForDeclineOwnershipRequest(IMessageServiceConfiguration configuration, PackageOwnerRequest request, string packageUrl)
-            {
-                return new PackageOwnershipRequestDeclinedMessage(
-                    configuration,
-                    request.RequestingOwner,
-                    request.NewOwner,
-                    request.PackageRegistration);
-            }
-
-            private static IEmailBuilder EmailBuilderForConfirmOwnershipRequest(IMessageServiceConfiguration configuration, PackageOwnerRequest request, string packageUrl)
-            {
-                return new PackageOwnerAddedMessage(
-                    configuration,
-                    request.RequestingOwner,
-                    request.NewOwner,
-                    request.PackageRegistration,
-                    packageUrl);
-            }
-
-            private static IEmailBuilder EmailMessageVerificationForDeclineOwnershipRequest(PackageOwnerRequest request)
-            {
-                return It.Is<PackageOwnershipRequestDeclinedMessage>(
-                    msg =>
-                    msg.RequestingOwner == request.RequestingOwner
-                    && msg.NewOwner == request.NewOwner
-                    && msg.PackageRegistration == request.PackageRegistration);
-            }
-
-            private static IEmailBuilder EmailMessageVerificationForConfirmOwnershipRequest(PackageOwnerRequest request)
-            {
-                return It.Is<PackageOwnerAddedMessage>(
-                    msg =>
-                    msg.ToUser == request.RequestingOwner
-                    && msg.NewOwner == request.NewOwner
-                    && msg.PackageRegistration == request.PackageRegistration
-                    && msg.PackageUrl == It.IsAny<string>());
-            }
-
             public static IEnumerable<object[]> ReturnsRedirectIfTokenIsValid_Data
             {
                 get
@@ -2882,9 +2841,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
-                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
-                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
-
+                
                 var request = new PackageOwnerRequest
                 {
                     PackageRegistration = package,
@@ -2896,7 +2853,6 @@ namespace NuGetGallery
                     .Returns(tokenValid ? request : null);
 
                 var configurationService = GetConfigurationService();
-                var messageService = new Mock<IMessageService>();
 
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByUsername(newOwner.Username, false)).Returns(newOwner);
@@ -2905,7 +2861,6 @@ namespace NuGetGallery
                     configurationService,
                     httpContext: mockHttpContext,
                     packageService: packageService,
-                    messageService: messageService,
                     packageOwnershipManagementService: packageOwnershipManagementService,
                     userService: userService);
 
@@ -2929,9 +2884,6 @@ namespace NuGetGallery
                 packageOwnershipManagementService.Verify(
                     packageOwnershipManagementServiceExpression(package, currentUser, newOwner),
                     Times.Never);
-                messageService.Verify(
-                    svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
-                    Times.Never);
             }
 
             public static IEnumerable<object[]> ReturnsSuccessIfTokenIsValid_Data
@@ -2946,8 +2898,6 @@ namespace NuGetGallery
                             {
                                 new InvokeOwnershipRequest(ConfirmOwnershipRequest),
                                 new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
-                                new EmailBuilderForOwnershipRequest(EmailBuilderForConfirmOwnershipRequest),
-                                new EmailMessageVerificationForOwnershipRequest(EmailMessageVerificationForConfirmOwnershipRequest),
                                 ConfirmOwnershipResult.Success,
                                 tokenValid,
                                 isOrganizationAdministrator,
@@ -2956,8 +2906,6 @@ namespace NuGetGallery
                             {
                                 new InvokeOwnershipRequest(RejectOwnershipRequest),
                                 new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
-                                new EmailBuilderForOwnershipRequest(EmailBuilderForDeclineOwnershipRequest),
-                                new EmailMessageVerificationForOwnershipRequest(EmailMessageVerificationForDeclineOwnershipRequest),
                                 ConfirmOwnershipResult.Rejected,
                                 tokenValid,
                                 isOrganizationAdministrator,
@@ -2972,8 +2920,6 @@ namespace NuGetGallery
             public async Task ReturnsSuccessIfTokenIsValid(
                 InvokeOwnershipRequest invokeOwnershipRequest,
                 PackageOwnershipManagementServiceRequestExpression packageOwnershipManagementServiceExpression,
-                EmailBuilderForOwnershipRequest emailBuilder,
-                EmailMessageVerificationForOwnershipRequest emailVerifier,
                 ConfirmOwnershipResult successState,
                 bool tokenValid,
                 bool isOrganizationAdministrator)
@@ -3001,9 +2947,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
-                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
-                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
-
+                
                 var request = new PackageOwnerRequest
                 {
                     PackageRegistration = package,
@@ -3177,16 +3121,12 @@ namespace NuGetGallery
                     var request = new PackageOwnerRequest() { RequestingOwner = userA, NewOwner = userB };
                     var packageOwnershipManagementRequestService = new Mock<IPackageOwnershipManagementService>();
                     packageOwnershipManagementRequestService.Setup(p => p.GetPackageOwnershipRequests(package, userA, userB)).Returns(new[] { request });
-                    packageOwnershipManagementRequestService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, userB, true)).Returns(Task.CompletedTask).Verifiable();
-
-                    var messageService = new Mock<IMessageService>();
 
                     var controller = CreateController(
                         GetConfigurationService(),
                         userService: userService,
                         packageService: packageService,
-                        packageOwnershipManagementService: packageOwnershipManagementRequestService,
-                        messageService: messageService);
+                        packageOwnershipManagementService: packageOwnershipManagementRequestService);
                     controller.SetCurrentUser(currentUser);
 
                     // Act
@@ -3199,13 +3139,6 @@ namespace NuGetGallery
                         x => x.DeletePackageOwnershipRequestAsync(
                             It.IsAny<PackageRegistration>(),
                             It.IsAny<User>(),
-                            It.IsAny<bool>()),
-                        Times.Never);
-
-                    messageService.Verify(
-                        x => x.SendMessageAsync(
-                            It.IsAny<PackageOwnershipRequestCanceledMessage>(),
-                            It.IsAny<bool>(),
                             It.IsAny<bool>()),
                         Times.Never);
                 }

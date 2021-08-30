@@ -573,20 +573,8 @@ namespace NuGetGallery.Controllers
 
                         packageOwnershipManagementService
                             .Verify(
-                                x => x.RemovePackageOwnerAsync(package, currentUser, userToRemove, It.IsAny<bool>()),
-                                Times.Never());
-
-                        GetMock<IMessageService>()
-                            .Verify(
-                                x => x.SendMessageAsync(
-                                    It.Is<PackageOwnerRemovedMessage>(
-                                        msg =>
-                                        msg.FromUser == currentUser
-                                        && msg.ToUser == userToRemove
-                                        && msg.PackageRegistration == package),
-                                    false,
-                                    false),
-                                Times.Never());
+                                x => x.RemovePackageOwnerWithMessagesAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()),
+                                Times.Never);
                     }
 
                     [Theory]
