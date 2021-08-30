@@ -19,5 +19,8 @@ namespace NuGetGallery
         /// <param name="relativeUrl">True to return a relative URL, false to return an absolute URL.</param>
         /// <returns>The relative or absolute URL as a string.</returns>
         string Package(string id, string version, bool relativeUrl);
+        string ConfirmPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl);
+        string RejectPendingOwnershipRequest(string id, string username, string confirmationCode, bool relativeUrl);
+        string ManagePackageOwnership(string id, bool relativeUrl);
     }
 }

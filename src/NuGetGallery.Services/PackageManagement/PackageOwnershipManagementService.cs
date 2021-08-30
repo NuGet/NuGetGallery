@@ -9,7 +9,6 @@ using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
-using NuGetGallery.Infrastructure.Mail.Messages;
 
 namespace NuGetGallery
 {
@@ -129,6 +128,69 @@ namespace NuGetGallery
             // "add owner" operation is audited itself. Having a "delete package ownership" audit here would be confusing
             // because the intended user action was to add an owner, not to reject (delete) an ownership request.
             await DeletePackageOwnershipRequestAsync(packageRegistration, user, commitChanges, saveAudit: false);
+        }
+
+        public async Task<PackageOwnerRequest> AddPackageOwnershipRequestWithMessagesAsync(
+            PackageRegistration packageRegistration,
+            User requestingOwner,
+            User newOwner,
+            string message)
+        {
+            var encodedMessage = HttpUtility.HtmlEncode(message);
+
+            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
+
+            var ownerRequest = await AddPackageOwnershipRequestAsync(
+                packageRegistration, requestingOwner, newOwner);
+
+            var confirmationUrl = _urlHelper.ConfirmPendingOwnershipRequest(
+                packageRegistration.Id,
+                newOwner.Username,
+                ownerRequest.ConfirmationCode,
+                relativeUrl: false);
+
+            var rejectionUrl = _urlHelper.RejectPendingOwnershipRequest(
+                packageRegistration.Id,
+                newOwner.Username,
+                ownerRequest.ConfirmationCode,
+                relativeUrl: false);
+
+            var manageUrl = _urlHelper.ManagePackageOwnership(
+                packageRegistration.Id,
+                relativeUrl: false);
+
+            var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(
+                _appConfiguration,
+                requestingOwner,
+                newOwner,
+                packageRegistration,
+                packageUrl,
+                confirmationUrl,
+                rejectionUrl,
+                encodedMessage,
+                string.Empty);
+
+            // Accumulate the tasks so that they are sent in parallel and as many messages as possible are sent even if
+            // one fails (i.e. throws an exception).
+            var messageTasks = new List<Task>();
+            messageTasks.Add(_messageService.SendMessageAsync(packageOwnershipRequestMessage));
+
+            foreach (var owner in packageRegistration.Owners)
+            {
+                var emailMessage = new PackageOwnershipRequestInitiatedMessage(
+                    _appConfiguration,
+                    requestingOwner,
+                    owner,
+                    newOwner,
+                    packageRegistration,
+                    manageUrl);
+
+                messageTasks.Add(_messageService.SendMessageAsync(emailMessage));
+            }
+
+            await Task.WhenAll(messageTasks);
+
+            return ownerRequest;
         }
 
         public async Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)

@@ -140,52 +140,11 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    var encodedMessage = HttpUtility.HtmlEncode(message);
-
-                    var ownerRequest = await _packageOwnershipManagementService.AddPackageOwnershipRequestAsync(
-                        model.Package, model.CurrentUser, model.User);
-
-                    var confirmationUrl = Url.ConfirmPendingOwnershipRequest(
-                        model.Package.Id,
-                        model.User.Username,
-                        ownerRequest.ConfirmationCode,
-                        relativeUrl: false);
-
-                    var rejectionUrl = Url.RejectPendingOwnershipRequest(
-                        model.Package.Id,
-                        model.User.Username,
-                        ownerRequest.ConfirmationCode,
-                        relativeUrl: false);
-
-                    var manageUrl = Url.ManagePackageOwnership(
-                        model.Package.Id,
-                        relativeUrl: false);
-
-                    var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(
-                        _appConfiguration,
+                    await _packageOwnershipManagementService.AddPackageOwnershipRequestWithMessagesAsync(
+                        model.Package,
                         model.CurrentUser,
                         model.User,
-                        model.Package,
-                        packageUrl,
-                        confirmationUrl,
-                        rejectionUrl,
-                        encodedMessage,
-                        string.Empty);
-
-                    await _messageService.SendMessageAsync(packageOwnershipRequestMessage);
-
-                    foreach (var owner in model.Package.Owners)
-                    {
-                        var emailMessage = new PackageOwnershipRequestInitiatedMessage(
-                            _appConfiguration,
-                            model.CurrentUser,
-                            owner,
-                            model.User,
-                            model.Package,
-                            manageUrl);
-
-                        await _messageService.SendMessageAsync(emailMessage);
-                    }
+                        message);
                 }
 
                 return Json(new

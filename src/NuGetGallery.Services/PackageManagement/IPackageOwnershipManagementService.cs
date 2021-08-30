@@ -29,6 +29,16 @@ namespace NuGetGallery
         Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user, bool commitChanges = true);
 
         /// <summary>
+        /// Add the pending ownership request and then sends notification messages to the new and existing owners.
+        /// Immediately commits the changes to the database. Same behavior as <see cref="AddPackageOwnershipRequestAsync(PackageRegistration, User, User)"/>
+        /// with the addition of sending messages.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
+        /// <param name="requestingOwner">The user to requesting to add the pending owner.</param>
+        /// <param name="newOwner">The user to be added for from pending ownership.</param>
+        Task<PackageOwnerRequest> AddPackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner, string message);
+
+        /// <summary>
         /// Add the pending ownership request.
         /// </summary>
         /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
