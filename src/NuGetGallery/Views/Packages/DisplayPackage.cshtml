@@ -193,14 +193,9 @@
                 @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
                 <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
                 <div class="copy-button">
-                    <!--In order to statisfy the requirement to announce button status both on NVDA/Narrator, other screen reader like NVDA will
-                        announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover 
-                        because of known issue(https://github.com/twbs/bootstrap/issues/18618).
-                        We add aria-pressed to indicate the whether button is pressed or not, which is workaround only for Narrator announce the status change of button
-                    -->
                     <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
                             data-toggle="popover" data-placement="bottom" data-content="Copied."
-                            aria-label="@packageManager.CopyLabel" aria-pressed="false" aria-live="polite" role="button">
+                            aria-label="@packageManager.CopyLabel" aria-live="polite" role="button">
                         <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                     </button>
                 </div>
@@ -261,7 +256,7 @@
                         <img class="reserved-indicator"
                              src="~/Content/gallery/img/reserved-indicator.svg"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
-                             data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0"/>
+                             data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0" alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
                     }
                 </h1>
 

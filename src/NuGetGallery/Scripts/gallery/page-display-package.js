@@ -90,20 +90,22 @@ $(function () {
     // Configure package manager copy buttons
     function configureCopyButton(id) {
         var copyButton = $('#' + id + '-button');
-        copyButton.popover({ trigger: 'manual' });
+        copyButton.popover({
+            trigger: 'manual',
+            // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
+            // We can force Narrator to announce the content by changing
+            // the popover's role from 'tooltip' to 'status'.
+            // Modified from: https://github.com/twbs/bootstrap/blob/f17f882df292b29323f1e1da515bd16f326cee4a/js/popover.js#L28
+            template: '<div class="popover" role="status"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
+        });
 
         copyButton.click(function () {
             var text = $('#' + id + '-text').text().trim();
             window.nuget.copyTextToClipboard(text, copyButton);
             copyButton.popover('show');
-            //This is workaround for Narrator announce the status changes of copy button to achieve accessibility.
-            copyButton.attr('aria-pressed', 'true');
             setTimeout(function () {
                 copyButton.popover('destroy');
             }, 1000);
-            setTimeout(function () {
-                copyButton.attr('aria-pressed', 'false');
-            }, 1500);  
             window.nuget.sendMetric("CopyInstallCommand", 1, {
                 ButtonId: id,
                 PackageId: packageId,

@@ -670,6 +670,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     string controllerName,
     string role,
     string area = "",
+    string classes = null,
     Dictionary<string, string> formValues = null)
 {
     using (page.Html.BeginForm(
@@ -677,7 +678,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         controllerName,
         new { area = area },
         FormMethod.Post,
-        new { id = formId }))
+        new { id = formId, @class = classes }))
     {
         @page.Html.AntiForgeryToken();
         if (formValues != null)
@@ -699,6 +700,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     string controllerName,
     string role,
     string area = "",
+    string classes = null,
     Dictionary<string, string> formValues = null)
 {
     @PostLink(
@@ -709,6 +711,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         controllerName,
         role,
         area,
+        classes,
         formValues);
 }
 

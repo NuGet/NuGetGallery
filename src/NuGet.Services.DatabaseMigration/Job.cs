@@ -149,7 +149,7 @@ namespace NuGet.Services.DatabaseMigration
             }
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
         }
 

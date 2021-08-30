@@ -45,6 +45,9 @@ body h3 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.form-inline-empty {
+  display: inline-block;
+}
 .footer {
   background-color: #002440;
   color: #e3ebf1;
@@ -1436,41 +1439,6 @@ img.reserved-indicator-icon {
   margin-top: 15px;
   margin-bottom: 15px;
 }
-.page-package-details-v2 .installation-instructions {
-  background-color: #F3F2F1;
-}
-.page-package-details-v2 .installation-instructions .installation-instructions-dropdown {
-  font-size: 14px;
-  background-color: #F3F2F1;
-  height: 31px;
-  border-left: 0px;
-  border-top: 0px;
-  border-right: 0px;
-}
-.page-package-details-v2 .installation-instructions .installation-instruction {
-  background-color: #FAF9F8;
-  font-size: 14px;
-}
-.page-package-details-v2 .installation-instructions .installation-instruction pre {
-  background-color: #FAF9F8;
-  border: 0px;
-  margin-bottom: 0px;
-  width: 100%;
-}
-.page-package-details-v2 .installation-instructions .installation-instruction .alert {
-  margin-top: 0px;
-}
-.page-package-details-v2 button {
-  width: 32px;
-  height: 32px;
-  float: right;
-  padding: 0px;
-}
-.page-package-details-v2 button .ms-Icon--Copy {
-  color: #FFFFFF;
-  width: 16px;
-  height: 16px;
-}
 .page-package-details-v2 .package-details-main {
   overflow-wrap: break-word;
   word-wrap: break-word;
@@ -1486,8 +1454,12 @@ img.reserved-indicator-icon {
 .page-package-details-v2 .package-details-info .ms-Icon-ul li {
   margin-bottom: 18px;
 }
+.page-package-details-v2 .package-details-info .ms-Icon-ul .ms-Icon {
+  top: 1px;
+}
 .page-package-details-v2 .package-details-info .ms-Icon-ul img.icon {
   position: absolute;
+  top: 1px;
   left: -24px;
   width: 16px;
   height: 16px;
@@ -1642,6 +1614,46 @@ img.reserved-indicator-icon {
   font-weight: 600;
   text-decoration: underline;
 }
+.page-package-details-v2 .install-tabs .tab-content .tab-pane > div {
+  display: table;
+  height: 1px;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row {
+  display: table-row;
+  height: 100%;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .install-script {
+  display: table-cell;
+  background-color: #002440;
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  font-size: 1em;
+  color: #fff;
+  width: 100%;
+  max-width: 1px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  border-color: #002440;
+  border-style: solid;
+  border-width: 1px 0 1px 1px;
+  -webkit-user-select: all;
+  -moz-user-select: all;
+  -ms-user-select: all;
+  user-select: all;
+  vertical-align: middle;
+  word-break: break-word;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
+  height: 100%;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
+  height: 100%;
+  min-height: 42px;
+  line-height: 1.5;
+}
+.page-package-details-v2 .install-tabs .tab-content .tab-pane .alert {
+  margin: 0;
+  width: 100%;
+}
 .page-package-details-v2 .body-tabs .nav-tabs > li.active > a {
   border-bottom-color: #0078D4;
   border-bottom-width: 2px;
@@ -1655,6 +1667,10 @@ img.reserved-indicator-icon {
   font-size: 14px;
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #323130;
+}
+.page-package-details-v2 .body-tabs .nav-tabs > li > a .ms-Icon {
+  position: relative;
+  top: 2px;
 }
 .page-package-details-v2 .body-tab-content {
   padding-top: 30px;

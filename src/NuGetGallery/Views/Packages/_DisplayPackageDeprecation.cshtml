@@ -35,12 +35,12 @@
                 </div>
 
                 <div class="deprecation-expander-container">
-                    <i id="deprecation-expander-icon-right" class="deprecation-expander-icon deprecation-expander-info-right ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                    <i id="deprecation-expander-icon-right" class="deprecation-expander-icon deprecation-expander-info-right ms-Icon ms-Icon--ChevronUp" aria-hidden="true"></i>
                 </div>
             </div>
         </div>
 
-        <div class="deprecation-content-container collapse" id="deprecation-content-container">
+        <div class="deprecation-content-container collapse in" id="deprecation-content-container">
             @if (!string.IsNullOrEmpty(Model.AlternatePackageId))
             {
                 string alternateUrl;

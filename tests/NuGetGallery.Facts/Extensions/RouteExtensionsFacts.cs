@@ -10,10 +10,10 @@ namespace NuGetGallery.Extensions
 {
     public class RouteExtensionsFacts
     {
-        private static string _routeUrl = "test/{user}";
-        private static string _url = "test/user1";
-        private static int _segment = 1;
-        private static string _obfuscatedValue = "obfuscatedData";
+        private const string _routeUrl = "test/{user}";
+        private const string _url = "test/user1";
+        private const int _segment = 1;
+        private const string _obfuscatedValue = "obfuscatedData";
 
         [Fact]
         public void MapRoute_WithoutConstraints_AddsObfuscation()

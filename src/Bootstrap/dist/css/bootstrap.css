@@ -2687,59 +2687,6 @@ fieldset[disabled] .btn-danger.focus {
   color: #df001e;
   background-color: #fff;
 }
-.btn-blue {
-  color: #333;
-  background-color: #0078D4;
-  border-color: #7f7f7f;
-}
-.btn-blue:focus,
-.btn-blue.focus {
-  color: #333;
-  background-color: #005ba1;
-  border-color: #3f3f3f;
-}
-.btn-blue:hover {
-  color: #333;
-  background-color: #005ba1;
-  border-color: #606060;
-}
-.btn-blue:active,
-.btn-blue.active,
-.open > .dropdown-toggle.btn-blue {
-  color: #333;
-  background-color: #005ba1;
-  background-image: none;
-  border-color: #606060;
-}
-.btn-blue:active:hover,
-.btn-blue.active:hover,
-.open > .dropdown-toggle.btn-blue:hover,
-.btn-blue:active:focus,
-.btn-blue.active:focus,
-.open > .dropdown-toggle.btn-blue:focus,
-.btn-blue:active.focus,
-.btn-blue.active.focus,
-.open > .dropdown-toggle.btn-blue.focus {
-  color: #333;
-  background-color: #00477d;
-  border-color: #3f3f3f;
-}
-.btn-blue.disabled:hover,
-.btn-blue[disabled]:hover,
-fieldset[disabled] .btn-blue:hover,
-.btn-blue.disabled:focus,
-.btn-blue[disabled]:focus,
-fieldset[disabled] .btn-blue:focus,
-.btn-blue.disabled.focus,
-.btn-blue[disabled].focus,
-fieldset[disabled] .btn-blue.focus {
-  background-color: #0078D4;
-  border-color: #7f7f7f;
-}
-.btn-blue .badge {
-  color: #0078D4;
-  background-color: #333;
-}
 .btn-link {
   font-weight: 400;
   color: #337ab7;

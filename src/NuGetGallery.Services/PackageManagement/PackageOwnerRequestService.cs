@@ -45,9 +45,36 @@ namespace NuGetGallery
             return request.ConfirmationCode == token ? request : null;
         }
 
-        public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequests(PackageRegistration package = null, User requestingOwner = null, User newOwner = null)
+        public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequests(
+            PackageRegistration package = null,
+            User requestingOwner = null,
+            User newOwner = null)
+        {
+            return GetPackageOwnershipRequests(includeUsers: false, package, requestingOwner, newOwner);
+        }
+
+        public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequestsWithUsers(
+            PackageRegistration package = null,
+            User requestingOwner = null,
+            User newOwner = null)
+        {
+            return GetPackageOwnershipRequests(includeUsers: true, package, requestingOwner, newOwner);
+        }
+
+        private IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequests(
+            bool includeUsers,
+            PackageRegistration package,
+            User requestingOwner,
+            User newOwner)
         {
             var query = _packageOwnerRequestRepository.GetAll().Include(e => e.PackageRegistration);
+
+            if (includeUsers)
+            {
+                query = query
+                    .Include(x => x.RequestingOwner)
+                    .Include(x => x.NewOwner);
+            }
 
             if (package != null)
             {
@@ -101,11 +128,17 @@ namespace NuGetGallery
 
             _packageOwnerRequestRepository.InsertOnCommit(newRequest);
             await _packageOwnerRequestRepository.CommitChangesAsync();
+
             return newRequest;
         }
 
         public async Task DeletePackageOwnershipRequest(PackageOwnerRequest request, bool commitChanges = true)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             _packageOwnerRequestRepository.DeleteOnCommit(request);
 
             if (commitChanges)
@@ -113,6 +146,5 @@ namespace NuGetGallery
                 await _packageOwnerRequestRepository.CommitChangesAsync();
             }
         }
-        
     }
 }
