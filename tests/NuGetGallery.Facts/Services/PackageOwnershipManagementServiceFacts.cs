@@ -132,6 +132,29 @@ namespace NuGetGallery
                         It.IsAny<bool>()));
             }
 
+            [Fact]
+            public async Task SendsAllMessagesEvenIfOneFails()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1" };
+                package.Owners.Add(new User { Key = 96, Username = "microsoftA" });
+                package.Owners.Add(new User { Key = 97, Username = "microsoftB" });
+                package.Owners.Add(new User { Key = 98, Username = "microsoftC" });
+                package.Owners.Add(new User { Key = 99, Username = "microsoftD" });
+                var pendingOwner = new User { Key = 100, Username = "aspnet" };
+                var messageService = new Mock<IMessageService>();
+                messageService
+                    .Setup(x => x.SendMessageAsync(It.Is<PackageOwnerAddedMessage>(m => m.ToUser.Username == "microsoftC"), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .ThrowsAsync(new InvalidOperationException("The message could not be sent."));
+
+                var service = CreateService(messageService: messageService);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => AddPackageOwnerAsync(service, package, pendingOwner));
+
+                messageService.Verify(
+                    x => x.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Exactly(5));
+            }
+
             protected override async Task AddPackageOwnerAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User user)
             {
                 await service.AddPackageOwnerWithMessagesAsync(packageRegistration, user);

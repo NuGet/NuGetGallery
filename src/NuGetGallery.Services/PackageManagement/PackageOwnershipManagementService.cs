@@ -50,11 +50,17 @@ namespace NuGetGallery
             await AddPackageOwnerAsync(packageRegistration, user, commitChanges: true);
 
             var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
+
+            // Accumulate the tasks so that they are sent in parallel and as many messages as possible are sent even if
+            // one fails (i.e. throws an exception).
+            var sendTasks = new List<Task>();
             foreach (var owner in packageRegistration.Owners)
             {
                 var emailMessage = new PackageOwnerAddedMessage(_appConfiguration, owner, user, packageRegistration, packageUrl);
-                await _messageService.SendMessageAsync(emailMessage);
+                sendTasks.Add(_messageService.SendMessageAsync(emailMessage));
             }
+
+            await Task.WhenAll(sendTasks);
         }
 
         public async Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user, bool commitChanges = true)
