@@ -522,12 +522,12 @@
                     <div id="readme-container" class="collapse in">
                         @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
                         {
-                            @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
+                            @ViewHelpers.AlertImagesRewritten();
                         }
 
                         @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
                         {
-                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>);
+                            @ViewHelpers.AlertImageSourceDisallowed();
                         }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)

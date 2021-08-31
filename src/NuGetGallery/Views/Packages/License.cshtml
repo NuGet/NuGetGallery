@@ -64,13 +64,22 @@
                 }
                 else
                 {
-                    <label>License text</label>
+                    <label>License file</label>
                     <div class="common-licenses">
                         @if (Model.LicenseFileContentsHtml != null)
                         {
-                            @Html.Raw(Model.LicenseFileContentsHtml)
-                        } 
-                        else 
+                            if (Model.LicenseFileContentsHtml.ImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                            {
+                                @ViewHelpers.AlertImageSourceDisallowed();
+                            }
+
+                            if (Model.LicenseFileContentsHtml.ImagesRewritten && Model.CanDisplayPrivateMetadata)
+                            {
+                                @ViewHelpers.AlertImagesRewritten();
+                            }
+                            @Html.Raw(Model.LicenseFileContentsHtml.Content)
+                        }
+                        else
                         {
                             <pre class="license-file-contents custom-license-container">@Model.LicenseFileContents</pre>
                         }

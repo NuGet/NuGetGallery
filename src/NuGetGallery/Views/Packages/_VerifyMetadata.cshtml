@@ -135,7 +135,13 @@
             <div class="verify-package-field common-licenses">
                 <label class="verify-package-field-heading">License file</label>
                 <!-- ko if: $data.LicenseFileContentsHtml -->
-                <span data-bind="html: $data.LicenseFileContentsHtml"></span>
+                <!-- ko if: $data.LicenseFileContentsHtml.ImageSourceDisallowed-->
+                @ViewHelpers.AlertImageSourceDisallowed();
+                <!-- /ko -->
+                <!-- ko if: $data.LicenseFileContentsHtml.ImagesRewritten-->
+                @ViewHelpers.AlertImagesRewritten();
+                <!-- /ko -->
+                <span class="license-file-html-container" data-bind="html: $data.LicenseFileContentsHtml.Content"></span>
                 <!-- /ko -->
                 <!-- ko ifnot: $data.LicenseFileContentsHtml -->
                 <pre class="license-file-contents custom-license-container" data-bind="text: $data.LicenseFileContents"></pre>

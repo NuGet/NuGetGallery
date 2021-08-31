@@ -534,8 +534,16 @@ img.reserved-indicator-icon {
   white-space: pre-wrap;
   word-break: normal;
 }
-.common-licenses .custom-license-container {
+.common-licenses .custom-license-container,
+.common-licenses .license-file-html-container {
+  display: block;
+  padding: 10.5px;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  word-break: normal;
   margin-bottom: 24px;
+  overflow: auto;
+  max-height: 450px;
 }
 .list-packages .package {
   overflow-wrap: break-word;
