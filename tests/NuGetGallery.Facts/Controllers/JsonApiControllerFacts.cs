@@ -538,7 +538,7 @@ namespace NuGetGallery.Controllers
                         // Assert
                         Assert.True(data.success);
 
-                        packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestWithMessagesAsync(package, currentUser, requestedUser));
+                        packageOwnershipManagementService.Verify(x => x.CancelPackageOwnershipRequestWithMessagesAsync(package, currentUser, requestedUser));
                     }
 
                     [Theory]

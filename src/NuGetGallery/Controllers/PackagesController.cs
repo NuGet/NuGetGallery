@@ -2339,7 +2339,7 @@ namespace NuGetGallery
             }
             else
             {
-                await _packageOwnershipManagementService.DeletePackageOwnershipRequestWithMessagesAsync(package, request.RequestingOwner, user);
+                await _packageOwnershipManagementService.DeclinePackageOwnershipRequestWithMessagesAsync(package, request.RequestingOwner, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Rejected));
             }

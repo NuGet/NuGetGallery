@@ -65,13 +65,26 @@ namespace NuGetGallery
         Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved, bool commitChanges);
 
         /// <summary>
-        /// Remove the pending ownership request and then sends notification messages. Immediately commits the changes
+        /// Remove the pending ownership request and then send the "cancel" notification messages. This should be used when
+        /// the sender (<paramref name="requestingOwner"/>) deletes the request. Immediately commits the changes
         /// to the database. Same behavior as <see cref="DeletePackageOwnershipRequestAsync(PackageRegistration, User, bool)"/>
         /// with the addition of sending messages.
         /// </summary>
         /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
+        /// <param name="requestingOwner">The user that originally sent the ownership request.</param>
         /// <param name="newOwner">The user to be removed from pending ownership.</param>
-        Task DeletePackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
+        Task CancelPackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
+
+        /// <summary>
+        /// Remove the pending ownership request and then send the "decline" notification messages. This should be used when
+        /// the recipient (<paramref name="newOwner"/>) deletes the request. Immediately commits the changes
+        /// to the database. Same behavior as <see cref="DeletePackageOwnershipRequestAsync(PackageRegistration, User, bool)"/>
+        /// with the addition of sending messages.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
+        /// <param name="requestingOwner">The user that originally sent the ownership request.</param>
+        /// <param name="newOwner">The user to be removed from pending ownership.</param>
+        Task DeclinePackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
 
         /// <summary>
         /// Remove the pending ownership request.

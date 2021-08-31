@@ -2780,7 +2780,7 @@ namespace NuGetGallery
 
             private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User requestingOwner, User newOwner)
             {
-                return packageOwnershipManagementService => packageOwnershipManagementService.DeletePackageOwnershipRequestWithMessagesAsync(package, requestingOwner, newOwner);
+                return packageOwnershipManagementService => packageOwnershipManagementService.DeclinePackageOwnershipRequestWithMessagesAsync(package, requestingOwner, newOwner);
             }
 
             public static IEnumerable<object[]> ReturnsRedirectIfTokenIsValid_Data

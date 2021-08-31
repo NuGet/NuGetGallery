@@ -293,7 +293,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task DeletePackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+        public async Task CancelPackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
         {
             if (requestingOwner == null)
             {
@@ -303,6 +303,19 @@ namespace NuGetGallery
             await DeletePackageOwnershipRequestAsync(packageRegistration, newOwner);
 
             var emailMessage = new PackageOwnershipRequestCanceledMessage(_appConfiguration, requestingOwner, newOwner, packageRegistration);
+            await _messageService.SendMessageAsync(emailMessage);
+        }
+
+        public async Task DeclinePackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+        {
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            await DeletePackageOwnershipRequestAsync(packageRegistration, newOwner);
+
+            var emailMessage = new PackageOwnershipRequestDeclinedMessage(_appConfiguration, requestingOwner, newOwner, packageRegistration);
             await _messageService.SendMessageAsync(emailMessage);
         }
 

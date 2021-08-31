@@ -750,7 +750,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheDeletePackageOwnershipRequestWithMessagesAsyncMethod : TheDeletePackageOwnershipRequestAsyncMethodFacts
+        public class TheCancelPackageOwnershipRequestWithMessagesAsyncMethod : TheDeletePackageOwnershipRequestAsyncMethodFacts
         {
             [Fact]
             public async Task NullRequestingUserThrowsException()
@@ -794,7 +794,55 @@ namespace NuGetGallery
 
             protected override async Task DeletePackageOwnershipRequestAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User requestingOwner, User newOwner)
             {
-                await service.DeletePackageOwnershipRequestWithMessagesAsync(packageRegistration, requestingOwner, newOwner);
+                await service.CancelPackageOwnershipRequestWithMessagesAsync(packageRegistration, requestingOwner, newOwner);
+            }
+        }
+
+        public class TheDeclinePackageOwnershipRequestWithMessagesAsyncMethod : TheDeletePackageOwnershipRequestAsyncMethodFacts
+        {
+            [Fact]
+            public async Task NullRequestingUserThrowsException()
+            {
+                var service = CreateService();
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var user1 = new User { Key = 101, Username = "user1" };
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await DeletePackageOwnershipRequestAsync(service, packageRegistration: package, requestingOwner: null, newOwner: user1));
+            }
+
+            [Fact]
+            public async Task SendsMessage()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var user1 = new User { Key = 101, Username = "user1" };
+                var user2 = new User { Key = 101, Username = "user2" };
+                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+                var auditingService = new Mock<IAuditingService>();
+                var pendingRequest = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = user1,
+                    NewOwner = user2,
+                    ConfirmationCode = "token"
+                };
+                packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequestsWithUsers(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new[] { pendingRequest }).Verifiable();
+                packageOwnerRequestService.Setup(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>(), true)).Returns(Task.CompletedTask).Verifiable();
+                var messageService = new Mock<IMessageService>();
+                var service = CreateService(packageOwnerRequestService: packageOwnerRequestService, auditingService: auditingService.Object, messageService: messageService, useDefaultSetup: false);
+                await DeletePackageOwnershipRequestAsync(service, packageRegistration: package, requestingOwner: user1, newOwner: user2);
+
+                messageService.Verify(
+                    x => x.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Once);
+                messageService.Verify(
+                    x => x.SendMessageAsync(
+                        It.Is<PackageOwnershipRequestDeclinedMessage>(m => m.NewOwner == user2 && m.RequestingOwner == user1),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()));
+            }
+
+            protected override async Task DeletePackageOwnershipRequestAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+            {
+                await service.DeclinePackageOwnershipRequestWithMessagesAsync(packageRegistration, requestingOwner, newOwner);
             }
         }
 

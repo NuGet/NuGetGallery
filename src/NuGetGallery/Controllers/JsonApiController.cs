@@ -189,7 +189,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    await _packageOwnershipManagementService.DeletePackageOwnershipRequestWithMessagesAsync(model.Package, model.CurrentUser, model.User);
+                    await _packageOwnershipManagementService.CancelPackageOwnershipRequestWithMessagesAsync(model.Package, model.CurrentUser, model.User);
                 }
 
                 return Json(new { success = true });
