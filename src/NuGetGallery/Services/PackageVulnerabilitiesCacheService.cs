@@ -86,7 +86,7 @@ namespace NuGetGallery
                                     ikv.GroupBy(kv => kv.PackageKey, kv => kv.Vulnerability)
                                         // - build the inner dictionaries, all under the same <id>, each keyed by <package key>
                                         .ToDictionary(kv => kv.Key,
-                                            kv => kv.ToList().AsReadOnly() as IReadOnlyList<PackageVulnerability>));
+                                            kv => kv.OrderByDescending(x => x.Severity).ToList().AsReadOnly() as IReadOnlyList<PackageVulnerability>));
                     }
 
                     stopwatch.Stop();
