@@ -17,7 +17,7 @@ namespace NuGetGallery
     public interface IUrlHelper
     {
         /// <summary>
-        /// Produce a URL to the package details (a.k.a. display package) page given a package ID and optional version.
+        /// Produces a URL to the package details (a.k.a. display package) page given a package ID and optional version.
         /// </summary>
         /// <param name="id">The package ID to link to.</param>
         /// <param name="version">The specific package version to link to. Can be null.</param>
