@@ -119,6 +119,52 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(licenseFileContents, model.LicenseFileContents);
         }
 
+        [Fact]
+        public void ItInitializesLicenseFileContentsWithEmbeddedMarkdownLicense()
+        {
+            // arrange
+            Mock<IFeatureFlagService> _featureFlagService = new Mock<IFeatureFlagService>();
+            Mock<IIconUrlProvider> _iconUrlProvider = new Mock<IIconUrlProvider>();
+            Mock<IMarkdownService> _markdownService = new Mock<IMarkdownService>();
+            User user = new User();
+
+            DisplayLicenseViewModelFactory displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider.Object,
+                _markdownService.Object,
+                _featureFlagService.Object);
+
+            var licenseFileContents = "It's a license";
+            var package = new Package
+            {
+                Version = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "SomeId" },
+                EmbeddedLicenseType = EmbeddedLicenseFileType.Markdown,
+            };
+
+            RenderedMarkdownResult expectedlicenseContentResult = new RenderedMarkdownResult
+            {
+                Content = licenseFileContents,
+                ImagesRewritten = false,
+                ImageSourceDisallowed = false,
+            };
+
+            _featureFlagService.Setup(x => x.IsLicenseMdRenderingEnabled(user))
+                .Returns(true);
+            _markdownService.Setup(x => x.GetHtmlFromMarkdown(licenseFileContents))
+                .Returns(expectedlicenseContentResult);
+            
+            // act
+            var model = displayLicenseViewModelFactory.Create(package, null, licenseFileContents, user);
+
+            // assert
+            Assert.NotNull(model.LicenseFileContentsHtml);
+            Assert.Equal(expectedlicenseContentResult.Content,
+                model.LicenseFileContentsHtml.Content);
+            Assert.Equal(expectedlicenseContentResult.ImageSourceDisallowed,
+                model.LicenseFileContentsHtml.ImageSourceDisallowed);
+            Assert.Equal(expectedlicenseContentResult.ImagesRewritten,
+                model.LicenseFileContentsHtml.ImagesRewritten);
+        }
+
         private static DisplayLicenseViewModel CreateDisplayLicenseViewModel(
             Package package,
             IReadOnlyCollection<CompositeLicenseExpressionSegment> licenseExpressionSegments = null,

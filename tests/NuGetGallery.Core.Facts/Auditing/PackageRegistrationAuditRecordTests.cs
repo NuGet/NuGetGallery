@@ -39,6 +39,34 @@ namespace NuGetGallery.Auditing
         }
 
         [Fact]
+        public void CreateForAddOwnershipRequest_InitializesProperties()
+        {
+            var record = PackageRegistrationAuditRecord.CreateForAddOwnershipRequest(
+                new PackageRegistration { Id = "NuGet.Versioning" },
+                requestingOwner: "NuGet",
+                newOwner: "Microsoft");
+
+            Assert.Equal("NuGet.Versioning", record.Id);
+            Assert.Equal("NuGet", record.RequestingOwner);
+            Assert.Equal("Microsoft", record.NewOwner);
+            Assert.Equal(AuditedPackageRegistrationAction.AddOwnershipRequest, record.Action);
+        }
+
+        [Fact]
+        public void CreateForDeleteOwnershipRequest_InitializesProperties()
+        {
+            var record = PackageRegistrationAuditRecord.CreateForDeleteOwnershipRequest(
+                new PackageRegistration { Id = "NuGet.Versioning" },
+                requestingOwner: "NuGet",
+                newOwner: "Microsoft");
+
+            Assert.Equal("NuGet.Versioning", record.Id);
+            Assert.Equal("NuGet", record.RequestingOwner);
+            Assert.Equal("Microsoft", record.NewOwner);
+            Assert.Equal(AuditedPackageRegistrationAction.DeleteOwnershipRequest, record.Action);
+        }
+
+        [Fact]
         public void CreateForSetRequiredSigner_WhenRegistrationIsNull_Throws()
         {
             var exception = Assert.Throws<ArgumentNullException>(

@@ -47,9 +47,39 @@
         });
     }
 
-    // Set up our state for the currently selected package manager.
-    var currentPackageManagerId = packageManagers[0];
-    var packageManagerSelector = $('.installation-instructions-dropdown');
+    // Configure package manager copy buttons
+    function configureCopyButton(id) {
+        var copyButton = $('#' + id + '-button');
+        copyButton.popover({
+            trigger: 'manual',
+            // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
+            // We can force Narrator to announce the content by changing
+            // the popover's role from 'tooltip' to 'status'.
+            // Modified from: https://github.com/twbs/bootstrap/blob/f17f882df292b29323f1e1da515bd16f326cee4a/js/popover.js#L28
+            template: '<div class="popover" role="status"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
+        });
+
+        copyButton.click(function () {
+            var text = $('#' + id + '-text').text().trim();
+            window.nuget.copyTextToClipboard(text, copyButton);
+
+            copyButton.popover('show');
+            setTimeout(function () {
+                copyButton.popover('destroy');
+            }, 1000);
+
+            window.nuget.sendMetric("CopyInstallCommand", 1, {
+                ButtonId: id,
+                PackageId: packageId,
+                PackageVersion: packageVersion
+            });
+        });
+    }
+
+    for (var i in packageManagers)
+    {
+        configureCopyButton(packageManagers[i]);
+    }
 
     // Restore previously selected package manager and body tab.
     var storage = window['localStorage'];
@@ -68,7 +98,7 @@
         // Restore preferred package manager selection from localStorage.
         var preferredPackageManagerId = storage.getItem(packageManagerStorageKey);
         if (preferredPackageManagerId) {
-            updatePackageManager(preferredPackageManagerId, true);
+            $('#' + preferredPackageManagerId).tab('show');
         }
 
         // Restore preferred body tab selection from localStorage.
@@ -81,6 +111,18 @@
     }
 
     // Make sure we save the user's preferred body tab to localStorage.
+    $('.package-manager-tab').on('shown.bs.tab', function (e) {
+        if (storage) {
+            storage.setItem(packageManagerStorageKey, e.target.id);
+        }
+
+        window.nuget.sendMetric("ShowInstallCommand", 1, {
+            PackageManagerId: e.target.id,
+            PackageId: packageId,
+            PackageVersion: packageVersion
+        });
+    });
+
     $('.body-tab').on('shown.bs.tab', function (e) {
         if (storage) {
             storage.setItem(bodyStorageKey, e.target.id);
@@ -88,68 +130,6 @@
 
         window.nuget.sendMetric("ShowDisplayPackageTab", 1, {
             TabId: e.target.id,
-            PackageId: packageId,
-            PackageVersion: packageVersion
-        });
-    });
-
-    packageManagerSelector.on('change', function (e) {
-        var newIndex = e.target.selectedIndex;
-        var newPackageManagerId = e.target[newIndex].value;
-
-        updatePackageManager(newPackageManagerId, false);
-
-        // Make sure we save the user's preferred package manager to localStorage.
-        if (storage) {
-            storage.setItem(packageManagerStorageKey, newPackageManagerId);
-        }
-
-        window.nuget.sendMetric("ShowInstallCommand", 1, {
-            PackageManagerId: newPackageManagerId,
-            PackageId: packageId,
-            PackageVersion: packageVersion
-        });
-    });
-
-    // Used to switch installation instructions when a new package manager is selected 
-    function updatePackageManager(newPackageManagerId, updateSelector) {
-        var currentInstructions = $('#' + currentPackageManagerId + '-instructions');
-        var newInstructions = $('#' + newPackageManagerId + '-instructions');
-
-        // Ignore if the new instructions do not exist. This may happen if we restore
-        // a preferred package manager that has been renamed or removed. 
-        if (newInstructions.length === 0) {
-            return;
-        }
-
-        currentInstructions.addClass('hidden');
-        newInstructions.removeClass('hidden');
-
-        currentPackageManagerId = newPackageManagerId;
-
-        if (updateSelector) {
-            packageManagerSelector[0].value = preferredPackageManagerId;
-        }
-    }
-
-    // Configure package manager copy button
-    var copyButton = $('.installation-instructions button');
-    copyButton.popover({ trigger: 'manual' });
-
-    copyButton.click(function () {
-        var text = $('#' + currentPackageManagerId + '-text').text().trim();
-        window.nuget.copyTextToClipboard(text, copyButton);
-        copyButton.popover('show');
-        //This is workaround for Narrator announce the status changes of copy button to achieve accessibility.
-        copyButton.attr('aria-pressed', 'true');
-        setTimeout(function () {
-            copyButton.popover('destroy');
-        }, 1000);
-        setTimeout(function () {
-            copyButton.attr('aria-pressed', 'false');
-        }, 1500);
-        window.nuget.sendMetric("CopyInstallCommand", 1, {
-            ButtonId: currentPackageManagerId,
             PackageId: packageId,
             PackageVersion: packageVersion
         });
