@@ -4450,6 +4450,29 @@ namespace NuGetGallery
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task Returns404IfDeleted(bool listed)
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
+                // Note: this Mock must be strict because it guarantees that MarkPackageListedAsync is not called!
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.UpdateListed("Foo", "1.0", listed);
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
             public static IEnumerable<object[]> NotOwner_Data
             {
                 get
@@ -4700,7 +4723,8 @@ namespace NuGetGallery
                 bool hasReadMe = false,
                 bool isPackageLocked = false,
                 Mock<IPackageFileService> packageFileService = null,
-                IReadMeService readMeService = null)
+                IReadMeService readMeService = null,
+                PackageStatus packageStatus = PackageStatus.Available)
             {
                 var package = new Package
                 {
@@ -4708,6 +4732,7 @@ namespace NuGetGallery
                     Version = "1.0",
                     Listed = true,
                     HasReadMe = hasReadMe,
+                    PackageStatusKey = packageStatus,
                 };
                 package.PackageRegistration.Owners.Add(owner);
 
@@ -4911,6 +4936,21 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(403, controller.Response.StatusCode);
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task WhenPackageIsDeletedReturns404(User currentUser, User owner)
+            {
+                // Arrange
+                var controller = SetupController(currentUser, owner, packageStatus: PackageStatus.Deleted);
+
+                // Act
+                var result = await controller.Edit("packageId", "1.0.0", new VerifyPackageRequest(), string.Empty);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(404, controller.Response.StatusCode);
             }
         }
 
@@ -9220,12 +9260,31 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
             }
+
+            [Fact]
+            public async Task ReturnsNotFoundForDeletedPackage()
+            {
+                // Arrange
+                _packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
+
+                // Act
+                var result = await _target.Revalidate(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
         }
 
         public class TheRevalidateSymbolsMethod : TestContainer
         {
             private Package _package;
-            private SymbolPackage _symbolPacakge;
+            private SymbolPackage _symbolPackage;
             private readonly Mock<IPackageService> _packageService;
             private readonly Mock<IValidationService> _validationService;
             private readonly TestGalleryConfigurationService _configurationService;
@@ -9238,12 +9297,12 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "NuGet.Versioning" },
                     Version = "3.4.0",
                 };
-                _symbolPacakge = new SymbolPackage
+                _symbolPackage = new SymbolPackage
                 {
                     Package = _package,
                     StatusKey = PackageStatus.Available
                 };
-                _package.SymbolPackages.Add(_symbolPacakge);
+                _package.SymbolPackages.Add(_symbolPackage);
 
                 _packageService = new Mock<IPackageService>();
                 _packageService
@@ -9272,7 +9331,7 @@ namespace NuGetGallery
 
                 // Assert
                 _validationService.Verify(
-                    x => x.RevalidateAsync(_symbolPacakge),
+                    x => x.RevalidateAsync(_symbolPackage),
                     Times.Once);
             }
 
@@ -9298,7 +9357,7 @@ namespace NuGetGallery
             public async Task RedirectsAfterRevalidatingSymbolsPackageForAllValidStatus(PackageStatus status)
             {
                 // Arrange & Act
-                _symbolPacakge.StatusKey = status;
+                _symbolPackage.StatusKey = status;
                 var result = await _target.RevalidateSymbols(
                     _package.PackageRegistration.Id,
                     _package.Version);
@@ -9329,13 +9388,33 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
             }
 
+            [Fact]
+            public async Task ReturnsNotFoundForDeletedPackage()
+            {
+                // Arrange
+                _packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
+
+                // Act
+                var result = await _target.RevalidateSymbols(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+            }
+
             [Theory]
             [InlineData(PackageStatus.Deleted)]
             [InlineData(921)]
             public async Task ReturnsBadRequestForInvalidSymbolPackageStatus(PackageStatus status)
             {
                 // Arrange and Act
-                _symbolPacakge.StatusKey = status;
+                _symbolPackage.StatusKey = status;
                 var result = await _target.RevalidateSymbols(
                     _package.PackageRegistration.Id,
                     _package.Version);
@@ -9597,13 +9676,33 @@ namespace NuGetGallery
         public class TheGetReadMeMethod : TestContainer
         {
             [Fact]
-            public async Task ReturnsNotFoundIfPackageMissing()
+            public async Task ReturnsNotFoundIfPackageIsMissing()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns((Package)null);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                // Act
+                var result = await controller.GetReadMeMd("a", "1.9.2019");
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundIfPackageIsDeleted()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -9784,7 +9883,37 @@ namespace NuGetGallery
             }
         }
 
-        public class LicenseMethod : TestContainer
+        public class TheReflowMethod : TestContainer
+        {
+            private readonly Mock<IPackageService> _packageService;
+            private string _packageId = "packageId";
+            private string _packageVersion = "1.0.0";
+
+            public TheReflowMethod()
+            {
+                _packageService = new Mock<IPackageService>();
+            }
+
+            [Fact]
+            public async Task GivenDeletedPackageReturns404()
+            {
+                // arrange
+                _packageService
+                    .Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.Reflow(_packageId, _packageVersion);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+        }
+
+        public class TheLicenseMethod : TestContainer
         {
             private readonly Mock<IPackageService> _packageService;
             private readonly Mock<IPackageFileService> _packageFileService;
@@ -9792,7 +9921,7 @@ namespace NuGetGallery
             private string _packageId = "packageId";
             private string _packageVersion = "1.0.0";
 
-            public LicenseMethod()
+            public TheLicenseMethod()
             {
                 _packageService = new Mock<IPackageService>();
                 _packageFileService = new Mock<IPackageFileService>();
@@ -9804,6 +9933,24 @@ namespace NuGetGallery
             {
                 // arrange
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns<Package>(null);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.License(_packageId, _packageVersion);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public async Task GivenDeletedPackageReturns404()
+            {
+                // arrange
+                _packageService
+                    .Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: _packageService);
