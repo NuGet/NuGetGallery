@@ -206,7 +206,7 @@ namespace NuGetGallery
                 && packageKeyToVulnerabilities.TryGetValue(package.Key, out var vulnerabilities)
                 && vulnerabilities != null && vulnerabilities.Any())
             {
-                viewModel.Vulnerabilities = vulnerabilities;
+                viewModel.Vulnerabilities = vulnerabilities.OrderByDescending(vul => vul.Severity).ToList().AsReadOnly();
                 maxVulnerabilitySeverity = viewModel.Vulnerabilities.Max(v => v.Severity); // cache for messaging
                 viewModel.MaxVulnerabilitySeverity = maxVulnerabilitySeverity.Value;
             }
