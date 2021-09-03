@@ -52,13 +52,13 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Fact]
-        [Description("Verify the webresponse from top30 packages feed contains jQuery")]
+        [Description("Verify the webresponse from top30 packages feed contains Newtonsoft.Json")]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task Top30PackagesFeedTest()
         {
             string url = UrlHelper.V2FeedRootUrl + @"/Search()?$filter=IsAbsoluteLatestVersion&$orderby=DownloadCount%20desc,Id&$skip=0&$top=30&searchTerm=''&targetFramework='net45'&includePrerelease=true";
-            bool containsResponseText = await _odataHelper.ContainsResponseText(url, "jQuery");
+            bool containsResponseText = await _odataHelper.ContainsResponseText(url, "Newtonsoft.Json");
             Assert.True(containsResponseText);
         }
 
