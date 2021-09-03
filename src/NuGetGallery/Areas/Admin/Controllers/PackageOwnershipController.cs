@@ -1,12 +1,14 @@
-﻿ // Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Services.Entities;
-using NuGetGallery.Areas.Admin.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
+using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -15,20 +17,29 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
+        private readonly IAppConfiguration _appConfiguration;
 
         public PackageOwnershipController(
             IPackageService packageService,
             IUserService userService,
-            IPackageOwnershipManagementService packageOwnershipManagementService)
+            IPackageOwnershipManagementService packageOwnershipManagementService,
+            IAppConfiguration appConfiguration)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
+            _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
         }
 
         [HttpGet]
         public ViewResult Index(PackageOwnershipChangesInput input)
         {
+            if (Request.QueryString.Count == 0)
+            {
+                ModelState.Clear();
+                ViewBag.AdminSenderUser = _appConfiguration.AdminSenderUser;
+            }
+
             return View(input ?? new PackageOwnershipChangesInput());
         }
 
@@ -49,18 +60,73 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult SubmitInput(PackageOwnershipChangesInput input)
+        public async Task<ActionResult> SubmitInput(PackageOwnershipChangesInput input)
         {
             if (!ValidateInput(input, out var errorViewResult, out var validatedModel))
             {
                 return errorViewResult;
             }
 
+            var changes = 0;
+            var changedPackageRegistrations = new HashSet<PackageRegistration>();
             foreach (var model in validatedModel.Changes)
             {
+                foreach (var pair in model.UsernameToState
+                    .OrderBy(x => x.Value.State) // Perform "adds" before "deletes" in case of partial failure
+                    .ThenBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
+                {
+                    var change = pair.Value;
+                    switch (pair.Value.State)
+                    {
+                        case PackageOwnershipState.AlreadyOwner:
+                        case PackageOwnershipState.AlreadyOwnerRequest:
+                        case PackageOwnershipState.ExistingOwner:
+                        case PackageOwnershipState.ExistingOwnerRequest:
+                        case PackageOwnershipState.RemoveNoOp:
+                            continue;
+
+                        case PackageOwnershipState.NewOwner:
+                            await _packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(
+                                model.PackageRegistration,
+                                change.Owner);
+                            break;
+
+                        case PackageOwnershipState.NewOwnerRequest:
+                            await _packageOwnershipManagementService.AddPackageOwnershipRequestWithMessagesAsync(
+                                model.PackageRegistration,
+                                validatedModel.Requestor,
+                                change.Owner,
+                                validatedModel.Message);
+                            break;
+
+                        case PackageOwnershipState.RemoveOwner:
+                            // We don't check namespace permissions here because this is an admin flow.
+                            await _packageOwnershipManagementService.RemovePackageOwnerWithMessagesAsync(
+                                model.PackageRegistration,
+                                validatedModel.Requestor,
+                                change.Owner,
+                                requireNamespaceOwnership: false);
+                            break;
+
+                        case PackageOwnershipState.RemoveOwnerRequest:
+                            await _packageOwnershipManagementService.CancelPackageOwnershipRequestWithMessagesAsync(
+                                model.PackageRegistration,
+                                validatedModel.Requestor,
+                                change.Owner);
+                            break;
+
+                        default:
+                            throw new NotImplementedException();
+                    }
+
+                    changes++;
+                    changedPackageRegistrations.Add(model.PackageRegistration);
+                }
             }
 
-            return Json(new { success = true });
+            TempData["Message"] = $"{changes} total changes have been applied across {changedPackageRegistrations.Count} package registrations.";
+
+            return RedirectToAction(nameof(Index), validatedModel.Input);
         }
 
         private bool ValidateInput(PackageOwnershipChangesInput input, out ViewResult errorViewResult, out PackageOwnershipChangesModel validatedModel)
@@ -137,12 +203,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return false;
             }
 
-            if (!string.IsNullOrWhiteSpace(input.Message) && input.SkipRequestFlow)
-            {
-                errorViewResult = ShowError(input, nameof(PackageOwnershipChangesInput.Message), "The message is not allowed when skipping the request flow.");
-                return false;
-            }    
-
             // Determine the ownership status for each each relevant user, on each package
             validatedModel = CalculateChanges(
                 idToPackageRegistration,
@@ -152,6 +212,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 removeUsernames,
                 input.Message,
                 input.SkipRequestFlow);
+
             return true;
         }
 
@@ -326,7 +387,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 {
                     usernameToState.Add(request.NewOwner.Username, new PackageRegistrationUserChangeModel(
                         PackageOwnershipState.ExistingOwnerRequest,
-                        owner: null,
+                        owner: request.NewOwner,
                         request: request));
                 }
 

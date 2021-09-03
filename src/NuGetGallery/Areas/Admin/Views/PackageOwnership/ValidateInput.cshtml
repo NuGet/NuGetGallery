@@ -86,7 +86,7 @@
                         }
                         else
                         {
-                            <span title="Requestor @Model.Input.Requestor does not have permissions to change owners on @changes.Id">❌</span>
+                            <span title="Requestor @Model.Input.Requestor does not have permissions to change owners on @changes.Id">⚠️</span>
                         }
                     </td>
                     <td>
@@ -145,6 +145,6 @@
     <form method="post" action="@Url.Action("SubmitInput")">
         @Html.AntiForgeryToken()
         @Html.Partial("_HiddenForm", Model.Input)
-        <button type="submit" class="btn btn-block btn-danger">Submit input</button>
+        <button type="submit" class="btn btn-block btn-danger">Submit changes</button>
     </form>
 </section>

@@ -496,5 +496,14 @@ namespace NuGetGallery.Configuration
         /// https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-4.0/7w2sway1(v=vs.100)?redirectedfrom=MSDN
         /// </summary>
         int? MaxIoThreads { get; set; }
+
+        /// <summary>
+        /// The username of the user that can be entered as the sender for admin flows. When an admin flow may send one
+        /// or more emails to end users, it helps to mask the identity of the site admin that performed the action by
+        /// using this user instead. This account is not created automatically. The username should refer to a user
+        /// account (not organization) that has an email address that can be visible for administrative notices. This
+        /// account should not have any credentials or be marked as a site admin.
+        /// </summary>
+        string AdminSenderUser { get; set; }
     }
 }

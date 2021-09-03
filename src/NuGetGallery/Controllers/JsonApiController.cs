@@ -185,7 +185,7 @@ namespace NuGetGallery
                         return Json(new { success = false, message = "You can't remove the only owner from a package." }, JsonRequestBehavior.AllowGet);
                     }
 
-                    await _packageOwnershipManagementService.RemovePackageOwnerWithMessagesAsync(model.Package, model.CurrentUser, model.User);
+                    await _packageOwnershipManagementService.RemovePackageOwnerWithMessagesAsync(model.Package, model.CurrentUser, model.User, requireNamespaceOwnership: true);
                 }
                 else
                 {

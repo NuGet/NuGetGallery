@@ -191,7 +191,11 @@
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ApiKeyRevokeViewModel.cs" />
-    <Compile Include="Areas\Admin\ViewModels\PackageOwnershipViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageOwnershipChangesInput.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageOwnershipState.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageOwnershipChangesModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageRegistrationOwnershipChangeModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageRegistrationUserChangeModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SiteAdminsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\NuGetPackageValidationViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
