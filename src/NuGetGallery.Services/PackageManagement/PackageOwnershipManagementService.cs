@@ -2,15 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using NuGetGallery.Auditing;
 using NuGet.Services.Entities;
-using System.Web.Mvc;
 using NuGet.Services.Messaging.Email;
-using NuGetGallery.Infrastructure.Mail.Messages;
+using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Mail.Messages;
 
 namespace NuGetGallery
 {
