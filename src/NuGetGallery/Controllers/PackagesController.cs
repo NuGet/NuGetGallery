@@ -1182,7 +1182,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -1878,7 +1878,7 @@ namespace NuGetGallery
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -1915,7 +1915,7 @@ namespace NuGetGallery
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -1951,7 +1951,7 @@ namespace NuGetGallery
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound,
                     string.Format(Strings.PackageWithIdAndVersionNotFound, id, version));
@@ -2152,7 +2152,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> UpdateListed(string id, string version, bool? listed)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -2195,7 +2195,7 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return Json(HttpStatusCode.NotFound, new[] { new JsonValidationMessage(string.Format(Strings.PackageWithIdAndVersionNotFound, id, version)) });
             }
@@ -2992,7 +2992,7 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> GetReadMeMd(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
             }
