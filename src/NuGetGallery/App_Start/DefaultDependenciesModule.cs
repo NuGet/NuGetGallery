@@ -129,6 +129,9 @@ namespace NuGetGallery
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
             UrlHelperExtensions.SetConfigurationService(configuration);
+            builder.RegisterType<UrlHelperWrapper>()
+                .As<IUrlHelper>()
+                .InstancePerLifetimeScope();
 
             builder.RegisterInstance(configuration)
                 .AsSelf()

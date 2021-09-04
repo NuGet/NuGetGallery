@@ -431,24 +431,9 @@ namespace NuGetGallery.Controllers
                             else
                             {
                                 packageOwnershipManagementServiceMock
-                                    .Setup(p => p.AddPackageOwnerAsync(fakes.Package, userToAdd, true))
+                                    .Setup(p => p.AddPackageOwnerWithMessagesAsync(fakes.Package, userToAdd))
                                     .Returns(Task.CompletedTask)
                                     .Verifiable();
-
-                                foreach (var owner in fakes.Package.Owners)
-                                {
-                                    messageServiceMock
-                                        .Setup(m => m.SendMessageAsync(
-                                            It.Is<PackageOwnerAddedMessage>(
-                                                msg =>
-                                                msg.ToUser == owner
-                                                && msg.NewOwner == userToAdd
-                                                && msg.PackageRegistration == fakes.Package),
-                                            false,
-                                            false))
-                                        .Returns(Task.CompletedTask)
-                                        .Verifiable();
-                                }
                             }
                             AddPackageOwnerViewModel testData = new AddPackageOwnerViewModel
                             {

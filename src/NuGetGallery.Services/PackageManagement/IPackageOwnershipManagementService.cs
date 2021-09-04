@@ -10,6 +10,15 @@ namespace NuGetGallery
     public interface IPackageOwnershipManagementService
     {
         /// <summary>
+        /// Add the user as an owner to the package and then sends notification messages to the owners. Immediately
+        /// commits the changes to the database. Same behavior as <see cref="AddPackageOwnerAsync(PackageRegistration, User, bool)"/>
+        /// with the addition of sending messages.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
+        /// <param name="user">The user to add as an owner to the package.</param>
+        Task AddPackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User user);
+
+        /// <summary>
         /// Add the user as an owner to the package. Also add the package registration
         /// to the reserved namespaces owned by this user if the Id matches any of the 
         /// reserved prefixes. Also mark the package registration as verified if it matches any
