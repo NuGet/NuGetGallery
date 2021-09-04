@@ -384,49 +384,15 @@ namespace NuGetGallery.Controllers
                             controller.SetCurrentUser(currentUser);
 
                             var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
-                            var messageServiceMock = GetMock<IMessageService>();
 
                             var pending = !(ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, userToAdd) == PermissionsCheckResult.Allowed);
 
                             if (pending)
                             {
                                 packageOwnershipManagementServiceMock
-                                    .Setup(p => p.AddPackageOwnershipRequestAsync(fakes.Package, currentUser, userToAdd))
+                                    .Setup(p => p.AddPackageOwnershipRequestWithMessagesAsync(fakes.Package, currentUser, userToAdd, "Hello World! Html Encoded <3"))
                                     .Returns(Task.FromResult(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" }))
                                     .Verifiable();
-
-                                messageServiceMock
-                                    .Setup(m => m.SendMessageAsync(It.IsAny<PackageOwnershipRequestMessage>(), false, false))
-                                    .Callback<IEmailBuilder, bool, bool>((msg, copySender, discloseSenderAddress) =>
-                                    {
-                                        var message = msg as PackageOwnershipRequestMessage;
-                                        Assert.Equal(currentUser, message.FromUser);
-                                        Assert.Equal(userToAdd, message.ToUser);
-                                        Assert.Equal(fakes.Package, message.PackageRegistration);
-                                        Assert.Equal(TestUtility.GallerySiteRootHttps + "packages/FakePackage/", message.PackageUrl);
-                                        Assert.Equal(TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/confirm/confirmation-code", message.ConfirmationUrl);
-                                        Assert.Equal(TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/reject/confirmation-code", message.RejectionUrl);
-                                        Assert.Equal("Hello World! Html Encoded &lt;3", message.HtmlEncodedMessage);
-                                        Assert.Equal(string.Empty, message.PolicyMessage);
-                                    })
-                                    .Returns(Task.CompletedTask)
-                                    .Verifiable();
-
-                                foreach (var owner in fakes.Package.Owners)
-                                {
-                                    messageServiceMock
-                                          .Setup(m => m.SendMessageAsync(
-                                              It.Is<PackageOwnershipRequestInitiatedMessage>(
-                                                  msg =>
-                                                  msg.RequestingOwner == currentUser
-                                                  && msg.ReceivingOwner == owner
-                                                  && msg.NewOwner == userToAdd
-                                                  && msg.PackageRegistration == fakes.Package),
-                                              false,
-                                              false))
-                                          .Returns(Task.CompletedTask)
-                                          .Verifiable();
-                                }
                             }
                             else
                             {
@@ -452,7 +418,6 @@ namespace NuGetGallery.Controllers
                             Assert.Equal(pending, model.Pending);
 
                             packageOwnershipManagementServiceMock.Verify();
-                            messageServiceMock.Verify();
                         }
                     }
                 }
@@ -573,17 +538,7 @@ namespace NuGetGallery.Controllers
                         // Assert
                         Assert.True(data.success);
 
-                        packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, requestedUser, true));
-
-                        GetMock<IMessageService>()
-                            .Verify(x => x.SendMessageAsync(
-                                It.Is<PackageOwnershipRequestCanceledMessage>(
-                                    msg =>
-                                    msg.RequestingOwner == currentUser
-                                    && msg.NewOwner == requestedUser
-                                    && msg.PackageRegistration == package),
-                                false,
-                                false));
+                        packageOwnershipManagementService.Verify(x => x.CancelPackageOwnershipRequestWithMessagesAsync(package, currentUser, requestedUser));
                     }
 
                     [Theory]
@@ -618,20 +573,8 @@ namespace NuGetGallery.Controllers
 
                         packageOwnershipManagementService
                             .Verify(
-                                x => x.RemovePackageOwnerAsync(package, currentUser, userToRemove, It.IsAny<bool>()),
-                                Times.Never());
-
-                        GetMock<IMessageService>()
-                            .Verify(
-                                x => x.SendMessageAsync(
-                                    It.Is<PackageOwnerRemovedMessage>(
-                                        msg =>
-                                        msg.FromUser == currentUser
-                                        && msg.ToUser == userToRemove
-                                        && msg.PackageRegistration == package),
-                                    false,
-                                    false),
-                                Times.Never());
+                                x => x.RemovePackageOwnerWithMessagesAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()),
+                                Times.Never);
                     }
 
                     [Theory]
@@ -659,17 +602,7 @@ namespace NuGetGallery.Controllers
                         // Assert
                         Assert.True(data.success);
 
-                        packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerAsync(package, currentUser, userToRemove, It.IsAny<bool>()));
-
-                        GetMock<IMessageService>()
-                            .Verify(x => x.SendMessageAsync(
-                                It.Is<PackageOwnerRemovedMessage>(
-                                    msg =>
-                                    msg.FromUser == currentUser
-                                    && msg.ToUser == userToRemove
-                                    && msg.PackageRegistration == package),
-                                false,
-                                false));
+                        packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerWithMessagesAsync(package, currentUser, userToRemove));
                     }
                 }
 

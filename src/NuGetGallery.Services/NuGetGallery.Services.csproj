@@ -155,6 +155,11 @@
     <Compile Include="Helpers\UploadHelper.cs" />
     <Compile Include="Mail\GalleryEmailRecipientsUtility.cs" />
     <Compile Include="Mail\Messages\PackageOwnerAddedMessage.cs" />
+    <Compile Include="Mail\Messages\PackageOwnerRemovedMessage.cs" />
+    <Compile Include="Mail\Messages\PackageOwnershipRequestCanceledMessage.cs" />
+    <Compile Include="Mail\Messages\PackageOwnershipRequestDeclinedMessage.cs" />
+    <Compile Include="Mail\Messages\PackageOwnershipRequestInitiatedMessage.cs" />
+    <Compile Include="Mail\Messages\PackageOwnershipRequestMessage.cs" />
     <Compile Include="Models\LuceneIndexLocation.cs" />
     <Compile Include="Models\PackageDependent.cs" />
     <Compile Include="Models\PackageDependents.cs" />
