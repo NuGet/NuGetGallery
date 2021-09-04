@@ -51,6 +51,9 @@ namespace NuGetGallery
         /// commits the changes to the database. Same behavior as <see cref="RemovePackageOwnerAsync(PackageRegistration, User, User, bool)" />
         /// with the addition of sending messages.
         /// </summary>
+        /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
+        /// <param name="requestingUser">The user requesting to remove an owner from the package.</param>
+        /// <param name="userToBeRemoved">The user to remove as an owner from the package.</param>
         Task RemovePackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved);
 
         /// <summary>

@@ -412,6 +412,39 @@ namespace NuGetGallery
             protected abstract Task AddPackageOwnershipRequestAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User requestingOwner, User newOwner);
 
             [Fact]
+            public async Task RejectsNullPackageRegistration()
+            {
+                var service = CreateService();
+                var user1 = new User { Key = 101, Username = "user1" };
+                var user2 = new User { Key = 101, Username = "user2" };
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => AddPackageOwnershipRequestAsync(service, packageRegistration: null, requestingOwner: user1, newOwner: user2));
+                Assert.Equal("packageRegistration", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task RejectsNullRequestingOwner()
+            {
+                var service = CreateService();
+                var packageRegistrion = new PackageRegistration();
+                var user1 = new User { Key = 101, Username = "user1" };
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => AddPackageOwnershipRequestAsync(service, packageRegistrion, requestingOwner: null, newOwner: user1));
+                Assert.Equal("requestingOwner", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task RejectsNullNewOwner()
+            {
+                var service = CreateService();
+                var packageRegistrion = new PackageRegistration();
+                var user1 = new User { Key = 101, Username = "user1" };
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => AddPackageOwnershipRequestAsync(service, packageRegistrion, requestingOwner: user1, newOwner: null));
+                Assert.Equal("newOwner", ex.ParamName);
+            }
+
+            [Fact]
             public async Task RequestIsAddedSuccessfully()
             {
                 var package = new PackageRegistration { Key = 2, Id = "pkg42" };

@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Mail.Messages;
 
 namespace NuGetGallery
 {
@@ -136,7 +138,22 @@ namespace NuGetGallery
             User newOwner,
             string message)
         {
-            var encodedMessage = HttpUtility.HtmlEncode(message);
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            if (newOwner == null)
+            {
+                throw new ArgumentNullException(nameof(newOwner));
+            }
+
+            var encodedMessage = HttpUtility.HtmlEncode(message ?? string.Empty);
 
             var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
 
@@ -195,6 +212,21 @@ namespace NuGetGallery
 
         public async Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
         {
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            if (newOwner == null)
+            {
+                throw new ArgumentNullException(nameof(newOwner));
+            }
+
             var request = await _packageOwnerRequestService.AddPackageOwnershipRequest(packageRegistration, requestingOwner, newOwner);
 
             await _auditingService.SaveAuditRecordAsync(PackageRegistrationAuditRecord.CreateForAddOwnershipRequest(
