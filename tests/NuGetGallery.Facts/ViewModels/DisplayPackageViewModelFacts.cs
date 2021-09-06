@@ -924,6 +924,36 @@ namespace NuGetGallery.ViewModels
             Assert.Null(versionModel.CustomMessage);
         }
 
+        [Fact]
+        public void VulnerabilitiesDisplayedInOrder()
+        {
+            var package = CreateTestPackage("1.0.0");
+
+            var packageKeyToVulnerabilities = new Dictionary<int, IReadOnlyList<PackageVulnerability>>
+            {
+                { package.Key, new List<PackageVulnerability>
+                    {
+                        new PackageVulnerability { Key = 1, Severity = PackageVulnerabilitySeverity.High },
+                        new PackageVulnerability { Key = 2, Severity = PackageVulnerabilitySeverity.Low },
+                        new PackageVulnerability { Key = 3, Severity = PackageVulnerabilitySeverity.Critical },
+                    }
+                }
+            };
+
+            // Act
+            var model = CreateDisplayPackageViewModel(
+                package,
+                currentUser: null,
+                packageKeyToVulnerabilities: packageKeyToVulnerabilities,
+                readmeHtml: null);
+
+            // Assert
+            var versionModel = model.PackageVersions.Single();
+            Assert.Null(versionModel.CustomMessage);
+            Assert.NotNull(model.Vulnerabilities);
+            Assert.Equal(model.Vulnerabilities, packageKeyToVulnerabilities[package.Key].OrderByDescending(p => p.Severity).ToList().AsReadOnly());
+        }
+
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
