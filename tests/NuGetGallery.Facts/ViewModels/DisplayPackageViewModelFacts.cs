@@ -951,7 +951,9 @@ namespace NuGetGallery.ViewModels
             var versionModel = model.PackageVersions.Single();
             Assert.Null(versionModel.CustomMessage);
             Assert.NotNull(model.Vulnerabilities);
-            Assert.Equal(model.Vulnerabilities, packageKeyToVulnerabilities[package.Key].OrderByDescending(p => p.Severity).ToList().AsReadOnly());
+            Assert.Equal(PackageVulnerabilitySeverity.Critical, model.Vulnerabilities.ElementAt(0).Severity);
+            Assert.Equal(PackageVulnerabilitySeverity.High, model.Vulnerabilities.ElementAt(1).Severity);
+            Assert.Equal(PackageVulnerabilitySeverity.Low, model.Vulnerabilities.ElementAt(2).Severity);
         }
 
         [Theory]
