@@ -140,7 +140,6 @@
         $clamp(usedByDescription, { clamp: 2, useNativeClamp: false });
     }
 
-
     if (window.nuget.isGaAvailable()) {
         // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Repos area of the Used By section.
         $(".gh-link").on('click', function (elem) {
