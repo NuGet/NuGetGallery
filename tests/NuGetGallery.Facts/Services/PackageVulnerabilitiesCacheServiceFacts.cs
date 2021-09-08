@@ -15,33 +15,25 @@ namespace NuGetGallery.Services
 {
     public class PackageVulnerabilitiesCacheServiceFacts
     {
+        private Mock<IServiceScope> _serviceScopeMock;
+        private Mock<ITelemetryService> _telemetryServiceMock;
+        private PackageVulnerabilitiesCacheService _cacheService;
+
         [Fact]
         public void RefreshesVulnerabilitiesCache()
         {
             // Arrange
-            var entitiesContext = new Mock<IEntitiesContext>();
-            entitiesContext.Setup(x => x.Set<VulnerablePackageVersionRange>()).Returns(GetVulnerableRanges());
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(IEntitiesContext))).Returns(entitiesContext.Object);
-            var serviceScope = new Mock<IServiceScope>();
-            serviceScope.Setup(x => x.ServiceProvider).Returns(serviceProvider.Object);
-            serviceScope.Setup(x => x.Dispose()).Verifiable();
-            var serviceScopeFactory = new Mock<IServiceScopeFactory>();
-            serviceScopeFactory.Setup(x => x.CreateScope()).Returns(serviceScope.Object);
-            var telemetryService = new Mock<ITelemetryService>();
-            telemetryService.Setup(x => x.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<TimeSpan>())).Verifiable();
-            var cacheService = new PackageVulnerabilitiesCacheService(telemetryService.Object);
-            cacheService.RefreshCache(serviceScopeFactory.Object);
+            Setup();
 
             // Act
-            var vulnerabilitiesFoo = cacheService.GetVulnerabilitiesById("Foo");
-            var vulnerabilitiesBar = cacheService.GetVulnerabilitiesById("Bar");
+            var vulnerabilitiesFoo = _cacheService.GetVulnerabilitiesById("Foo");
+            var vulnerabilitiesBar = _cacheService.GetVulnerabilitiesById("Bar");
 
             // Assert
             // - ensure telemetry is sent
-            telemetryService.Verify(x => x.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<TimeSpan>()), Times.Once);
+            _telemetryServiceMock.Verify(x => x.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<TimeSpan>()), Times.Once);
             // - ensure scope is disposed
-            serviceScope.Verify(x => x.Dispose(), Times.AtLeastOnce);
+            _serviceScopeMock.Verify(x => x.Dispose(), Times.AtLeastOnce);
             // - ensure contants of cache are correct
             Assert.Equal(4, vulnerabilitiesFoo.Count);
             Assert.Equal(1, vulnerabilitiesFoo[0].Count);
@@ -56,7 +48,41 @@ namespace NuGetGallery.Services
             Assert.Equal(1, vulnerabilitiesBar[6].Count);
         }
 
-        DbSet<VulnerablePackageVersionRange> GetVulnerableRanges()
+        [Theory]
+        [InlineData("Foo", 4)]
+        [InlineData("Bar", 2)]
+        [InlineData("FOo", 4)]
+        [InlineData("FoO", 4)]
+        public void CacheSupportsCaseInsensitiveLookups(string packageLookupId, int expectedVulnerabilitiesCount)
+        {
+            // Arrange
+            Setup();
+
+            // Act
+            var vulnerabilitiesFoo = _cacheService.GetVulnerabilitiesById(packageLookupId);
+
+            // Assert
+            Assert.Equal(expectedVulnerabilitiesCount, vulnerabilitiesFoo.Count);
+        }
+
+        private void Setup()
+        {
+            var entitiesContext = new Mock<IEntitiesContext>();
+            entitiesContext.Setup(x => x.Set<VulnerablePackageVersionRange>()).Returns(GetVulnerableRanges());
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(x => x.GetService(typeof(IEntitiesContext))).Returns(entitiesContext.Object);
+            _serviceScopeMock = new Mock<IServiceScope>();
+            _serviceScopeMock.Setup(x => x.ServiceProvider).Returns(serviceProvider.Object);
+            _serviceScopeMock.Setup(x => x.Dispose()).Verifiable();
+            var serviceScopeFactory = new Mock<IServiceScopeFactory>();
+            serviceScopeFactory.Setup(x => x.CreateScope()).Returns(_serviceScopeMock.Object);
+            _telemetryServiceMock = new Mock<ITelemetryService>();
+            _telemetryServiceMock.Setup(x => x.TrackVulnerabilitiesCacheRefreshDuration(It.IsAny<TimeSpan>())).Verifiable();
+            _cacheService = new PackageVulnerabilitiesCacheService(_telemetryServiceMock.Object);
+            _cacheService.RefreshCache(serviceScopeFactory.Object);
+        }
+
+        private static DbSet<VulnerablePackageVersionRange> GetVulnerableRanges()
         {
             var registrationFoo = new PackageRegistration { Id = "Foo" };
             var registrationBar = new PackageRegistration { Id = "Bar" };
