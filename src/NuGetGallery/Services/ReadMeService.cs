@@ -21,7 +21,7 @@ namespace NuGetGallery
         internal const string TypeFile = "File";
         internal const string TypeWritten = "Written";
 
-        internal const int MaxMdLengthBytes = 8000;
+        internal const int MaxMdLengthBytes = 1024 * 1024;
         private const string UrlHostRequirement = "raw.githubusercontent.com";
 
         private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
