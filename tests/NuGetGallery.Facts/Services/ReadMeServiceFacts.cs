@@ -278,7 +278,7 @@ namespace NuGetGallery
 
         public class TheGetReadMeMdAsyncMethod
         {
-            private readonly string LargeMarkdown = new string('x', ReadMeService.MaxMdLengthBytes + 1);
+            private readonly string LargeMarkdown = new string('x', ReadMeService.MaxAllowedReadmeLength + 1);
 
             [Theory]
             [InlineData("")]

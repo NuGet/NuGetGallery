@@ -54,11 +54,11 @@ namespace NuGetGallery
         /// in plain text and small enough to not cause issues with scanning through such file a few times
         /// during the package validation.
         /// </remarks>
-        private const long MaxAllowedLicenseLengthForUploading = 1024 * 1024; // 1 MB
-        private const long MaxAllowedIconLengthForUploading = 1024 * 1024; // 1 MB
+        private const int MaxAllowedLicenseLengthForUploading = GalleryConstants.MaxFileLengthBytes;
+        private const int MaxAllowedIconLengthForUploading = GalleryConstants.MaxFileLengthBytes;
         private const int MaxAllowedLicenseNodeValueLength = 500;
         // 1 MB Keep consistent with icon, license for now, change value later once we define the size
-        private const long MaxAllowedReadmeLengthForUploading = 1024 * 1024;
+        private const int MaxAllowedReadmeLengthForUploading = GalleryConstants.MaxFileLengthBytes;
         private const string LicenseNodeName = "license";
         private const string IconNodeName = "icon";
         private const string AllowedLicenseVersion = "1.0.0";
@@ -304,7 +304,7 @@ namespace NuGetGallery
                         string.Format(
                             Strings.UploadPackage_FileTooLong,
                             Strings.UploadPackage_LicenseFileType,
-                            MaxAllowedLicenseLengthForUploading.ToUserFriendlyBytesLabel()));
+                            MaxAllowedLicenseLengthForUploading));
                 }
 
                 if (!await IsStreamLengthMatchesReportedAsync(nuGetPackage, licenseFilename, licenseFileEntry.Length))
@@ -396,7 +396,7 @@ namespace NuGetGallery
                     string.Format(
                         Strings.UploadPackage_FileTooLong,
                         Strings.UploadPackage_IconFileType,
-                        MaxAllowedLicenseLengthForUploading.ToUserFriendlyBytesLabel()));
+                        MaxAllowedLicenseLengthForUploading));
             }
 
             if (!await IsStreamLengthMatchesReportedAsync(nuGetPackage, iconFilePath, iconFileEntry.Length))
@@ -474,7 +474,7 @@ namespace NuGetGallery
                     string.Format(
                         Strings.UploadPackage_FileTooLong,
                         Strings.UploadPackage_ReadmeFileType,
-                        MaxAllowedReadmeLengthForUploading.ToUserFriendlyBytesLabel()));
+                        MaxAllowedReadmeLengthForUploading));
             }
 
             if (!await IsStreamLengthMatchesReportedAsync(nuGetPackage, readmeFilePath, readmeFileEntry.Length))

@@ -27,6 +27,7 @@ namespace NuGetGallery
         public const int GravatarCacheDurationSeconds = 300;
 
         public const int MaxEmailSubjectLength = 255;
+        public const int MaxFileLengthBytes = 1024 * 1024; // 1MB for License, Icon, readme file
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("5.9.0.0");
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
 
