@@ -19,7 +19,8 @@ namespace NuGetGallery
         {
             ContactUrl = contactUrl;
             AlertLevel = AlertLevel.Warning;
-            AlertMessage = string.Format("The NuGet Team does not provide support for this client. Please contact its <a href=\"{0}\">maintainers</a> for support.", contactUrl);
+            AlertMessage = "The NuGet Team does not provide support for this client. Please contact its "
+                + $"<a href=\"{contactUrl}\" aria-label=\"Contact the maintainers of the {name} client\">maintainers</a> for support.";
         }
     }
 }
