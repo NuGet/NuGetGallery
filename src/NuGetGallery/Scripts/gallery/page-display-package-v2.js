@@ -110,6 +110,24 @@
         }
     }
 
+    var usedByClamped = false;
+    var usedByTab = $('#usedby-tab');
+
+    function clampUsedByDescriptions() {
+        // Clamp long descriptions in the "used by" tab. Ensure this runs only once,
+        // otherwise clamp.js removes too much content.
+        if (usedByClamped) return;
+        if (!usedByTab.hasClass('active')) return;
+
+        for (let usedByDescription of $('.used-by-desc').get()) {
+            $clamp(usedByDescription, { clamp: 2, useNativeClamp: false });
+        }
+
+        usedByClamped = true;
+    }
+
+    clampUsedByDescriptions();
+
     // Make sure we save the user's preferred body tab to localStorage.
     $('.package-manager-tab').on('shown.bs.tab', function (e) {
         if (storage) {
@@ -128,17 +146,14 @@
             storage.setItem(bodyStorageKey, e.target.id);
         }
 
+        clampUsedByDescriptions();
+
         window.nuget.sendMetric("ShowDisplayPackageTab", 1, {
             TabId: e.target.id,
             PackageId: packageId,
             PackageVersion: packageVersion
         });
     });
-
-    // Clamp long descriptions in the "used by" tab
-    for (let usedByDescription of $('.used-by-desc').get()) {
-        $clamp(usedByDescription, { clamp: 2, useNativeClamp: false });
-    }
 
     if (window.nuget.isGaAvailable()) {
         // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Repos area of the Used By section.
