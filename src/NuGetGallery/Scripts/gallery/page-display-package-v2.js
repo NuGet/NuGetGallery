@@ -119,7 +119,7 @@
         if (usedByClamped) return;
         if (!usedByTab.hasClass('active')) return;
 
-        for (let usedByDescription of $('.used-by-desc').get()) {
+        for (var usedByDescription of $('.used-by-desc').get()) {
             $clamp(usedByDescription, { clamp: 2, useNativeClamp: false });
         }
 
