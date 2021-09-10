@@ -304,7 +304,7 @@ namespace NuGetGallery
                         string.Format(
                             Strings.UploadPackage_FileTooLong,
                             Strings.UploadPackage_LicenseFileType,
-                            MaxAllowedLicenseLengthForUploading));
+                            MaxAllowedLicenseLengthForUploading.ToUserFriendlyBytesLabel()));
                 }
 
                 if (!await IsStreamLengthMatchesReportedAsync(nuGetPackage, licenseFilename, licenseFileEntry.Length))
@@ -396,7 +396,7 @@ namespace NuGetGallery
                     string.Format(
                         Strings.UploadPackage_FileTooLong,
                         Strings.UploadPackage_IconFileType,
-                        MaxAllowedLicenseLengthForUploading));
+                        MaxAllowedLicenseLengthForUploading.ToUserFriendlyBytesLabel()));
             }
 
             if (!await IsStreamLengthMatchesReportedAsync(nuGetPackage, iconFilePath, iconFileEntry.Length))
@@ -474,7 +474,7 @@ namespace NuGetGallery
                     string.Format(
                         Strings.UploadPackage_FileTooLong,
                         Strings.UploadPackage_ReadmeFileType,
-                        MaxAllowedReadmeLengthForUploading));
+                        MaxAllowedReadmeLengthForUploading.ToUserFriendlyBytesLabel()));
             }
 
             if (!await IsStreamLengthMatchesReportedAsync(nuGetPackage, readmeFilePath, readmeFileEntry.Length))

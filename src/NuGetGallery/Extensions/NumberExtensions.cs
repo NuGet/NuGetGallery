@@ -70,6 +70,40 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Format the number of bytes into a user-friendly display label.
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static string ToUserFriendlyBytesLabel(this int bytes)
+        {
+            if (bytes < 0)
+            {
+                throw new ArgumentOutOfRangeException("Negative values are not supported.", nameof(bytes));
+            }
+
+            if (bytes == 1)
+            {
+                return "1 byte";
+            }
+
+            const int scale = 1024;
+            string[] orders = { "GB", "MB", "KB", "bytes" };
+            var max = (long)Math.Pow(scale, orders.Length - 1);
+
+            foreach (var order in orders)
+            {
+                if (bytes >= max)
+                {
+                    return string.Format(CultureInfo.InvariantCulture, "{0:##.##} {1}", decimal.Divide(bytes, max), order);
+                }
+
+                max /= scale;
+            }
+
+            return "0 bytes";
+        }
+
+        /// <summary>
         /// Format the number to a 1 decimal precision plus a letter to represent the scale (K for kilo, M for mega, or B for billion)
         /// </summary>
         /// <param name="number">The number to format</param>
