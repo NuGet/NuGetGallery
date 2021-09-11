@@ -707,13 +707,11 @@
                                                         @if (item.IsVerified)
                                                         {
                                                             <img class="reserved-indicator"
-                                                                    src="~/Content/gallery/img/reserved-indicator.svg"
-                                                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
-                                                                    title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                                                 src="~/Content/gallery/img/reserved-indicator.svg"
+                                                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
+                                                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                                                         }
-                                                        <div class="row used-by-desc">
-                                                            <span>@(item.Description)</span>
-                                                        </div>
+                                                        <p class="used-by-desc">@item.Description</p>
                                                     </td>
                                                     <td>
                                                         <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
