@@ -1084,7 +1084,7 @@
                             </li>
                         }
 
-                        @if (Model.Available && User.IsAdministrator())
+                        @if (AdminHelper.IsAdminPanelEnabled && Model.Available && User.IsAdministrator())
                         {
                             <li>
                                 <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
@@ -1103,7 +1103,7 @@
                             </li>
                         }
 
-                        @if (!Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                        @if (AdminHelper.IsAdminPanelEnabled && !Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
                         {
                             <li>
                                 <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
@@ -1141,7 +1141,7 @@
                             }
                         }
 
-                        @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                        @if (AdminHelper.IsAdminPanelEnabled && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
                         {
                             <li>
                                 <i class="ms-Icon ms-Icon--Health" aria-hidden="true"></i>
