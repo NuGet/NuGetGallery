@@ -17,6 +17,7 @@ namespace NuGetGallery.Filters
             if (!AdminHelper.IsAdminPanelEnabled)
             {
                 filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+                return;
             }
 
             Roles = "Admins";
