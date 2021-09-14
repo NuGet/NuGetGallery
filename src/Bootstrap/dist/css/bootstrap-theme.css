@@ -1527,24 +1527,13 @@ img.reserved-indicator-icon {
   font-size: 14px;
   color: #333333;
   margin: 4px 0 0 0;
-  width: auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
   line-height: 16px;
-  /* fallback */
-  max-height: 32px;
-  /* fallback */
-  -webkit-line-clamp: 2;
-  /* number of lines to show */
-  -webkit-box-orient: vertical;
 }
 .page-package-details-v2 .used-by-link {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 19px;
   color: #337ab7;
-  width: auto;
 }
 .page-package-details-v2 .gh-link,
 .page-package-details-v2 .ngp-link {

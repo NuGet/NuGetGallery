@@ -2,34 +2,65 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using NuGetGallery.Auditing;
+using System.Web;
 using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
+using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Mail.Messages;
 
 namespace NuGetGallery
 {
     public class PackageOwnershipManagementService : IPackageOwnershipManagementService
     {
-        private readonly IPackageService _packageService;
         private readonly IEntitiesContext _entitiesContext;
+        private readonly IPackageService _packageService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IAuditingService _auditingService;
+        private readonly IUrlHelper _urlHelper;
+        private readonly IAppConfiguration _appConfiguration;
+        private readonly IMessageService _messageService;
 
         public PackageOwnershipManagementService(
             IEntitiesContext entitiesContext,
             IPackageService packageService,
             IReservedNamespaceService reservedNamespaceService,
             IPackageOwnerRequestService packageOwnerRequestService,
-            IAuditingService auditingService)
+            IAuditingService auditingService,
+            IUrlHelper urlHelper,
+            IAppConfiguration appConfiguration,
+            IMessageService messageService)
         {
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            _urlHelper = urlHelper ?? throw new ArgumentNullException(nameof(urlHelper));
+            _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+        }
+
+        public async Task AddPackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User user)
+        {
+            await AddPackageOwnerAsync(packageRegistration, user, commitChanges: true);
+
+            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
+
+            // Accumulate the tasks so that they are sent in parallel and as many messages as possible are sent even if
+            // one fails (i.e. throws an exception).
+            var sendTasks = new List<Task>();
+            foreach (var owner in packageRegistration.Owners)
+            {
+                var emailMessage = new PackageOwnerAddedMessage(_appConfiguration, owner, user, packageRegistration, packageUrl);
+                sendTasks.Add(_messageService.SendMessageAsync(emailMessage));
+            }
+
+            await Task.WhenAll(sendTasks);
         }
 
         public async Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user, bool commitChanges = true)
@@ -101,8 +132,101 @@ namespace NuGetGallery
             await DeletePackageOwnershipRequestAsync(packageRegistration, user, commitChanges, saveAudit: false);
         }
 
+        public async Task<PackageOwnerRequest> AddPackageOwnershipRequestWithMessagesAsync(
+            PackageRegistration packageRegistration,
+            User requestingOwner,
+            User newOwner,
+            string message)
+        {
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            if (newOwner == null)
+            {
+                throw new ArgumentNullException(nameof(newOwner));
+            }
+
+            var encodedMessage = HttpUtility.HtmlEncode(message ?? string.Empty);
+
+            var packageUrl = _urlHelper.Package(packageRegistration.Id, version: null, relativeUrl: false);
+
+            var ownerRequest = await AddPackageOwnershipRequestAsync(
+                packageRegistration, requestingOwner, newOwner);
+
+            var confirmationUrl = _urlHelper.ConfirmPendingOwnershipRequest(
+                packageRegistration.Id,
+                newOwner.Username,
+                ownerRequest.ConfirmationCode,
+                relativeUrl: false);
+
+            var rejectionUrl = _urlHelper.RejectPendingOwnershipRequest(
+                packageRegistration.Id,
+                newOwner.Username,
+                ownerRequest.ConfirmationCode,
+                relativeUrl: false);
+
+            var manageUrl = _urlHelper.ManagePackageOwnership(
+                packageRegistration.Id,
+                relativeUrl: false);
+
+            var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(
+                _appConfiguration,
+                requestingOwner,
+                newOwner,
+                packageRegistration,
+                packageUrl,
+                confirmationUrl,
+                rejectionUrl,
+                encodedMessage,
+                string.Empty);
+
+            // Accumulate the tasks so that they are sent in parallel and as many messages as possible are sent even if
+            // one fails (i.e. throws an exception).
+            var messageTasks = new List<Task>();
+            messageTasks.Add(_messageService.SendMessageAsync(packageOwnershipRequestMessage));
+
+            foreach (var owner in packageRegistration.Owners)
+            {
+                var emailMessage = new PackageOwnershipRequestInitiatedMessage(
+                    _appConfiguration,
+                    requestingOwner,
+                    owner,
+                    newOwner,
+                    packageRegistration,
+                    manageUrl);
+
+                messageTasks.Add(_messageService.SendMessageAsync(emailMessage));
+            }
+
+            await Task.WhenAll(messageTasks);
+
+            return ownerRequest;
+        }
+
         public async Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
         {
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            if (newOwner == null)
+            {
+                throw new ArgumentNullException(nameof(newOwner));
+            }
+
             var request = await _packageOwnerRequestService.AddPackageOwnershipRequest(packageRegistration, requestingOwner, newOwner);
 
             await _auditingService.SaveAuditRecordAsync(PackageRegistrationAuditRecord.CreateForAddOwnershipRequest(
@@ -121,6 +245,14 @@ namespace NuGetGallery
         public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequests(PackageRegistration package = null, User requestingOwner = null, User newOwner = null)
         {
             return _packageOwnerRequestService.GetPackageOwnershipRequests(package, requestingOwner, newOwner);
+        }
+
+        public async Task RemovePackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved)
+        {
+            await RemovePackageOwnerAsync(packageRegistration, requestingOwner, ownerToBeRemoved);
+
+            var emailMessage = new PackageOwnerRemovedMessage(_appConfiguration, requestingOwner, ownerToBeRemoved, packageRegistration);
+            await _messageService.SendMessageAsync(emailMessage);
         }
 
         public async Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved, bool commitChanges = true)
@@ -191,6 +323,32 @@ namespace NuGetGallery
             {
                 await _entitiesContext.SaveChangesAsync();
             }
+        }
+
+        public async Task CancelPackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+        {
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            await DeletePackageOwnershipRequestAsync(packageRegistration, newOwner);
+
+            var emailMessage = new PackageOwnershipRequestCanceledMessage(_appConfiguration, requestingOwner, newOwner, packageRegistration);
+            await _messageService.SendMessageAsync(emailMessage);
+        }
+
+        public async Task DeclinePackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+        {
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            await DeletePackageOwnershipRequestAsync(packageRegistration, newOwner);
+
+            var emailMessage = new PackageOwnershipRequestDeclinedMessage(_appConfiguration, requestingOwner, newOwner, packageRegistration);
+            await _messageService.SendMessageAsync(emailMessage);
         }
 
         public async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner, bool commitChanges = true)

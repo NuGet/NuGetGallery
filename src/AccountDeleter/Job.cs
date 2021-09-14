@@ -140,6 +140,8 @@ namespace NuGetGallery.AccountDeleter
                 services.AddScoped<ICoreFileStorageService, CloudBlobFileStorageService>();
                 services.AddScoped<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
 
+                services.AddScoped<IUrlHelper, AccountDeleteUrlHelper>();
+
                 services.AddScoped<IIndexingService, EmptyIndexingService>();
                 services.AddScoped<ICredentialBuilder, CredentialBuilder>();
                 services.AddScoped<ICredentialValidator, CredentialValidator>();

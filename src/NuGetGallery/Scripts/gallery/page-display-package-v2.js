@@ -110,6 +110,24 @@
         }
     }
 
+    var usedByClamped = false;
+    var usedByTab = $('#usedby-tab');
+
+    function clampUsedByDescriptions() {
+        // Clamp long descriptions in the "used by" tab. Ensure this runs only once,
+        // otherwise clamp.js removes too much content.
+        if (usedByClamped) return;
+        if (!usedByTab.hasClass('active')) return;
+
+        for (var usedByDescription of $('.used-by-desc').get()) {
+            $clamp(usedByDescription, { clamp: 2, useNativeClamp: false });
+        }
+
+        usedByClamped = true;
+    }
+
+    clampUsedByDescriptions();
+
     // Make sure we save the user's preferred body tab to localStorage.
     $('.package-manager-tab').on('shown.bs.tab', function (e) {
         if (storage) {
@@ -127,6 +145,8 @@
         if (storage) {
             storage.setItem(bodyStorageKey, e.target.id);
         }
+
+        clampUsedByDescriptions();
 
         window.nuget.sendMetric("ShowDisplayPackageTab", 1, {
             TabId: e.target.id,

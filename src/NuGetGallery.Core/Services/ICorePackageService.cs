@@ -29,7 +29,11 @@ namespace NuGetGallery
         Task UpdatePackageStatusAsync(Package package, PackageStatus newPackageStatus, bool commitChanges = true);
 
         /// <summary>
-        /// Gets the package with the given ID and version when exists; otherwise <c>null</c>.
+        /// Gets the package with the given ID and version when exists; otherwise <c>null</c>. Note that this method
+        /// can return a soft deleted package. This will be indicated by <see cref="PackageStatus.Deleted"/> on the
+        /// <see cref="Package.PackageStatusKey"/> property. Hard deleted packages will be returned as null because no
+        /// record of the package exists. Consider checking for a null package and a soft deleted depending on your
+        /// desired behavior for non-existent and deleted packages.
         /// </summary>
         /// <param name="id">The package ID.</param>
         /// <param name="version">The package version.</param>

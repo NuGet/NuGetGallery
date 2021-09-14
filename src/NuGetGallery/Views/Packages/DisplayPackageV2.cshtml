@@ -499,16 +499,34 @@
 
             <div class="body-tabs">
                 <ul class="nav nav-tabs" role="tablist">
+                    @{ string activeBodyTab = null; }
                     @if (!Model.Deleted)
                     {
+                        activeBodyTab = activeBodyTab ?? "readme";
                         <li role="presentation" class="active" id="show-readme-container">
-                            <a href="#readme-tab" aria-controls="readme-tab" role="tab" data-toggle="tab" id="readme-body-tab" class="body-tab">
+                            <a href="#readme-tab"
+                               role="tab"
+                               data-toggle="tab"
+                               id="readme-body-tab"
+                               class="body-tab"
+                               aria-controls="readme-tab"
+                               aria-expanded="@(activeBodyTab == "readme" ? "true" : "false")"
+                               aria-selected="@(activeBodyTab == "readme" ? "true" : "false")">
                                 <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
                                 README
                             </a>
                         </li>
+
+                        activeBodyTab = activeBodyTab ?? "dependencies";
                         <li role="presentation">
-                            <a href="#dependencies-tab" aria-controls="dependencies-tab" role="tab" data-toggle="tab" id="dependencies-body-tab" class="body-tab">
+                            <a href="#dependencies-tab"
+                               role="tab"
+                               data-toggle="tab"
+                               id="dependencies-body-tab"
+                               class="body-tab"
+                               aria-controls="dependencies-tab"
+                               aria-expanded="@(activeBodyTab == "dependencies" ? "true" : "false")"
+                               aria-selected="@(activeBodyTab == "dependencies" ? "true" : "false")">
                                 <i class="ms-Icon ms-Icon--Packages" aria-hidden="true"></i>
                                 Dependencies
                             </a>
@@ -517,16 +535,32 @@
 
                     @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
                     {
+                        activeBodyTab = activeBodyTab ?? "usedby";
                         <li role="presentation">
-                            <a href="#usedby-tab" aria-controls="usedby-tab" role="tab" data-toggle="tab" id="usedby-body-tab" class="body-tab">
+                            <a href="#usedby-tab"
+                               role="tab"
+                               data-toggle="tab"
+                               id="usedby-body-tab"
+                               class="body-tab"
+                               aria-controls="usedby-tab"
+                               aria-expanded="@(activeBodyTab == "usedby" ? "true" : "false")"
+                               aria-selected="@(activeBodyTab == "usedby" ? "true" : "false")">
                                 <i class="ms-Icon ms-Icon--BranchFork2" aria-hidden="true"></i>
                                 Used By
                             </a>
                         </li>
                     }
 
+                    @{ activeBodyTab = activeBodyTab ?? "versions"; }
                     <li role="presentation">
-                        <a href="#versions-tab" aria-controls="versions-tab" role="tab" data-toggle="tab" id="versions-body-tab" class="body-tab">
+                        <a href="#versions-tab"
+                           role="tab"
+                           data-toggle="tab"
+                           id="versions-body-tab"
+                           class="body-tab"
+                           aria-controls="versions-tab"
+                           aria-expanded="@(activeBodyTab == "versions" ? "true" : "false")"
+                           aria-selected="@(activeBodyTab == "versions" ? "true" : "false")">
                             <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
                             Versions
                         </a>
@@ -534,6 +568,7 @@
 
                     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
                     {
+                        activeBodyTab = activeBodyTab ?? "releasenotes";
                         <li role="presentation">
                             <a href="#releasenotes-tab" aria-controls="releasenotes-tab" role="tab" data-toggle="tab" id="release-body-tab" class="body-tab">
                                 <i class="ms-Icon ms-Icon--ReadingMode" aria-hidden="true"></i>
@@ -547,7 +582,7 @@
             <div class="tab-content body-tab-content">
                 @if (!Model.Deleted)
                 {
-                    <div role="tabpanel" class="tab-pane active" id="readme-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "readme" ? "active" : "")" id="readme-tab">
                         @if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
                         {
                             @ViewHelpers.AlertWarning(
@@ -582,7 +617,7 @@
                             <p>@Html.PreFormattedText(Model.Description, Config)</p>
                         }
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="dependencies-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "dependencies" ? "active" : "")" id="dependencies-tab">
                         @if (!Model.Deleted)
                         {
                             if (Model.Dependencies.DependencySets == null)
@@ -640,7 +675,7 @@
                         }
                     </div>
                 }
-                <div role="tabpanel" class="tab-pane" id="usedby-tab">
+                <div role="tabpanel" class="tab-pane @(activeBodyTab == "usedby" ? "active" : "")" id="usedby-tab">
                     @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
                     {
                         <div class="used-by" id="used-by">
@@ -672,13 +707,11 @@
                                                         @if (item.IsVerified)
                                                         {
                                                             <img class="reserved-indicator"
-                                                                    src="~/Content/gallery/img/reserved-indicator.svg"
-                                                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
-                                                                    title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                                                 src="~/Content/gallery/img/reserved-indicator.svg"
+                                                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
+                                                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                                                         }
-                                                        <div class="row used-by-desc">
-                                                            <span>@(item.Description)</span>
-                                                        </div>
+                                                        <p class="used-by-desc">@item.Description</p>
                                                     </td>
                                                     <td>
                                                         <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
@@ -750,7 +783,7 @@
                         </div>
                     }
                 </div>
-                <div role="tabpanel" class="tab-pane" id="versions-tab">
+                <div role="tabpanel" class="tab-pane @(activeBodyTab == "versions" ? "active" : "")" id="versions-tab">
                     <div class="version-history" id="version-history">
                         <table aria-label="Version History of @Model.Id" class="table borderless">
                             <thead>
@@ -864,7 +897,7 @@
                 </div>
                 @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
                 {
-                    <div role="tabpanel" class="tab-pane" id="releasenotes-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "releasenotes" ? "active" : "")" id="releasenotes-tab">
                         <p>@Html.PreFormattedText(Model.ReleaseNotes, Config)</p>
                     </div>
                 }

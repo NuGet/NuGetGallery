@@ -1182,7 +1182,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -1878,7 +1878,7 @@ namespace NuGetGallery
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -1915,7 +1915,7 @@ namespace NuGetGallery
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -1951,7 +1951,7 @@ namespace NuGetGallery
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound,
                     string.Format(Strings.PackageWithIdAndVersionNotFound, id, version));
@@ -2152,7 +2152,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> UpdateListed(string id, string version, bool? listed)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -2195,7 +2195,7 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return Json(HttpStatusCode.NotFound, new[] { new JsonValidationMessage(string.Format(Strings.PackageWithIdAndVersionNotFound, id, version)) });
             }
@@ -2333,20 +2333,13 @@ namespace NuGetGallery
             
             if (accept)
             {
-                await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
-
-                await SendAddPackageOwnerNotificationAsync(package, user);
+                await _packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(package, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
             else
             {
-                var requestingUser = request.RequestingOwner;
-
-                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
-
-                var emailMessage = new PackageOwnershipRequestDeclinedMessage(_config, requestingUser, user, package);
-                await _messageService.SendMessageAsync(emailMessage);
+                await _packageOwnershipManagementService.DeclinePackageOwnershipRequestWithMessagesAsync(package, request.RequestingOwner, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Rejected));
             }
@@ -2387,26 +2380,6 @@ namespace NuGetGallery
             }
 
             return Redirect(Url.ManagePackageOwnership(id));
-        }
-
-        /// <summary>
-        /// Send notification that a new package owner was added.
-        /// </summary>
-        /// <param name="package">Package to which owner was added.</param>
-        /// <param name="newOwner">Owner added.</param>
-        private Task SendAddPackageOwnerNotificationAsync(PackageRegistration package, User newOwner)
-        {
-            var packageUrl = Url.Package(package.Id, version: null, relativeUrl: false);
-            Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
-
-            // Notify existing owners
-            var notNewOwners = package.Owners.Where(notNewOwner).ToList();
-            var tasks = notNewOwners.Select(owner =>
-            {
-                var emailMessage = new PackageOwnerAddedMessage(_config, owner, newOwner, package, packageUrl);
-                return _messageService.SendMessageAsync(emailMessage);
-            });
-            return Task.WhenAll(tasks);
         }
 
         [UIAuthorize]
@@ -2992,7 +2965,7 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> GetReadMeMd(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
             }
