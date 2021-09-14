@@ -338,7 +338,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [AdminAction()]
+        [AdminAction]
         public virtual ActionResult Delete(string accountName)
         {
             var accountToDelete = UserService.FindByUsername(accountName) as TUser;
@@ -351,7 +351,7 @@ namespace NuGetGallery
         }
 
         [HttpDelete]
-        [AdminAction()]
+        [AdminAction]
         [RequiresAccountConfirmation("Delete account")]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Delete(DeleteAccountAsAdminViewModel model)
