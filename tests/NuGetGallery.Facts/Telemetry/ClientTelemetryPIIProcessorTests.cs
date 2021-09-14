@@ -24,7 +24,7 @@ namespace NuGetGallery.Telemetry
             {
                 _currentRoutes = new RouteCollection();
                 Routes.RegisterApiV2Routes(_currentRoutes);
-                Routes.RegisterUIRoutes(_currentRoutes, true);
+                Routes.RegisterUIRoutes(_currentRoutes, adminPanelEnabled: true);
             }
         }
 
