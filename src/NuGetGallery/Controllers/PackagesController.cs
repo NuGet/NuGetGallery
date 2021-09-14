@@ -658,7 +658,7 @@ namespace NuGetGallery
                 packageMetadata.LicenseMetadata?.Type == LicenseType.File &&
                 Path.GetExtension(license).Equals(ServicesConstants.MarkdownFileExtension, StringComparison.InvariantCulture))
             {
-                model.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(packageContentData.LicenseFileContents, incrementHeadersBy: 2)?.Content;
+                model.LicenseFileContentsHtml = _markdownService.GetHtmlFromMarkdown(packageContentData.LicenseFileContents, incrementHeadersBy: 2);
             }
 
             model.LicenseExpressionSegments = packageContentData.LicenseExpressionSegments;
@@ -872,7 +872,7 @@ namespace NuGetGallery
             => new HttpStatusCodeWithHeadersResult(HttpStatusCode.MethodNotAllowed, new NameValueCollection() { { "allow", "GET" } });
 
         [HttpGet]
-        public virtual async Task<ActionResult> DisplayPackage(string id, string version)
+        public virtual async Task<ActionResult> DisplayPackage(string id, string version, string preview = null)
         {
             // Attempt to normalize the version but allow version strings that are not actually SemVer strings. For
             // example, "absoluteLatest" is allowed as the version string as a reference to the absolute latest version
@@ -937,6 +937,7 @@ namespace NuGetGallery
             model.IsPackageDeprecationEnabled = isPackageDeprecationEnabled;
             model.IsPackageVulnerabilitiesEnabled = isPackageVulnerabilitiesEnabled;
             model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
+            model.IsNuGetPackageExplorerLinkEnabled = _featureFlagService.IsDisplayNuGetPackageExplorerLinkEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
            
@@ -1033,7 +1034,28 @@ namespace NuGetGallery
             }
             ViewBag.FacebookAppID = _config.FacebookAppId;
 
-            if (_featureFlagService.IsDisplayPackagePageV2Enabled(GetCurrentUser())) 
+            var enableRedesign = _featureFlagService.IsDisplayPackagePageV2Enabled(currentUser);
+
+            if (_featureFlagService.IsDisplayPackagePageV2PreviewEnabled(currentUser))
+            {
+                if (!string.IsNullOrEmpty(preview))
+                {
+                    enableRedesign = true;
+                }
+
+                // If the user is on the current design, show the banner to preview the redesign.
+                // If the user is on the preview design, show the banner that links to the feedback survey.
+                ViewBag.ShowRedesignPreviewBanner = !enableRedesign;
+                ViewBag.ShowRedesignSurveyBanner = enableRedesign;
+                ViewBag.ShowRedesignUrl = Url.Package(package, preview: true);
+            }
+            else
+            {
+                ViewBag.ShowRedesignPreviewBanner = false;
+                ViewBag.ShowRedesignSurveyBanner = false;
+            }
+
+            if (enableRedesign)
             { 
                 return View("DisplayPackageV2", model);
             }
@@ -1160,7 +1182,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> License(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -1856,7 +1878,7 @@ namespace NuGetGallery
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -1889,11 +1911,11 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         [AdminAction()]
         [RequiresAccountConfirmation("revalidate a package")]
-        public virtual async Task<ActionResult> Revalidate(string id, string version)
+        public virtual async Task<ActionResult> Revalidate(string id, string version, string returnUrl = null)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -1911,18 +1933,25 @@ namespace NuGetGallery
                 TempData["Message"] = $"An error occurred while revalidating the package. {ex.Message}";
             }
 
-            return SafeRedirect(Url.Package(id, version));
+            if (string.IsNullOrEmpty(returnUrl))
+            {
+                return SafeRedirect(Url.Package(id, version));
+            }
+            else
+            {
+                return SafeRedirect(returnUrl);
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [AdminAction()]
         [RequiresAccountConfirmation("revalidate a symbols package")]
-        public virtual async Task<ActionResult> RevalidateSymbols(string id, string version)
+        public virtual async Task<ActionResult> RevalidateSymbols(string id, string version, string returnUrl = null)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound,
                     string.Format(Strings.PackageWithIdAndVersionNotFound, id, version));
@@ -1966,7 +1995,14 @@ namespace NuGetGallery
                 TempData["Message"] = $"An error occurred while revalidating the symbols package. {ex.Message}";
             }
 
-            return SafeRedirect(Url.Package(id, version));
+            if (string.IsNullOrEmpty(returnUrl))
+            {
+                return SafeRedirect(Url.Package(id, version));
+            }
+            else
+            {
+                return SafeRedirect(returnUrl);
+            }
         }
 
         /// <summary>
@@ -2116,7 +2152,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> UpdateListed(string id, string version, bool? listed)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return HttpNotFound();
             }
@@ -2159,7 +2195,7 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return Json(HttpStatusCode.NotFound, new[] { new JsonValidationMessage(string.Format(Strings.PackageWithIdAndVersionNotFound, id, version)) });
             }
@@ -2297,20 +2333,13 @@ namespace NuGetGallery
             
             if (accept)
             {
-                await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
-
-                await SendAddPackageOwnerNotificationAsync(package, user);
+                await _packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(package, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
             else
             {
-                var requestingUser = request.RequestingOwner;
-
-                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
-
-                var emailMessage = new PackageOwnershipRequestDeclinedMessage(_config, requestingUser, user, package);
-                await _messageService.SendMessageAsync(emailMessage);
+                await _packageOwnershipManagementService.DeclinePackageOwnershipRequestWithMessagesAsync(package, request.RequestingOwner, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Rejected));
             }
@@ -2351,26 +2380,6 @@ namespace NuGetGallery
             }
 
             return Redirect(Url.ManagePackageOwnership(id));
-        }
-
-        /// <summary>
-        /// Send notification that a new package owner was added.
-        /// </summary>
-        /// <param name="package">Package to which owner was added.</param>
-        /// <param name="newOwner">Owner added.</param>
-        private Task SendAddPackageOwnerNotificationAsync(PackageRegistration package, User newOwner)
-        {
-            var packageUrl = Url.Package(package.Id, version: null, relativeUrl: false);
-            Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
-
-            // Notify existing owners
-            var notNewOwners = package.Owners.Where(notNewOwner).ToList();
-            var tasks = notNewOwners.Select(owner =>
-            {
-                var emailMessage = new PackageOwnerAddedMessage(_config, owner, newOwner, package, packageUrl);
-                return _messageService.SendMessageAsync(emailMessage);
-            });
-            return Task.WhenAll(tasks);
         }
 
         [UIAuthorize]
@@ -2956,7 +2965,7 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> GetReadMeMd(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
             {
                 return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
             }
@@ -2985,7 +2994,11 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible)
         {
-            return await SetLicenseReportVisibility(id, version, visible, Url.Package);
+            return await SetLicenseReportVisibility(
+                id,
+                version,
+                visible,
+                (package, relativeUrl) => Url.Package(package, relativeUrl));
         }
 
         internal virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, bool, string> urlFactory)

@@ -259,5 +259,15 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsDisplayNuGetPackageExplorerLinkEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

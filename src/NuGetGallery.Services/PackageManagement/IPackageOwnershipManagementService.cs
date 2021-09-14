@@ -10,6 +10,15 @@ namespace NuGetGallery
     public interface IPackageOwnershipManagementService
     {
         /// <summary>
+        /// Add the user as an owner to the package and then sends notification messages to the owners. Immediately
+        /// commits the changes to the database. Same behavior as <see cref="AddPackageOwnerAsync(PackageRegistration, User, bool)"/>
+        /// with the addition of sending messages.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
+        /// <param name="user">The user to add as an owner to the package.</param>
+        Task AddPackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User user);
+
+        /// <summary>
         /// Add the user as an owner to the package. Also add the package registration
         /// to the reserved namespaces owned by this user if the Id matches any of the 
         /// reserved prefixes. Also mark the package registration as verified if it matches any
@@ -20,12 +29,32 @@ namespace NuGetGallery
         Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user, bool commitChanges = true);
 
         /// <summary>
+        /// Add the pending ownership request and then sends notification messages to the new and existing owners.
+        /// Immediately commits the changes to the database. Same behavior as <see cref="AddPackageOwnershipRequestAsync(PackageRegistration, User, User)"/>
+        /// with the addition of sending messages.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
+        /// <param name="requestingOwner">The user to requesting to add the pending owner.</param>
+        /// <param name="newOwner">The user to be added for from pending ownership.</param>
+        Task<PackageOwnerRequest> AddPackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner, string message);
+
+        /// <summary>
         /// Add the pending ownership request.
         /// </summary>
         /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
         /// <param name="requestingOwner">The user to requesting to add the pending owner.</param>
         /// <param name="newOwner">The user to be added for from pending ownership.</param>
         Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
+
+        /// <summary>
+        /// Remove the user as from the list of owners of the package and then sends notification messages. Immediately
+        /// commits the changes to the database. Same behavior as <see cref="RemovePackageOwnerAsync(PackageRegistration, User, User, bool)" />
+        /// with the addition of sending messages.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
+        /// <param name="requestingUser">The user requesting to remove an owner from the package.</param>
+        /// <param name="userToBeRemoved">The user to remove as an owner from the package.</param>
+        Task RemovePackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved);
 
         /// <summary>
         /// Remove the user as from the list of owners of the package. Also remove the package registration
@@ -37,6 +66,28 @@ namespace NuGetGallery
         /// <param name="userToBeRemoved">The user to remove as an owner from the package.</param>
         /// <param name="commitChanges">Whether or not to commit the changes.</param>
         Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved, bool commitChanges);
+
+        /// <summary>
+        /// Remove the pending ownership request and then send the "cancel" notification messages. This should be used when
+        /// the sender (<paramref name="requestingOwner"/>) deletes the request. Immediately commits the changes
+        /// to the database. Same behavior as <see cref="DeletePackageOwnershipRequestAsync(PackageRegistration, User, bool)"/>
+        /// with the addition of sending messages.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
+        /// <param name="requestingOwner">The user that originally sent the ownership request.</param>
+        /// <param name="newOwner">The user to be removed from pending ownership.</param>
+        Task CancelPackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
+
+        /// <summary>
+        /// Remove the pending ownership request and then send the "decline" notification messages. This should be used when
+        /// the recipient (<paramref name="newOwner"/>) deletes the request. Immediately commits the changes
+        /// to the database. Same behavior as <see cref="DeletePackageOwnershipRequestAsync(PackageRegistration, User, bool)"/>
+        /// with the addition of sending messages.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
+        /// <param name="requestingOwner">The user that originally sent the ownership request.</param>
+        /// <param name="newOwner">The user to be removed from pending ownership.</param>
+        Task DeclinePackageOwnershipRequestWithMessagesAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
 
         /// <summary>
         /// Remove the pending ownership request.

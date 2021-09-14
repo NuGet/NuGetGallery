@@ -171,6 +171,12 @@ namespace NuGetGallery
                 viewModel.FuGetUrl = fugetReadyUrl;
             }
 
+            var nugetPackageExplorerUrl = $"https://nuget.info/packages/{package.Id}/{package.NormalizedVersion}";
+            if (PackageHelper.TryPrepareUrlForRendering(nugetPackageExplorerUrl, out string nugetPackageExplorerReadyUrl))
+            {
+                viewModel.NuGetPackageExplorerUrl = nugetPackageExplorerReadyUrl;
+            }
+
             viewModel.EmbeddedLicenseType = package.EmbeddedLicenseType;
             viewModel.LicenseExpression = package.LicenseExpression;
 
@@ -200,7 +206,7 @@ namespace NuGetGallery
                 && packageKeyToVulnerabilities.TryGetValue(package.Key, out var vulnerabilities)
                 && vulnerabilities != null && vulnerabilities.Any())
             {
-                viewModel.Vulnerabilities = vulnerabilities;
+                viewModel.Vulnerabilities = vulnerabilities.OrderByDescending(vul => vul.Severity).ToList().AsReadOnly();
                 maxVulnerabilitySeverity = viewModel.Vulnerabilities.Max(v => v.Severity); // cache for messaging
                 viewModel.MaxVulnerabilitySeverity = maxVulnerabilitySeverity.Value;
             }

@@ -81,6 +81,23 @@
     )
 }
 
+@helper AlertImageSourceDisallowed()
+{
+    @AlertWarning(
+    @<text>
+        Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.
+    </text>
+    )
+}
+
+@helper AlertImagesRewritten()
+{
+    @AlertWarning(
+    @<text>
+        This documentation had some images automatically rewritten to use secure links and may be broken.
+    </text>)
+}
+
 @helper ErrorPage(UrlHelper url, System.Web.Mvc.HtmlHelper html, string errorNumber, string errorName, Func<MvcHtmlString, HelperResult> errorTextMain, Func<MvcHtmlString, HelperResult> errorTextSub = null)
 {
     <section role="main" class="container main-container">
@@ -653,6 +670,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     string controllerName,
     string role,
     string area = "",
+    string classes = null,
     Dictionary<string, string> formValues = null)
 {
     using (page.Html.BeginForm(
@@ -660,7 +678,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         controllerName,
         new { area = area },
         FormMethod.Post,
-        new { id = formId }))
+        new { id = formId, @class = classes }))
     {
         @page.Html.AntiForgeryToken();
         if (formValues != null)
@@ -682,6 +700,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     string controllerName,
     string role,
     string area = "",
+    string classes = null,
     Dictionary<string, string> formValues = null)
 {
     @PostLink(
@@ -692,6 +711,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         controllerName,
         role,
         area,
+        classes,
         formValues);
 }
 

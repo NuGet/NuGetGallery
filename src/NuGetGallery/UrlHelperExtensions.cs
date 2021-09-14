@@ -19,7 +19,6 @@ namespace NuGetGallery
     {
         private const string Area = "area";
         private static IGalleryConfigurationService _configuration;
-        private const string PackageExplorerDeepLink = @"https://npe.codeplex.com/releases/clickonce/NuGetPackageExplorer.application?url={0}&id={1}&version={2}";
 
         public static class Fragments
         {
@@ -67,6 +66,18 @@ namespace NuGetGallery
         internal static string GetSiteRoot(bool useHttps)
         {
             return _configuration.GetSiteRoot(useHttps);
+        }
+
+        public static string GetCanonicalLinkUrl(this UrlHelper url)
+        {
+            var current = url.RequestContext.HttpContext.Request.Url;
+            var siteRoot = new Uri(_configuration.Current.SiteRoot);
+
+            var builder = new UriBuilder(current);
+            builder.Scheme = siteRoot.Scheme;
+            builder.Host = siteRoot.Host;
+            builder.Port = siteRoot.Port;
+            return builder.Uri.AbsoluteUri;
         }
 
         private static string GetConfiguredSiteHostName()
@@ -226,27 +237,33 @@ namespace NuGetGallery
             this UrlHelper url,
             string id,
             string version,
-            bool relativeUrl = true)
+            bool relativeUrl = true,
+            bool preview = false)
         {
-            string normalized = (version != null) ? NuGetVersionFormatter.Normalize(version) : version;
+            var normalized = (version != null) ? NuGetVersionFormatter.Normalize(version) : version;
 
-            string result = GetRouteLink(
+            var result = GetRouteLink(
                 url,
                 RouteName.DisplayPackage,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", id },
-                    { "version", normalized }
+                    { "version", normalized },
+                    { "preview", preview ? "1" : null }
                 });
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
-        public static string Package(this UrlHelper url, Package package, bool relativeUrl = true)
+        public static string Package(
+            this UrlHelper url,
+            Package package,
+            bool relativeUrl = true,
+            bool preview = false)
         {
-            return url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl);
+            return url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl, preview);
         }
 
         public static string Package(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
@@ -322,25 +339,6 @@ namespace NuGetGallery
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
             return version == null ? EnsureTrailingSlash(result) : result;
-        }
-        public static string ExplorerDeepLink(
-            this UrlHelper url,
-            int feedVersion,
-            string id,
-            string version)
-        {
-            var urlResult = GetRouteLink(
-                url,
-                routeName: $"v{feedVersion}{RouteName.DownloadPackage}",
-                relativeUrl: false,
-                routeValues: new RouteValueDictionary
-                {
-                    { "Id", id }
-                });
-
-            urlResult = EnsureTrailingSlash(urlResult);
-
-            return string.Format(CultureInfo.InvariantCulture, PackageExplorerDeepLink, urlResult, id, version);
         }
 
         public static string LogOn(this UrlHelper url, bool relativeUrl = true)

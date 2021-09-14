@@ -239,6 +239,9 @@ namespace NuGetGallery
                 featureFlagService
                     .Setup(x => x.IsDisplayPackagePageV2Enabled(It.IsAny<User>()))
                     .Returns(false);
+                featureFlagService
+                    .Setup(x => x.IsDisplayPackagePageV2PreviewEnabled(It.IsAny<User>()))
+                    .Returns(false);
             }
 
             renameService = renameService ?? new Mock<IPackageRenameService>();
@@ -1167,9 +1170,21 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(true, "DisplayPackageV2")]
-            [InlineData(false, "DisplayPackage")]
-            public async Task DisplayPackageV2(bool isDisplayV2Enabled, String expectedViewName)
+            [InlineData(false, false, null, "DisplayPackage", false, false)]
+            [InlineData(false, false, "1", "DisplayPackage", false, false)]
+            [InlineData(false, true, null, "DisplayPackage", true, false)]
+            [InlineData(false, true, "1", "DisplayPackageV2", false, true)]
+            [InlineData(true, false, null, "DisplayPackageV2", false, false)]
+            [InlineData(true, false, "1", "DisplayPackageV2", false, false)]
+            [InlineData(true, true, null, "DisplayPackageV2", false, true)]
+            [InlineData(true, true, "1", "DisplayPackageV2", false, true)]
+            public async Task DisplayPackageV2(
+                bool enableV2,
+                bool enablePreview,
+                string previewParam,
+                string expectedViewName,
+                bool expectPreviewBanner,
+                bool expectSurveyBanner)
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -1198,23 +1213,35 @@ namespace NuGetGallery
                 };
 
                 var packages = new[] { package };
-                packageService.Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
+                packageService
+                    .Setup(p => p.FindPackagesById("Foo", /*includePackageRegistration:*/ true))
                     .Returns(packages);
 
-                packageService.Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+                indexingService
+                    .Setup(i => i.GetLastWriteTime())
+                    .Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 featureFlag
                     .Setup(x => x.IsDisplayPackagePageV2Enabled(It.IsAny<User>()))
-                    .Returns(isDisplayV2Enabled);
+                    .Returns(enableV2);
+                featureFlag
+                    .Setup(x => x.IsDisplayPackagePageV2PreviewEnabled(It.IsAny<User>()))
+                    .Returns(enablePreview);
 
                 // Act
-                var result = await controller.DisplayPackage("Foo", version: null);
+                var result = await controller.DisplayPackage("Foo", version: null, preview: previewParam);
 
                 // Assert
                 ResultAssert.IsView<DisplayPackageViewModel>(result, expectedViewName);
+
+                var view = (ViewResult)result;
+
+                Assert.Equal(expectPreviewBanner, view.ViewBag.ShowRedesignPreviewBanner);
+                Assert.Equal(expectSurveyBanner, view.ViewBag.ShowRedesignSurveyBanner);
             }
 
             [Theory]
@@ -2744,57 +2771,16 @@ namespace NuGetGallery
                 packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, user, true));
             }
 
-            public delegate Expression<Func<IPackageOwnershipManagementService, Task>> PackageOwnershipManagementServiceRequestExpression(PackageRegistration package, User user);
+            public delegate Expression<Func<IPackageOwnershipManagementService, Task>> PackageOwnershipManagementServiceRequestExpression(PackageRegistration package, User requestingOwner, User newOwner);
 
-            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForConfirmOwnershipRequestExpression(PackageRegistration package, User user)
+            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForConfirmOwnershipRequestExpression(PackageRegistration package, User requestingOwner, User newOwner)
             {
-                return packageOwnershipManagementService => packageOwnershipManagementService.AddPackageOwnerAsync(package, user, true);
+                return packageOwnershipManagementService => packageOwnershipManagementService.AddPackageOwnerWithMessagesAsync(package, newOwner);
             }
 
-            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User user)
+            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User requestingOwner, User newOwner)
             {
-                return packageOwnershipManagementService => packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user, true);
-            }
-
-            public delegate IEmailBuilder EmailBuilderForOwnershipRequest(IMessageServiceConfiguration configuration, PackageOwnerRequest request, string packageUrl);
-            public delegate IEmailBuilder EmailMessageVerificationForOwnershipRequest(PackageOwnerRequest request);
-
-            private static IEmailBuilder EmailBuilderForDeclineOwnershipRequest(IMessageServiceConfiguration configuration, PackageOwnerRequest request, string packageUrl)
-            {
-                return new PackageOwnershipRequestDeclinedMessage(
-                    configuration,
-                    request.RequestingOwner,
-                    request.NewOwner,
-                    request.PackageRegistration);
-            }
-
-            private static IEmailBuilder EmailBuilderForConfirmOwnershipRequest(IMessageServiceConfiguration configuration, PackageOwnerRequest request, string packageUrl)
-            {
-                return new PackageOwnerAddedMessage(
-                    configuration,
-                    request.RequestingOwner,
-                    request.NewOwner,
-                    request.PackageRegistration,
-                    packageUrl);
-            }
-
-            private static IEmailBuilder EmailMessageVerificationForDeclineOwnershipRequest(PackageOwnerRequest request)
-            {
-                return It.Is<PackageOwnershipRequestDeclinedMessage>(
-                    msg =>
-                    msg.RequestingOwner == request.RequestingOwner
-                    && msg.NewOwner == request.NewOwner
-                    && msg.PackageRegistration == request.PackageRegistration);
-            }
-
-            private static IEmailBuilder EmailMessageVerificationForConfirmOwnershipRequest(PackageOwnerRequest request)
-            {
-                return It.Is<PackageOwnerAddedMessage>(
-                    msg =>
-                    msg.ToUser == request.RequestingOwner
-                    && msg.NewOwner == request.NewOwner
-                    && msg.PackageRegistration == request.PackageRegistration
-                    && msg.PackageUrl == It.IsAny<string>());
+                return packageOwnershipManagementService => packageOwnershipManagementService.DeclinePackageOwnershipRequestWithMessagesAsync(package, requestingOwner, newOwner);
             }
 
             public static IEnumerable<object[]> ReturnsRedirectIfTokenIsValid_Data
@@ -2855,9 +2841,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
-                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
-                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
-
+                
                 var request = new PackageOwnerRequest
                 {
                     PackageRegistration = package,
@@ -2869,7 +2853,6 @@ namespace NuGetGallery
                     .Returns(tokenValid ? request : null);
 
                 var configurationService = GetConfigurationService();
-                var messageService = new Mock<IMessageService>();
 
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByUsername(newOwner.Username, false)).Returns(newOwner);
@@ -2878,7 +2861,6 @@ namespace NuGetGallery
                     configurationService,
                     httpContext: mockHttpContext,
                     packageService: packageService,
-                    messageService: messageService,
                     packageOwnershipManagementService: packageOwnershipManagementService,
                     userService: userService);
 
@@ -2900,10 +2882,7 @@ namespace NuGetGallery
                     Assert.Equal(package.Id, model.PackageId);
                 }
                 packageOwnershipManagementService.Verify(
-                    packageOwnershipManagementServiceExpression(package, newOwner),
-                    Times.Never);
-                messageService.Verify(
-                    svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
+                    packageOwnershipManagementServiceExpression(package, currentUser, newOwner),
                     Times.Never);
             }
 
@@ -2919,21 +2898,17 @@ namespace NuGetGallery
                             {
                                 new InvokeOwnershipRequest(ConfirmOwnershipRequest),
                                 new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
-                                new EmailBuilderForOwnershipRequest(EmailBuilderForConfirmOwnershipRequest),
-                                new EmailMessageVerificationForOwnershipRequest(EmailMessageVerificationForConfirmOwnershipRequest),
                                 ConfirmOwnershipResult.Success,
                                 tokenValid,
-                                isOrganizationAdministrator
+                                isOrganizationAdministrator,
                             };
                             yield return new object[]
                             {
                                 new InvokeOwnershipRequest(RejectOwnershipRequest),
                                 new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
-                                new EmailBuilderForOwnershipRequest(EmailBuilderForDeclineOwnershipRequest),
-                                new EmailMessageVerificationForOwnershipRequest(EmailMessageVerificationForDeclineOwnershipRequest),
                                 ConfirmOwnershipResult.Rejected,
                                 tokenValid,
-                                isOrganizationAdministrator
+                                isOrganizationAdministrator,
                             };
                         }
                     }
@@ -2945,8 +2920,6 @@ namespace NuGetGallery
             public async Task ReturnsSuccessIfTokenIsValid(
                 InvokeOwnershipRequest invokeOwnershipRequest,
                 PackageOwnershipManagementServiceRequestExpression packageOwnershipManagementServiceExpression,
-                EmailBuilderForOwnershipRequest emailBuilder,
-                EmailMessageVerificationForOwnershipRequest emailVerifier,
                 ConfirmOwnershipResult successState,
                 bool tokenValid,
                 bool isOrganizationAdministrator)
@@ -2974,9 +2947,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
-                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
-                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
-
+                
                 var request = new PackageOwnerRequest
                 {
                     PackageRegistration = package,
@@ -2988,7 +2959,6 @@ namespace NuGetGallery
                     .Returns(tokenValid ? request : null);
 
                 var configurationService = GetConfigurationService();
-                var messageService = new Mock<IMessageService>();
 
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByUsername(newOwner.Username, false)).Returns(newOwner);
@@ -2997,20 +2967,8 @@ namespace NuGetGallery
                     configurationService,
                     httpContext: mockHttpContext,
                     packageService: packageService,
-                    messageService: messageService,
                     packageOwnershipManagementService: packageOwnershipManagementService,
                     userService: userService);
-
-                var packageUrl = controller.Url.Package(package.Id, version: null, relativeUrl: false);
-
-                var emailMessage = emailBuilder(configurationService.Current, request, packageUrl);
-                messageService
-                    .Setup(svc => svc.SendMessageAsync(
-                        emailMessage,
-                        false,
-                        false))
-                    .Returns(Task.CompletedTask)
-                    .Verifiable();
 
                 controller.SetCurrentUser(currentUser);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
@@ -3023,12 +2981,7 @@ namespace NuGetGallery
                 var expectedResult = tokenValid ? successState : ConfirmOwnershipResult.Failure;
                 Assert.Equal(expectedResult, model.Result);
                 Assert.Equal(package.Id, model.PackageId);
-                packageOwnershipManagementService.Verify(packageOwnershipManagementServiceExpression(package, newOwner), tokenValid ? Times.Once() : Times.Never());
-
-                messageService
-                    .Verify(
-                    svc => svc.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false),
-                    tokenValid ? Times.Once() : Times.Never());
+                packageOwnershipManagementService.Verify(packageOwnershipManagementServiceExpression(package, requestingOwner, newOwner), tokenValid ? Times.Once() : Times.Never());
             }
 
             public class TheCancelPendingOwnershipRequestMethod : TestContainer
@@ -3168,16 +3121,12 @@ namespace NuGetGallery
                     var request = new PackageOwnerRequest() { RequestingOwner = userA, NewOwner = userB };
                     var packageOwnershipManagementRequestService = new Mock<IPackageOwnershipManagementService>();
                     packageOwnershipManagementRequestService.Setup(p => p.GetPackageOwnershipRequests(package, userA, userB)).Returns(new[] { request });
-                    packageOwnershipManagementRequestService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, userB, true)).Returns(Task.CompletedTask).Verifiable();
-
-                    var messageService = new Mock<IMessageService>();
 
                     var controller = CreateController(
                         GetConfigurationService(),
                         userService: userService,
                         packageService: packageService,
-                        packageOwnershipManagementService: packageOwnershipManagementRequestService,
-                        messageService: messageService);
+                        packageOwnershipManagementService: packageOwnershipManagementRequestService);
                     controller.SetCurrentUser(currentUser);
 
                     // Act
@@ -3190,13 +3139,6 @@ namespace NuGetGallery
                         x => x.DeletePackageOwnershipRequestAsync(
                             It.IsAny<PackageRegistration>(),
                             It.IsAny<User>(),
-                            It.IsAny<bool>()),
-                        Times.Never);
-
-                    messageService.Verify(
-                        x => x.SendMessageAsync(
-                            It.IsAny<PackageOwnershipRequestCanceledMessage>(),
-                            It.IsAny<bool>(),
                             It.IsAny<bool>()),
                         Times.Never);
                 }
@@ -4423,6 +4365,29 @@ namespace NuGetGallery
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task Returns404IfDeleted(bool listed)
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
+                // Note: this Mock must be strict because it guarantees that MarkPackageListedAsync is not called!
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.UpdateListed("Foo", "1.0", listed);
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
             public static IEnumerable<object[]> NotOwner_Data
             {
                 get
@@ -4673,7 +4638,8 @@ namespace NuGetGallery
                 bool hasReadMe = false,
                 bool isPackageLocked = false,
                 Mock<IPackageFileService> packageFileService = null,
-                IReadMeService readMeService = null)
+                IReadMeService readMeService = null,
+                PackageStatus packageStatus = PackageStatus.Available)
             {
                 var package = new Package
                 {
@@ -4681,6 +4647,7 @@ namespace NuGetGallery
                     Version = "1.0",
                     Listed = true,
                     HasReadMe = hasReadMe,
+                    PackageStatusKey = packageStatus,
                 };
                 package.PackageRegistration.Owners.Add(owner);
 
@@ -4884,6 +4851,21 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(403, controller.Response.StatusCode);
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task WhenPackageIsDeletedReturns404(User currentUser, User owner)
+            {
+                // Arrange
+                var controller = SetupController(currentUser, owner, packageStatus: PackageStatus.Deleted);
+
+                // Act
+                var result = await controller.Edit("packageId", "1.0.0", new VerifyPackageRequest(), string.Empty);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(404, controller.Response.StatusCode);
             }
         }
 
@@ -9147,6 +9129,21 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task RedirectsToCustomReturnUrl()
+            {
+                // Arrange & Act
+                var result = await _target.Revalidate(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    "/Admin");
+
+                // Assert
+                var redirect = Assert.IsType<SafeRedirectResult>(result);
+                Assert.Equal("/Admin", redirect.Url);
+                Assert.Equal("/", redirect.SafeUrl);
+            }
+
+            [Fact]
             public async Task RedirectsAfterRevalidatingPackage()
             {
                 // Arrange & Act
@@ -9178,12 +9175,31 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
             }
+
+            [Fact]
+            public async Task ReturnsNotFoundForDeletedPackage()
+            {
+                // Arrange
+                _packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
+
+                // Act
+                var result = await _target.Revalidate(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
         }
 
         public class TheRevalidateSymbolsMethod : TestContainer
         {
             private Package _package;
-            private SymbolPackage _symbolPacakge;
+            private SymbolPackage _symbolPackage;
             private readonly Mock<IPackageService> _packageService;
             private readonly Mock<IValidationService> _validationService;
             private readonly TestGalleryConfigurationService _configurationService;
@@ -9196,12 +9212,12 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "NuGet.Versioning" },
                     Version = "3.4.0",
                 };
-                _symbolPacakge = new SymbolPackage
+                _symbolPackage = new SymbolPackage
                 {
                     Package = _package,
                     StatusKey = PackageStatus.Available
                 };
-                _package.SymbolPackages.Add(_symbolPacakge);
+                _package.SymbolPackages.Add(_symbolPackage);
 
                 _packageService = new Mock<IPackageService>();
                 _packageService
@@ -9230,8 +9246,23 @@ namespace NuGetGallery
 
                 // Assert
                 _validationService.Verify(
-                    x => x.RevalidateAsync(_symbolPacakge),
+                    x => x.RevalidateAsync(_symbolPackage),
                     Times.Once);
+            }
+
+            [Fact]
+            public async Task RedirectsToCustomReturnUrl()
+            {
+                // Arrange & Act
+                var result = await _target.RevalidateSymbols(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    "/Admin");
+
+                // Assert
+                var redirect = Assert.IsType<SafeRedirectResult>(result);
+                Assert.Equal("/Admin", redirect.Url);
+                Assert.Equal("/", redirect.SafeUrl);
             }
 
             [Theory]
@@ -9241,7 +9272,7 @@ namespace NuGetGallery
             public async Task RedirectsAfterRevalidatingSymbolsPackageForAllValidStatus(PackageStatus status)
             {
                 // Arrange & Act
-                _symbolPacakge.StatusKey = status;
+                _symbolPackage.StatusKey = status;
                 var result = await _target.RevalidateSymbols(
                     _package.PackageRegistration.Id,
                     _package.Version);
@@ -9272,13 +9303,33 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
             }
 
+            [Fact]
+            public async Task ReturnsNotFoundForDeletedPackage()
+            {
+                // Arrange
+                _packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
+
+                // Act
+                var result = await _target.RevalidateSymbols(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+            }
+
             [Theory]
             [InlineData(PackageStatus.Deleted)]
             [InlineData(921)]
             public async Task ReturnsBadRequestForInvalidSymbolPackageStatus(PackageStatus status)
             {
                 // Arrange and Act
-                _symbolPacakge.StatusKey = status;
+                _symbolPackage.StatusKey = status;
                 var result = await _target.RevalidateSymbols(
                     _package.PackageRegistration.Id,
                     _package.Version);
@@ -9540,13 +9591,33 @@ namespace NuGetGallery
         public class TheGetReadMeMethod : TestContainer
         {
             [Fact]
-            public async Task ReturnsNotFoundIfPackageMissing()
+            public async Task ReturnsNotFoundIfPackageIsMissing()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns((Package)null);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                // Act
+                var result = await controller.GetReadMeMd("a", "1.9.2019");
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundIfPackageIsDeleted()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -9727,7 +9798,37 @@ namespace NuGetGallery
             }
         }
 
-        public class LicenseMethod : TestContainer
+        public class TheReflowMethod : TestContainer
+        {
+            private readonly Mock<IPackageService> _packageService;
+            private string _packageId = "packageId";
+            private string _packageVersion = "1.0.0";
+
+            public TheReflowMethod()
+            {
+                _packageService = new Mock<IPackageService>();
+            }
+
+            [Fact]
+            public async Task GivenDeletedPackageReturns404()
+            {
+                // arrange
+                _packageService
+                    .Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.Reflow(_packageId, _packageVersion);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+        }
+
+        public class TheLicenseMethod : TestContainer
         {
             private readonly Mock<IPackageService> _packageService;
             private readonly Mock<IPackageFileService> _packageFileService;
@@ -9735,7 +9836,7 @@ namespace NuGetGallery
             private string _packageId = "packageId";
             private string _packageVersion = "1.0.0";
 
-            public LicenseMethod()
+            public TheLicenseMethod()
             {
                 _packageService = new Mock<IPackageService>();
                 _packageFileService = new Mock<IPackageFileService>();
@@ -9747,6 +9848,24 @@ namespace NuGetGallery
             {
                 // arrange
                 _packageService.Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion)).Returns<Package>(null);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService);
+
+                // act
+                var result = await controller.License(_packageId, _packageVersion);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public async Task GivenDeletedPackageReturns404()
+            {
+                // arrange
+                _packageService
+                    .Setup(p => p.FindPackageByIdAndVersionStrict(_packageId, _packageVersion))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Deleted });
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: _packageService);

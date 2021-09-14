@@ -193,14 +193,9 @@
                 @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
                 <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
                 <div class="copy-button">
-                    <!--In order to statisfy the requirement to announce button status both on NVDA/Narrator, other screen reader like NVDA will
-                        announce the data-content "Copied" everytime when we press button, however, it won't work with Narrator when we use bootstrap popover 
-                        because of known issue(https://github.com/twbs/bootstrap/issues/18618).
-                        We add aria-pressed to indicate the whether button is pressed or not, which is workaround only for Narrator announce the status change of button
-                    -->
                     <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
                             data-toggle="popover" data-placement="bottom" data-content="Copied."
-                            aria-label="@packageManager.CopyLabel" aria-pressed="false" aria-live="polite" role="button">
+                            aria-label="@packageManager.CopyLabel" aria-live="polite" role="button">
                         <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                     </button>
                 </div>
@@ -261,7 +256,7 @@
                         <img class="reserved-indicator"
                              src="~/Content/gallery/img/reserved-indicator.svg"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
-                             data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0"/>
+                             data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0" alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
                     }
                 </h1>
 
@@ -527,12 +522,12 @@
                     <div id="readme-container" class="collapse in">
                         @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
                         {
-                            @ViewHelpers.AlertWarning(@<text>This documentation had some images automatically rewritten to use secure links and may be broken.</text>);
+                            @ViewHelpers.AlertImagesRewritten();
                         }
 
                         @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
                         {
-                            @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>);
+                            @ViewHelpers.AlertImageSourceDisallowed();
                         }
                         <div id="readme-less" class="collapse in">
                             @Html.Raw(Model.ReadMeHtml)
@@ -999,10 +994,6 @@
                             &nbsp;(@Model.LatestSymbolsPackage.FileSize.ToUserFriendlyBytesLabel())
                         </li>
                     }
-                    <li class="no-clickonce">
-                        <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>
-                        <a href="@Url.ExplorerDeepLink(2, Model.Id, Model.Version)" title="Explore the nupkg with the NuGet Package Explorer (IE only)" rel="nofollow">Open in Package Explorer</a>
-                    </li>
                 }
 
                 @if (Model.CanEdit || Model.CanManageOwners || Model.CanUnlistOrRelist)
@@ -1020,7 +1011,7 @@
                     </li>
                 }
 
-                @if (AdminHelper.IsAdminPanelEnabled && Model.Available && User.IsAdministrator())
+                @if (Model.Available && User.IsAdministrator())
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
@@ -1039,7 +1030,7 @@
                     </li>
                 }
 
-                @if (AdminHelper.IsAdminPanelEnabled && !Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                @if (!Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
@@ -1077,7 +1068,7 @@
                     }
                 }
 
-                @if (AdminHelper.IsAdminPanelEnabled && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Health" aria-hidden="true"></i>
@@ -1085,7 +1076,21 @@
                     </li>
                 }
 
-                @if (Model.IsFuGetLinksEnabled && !string.IsNullOrEmpty(Model.FuGetUrl))
+                @if (Model.CanDisplayNuGetPackageExplorerLink())
+                {
+                    var disclaimer = "nuget.info is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
+
+                    <li>
+                        <i class="ms-Icon ms-Icon--FabricFolderSearch" aria-hidden="true" aria-label="@disclaimer" title="@disclaimer"></i>
+                        <a href="@Model.NuGetPackageExplorerUrl" data-track="outbound-nugetpackageexplorer-url"
+                           aria-label="open in NuGet Package Explorer"
+                           title="Explore additional package info on NuGet Package Explorer" target="_blank" rel="nofollow">
+                            Open in NuGet Package Explorer
+                        </a>
+                    </li>
+                }
+
+                @if (Model.CanDisplayFuGetLink())
                 {
                     var disclaimer = "fuget.org is a 3rd party website, not controlled by Microsoft. This link is made available to you per the NuGet Terms of Use.";
 
@@ -1094,9 +1099,9 @@
                              aria-label="@disclaimer" title="@disclaimer"
                              src="@Url.Absolute("~/Content/gallery/img/fuget.svg")"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/fuget-32x32.png")) />
-                        <a href="@Model.FuGetUrl" data-track="outbound-repository-url"
+                        <a href="@Model.FuGetUrl" data-track="outbound-fuget-url"
                            aria-label="open in fuget.org explorer"
-                           title="Explore additional package info on fuget.org" rel="nofollow">
+                           title="Explore additional package info on fuget.org" target="_blank" rel="nofollow">
                             Open in FuGet Package Explorer
                         </a>
                     </li>

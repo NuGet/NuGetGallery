@@ -143,6 +143,7 @@
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SiteAdminsController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
+    <Compile Include="Areas\Admin\Controllers\UpdateListedController.cs" />
     <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
       <DependentUpon>Url_Edit.ascx</DependentUpon>
@@ -195,7 +196,7 @@
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
     <Compile Include="Areas\Admin\Services\ValidationEntityRepository.cs" />
-    <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\HomeViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceResultModel.cs" />
@@ -312,6 +313,7 @@
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
+    <Compile Include="RequestModels\UpdateListedRequest.cs" />
     <Compile Include="Services\UploadPackageIdNamespaceConflict.cs" />
     <Compile Include="Services\ImageDomainValidator.cs" />
     <Compile Include="Services\IMarkdownService.cs" />
@@ -384,7 +386,6 @@
     <Compile Include="Infrastructure\Lucene\SearchClientPolicies.cs" />
     <Compile Include="Infrastructure\Mail\ConfirmationEmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\EmailMessageFooter.cs" />
-    <Compile Include="Infrastructure\Mail\GalleryEmailRecipientsUtility.cs" />
     <Compile Include="Infrastructure\Mail\Messages\AccountDeleteNoticeMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ContactOwnersMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessage.cs" />
@@ -405,12 +406,6 @@
     <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRequestMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageDeletedNoticeMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerAddedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerRemovedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestCanceledMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestDeclinedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestInitiatedMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PasswordResetInstructionsMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessage.cs" />
@@ -732,6 +727,7 @@
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
+    <Compile Include="UrlHelperWrapper.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\AddPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\CompositeLicenseExpressionSegmentViewModel.cs" />
@@ -2212,9 +2208,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
       <Version>2.2.0</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory">
-      <Version>5.2.6</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.Net.Http">
       <Version>2.2.29</Version>
     </PackageReference>
@@ -2261,13 +2254,13 @@
       <Version>5.9.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.86.0</Version>
+      <Version>2.90.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.86.0</Version>
+      <Version>2.90.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.86.0</Version>
+      <Version>2.90.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
@@ -2320,6 +2313,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\Files\Content\Query-Hint-Configuration.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Admin\Views\UpdateListed\Index.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

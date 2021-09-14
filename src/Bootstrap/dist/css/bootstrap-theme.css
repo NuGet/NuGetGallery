@@ -45,6 +45,9 @@ body h3 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.form-inline-empty {
+  display: inline-block;
+}
 .footer {
   background-color: #002440;
   color: #e3ebf1;
@@ -531,8 +534,16 @@ img.reserved-indicator-icon {
   white-space: pre-wrap;
   word-break: normal;
 }
-.common-licenses .custom-license-container {
+.common-licenses .custom-license-container,
+.common-licenses .license-file-html-container {
+  display: block;
+  padding: 10.5px;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  word-break: normal;
   margin-bottom: 24px;
+  overflow: auto;
+  max-height: 450px;
 }
 .list-packages .package {
   overflow-wrap: break-word;
@@ -1290,7 +1301,7 @@ img.reserved-indicator-icon {
   border-bottom: 1px solid lightgray;
 }
 .page-package-details-v2 .package-header {
-  margin-bottom: 36px;
+  margin-bottom: 35px;
 }
 .page-package-details-v2 .package-title {
   margin-bottom: 30px;
@@ -1443,8 +1454,12 @@ img.reserved-indicator-icon {
 .page-package-details-v2 .package-details-info .ms-Icon-ul li {
   margin-bottom: 18px;
 }
+.page-package-details-v2 .package-details-info .ms-Icon-ul .ms-Icon {
+  top: 1px;
+}
 .page-package-details-v2 .package-details-info .ms-Icon-ul img.icon {
   position: absolute;
+  top: 1px;
   left: -24px;
   width: 16px;
   height: 16px;
@@ -1458,10 +1473,6 @@ img.reserved-indicator-icon {
 }
 .page-package-details-v2 .package-details-info .sidebar-links {
   font-size: 16px;
-}
-.page-package-details-v2 .package-details-info .links-first-section {
-  padding-bottom: 35px;
-  margin-bottom: 0px;
 }
 .page-package-details-v2 .package-details-info .title-links {
   font-size: 14px;
@@ -1503,7 +1514,7 @@ img.reserved-indicator-icon {
   margin-right: 8px;
   border-radius: 5px;
 }
-.page-package-details-v2 .support-links .report-link i {
+.page-package-details-v2 .report-link i {
   color: #BE0151;
   font-weight: bold;
 }
@@ -1516,24 +1527,13 @@ img.reserved-indicator-icon {
   font-size: 14px;
   color: #333333;
   margin: 4px 0 0 0;
-  width: auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
   line-height: 16px;
-  /* fallback */
-  max-height: 32px;
-  /* fallback */
-  -webkit-line-clamp: 2;
-  /* number of lines to show */
-  -webkit-box-orient: vertical;
 }
 .page-package-details-v2 .used-by-link {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 19px;
   color: #337ab7;
-  width: auto;
 }
 .page-package-details-v2 .gh-link,
 .page-package-details-v2 .ngp-link {
@@ -1647,6 +1647,7 @@ img.reserved-indicator-icon {
   border-bottom-color: #0078D4;
   border-bottom-width: 2px;
   font-weight: bold;
+  margin-bottom: -1px;
 }
 .page-package-details-v2 .body-tabs .nav-tabs > li > a {
   border-left: 0px;
@@ -1656,16 +1657,36 @@ img.reserved-indicator-icon {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #323130;
 }
+.page-package-details-v2 .body-tabs .nav-tabs > li > a .ms-Icon {
+  position: relative;
+  top: 2px;
+}
 .page-package-details-v2 .body-tab-content {
   padding-top: 30px;
 }
-.page-package-details-v2 .body-tab-content h1:first-child,
-.page-package-details-v2 .body-tab-content h2:first-child,
-.page-package-details-v2 .body-tab-content h3:first-child,
-.page-package-details-v2 .body-tab-content h4:first-child,
-.page-package-details-v2 .body-tab-content h5:first-child,
-.page-package-details-v2 .body-tab-content h6:first-child {
+.page-package-details-v2 .body-tab-content #readme-tab h1:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h1:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h2:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h2:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h3:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h3:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h4:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h4:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h5:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h5:first-child,
+.page-package-details-v2 .body-tab-content #readme-tab h6:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab h6:first-child {
   margin-top: 0px;
+}
+.page-package-details-v2 .body-tab-content #readme-tab div.alert:first-child,
+.page-package-details-v2 .body-tab-content #usedby-tab div.alert:first-child {
+  margin-top: 0px;
+}
+.page-package-details-v2 .body-tab-content #dependencies-tab li:first-child h4 {
+  margin-top: 0px;
+}
+.page-package-details-v2 .body-tab-content #readme-tab img {
+  max-width: 100%;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;

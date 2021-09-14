@@ -21,7 +21,7 @@ namespace NuGetGallery.Services
     {
         public class TheDeleteGalleryUserAccountAsyncMethod
         {
-            private static int Key = -1;
+            private int Key = -1;
 
             [Theory]
             [InlineData(false)]
@@ -429,7 +429,7 @@ namespace NuGetGallery.Services
             }
 
 
-            private static User CreateTestUserWithRegistration(ref PackageRegistration registration)
+            private User CreateTestUserWithRegistration(ref PackageRegistration registration)
             {
                 var testUser = new User("TestUser") { Key = Key++ };
                 testUser.EmailAddress = "user@test.com";
@@ -439,7 +439,7 @@ namespace NuGetGallery.Services
                 return testUser;
             }
 
-            private static User CreateTestUser(ref PackageRegistration registration)
+            private User CreateTestUser(ref PackageRegistration registration)
             {
                 var testUser = new User("TestUser") { Key = Key++ };
                 testUser.EmailAddress = "user@test.com";
@@ -473,7 +473,7 @@ namespace NuGetGallery.Services
                 return testUser;
             }
 
-            private static void AddOrganizationMigrationRequest(User testUser)
+            private void AddOrganizationMigrationRequest(User testUser)
             {
                 var testOrganizationAdmin = new User("TestOrganizationAdmin") { Key = Key++ };
 
@@ -482,7 +482,7 @@ namespace NuGetGallery.Services
                 testOrganizationAdmin.OrganizationMigrationRequests.Add(request);
             }
 
-            private static void AddOrganizationMigrationRequests(User testUser)
+            private void AddOrganizationMigrationRequests(User testUser)
             {
                 var testOrganization = new Organization("testOrganization") { Key = Key++ };
 
@@ -491,7 +491,7 @@ namespace NuGetGallery.Services
                 testUser.OrganizationMigrationRequests.Add(request);
             }
 
-            private static void AddOrganizationRequests(User testUser, bool isAdmin)
+            private void AddOrganizationRequests(User testUser, bool isAdmin)
             {
                 var testOrganization = new Organization("testOrganization") { Key = Key++ };
 
@@ -500,7 +500,7 @@ namespace NuGetGallery.Services
                 testUser.OrganizationRequests.Add(request);
             }
 
-            private static void AddOrganization(User testUser, bool isAdmin, bool hasAdminMember, bool hasCollaboratorMember)
+            private void AddOrganization(User testUser, bool isAdmin, bool hasAdminMember, bool hasCollaboratorMember)
             {
                 var testOrganization = new Organization("testOrganization") { Key = Key++ };
 

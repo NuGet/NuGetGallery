@@ -135,9 +135,12 @@ namespace NuGetGallery.AccountDeleter
                 services.AddScoped<IAuthenticationService, AuthenticationService>();
                 services.AddScoped<ISupportRequestService, ISupportRequestService>();
 
+                services.AddScoped<IFeatureFlagService, EmptyFeatureFlagService>();
                 services.AddScoped<IEditableFeatureFlagStorageService, EditableFeatureFlagFileStorageService>();
                 services.AddScoped<ICoreFileStorageService, CloudBlobFileStorageService>();
                 services.AddScoped<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
+
+                services.AddScoped<IUrlHelper, AccountDeleteUrlHelper>();
 
                 services.AddScoped<IIndexingService, EmptyIndexingService>();
                 services.AddScoped<ICredentialBuilder, CredentialBuilder>();
@@ -177,7 +180,7 @@ namespace NuGetGallery.AccountDeleter
             }
         }
 
-        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             ConfigureDefaultSubscriptionProcessor(containerBuilder);
             containerBuilder.RegisterType<EntityRepository<User>>()

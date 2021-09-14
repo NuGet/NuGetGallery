@@ -54,6 +54,7 @@
     <Compile Include="Configuration\GalleryConfiguration.cs" />
     <Compile Include="Configuration\MailTemplateConfiguration.cs" />
     <Compile Include="Configuration\SourceConfiguration.cs" />
+    <Compile Include="EmptyFeatureFlagService.cs" />
     <Compile Include="EmptyIndexingService.cs" />
     <Compile Include="Evaluators\AccountConfirmedEvaluator.cs" />
     <Compile Include="Evaluators\AggregateEvaluator.cs" />
@@ -83,6 +84,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
+    <Compile Include="Providers\AccountDeleteUrlHelper.cs" />
     <Compile Include="Telemetry\IAccountDeleteTelemetryService.cs" />
     <Compile Include="Telemetry\AccountDeleteTelemetryService.cs" />
   </ItemGroup>
@@ -107,7 +109,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Common.Job">
-      <Version>4.3.0-dev-3612825</Version>
+      <Version>4.3.0-dev-5066115</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

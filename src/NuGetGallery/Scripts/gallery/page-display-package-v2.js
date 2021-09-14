@@ -28,8 +28,7 @@
         // If the deprecation information container has content, configure it as an expander.
         window.nuget.configureExpander("deprecation-content-container", "ChevronDown", null, "ChevronUp");
         configureExpanderWithEnterKeydown(deprecationContainer);
-    }
-    else {
+    } else {
         // If the container does not have content, remove its expander attributes
         expanderAttributes.forEach(attribute => deprecationContainer.removeAttr(attribute));
 
@@ -51,20 +50,24 @@
     // Configure package manager copy buttons
     function configureCopyButton(id) {
         var copyButton = $('#' + id + '-button');
-        copyButton.popover({ trigger: 'manual' });
+        copyButton.popover({
+            trigger: 'manual',
+            // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
+            // We can force Narrator to announce the content by changing
+            // the popover's role from 'tooltip' to 'status'.
+            // Modified from: https://github.com/twbs/bootstrap/blob/f17f882df292b29323f1e1da515bd16f326cee4a/js/popover.js#L28
+            template: '<div class="popover" role="status"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
+        });
 
         copyButton.click(function () {
             var text = $('#' + id + '-text').text().trim();
             window.nuget.copyTextToClipboard(text, copyButton);
+
             copyButton.popover('show');
-            //This is workaround for Narrator announce the status changes of copy button to achieve accessibility.
-            copyButton.attr('aria-pressed', 'true');
             setTimeout(function () {
                 copyButton.popover('destroy');
             }, 1000);
-            setTimeout(function () {
-                copyButton.attr('aria-pressed', 'false');
-            }, 1500);
+
             window.nuget.sendMetric("CopyInstallCommand", 1, {
                 ButtonId: id,
                 PackageId: packageId,
@@ -78,40 +81,81 @@
         configureCopyButton(packageManagers[i]);
     }
 
+    // Restore previously selected package manager and body tab.
     var storage = window['localStorage'];
-    if (storage) {
-        // set preferred installation instruction tab
-        var installationKey = 'preferred_tab';
+    var packageManagerStorageKey = 'preferred_package_manager';
+    var bodyStorageKey = 'preferred_body_tab';
 
-        // Restore preferred tab selection from localStorage.
-        var preferredInstallationTab = storage.getItem(installationKey);
-        if (preferredInstallationTab) {
-            $('#' + preferredInstallationTab).tab('show');
-        }
-
-        // Make sure we save the user's preferred tab to localStorage.
-        $('.package-manager-tab').on('shown.bs.tab', function (e) {
-            storage.setItem(installationKey, e.target.id);
-        });
-
-        // set preferred body tab 
-        var bodyKey = 'preferred_body_tab';
-
-        // Restore preferred body tab selection from localStorage.
-        var preferredBodyTab = storage.getItem(bodyKey);
-        if (preferredBodyTab) {
-            $('#' + preferredBodyTab).tab('show');
-        }
-
-        // Make sure we save the user's preferred body tab to localStorage.
-        $('.body-tab').on('shown.bs.tab', function (e) {
-            storage.setItem(bodyKey, e.target.id);
-        });
+    // The V3 registration API links to the display package page's README using
+    // the 'show-readme-container' URL fragment.
+    var restorePreferredBodyTab = true;
+    if (window.location.hash === '#show-readme-container') {
+        $('#readme-body-tab').focus();
+        restorePreferredBodyTab = false;
     }
 
-    if (window.nuget.isGaAvailable()) {
-        // TO-DO add telemetry events for when each tab is clicked, see https://github.com/nuget/nugetgallery/issues/8613
+    if (storage) {
+        // Restore preferred package manager selection from localStorage.
+        var preferredPackageManagerId = storage.getItem(packageManagerStorageKey);
+        if (preferredPackageManagerId) {
+            $('#' + preferredPackageManagerId).tab('show');
+        }
 
+        // Restore preferred body tab selection from localStorage.
+        if (restorePreferredBodyTab) {
+            var preferredBodyTab = storage.getItem(bodyStorageKey);
+            if (preferredBodyTab) {
+                $('#' + preferredBodyTab).tab('show');
+            }
+        }
+    }
+
+    var usedByClamped = false;
+    var usedByTab = $('#usedby-tab');
+
+    function clampUsedByDescriptions() {
+        // Clamp long descriptions in the "used by" tab. Ensure this runs only once,
+        // otherwise clamp.js removes too much content.
+        if (usedByClamped) return;
+        if (!usedByTab.hasClass('active')) return;
+
+        for (var usedByDescription of $('.used-by-desc').get()) {
+            $clamp(usedByDescription, { clamp: 2, useNativeClamp: false });
+        }
+
+        usedByClamped = true;
+    }
+
+    clampUsedByDescriptions();
+
+    // Make sure we save the user's preferred body tab to localStorage.
+    $('.package-manager-tab').on('shown.bs.tab', function (e) {
+        if (storage) {
+            storage.setItem(packageManagerStorageKey, e.target.id);
+        }
+
+        window.nuget.sendMetric("ShowInstallCommand", 1, {
+            PackageManagerId: e.target.id,
+            PackageId: packageId,
+            PackageVersion: packageVersion
+        });
+    });
+
+    $('.body-tab').on('shown.bs.tab', function (e) {
+        if (storage) {
+            storage.setItem(bodyStorageKey, e.target.id);
+        }
+
+        clampUsedByDescriptions();
+
+        window.nuget.sendMetric("ShowDisplayPackageTab", 1, {
+            TabId: e.target.id,
+            PackageId: packageId,
+            PackageVersion: packageVersion
+        });
+    });
+
+    if (window.nuget.isGaAvailable()) {
         // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Repos area of the Used By section.
         $(".gh-link").on('click', function (elem) {
             if (!elem.delegateTarget.dataset.indexNumber) {
