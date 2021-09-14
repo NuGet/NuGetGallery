@@ -28,7 +28,7 @@
                     <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
                 </div>
             </div>
-            @if (AdminHelper.IsAdminPanelEnabled && User.IsAdministrator())
+            @if (User.IsAdministrator())
             {
                 <div class="additional-info">
                     <dl>
