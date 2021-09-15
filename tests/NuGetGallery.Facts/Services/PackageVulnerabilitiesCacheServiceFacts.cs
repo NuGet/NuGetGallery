@@ -53,6 +53,16 @@ namespace NuGetGallery.Services
         [InlineData("Bar", 2)]
         [InlineData("FOo", 4)]
         [InlineData("FoO", 4)]
+        [InlineData("Bär", 2)]
+        [InlineData("BÄr", 2)]
+        [InlineData("ÇCombinedWithCedilla", 1)] // first char here is C combined with cedilla diacritic: /u00C7 ** actual match
+        [InlineData("çCombinedWithCedilla", 1)] // first char here is c combined with cedilla diacritic: /u00E7
+        [InlineData("çCombinedWithCedilla", 1)] // first char here c followed by combining cedilla diacritic: /u0063 /u0327
+        [InlineData("cCombinedWithCedilla", 0)] // first char here c only (not a match with a c-cedilla): /u0063
+        [InlineData("ÇFollowedByCedilla", 1)] // first char here is C combined with cedilla diacritic: /u00C7
+        [InlineData("çFollowedByCedilla", 1)] // first char here is c combined with cedilla diacritic: /u00E7
+        [InlineData("çFollowedByCedilla", 1)] // first char here c followed by combining cedilla diacritic: /u0063 /u0327 ** actual match
+        [InlineData("cFollowedByCedilla", 0)] // first char here c only (not a match with a c-cedilla): /u0063
         public void CacheSupportsCaseInsensitiveLookups(string packageLookupId, int expectedVulnerabilitiesCount)
         {
             // Arrange
@@ -62,7 +72,7 @@ namespace NuGetGallery.Services
             var vulnerabilitiesFoo = _cacheService.GetVulnerabilitiesById(packageLookupId);
 
             // Assert
-            Assert.Equal(expectedVulnerabilitiesCount, vulnerabilitiesFoo.Count);
+            Assert.Equal(expectedVulnerabilitiesCount, vulnerabilitiesFoo?.Count ?? 0);
         }
 
         private void Setup()
@@ -86,6 +96,9 @@ namespace NuGetGallery.Services
         {
             var registrationFoo = new PackageRegistration { Id = "Foo" };
             var registrationBar = new PackageRegistration { Id = "Bar" };
+            var registrationBarNonLatin = new PackageRegistration { Id = "Bär" };
+            var registrationCedillaNonLatin = new PackageRegistration { Id = "ÇCombinedWithCedilla" }; // Ç is /u00C7
+            var registrationCedillaNonLatin2 = new PackageRegistration { Id = "çFollowedByCedilla" }; // ç is /u0063 /u0327
 
             var vulnerabilityCriticalFoo = new PackageVulnerability
             {
@@ -103,6 +116,24 @@ namespace NuGetGallery.Services
             {
                 AdvisoryUrl = "http://theurl/9012",
                 GitHubDatabaseKey = 9012,
+                Severity = PackageVulnerabilitySeverity.Critical
+            };
+            var vulnerabilityCriticalBarNonLatin = new PackageVulnerability
+            {
+                AdvisoryUrl = "http://theurl/2109",
+                GitHubDatabaseKey = 2109,
+                Severity = PackageVulnerabilitySeverity.Critical
+            };
+            var vulnerabilityCriticalCedillaNonLatin = new PackageVulnerability
+            {
+                AdvisoryUrl = "http://theurl/2901",
+                GitHubDatabaseKey = 2901,
+                Severity = PackageVulnerabilitySeverity.Critical
+            };
+            var vulnerabilityCriticalCedillaNonLatin2 = new PackageVulnerability
+            {
+                AdvisoryUrl = "http://theurl/29012",
+                GitHubDatabaseKey = 29012,
                 Severity = PackageVulnerabilitySeverity.Critical
             };
 
@@ -125,6 +156,27 @@ namespace NuGetGallery.Services
                 Vulnerability = vulnerabilityCriticalBar,
                 PackageId = "Bar",
                 PackageVersionRange = "<=1.1.0",
+                FirstPatchedPackageVersion = "1.1.1"
+            };
+            var versionRangeCriticalBarNonLatin = new VulnerablePackageVersionRange
+            {
+                Vulnerability = vulnerabilityCriticalBarNonLatin,
+                PackageId = "Bär",
+                PackageVersionRange = "<=1.1.0",
+                FirstPatchedPackageVersion = "1.1.1"
+            };
+            var versionRangeCriticalCedillaNonLatin = new VulnerablePackageVersionRange
+            {
+                Vulnerability = vulnerabilityCriticalCedillaNonLatin,
+                PackageId = "ÇCombinedWithCedilla",
+                PackageVersionRange = "<=1.0.0",
+                FirstPatchedPackageVersion = "1.1.1"
+            };
+            var versionRangeCriticalCedillaNonLatin2 = new VulnerablePackageVersionRange
+            {
+                Vulnerability = vulnerabilityCriticalCedillaNonLatin2,
+                PackageId = "çFollowedByCedilla",
+                PackageVersionRange = "<=1.0.0",
                 FirstPatchedPackageVersion = "1.1.1"
             };
 
@@ -189,12 +241,57 @@ namespace NuGetGallery.Services
                     versionRangeCriticalBar
                 }
             };
+            var packageBarNonLatin100 = new Package
+            {
+                Key = 5,
+                Version = "1.0.0",
+                PackageRegistration = registrationBarNonLatin,
+                VulnerablePackageRanges = new List<VulnerablePackageVersionRange>
+                {
+                    versionRangeCriticalBarNonLatin
+                }
+            };
+            var packageBarNonLatin110 = new Package
+            {
+                Key = 6,
+                PackageRegistration = registrationBarNonLatin,
+                Version = "1.1.0",
+                VulnerablePackageRanges = new List<VulnerablePackageVersionRange>
+                {
+                    versionRangeCriticalBarNonLatin
+                }
+            };
+            var packageCedillaNonLatin100 = new Package
+            {
+                Key = 5,
+                Version = "1.0.0",
+                PackageRegistration = registrationCedillaNonLatin,
+                VulnerablePackageRanges = new List<VulnerablePackageVersionRange>
+                {
+                    versionRangeCriticalCedillaNonLatin
+                }
+            };
+            var packageCedillaNonLatin2_100 = new Package
+            {
+                Key = 5,
+                Version = "1.0.0",
+                PackageRegistration = registrationCedillaNonLatin2,
+                VulnerablePackageRanges = new List<VulnerablePackageVersionRange>
+                {
+                    versionRangeCriticalCedillaNonLatin2
+                }
+            };
 
             versionRangeCriticalFoo.Packages = new List<Package> { packageFoo111 };
             versionRangeModerateFoo.Packages = new List<Package> { packageFoo100, packageFoo110, packageFoo111, packageFoo112 };
             versionRangeCriticalBar.Packages = new List<Package> { packageBar100, packageBar110 };
+            versionRangeCriticalBarNonLatin.Packages = new List<Package> { packageBarNonLatin100, packageBarNonLatin110 };
+            versionRangeCriticalCedillaNonLatin.Packages = new List<Package> { packageCedillaNonLatin100 };
+            versionRangeCriticalCedillaNonLatin2.Packages = new List<Package> { packageCedillaNonLatin2_100 };
 
-            var vulnerableRangeList = new List<VulnerablePackageVersionRange> { versionRangeCriticalFoo, versionRangeModerateFoo, versionRangeCriticalBar }.AsQueryable();
+            var vulnerableRangeList = new List<VulnerablePackageVersionRange> { versionRangeCriticalFoo, versionRangeModerateFoo, versionRangeCriticalBar,
+                    versionRangeCriticalBarNonLatin, versionRangeCriticalCedillaNonLatin, versionRangeCriticalCedillaNonLatin2 }
+                .AsQueryable();
             var vulnerableRangeDbSet = new Mock<DbSet<VulnerablePackageVersionRange>>();
 
             // boilerplate mock DbSet redirects:
