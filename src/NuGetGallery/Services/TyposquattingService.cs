@@ -76,7 +76,7 @@ namespace NuGetGallery
             Parallel.ForEach(packageIdsCheckList, (packageId, loopState) =>
             {
                 string normalizedPackageId = TyposquattingStringNormalization.NormalizeString(packageId);
-                if (TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(normalizedUploadedPackageId, normalizedPackageId, threshold))
+                if (TyposquattingDistanceCalculation.IsDistanceLessOrEqualThanThreshold(normalizedUploadedPackageId, normalizedPackageId, threshold))
                 {
                     collisionIds.Add(packageId);
                 }

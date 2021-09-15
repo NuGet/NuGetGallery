@@ -30,7 +30,7 @@ namespace NuGetGallery
             Insert,
         }
 
-        public static bool IsDistanceLessThanThreshold(string str1, string str2, int threshold)
+        public static bool IsDistanceLessOrEqualThanThreshold(string str1, string str2, int threshold)
         {
             if (str1 == null)
             {
@@ -50,6 +50,7 @@ namespace NuGetGallery
 
             return GetDistance(str1, str2, threshold) <= threshold;
         }
+
         private static int GetDistance(string str1, string str2, int threshold)
         {
             var basicEditDistanceInfo = GetBasicEditDistanceWithPath(str1, str2);
