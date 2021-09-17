@@ -50,23 +50,31 @@
     // Configure package manager copy buttons
     function configureCopyButton(id) {
         var copyButton = $('#' + id + '-button');
-        copyButton.popover({
-            trigger: 'manual',
-            // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
-            // We can force Narrator to announce the content by changing
-            // the popover's role from 'tooltip' to 'status'.
-            // Modified from: https://github.com/twbs/bootstrap/blob/f17f882df292b29323f1e1da515bd16f326cee4a/js/popover.js#L28
-            template: '<div class="popover" role="status"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
-        });
+        var copyButtonDom = copyButton.get(0);
+        copyButton.popover({ trigger: 'manual' });
 
         copyButton.click(function () {
             var text = $('#' + id + '-text').text().trim();
             window.nuget.copyTextToClipboard(text, copyButton);
 
             copyButton.popover('show');
+
+            // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
+            // We can force Narrator to announce the popover's content by "flashing"
+            // the copy button's ARIA label.
+            var originalLabel = copyButtonDom.ariaLabel;
+            copyButtonDom.ariaLabel = "";
+
             setTimeout(function () {
                 copyButton.popover('destroy');
-            }, 1000);
+
+                // We need to restore the copy button's original ARIA label.
+                // Wait 0.15 seconds for the popover to fade away first.
+                // Otherwise, the screen reader will re-announce the popover's content.
+                setTimeout(function () {
+                    copyButtonDom.ariaLabel = originalLabel;
+                }, 200);
+            }, 1500);
 
             window.nuget.sendMetric("CopyInstallCommand", 1, {
                 ButtonId: id,
