@@ -103,6 +103,7 @@
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessageFacts.cs" />
     <Compile Include="Infrastructure\SearchServiceFactoryFacts.cs" />
+    <Compile Include="Services\ActionsRequiringPermissionsAdminFacts.cs" />
     <Compile Include="Services\ImageDomainValidatorFacts.cs" />
     <Compile Include="Services\MarkdownServiceFacts.cs" />
     <Compile Include="Services\PackageVulnerabilitiesCacheServiceFacts.cs" />
