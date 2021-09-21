@@ -70,6 +70,14 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Format the number of bytes into a user-friendly display label.
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static string ToUserFriendlyBytesLabel(this int bytes)
+            => ToUserFriendlyBytesLabel((long)bytes);
+
+        /// <summary>
         /// Format the number to a 1 decimal precision plus a letter to represent the scale (K for kilo, M for mega, or B for billion)
         /// </summary>
         /// <param name="number">The number to format</param>

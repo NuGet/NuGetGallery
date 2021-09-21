@@ -22,7 +22,19 @@ namespace NuGetGallery.Extensions
             [InlineData(1024, "1 KB")]
             [InlineData(1024*1024, "1 MB")]
             [InlineData(1024 * 1024 * 1024, "1 GB")]
-            public void FormatsUsingExpectedUnit(long bytes, string expected)
+            public void FormatsUsingExpectedUnitWithLong(long bytes, string expected)
+            {
+                var actual = NumberExtensions.ToUserFriendlyBytesLabel(bytes);
+
+                Assert.Equal(expected, actual);
+            }
+
+            [Theory]
+            [InlineData(1, "1 byte")]
+            [InlineData(512, "512 bytes")]
+            [InlineData(1024, "1 KB")]
+            [InlineData(1024 * 1024, "1 MB")]
+            public void FormatsUsingExpectedUnitWithInt(int bytes, string expected)
             {
                 var actual = NumberExtensions.ToUserFriendlyBytesLabel(bytes);
 
