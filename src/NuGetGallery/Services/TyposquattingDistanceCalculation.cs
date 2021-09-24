@@ -30,7 +30,7 @@ namespace NuGetGallery
             Insert,
         }
 
-        public static bool IsDistanceLessOrEqualThanThreshold(string str1, string str2, int threshold)
+        public static bool IsDistanceLessThanOrEqualToThreshold(string str1, string str2, int threshold)
         {
             if (str1 == null)
             {

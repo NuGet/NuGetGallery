@@ -452,8 +452,8 @@ namespace NuGetGallery
             str2 = TyposquattingStringNormalization.NormalizeString(str2);
 
             // Act
-            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessOrEqualThanThreshold(str1, str2, threshold);
-            
+            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanOrEqualToThreshold(str1, str2, threshold);
+
             // Assert
             Assert.True(checkResult);
         }
@@ -471,8 +471,8 @@ namespace NuGetGallery
             str2 = TyposquattingStringNormalization.NormalizeString(str2);
 
             // Act
-            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessOrEqualThanThreshold(str1, str2, threshold);
-            
+            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanOrEqualToThreshold(str1, str2, threshold);
+
             // Assert
             Assert.False(checkResult);
         }
