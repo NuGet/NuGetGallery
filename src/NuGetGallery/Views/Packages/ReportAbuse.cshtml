@@ -1,6 +1,6 @@
 ﻿@model ReportAbuseViewModel
 @{
-    ViewBag.Title = "Report Abuse by " + Model.PackageId + " " + Model.PackageVersion;
+    ViewBag.Title = "Report Package " + Model.PackageId + " " + Model.PackageVersion;
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
     string returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
 }
@@ -9,44 +9,68 @@
     <div class="row report-form">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial(
-                "_PackageHeading", 
+                "_PackageHeading",
                 new PackageHeadingModel(
-                    Model.PackageId, 
-                    Model.PackageVersion, 
-                    "Report abuse"))
+                    Model.PackageId,
+                    Model.PackageVersion,
+                    "Report package"))
 
+            <h2><strong>If this package has a bug/failed to install</strong></h2>
             @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
                 @<text>
-                    <strong>Important - Please do not use this form to report a bug in a package you are using!</strong><br />
-                    This form is for reporting abusive packages such as
-                    packages containing malicious code or spam. If "@Model.PackageId" simply doesn't
-                    work, or if you need help getting the package installed, please
+                    Please do not report using the form below - that is reserved for abusive packages, such as those containing malicious code or spam.
+                    <br />
+                    <br />
+                    If "@Model.PackageId" simply doesn't work, or if you need help getting the package installed, please
                     <a href="@Url.ContactOwners(Model)" title="contact the owners">contact the owners instead.</a>
                 </text>
             )
 
-            <p tabindex="0">
-                Please provide a detailed abuse report with evidence to support your claim! We cannot delete packages without evidence that they exhibit malicious behavior.
-            </p>
+            <h2><strong>To report a security vulnerability</strong></h2>
+            @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+                @<text>
+                    Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official portal</a>.
+                    If this is not a Microsoft - owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
+                </text>
+            )
 
+            <h2><strong>To report abuse, use this form</strong></h2>
             @if (!Model.ConfirmedUser)
             {
-                <p tabindex="0">
-                    Note: If this is your package and you would like to contact support, please
-                    <a href="@Url.LogOn(returnUrl)">sign in.</a>
-                </p>
+                @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+                    @<text>
+                        If this is your package, please <a href="@Url.LogOn(returnUrl)">sign in</a> to contact support.
+                    </text>
+                )
             }
+            <p tabindex="0">
+                <text>
+                    Please provide a detailed abuse report with evidence to support your claim! We cannot delete packages without evidence that they exhibit malicious behavior.
+                </text>
+            </p>
+
             @using (Html.BeginForm())
             {
                 @Html.AntiForgeryToken()
 
                 <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
                     @Html.ShowLabelFor(m => m.Reason)
-                    <p tabindex="0">Please select the reason for contacting support about this package.</p>
+                    <p tabindex="0">Please select the reason for contacting support about this package. This package contains:</p>
                     @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>")
                     @Html.ShowValidationMessagesFor(m => m.Reason)
                 </div>
 
+                <div class="reason-error-has-a-bug" tabindex="0">
+                    <p>
+                        Unfortunately we cannot provide support for bugs in NuGet packages. Please <a href="@Url.ContactOwners(Model)" title="contact the owners">contact the owners</a> for assistance.
+                    </p>
+                </div>
+                <div class="reason-error-security-vulnerability" tabindex="0">
+                    <p>
+                        Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official portal</a>.
+                        If this is not a Microsoft - owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
+                    </p>
+                </div>
                 <div id="report-abuse-form">
                     <div class="form-group @Html.HasErrorFor(m => m.Email)">
                         @Html.ShowLabelFor(m => m.Email)
@@ -73,11 +97,6 @@
                                 Note: Please complete this form and submit it so we can proceed with an appropriate response regarding the NuGet package (e.g. removing it). In addition, please proceed to <a href="https://report.cybertip.org">https://report.cybertip.org</a> to report the matter in more detail.
                             </p>
                         </div>
-                        <div class="terrorism-or-violent-extremism" tabindex="0">
-                            <p>
-                                Note: Please complete this form and submit it so we can proceed with an appropriate response regarding the NuGet package (e.g. removing it). In addition, please proceed to <a href="https://www.microsoft.com/en-au/concern/terroristcontent">https://www.microsoft.com/en-au/concern/terroristcontent</a> to report the matter in more detail.
-                            </p>
-                        </div>
                         <div class="imminent-harm" tabindex="0">
                             <p>
                                 Note: please ensure when reporting this type of abuse that you've considered whether the following are present:
@@ -87,11 +106,6 @@
                                     <li>Details of the threat</li>
                                     <li>Time and/or place where the act will be carried out</li>
                                 </ul>
-                            </p>
-                        </div>
-                        <div class="revenge-porn" tabindex="0">
-                            <p>
-                                Note: Please complete this form and submit it so we can proceed with an appropriate response regarding the NuGet package (e.g. removing it). In addition, please proceed to <a href="https://www.microsoft.com/en-us/concern/revengeporn">https://www.microsoft.com/en-us/concern/revengeporn</a> to report the matter in more detail.
                             </p>
                         </div>
                         @Html.ShowTextAreaFor(m => m.Message, 10, 50)
@@ -139,10 +153,24 @@
                 $form.validate().element($('#Reason'));
             }
 
-            if (val === 'HasABugOrFailedToInstall') {
+            // For error conditions, hide the other form fields and show error messages
+            if (val === 'HasABugOrFailedToInstall'
+                || val === 'ContainsSecurityVulnerability') {
                 $('#report-abuse-form').hide();
             } else {
                 $('#report-abuse-form').show();
+            }
+
+            if (val === 'HasABugOrFailedToInstall') {
+                $form.find('.reason-error-has-a-bug').show();
+            } else {
+                $form.find('.reason-error-has-a-bug').hide();
+            }
+
+            if (val === 'ContainsSecurityVulnerability') {
+                $form.find('.reason-error-security-vulnerability').show();
+            } else {
+                $form.find('.reason-error-security-vulnerability').hide();
             }
 
             // We don't suggest the customer contact the owner in the case of safety violations
@@ -163,22 +191,10 @@
                 $form.find('.child-sexual-exploitation').hide();
             }
 
-            if (val === 'TerrorismOrViolentExtremism') {
-                $form.find('.terrorism-or-violent-extremism').show();
-            } else {
-                $form.find('.terrorism-or-violent-extremism').hide();
-            }
-
             if (val === 'ImminentHarm') {
                 $form.find('.imminent-harm').show();
             } else {
                 $form.find('.imminent-harm').hide();
-            }
-
-            if (val === 'RevengePorn') {
-                $form.find('.revenge-porn').show();
-            } else {
-                $form.find('.revenge-porn').hide();
             }
 
             if (val == 'ViolatesALicenseIOwn') {
