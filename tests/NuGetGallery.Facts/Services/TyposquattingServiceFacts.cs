@@ -2,11 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
+using System.Collections.Generic;
 using Moq;
-using NuGet.Services.Entities;
 using Xunit;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -451,8 +452,8 @@ namespace NuGetGallery
             str2 = TyposquattingStringNormalization.NormalizeString(str2);
 
             // Act
-            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(str1, str2, threshold);
-            
+            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanOrEqualToThreshold(str1, str2, threshold);
+
             // Assert
             Assert.True(checkResult);
         }
@@ -470,13 +471,26 @@ namespace NuGetGallery
             str2 = TyposquattingStringNormalization.NormalizeString(str2);
 
             // Act
-            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(str1, str2, threshold);
-            
+            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanOrEqualToThreshold(str1, str2, threshold);
+
             // Assert
             Assert.False(checkResult);
         }
-        
+
         [Theory]
+        [InlineData("ă", "a")]
+        [InlineData("aă", "aa")]
+        [InlineData("aăăa", "aaaa")]
+        [InlineData("𐒎", "h")]
+        [InlineData("h𐒎", "hh")]
+        [InlineData("h𐒎𐒎h", "hhhh")]
+        [InlineData("aă𐒎a", "aaha")]
+        [InlineData("a𐒎ăa", "ahaa")]
+        [InlineData("aă𐒎ăa", "aahaa")]
+        [InlineData("a𐒎ă𐒎a", "ahaha")]
+        [InlineData("aă𐒎ă𐒎a", "aahaha")]
+        [InlineData("aă𐒎𐒎ăă𐒎a", "aahhaaha")]
+        [InlineData("aă𐒎𐒎a𐒎ăă𐒎ă𐒎a", "aahhahaahaha")]
         [InlineData("Microsoft_NetFramework_v1", "microsoft_netframework_v1")]
         [InlineData("Microsoft.netframework-v1", "microsoft_netframework_v1")]
         [InlineData("mícr0s0ft.nёtFrǎmȇwὀrk.v1", "microsoft_netframework_v1")]
@@ -487,6 +501,61 @@ namespace NuGetGallery
 
             // Assert
             Assert.Equal(str1, str2);
+        }
+
+        [Fact]
+        public void CheckNormalizationDictionary()
+        {
+            // Arrange
+            var similarCharacterDictionary = new Dictionary<string, string>()
+            {
+                { "a", "AΑАαаÀÁÂÃÄÅàáâãäåĀāĂăĄąǍǎǞǟǠǡǺǻȀȁȂȃȦȧȺΆάἀἁἂἃἄἅἆἇἈἉἊἋἌΆἍἎἏӐӑӒӓὰάᾀᾁᾂᾃᾄᾅᾆᾇᾈᾊᾋᾌᾍᾎᾏᾰᾱᾲᾳᾴᾶᾷᾸᾹᾺᾼДд"},
+                { "b", "BΒВЪЬƀƁƂƃƄƅɃḂḃϦЂБвъьѢѣҌҍႦႪხҔҕӃӄ"},
+                { "c", "CСсϹϲÇçĆćĈĉĊċČčƇƈȻȼҪҫ𐒨"},
+                { "d", "DƊԁÐĎďĐđƉƋƌǷḊḋԀԂԃ"},
+                { "e", "EΕЕеÈÉÊËèéêëĒēĔĕĖėĘęĚěȄȅȆȇȨȩɆɇΈЀЁЄѐёҼҽҾҿӖӗἘἙἚἛἜἝῈΈ"},
+                { "f", "FϜƑƒḞḟϝҒғӺӻ"},
+                { "g", "GǤԌĜĝĞğĠġĢģƓǥǦǧǴǵԍ"},
+                { "h", "HΗНһհҺĤĥħǶȞȟΉἨἩἪἫἬἭἮἯᾘᾙᾚᾛᾜᾝᾞᾟῊΉῌЋнћҢңҤҥӇӈӉӊԊԋԦԧԨԩႬႹ𐒅𐒌𐒎𐒣"},
+                { "i", "IΙІӀ¡ìíîïǐȉȋΐίιϊіїὶίῐῑῒΐῖῗΊΪȊȈἰἱἲἳἴἵἶἷἸἹἺἻἼἽἾἿῘῙῚΊЇӏÌÍÎÏĨĩĪīĬĭĮįİǏ"},
+                { "j", "JЈͿϳĴĵǰȷ"},
+                { "k", "KΚКKĶķĸƘƙǨǩκϏЌкќҚқҜҝҞҟҠҡԞԟ"},
+                { "l", "LĹĺĻļĽľĿŀŁłſƖƪȴẛ"},
+                { "m", "MΜМṀṁϺϻмӍӎ𐒄"},
+                { "n", "NΝпÑñŃńŅņŇňŉƝǸǹᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇԤԥԮԯ𐒐"},
+                { "o", "OΟОՕჿоοÒÓÔÕÖðòóôõöøŌōŎŏŐőƠơǑǒǪǫǬǭȌȍȎȏȪȫȬȭȮȯȰȱΌδόϘϙὀὁὂὃὄὅὈὉὊὋὌὍὸόῸΌӦӧჾ𐒆𐒠0"},
+                { "p", "PΡРрρÞþƤƥƿṖṗϷϸῤῥῬҎҏႲႼ"},
+                { "q", "QգԛȡɊɋԚႭႳ"},
+                { "r", "RгŔŕŖŗŘřƦȐȑȒȓɌɼѓ"},
+                { "s", "SЅѕՏႽჽŚśŜŝŞşŠšȘșȿṠṡ𐒖𐒡"},
+                { "t", "TΤТͲͳŢţŤťŦŧƬƭƮȚțȾṪṫτтҬҭէ"},
+                { "u", "UՍႮÙÚÛÜùúûüŨũŪūŬŭŮůŰűŲųƯưǓǔǕǖǗǘǙǚǛǜȔȕȖȗμυϋύὐὑὒὓὔὕὖὗὺύῠῡῢΰῦῧ𐒩"},
+                { "v", "VνѴѵƔƲѶѷ"},
+                { "w", "WωшԜԝŴŵƜẀẁẂẃẄẅώШЩщѡѿὠὡὢὣὤὥὦὧὼώᾠᾡᾢᾣᾤᾥᾦᾧῲῳῴῶῷ"},
+                { "x", "XХΧх×χҲҳӼӽӾӿჯ"},
+                { "y", "YΥҮƳуУÝýÿŶŷŸƴȲȳɎɏỲỳΎΫγϒϓϔЎЧўүҶҷҸҹӋӌӮӯӰӱӲӳӴӵὙὛὝὟῨῩῪΎႯႸ𐒋𐒦"},
+                { "z", "ZΖჍŹźŻżŽžƵƶȤȥ"},
+                { "3", "ƷЗʒӡჳǮǯȜȝзэӞӟӠ"},
+                { "8", "Ȣȣ"},
+                { "_", ".-" }
+            };
+
+            var testPackageName = "testpackage";
+            foreach (var item in similarCharacterDictionary)
+            {
+                var textElementEnumerator = StringInfo.GetTextElementEnumerator(item.Value);
+                while (textElementEnumerator.MoveNext())
+                {
+                    var typoString = testPackageName + textElementEnumerator.GetTextElement();
+                    var baseString = testPackageName + item.Key;
+
+                    // Act
+                    var normalizedString = TyposquattingStringNormalization.NormalizeString(typoString);
+
+                    // Assert
+                    Assert.Equal(baseString, normalizedString);
+                }
+            }
         }
     }
 }
