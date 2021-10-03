@@ -1,42 +1,26 @@
-﻿[NuGet Gallery](http://nuget.org/) — Where packages are found 
+﻿[NuGet Gallery](https://www.nuget.org/) — Where packages are found 
 =======================================================================
 
-This is an implementation of the NuGet Gallery and API. This serves as the back-end and community 
-website for the NuGet client. For information about the NuGet project, visit the [Home repository](https://github.com/nuget/home).
+This powers [nuget.org](https://www.nuget.org), the home for .NET's open-source ecosystem. For information about the NuGet project, visit the [Home repository](https://github.com/nuget/home).
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## Build and Run the Gallery in (arbitrary number) easy steps
+## Getting started
 
 1. Prerequisites:
-    1. Visual Studio 2019 - Install the following `Workloads`:
+    1. Visual Studio 2019 - Install the following [`Workloads`](https://docs.microsoft.com/visualstudio/install/modify-visual-studio):
         * ASP.NET and web development
         * Azure development
     2. PowerShell 4.0
-    3. SQL Server 2016
-        * For development purposes connection strings point to `(localdb)\mssqllocaldb`, make sure that the DB engine version 13.0 or greater is being used (check by running `sqllocaldb info mssqllocaldb` in the command line).
-2. Clone it!
-    
-    ```PS C:\Code> git clone https://github.com/NuGet/NuGetGallery.git```
-3. Build it!
-    
-    ```
-    PS C:\Code> cd NuGetGallery
-    PS C:\Code\NuGetGallery> .\build
-    ```
-4. Set up the website!
+    3. SQL Server 2016 (with DB engine version 13.0 or greater)
+2. Run `git clone https://github.com/NuGet/NuGetGallery.git`
+3. Navigate to `.\NuGetGallery`
+4. Build with `.\build.ps1`
+5. Create the database and enable HTTPS with `.\tools\Setup-DevEnvironment.ps1`
+6. Open `.\NuGetGallery.sln` using Visual Studio
+7. Ensure the `NuGetGallery` project is the StartUp Project and [press `F5` to run the site](https://docs.microsoft.com/visualstudio/get-started/csharp/run-program)
 
-    ```PS C:\Code\NuGetGallery> .\tools\Setup-DevEnvironment.ps1```
-    
-5. If you would like to configure your gallery instance to use MSA/AAD, please follow the steps listed [here](https://github.com/NuGet/NuGetGallery/wiki/Configuring-MSA-AAD-for-your-on-prem-gallery-instance).
-
-6. Ensure the `NugetGallery` project is the StartUp Project and press `F5` to run the site! That's it!
-
-When working with the gallery, e-mail messages are saved to the file system (under `~/App_Data`).
-You can use an SMTP server instead by editing `src\NuGetGallery\Web.Config` and adding a `Gallery.SmtpUri`
-setting. Its value should be an SMTP connection string, such as: `smtp://user:password@smtpservername:25`.
-You can also turn off e-email confirmations by changing the value of `Gallery.ConfirmEmailAddresses` to `false`
-in the `src\NugetGallery\Web.Config` file.
+Refer to [our documentation](./docs/) for information on how to create an admin account, use AAD, and more.
 
 Visual Studio may modify the `applicationhost.config` file. You can force git to ignore changes to this file
 with:
