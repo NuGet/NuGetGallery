@@ -1,7 +1,7 @@
 ﻿[NuGet Gallery](https://www.nuget.org/) — Where packages are found 
 =======================================================================
 
-This powers [nuget.org](https://www.nuget.org), the home for .NET's open-source ecosystem. For information about the NuGet project, visit the [Home repository](https://github.com/nuget/home).
+This  project powers [nuget.org](https://www.nuget.org), the home for .NET's open-source ecosystem. For information about NuGet, visit the [Home repository](https://github.com/nuget/home).
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
