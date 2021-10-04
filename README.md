@@ -24,7 +24,7 @@ Now run the NuGet Gallery:
 5. Open `.\NuGetGallery.sln` using Visual Studio
 6. Ensure the `NuGetGallery` project is the StartUp Project and [press `F5` to run the site](https://docs.microsoft.com/visualstudio/get-started/csharp/run-program)
 
-Refer to [our documentation](./docs/) for information on how to create an admin account, use AAD, and more.
+Refer to [our documentation](./docs/) for information on how to develop the frontend, use AAD, and more.
 
 ## Deploy
 
