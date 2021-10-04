@@ -71,6 +71,17 @@ This is the Git workflow we're currently using:
 
 Clone and checkout the `dev` branch.
 
+Visual Studio may modify the `applicationhost.config` file. You can force git to ignore changes to this file
+with:
+
+    git update-index --assume-unchanged .vs/config/applicationhost.config
+
+You can undo this with this command:
+
+    git update-index --no-assume-unchanged .vs/config/applicationhost.config
+
+This should help prevent unwanted file commits.
+
 ### When starting a new feature/unit of work.
     
 1.  __Pull the latest.__
@@ -124,13 +135,3 @@ Clone and checkout the `dev` branch.
 6.  __Be ready to guide your change through QA, Staging and Prod__
     Your change will make its way through the QA, Staging and finally Prod branches as it's deployed to the various environments. Be prepared to fix additional bugs!
 
-Visual Studio may modify the `applicationhost.config` file. You can force git to ignore changes to this file
-with:
-
-    git update-index --assume-unchanged .vs/config/applicationhost.config
-
-You can undo this with this command:
-
-    git update-index --no-assume-unchanged .vs/config/applicationhost.config
-
-This should help prevent unwanted file commits.
