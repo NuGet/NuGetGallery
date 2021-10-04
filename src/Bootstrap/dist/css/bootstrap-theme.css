@@ -664,12 +664,18 @@ img.reserved-indicator-icon {
 #readme-less li.task-list-item {
   list-style-type: none;
 }
+#readme-less blockquote {
+  font-size: 16px;
+}
 #readme-more img {
   max-width: 100%;
 }
 #readme-more ul.contains-task-list,
 #readme-more li.task-list-item {
   list-style-type: none;
+}
+#readme-more blockquote {
+  font-size: 16px;
 }
 #readme-preview {
   padding-top: 0.25em;
@@ -1687,6 +1693,9 @@ img.reserved-indicator-icon {
 }
 .page-package-details-v2 .body-tab-content #readme-tab img {
   max-width: 100%;
+}
+.page-package-details-v2 .body-tab-content #readme-tab blockquote {
+  font-size: 16px;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;
