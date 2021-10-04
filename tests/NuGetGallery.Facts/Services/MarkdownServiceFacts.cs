@@ -105,6 +105,7 @@ namespace NuGetGallery
             [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>", true, false)]
             [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3>License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);\n</code></pre>", false, true)]
             [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3>License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);\n</code></pre>", false, true)]
+            [InlineData("Hello ~~world~~", "<p>Hello <del>world</del></p>", false, true)]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);

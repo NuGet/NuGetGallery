@@ -11,6 +11,7 @@ using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
 using Markdig;
+using Markdig.Extensions.EmphasisExtras;
 using Markdig.Parsers;
 using Markdig.Renderers;
 using Markdig.Syntax;
@@ -203,6 +204,7 @@ namespace NuGetGallery
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
                 .UseReferralLinks("noopener noreferrer nofollow")
+                .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
                 .DisableHtml() //block inline html
                 .Build();
 
