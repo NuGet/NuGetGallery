@@ -26,17 +26,6 @@ Now run the NuGet Gallery:
 
 Refer to [our documentation](./docs/) for information on how to create an admin account, use AAD, and more.
 
-Visual Studio may modify the `applicationhost.config` file. You can force git to ignore changes to this file
-with:
-
-    git update-index --assume-unchanged .vs/config/applicationhost.config
-
-You can undo this with this command:
-
-    git update-index --no-assume-unchanged .vs/config/applicationhost.config
-
-This should help prevent unwanted file commits.
-
 ## Deploy
 
 You will find instructions on how to deploy the Gallery to Azure [here](https://github.com/NuGet/NuGetGallery/blob/master/docs/Deploying/README.md).
@@ -134,3 +123,14 @@ Clone and checkout the `dev` branch.
     
 6.  __Be ready to guide your change through QA, Staging and Prod__
     Your change will make its way through the QA, Staging and finally Prod branches as it's deployed to the various environments. Be prepared to fix additional bugs!
+
+Visual Studio may modify the `applicationhost.config` file. You can force git to ignore changes to this file
+with:
+
+    git update-index --assume-unchanged .vs/config/applicationhost.config
+
+You can undo this with this command:
+
+    git update-index --no-assume-unchanged .vs/config/applicationhost.config
+
+This should help prevent unwanted file commits.
