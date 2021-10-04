@@ -7,18 +7,22 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 ## Getting started
 
-1. Prerequisites:
-    1. Visual Studio 2019 - Install the following [`Workloads`](https://docs.microsoft.com/visualstudio/install/modify-visual-studio):
-        * ASP.NET and web development
-        * Azure development
-    2. PowerShell 4.0
-    3. SQL Server 2016 (with DB engine version 13.0 or greater)
-2. Run `git clone https://github.com/NuGet/NuGetGallery.git`
-3. Navigate to `.\NuGetGallery`
-4. Build with `.\build.ps1`
-5. Create the database and enable HTTPS with `.\tools\Setup-DevEnvironment.ps1`
-6. Open `.\NuGetGallery.sln` using Visual Studio
-7. Ensure the `NuGetGallery` project is the StartUp Project and [press `F5` to run the site](https://docs.microsoft.com/visualstudio/get-started/csharp/run-program)
+First install prerequisites:
+
+1. Visual Studio 2019 - Install the following [`Workloads`](https://docs.microsoft.com/visualstudio/install/modify-visual-studio):
+    * ASP.NET and web development
+    * Azure development
+2. PowerShell 4.0
+3. SQL Server 2016 (with DB engine version 13.0 or greater)
+
+Now run the NuGet Gallery:
+
+1. Clone the repository with `git clone https://github.com/NuGet/NuGetGallery.git`
+2. Navigate to `.\NuGetGallery`
+3. Build with `.\build.ps1`
+4. Create the database and enable HTTPS with `.\tools\Setup-DevEnvironment.ps1`
+5. Open `.\NuGetGallery.sln` using Visual Studio
+6. Ensure the `NuGetGallery` project is the StartUp Project and [press `F5` to run the site](https://docs.microsoft.com/visualstudio/get-started/csharp/run-program)
 
 Refer to [our documentation](./docs/) for information on how to create an admin account, use AAD, and more.
 
