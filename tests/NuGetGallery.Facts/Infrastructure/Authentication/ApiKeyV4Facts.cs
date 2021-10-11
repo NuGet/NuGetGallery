@@ -35,6 +35,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         [InlineData(" ")]
         [InlineData("abc")]
         [InlineData("SEMTXET5UU6UZDD4AMK57TR46I==")]
+        [InlineData("0000thisis46charactersbutnotvalidbase32encoded")]
         public void TryParseFailsForIllegalApiKeys(string inputApiKey)
         {
             // Act 

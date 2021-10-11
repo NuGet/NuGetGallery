@@ -135,6 +135,10 @@ namespace NuGetGallery.Infrastructure.Authentication
 
                 return success;
             }
+            catch (ArgumentException)
+            {
+                return false;
+            }
             catch (InvalidOperationException)
             {
                 return false;
