@@ -120,8 +120,21 @@ namespace NuGetGallery.Infrastructure.Authentication
 
             try
             {
-                var id = plaintextApiKey.Substring(0, IdPartBase32Length);
-                var idBytes = id.AppendBase32Padding().ToUpper().FromBase32String();
+                var id = plaintextApiKey
+                    .Substring(0, IdPartBase32Length)
+                    .AppendBase32Padding()
+                    .ToUpper();
+
+                byte[] idBytes;
+                try
+                {
+                    idBytes = id.FromBase32String();
+                }
+                catch (ArgumentException)
+                {
+                    return false;
+                }
+
                 bool success = idBytes[0] == IdPrefix[0] && idBytes[1] == IdPrefix[1];
 
                 if (success)
@@ -134,10 +147,6 @@ namespace NuGetGallery.Infrastructure.Authentication
                 }
 
                 return success;
-            }
-            catch (ArgumentException)
-            {
-                return false;
             }
             catch (InvalidOperationException)
             {
