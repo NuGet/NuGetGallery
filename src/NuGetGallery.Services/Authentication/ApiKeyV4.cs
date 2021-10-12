@@ -120,12 +120,13 @@ namespace NuGetGallery.Infrastructure.Authentication
 
             try
             {
-                var id = plaintextApiKey
-                    .Substring(0, IdPartBase32Length)
+                var id = plaintextApiKey.Substring(0, IdPartBase32Length);
+                var validId = id
                     .AppendBase32Padding()
-                    .ToUpper();
+                    .ToUpper()
+                    .TryDecodeBase32String(out var idBytes);
 
-                if (!id.TryDecodeBase32String(out var idBytes))
+                if (!validId)
                 {
                     return false;
                 }
