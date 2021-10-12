@@ -132,6 +132,8 @@ namespace NuGetGallery.Infrastructure.Authentication
                 }
                 catch (ArgumentException)
                 {
+                    // Thrown if the input is not a valid base32 encoded string.
+                    // The API key is malformed and cannot be parsed.
                     return false;
                 }
 
