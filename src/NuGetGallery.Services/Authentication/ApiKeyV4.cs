@@ -125,15 +125,8 @@ namespace NuGetGallery.Infrastructure.Authentication
                     .AppendBase32Padding()
                     .ToUpper();
 
-                byte[] idBytes;
-                try
+                if (!id.TryParseBase32String(out var idBytes))
                 {
-                    idBytes = id.FromBase32String();
-                }
-                catch (ArgumentException)
-                {
-                    // Thrown if the input is not a valid base32 encoded string.
-                    // The API key is malformed and cannot be parsed.
                     return false;
                 }
 

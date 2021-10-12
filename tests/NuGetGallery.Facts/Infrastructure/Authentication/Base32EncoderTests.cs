@@ -75,10 +75,13 @@ namespace NuGetGallery.Infrastructure
 
             // Act
             var encoded = byteArr.ToBase32String();
-            var decoded = encoded.FromBase32String();
+            var decoded1 = encoded.FromBase32String();
+            var success = encoded.TryParseBase32String(out var decoded2);
 
             // Assert           
-            Assert.True(byteArr.SequenceEqual(decoded));
+            Assert.True(success);
+            Assert.True(byteArr.SequenceEqual(decoded1));
+            Assert.True(byteArr.SequenceEqual(decoded2));
         }
 
         [Theory]
@@ -98,10 +101,13 @@ namespace NuGetGallery.Infrastructure
 
             // Act
             var withPadding = noPadding.AppendBase32Padding();
-            var decoded = withPadding.FromBase32String();
+            var decoded1 = withPadding.FromBase32String();
+            var success = withPadding.TryParseBase32String(out var decoded2);
 
             // Assert
-            Assert.True(byteArr.SequenceEqual(decoded));
+            Assert.True(success);
+            Assert.True(byteArr.SequenceEqual(decoded1));
+            Assert.True(byteArr.SequenceEqual(decoded2));
         }
     }
 }
