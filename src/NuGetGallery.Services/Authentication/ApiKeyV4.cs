@@ -125,7 +125,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                     .AppendBase32Padding()
                     .ToUpper();
 
-                if (!id.TryParseBase32String(out var idBytes))
+                if (!id.TryDecodeBase32String(out var idBytes))
                 {
                     return false;
                 }

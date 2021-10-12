@@ -18,7 +18,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             return Encode(data);
         }
 
-        public static bool TryParseBase32String(this string base32String, out byte[] result)
+        public static bool TryDecodeBase32String(this string base32String, out byte[] result)
         {
             try
             {

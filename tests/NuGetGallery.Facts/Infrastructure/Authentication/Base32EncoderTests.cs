@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NuGetGallery.Infrastructure.Authentication;
@@ -13,55 +14,84 @@ namespace NuGetGallery.Infrastructure
     {
         private Random _random = new Random(0);
 
+        // Maps string to its base32 encoding
+        public static IEnumerable<object[]> ValidBase32 => new List<object[]>
+        {
+            new object[] { "", "" },
+            new object[] { "f", "MY======" },
+            new object[] { "fo", "MZXQ====" },
+            new object[] { "foo", "MZXW6===" },
+            new object[] { "foob", "MZXW6YQ=" },
+            new object[] { "fooba", "MZXW6YTB" },
+            new object[] { "foobar", "MZXW6YTBOI======" },
+        };
+
+        public static IEnumerable<object[]> InvalidBase32 => new List<object[]>
+        {
+            new object[] { "a" },
+            new object[] { "abc" },
+            new object[] { "SEMTXET5UU6UZDD4AMK57TR46I==" },
+            new object[] { "mjwgc===" },
+            new object[] { "GEYq====" },
+        };
+
         [Fact]
-        public void WhenDataIsNullEncodeThrowsNullReferenceException()
+        public void EncodeThrowsNull()
         {
             Assert.Throws<NullReferenceException>(() => Base32Encoder.Encode(data: null));
         }
 
         [Fact]
-        public void WhenDataIsNullDecodeThrowsNullReferenceException()
+        public void DecodeThrowsNull()
         {
             Assert.Throws<NullReferenceException>(() => Base32Encoder.Decode(base32String: null));
         }
 
+        [Fact]
+        public void TryDecodeRejectsNull()
+        {
+            string input = null;
+
+            Assert.False(input.TryDecodeBase32String(out var result));
+        }
+
         [Theory]
-        [InlineData("a")]
-        [InlineData("abc")]
-        [InlineData("SEMTXET5UU6UZDD4AMK57TR46I==")]
-        [InlineData("mjwgc===")]
-        [InlineData("GEYq====")]
-        public void WhenDataIsNotLegalBase32DecodeThrows(string input)
+        [MemberData(nameof(InvalidBase32))]
+        public void DecodeThrowsInvalidArgument(string input)
         {
             Assert.Throws<ArgumentException>(() => Base32Encoder.Decode(base32String: input));
         }
 
         [Theory]
-        [InlineData("", "")]
-        [InlineData("f", "MY======")]
-        [InlineData("fo", "MZXQ====")]
-        [InlineData("foo", "MZXW6===")]
-        [InlineData("foob", "MZXW6YQ=")]
-        [InlineData("fooba", "MZXW6YTB")]
-        [InlineData("foobar", "MZXW6YTBOI======")]
-        public void WhenValidBase32StringProvideDecodeSucceeds(string decodedString, string base32String)
+        [MemberData(nameof(InvalidBase32))]
+        public void TryParseRejectsInvalidBase32(string input)
+        {
+            Assert.False(input.TryDecodeBase32String(out var result));
+        }
+
+        [Theory]
+        [MemberData(nameof(ValidBase32))]
+        public void DecodesBase32(string decodedString, string base32String)
         {
             Assert.Equal(decodedString, Encoding.ASCII.GetString(base32String.FromBase32String()));
         }
 
         [Theory]
-        [InlineData("", "")]
-        [InlineData("f", "MY======")]
-        [InlineData("fo", "MZXQ====")]
-        [InlineData("foo", "MZXW6===")]
-        [InlineData("foob", "MZXW6YQ=")]
-        [InlineData("fooba", "MZXW6YTB")]
-        [InlineData("foobar", "MZXW6YTBOI======")]
-        public void WhenDataIsEncodedTheResultIsCorrect(string input, string base32String)
+        [MemberData(nameof(ValidBase32))]
+        public void TryDecodesBase32(string decodedString, string base32String)
+        {
+            var success = base32String.TryDecodeBase32String(out var result);
+
+            Assert.True(success);
+            Assert.Equal(decodedString, Encoding.ASCII.GetString(result));
+        }
+
+        [Theory]
+        [MemberData(nameof(ValidBase32))]
+        public void EncodesBase32(string input, string base32String)
         {
             Assert.Equal(base32String, Base32Encoder.ToBase32String(Encoding.ASCII.GetBytes(input)));
         }
-
 
         [Theory]
         [InlineData("")]
@@ -76,7 +106,7 @@ namespace NuGetGallery.Infrastructure
             // Act
             var encoded = byteArr.ToBase32String();
             var decoded1 = encoded.FromBase32String();
-            var success = encoded.TryParseBase32String(out var decoded2);
+            var success = encoded.TryDecodeBase32String(out var decoded2);
 
             // Assert           
             Assert.True(success);
@@ -102,7 +132,7 @@ namespace NuGetGallery.Infrastructure
             // Act
             var withPadding = noPadding.AppendBase32Padding();
             var decoded1 = withPadding.FromBase32String();
-            var success = withPadding.TryParseBase32String(out var decoded2);
+            var success = withPadding.TryDecodeBase32String(out var decoded2);
 
             // Assert
             Assert.True(success);
