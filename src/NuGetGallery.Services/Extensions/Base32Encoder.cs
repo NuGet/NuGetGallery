@@ -56,7 +56,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
             if (data == null)
             {
-                throw new NullReferenceException(nameof(data));
+                throw new ArgumentNullException(nameof(data));
             }
 
             int ncTokens = GetTokenCount(data);
@@ -77,7 +77,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
             if (base32String == null)
             {
-                throw new NullReferenceException(nameof(base32String));
+                throw new ArgumentNullException(nameof(base32String));
             }
 
             // Validate base32 format

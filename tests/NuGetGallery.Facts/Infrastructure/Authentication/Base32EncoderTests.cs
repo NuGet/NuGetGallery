@@ -38,13 +38,13 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void EncodeThrowsNull()
         {
-            Assert.Throws<NullReferenceException>(() => Base32Encoder.Encode(data: null));
+            Assert.Throws<ArgumentNullException>(() => Base32Encoder.Encode(data: null));
         }
 
         [Fact]
         public void DecodeThrowsNull()
         {
-            Assert.Throws<NullReferenceException>(() => Base32Encoder.Decode(base32String: null));
+            Assert.Throws<ArgumentNullException>(() => Base32Encoder.Decode(base32String: null));
         }
 
         [Fact]
