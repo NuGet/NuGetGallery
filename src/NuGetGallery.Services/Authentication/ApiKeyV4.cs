@@ -121,7 +121,16 @@ namespace NuGetGallery.Infrastructure.Authentication
             try
             {
                 var id = plaintextApiKey.Substring(0, IdPartBase32Length);
-                var idBytes = id.AppendBase32Padding().ToUpper().FromBase32String();
+                var validId = id
+                    .AppendBase32Padding()
+                    .ToUpper()
+                    .TryDecodeBase32String(out var idBytes);
+
+                if (!validId)
+                {
+                    return false;
+                }
+
                 bool success = idBytes[0] == IdPrefix[0] && idBytes[1] == IdPrefix[1];
 
                 if (success)

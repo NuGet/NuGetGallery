@@ -18,6 +18,20 @@ namespace NuGetGallery.Infrastructure.Authentication
             return Encode(data);
         }
 
+        public static bool TryDecodeBase32String(this string base32String, out byte[] result)
+        {
+            try
+            {
+                result = Decode(base32String);
+                return true;
+            }
+            catch (ArgumentException)
+            {
+                result = Array.Empty<byte>();
+                return false;
+            }
+        }
+
         public static byte[] FromBase32String(this string base32String)
         {
             return Decode(base32String);
@@ -42,7 +56,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
             if (data == null)
             {
-                throw new NullReferenceException(nameof(data));
+                throw new ArgumentNullException(nameof(data));
             }
 
             int ncTokens = GetTokenCount(data);
@@ -63,7 +77,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
             if (base32String == null)
             {
-                throw new NullReferenceException(nameof(base32String));
+                throw new ArgumentNullException(nameof(base32String));
             }
 
             // Validate base32 format
