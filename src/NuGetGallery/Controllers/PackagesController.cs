@@ -63,6 +63,7 @@ namespace NuGetGallery
         {
             ReportPackageReason.ViolatesALicenseIOwn,
             ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.ContainsSecurityVulnerability,
             ReportPackageReason.HasABugOrFailedToInstall,
             ReportPackageReason.Other
         };
@@ -71,6 +72,7 @@ namespace NuGetGallery
         {
             ReportPackageReason.ViolatesALicenseIOwn,
             ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.ContainsSecurityVulnerability,
             ReportPackageReason.HasABugOrFailedToInstall,
             ReportPackageReason.ChildSexualExploitationOrAbuse,
             ReportPackageReason.TerrorismOrViolentExtremism,
