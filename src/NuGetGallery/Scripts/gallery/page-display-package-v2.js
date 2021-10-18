@@ -154,6 +154,8 @@
             storage.setItem(bodyStorageKey, e.target.id);
         }
 
+        window.history.replaceState("", "", "#" + e.target.id);
+
         clampUsedByDescriptions();
 
         window.nuget.sendMetric("ShowDisplayPackageTab", 1, {
