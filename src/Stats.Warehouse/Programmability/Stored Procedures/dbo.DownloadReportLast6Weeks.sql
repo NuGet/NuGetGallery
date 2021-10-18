@@ -17,7 +17,7 @@ BEGIN
 
 	SELECT	D.[Year],
 			D.[WeekOfYear],
-			SUM(ISNULL(Facts.[DownloadCount], 0)) AS [Downloads]
+			SUM(CAST(ISNULL(Facts.[DownloadCount], 0) AS BIGINT)) AS [Downloads]
 	FROM	[dbo].[Fact_Download] AS Facts (NOLOCK)
 	INNER JOIN [dbo].View_Fixed_Week_Dimension_Date AS D ON D.Id = Facts.Dimension_Date_Id AND D.[Date] >= @MinDate AND D.[Date] < @MaxDate
 	GROUP BY D.[Year], D.[WeekOfYear]

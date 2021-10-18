@@ -449,5 +449,19 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
                 "Content-Type,Content-Length,Last-Modified,Transfer-Encoding,ETag,Date,Vary,Server,X-Hit,X-CorrelationId",
                 exposedHeaders);
         }
+
+        [Fact]
+        public async Task EnsureHSTS()
+        {
+            // Act
+            var response = await Client.GetAsync("/query");
+
+            // Assert
+            Assert.True(response.Headers.Contains("Strict-Transport-Security"));
+
+            var HSTSHeaders = response.Headers.GetValues("Strict-Transport-Security").ToList();
+            Assert.Single(HSTSHeaders);
+            Assert.Equal("max-age=31536000; includeSubDomains", HSTSHeaders[0]);
+        }
     }
 }
