@@ -441,7 +441,7 @@ Function Install-NuGet {
 
             Trace-Log 'Downloading nuget.exe'
             Invoke-WebRequest `
-                https://dist.nuget.org/win-x86-commandline/v5.8.0/nuget.exe `
+                https://dist.nuget.org/win-x86-commandline/v6.0.0-preview4/nuget.exe `
                 -UseBasicParsing `
                 -OutFile $NuGetExe
             
