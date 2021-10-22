@@ -71,6 +71,11 @@
                         If this is not a Microsoft - owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
                     </p>
                 </div>
+                <div class="reason-error-revenge-porn" tabindex="0">
+                    <p>
+                        Please report this safety violation through the <a href="https://www.microsoft.com/en-us/concern/revengeporn" title="revenge porn portal">official portal</a>.
+                    </p>
+                </div>
                 <div id="report-abuse-form">
                     <div class="form-group @Html.HasErrorFor(m => m.Email)">
                         @Html.ShowLabelFor(m => m.Email)
@@ -155,7 +160,8 @@
 
             // For error conditions, hide the other form fields and show error messages
             if (val === 'HasABugOrFailedToInstall'
-                || val === 'ContainsSecurityVulnerability') {
+                || val === 'ContainsSecurityVulnerability'
+                || val === 'RevengePorn') {
                 $('#report-abuse-form').hide();
             } else {
                 $('#report-abuse-form').show();
@@ -171,6 +177,12 @@
                 $form.find('.reason-error-security-vulnerability').show();
             } else {
                 $form.find('.reason-error-security-vulnerability').hide();
+            }
+
+            if (val === 'RevengePorn') {
+                $form.find('.reason-error-revenge-porn').show();
+            } else {
+                $form.find('.reason-error-revenge-porn').hide();
             }
 
             // We don't suggest the customer contact the owner in the case of safety violations

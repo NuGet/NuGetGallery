@@ -29,7 +29,8 @@
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
     "NuGetGallery.EmbeddedIcons": "Enabled",
     "NuGetGallery.MarkdigMdRendering": "Enabled",
-    "NuGetGallery.ImageAllowlist": "Enabled"
+    "NuGetGallery.ImageAllowlist": "Enabled",
+    "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
