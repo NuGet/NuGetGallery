@@ -91,7 +91,7 @@
       <Version>4.3.0-dev-5066115</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Cursor">
-      <Version>2.90.0</Version>
+      <Version>2.91.0-agr-sync-sql-connect-5368013</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
