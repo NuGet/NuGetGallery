@@ -952,8 +952,7 @@ namespace NuGetGallery
 
         private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
         {
-            var connection = connectionFactory.TryCreate();
-            if (connection != null)
+            if (connectionFactory.TryCreate(out var connection))
             {
                 return connection;
             }
