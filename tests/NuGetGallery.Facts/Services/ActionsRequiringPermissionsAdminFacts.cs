@@ -15,20 +15,20 @@ namespace NuGetGallery.Services
     {
         private int _key = 0;
 
-        public static IEnumerable<object[]> PackageActions = new object[][]
+        public static IEnumerable<Func<ActionRequiringPackagePermissions>> PackageActions = new Func<ActionRequiringPackagePermissions>[]
         {
-            new object[] { (Func<ActionRequiringPackagePermissions>)(() => ActionsRequiringPermissions.DisplayPrivatePackageMetadata) },
-            new object[] { (Func<ActionRequiringPackagePermissions>)(() => ActionsRequiringPermissions.DeleteSymbolPackage) },
-            new object[] { (Func<ActionRequiringPackagePermissions>)(() => ActionsRequiringPermissions.EditPackage) },
-            new object[] { (Func<ActionRequiringPackagePermissions>)(() => ActionsRequiringPermissions.UnlistOrRelistPackage) },
-            new object[] { (Func<ActionRequiringPackagePermissions>)(() => ActionsRequiringPermissions.DeprecatePackage) },
-            new object[] { (Func<ActionRequiringPackagePermissions>)(() => ActionsRequiringPermissions.ManagePackageOwnership) },
+            () => ActionsRequiringPermissions.DisplayPrivatePackageMetadata,
+            () => ActionsRequiringPermissions.DeleteSymbolPackage,
+            () => ActionsRequiringPermissions.EditPackage,
+            () => ActionsRequiringPermissions.UnlistOrRelistPackage,
+            () => ActionsRequiringPermissions.DeprecatePackage,
+            () => ActionsRequiringPermissions.ManagePackageOwnership,
         };
 
         public static IEnumerable<object[]> PackageActionsWithAdmin =>
             from actionProvider in PackageActions
             from isAdmin in new[] { false, true }
-            select new object[] { actionProvider[0], isAdmin };
+            select new object[] { actionProvider, isAdmin };
 
         [Theory]
         [MemberData(nameof(PackageActionsWithAdmin))]
@@ -52,16 +52,16 @@ namespace NuGetGallery.Services
             Assert.Equal(isAdmin, PermissionsCheckResult.Allowed == result);
         }
 
-        public static IEnumerable<object[]> AccountActions = new object[][]
+        public static IEnumerable<Func<ActionRequiringAccountPermissions>> AccountActions = new Func<ActionRequiringAccountPermissions>[]
         {
-            new object[]{ (Func<ActionRequiringAccountPermissions>)(() => ActionsRequiringPermissions.ViewAccount) },
-            new object[]{ (Func<ActionRequiringAccountPermissions>)(() => ActionsRequiringPermissions.ManageMembership) },
+            () => ActionsRequiringPermissions.ViewAccount,
+            () => ActionsRequiringPermissions.ManageMembership,
         };
 
         public static IEnumerable<object[]> AccountActionsWithAdmin =>
             from actionProvider in AccountActions
             from isAdmin in new[] { false, true }
-            select new object[] { actionProvider[0], isAdmin };
+            select new object[] { actionProvider, isAdmin };
 
         [Theory]
         [MemberData(nameof(AccountActionsWithAdmin))]
@@ -81,15 +81,15 @@ namespace NuGetGallery.Services
             Assert.Equal(isAdmin, PermissionsCheckResult.Allowed == result);
         }
 
-        public static IEnumerable<object[]> ReservedNamespaceAction = new object[][]
+        public static IEnumerable<Func<ActionRequiringReservedNamespacePermissions>> ReservedNamespaceAction = new Func<ActionRequiringReservedNamespacePermissions>[]
         {
-            new object[]{ (Func<ActionRequiringReservedNamespacePermissions>)(() => ActionsRequiringPermissions.RemovePackageFromReservedNamespace) },
+            () => ActionsRequiringPermissions.RemovePackageFromReservedNamespace,
         };
 
         public static IEnumerable<object[]> ReservedNamespaceActionWithAdmin =>
             from actionProvider in ReservedNamespaceAction
             from isAdmin in new[] { false, true }
-            select new object[] { actionProvider[0], isAdmin };
+            select new object[] { actionProvider, isAdmin };
 
         [Theory]
         [MemberData(nameof(ReservedNamespaceActionWithAdmin))]
