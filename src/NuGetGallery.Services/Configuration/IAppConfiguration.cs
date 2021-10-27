@@ -101,6 +101,11 @@ namespace NuGetGallery.Configuration
         TimeSpan FeatureFlagsRefreshInterval { get; set; }
 
         /// <summary>
+        /// Indicates whether Admin panel pages exist on this instance.
+        /// </summary>
+        bool AdminPanelEnabled { get; set; }
+
+        /// <summary>
         /// Gets a boolean indicating whether DB admin through web UI should be accesible.
         /// </summary>
         bool AdminPanelDatabaseAccessEnabled { get; set; }

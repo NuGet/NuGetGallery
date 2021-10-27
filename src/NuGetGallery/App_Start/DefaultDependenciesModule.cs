@@ -110,6 +110,8 @@ namespace NuGetGallery
                 loggerConfiguration,
                 telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
 
+            ActionsRequiringPermissions.AdminAccessEnabled = configuration.Current.AdminPanelEnabled;
+
             builder.RegisterInstance(applicationInsightsConfiguration.TelemetryConfiguration)
                 .AsSelf()
                 .SingleInstance();

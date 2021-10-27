@@ -49,6 +49,25 @@ namespace NuGetGallery
             return CheckPermissionsOnBehalfOfAnyAccount(currentUser, GetPackageRegistration(package), out accountsAllowedOnBehalfOf);
         }
 
+        public override bool Equals(object obj)
+        {
+            if (!base.Equals(obj))
+            {
+                return false;
+            }
+            var other = obj as ActionRequiringPackagePermissions;
+            if (other == null)
+            {
+                return false;
+            }
+            return PackageRegistrationPermissionsRequirement == other.PackageRegistrationPermissionsRequirement;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode() ^ PackageRegistrationPermissionsRequirement.GetHashCode();
+        }
+
         protected override IEnumerable<User> GetOwners(PackageRegistration packageRegistration)
         {
             return packageRegistration != null ? packageRegistration.Owners : Enumerable.Empty<User>();

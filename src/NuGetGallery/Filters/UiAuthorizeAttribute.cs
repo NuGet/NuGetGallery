@@ -8,7 +8,7 @@ using AuthorizationContext = System.Web.Mvc.AuthorizationContext;
 
 namespace NuGetGallery.Filters
 {
-    public sealed class UIAuthorizeAttribute : AuthorizeAttribute
+    public class UIAuthorizeAttribute : AuthorizeAttribute
     {
         public bool AllowDiscontinuedLogins { get; }
 
