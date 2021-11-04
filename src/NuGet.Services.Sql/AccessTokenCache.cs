@@ -31,17 +31,8 @@ namespace NuGet.Services.Sql
             string clientCertificateData,
             ILogger logger = null)
         {
-            AccessTokenCacheValue accessToken;
-
-            if (TryGetValue(connectionString, out accessToken) && !IsExpired(accessToken))
+            if (TryGetCachedToken(connectionString, clientCertificateData, out var accessToken, logger))
             {
-                // Refresh access token in background, if near expiry or client certificate has changed.
-                if (IsNearExpiry(accessToken) || ClientCertificateHasChanged(accessToken, clientCertificateData))
-                {
-                    TriggerBackgroundRefresh(connectionString, clientCertificateData, logger);
-                }
-
-                // Returned cached access token.
                 return accessToken.AuthenticationResult;
             }
 
@@ -55,6 +46,43 @@ namespace NuGet.Services.Sql
             }
 
             throw new InvalidOperationException($"Failed to acquire access token for {connectionString.Sql.InitialCatalog}.");
+        }
+
+        public bool TryGetCached(
+            AzureSqlConnectionStringBuilder connectionString,
+            string clientCertificateData,
+            out IAuthenticationResult authenticationResult,
+            ILogger logger = null)
+        {
+            if (TryGetCachedToken(connectionString, clientCertificateData, out var accessToken, logger))
+            {
+                authenticationResult = accessToken.AuthenticationResult;
+                return true;
+            }
+
+            authenticationResult = null;
+            return false;
+        }
+
+        private bool TryGetCachedToken(
+            AzureSqlConnectionStringBuilder connectionString,
+            string clientCertificateData,
+            out AccessTokenCacheValue accessToken,
+            ILogger logger = null)
+        {
+            if (TryGetValue(connectionString, out accessToken) && !IsExpired(accessToken))
+            {
+                // Refresh access token in background, if near expiry or client certificate has changed.
+                if (IsNearExpiry(accessToken) || ClientCertificateHasChanged(accessToken, clientCertificateData))
+                {
+                    TriggerBackgroundRefresh(connectionString, clientCertificateData, logger);
+                }
+
+                // Returned cached access token.
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

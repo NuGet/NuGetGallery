@@ -21,7 +21,7 @@ namespace AzureSqlConnectionTest
 
         private KeyVaultConfiguration KeyVaultConfig { get; }
 
-        private ISecretInjector SecretInjector { get; }
+        private ICachingSecretInjector SecretInjector { get; }
 
         public TestRunner(string connectionString, KeyVaultConfiguration keyVaultConfig)
         {

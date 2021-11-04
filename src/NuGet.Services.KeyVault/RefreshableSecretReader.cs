@@ -16,7 +16,7 @@ namespace NuGet.Services.KeyVault
     /// cached with a previous invocation. The <see cref="RefreshAsync"/> method is used to refresh the values of
     /// secrets that have already been cached.
     /// </summary>
-    public class RefreshableSecretReader : ISecretReader
+    public class RefreshableSecretReader : ICachingSecretReader
     {
         private readonly ISecretReader _secretReader;
         private readonly ConcurrentDictionary<string, ISecret> _cache;
@@ -75,6 +75,39 @@ namespace NuGet.Services.KeyVault
             return UncachedGetSecretObjectAsync(secretName);
         }
 
+        public bool TryGetCachedSecret(string secretName, out string secretValue) => TryGetCachedSecret(secretName, logger: null, out secretValue);
+
+        public bool TryGetCachedSecret(string secretName, ILogger logger, out string secretValue)
+        {
+            secretValue = null;
+            if (TryGetCachedSecretObject(secretName, out var secret))
+            {
+                secretValue = secret.Value;
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool TryGetCachedSecretObject(string secretName, ILogger logger, out ISecret secretObject)
+        {
+            if (_cache.TryGetValue(secretName, out secretObject))
+            {
+                return true;
+            }
+
+            if (_settings.BlockUncachedReads)
+            {
+                throw new InvalidOperationException($"The secret '{secretName}' is not cached.");
+            }
+
+            secretObject = null;
+            return false;
+        }
+
+        public bool TryGetCachedSecretObject(string secretName, out ISecret secretObject)
+            => TryGetCachedSecretObject(secretName, logger: null, secretObject: out secretObject);
+
         private async Task<string> UncachedGetSecretAsync(string secretName)
         {
             var secretObject = await UncachedGetSecretObjectAsync(secretName);
@@ -86,22 +119,6 @@ namespace NuGet.Services.KeyVault
             var secretObject = await _secretReader.GetSecretObjectAsync(secretName);
             _cache.AddOrUpdate(secretName, secretObject, (_, __) => secretObject);
             return secretObject;
-        }
-
-        private bool TryGetCachedSecretObject(string secretName, out ISecret secret)
-        {
-            if (_cache.TryGetValue(secretName, out secret))
-            {
-                return true;
-            }
-
-            if (_settings.BlockUncachedReads)
-            {
-                throw new InvalidOperationException($"The secret '{secretName}' is not cached.");
-            }
-
-            secret = null;
-            return false;
         }
     }
 }
