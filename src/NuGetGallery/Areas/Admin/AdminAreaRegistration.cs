@@ -18,6 +18,11 @@ namespace NuGetGallery.Areas.Admin
         {
             var galleryConfigurationService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
 
+            if (!galleryConfigurationService.Current.AdminPanelEnabled)
+            {
+                return;
+            }
+
             if (galleryConfigurationService.Current.AdminPanelDatabaseAccessEnabled)
             {
                 var galleryDbConnectionFactory = DependencyResolver.Current.GetService<ISqlConnectionFactory>();

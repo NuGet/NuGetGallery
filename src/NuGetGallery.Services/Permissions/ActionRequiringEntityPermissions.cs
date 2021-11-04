@@ -63,6 +63,25 @@ namespace NuGetGallery
             return CheckPermissionsOnBehalfOfAnyAccount(currentUser, entity, exitEarly: false, accountsAllowedOnBehalfOf: out accountsAllowedOnBehalfOf);
         }
 
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            var other = obj as ActionRequiringEntityPermissions<TEntity>;
+            if (other == null)
+            {
+                return false;
+            }
+            return AccountOnBehalfOfPermissionsRequirement == other.AccountOnBehalfOfPermissionsRequirement;
+        }
+
+        public override int GetHashCode()
+        {
+            return AccountOnBehalfOfPermissionsRequirement.GetHashCode();
+        }
+
         private PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, TEntity entity, bool exitEarly, out IEnumerable<User> accountsAllowedOnBehalfOf)
         {
             accountsAllowedOnBehalfOf = new List<User>();

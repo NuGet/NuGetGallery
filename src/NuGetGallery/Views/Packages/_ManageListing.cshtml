@@ -65,7 +65,7 @@
             </div>
         }
 
-        if (User.IsAdministrator())
+        if (AdminHelper.IsAdminPanelEnabled && User.IsAdministrator())
         {
             <b>
                 Delete version
