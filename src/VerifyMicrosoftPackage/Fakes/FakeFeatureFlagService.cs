@@ -119,5 +119,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsDisplayTFMEnabled() => throw new NotImplementedException();
     }
 }

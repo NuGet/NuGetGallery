@@ -52,6 +52,7 @@ namespace NuGetGallery
         private const string DisplayPackagePageV2PreviewFeatureName = GalleryPrefix + "DisplayPackagePageV2Preview";
         private const string DisplayPackagePageV2FeatureName = GalleryPrefix + "DisplayPackagePageV2";
         private const string ShowReportAbuseSafetyChanges = GalleryPrefix + "ShowReportAbuseSafetyChanges";
+        private const string DisplayTFMFeatureName = GalleryPrefix + "DisplayTFM";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -355,6 +356,11 @@ namespace NuGetGallery
         public bool IsDisplayBannerEnabled()
         {
             return _client.IsEnabled(DisplayBannerFlightName, defaultValue: false);
+        }
+
+        public bool IsDisplayTFMEnabled()
+        {
+            return _client.IsEnabled(DisplayTFMFeatureName, defaultValue: false);
         }
     }
 }

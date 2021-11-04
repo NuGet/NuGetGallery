@@ -269,5 +269,10 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsDisplayTFMEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

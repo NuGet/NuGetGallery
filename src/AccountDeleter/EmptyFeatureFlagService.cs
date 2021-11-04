@@ -81,6 +81,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsDisplayTFMEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDisplayVulnerabilitiesEnabled()
         {
             throw new NotImplementedException();
