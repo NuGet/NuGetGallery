@@ -81,7 +81,7 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayTFMEnabled()
+        public bool IsDisplayTargetFrameworkEnabled()
         {
             throw new NotImplementedException();
         }

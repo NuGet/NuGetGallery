@@ -288,8 +288,8 @@ namespace NuGetGallery
         bool IsDisplayBannerEnabled();
         
         /// <summary>
-        /// Whether or not display tfm badges and table on nuget.org
+        /// Whether or not display target framework badges and table on nuget.org
         /// </summary>
-        bool IsDisplayTFMEnabled();
+        bool IsDisplayTargetFrameworkEnabled();
     }
 }
