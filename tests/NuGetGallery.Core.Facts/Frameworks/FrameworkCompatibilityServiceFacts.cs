@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Frameworks;
@@ -19,11 +20,9 @@ namespace NuGetGallery.Frameworks
         }
 
         [Fact]
-        public void WhenNullPackageFrameworksReturnsNull()
+        public void WhenNullPackageFrameworksThrowsArgumentNullException()
         {
-            var result = _service.GetCompatibleFrameworks(null);
-
-            Assert.Null(result);
+            Assert.Throws<ArgumentNullException>(() => _service.GetCompatibleFrameworks(null));
         }
 
         [Fact]
