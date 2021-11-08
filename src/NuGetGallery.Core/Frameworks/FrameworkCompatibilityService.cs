@@ -8,15 +8,9 @@ namespace NuGetGallery.Frameworks
 {
     public class FrameworkCompatibilityService : IFrameworkCompatibilityService
     {
-        private readonly IFrameworkCompatibilityProvider CompatibilityProvider = DefaultCompatibilityProvider.Instance;
-        private readonly ISet<NuGetFramework> DotnetSupportedFrameworks = new HashSet<NuGetFramework>(DotNetSupportedFrameworks.GetSupportedFrameworks());
-
-        private readonly IReadOnlyDictionary<NuGetFramework, ISet<NuGetFramework>> _compatibilityMatrix;
-
-        public FrameworkCompatibilityService()
-        {
-            _compatibilityMatrix = GetCompatibilityMatrix();
-        }
+        private static readonly IFrameworkCompatibilityProvider CompatibilityProvider = DefaultCompatibilityProvider.Instance;
+        private static readonly ISet<NuGetFramework> DotnetSupportedFrameworks = new HashSet<NuGetFramework>(DotNetSupportedFrameworks.GetSupportedFrameworks());
+        private static readonly IReadOnlyDictionary<NuGetFramework, ISet<NuGetFramework>> CompatibilityMatrix = GetCompatibilityMatrix();
 
         public ISet<NuGetFramework> GetCompatibleFrameworks(IEnumerable<NuGetFramework> packageFrameworks)
         {
@@ -44,7 +38,7 @@ namespace NuGetGallery.Frameworks
 
         private ISet<NuGetFramework> GetCompatibleFrameworks(NuGetFramework projectFramework)
         {
-            _compatibilityMatrix.TryGetValue(projectFramework, out var compatibleFrameworks);
+            CompatibilityMatrix.TryGetValue(projectFramework, out var compatibleFrameworks);
 
             if (compatibleFrameworks == null)
             {
@@ -69,7 +63,7 @@ namespace NuGetGallery.Frameworks
             return compatibleFrameworks;
         }
 
-        private IReadOnlyDictionary<NuGetFramework, ISet<NuGetFramework>> GetCompatibilityMatrix()
+        private static IReadOnlyDictionary<NuGetFramework, ISet<NuGetFramework>> GetCompatibilityMatrix()
         {
             var matrix = new Dictionary<NuGetFramework, ISet<NuGetFramework>>();
 
