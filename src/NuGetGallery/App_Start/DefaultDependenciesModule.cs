@@ -950,7 +950,7 @@ namespace NuGetGallery
             return new AzureSqlConnectionFactory(connectionString, secretInjector, logger);
         }
 
-        private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
+        public static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
         {
             if (connectionFactory.TryCreate(out var connection))
             {
