@@ -38,6 +38,11 @@ namespace NuGetGallery.Services
                 return false;
             }
 
+            if (imageDomain.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+            {
+                imageDomain = imageDomain.Replace("www.", string.Empty);
+            }
+
             return TrustedImageDomainList.Contains(imageDomain);
         }
     }
