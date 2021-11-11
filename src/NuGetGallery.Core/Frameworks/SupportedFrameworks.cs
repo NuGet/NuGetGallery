@@ -16,7 +16,7 @@ namespace NuGetGallery.Frameworks
     /// All these frameworks were retrieved from the following sources:
     /// dotnet documentation: https://docs.microsoft.com/en-us/dotnet/standard/frameworks.
     /// nuget documentation: https://docs.microsoft.com/en-us/nuget/reference/target-frameworks.
-    /// nuget client FrameworkConstants.CommonFrameworks: https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Frameworks/FrameworkConstants.cs#L78.
+    /// nuget client FrameworkConstants.CommonFrameworks: https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Frameworks/FrameworkConstants.cs.
     /// </remarks>
     public static class SupportedFrameworks
     {
@@ -33,7 +33,7 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework Net60TvOs = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "tvos");
         public static readonly NuGetFramework Net60Windows = new NuGetFramework(FrameworkIdentifiers.NetCoreApp, Version6, "windows");
         public static readonly NuGetFramework NetCore = new NuGetFramework(FrameworkIdentifiers.NetCore, EmptyVersion);
-        public static readonly NuGetFramework NetFM = new NuGetFramework(FrameworkIdentifiers.NetMicro, EmptyVersion);
+        public static readonly NuGetFramework NetMf = new NuGetFramework(FrameworkIdentifiers.NetMicro, EmptyVersion);
         public static readonly NuGetFramework UAP = new NuGetFramework(FrameworkIdentifiers.UAP, EmptyVersion);
         public static readonly NuGetFramework Win = new NuGetFramework(FrameworkIdentifiers.Windows, EmptyVersion);
         public static readonly NuGetFramework WinRt = new NuGetFramework(FrameworkIdentifiers.WinRT, EmptyVersion);
@@ -63,7 +63,7 @@ namespace NuGetGallery.Frameworks
                 Net50, Net50Windows, Net60, Net60Android, Net60Ios, Net60MacCatalyst, Net60MacOs, Net60TvOs, Net60Windows,
                 NetCore, NetCore45, NetCore451, NetCore50,
                 NetCoreApp10, NetCoreApp11, NetCoreApp20, NetCoreApp21, NetCoreApp22, NetCoreApp30, NetCoreApp31,
-                NetFM,
+                NetMf,
                 NetStandard, NetStandard10, NetStandard11, NetStandard12, NetStandard13, NetStandard14, NetStandard15, NetStandard16, NetStandard17, NetStandard20, NetStandard21,
                 NetStandardApp15,
                 SL4, SL5,
