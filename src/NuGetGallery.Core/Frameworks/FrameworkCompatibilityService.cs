@@ -10,7 +10,7 @@ namespace NuGetGallery.Frameworks
     public class FrameworkCompatibilityService : IFrameworkCompatibilityService
     {
         private static readonly IFrameworkCompatibilityProvider CompatibilityProvider = DefaultCompatibilityProvider.Instance;
-        private static readonly ISet<NuGetFramework> DotnetSupportedFrameworks = new HashSet<NuGetFramework>(DotNetSupportedFrameworks.GetSupportedFrameworks());
+        private static readonly IReadOnlyList<NuGetFramework> AllSupportedFrameworks = SupportedFrameworks.AllSupportedNuGetFrameworks;
         private static readonly IReadOnlyDictionary<NuGetFramework, ISet<NuGetFramework>> CompatibilityMatrix = GetCompatibilityMatrix();
 
         public ISet<NuGetFramework> GetCompatibleFrameworks(IEnumerable<NuGetFramework> packageFrameworks)
@@ -53,7 +53,7 @@ namespace NuGetGallery.Frameworks
         {
             var compatibleFrameworks = new HashSet<NuGetFramework>();
 
-            foreach (var projectFramework in DotnetSupportedFrameworks)
+            foreach (var projectFramework in AllSupportedFrameworks)
             {
                 if (CompatibilityProvider.IsCompatible(projectFramework, packageFramework))
                 {
@@ -68,12 +68,12 @@ namespace NuGetGallery.Frameworks
         {
             var matrix = new Dictionary<NuGetFramework, ISet<NuGetFramework>>();
 
-            foreach (var packageFramework in DotnetSupportedFrameworks)
+            foreach (var packageFramework in AllSupportedFrameworks)
             {
                 var compatibleFrameworks = new HashSet<NuGetFramework>();
                 matrix.Add(packageFramework, compatibleFrameworks);
 
-                foreach (var projectFramework in DotnetSupportedFrameworks)
+                foreach (var projectFramework in AllSupportedFrameworks)
                 {
                     // This compatibility check is to know if the packageFramework can be installed on a certain projectFramework
                     if (CompatibilityProvider.IsCompatible(projectFramework, packageFramework))
