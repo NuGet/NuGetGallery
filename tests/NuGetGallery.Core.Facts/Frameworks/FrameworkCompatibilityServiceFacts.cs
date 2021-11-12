@@ -20,24 +20,35 @@ namespace NuGetGallery.Frameworks
         }
 
         [Fact]
-        public void WhenNullPackageFrameworksThrowsArgumentNullException()
+        public void NullPackageFrameworksThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => _service.GetCompatibleFrameworks(null));
         }
 
         [Fact]
-        public void WhenEmptyPackageFrameworksReturnsEmptySet()
+        public void EmptyPackageFrameworksReturnsEmptySet()
         {
             var result = _service.GetCompatibleFrameworks(new List<NuGetFramework>());
 
             Assert.Equal(expected: 0, actual: result.Count);
         }
 
+        [Fact]
+        public void UnknownSupportedPackageReturnsEmptySet()
+        {
+            var framework = NuGetFramework.Parse("netstandard9.2");
+            var frameworks = new List<NuGetFramework>() { framework };
+            var compatible = _service.GetCompatibleFrameworks(frameworks);
+
+            Assert.False(framework.IsUnsupported);
+            Assert.Equal(expected: 0, compatible.Count);
+        }
+
         [Theory]
         [InlineData("1000")]
         [InlineData("lib")]
         [InlineData("nuget")]
-        public void WhenUnsupportedPackageFrameworksReturnsEmptySet(string unsupportedFrameworkName)
+        public void UnsupportedPackageFrameworksReturnsEmptySet(string unsupportedFrameworkName)
         {
             var unsupportedFramework = NuGetFramework.Parse(unsupportedFrameworkName);
 
@@ -51,7 +62,7 @@ namespace NuGetGallery.Frameworks
         [InlineData("portable-net45+sl4+win8+wp7")]
         [InlineData("portable-net40+sl4")]
         [InlineData("portable-net45+sl5+win8+wpa81+wp8")]
-        public void WhenPCLPackageFrameworksReturnsEmptySet(string pclFrameworkName)
+        public void PCLPackageFrameworksReturnsEmptySet(string pclFrameworkName)
         {
             var portableFramework = NuGetFramework.Parse(pclFrameworkName);
 

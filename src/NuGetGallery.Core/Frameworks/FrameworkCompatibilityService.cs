@@ -29,39 +29,13 @@ namespace NuGetGallery.Frameworks
                     continue;
                 }
 
-                var compatibleFrameworks = GetCompatibleFrameworks(packageFramework);
-
-                allCompatibleFrameworks.UnionWith(compatibleFrameworks);
-            }
-
-            return allCompatibleFrameworks;
-        }
-
-        private ISet<NuGetFramework> GetCompatibleFrameworks(NuGetFramework projectFramework)
-        {
-            CompatibilityMatrix.TryGetValue(projectFramework, out var compatibleFrameworks);
-
-            if (compatibleFrameworks == null)
-            {
-                return GetComputedCompatibleFrameworks(projectFramework);
-            }
-
-            return compatibleFrameworks;
-        }
-
-        private ISet<NuGetFramework> GetComputedCompatibleFrameworks(NuGetFramework packageFramework)
-        {
-            var compatibleFrameworks = new HashSet<NuGetFramework>();
-
-            foreach (var projectFramework in AllSupportedFrameworks)
-            {
-                if (CompatibilityProvider.IsCompatible(projectFramework, packageFramework))
+                if (CompatibilityMatrix.TryGetValue(packageFramework, out var compatibleFrameworks))
                 {
-                    compatibleFrameworks.Add(projectFramework);
+                    allCompatibleFrameworks.UnionWith(compatibleFrameworks);
                 }
             }
 
-            return compatibleFrameworks;
+            return allCompatibleFrameworks;
         }
 
         private static IReadOnlyDictionary<NuGetFramework, ISet<NuGetFramework>> GetCompatibilityMatrix()

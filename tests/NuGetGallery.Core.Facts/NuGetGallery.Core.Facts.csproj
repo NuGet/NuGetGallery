@@ -83,6 +83,7 @@
     <Compile Include="Features\FeatureFlagClientExtensionsFacts.cs" />
     <Compile Include="Features\EditableFeatureFlagFileStorageServiceFacts.cs" />
     <Compile Include="Frameworks\FrameworkCompatibilityServiceFacts.cs" />
+    <Compile Include="Frameworks\SupportedFrameworksFacts.cs" />
     <Compile Include="GitHub\GitHubUsageConfigurationFacts.cs" />
     <Compile Include="Infrastructure\ElmahExceptionFacts.cs" />
     <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
