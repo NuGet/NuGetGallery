@@ -29,6 +29,7 @@ namespace NuGetGallery.Services
             [Theory]
             [InlineData("https://api.bintray.com/example/image.svg", true, "https://api.bintray.com/example/image.svg", true)]
             [InlineData("http://api.bintray.com/example/image.svg", true, "https://api.bintray.com/example/image.svg", true)]
+            [InlineData("https://www.codefactor.io/repository/github/andy840119/Synthesia.MetaDataParser/badge", true, "https://codefactor.io/repository/github/andy840119/Synthesia.MetaDataParser/badge", true)]
             [InlineData("https://travis-ci.org/Azure/azure-relay-aspnetserver.svg?branch=dev", false, null, false)]
             [InlineData("https://github.com/cedx/where.dart/actions/workflows/build.yaml/badge.svg?branch=develop", false, "https://github.com/cedx/where.dart/actions/workflows/build.yaml/badge.svg?branch=develop", true)]
             [InlineData("https://git@github.com/peaceiris/actions-gh-pages/actions/workflows/dev-image.yml/something/badge.svg", false, null, false)]
