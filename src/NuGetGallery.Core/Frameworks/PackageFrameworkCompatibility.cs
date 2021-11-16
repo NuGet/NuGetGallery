@@ -9,6 +9,6 @@ namespace NuGetGallery.Frameworks
     public class PackageFrameworkCompatibility
     {
         public PackageFrameworkCompatibilityBadges Badges { get; set; }
-        public IReadOnlyDictionary<string, ISet<PackageFrameworkCompatibilityTableData>> Table { get; set; }
+        public IReadOnlyDictionary<string, ICollection<PackageFrameworkCompatibilityTableData>> Table { get; set; }
     }
 }
