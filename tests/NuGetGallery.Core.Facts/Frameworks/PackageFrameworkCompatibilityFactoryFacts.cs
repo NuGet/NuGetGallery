@@ -22,6 +22,12 @@ namespace NuGetGallery.Frameworks
         }
 
         [Fact]
+        public void NullFrameworkCompatibilityServiceThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new PackageFrameworkCompatibilityFactory(null));
+        }
+
+        [Fact]
         public void NullPackageFrameworksThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => _factory.Create(null));
@@ -32,7 +38,57 @@ namespace NuGetGallery.Frameworks
         {
             var result = _factory.Create(new List<PackageFramework>());
 
-            Assert.Equal(expected: 0, result.Table.Count);
+            Assert.Empty(result.Table);
+        }
+
+        [Fact]
+        public void NonSupportedFrameworksShouldBeIgnored()
+        {
+            var packageFrameworks = new HashSet<PackageFramework>()
+            {
+                new PackageFramework() { TargetFramework = "net6" },
+                new PackageFramework() { TargetFramework = "netcoreapp31" },
+                new PackageFramework() { TargetFramework = "netstandard10" },
+                new PackageFramework() { TargetFramework = "net45" }
+            };
+
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            Assert.NotEmpty(result.Table);
+            foreach (var row in result.Table)
+            {
+                Assert.True(row.Value.All(cf => !cf.Framework.IsUnsupported));
+            }
+
+            Assert.False(result.Badges.Net.IsUnsupported);
+            Assert.False(result.Badges.NetCore.IsUnsupported);
+            Assert.False(result.Badges.NetStandard.IsUnsupported);
+            Assert.False(result.Badges.NetFramework.IsUnsupported);
+        }
+
+        [Fact]
+        public void PortableClassLibrariesFrameworksShouldBeIgnored()
+        {
+            var packageFrameworks = new HashSet<PackageFramework>()
+            {
+                new PackageFramework() { TargetFramework = "net6" },
+                new PackageFramework() { TargetFramework = "netcoreapp31" },
+                new PackageFramework() { TargetFramework = "netstandard10" },
+                new PackageFramework() { TargetFramework = "net45" }
+            };
+
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            Assert.NotEmpty(result.Table);
+            foreach (var row in result.Table)
+            {
+                Assert.True(row.Value.All(cf => !cf.Framework.IsPCL));
+            }
+
+            Assert.False(result.Badges.Net.IsPCL);
+            Assert.False(result.Badges.NetCore.IsPCL);
+            Assert.False(result.Badges.NetStandard.IsPCL);
+            Assert.False(result.Badges.NetFramework.IsPCL);
         }
 
         [Theory]
@@ -81,7 +137,7 @@ namespace NuGetGallery.Frameworks
             var result = _factory.Create(packageFrameworks.ToList());
 
             Assert.True(result.Table.TryGetValue(productName, out var compatibleFrameworks));
-            Assert.True(compatibleFrameworks.Count > 0);
+            Assert.NotEmpty(compatibleFrameworks);
             foreach (var row in result.Table)
             {
                 foreach (var packgeFramework in packageFrameworks)
@@ -95,6 +151,47 @@ namespace NuGetGallery.Frameworks
                         Assert.False(row.Value.Any(f => f.Framework == packgeFramework.FrameworkName));
                     }
                 }
+            }
+        }
+
+        [Fact]
+        public void FrameworksInTableShouldBeOnAscendingOrder()
+        {
+            var packageFrameworks = new HashSet<PackageFramework>()
+            {
+                new PackageFramework() { TargetFramework = "net6" },
+                new PackageFramework() { TargetFramework = "netcoreapp31" },
+                new PackageFramework() { TargetFramework = "netstandard10" },
+                new PackageFramework() { TargetFramework = "net45" }
+            };
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            Assert.NotEmpty(result.Table);
+            foreach (var row in result.Table)
+            {
+                var compatibleFrameworks = row.Value;
+                var expectedList = compatibleFrameworks.OrderBy(cf => cf.Framework, new NuGetFrameworkSorter());
+
+                Assert.True(expectedList.SequenceEqual(row.Value));
+            }
+        }
+
+        [Fact]
+        public void AllTableRowsShouldContainAtLeastOneFramework()
+        {
+            var packageFrameworks = new HashSet<PackageFramework>()
+            {
+                new PackageFramework() { TargetFramework = "net6" },
+                new PackageFramework() { TargetFramework = "netcoreapp31" },
+                new PackageFramework() { TargetFramework = "netstandard10" },
+                new PackageFramework() { TargetFramework = "net45" }
+            };
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            Assert.NotEmpty(result.Table);
+            foreach (var row in result.Table)
+            {
+                Assert.NotEmpty(row.Value);
             }
         }
 
@@ -144,19 +241,30 @@ namespace NuGetGallery.Frameworks
             Assert.Equal(lowestPackageFramework.FrameworkName, badgeFramework);
         }
 
-        [Fact]
-        public void BadgesIgnoreComputedFrameworks()
+        [Theory]
+        [InlineData("net6")]
+        [InlineData("netcoreapp31")]
+        [InlineData("netstandard21")]
+        [InlineData("net48")]
+        public void BadgesIgnoreComputedFrameworks(string framework)
         {
             var packageFrameworks = new HashSet<PackageFramework>();
-            var packageAssetFramework = new PackageFramework() { TargetFramework = "netstandard10" };
+            var packageAssetFramework = new PackageFramework() { TargetFramework = framework };
             packageFrameworks.Add(packageAssetFramework);
 
             var result = _factory.Create(packageFrameworks.ToList());
 
-            Assert.Equal(packageAssetFramework.FrameworkName, result.Badges.NetStandard);
-            Assert.Null(result.Badges.Net);
-            Assert.Null(result.Badges.NetCore);
-            Assert.Null(result.Badges.NetFramework);
+            var badges = new List<NuGetFramework>() {
+                result.Badges.Net,
+                result.Badges.NetCore,
+                result.Badges.NetStandard,
+                result.Badges.NetFramework
+            };
+
+            var badgeFramework = badges.Single(f => f != null);
+            Assert.Equal(packageAssetFramework.FrameworkName, badgeFramework);
+            Assert.Equal(expected: 3, badges.Where(f => f == null).Count());
+
         }
     }
 }
