@@ -141,7 +141,7 @@ namespace NuGetGallery.Frameworks
                 return data
                     .Where(d => !d.IsComputed)
                     .Select(d => d.Framework)
-                    .LastOrDefault();
+                    .FirstOrDefault();
             }
 
             return null;

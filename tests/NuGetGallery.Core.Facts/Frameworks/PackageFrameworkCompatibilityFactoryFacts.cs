@@ -78,11 +78,11 @@ namespace NuGetGallery.Frameworks
                 packageFrameworks.Add(packageFramework);
             }
 
-            var results = _factory.Create(packageFrameworks.ToList());
+            var result = _factory.Create(packageFrameworks.ToList());
 
-            Assert.True(results.Table.TryGetValue(productName, out var compatibleFrameworks));
+            Assert.True(result.Table.TryGetValue(productName, out var compatibleFrameworks));
             Assert.True(compatibleFrameworks.Count > 0);
-            foreach (var row in results.Table)
+            foreach (var row in result.Table)
             {
                 foreach (var packgeFramework in packageFrameworks)
                 {
@@ -106,6 +106,56 @@ namespace NuGetGallery.Frameworks
             Assert.Null(result.Badges.Net);
             Assert.Null(result.Badges.NetCore);
             Assert.Null(result.Badges.NetStandard);
+            Assert.Null(result.Badges.NetFramework);
+        }
+
+        [Theory]
+        [InlineData(FrameworkProductNames.Net, "net5", "net6")]
+        [InlineData(FrameworkProductNames.Net, "net6", "net6-windows")]
+        [InlineData(FrameworkProductNames.NetCore, "netcoreapp10", "netcoreapp21", "netcoreapp31")]
+        [InlineData(FrameworkProductNames.NetStandard, "netstandard10", "netstandard10", "netstandard21")]
+        [InlineData(FrameworkProductNames.NetFramework, "net11", "net45", "net472")]
+        public void BadgeShouldBeTheLowestNonComputedFramework(string productFramework, string lowestFramework, params string[] frameworks)
+        {
+            var packageFrameworks = new HashSet<PackageFramework>();
+            foreach (var framework in frameworks)
+            {
+                var packageFramework = new PackageFramework()
+                {
+                    TargetFramework = framework
+                };
+                packageFrameworks.Add(packageFramework);
+            }
+            var lowestPackageFramework = new PackageFramework() { TargetFramework = lowestFramework };
+            packageFrameworks.Add(lowestPackageFramework);
+
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            NuGetFramework badgeFramework = null;
+            switch (productFramework)
+            {
+                case FrameworkProductNames.Net: badgeFramework = result.Badges.Net; break;
+                case FrameworkProductNames.NetCore: badgeFramework = result.Badges.NetCore; break;
+                case FrameworkProductNames.NetStandard: badgeFramework = result.Badges.NetStandard; break;
+                case FrameworkProductNames.NetFramework: badgeFramework = result.Badges.NetFramework; break;
+            }
+
+            Assert.NotNull(badgeFramework);
+            Assert.Equal(lowestPackageFramework.FrameworkName, badgeFramework);
+        }
+
+        [Fact]
+        public void BadgesIgnoreComputedFrameworks()
+        {
+            var packageFrameworks = new HashSet<PackageFramework>();
+            var packageAssetFramework = new PackageFramework() { TargetFramework = "netstandard10" };
+            packageFrameworks.Add(packageAssetFramework);
+
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            Assert.Equal(packageAssetFramework.FrameworkName, result.Badges.NetStandard);
+            Assert.Null(result.Badges.Net);
+            Assert.Null(result.Badges.NetCore);
             Assert.Null(result.Badges.NetFramework);
         }
     }
