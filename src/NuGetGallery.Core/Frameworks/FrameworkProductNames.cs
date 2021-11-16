@@ -9,9 +9,9 @@ namespace NuGetGallery.Frameworks
         public const string NetCore = ".NET Core";
         public const string NetStandard = ".NET Standard";
         public const string NetFramework = ".NET Framework";
-        public const string WindowsPhone = "Windows Phone";
-        public const string WindowsStore = "Windows Store";
         public const string NetMicroFramework = ".NET Micro Framework";
         public const string UWP = "Universal Windows Platform";
+        public const string WindowsPhone = "Windows Phone";
+        public const string WindowsStore = "Windows Store";
     }
 }
