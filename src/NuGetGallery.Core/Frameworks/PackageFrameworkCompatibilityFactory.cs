@@ -44,9 +44,9 @@ namespace NuGetGallery.Frameworks
             };
         }
 
-        private IReadOnlyDictionary<string, ICollection<PackageFrameworkCompatibilityTableData>> CreateFrameworkCompatibilityTable(ICollection<NuGetFramework> packageFrameworks)
+        private IReadOnlyDictionary<string, ICollection<PackageFrameworkCompatibilityTableData>> CreateFrameworkCompatibilityTable(ICollection<NuGetFramework> filteredPackageFrameworks)
         {
-            var compatibleFrameworks = _service.GetCompatibleFrameworks(packageFrameworks);
+            var compatibleFrameworks = _service.GetCompatibleFrameworks(filteredPackageFrameworks);
 
             var table = new Dictionary<string, ICollection<PackageFrameworkCompatibilityTableData>>();
 
@@ -56,7 +56,7 @@ namespace NuGetGallery.Frameworks
                 var data = new PackageFrameworkCompatibilityTableData
                 {
                     Framework = compatibleFramework,
-                    IsComputed = !packageFrameworks.Contains(compatibleFramework)
+                    IsComputed = !filteredPackageFrameworks.Contains(compatibleFramework)
                 };
 
                 if (table.TryGetValue(productName, out var allCompatibleFrameworks))
