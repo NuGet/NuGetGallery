@@ -11,8 +11,8 @@ namespace NuGetGallery.Frameworks
 {
     public class PackageFrameworkCompatibilityFactory
     {
-        private readonly ISet<Version> WindowsStoreNetCoreVersions = new HashSet<Version>() { FrameworkConstants.EmptyVersion, Version.Parse("4.5.0.0"), Version.Parse("4.5.1.0") };
-        private readonly ISet<Version> WindowsStoreWindowsVersions = new HashSet<Version>() { FrameworkConstants.EmptyVersion, Version.Parse("8.0.0.0"), Version.Parse("8.1.0.0") };
+        private readonly ISet<Version> WindowsStoreNetCoreVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("4.5.0.0"), Version.Parse("4.5.1.0") };
+        private readonly ISet<Version> WindowsStoreWindowsVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("8.0.0.0"), Version.Parse("8.1.0.0") };
         private readonly NuGetFrameworkSorter Sorter = new NuGetFrameworkSorter();
 
         private readonly IFrameworkCompatibilityService _service;
@@ -37,7 +37,7 @@ namespace NuGetGallery.Frameworks
             var table = CreateFrameworkCompatibilityTable(filteredPackageFrameworks);
             var badges = CreateFrameworkCompatibilityBadges(table);
 
-            return new PackageFrameworkCompatibility()
+            return new PackageFrameworkCompatibility
             {
                 Badges = badges,
                 Table = table
@@ -53,7 +53,7 @@ namespace NuGetGallery.Frameworks
             foreach (var compatibleFramework in compatibleFrameworks)
             {
                 var productName = ResolveFrameworkProductName(compatibleFramework);
-                var data = new PackageFrameworkCompatibilityTableData()
+                var data = new PackageFrameworkCompatibilityTableData
                 {
                     Framework = compatibleFramework,
                     IsComputed = !packageFrameworks.Contains(compatibleFramework)
@@ -125,7 +125,7 @@ namespace NuGetGallery.Frameworks
             var netStandard = GetBadgeFramework(table, FrameworkProductNames.NetStandard);
             var netFramework = GetBadgeFramework(table, FrameworkProductNames.NetFramework);
 
-            return new PackageFrameworkCompatibilityBadges()
+            return new PackageFrameworkCompatibilityBadges
             {
                 Net = net,
                 NetCore = netCore,
