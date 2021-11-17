@@ -30,7 +30,7 @@ namespace NuGetGallery.Frameworks
         {
             var result = _service.GetCompatibleFrameworks(new List<NuGetFramework>());
 
-            Assert.Equal(expected: 0, actual: result.Count);
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -42,6 +42,7 @@ namespace NuGetGallery.Frameworks
 
             Assert.False(framework.IsUnsupported);
             Assert.Equal(expected: 1, compatible.Count);
+            Assert.Contains(framework, compatible);
         }
 
         [Theory]
