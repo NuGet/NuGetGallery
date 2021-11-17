@@ -46,24 +46,19 @@ namespace NuGetGallery.Frameworks
         {
             var packageFrameworks = new HashSet<PackageFramework>()
             {
-                new PackageFramework() { TargetFramework = "net6" },
-                new PackageFramework() { TargetFramework = "netcoreapp31" },
-                new PackageFramework() { TargetFramework = "netstandard10" },
-                new PackageFramework() { TargetFramework = "net45" }
+                new PackageFramework() { TargetFramework = "101" },
+                new PackageFramework() { TargetFramework = "tfm" },
+                new PackageFramework() { TargetFramework = "unity" },
+                new PackageFramework() { TargetFramework = "x64" }
             };
 
             var result = _factory.Create(packageFrameworks.ToList());
 
-            Assert.NotEmpty(result.Table);
-            foreach (var row in result.Table)
-            {
-                Assert.True(row.Value.All(cf => !cf.Framework.IsUnsupported));
-            }
-
-            Assert.False(result.Badges.Net.IsUnsupported);
-            Assert.False(result.Badges.NetCore.IsUnsupported);
-            Assert.False(result.Badges.NetStandard.IsUnsupported);
-            Assert.False(result.Badges.NetFramework.IsUnsupported);
+            Assert.Empty(result.Table);
+            Assert.Null(result.Badges.Net);
+            Assert.Null(result.Badges.NetCore);
+            Assert.Null(result.Badges.NetStandard);
+            Assert.Null(result.Badges.NetFramework);
         }
 
         [Fact]
@@ -71,24 +66,18 @@ namespace NuGetGallery.Frameworks
         {
             var packageFrameworks = new HashSet<PackageFramework>()
             {
-                new PackageFramework() { TargetFramework = "net6" },
-                new PackageFramework() { TargetFramework = "netcoreapp31" },
-                new PackageFramework() { TargetFramework = "netstandard10" },
-                new PackageFramework() { TargetFramework = "net45" }
+                new PackageFramework() { TargetFramework = "portable-net45+sl4+win8+wp7" },
+                new PackageFramework() { TargetFramework = "portable-net40+sl4" },
+                new PackageFramework() { TargetFramework = "portable-net45+sl5+win8+wpa81+wp8" }
             };
 
             var result = _factory.Create(packageFrameworks.ToList());
 
-            Assert.NotEmpty(result.Table);
-            foreach (var row in result.Table)
-            {
-                Assert.True(row.Value.All(cf => !cf.Framework.IsPCL));
-            }
-
-            Assert.False(result.Badges.Net.IsPCL);
-            Assert.False(result.Badges.NetCore.IsPCL);
-            Assert.False(result.Badges.NetStandard.IsPCL);
-            Assert.False(result.Badges.NetFramework.IsPCL);
+            Assert.Empty(result.Table);
+            Assert.Null(result.Badges.Net);
+            Assert.Null(result.Badges.NetCore);
+            Assert.Null(result.Badges.NetStandard);
+            Assert.Null(result.Badges.NetFramework);
         }
 
         [Theory]
