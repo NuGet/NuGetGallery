@@ -5,6 +5,13 @@ using NuGet.Frameworks;
 
 namespace NuGetGallery.Frameworks
 {
+    /// <summary>
+    /// Contains a <see cref="NuGetFramework"/> for each of the .NET product (.NET, .NET Core, .NET Standard, and .NET Framework).
+    /// </summary>
+    /// <remarks>
+    /// All these properties are retrieved from the <see cref="PackageFrameworkCompatibility.Table"/>, one for each .NET product.<br></br>
+    /// Only package asset frameworks are considered. i.e. <see cref="PackageFrameworkCompatibilityTableData.IsComputed"/> <c>= false</c>
+    /// </remarks>
     public class PackageFrameworkCompatibilityBadges
     {
         public NuGetFramework Net { get; set; }
