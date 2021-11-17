@@ -22,7 +22,7 @@ namespace NuGetGallery.Frameworks
             _service = service ?? throw new ArgumentNullException();
         }
 
-        public PackageFrameworkCompatibility Create(IReadOnlyList<PackageFramework> packageFrameworks)
+        public PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks)
         {
             if (packageFrameworks == null)
             {
