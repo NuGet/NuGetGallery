@@ -14,12 +14,13 @@ namespace NuGetGallery.Frameworks
         private readonly ISet<Version> WindowsStoreNetCoreVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("4.5.0.0"), Version.Parse("4.5.1.0") };
         private readonly ISet<Version> WindowsStoreWindowsVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("8.0.0.0"), Version.Parse("8.1.0.0") };
         private readonly NuGetFrameworkSorter Sorter = new NuGetFrameworkSorter();
+        private readonly int NetStartingMajorVersion = 5;
 
-        private readonly IFrameworkCompatibilityService _service;
+        private readonly IFrameworkCompatibilityService _compatibilityService;
 
-        public PackageFrameworkCompatibilityFactory(IFrameworkCompatibilityService service)
+        public PackageFrameworkCompatibilityFactory(IFrameworkCompatibilityService compatibilityService)
         {
-            _service = service ?? throw new ArgumentNullException();
+            _compatibilityService = compatibilityService ?? throw new ArgumentNullException();
         }
 
         public PackageFrameworkCompatibility Create(ICollection<PackageFramework> packageFrameworks)
@@ -46,7 +47,7 @@ namespace NuGetGallery.Frameworks
 
         private IReadOnlyDictionary<string, ICollection<PackageFrameworkCompatibilityTableData>> CreateFrameworkCompatibilityTable(ICollection<NuGetFramework> filteredPackageFrameworks)
         {
-            var compatibleFrameworks = _service.GetCompatibleFrameworks(filteredPackageFrameworks);
+            var compatibleFrameworks = _compatibilityService.GetCompatibleFrameworks(filteredPackageFrameworks);
 
             var table = new Dictionary<string, ICollection<PackageFrameworkCompatibilityTableData>>();
 
@@ -82,7 +83,7 @@ namespace NuGetGallery.Frameworks
             switch (framework.Framework)
             {
                 case FrameworkConstants.FrameworkIdentifiers.NetCoreApp:
-                    return framework.Version.Major >= 5 ? FrameworkProductNames.Net : FrameworkProductNames.NetCore;
+                    return framework.Version.Major >= NetStartingMajorVersion ? FrameworkProductNames.Net : FrameworkProductNames.NetCore;
                 case FrameworkConstants.FrameworkIdentifiers.NetStandard:
                 case FrameworkConstants.FrameworkIdentifiers.NetStandardApp:
                     return FrameworkProductNames.NetStandard;
