@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -14,7 +16,9 @@ using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPuls
 using Microsoft.ApplicationInsights.Web;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
+using Moq;
 using NuGet.Services.Logging;
+using NuGet.Services.Sql;
 using NuGetGallery.Configuration;
 using Xunit;
 
@@ -187,6 +191,42 @@ namespace NuGetGallery.App_Start
                 }
 
                 return elementInspectors.ToArray();
+            }
+        }
+
+        public class TheCreateDbConnectionMethod
+        {
+            [Fact]
+            public void TriesSyncBeforeAsync()
+            {
+                var connectionFactoryMock = new Mock<ISqlConnectionFactory>();
+                connectionFactoryMock
+                    .Setup(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny))
+                    .Returns(true);
+
+                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object);
+                connectionFactoryMock
+                    .Verify(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny), Times.Once);
+                connectionFactoryMock
+                    .Verify(cf => cf.CreateAsync(), Times.Never);
+            }
+
+            [Fact]
+            public void FallsBackToAsyncIfSyncFails()
+            {
+                var connectionFactoryMock = new Mock<ISqlConnectionFactory>();
+                connectionFactoryMock
+                    .Setup(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny))
+                    .Returns(false);
+                connectionFactoryMock
+                    .Setup(cf => cf.CreateAsync())
+                    .ReturnsAsync((SqlConnection)null);
+
+                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object);
+                connectionFactoryMock
+                    .Verify(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny), Times.Once);
+                connectionFactoryMock
+                    .Verify(cf => cf.CreateAsync(), Times.Once);
             }
         }
     }

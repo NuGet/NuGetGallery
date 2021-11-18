@@ -81,6 +81,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsDisplayTargetFrameworkEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDisplayVulnerabilitiesEnabled()
         {
             throw new NotImplementedException();

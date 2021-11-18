@@ -30,7 +30,8 @@
     "NuGetGallery.EmbeddedIcons": "Enabled",
     "NuGetGallery.MarkdigMdRendering": "Enabled",
     "NuGetGallery.ImageAllowlist": "Enabled",
-    "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled"
+    "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
+    "NuGetGallery.DisplayTFM": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

@@ -286,5 +286,10 @@ namespace NuGetGallery
         /// Whether or not display the banner on nuget.org
         /// </summary>
         bool IsDisplayBannerEnabled();
+        
+        /// <summary>
+        /// Whether or not display target framework badges and table on nuget.org
+        /// </summary>
+        bool IsDisplayTargetFrameworkEnabled();
     }
 }
