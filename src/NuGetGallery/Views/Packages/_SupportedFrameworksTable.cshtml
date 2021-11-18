@@ -1,0 +1,36 @@
+﻿@model IReadOnlyDictionary<string, ICollection<NuGetGallery.Frameworks.PackageFrameworkCompatibilityTableData>>
+<table class="framework framework-table">
+    <thead>
+        <tr>
+            <th class="framework-table-title"><b>Product</b></th>
+            <th class="framework-table-title"><b>Versions</b></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var compatibilityFramework in Model)
+        {
+            if (compatibilityFramework.Value.Count > 0)
+            {
+                <tr>
+                    <td class="framework-table-product">
+                        @compatibilityFramework.Key
+                    </td>
+
+                    <td class="framework-table-frameworks">
+                        @foreach (var frameworkVersion in compatibilityFramework.Value)
+                        {
+                            if (frameworkVersion.IsComputed)
+                            {
+                                <span class="framework-badge-computed framework-table-margin">@frameworkVersion.Framework.GetShortFolderName()</span>
+                            }
+                            else
+                            {
+                                <span class="framework-badge-asset framework-table-margin">@frameworkVersion.Framework.GetShortFolderName()</span>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

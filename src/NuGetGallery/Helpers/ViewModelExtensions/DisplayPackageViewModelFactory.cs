@@ -6,16 +6,21 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Frameworks;
 
 namespace NuGetGallery
 {
     public class DisplayPackageViewModelFactory
     {
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+        private readonly IPackageFrameworkCompatibilityFactory _compatibilityFactory;
+        private readonly IFeatureFlagService _featureFlagService;
 
-        public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider)
+        public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory compatibilityFactory, IFeatureFlagService featureFlagService)
         {
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
+            _compatibilityFactory = compatibilityFactory ?? throw new ArgumentNullException(nameof(compatibilityFactory));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public DisplayPackageViewModel Create(
@@ -50,9 +55,9 @@ namespace NuGetGallery
             RenderedMarkdownResult readmeResult)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
-            SetupCommon(viewModel, package, pushedBy: null, 
+            SetupCommon(viewModel, package, pushedBy: null,
                 packageKeyToDeprecation: packageKeyToDeprecation, packageKeyToVulnerabilities: packageKeyToVulnerabilities);
-            return SetupInternal(viewModel, package, allVersions, currentUser, 
+            return SetupInternal(viewModel, package, allVersions, currentUser,
                 packageKeyToDeprecation, packageKeyToVulnerabilities, packageRenames, readmeResult);
         }
 
@@ -76,7 +81,7 @@ namespace NuGetGallery
             var pushedByCache = new Dictionary<User, string>();
             viewModel.PackageVersions = packageHistory
                 .Select(
-                    p => 
+                    p =>
                     {
                         var vm = new DisplayPackageViewModel();
                         _listPackageItemViewModelFactory.Setup(vm, p, currentUser);
@@ -136,7 +141,7 @@ namespace NuGetGallery
             viewModel.ReadmeImageSourceDisallowed = readmeResult != null ? readmeResult.ImageSourceDisallowed : false;
             viewModel.HasEmbeddedIcon = package.HasEmbeddedIcon;
             viewModel.HasEmbeddedReadmeFile = package.HasEmbeddedReadme;
-
+            
             return viewModel;
         }
 
@@ -202,7 +207,7 @@ namespace NuGetGallery
             }
 
             PackageVulnerabilitySeverity? maxVulnerabilitySeverity = null;
-            if (packageKeyToVulnerabilities != null 
+            if (packageKeyToVulnerabilities != null
                 && packageKeyToVulnerabilities.TryGetValue(package.Key, out var vulnerabilities)
                 && vulnerabilities != null && vulnerabilities.Any())
             {
@@ -219,11 +224,18 @@ namespace NuGetGallery
             viewModel.PackageWarningIconTitle =
                 GetWarningIconTitle(viewModel.Version, deprecation, maxVulnerabilitySeverity);
 
+            viewModel.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled();
+
+            if (viewModel.IsDisplayTargetFrameworkEnabled)
+            {
+                viewModel.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks);
+            }
+
             return viewModel;
         }
 
         private static string GetWarningIconTitle(
-            string version, 
+            string version,
             PackageDeprecation deprecation,
             PackageVulnerabilitySeverity? maxVulnerabilitySeverity)
         {

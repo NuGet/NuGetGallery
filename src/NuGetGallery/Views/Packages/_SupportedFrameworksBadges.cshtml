@@ -1,0 +1,21 @@
+﻿@using NuGetGallery.Frameworks;
+@model PackageFrameworkCompatibilityBadges
+
+<div class="framework framework-badges">
+    @if (Model.Net != null)
+    {
+        <span class="framework-badge-asset">.NET @Model.Net.GetBadgeVersion()</span>
+    }
+    @if (Model.NetCore != null)
+    {
+        <span class="framework-badge-asset">.NET Core @Model.NetCore.GetBadgeVersion()</span>
+    }
+    @if (Model.NetStandard != null)
+    {
+        <span class="framework-badge-asset">.NET Standard @Model.NetStandard.GetBadgeVersion()</span>
+    }
+    @if (Model.NetFramework != null)
+    {
+        <span class="framework-badge-asset">.NET Framework @Model.NetFramework.GetBadgeVersion()</span>
+    }
+</div>

@@ -2317,6 +2317,12 @@
   <ItemGroup>
     <Content Include="Areas\Admin\Views\UpdateListed\Index.cshtml" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\_SupportedFrameworksTable.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\_SupportedFrameworksBadges.cshtml" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

@@ -9,7 +9,7 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.Frameworks
 {
-    public class PackageFrameworkCompatibilityFactory
+    public class PackageFrameworkCompatibilityFactory : IPackageFrameworkCompatibilityFactory
     {
         private readonly ISet<Version> WindowsStoreNetCoreVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("4.5.0.0"), Version.Parse("4.5.1.0") };
         private readonly ISet<Version> WindowsStoreWindowsVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("8.0.0.0"), Version.Parse("8.1.0.0") };
