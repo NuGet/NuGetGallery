@@ -13,14 +13,10 @@ namespace NuGetGallery
     public class DisplayPackageViewModelFactory
     {
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
-        private readonly IPackageFrameworkCompatibilityFactory _compatibilityFactory;
-        private readonly IFeatureFlagService _featureFlagService;
 
-        public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider, IPackageFrameworkCompatibilityFactory compatibilityFactory, IFeatureFlagService featureFlagService)
+        public DisplayPackageViewModelFactory(IIconUrlProvider iconUrlProvider)
         {
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
-            _compatibilityFactory = compatibilityFactory ?? throw new ArgumentNullException(nameof(compatibilityFactory));
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public DisplayPackageViewModel Create(
@@ -141,7 +137,7 @@ namespace NuGetGallery
             viewModel.ReadmeImageSourceDisallowed = readmeResult != null ? readmeResult.ImageSourceDisallowed : false;
             viewModel.HasEmbeddedIcon = package.HasEmbeddedIcon;
             viewModel.HasEmbeddedReadmeFile = package.HasEmbeddedReadme;
-            
+
             return viewModel;
         }
 
@@ -223,13 +219,6 @@ namespace NuGetGallery
 
             viewModel.PackageWarningIconTitle =
                 GetWarningIconTitle(viewModel.Version, deprecation, maxVulnerabilitySeverity);
-
-            viewModel.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled();
-
-            if (viewModel.IsDisplayTargetFrameworkEnabled)
-            {
-                viewModel.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks);
-            }
 
             return viewModel;
         }

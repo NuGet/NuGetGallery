@@ -1034,7 +1034,7 @@ namespace NuGetGallery.ViewModels
             string readmeHtml = null)
         {
             var allVersions = (IReadOnlyCollection<Package>)package.PackageRegistration.Packages;
-            return new DisplayPackageViewModelFactory(Mock.Of<IIconUrlProvider>(), Mock.Of<IPackageFrameworkCompatibilityFactory>(), Mock.Of<IFeatureFlagService>()).Create(
+            return new DisplayPackageViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(
                 package,
                 allVersions,
                 currentUser: currentUser,

@@ -224,11 +224,11 @@ namespace NuGetGallery
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
 
-            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, _featureFlagService);
+            _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider);
             _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(_iconUrlProvider);
             _managePackageViewModelFactory = new ManagePackageViewModelFactory(_iconUrlProvider);
-            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, _featureFlagService);
+            _deletePackageViewModelFactory = new DeletePackageViewModelFactory(_iconUrlProvider);
         }
 
         [HttpGet]
@@ -946,6 +946,12 @@ namespace NuGetGallery
             model.IsNuGetPackageExplorerLinkEnabled = _featureFlagService.IsDisplayNuGetPackageExplorerLinkEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
+            model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled();
+
+            if (model.IsDisplayTargetFrameworkEnabled)
+            {
+                model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks);
+            }
 
             if (model.IsPackageDependentsEnabled)
             {
