@@ -950,7 +950,7 @@ Function Install-PrivateBuildTools() {
     $commit = $env:PRIVATE_BUILD_TOOLS_COMMIT
 
     if (-Not $commit) {
-        $commit = '086d86b380d51807e75f6868477b38b5efda9474'
+        $commit = '4b7460b2e08249e4c65307e5383dfba7fe4da8b7'
     }
 
     if (-Not $repository) {
@@ -967,4 +967,29 @@ Function Install-PrivateBuildTools() {
 
     git -C $PrivateRoot fetch *>&1 | Out-Null
     git -C $PrivateRoot reset --hard $commit
+}
+
+Function Remove-EditorconfigFile() {
+    [CmdletBinding()]
+    param(
+        [string] $Directory
+    )
+
+    $NuGetCodeAnalyzerExtensions = $env:NuGetCodeAnalyzerExtensions
+    if (-Not $NuGetCodeAnalyzerExtensions) {
+        Trace-Log "No NuGet code analyzers are configured. Use the 'NuGetCodeAnalyzerExtensions' environment variable."
+        return
+    }
+
+    $editorconfigFilePath = Join-Path $Directory ".editorconfig"
+    if (-Not (Test-Path $editorconfigFilePath)) {
+        Trace-Log ".editorconfig file at $editorconfigFilePath was not found"
+        return
+    }
+
+    # Remove .editorconfig because the precedence rule for conflicting severity entries from a ruleset file (SDL) and an EditorConfig is undefined.
+    # SDL rulesets should be applied for build pipelines.
+    # See https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-files#severity-options
+    Remove-Item $editorconfigFilePath
+    Trace-Log "Removed $editorconfigFilePath"
 }
