@@ -101,7 +101,7 @@
       "Domains": []
     },
     "NuGetGallery.DisplayPackagePageV2": {
-      "All": true,
+      "All": false,
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
