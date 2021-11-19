@@ -27,9 +27,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         private CloudStorageAccount _cloudStorageAccount;
         private CloudStorageAccount _dataStorageAccount;
+        private CloudStorageAccount _additionalGalleryTotalsAccount;
         private string _statisticsContainerName;
         private string _reportNameConfig;
         private string[] _dataContainerNames;
+        private string _additionalGalleryTotalsContainerName;
         private int _sqlCommandTimeoutSeconds = DefaultSqlCommandTimeoutSeconds;
         private int _perPackageReportDegreeOfParallelism = DefaultPerPackageReportDegreeOfParallelism;
         private ApplicationInsightsHelper _applicationInsightsHelper;
@@ -84,6 +86,17 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
 
             _dataContainerNames = containerNames;
+
+            if (!string.IsNullOrWhiteSpace(configuration.AdditionalGalleryTotalsStorageAccount))
+            {
+                _additionalGalleryTotalsAccount = ValidateAzureCloudStorageAccount(
+                    configuration.AdditionalGalleryTotalsStorageAccount,
+                    nameof(configuration.AdditionalGalleryTotalsStorageAccount));
+                Logger.LogInformation("Additional totals account found {BlobEndpoint}", _additionalGalleryTotalsAccount.BlobEndpoint);
+
+                _additionalGalleryTotalsContainerName = configuration.AdditionalGalleryTotalsStorageContainerName;
+            }
+
             _applicationInsightsHelper = new ApplicationInsightsHelper(ApplicationInsightsConfiguration.TelemetryConfiguration);
         }
 
@@ -190,10 +203,18 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {
                 stopwatch = Stopwatch.StartNew();
 
+                var targets = new List<StorageContainerTarget>();
+                targets.Add(new StorageContainerTarget(_cloudStorageAccount, _statisticsContainerName));
+                if (_additionalGalleryTotalsAccount != null && !string.IsNullOrWhiteSpace(_additionalGalleryTotalsContainerName))
+                {
+                    targets.Add(new StorageContainerTarget(_additionalGalleryTotalsAccount, _additionalGalleryTotalsContainerName));
+                    Logger.LogInformation("Added additional target for stats totals report {BlobEndpoint}/{Container}",
+                        _additionalGalleryTotalsAccount.BlobEndpoint,
+                        _additionalGalleryTotalsContainerName);
+                }
                 var galleryTotalsReport = new GalleryTotalsReport(
                     LoggerFactory.CreateLogger<GalleryTotalsReport>(),
-                    _cloudStorageAccount,
-                    _statisticsContainerName,
+                    targets,
                     OpenSqlConnectionAsync<StatisticsDbConfiguration>,
                     OpenSqlConnectionAsync<GalleryDbConfiguration>,
                     commandTimeoutSeconds: _sqlCommandTimeoutSeconds);

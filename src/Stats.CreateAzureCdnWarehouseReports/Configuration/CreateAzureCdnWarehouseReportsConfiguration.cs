@@ -13,6 +13,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         public string DataContainerName { get; set; }
 
+        public string AdditionalGalleryTotalsStorageAccount { get; set; }
+
+        public string AdditionalGalleryTotalsStorageContainerName { get; set; }
+
         public int? CommandTimeOut { get; set; }
 
         public int? PerPackageReportDegreeOfParallelism { get; set; }

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -23,12 +24,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         public GalleryTotalsReport(
             ILogger<GalleryTotalsReport> logger,
-            CloudStorageAccount cloudStorageAccount,
-            string statisticsContainerName,
+            ICollection<StorageContainerTarget> targets,
             Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
             int commandTimeoutSeconds)
-            : base(logger, new[] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) },
+            : base(logger, targets,
                   openStatisticsSqlConnectionAsync, openGallerySqlConnectionAsync, commandTimeoutSeconds)
         {
         }
