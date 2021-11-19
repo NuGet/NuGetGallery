@@ -6,4 +6,5 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <Import Project="$(NuGetCodeAnalyzerExtensions)" Condition="'$(NuGetCodeAnalyzerExtensions)' != '' And Exists('$(NuGetCodeAnalyzerExtensions)')" />
 </Project>
