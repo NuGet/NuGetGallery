@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
-using NuGetGallery.Frameworks;
 
 namespace NuGetGallery
 {

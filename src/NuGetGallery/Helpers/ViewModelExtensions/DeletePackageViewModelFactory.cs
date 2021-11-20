@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using NuGet.Services.Entities;
-using NuGetGallery.Frameworks;
 
 namespace NuGetGallery
 {
