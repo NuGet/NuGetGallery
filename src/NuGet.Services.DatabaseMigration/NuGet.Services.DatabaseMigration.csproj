@@ -74,7 +74,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
-      <Version>4.8.0</Version>
+      <Version>6.0.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Jobs.Common">
       <Version>4.3.0-dev-5066115</Version>
