@@ -53,11 +53,11 @@ Invoke-BuildStep 'Cleaning test results' { Clean-Tests } `
 
 Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
     -ev +BuildErrors
-    
+
 Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
     -skip:(-not $CleanCache) `
     -ev +BuildErrors
-    
+
 Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
@@ -93,12 +93,15 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
         }
     } `
     -ev +BuildErrors
-    
+
 Invoke-BuildStep 'Restoring solution packages' { `
     Install-SolutionPackages -path (Join-Path $PSScriptRoot ".nuget\packages.config") -output (Join-Path $PSScriptRoot "packages") -excludeversion } `
     -skip:$SkipRestore `
     -ev +BuildErrors
-        
+
+Invoke-BuildStep 'Removing .editorconfig file in ServerCommon' { Remove-EditorconfigFile -Directory $PSScriptRoot } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Building solution' { `
         $SolutionPath = Join-Path $PSScriptRoot "NuGet.Server.Common.sln"
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $SolutionPath -SkipRestore:$SkipRestore

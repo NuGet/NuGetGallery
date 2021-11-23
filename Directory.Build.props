@@ -22,9 +22,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers">
-        <Version>3.0.0</Version>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
+        <Version>6.0.0</Version>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="MicroBuild.Core">
@@ -42,4 +42,5 @@
   </PropertyGroup>
   <Import Project="build\sign.targets" />
   <Import Project="build\sign.microbuild.targets" />
+  <Import Project="$(NuGetCodeAnalyzerExtensions)" Condition="'$(NuGetCodeAnalyzerExtensions)' != '' And Exists('$(NuGetCodeAnalyzerExtensions)')" />
 </Project>
