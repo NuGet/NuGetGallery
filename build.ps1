@@ -10,7 +10,7 @@ param (
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranchCommit = '92d2a66ef95a1772e748872d77f34a6e951ffdc8',
+    [string]$BuildBranchCommit = '65e723253187442f5b8ea537f672bd9328ade5a7',
     [string]$VerifyMicrosoftPackageVersion = $null
 )
 
@@ -54,7 +54,7 @@ if (-not $BuildNumber) {
 Trace-Log "Build #$BuildNumber started at $startTime"
 
 $BuildErrors = @()
-    
+
 Invoke-BuildStep 'Getting private build tools' { Install-PrivateBuildTools } `
     -ev +BuildErrors
 
@@ -63,11 +63,11 @@ Invoke-BuildStep 'Cleaning test results' { Clean-Tests } `
 
 Invoke-BuildStep 'Installing NuGet.exe' { Install-NuGet } `
     -ev +BuildErrors
-    
+
 Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
     -skip:(-not $CleanCache) `
     -ev +BuildErrors
-    
+
 Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
 
@@ -75,7 +75,7 @@ Invoke-BuildStep 'Restoring solution packages' { `
     Install-SolutionPackages -path (Join-Path $PSScriptRoot ".nuget\packages.config") -output (Join-Path $PSScriptRoot "packages") -excludeversion } `
     -skip:$SkipRestore `
     -ev +BuildErrors
-    
+
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
     $Paths = `
         (Join-Path $PSScriptRoot "src\NuGetGallery\Properties\AssemblyInfo.g.cs"), `
@@ -97,6 +97,9 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
     }
 } `
 -ev +BuildErrors
+
+Invoke-BuildStep 'Removing .editorconfig file in NuGetGallery' { Remove-EditorconfigFile -Directory $PSScriptRoot } `
+    -ev +BuildErrors
 
 Invoke-BuildStep 'Building solution' { 
     $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
