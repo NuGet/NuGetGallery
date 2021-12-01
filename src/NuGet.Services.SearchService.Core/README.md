@@ -287,7 +287,7 @@ HTTP `500 Internal Server Error` is returned.
 
 ## Running the service
 
-Uses one of the following approaches to modify the `Settings/local.json` file with configuration
+Uses one of the following approaches to modify the `appsettings.json` file with configuration
 values. Once this configuration files has the settings you'd like, you can launch the service in Visual Studio using
 <kbd>F5</kbd>. This will start the service in IIS Express and open your web browser to the running service.
 

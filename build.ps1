@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch = 'zlocal',
     [string]$CommitSHA,
-    [string]$BuildBranchCommit = 'ade39b693d49b266ec5cac5d939edac7dda2fd92'
+    [string]$BuildBranchCommit = '65e723253187442f5b8ea537f672bd9328ade5a7'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -66,7 +66,7 @@ Invoke-BuildStep 'Clearing package cache' { Clear-PackageCache } `
     
 Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
     -ev +BuildErrors
-    
+
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
         $versionMetadata =
             "src\Catalog\Properties\AssemblyInfo.g.cs",
@@ -121,6 +121,9 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
 Invoke-BuildStep 'Restoring solution packages' { `
     Install-SolutionPackages -path (Join-Path $PSScriptRoot ".nuget\packages.config") -output (Join-Path $PSScriptRoot "packages") -ExcludeVersion } `
     -skip:$SkipRestore `
+    -ev +BuildErrors
+
+Invoke-BuildStep 'Removing .editorconfig file' { Remove-EditorconfigFile -Directory $PSScriptRoot } `
     -ev +BuildErrors
 
 Invoke-BuildStep 'Building solution' { 
