@@ -8,7 +8,7 @@ using NuGet.Services.Logging;
 
 namespace NuGet.Jobs.Validation
 {
-    public class CommonTelemetryService : ICommonTelemetryService, IFeatureFlagTelemetryService
+    public class CommonTelemetryService : ICommonTelemetryService
     {
         private const string FileDownloadedSeconds = "FileDownloadedSeconds";
         private const string FileDownloadSpeed = "FileDownloadSpeedBytesPerSec";
@@ -16,20 +16,11 @@ namespace NuGet.Jobs.Validation
         private const string FileSize = "FileSize";
         private const double DefaultDownloadSpeed = 1;
 
-        private const string FeatureFlagStalenessSeconds = "FeatureFlagStalenessSeconds";
-
-        private readonly ITelemetryClient _telemetryClient;
+        protected readonly ITelemetryClient _telemetryClient;
 
         public CommonTelemetryService(ITelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
-        }
-
-        public void TrackFeatureFlagStaleness(TimeSpan staleness)
-        {
-            _telemetryClient.TrackMetric(
-                FeatureFlagStalenessSeconds,
-                staleness.TotalSeconds);
         }
 
         public void TrackFileDownloaded(Uri fileUri, TimeSpan duration, long size)

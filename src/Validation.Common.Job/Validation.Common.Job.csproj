@@ -37,9 +37,6 @@
     <PackageReference Include="NuGet.Packaging">
       <Version>$(NuGetClientPackageVersion)</Version>
     </PackageReference>
-    <PackageReference Include="NuGetGallery.Core">
-      <Version>$(NuGetGalleryPackageVersion)</Version>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">

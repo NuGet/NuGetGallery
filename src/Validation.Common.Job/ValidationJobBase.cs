@@ -14,15 +14,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs.Configuration;
-using NuGet.Services.FeatureFlags;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation;
 using NuGetGallery;
-using NuGetGallery.Diagnostics;
-using NuGetGallery.Features;
 
 namespace NuGet.Jobs.Validation
 {
@@ -31,9 +26,6 @@ namespace NuGet.Jobs.Validation
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
         private const string PackageValidationServiceBusSectionName = "PackageValidationServiceBus";
         private const string PackageValidationServiceBusBindingKey = "PackageValidationServiceBusBindingKey";
-        private const string FeatureFlagConfigurationSectionName = "FeatureFlags";
-
-        private const string FeatureFlagBindingKey = nameof(FeatureFlagBindingKey);
 
         /// <summary>
         /// The maximum number of concurrent connections that can be established to a single server.
@@ -55,7 +47,6 @@ namespace NuGet.Jobs.Validation
             ConfigureDatabaseServices(services);
 
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
-            services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddTransient<IFileDownloader, FileDownloader>();
             services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
 
@@ -66,7 +57,6 @@ namespace NuGet.Jobs.Validation
                     configurationAccessor.Value.ConnectionString,
                     readAccessGeoRedundant: false);
             });
-            services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
             services.AddTransient<ISharedAccessSignatureService, SharedAccessSignatureService>();
 
@@ -124,50 +114,10 @@ namespace NuGet.Jobs.Validation
                 .As<IPackageValidationEnqueuer>();
         }
 
-        public static void ConfigureFeatureFlagServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        public static new void ConfigureFeatureFlagServices(IServiceCollection services, IConfigurationRoot configurationRoot = null)
         {
-            services.Configure<FeatureFlagConfiguration>(configurationRoot.GetSection(FeatureFlagConfigurationSectionName));
-
-            services
-                .AddTransient(p =>
-                {
-                    var options = p.GetRequiredService<IOptionsSnapshot<FeatureFlagConfiguration>>();
-                    return new FeatureFlagOptions
-                    {
-                        RefreshInterval = options.Value.RefreshInternal,
-                    };
-                });
-
-            services.AddTransient<IFeatureFlagClient, FeatureFlagClient>();
-            services.AddTransient<IFeatureFlagTelemetryService, CommonTelemetryService>();
+            JsonConfigurationJob.ConfigureFeatureFlagServices(services, configurationRoot);
             services.AddTransient<IFeatureFlagService, FeatureFlagService>();
-
-            services.AddSingleton<IFeatureFlagCacheService, FeatureFlagCacheService>();
-        }
-
-        public static void ConfigureFeatureFlagAutofacServices(ContainerBuilder containerBuilder)
-        {
-            containerBuilder
-                .Register(c =>
-                {
-                    var options = c.Resolve<IOptionsSnapshot<FeatureFlagConfiguration>>();
-                    return new CloudBlobClientWrapper(
-                        options.Value.ConnectionString,
-                        GetFeatureFlagBlobRequestOptions());
-                })
-                .Keyed<ICloudBlobClient>(FeatureFlagBindingKey);
-
-            containerBuilder
-                .Register(c => new CloudBlobCoreFileStorageService(
-                    c.ResolveKeyed<ICloudBlobClient>(FeatureFlagBindingKey),
-                    c.Resolve<IDiagnosticsService>(),
-                    c.Resolve<ICloudBlobContainerInformationProvider>()))
-                .Keyed<ICoreFileStorageService>(FeatureFlagBindingKey);
-
-            containerBuilder
-                .Register(c => new FeatureFlagFileStorageService(
-                    c.ResolveKeyed<ICoreFileStorageService>(FeatureFlagBindingKey)))
-                .As<IFeatureFlagStorageService>();
         }
 
         private void ConfigureDatabaseServices(IServiceCollection services)
@@ -187,17 +137,6 @@ namespace NuGet.Jobs.Validation
 
                 return new EntitiesContext(connection, readOnly: true);
             });
-        }
-
-        private static BlobRequestOptions GetFeatureFlagBlobRequestOptions()
-        {
-            return new BlobRequestOptions
-            {
-                ServerTimeout = TimeSpan.FromMinutes(2),
-                MaximumExecutionTime = TimeSpan.FromMinutes(10),
-                LocationMode = LocationMode.PrimaryThenSecondary,
-                RetryPolicy = new ExponentialRetry(),
-            };
         }
     }
 }

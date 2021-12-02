@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Rest;
 using NuGet.Jobs;
-using NuGet.Jobs.Validation;
+using NuGet.Jobs.Configuration;
 
 namespace NuGet.Services.AzureSearch
 {

@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using NuGet.Jobs;
+using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
@@ -99,22 +101,9 @@ namespace NuGet.Services.V3
 
         public static IServiceCollection AddFeatureFlags(this IServiceCollection services)
         {
-	        services
-                .AddTransient(p =>
-                {
-                    var options = p.GetRequiredService<IOptionsSnapshot<FeatureFlagConfiguration>>();
-                    return new FeatureFlagOptions
-                    {
-                        RefreshInterval = options.Value.RefreshInternal,
-                    };
-                });
+            JsonConfigurationJob.ConfigureFeatureFlagServices(services);
 
-            services.AddTransient<IFeatureFlagClient, FeatureFlagClient>();
             services.AddTransient<IFeatureFlagTelemetryService, V3TelemetryService>();
-            services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
-
-            services.AddSingleton<IFeatureFlagCacheService, FeatureFlagCacheService>();
-            services.AddSingleton<IFeatureFlagRefresher, FeatureFlagRefresher>();
 
             return services;
         }
