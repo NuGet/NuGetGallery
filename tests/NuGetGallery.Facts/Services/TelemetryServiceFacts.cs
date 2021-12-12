@@ -355,6 +355,11 @@ namespace NuGetGallery
                     yield return new object[] { "InstanceUptimeInDays",
                         (TrackAction)(s => s.TrackInstanceUptime(TimeSpan.FromSeconds(1)))
                     };
+
+                    yield return new object[] { "ApiRequest",
+                        (TrackAction)(s => s.TrackApiRequest("SomeEndpoint")),
+                        true
+                    };
                 }
             }
 
@@ -369,7 +374,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(TrackMetricNames_Data))]
-            public void TrackMetricNames(string metricName, TrackAction track)
+            public void TrackMetricNames(string metricName, TrackAction track, bool isAggregatedMetric = false)
             {
                 // Arrange
                 var service = CreateService();
@@ -378,10 +383,20 @@ namespace NuGetGallery
                 track(service);
 
                 // Assert
-                service.TelemetryClient.Verify(c => c.TrackMetric(metricName,
-                    It.IsAny<double>(),
-                    It.IsAny<IDictionary<string, string>>()),
-                    Times.Once);
+                if (!isAggregatedMetric)
+                {
+                    service.TelemetryClient.Verify(c => c.TrackMetric(metricName,
+                        It.IsAny<double>(),
+                        It.IsAny<IDictionary<string, string>>()),
+                        Times.Once);
+                }
+                else
+                {
+                    service.TelemetryClient.Verify(c => c.TrackAggregatedMetric(metricName,
+                        It.IsAny<double>(),
+                        It.IsAny<Action<Action<string, string>>>()),
+                        Times.Once);
+                }
             }
 
             [Fact]
