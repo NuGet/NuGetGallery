@@ -418,5 +418,11 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="uptime">The uptime to report.</param>
         void TrackInstanceUptime(TimeSpan uptime);
+
+        /// <summary>
+        /// Tracks API request count by endpoint.
+        /// </summary>
+        /// <param name="endpoint"></param>
+        void TrackApiRequest(string endpoint);
     }
 }

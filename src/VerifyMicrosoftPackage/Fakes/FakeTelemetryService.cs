@@ -378,6 +378,11 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
+        public void TrackApiRequest(string endpoint)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode)
         {
             throw new NotImplementedException();

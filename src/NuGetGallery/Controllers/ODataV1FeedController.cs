@@ -56,6 +56,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(NoCache = true)]
         public IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options)
         {
+            _telemetryService.TrackApiRequest("/api/v1/Packages");
             return Get(options, _featureFlagService.IsODataV1GetAllEnabled());
         }
 
@@ -64,6 +65,7 @@ namespace NuGetGallery.Controllers
         [CacheOutput(NoCache = true)]
         public IHttpActionResult GetCount(ODataQueryOptions<V1FeedPackage> options)
         {
+            _telemetryService.TrackApiRequest("/api/v1/Packages/$count");
             return Get(options, _featureFlagService.IsODataV1GetAllCountEnabled())
                 .FormattedAsCountResult<V1FeedPackage>();
         }
@@ -107,6 +109,7 @@ namespace NuGetGallery.Controllers
             ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V1FeedPackage> options, string id, string version)
         {
+            _telemetryService.TrackApiRequest("/api/v1/Packages(Id=,Version=)");
             var result = await GetCoreAsync(
                 options,
                 id,
@@ -126,6 +129,7 @@ namespace NuGetGallery.Controllers
             ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V1FeedPackage> options, [FromODataUri]string id)
         {
+            _telemetryService.TrackApiRequest("/api/v1/FindPackagesById()?id=");
             return await FindPackagesByIdAsync(
                 options,
                 id,
@@ -140,6 +144,7 @@ namespace NuGetGallery.Controllers
             NoCache = true)]
         public async Task<IHttpActionResult> FindPackagesByIdCount(ODataQueryOptions<V1FeedPackage> options, [FromODataUri] string id)
         {
+            _telemetryService.TrackApiRequest("/api/v1/FindPackagesById()/$count?id=");
             return (await FindPackagesByIdAsync(
                 options,
                 id,
@@ -255,6 +260,7 @@ namespace NuGetGallery.Controllers
         [HttpGet]
         public IHttpActionResult GetPropertyFromPackages(string propertyName, string id, string version)
         {
+            _telemetryService.TrackApiRequest("/api/v1/Packages(Id=,Version=)/propertyName");
             switch (propertyName.ToLowerInvariant())
             {
                 case "id": return Ok(id);
@@ -276,6 +282,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "")
         {
+            _telemetryService.TrackApiRequest("/api/v1/Search()?searchTerm=&targetFramework=&includePrerelease=");
             return await SearchAsync(
                 options,
                 searchTerm,
@@ -294,6 +301,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string searchTerm = "",
             [FromODataUri]string targetFramework = "")
         {
+            _telemetryService.TrackApiRequest("/api/v1/Search()/$count?searchTerm=&targetFramework=&includePrerelease=");
             return (await SearchAsync(
                 options,
                 searchTerm,
