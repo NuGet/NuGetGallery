@@ -70,7 +70,7 @@ namespace NuGetGallery
                     dimensionNames.Add(name);
                     dimensionValues.Add(dvalue);
                 });
-                var metricIdentifier = new MetricIdentifier("Gallery", metricName, dimensionNames);
+                var metricIdentifier = new MetricIdentifier(metricNamespace: "Gallery", metricId: metricName, dimensionNames: dimensionNames);
                 var metric = UnderlyingClient.GetMetric(metricIdentifier);
                 switch (dimensionValues.Count)
                 {
