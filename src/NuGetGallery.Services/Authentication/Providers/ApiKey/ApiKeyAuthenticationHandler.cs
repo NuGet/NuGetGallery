@@ -163,10 +163,10 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
                             // Create authentication ticket
                             return new AuthenticationTicket(
-                                    AuthenticationService.CreateIdentity(
-                                        user,
-                                        AuthenticationTypes.ApiKey),
-                                    new AuthenticationProperties());
+                                AuthenticationService.CreateIdentity(
+                                    user,
+                                    AuthenticationTypes.ApiKey),
+                                new AuthenticationProperties());
                         }
                     }
                     catch (ArgumentException ex)
