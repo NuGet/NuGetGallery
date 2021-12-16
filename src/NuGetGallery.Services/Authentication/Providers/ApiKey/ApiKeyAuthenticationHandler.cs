@@ -3,8 +3,13 @@
 
 using System;
 using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
@@ -117,7 +122,66 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             }
             else
             {
-                Logger.WriteVerbose("No API Key Header found in request.");
+                var authorization = Request.Headers["Authorization"]?.Split(new[] { ' ' }, 2);
+                var username = Request.Headers["X-NuGet-Username"]?.Trim();
+                if (authorization != null
+                    && authorization.Length == 2
+                    && authorization[0].Trim().Equals("bearer", StringComparison.OrdinalIgnoreCase)
+                    && !string.IsNullOrEmpty(username))
+                {
+                    var issuer = "https://token.actions.githubusercontent.com";
+                    var configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                        issuer + "/.well-known/openid-configuration",
+                        new OpenIdConnectConfigurationRetriever(),
+                        new HttpDocumentRetriever());
+                    var discoveryDocument = await configurationManager.GetConfigurationAsync();
+                    var signingKeys = discoveryDocument.SigningKeys;
+
+                    var validationParameters = new TokenValidationParameters
+                    {
+                        RequireExpirationTime = true,
+                        RequireSignedTokens = true,
+                        ValidateIssuer = true,
+                        ValidIssuer = issuer,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKeys = signingKeys,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(2),
+                        ValidAudience = "api://AzureADTokenExchange",
+                    };
+
+                    try
+                    {
+                        var principal = new JwtSecurityTokenHandler()
+                            .ValidateToken(authorization[1], validationParameters, out var rawValidatedToken);
+                        var subject = principal.GetClaimOrDefault(ClaimTypes.NameIdentifier); // sub
+
+                        if (username.Equals("jver", StringComparison.OrdinalIgnoreCase)
+                            && subject == "repo:joelverhagen/oidc-sandbox:ref:refs/heads/main")
+                        {
+                            var user = Auth.Entities.Users.Where(x => x.Username == username).Single();
+
+                            // Create authentication ticket
+                            return new AuthenticationTicket(
+                                    AuthenticationService.CreateIdentity(
+                                        user,
+                                        AuthenticationTypes.ApiKey),
+                                    new AuthenticationProperties());
+                        }
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        Logger.WriteWarning("Invalid token.", ex);
+                    }
+                    catch (SecurityTokenException ex)
+                    {
+                        Logger.WriteWarning("Invalid token.", ex);
+                    }
+                }
+                else
+                {
+                    Logger.WriteVerbose("No API Key Header found in request.");
+                }
             }
 
             return null;
