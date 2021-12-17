@@ -50,7 +50,8 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             if (Response.StatusCode == 401 && (Helper.LookupChallenge(TheOptions.AuthenticationType, TheOptions.AuthenticationMode) != null))
             {
                 var apiKey = Request.Headers[TheOptions.ApiKeyHeaderName];
-                if (!String.IsNullOrEmpty(apiKey))
+                var authorization = Request.Headers["Authorization"];
+                if (!String.IsNullOrEmpty(apiKey) || !String.IsNullOrEmpty(authorization))
                 {
                     // Had an API key, but it didn't match a user
                     WriteStatus(ServicesStrings.ApiKeyNotAuthorized, 403);
