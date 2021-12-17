@@ -44,6 +44,7 @@ namespace NuGet.Services.Entities
         public User(string username)
         {
             Credentials = new List<Credential>();
+            GitHubFederatedTokens = new List<GitHubFederatedToken>();
             SecurityPolicies = new List<UserSecurityPolicy>();
             ReservedNamespaces = new HashSet<ReservedNamespace>();
             Organizations = new List<Membership>();
@@ -129,6 +130,8 @@ namespace NuGet.Services.Entities
         }
 
         public virtual ICollection<Credential> Credentials { get; set; }
+
+        public virtual ICollection<GitHubFederatedToken> GitHubFederatedTokens { get; set; }
 
         public virtual ICollection<UserSecurityPolicy> SecurityPolicies { get; set; }
 

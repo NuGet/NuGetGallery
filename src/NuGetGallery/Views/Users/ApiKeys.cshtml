@@ -55,6 +55,64 @@
                     "Manage",
                     @<text>
                         <div data-bind="template: 'manage-api-keys'"></div>
+                    </text>,
+                    expanded: false)
+
+                @ViewHelpers.Section(this,
+                    "github-federated-tokens",
+                    "GitHub Federated Tokens",
+                    @<text>
+                        @if (Model.GitHubFederatedTokens.Count > 0)
+                        {
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Organization</th>
+                                        <th>Repository</th>
+                                        <th>Branch</th>
+                                        <th>Token subject</th>
+                                        <th>Delete</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var token in Model.GitHubFederatedTokens.OrderBy(x => x.Organization).ThenBy(x => x.Repository).ThenBy(x => x.Branch))
+                                    {
+                                    <tr>
+                                        <td>@token.Organization</td>
+                                        <td>@token.Repository</td>
+                                        <td>@token.Branch</td>
+                                        <td><code>@token.Subject</code></td>
+                                        <td>
+                                            <form action="@Url.Action("DeleteFederatedToken")" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" value="@token.Key" name="key">
+                                                <button type="submit" class="btn btn-default">❌</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        <p>
+                            Enter the GitHub organization, repository, and branch that will allow GitHub Actions to push NuGet packages.
+                        </p>
+                        <form action="@Url.Action("AddFederatedToken")" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="form-group">
+                                <label for="gitHubOrganization">GitHub organization</label>
+                                <input type="text" class="form-control" id="gitHubOrganization" name="organization">
+                            </div>
+                            <div class="form-group">
+                                <label for="gitHubRepository">GitHub repository</label>
+                                <input type="text" class="form-control" id="gitHubRepository" name="repository">
+                            </div>
+                            <div class="form-group">
+                                <label for="gitHubBranch">Branch</label>
+                                <input type="text" class="form-control" id="gitHubBranch" name="branch">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
                     </text>)
             }
         </div>

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -147,21 +148,26 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                         IssuerSigningKeys = signingKeys,
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.FromMinutes(2),
-                        ValidAudience = "api://AzureADTokenExchange",
+                        ValidateAudience = false,
                     };
 
                     try
                     {
-                        var principal = new JwtSecurityTokenHandler()
-                            .ValidateToken(authorization[1], validationParameters, out var rawValidatedToken);
-                        var subject = principal.GetClaimOrDefault(ClaimTypes.NameIdentifier); // sub
+                        var principal = new JwtSecurityTokenHandler().ValidateToken(
+                            authorization[1],
+                            validationParameters,
+                            out var rawValidatedToken);
 
-                        if (username.Equals("jver", StringComparison.OrdinalIgnoreCase)
-                            && subject == "repo:joelverhagen/oidc-sandbox:ref:refs/heads/main")
+                        var subject = principal.GetClaimOrDefault(ClaimTypes.NameIdentifier);
+                        var user = Auth
+                            .Entities
+                            .Users
+                            .Include(x => x.GitHubFederatedTokens)
+                            .Where(x => x.Username == username)
+                            .FirstOrDefault();
+
+                        if (user != null && user.GitHubFederatedTokens.Any(x => x.Subject == subject))
                         {
-                            var user = Auth.Entities.Users.Where(x => x.Username == username).Single();
-
-                            // Create authentication ticket
                             return new AuthenticationTicket(
                                 AuthenticationService.CreateIdentity(
                                     user,

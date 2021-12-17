@@ -232,6 +232,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDelete>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<GitHubFederatedToken>>()
+                .AsSelf()
+                .As<IEntityRepository<GitHubFederatedToken>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<Certificate>>()
                 .AsSelf()
                 .As<IEntityRepository<Certificate>>()

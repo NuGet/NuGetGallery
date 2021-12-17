@@ -83,6 +83,7 @@ namespace NuGetGallery
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         public DbSet<PackageRename> PackageRenames { get; set; }
+        public DbSet<GitHubFederatedToken> GitHubFederatedTokens { get; set; }
 
         /// <summary>
         /// User or organization accounts.
@@ -126,6 +127,12 @@ namespace NuGetGallery
                 .HasKey(c => c.Key)
                 .HasRequired(c => c.User)
                     .WithMany(u => u.Credentials)
+                    .HasForeignKey(c => c.UserKey);
+
+            modelBuilder.Entity<GitHubFederatedToken>()
+                .HasKey(c => c.Key)
+                .HasRequired(c => c.User)
+                    .WithMany(u => u.GitHubFederatedTokens)
                     .HasForeignKey(c => c.UserKey);
 
             modelBuilder.Entity<Scope>()

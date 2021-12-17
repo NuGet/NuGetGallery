@@ -34,6 +34,7 @@ namespace NuGetGallery
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ListPackageItemRequiredSignerViewModelFactory _listPackageItemRequiredSignerViewModelFactory;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
+        private readonly IEntityRepository<GitHubFederatedToken> _gitHubFederatedTokens;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
@@ -56,7 +57,8 @@ namespace NuGetGallery
             IPackageVulnerabilitiesService packageVulnerabilitiesService,
             IMessageServiceConfiguration messageServiceConfiguration,
             IIconUrlProvider iconUrlProvider,
-            IGravatarProxyService gravatarProxy)
+            IGravatarProxyService gravatarProxy,
+            IEntityRepository<GitHubFederatedToken> gitHubFederatedTokens)
             : base(
                   authService,
                   packageService,
@@ -81,6 +83,7 @@ namespace NuGetGallery
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService);
             _listPackageItemViewModelFactory = new ListPackageItemViewModelFactory(iconUrlProvider);
+            _gitHubFederatedTokens = gitHubFederatedTokens;
         }
 
         public override string AccountAction => nameof(Account);
@@ -482,6 +485,7 @@ namespace NuGetGallery
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
                 PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
+                GitHubFederatedTokens = currentUser.GitHubFederatedTokens.ToList(),
             };
 
             return View("ApiKeys", model);
@@ -930,6 +934,50 @@ namespace NuGetGallery
         public virtual ActionResult PasswordChanged()
         {
             return View();
+        }
+
+        [UIAuthorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeleteFederatedToken(int key)
+        {
+            await Task.Yield();
+
+            var user = GetCurrentUser();
+
+            var token = user.GitHubFederatedTokens.Where(x => x.Key == key).FirstOrDefault();
+            if (token != null)
+            {
+                _gitHubFederatedTokens.DeleteOnCommit(token);
+                await _gitHubFederatedTokens.CommitChangesAsync();
+            }
+
+            return RedirectToAction(nameof(ApiKeys));
+        }
+
+        [UIAuthorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> AddFederatedToken(string organization, string repository, string branch)
+        {
+            await Task.Yield();
+
+            var user = GetCurrentUser();
+
+            var tokens = user.GitHubFederatedTokens.ToList();
+            if (!tokens.Any(x => x.Organization == organization && x.Repository == repository && x.Branch == branch))
+            {
+                _gitHubFederatedTokens.InsertOnCommit(new GitHubFederatedToken
+                {
+                    Organization = organization,
+                    Repository = repository,
+                    Branch = branch,
+                    User = user,
+                });
+                await _gitHubFederatedTokens.CommitChangesAsync();
+            }
+
+            return RedirectToAction(nameof(ApiKeys));
         }
 
         [UIAuthorize]

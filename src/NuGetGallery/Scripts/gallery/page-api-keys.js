@@ -684,6 +684,7 @@
             "CalculatorSubtract",
             null);
         window.nuget.configureExpanderHeading("manage-container");
+        window.nuget.configureExpanderHeading("github-federated-tokens-container");
 
         // Start the idle timer for 10 minutes.
         executeOnInactive(apiKeyListViewModel.Idle, 10 * 60 * 1000);
