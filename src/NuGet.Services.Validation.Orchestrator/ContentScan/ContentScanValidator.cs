@@ -83,12 +83,13 @@ namespace NuGet.Services.Validation.Orchestrator.ContentScan
             return GetValidationResponse(result);
         }
 
-        public async Task CleanUpAsync(IValidationRequest request)
+        public Task CleanUpAsync(IValidationRequest request)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
+            return Task.CompletedTask;
         }
 
         public async Task<IValidationResponse> GetResponseAsync(IValidationRequest request)
