@@ -6,7 +6,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace NuGet.Services.AzureSearch.AuxiliaryFiles
+namespace NuGet.Services.Metadata.Catalog
 {
     public static class DownloadsV1Reader
     {

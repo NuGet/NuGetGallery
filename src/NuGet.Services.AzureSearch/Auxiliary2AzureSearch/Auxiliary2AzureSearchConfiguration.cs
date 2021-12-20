@@ -13,6 +13,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         public string AuxiliaryDataStorageDownloadsPath { get; set; }
         public string AuxiliaryDataStorageExcludedPackagesPath { get; }
         public string AuxiliaryDataStorageVerifiedPackagesPath { get; set; }
+        public string DownloadsV1JsonUrl { get; set; }
         public TimeSpan MinPushPeriod { get; set; }
         public int MaxDownloadCountDecreases { get; set; } = 15000;
     }

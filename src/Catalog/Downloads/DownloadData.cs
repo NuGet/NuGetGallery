@@ -5,7 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace NuGet.Services.AzureSearch.AuxiliaryFiles
+namespace NuGet.Services
 {
     public class DownloadData : IReadOnlyDictionary<string, DownloadByVersionData>
     {

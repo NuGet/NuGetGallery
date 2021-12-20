@@ -10,6 +10,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
+using NuGet.Services.Metadata.Catalog;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,6 +23,23 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         {
             public LoadDownloadDataAsync(ITestOutputHelper output) : base(output)
             {
+            }
+
+            [Fact]
+            public async Task ReadsFromUrlWhenConfigured()
+            {
+                _configStorage.DownloadsV1JsonUrl = "https://localhost/downloads.v1.json";
+                var downloadData = new DownloadData();
+                _downloadsV1JsonClient
+                    .Setup(x => x.ReadAsync(_configStorage.DownloadsV1JsonUrl))
+                    .ReturnsAsync(() => downloadData);
+
+                var actual = await _target.LoadDownloadDataAsync();
+
+                Assert.Same(downloadData, actual);
+                Assert.Empty(_blobClient.Invocations);
+                Assert.Empty(_container.Invocations);
+                Assert.Empty(_blob.Invocations);
             }
 
             [Fact]
@@ -120,6 +138,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             protected readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
             protected readonly Mock<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>> _optionsStorage;
             protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
+            protected readonly Mock<IDownloadsV1JsonClient> _downloadsV1JsonClient;
             protected readonly RecordingLogger<AuxiliaryFileClient> _logger;
             protected readonly Mock<ICloudBlobContainer> _container;
             protected readonly Mock<ISimpleCloudBlob> _blob;
@@ -134,6 +153,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
                 _optionsStorage = new Mock<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
+                _downloadsV1JsonClient = new Mock<IDownloadsV1JsonClient>();
                 _logger = output.GetLogger<AuxiliaryFileClient>();
                 _container = new Mock<ICloudBlobContainer>();
                 _blob = new Mock<ISimpleCloudBlob>();
@@ -168,6 +188,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 _target = new AuxiliaryFileClient(
                     _blobClient.Object,
+                    _downloadsV1JsonClient.Object,
                     _optionsStorage.Object,
                     _telemetryService.Object,
                     _logger);

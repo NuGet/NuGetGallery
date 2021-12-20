@@ -22,6 +22,7 @@ using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.FeatureFlags;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGetGallery;
 using IPackageIdGroup = System.Linq.IGrouping<string, Stats.AggregateCdnDownloadsInGallery.DownloadCountData>;
@@ -34,8 +35,6 @@ namespace Stats.AggregateCdnDownloadsInGallery
         private const string AlternateStatisticsSourceFeatureFlagName = "NuGetGallery.AlternateStatisticsSource";
 
         private const int _defaultCommandTimeoutSeconds = 1800; // 30 minutes
-        private const int _defaultBatchSize = 5000;
-        private const int _defaultBatchSleepSeconds = 10;
         private const string _tempTableName = "#AggregateCdnDownloadsInGallery";
 
         private const string _createTempTable = @"
@@ -72,7 +71,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
         private AggregateCdnDownloadsConfiguration _configuration;
         private int _commandTimeoutSeconds;
-        private HttpClient _httpClient;
+        private IDownloadsV1JsonClient _downloadsV1JsonClient;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
@@ -80,7 +79,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
             _configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<AggregateCdnDownloadsConfiguration>>().Value;
             _commandTimeoutSeconds = _configuration.CommandTimeoutSeconds ?? _defaultCommandTimeoutSeconds;
-            _httpClient = _serviceProvider.GetRequiredService<HttpClient>();
+            _downloadsV1JsonClient = _serviceProvider.GetRequiredService<IDownloadsV1JsonClient>();
         }
 
         public override async Task Run()
@@ -103,7 +102,12 @@ namespace Stats.AggregateCdnDownloadsInGallery
                     url = jsonConfigurationAccessor.Value.SynapsePipelineUrl;
                 }
 
-                downloadData = await GetDownloadDataFromDownloadsV1JsonAsync(url);
+                var result = new List<DownloadCountData>();
+                await _downloadsV1JsonClient.ReadAsync(url, (id, version, downloads) =>
+                {
+                    result.Add(new DownloadCountData { PackageId = id, PackageVersion = version, TotalDownloadCount = downloads });
+                });
+                downloadData = result;
             }
 
             if (!downloadData.Any())
@@ -189,39 +193,6 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 stopwatch.Elapsed.TotalSeconds);
 
             return downloadData;
-        }
-
-        private async Task<IReadOnlyList<DownloadCountData>> GetDownloadDataFromDownloadsV1JsonAsync(string url)
-        {
-            var result = new List<DownloadCountData>();
-            var stopwatch = Stopwatch.StartNew();
-            await Retry.IncrementalAsync(async () =>
-                {
-                    Logger.LogInformation("Attempting to download {Url}", url);
-                    using (var response = await _httpClient.GetAsync(url))
-                    {
-                        response.EnsureSuccessStatusCode();
-                        using (var textReader = new StreamReader(await response.Content.ReadAsStreamAsync()))
-                        using (var jsonReader = new JsonTextReader(textReader))
-                        {
-                            DownloadsV1Reader.Load(jsonReader, (id, version, downloads) =>
-                            {
-                                result.Add(new DownloadCountData { PackageId = id, PackageVersion = version, TotalDownloadCount = downloads });
-                            });
-                        }
-                    }
-                },
-                ex => ex is HttpRequestException,
-                maxRetries: 5,
-                initialWaitInterval: TimeSpan.Zero,
-                waitIncrement: TimeSpan.FromSeconds(20));
-            stopwatch.Stop();
-
-            Logger.LogInformation("Got information about {RecordCount} packages from downloads.v1.json in {DurationSeconds} seconds",
-                result.Count,
-                stopwatch.Elapsed.TotalSeconds);
-
-            return result;
         }
 
         private async Task<int> ProcessBatchAsync(List<IPackageIdGroup> batch, SqlConnection destinationDatabase, IDictionary<string, PackageRegistrationData> packageRegistrationLookup)
@@ -454,6 +425,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             services.Configure<DownloadsV1JsonConfiguration>(configurationRoot.GetSection(DownloadsV1JsonConfigurationSectionName));
             ConfigureFeatureFlagServices(services, configurationRoot);
             services.AddSingleton(_ => new HttpClient());
+            services.AddTransient<IDownloadsV1JsonClient, DownloadsV1JsonClient>();
         }
     }
 }
