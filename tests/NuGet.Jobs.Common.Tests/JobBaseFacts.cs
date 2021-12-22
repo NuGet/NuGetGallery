@@ -93,7 +93,7 @@ namespace NuGet.Jobs.Common.Tests
 
             public TestJob()
             {
-                var mockSecretInjector = new Mock<ISecretInjector>();
+                var mockSecretInjector = new Mock<ICachingSecretInjector>();
 
                 var galleryOptionsSnapshot = CreateMockOptionsSnapshot(
                     new GalleryDbConfiguration {
@@ -112,7 +112,7 @@ namespace NuGet.Jobs.Common.Tests
                     .Setup(x => x.GetService(It.IsAny<Type>()))
                     .Returns<Type>(serviceType =>
                     {
-                        if (serviceType == typeof(ISecretInjector))
+                        if (serviceType == typeof(ICachingSecretInjector))
                         {
                             return mockSecretInjector.Object;
                         }

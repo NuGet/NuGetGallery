@@ -15,7 +15,7 @@ namespace Ng.Jobs
 {
     public abstract class NgJob
     {
-        protected ISecretInjector SecretInjector { get; private set; }
+        protected ICachingSecretInjector SecretInjector { get; private set; }
 
         protected readonly IDictionary<string, string> GlobalTelemetryDimensions;
         protected readonly ITelemetryClient TelemetryClient;
@@ -61,7 +61,7 @@ namespace Ng.Jobs
             return GetUsageBase();
         }
 
-        public void SetSecretInjector(ISecretInjector secretInjector)
+        public void SetSecretInjector(ICachingSecretInjector secretInjector)
         {
             SecretInjector = secretInjector;
         }

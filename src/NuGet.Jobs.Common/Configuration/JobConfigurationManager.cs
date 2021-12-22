@@ -199,6 +199,7 @@ namespace NuGet.Jobs
             var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
 
             serviceContainer.AddService(typeof(ISecretInjector), secretInjector);
+            serviceContainer.AddService(typeof(ICachingSecretInjector), secretInjector);
 
             return InjectSecrets(secretInjector, argsDictionary);
         }

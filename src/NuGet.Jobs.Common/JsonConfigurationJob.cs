@@ -90,7 +90,7 @@ namespace NuGet.Jobs
             }
         }
 
-        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ISecretInjector secretInjector, out ISecretReader secretReader)
+        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ICachingSecretInjector secretInjector, out ICachingSecretReader secretReader)
         {
             Logger.LogInformation(
                 "Using the {ConfigurationFilename} configuration file",
@@ -111,8 +111,8 @@ namespace NuGet.Jobs
 
             var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
             var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
-            secretReader = cachingSecretReaderFactory.CreateSecretReader();
-            secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
+            secretReader = cachingSecretReaderFactory.CreateSecretReader() as ICachingSecretReader;
+            secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader()) as ICachingSecretInjector;
 
             builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
@@ -121,14 +121,16 @@ namespace NuGet.Jobs
             return builder.Build();
         }
 
-        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot, ISecretInjector secretInjector, ISecretReader secretReader)
+        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot, ICachingSecretInjector secretInjector, ICachingSecretReader secretReader)
         {
             // Configure as much as possible with Microsoft.Extensions.DependencyInjection.
             var services = new ServiceCollection();
 
             if (!_validateOnly)
             {
+                services.AddSingleton<ISecretInjector>(secretInjector);
                 services.AddSingleton(secretInjector);
+                services.AddSingleton<ISecretReader>(secretReader);
                 services.AddSingleton(secretReader);
             }
 

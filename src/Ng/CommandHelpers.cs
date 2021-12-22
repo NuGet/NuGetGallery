@@ -47,7 +47,7 @@ namespace Ng
             { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
         };
 
-        public static IDictionary<string, string> GetArguments(string[] args, int start, out ISecretInjector secretInjector)
+        public static IDictionary<string, string> GetArguments(string[] args, int start, out ICachingSecretInjector secretInjector)
         {
             var unprocessedArguments = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -78,9 +78,9 @@ namespace Ng
             Trace.TraceError("Required argument \"{0}\" not provided", name);
         }
 
-        private static ISecretInjector GetSecretInjector(IDictionary<string, string> arguments)
+        private static ICachingSecretInjector GetSecretInjector(IDictionary<string, string> arguments)
         {
-            ISecretReader secretReader;
+            ICachingSecretReader secretReader;
 
             var vaultName = arguments.GetOrDefault<string>(Arguments.VaultName);
             if (string.IsNullOrEmpty(vaultName))
