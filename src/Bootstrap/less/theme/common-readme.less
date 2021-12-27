@@ -11,6 +11,16 @@
   }
 }
 
+#readme-container{
+  .table {
+    width: max-content;
+  }
+
+  tr:nth-child(even) {
+    background-color: @readme-table-bg-color;
+  }
+} 
+
 #readme-less {
   img {
     max-width: 100%;
@@ -36,6 +46,13 @@
 
   ul.contains-task-list, li.task-list-item {
     list-style-type: none;
+  }
+  .table {
+    width: max-content;
+  }
+
+  tr:nth-child(even) {
+    background-color: @readme-table-bg-color;
   }
 }
 
