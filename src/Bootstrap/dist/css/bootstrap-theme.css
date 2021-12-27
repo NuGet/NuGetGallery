@@ -657,6 +657,14 @@ img.reserved-indicator-icon {
   overflow: auto;
   max-height: 450px;
 }
+#readme-container .table {
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+}
+#readme-container tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
 #readme-less img {
   max-width: 100%;
 }
@@ -677,6 +685,14 @@ img.reserved-indicator-icon {
 #readme-preview ul.contains-task-list,
 #readme-preview li.task-list-item {
   list-style-type: none;
+}
+#readme-preview .table {
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+}
+#readme-preview tr:nth-child(even) {
+  background-color: #f2f2f2;
 }
 #edit-markdown {
   padding-top: 3em;
