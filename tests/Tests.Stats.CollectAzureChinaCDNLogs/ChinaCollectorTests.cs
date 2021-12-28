@@ -137,7 +137,6 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
                 .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(header + data)));
 
             var destinationMock = new Mock<ILogDestination>();
-            //var outputBuffer = new byte[1024 * 1024];
             var outputStream = new MemoryStream();
             var writeSucceeded = false;
             destinationMock
