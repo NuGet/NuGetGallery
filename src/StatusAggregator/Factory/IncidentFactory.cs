@@ -36,28 +36,26 @@ namespace StatusAggregator.Factory
         {
             var groupEntity = await _aggregationProvider.GetAsync(input);
             var affectedPath = _pathProvider.Get(input);
-            using (_logger.Scope("Creating incident for parsed incident with path {AffectedComponentPath}.", affectedPath))
+            _logger.LogInformation("Creating incident for parsed incident with path {AffectedComponentPath}.", affectedPath);
+            var incidentEntity = new IncidentEntity(
+                input.Id,
+                groupEntity,
+                affectedPath,
+                input.AffectedComponentStatus,
+                input.StartTime,
+                input.EndTime);
+
+            await _table.InsertOrReplaceAsync(incidentEntity);
+
+            if (incidentEntity.AffectedComponentStatus > groupEntity.AffectedComponentStatus)
             {
-                var incidentEntity = new IncidentEntity(
-                    input.Id,
-                    groupEntity,
-                    affectedPath,
-                    input.AffectedComponentStatus,
-                    input.StartTime,
-                    input.EndTime);
-
-                await _table.InsertOrReplaceAsync(incidentEntity);
-
-                if (incidentEntity.AffectedComponentStatus > groupEntity.AffectedComponentStatus)
-                {
-                    _logger.LogInformation("Incident {IncidentRowKey} has a greater severity than incident group {GroupRowKey} it was just linked to ({NewSeverity} > {OldSeverity}), updating group's severity.",
-                        incidentEntity.RowKey, groupEntity.RowKey, (ComponentStatus)incidentEntity.AffectedComponentStatus, (ComponentStatus)groupEntity.AffectedComponentStatus);
-                    groupEntity.AffectedComponentStatus = incidentEntity.AffectedComponentStatus;
-                    await _table.ReplaceAsync(groupEntity);
-                }
-
-                return incidentEntity;
+                _logger.LogInformation("Incident {IncidentRowKey} has a greater severity than incident group {GroupRowKey} it was just linked to ({NewSeverity} > {OldSeverity}), updating group's severity.",
+                    incidentEntity.RowKey, groupEntity.RowKey, (ComponentStatus)incidentEntity.AffectedComponentStatus, (ComponentStatus)groupEntity.AffectedComponentStatus);
+                groupEntity.AffectedComponentStatus = incidentEntity.AffectedComponentStatus;
+                await _table.ReplaceAsync(groupEntity);
             }
+
+            return incidentEntity;
         }
     }
 }

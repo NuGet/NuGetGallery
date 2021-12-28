@@ -26,29 +26,28 @@ namespace StatusAggregator.Export
 
         public Event Export(EventEntity eventEntity)
         {
-            using (_logger.Scope("Exporting event {EventRowKey}.", eventEntity.RowKey))
-            {
-                var messages = _table.GetChildEntities<MessageEntity, EventEntity>(eventEntity)
-                    .ToList()
-                    // Don't show empty messages.
-                    .Where(m => !string.IsNullOrEmpty(m.Contents))
-                    .ToList();
+            _logger.LogInformation("Exporting event {EventRowKey}.", eventEntity.RowKey);
 
-                _logger.LogInformation("Event has {MessageCount} messages that are not empty.", messages.Count);
-                
-                if (!messages.Any())
-                {
-                    return null;
-                }
-                
-                return new Event(
-                    eventEntity.AffectedComponentPath, 
-                    eventEntity.StartTime,
-                    eventEntity.EndTime, 
-                    messages
-                        .OrderBy(m => m.Time)
-                        .Select(m => new Message(m.Time, m.Contents)));
+            var messages = _table.GetChildEntities<MessageEntity, EventEntity>(eventEntity)
+                .ToList()
+                // Don't show empty messages.
+                .Where(m => !string.IsNullOrEmpty(m.Contents))
+                .ToList();
+
+            _logger.LogInformation("Event has {MessageCount} messages that are not empty.", messages.Count);
+
+            if (!messages.Any())
+            {
+                return null;
             }
+
+            return new Event(
+                eventEntity.AffectedComponentPath,
+                eventEntity.StartTime,
+                eventEntity.EndTime,
+                messages
+                    .OrderBy(m => m.Time)
+                    .Select(m => new Message(m.Time, m.Contents)));
         }
     }
 }

@@ -35,14 +35,12 @@ namespace StatusAggregator.Export
 
         public async Task Export(DateTime cursor)
         {
-            using (_logger.Scope("Exporting service status."))
-            {
-                var rootComponent = _componentExporter.Export();
-                var recentEvents = _eventExporter.Export(cursor);
+            _logger.LogInformation("Exporting service status.");
+            var rootComponent = _componentExporter.Export();
+            var recentEvents = _eventExporter.Export(cursor);
 
-                var lastUpdated = await _cursor.Get(StatusUpdater.LastUpdatedCursorName);
-                await _serializer.Serialize(cursor, lastUpdated, rootComponent, recentEvents);
-            }
+            var lastUpdated = await _cursor.Get(StatusUpdater.LastUpdatedCursorName);
+            await _serializer.Serialize(cursor, lastUpdated, rootComponent, recentEvents);
         }
     }
 }

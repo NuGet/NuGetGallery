@@ -43,51 +43,49 @@ namespace StatusAggregator.Update
         public async Task UpdateAsync(TAggregationEntity aggregationEntity, DateTime cursor)
         {
             aggregationEntity = aggregationEntity ?? throw new ArgumentNullException(nameof(aggregationEntity));
+            _logger.LogInformation("Updating aggregation {AggregationRowKey} given cursor {Cursor}.", aggregationEntity.RowKey, cursor);
 
-            using (_logger.Scope("Updating aggregation {AggregationRowKey} given cursor {Cursor}.", aggregationEntity.RowKey, cursor))
+            if (!aggregationEntity.IsActive)
             {
-                if (!aggregationEntity.IsActive)
-                {
-                    _logger.LogInformation("Aggregation is inactive, cannot update.");
-                    return;
-                }
-                
-                var hasActiveOrRecentChildren = false;
-                var children = _table
-                    .GetChildEntities<TChildEntity, TAggregationEntity>(aggregationEntity)
-                    .ToList();
+                _logger.LogInformation("Aggregation is inactive, cannot update.");
+                return;
+            }
 
-                if (children.Any())
-                {
-                    _logger.LogInformation("Aggregation has {ChildrenCount} children. Updating each child.", children.Count);
-                    foreach (var child in children)
-                    {
-                        await _aggregatedEntityUpdater.UpdateAsync(child, cursor);
+            var hasActiveOrRecentChildren = false;
+            var children = _table
+                .GetChildEntities<TChildEntity, TAggregationEntity>(aggregationEntity)
+                .ToList();
 
-                        hasActiveOrRecentChildren = 
-                            hasActiveOrRecentChildren || 
-                            child.IsActive || 
-                            child.EndTime > cursor - _groupEndDelay;
-                    }
-                }
-                else
+            if (children.Any())
+            {
+                _logger.LogInformation("Aggregation has {ChildrenCount} children. Updating each child.", children.Count);
+                foreach (var child in children)
                 {
-                    _logger.LogInformation("Aggregation has no children and must have been created manually, cannot update.");
-                    return;
-                }
-                
-                if (!hasActiveOrRecentChildren)
-                {
-                    _logger.LogInformation("Deactivating aggregation because its children are inactive and too old.");
-                    var lastEndTime = children.Max(i => i.EndTime.Value);
-                    aggregationEntity.EndTime = lastEndTime;
+                    await _aggregatedEntityUpdater.UpdateAsync(child, cursor);
 
-                    await _table.ReplaceAsync(aggregationEntity);
+                    hasActiveOrRecentChildren =
+                        hasActiveOrRecentChildren ||
+                        child.IsActive ||
+                        child.EndTime > cursor - _groupEndDelay;
                 }
-                else
-                {
-                    _logger.LogInformation("Aggregation has active or recent children so it will not be deactivated.");
-                }
+            }
+            else
+            {
+                _logger.LogInformation("Aggregation has no children and must have been created manually, cannot update.");
+                return;
+            }
+
+            if (!hasActiveOrRecentChildren)
+            {
+                _logger.LogInformation("Deactivating aggregation because its children are inactive and too old.");
+                var lastEndTime = children.Max(i => i.EndTime.Value);
+                aggregationEntity.EndTime = lastEndTime;
+
+                await _table.ReplaceAsync(aggregationEntity);
+            }
+            else
+            {
+                _logger.LogInformation("Aggregation has active or recent children so it will not be deactivated.");
             }
         }
     }

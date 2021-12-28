@@ -45,32 +45,30 @@ namespace StatusAggregator.Collector
 
         public async Task<DateTime?> FetchSince(DateTime cursor)
         {
-            using (_logger.Scope("Fetching all new incidents since {Cursor}.", cursor))
+            _logger.LogInformation("Fetching all new incidents since {Cursor}.", cursor);
+
+            var incidents = (await _incidentApiClient.GetIncidents(GetRecentIncidentsQuery(cursor)))
+                // The incident API trims the milliseconds from any filter.
+                // Therefore, a query asking for incidents newer than '2018-06-29T00:00:00.5Z' will return an incident from '2018-06-29T00:00:00.25Z'
+                // We must perform a check on the CreateDate ourselves to verify that no old incidents are returned.
+                .Where(i => i.CreateDate > cursor)
+                .ToList();
+
+            _logger.LogInformation("Found {IncidentCount} incidents to parse.", incidents.Count);
+            var parsedIncidents = incidents
+                .SelectMany(_aggregateIncidentParser.ParseIncident)
+                .ToList();
+
+            _logger.LogInformation("Parsed {ParsedIncidentCount} incidents.", parsedIncidents.Count);
+            foreach (var parsedIncident in parsedIncidents.OrderBy(i => i.StartTime))
             {
-                var incidents = (await _incidentApiClient.GetIncidents(GetRecentIncidentsQuery(cursor)))
-                    // The incident API trims the milliseconds from any filter.
-                    // Therefore, a query asking for incidents newer than '2018-06-29T00:00:00.5Z' will return an incident from '2018-06-29T00:00:00.25Z'
-                    // We must perform a check on the CreateDate ourselves to verify that no old incidents are returned.
-                    .Where(i => i.CreateDate > cursor)
-                    .ToList();
-
-                _logger.LogInformation("Found {IncidentCount} incidents to parse.", incidents.Count);
-                var parsedIncidents = incidents
-                    .SelectMany(_aggregateIncidentParser.ParseIncident)
-                    .ToList();
-
-                _logger.LogInformation("Parsed {ParsedIncidentCount} incidents.", parsedIncidents.Count);
-                foreach (var parsedIncident in parsedIncidents.OrderBy(i => i.StartTime))
-                {
-                    using (_logger.Scope("Creating incident for parsed incident with ID {ParsedIncidentID} affecting {ParsedIncidentPath} at {ParsedIncidentStartTime} with status {ParsedIncidentStatus}.",
-                        parsedIncident.Id, parsedIncident.AffectedComponentPath, parsedIncident.StartTime, parsedIncident.AffectedComponentStatus))
-                    {
-                        await _incidentFactory.CreateAsync(parsedIncident);
-                    }
-                }
-
-                return incidents.Any() ? incidents.Max(i => i.CreateDate) : (DateTime?)null;
+                _logger.LogInformation(
+                    "Creating incident for parsed incident with ID {ParsedIncidentID} affecting {ParsedIncidentPath} at {ParsedIncidentStartTime} with status {ParsedIncidentStatus}.",
+                    parsedIncident.Id, parsedIncident.AffectedComponentPath, parsedIncident.StartTime, parsedIncident.AffectedComponentStatus);
+                await _incidentFactory.CreateAsync(parsedIncident);
             }
+
+            return incidents.Any() ? incidents.Max(i => i.CreateDate) : (DateTime?)null;
         }
         
         private string GetRecentIncidentsQuery(DateTime cursor)

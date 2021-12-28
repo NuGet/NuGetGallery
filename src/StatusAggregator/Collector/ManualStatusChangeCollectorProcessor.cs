@@ -40,28 +40,27 @@ namespace StatusAggregator.Collector
 
         public async Task<DateTime?> FetchSince(DateTime cursor)
         {
-            using (_logger.Scope("Processing manual status changes."))
+            _logger.LogInformation("Processing manual status changes.");
+
+            var manualChangesQuery = _table
+                .CreateQuery<ManualStatusChangeEntity>();
+
+            // Table storage throws on queries with DateTime values that are too low.
+            // If we are fetching manual changes for the first time, don't filter on the timestamp.
+            if (cursor > DateTime.MinValue)
             {
-                var manualChangesQuery = _table
-                    .CreateQuery<ManualStatusChangeEntity>();
-
-                // Table storage throws on queries with DateTime values that are too low.
-                // If we are fetching manual changes for the first time, don't filter on the timestamp.
-                if (cursor > DateTime.MinValue)
-                {
-                    manualChangesQuery = manualChangesQuery.Where(c => c.Timestamp > new DateTimeOffset(cursor, TimeSpan.Zero));
-                }
-                
-                var manualChanges = manualChangesQuery.ToList();
-
-                _logger.LogInformation("Processing {ManualChangesCount} manual status changes.", manualChanges.Count());
-                foreach (var manualChange in manualChanges.OrderBy(m => m.Timestamp))
-                {
-                    await _handler.Handle(_table, manualChange);
-                }
-                
-                return manualChanges.Any() ? manualChanges.Max(c => c.Timestamp.UtcDateTime) : (DateTime?)null;
+                manualChangesQuery = manualChangesQuery.Where(c => c.Timestamp > new DateTimeOffset(cursor, TimeSpan.Zero));
             }
+
+            var manualChanges = manualChangesQuery.ToList();
+
+            _logger.LogInformation("Processing {ManualChangesCount} manual status changes.", manualChanges.Count());
+            foreach (var manualChange in manualChanges.OrderBy(m => m.Timestamp))
+            {
+                await _handler.Handle(_table, manualChange);
+            }
+
+            return manualChanges.Any() ? manualChanges.Max(c => c.Timestamp.UtcDateTime) : (DateTime?)null;
         }
     }
 }

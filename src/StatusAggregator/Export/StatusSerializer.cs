@@ -40,16 +40,12 @@ namespace StatusAggregator.Export
         {
             ServiceStatus status;
             string statusJson;
-            using (_logger.Scope("Serializing service status."))
-            {
-                status = new ServiceStatus(lastBuilt, lastUpdated, rootComponent, recentEvents);
-                statusJson = JsonConvert.SerializeObject(status, Settings);
-            }
+            _logger.LogInformation("Serializing service status.");
+            status = new ServiceStatus(lastBuilt, lastUpdated, rootComponent, recentEvents);
+            statusJson = JsonConvert.SerializeObject(status, Settings);
 
-            using (_logger.Scope("Saving service status to blob storage."))
-            {
-                await _container.SaveBlobAsync(StatusBlobName, statusJson);
-            }
+            _logger.LogInformation("Saving service status to blob storage.");
+            await _container.SaveBlobAsync(StatusBlobName, statusJson);
         }
     }
 }

@@ -28,19 +28,17 @@ namespace StatusAggregator.Parse
 
         public IEnumerable<ParsedIncident> ParseIncident(Incident incident)
         {
-            using (_logger.Scope("Parsing incident {IncidentId}", incident.Id))
+            _logger.LogInformation("Parsing incident {IncidentId}", incident.Id);
+            var parsedIncidents = new List<ParsedIncident>();
+            foreach (var incidentParser in _incidentParsers)
             {
-                var parsedIncidents = new List<ParsedIncident>();
-                foreach (var incidentParser in _incidentParsers)
+                if (incidentParser.TryParseIncident(incident, out var parsedIncident))
                 {
-                    if (incidentParser.TryParseIncident(incident, out var parsedIncident))
-                    {
-                        parsedIncidents.Add(parsedIncident);
-                    }
+                    parsedIncidents.Add(parsedIncident);
                 }
-
-                return parsedIncidents;
             }
+
+            return parsedIncidents;
         }
     }
 }

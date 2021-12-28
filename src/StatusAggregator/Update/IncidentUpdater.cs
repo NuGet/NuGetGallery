@@ -29,22 +29,20 @@ namespace StatusAggregator.Update
 
         public async Task UpdateAsync(IncidentEntity entity, DateTime cursor)
         {
-            using (_logger.Scope("Updating incident with ID {IncidentApiId}.", entity.IncidentApiId))
+            _logger.LogInformation("Updating incident with ID {IncidentApiId}.", entity.IncidentApiId);
+            if (!entity.IsActive)
             {
-                if (!entity.IsActive)
-                {
-                    return;
-                }
+                return;
+            }
 
-                var activeIncident = await _incidentApiClient.GetIncident(entity.IncidentApiId);
-                var endTime = activeIncident.MitigationData?.Date;
+            var activeIncident = await _incidentApiClient.GetIncident(entity.IncidentApiId);
+            var endTime = activeIncident.MitigationData?.Date;
 
-                if (endTime != null)
-                {
-                    entity.EndTime = endTime;
-                    _logger.LogInformation("Updated mitigation time of active incident to {MitigationTime}.", entity.EndTime);
-                    await _table.ReplaceAsync(entity);
-                }
+            if (endTime != null)
+            {
+                entity.EndTime = endTime;
+                _logger.LogInformation("Updated mitigation time of active incident to {MitigationTime}.", entity.EndTime);
+                await _table.ReplaceAsync(entity);
             }
         }
     }

@@ -42,24 +42,23 @@ namespace StatusAggregator.Update
 
         public async Task Update(DateTime cursor)
         {
-            using (_logger.Scope("Updating service status."))
+            _logger.LogInformation("Updating service status.");
+
+            foreach (var manualStatusChangeCollector in _manualStatusChangeCollectors)
             {
-                foreach (var manualStatusChangeCollector in _manualStatusChangeCollectors)
-                {
-                    await manualStatusChangeCollector.FetchLatest();
-                }
+                await manualStatusChangeCollector.FetchLatest();
+            }
 
-                try
-                {
-                    await _incidentCollector.FetchLatest();
-                    await _activeEventUpdater.UpdateAllAsync(cursor);
+            try
+            {
+                await _incidentCollector.FetchLatest();
+                await _activeEventUpdater.UpdateAllAsync(cursor);
 
-                    await _cursor.Set(LastUpdatedCursorName, cursor);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(LogEvents.IncidentIngestionFailure, e, "Failed to update incident API data.");
-                }
+                await _cursor.Set(LastUpdatedCursorName, cursor);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(LogEvents.IncidentIngestionFailure, e, "Failed to update incident API data.");
             }
         }
 

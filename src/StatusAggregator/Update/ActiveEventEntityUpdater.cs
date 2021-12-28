@@ -30,14 +30,12 @@ namespace StatusAggregator.Update
 
         public async Task UpdateAllAsync(DateTime cursor)
         {
-            using (_logger.Scope("Updating active events."))
+            _logger.LogInformation("Updating active events.");
+            var activeEvents = _table.GetActiveEntities<EventEntity>().ToList();
+            _logger.LogInformation("Updating {ActiveEventsCount} active events.", activeEvents.Count());
+            foreach (var activeEvent in activeEvents)
             {
-                var activeEvents = _table.GetActiveEntities<EventEntity>().ToList();
-                _logger.LogInformation("Updating {ActiveEventsCount} active events.", activeEvents.Count());
-                foreach (var activeEvent in activeEvents)
-                {
-                    await _updater.UpdateAsync(activeEvent, cursor);
-                }
+                await _updater.UpdateAsync(activeEvent, cursor);
             }
         }
     }

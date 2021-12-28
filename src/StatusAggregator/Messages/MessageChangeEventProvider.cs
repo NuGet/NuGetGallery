@@ -36,25 +36,23 @@ namespace StatusAggregator.Messages
             _logger.LogInformation("Event has {IncidentGroupsCount} linked incident groups.", linkedGroups.Count);
             foreach (var linkedGroup in linkedGroups)
             {
-                using (_logger.Scope("Getting status changes from incident group {IncidentGroupRowKey}.", linkedGroup.RowKey))
+                _logger.LogInformation("Getting status changes from incident group {IncidentGroupRowKey}.", linkedGroup.RowKey);
+                if (!_filter.CanPostMessages(linkedGroup, cursor))
                 {
-                    if (!_filter.CanPostMessages(linkedGroup, cursor))
-                    {
-                        _logger.LogInformation("Incident group did not pass filter. Cannot post messages about it.");
-                        continue;
-                    }
+                    _logger.LogInformation("Incident group did not pass filter. Cannot post messages about it.");
+                    continue;
+                }
 
-                    var path = linkedGroup.AffectedComponentPath;
-                    var status = (ComponentStatus)linkedGroup.AffectedComponentStatus;
-                    var startTime = linkedGroup.StartTime;
-                    _logger.LogInformation("Incident group started at {StartTime}.", startTime);
-                    events.Add(new MessageChangeEvent(startTime, path, status, MessageType.Start));
-                    if (!linkedGroup.IsActive)
-                    {
-                        var endTime = linkedGroup.EndTime.Value;
-                        _logger.LogInformation("Incident group ended at {EndTime}.", endTime);
-                        events.Add(new MessageChangeEvent(endTime, path, status, MessageType.End));
-                    }
+                var path = linkedGroup.AffectedComponentPath;
+                var status = (ComponentStatus)linkedGroup.AffectedComponentStatus;
+                var startTime = linkedGroup.StartTime;
+                _logger.LogInformation("Incident group started at {StartTime}.", startTime);
+                events.Add(new MessageChangeEvent(startTime, path, status, MessageType.Start));
+                if (!linkedGroup.IsActive)
+                {
+                    var endTime = linkedGroup.EndTime.Value;
+                    _logger.LogInformation("Incident group ended at {EndTime}.", endTime);
+                    events.Add(new MessageChangeEvent(endTime, path, status, MessageType.End));
                 }
             }
 
