@@ -34,6 +34,8 @@ namespace NuGetGallery.FunctionalTests
                 // This test suite hits the gallery which requires TLS 1.2 (at least in some environments).
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
+                // TODO: add the binding redirect hack! 😈
+
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
                 var uninjectedBuilder = new ConfigurationBuilder()
                     .AddJsonFile(EnvironmentSettings.ConfigurationFilePath, optional: false);
