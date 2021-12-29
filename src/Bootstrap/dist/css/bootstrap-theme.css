@@ -690,9 +690,37 @@ img.reserved-indicator-icon {
   width: -webkit-max-content;
   width: -moz-max-content;
   width: max-content;
+  border: 1px solid #ddd;
+}
+#readme-preview .table > thead > tr > th,
+#readme-preview .table > tbody > tr > th,
+#readme-preview .table > tfoot > tr > th,
+#readme-preview .table > thead > tr > td,
+#readme-preview .table > tbody > tr > td,
+#readme-preview .table > tfoot > tr > td {
+  border: 1px solid #ddd;
+}
+#readme-preview .table > thead > tr > th,
+#readme-preview .table > thead > tr > td {
+  border-bottom-width: 2px;
 }
 #readme-preview tr:nth-child(even) {
   background-color: #f2f2f2;
+}
+.table-bordered {
+  border: 1px solid #ddd;
+}
+.table-bordered > thead > tr > th,
+.table-bordered > tbody > tr > th,
+.table-bordered > tfoot > tr > th,
+.table-bordered > thead > tr > td,
+.table-bordered > tbody > tr > td,
+.table-bordered > tfoot > tr > td {
+  border: 1px solid #ddd;
+}
+.table-bordered > thead > tr > th,
+.table-bordered > thead > tr > td {
+  border-bottom-width: 2px;
 }
 #edit-markdown {
   padding-top: 3em;

@@ -47,12 +47,50 @@
   ul.contains-task-list, li.task-list-item {
     list-style-type: none;
   }
+  
   .table {
     width: max-content;
+    border: 1px solid @table-border-color;
+    > thead,
+    > tbody,
+    > tfoot {
+      > tr {
+        > th,
+        > td {
+          border: 1px solid @table-border-color;
+        }
+      }
+    }
+    > thead > tr {
+      > th,
+      > td {
+        border-bottom-width: 2px;
+      }
+    }
   }
 
   tr:nth-child(even) {
     background-color: @readme-table-bg-color;
+  }
+}
+
+.table-bordered {
+  border: 1px solid @table-border-color;
+  > thead,
+  > tbody,
+  > tfoot {
+    > tr {
+      > th,
+      > td {
+        border: 1px solid @table-border-color;
+      }
+    }
+  }
+  > thead > tr {
+    > th,
+    > td {
+      border-bottom-width: 2px;
+    }
   }
 }
 
