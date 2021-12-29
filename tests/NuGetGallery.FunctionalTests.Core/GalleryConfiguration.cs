@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net;
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using NuGet.Services.Configuration;
 
@@ -35,6 +37,7 @@ namespace NuGetGallery.FunctionalTests
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
                 // TODO: add the binding redirect hack! 😈
+                RedirectAssembly("Newtonsoft.Json");
 
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
                 var uninjectedBuilder = new ConfigurationBuilder()
@@ -68,6 +71,37 @@ namespace NuGetGallery.FunctionalTests
                     $"and that it is a valid JSON file containing all required configuration.",
                     e);
             }
+        }
+
+        /// <summary>
+        /// Source: https://stackoverflow.com/a/32698357
+        /// </summary>
+        public static void RedirectAssembly(string shortName)
+        {
+            ResolveEventHandler handler = null;
+
+            handler = (sender, args) =>
+            {
+                var requestedAssembly = new AssemblyName(args.Name);
+                if (requestedAssembly.Name != shortName)
+                {
+                    return null;
+                }
+
+                var current = AppDomain
+                    .CurrentDomain
+                    .GetAssemblies()
+                    .LastOrDefault(x => x.GetName().Name == shortName);
+
+                if (current != null)
+                {
+                    return current;
+                }
+
+                return null;
+            };
+
+            AppDomain.CurrentDomain.AssemblyResolve += handler;
         }
 
         public class AccountConfiguration : OrganizationConfiguration
