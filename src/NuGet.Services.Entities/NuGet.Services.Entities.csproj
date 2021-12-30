@@ -15,7 +15,7 @@
       <Version>10.0.3</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Frameworks">
-      <Version>5.9.0</Version>
+      <Version>6.0.0</Version>
     </PackageReference>
   </ItemGroup>
 
