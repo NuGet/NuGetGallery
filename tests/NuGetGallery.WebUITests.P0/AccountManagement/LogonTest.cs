@@ -22,7 +22,6 @@ namespace NuGetGallery.FunctionalTests.WebUITests.AccountManagement
 
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
-
             //Do initial login
             WebTestRequest logonGet = AssertAndValidationHelper.GetLogonGetRequest();
             yield return logonGet;

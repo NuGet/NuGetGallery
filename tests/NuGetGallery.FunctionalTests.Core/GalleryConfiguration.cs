@@ -36,7 +36,7 @@ namespace NuGetGallery.FunctionalTests
                 // This test suite hits the gallery which requires TLS 1.2 (at least in some environments).
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
-                // TODO: add the binding redirect hack! 😈
+                // Please refer to https://github.com/NuGet/NuGetGallery/pull/8890 for information on why this is needed.
                 RedirectAssembly("Newtonsoft.Json");
 
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
@@ -60,7 +60,7 @@ namespace NuGetGallery.FunctionalTests
             catch (ArgumentException ae)
             {
                 throw new ArgumentException(
-                    $"No configuration file was specified! Set the '{EnvironmentSettings.ConfigurationFilePathVariableName}' environment variable to the path to a JSON configuration file.", 
+                    $"No configuration file was specified! Set the '{EnvironmentSettings.ConfigurationFilePathVariableName}' environment variable to the path to a JSON configuration file.",
                     ae);
             }
             catch (Exception e)
@@ -93,12 +93,7 @@ namespace NuGetGallery.FunctionalTests
                     .GetAssemblies()
                     .LastOrDefault(x => x.GetName().Name == shortName);
 
-                if (current != null)
-                {
-                    return current;
-                }
-
-                return null;
+                return current;
             };
 
             AppDomain.CurrentDomain.AssemblyResolve += handler;
