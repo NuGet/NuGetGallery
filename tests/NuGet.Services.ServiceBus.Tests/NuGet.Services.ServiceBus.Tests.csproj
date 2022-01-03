@@ -5,9 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WindowsAzure.ServiceBus">
-      <Version>6.0.3</Version>
-    </PackageReference>
     <PackageReference Include="Moq">
       <Version>4.10.0</Version>
     </PackageReference>
