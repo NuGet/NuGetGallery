@@ -663,17 +663,9 @@ img.reserved-indicator-icon {
   width: max-content;
   border: 1px solid #ddd;
 }
-#readme-container .table > thead > tr > th,
-#readme-container .table > tbody > tr > th,
-#readme-container .table > tfoot > tr > th,
-#readme-container .table > thead > tr > td,
-#readme-container .table > tbody > tr > td,
-#readme-container .table > tfoot > tr > td {
+#readme-container .table th,
+#readme-container .table td {
   border: 1px solid #ddd;
-}
-#readme-container .table > thead > tr > th,
-#readme-container .table > thead > tr > td {
-  border-bottom-width: 2px;
 }
 #readme-container tr:nth-child(even) {
   background-color: #f2f2f2;
@@ -705,17 +697,9 @@ img.reserved-indicator-icon {
   width: max-content;
   border: 1px solid #ddd;
 }
-#readme-preview .table > thead > tr > th,
-#readme-preview .table > tbody > tr > th,
-#readme-preview .table > tfoot > tr > th,
-#readme-preview .table > thead > tr > td,
-#readme-preview .table > tbody > tr > td,
-#readme-preview .table > tfoot > tr > td {
+#readme-preview .table th,
+#readme-preview .table td {
   border: 1px solid #ddd;
-}
-#readme-preview .table > thead > tr > th,
-#readme-preview .table > thead > tr > td {
-  border-bottom-width: 2px;
 }
 #readme-preview tr:nth-child(even) {
   background-color: #f2f2f2;
