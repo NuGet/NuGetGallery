@@ -30,18 +30,19 @@ namespace NuGetGallery.Frameworks
         {
             var result = _service.GetCompatibleFrameworks(new List<NuGetFramework>());
 
-            Assert.Equal(expected: 0, actual: result.Count);
+            Assert.Empty(result);
         }
 
         [Fact]
-        public void UnknownSupportedPackageReturnsEmptySet()
+        public void UnknownSupportedPackageReturnsSetWithSameFramework()
         {
-            var framework = NuGetFramework.Parse("netstandard9.2");
+            var framework = NuGetFramework.Parse("net45-client");
             var frameworks = new List<NuGetFramework>() { framework };
             var compatible = _service.GetCompatibleFrameworks(frameworks);
 
             Assert.False(framework.IsUnsupported);
-            Assert.Equal(expected: 0, compatible.Count);
+            Assert.Equal(expected: 1, compatible.Count);
+            Assert.Contains(framework, compatible);
         }
 
         [Theory]
