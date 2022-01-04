@@ -302,7 +302,7 @@
     </None>
     <None Include="TestData\PackageWithReadmeOnlyNoType.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>    
+    </None>
     <None Include="TestData\PackageWithReadmeOnlyNoType.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -342,9 +342,6 @@
     </PackageReference>
     <PackageReference Include="Moq">
       <Version>4.10.1</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Logging">
-      <Version>$(ServerCommonPackageVersion)</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.4.1</Version>

@@ -66,9 +66,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NuGetGallery.Core">
-      <Version>$(NuGetGalleryPackageVersion)</Version>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
