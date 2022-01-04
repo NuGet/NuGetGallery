@@ -290,6 +290,11 @@ namespace NuGetGallery
         /// <summary>
         /// Whether or not display target framework badges and table on nuget.org
         /// </summary>
-        bool IsDisplayTargetFrameworkEnabled();
+        bool IsDisplayTargetFrameworkEnabled(User user);
+
+        /// <summary>
+        /// Whether or not to compute backend operations for target framework. This flag is overridden by <see cref="IsDisplayTargetFrameworkEnabled"/> if that flag is true.
+        /// </summary>
+        bool IsComputeTargetFrameworkEnabled();
     }
 }
