@@ -33,6 +33,10 @@ namespace NuGetGallery.Frameworks
                 {
                     allCompatibleFrameworks.UnionWith(compatibleFrameworks);
                 }
+                else
+                {
+                    allCompatibleFrameworks.Add(packageFramework);
+                }
             }
 
             return allCompatibleFrameworks;
