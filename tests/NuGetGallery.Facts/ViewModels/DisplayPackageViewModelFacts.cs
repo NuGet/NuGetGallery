@@ -8,7 +8,6 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Framework;
-using NuGetGallery.Frameworks;
 using Xunit;
 using static NuGetGallery.DisplayPackageViewModel;
 
@@ -1034,6 +1033,7 @@ namespace NuGetGallery.ViewModels
             string readmeHtml = null)
         {
             var allVersions = (IReadOnlyCollection<Package>)package.PackageRegistration.Packages;
+
             return new DisplayPackageViewModelFactory(Mock.Of<IIconUrlProvider>()).Create(
                 package,
                 allVersions,

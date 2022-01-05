@@ -20,6 +20,6 @@ namespace NuGetGallery.Frameworks
         /// Key: Is the <see cref="FrameworkProductNames"/> if resolved on (<seealso cref="PackageFrameworkCompatibilityFactory.ResolveFrameworkProductName(NuGetFramework)"/>) or the <see cref="NuGetFramework.Framework"/>.<br></br>
         /// Value: Is an ordered collection containing all the compatible frameworks.
         /// </remarks>
-        public IReadOnlyDictionary<string, ICollection<PackageFrameworkCompatibilityTableData>> Table { get; set; }
+        public IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> Table { get; set; }
     }
 }

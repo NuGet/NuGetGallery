@@ -946,9 +946,10 @@ namespace NuGetGallery
             model.IsNuGetPackageExplorerLinkEnabled = _featureFlagService.IsDisplayNuGetPackageExplorerLinkEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
-            model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled();
+            model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled(currentUser);
+            model.IsComputeTargetFrameworkEnabled = _featureFlagService.IsComputeTargetFrameworkEnabled();
 
-            if (model.IsDisplayTargetFrameworkEnabled)
+            if (model.IsComputeTargetFrameworkEnabled || model.IsDisplayTargetFrameworkEnabled)
             {
                 model.PackageFrameworkCompatibility = _compatibilityFactory.Create(package.SupportedFrameworks);
             }

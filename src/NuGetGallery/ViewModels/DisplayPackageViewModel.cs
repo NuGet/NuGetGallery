@@ -99,6 +99,7 @@ namespace NuGetGallery
         public IReadOnlyCollection<PackageRename> PackageRenames { get; set; }
         public string RenamedMessage { get; set; }
         public bool IsDisplayTargetFrameworkEnabled { get; set; }
+        public bool IsComputeTargetFrameworkEnabled { get; set; }
         public PackageFrameworkCompatibility PackageFrameworkCompatibility { get; set; }
 
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)

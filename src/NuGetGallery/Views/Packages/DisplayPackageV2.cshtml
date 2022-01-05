@@ -643,10 +643,14 @@
                     </div>
 
                     <div role="tabpanel" class="tab-pane @(activeBodyTab == "supportedframeworks" ? "active" : "")" id="supportedframeworks-tab">
-                    @if (Model.IsDisplayTargetFrameworkEnabled)
-                    {
-                        @Html.Partial("_SupportedFrameworksTable", Model.PackageFrameworkCompatibility.Table)
-                    }
+                        @if (Model.IsDisplayTargetFrameworkEnabled && Model.PackageFrameworkCompatibility.Table.Count > 0)
+                        {
+                            @Html.Partial("_SupportedFrameworksTable", Model.PackageFrameworkCompatibility.Table)
+                        }
+                        else
+                        {
+                            <span>This NuGet package contains no supported frameworks in their assets.</span>
+                        }
                     </div>
 
                     <div role="tabpanel" class="tab-pane @(activeBodyTab == "dependencies" ? "active" : "")" id="dependencies-tab">
