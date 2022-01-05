@@ -120,6 +120,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayTargetFrameworkEnabled() => throw new NotImplementedException();
+        public bool IsDisplayTargetFrameworkEnabled(User user) => throw new NotImplementedException();
+
+        public bool IsComputeTargetFrameworkEnabled() => throw new NotImplementedException();
     }
 }

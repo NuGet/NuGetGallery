@@ -51,6 +51,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsComputeTargetFrameworkEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDeletePackageApiEnabled(User user)
         {
             throw new NotImplementedException();
@@ -81,7 +86,7 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayTargetFrameworkEnabled()
+        public bool IsDisplayTargetFrameworkEnabled(User user)
         {
             throw new NotImplementedException();
         }
