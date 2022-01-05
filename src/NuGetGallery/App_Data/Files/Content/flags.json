@@ -31,7 +31,7 @@
     "NuGetGallery.MarkdigMdRendering": "Enabled",
     "NuGetGallery.ImageAllowlist": "Enabled",
     "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
-    "NuGetGallery.DisplayTargetFramework": "Enabled"
+    "NuGetGallery.ComputeTargetFramework": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
@@ -107,6 +107,12 @@
       "Domains": []
     },
     "NuGetGallery.DisplayPackagePageV2Preview": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
+    },
+    "NuGetGallery.DisplayTargetFramework": {
       "All": true,
       "SiteAdmins": false,
       "Accounts": [],

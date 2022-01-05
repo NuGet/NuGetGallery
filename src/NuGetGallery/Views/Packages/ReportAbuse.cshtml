@@ -92,14 +92,18 @@
                         <p tabindex="0">
                             Please provide a detailed description of the problem.
                         <p>
+                        <div class="online-safety-extras" tabindex="0">
+                            <p>
+                                Please also describe where in the package the problem was found. Be sure to include:
+                                <ul>
+                                    <li>Whether the problem is in graphics, video, readme, scripts, libraries, nuspec, other metadata, other file(s)</li>
+                                    <li>The exact names of the offending file(s)</li>
+                                </ul>
+                            </p>
+                        </div>
                         <div class="infringement-claim-requirements" tabindex="0">
                             <p>
                                 If you are reporting copyright infringement, please describe the copyrighted material with particularity and provide us with information about your copyright (i.e. title of copyrighted work, URL where to view your copyrighted work, description of your copyrighted work, and any copyright registrations you may have, etc.). For trademark infringement, include the name of your trademark, registration number, and country where registered.
-                            </p>
-                        </div>
-                        <div class="child-sexual-exploitation" tabindex="0">
-                            <p>
-                                Note: Please complete this form and submit it so we can proceed with an appropriate response regarding the NuGet package (e.g. removing it). In addition, please proceed to <a href="https://report.cybertip.org">https://report.cybertip.org</a> to report the matter in more detail.
                             </p>
                         </div>
                         <div class="imminent-harm" tabindex="0">
@@ -193,14 +197,10 @@
                 || val === 'RevengePorn'
                 || val === 'OtherNudityOrPornography') {
                 $form.find('.already-contacted-owner').hide();
+                $form.find('.online-safety-extras').show();
             } else {
                 $form.find('.already-contacted-owner').show();
-            }
-
-            if (val === 'ChildSexualExploitationOrAbuse') {
-                $form.find('.child-sexual-exploitation').show();
-            } else {
-                $form.find('.child-sexual-exploitation').hide();
+                $form.find('.online-safety-extras').hide();
             }
 
             if (val === 'ImminentHarm') {

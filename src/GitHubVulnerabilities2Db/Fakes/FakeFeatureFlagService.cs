@@ -270,7 +270,12 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayTargetFrameworkEnabled()
+        public bool IsDisplayTargetFrameworkEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsComputeTargetFrameworkEnabled()
         {
             throw new NotImplementedException();
         }
