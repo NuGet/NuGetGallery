@@ -17,10 +17,15 @@ namespace NuGetGallery.Frameworks
             if (framework.Version.Build != 0)
             {
                 builder.Append($".{framework.Version.Build}");
+
+                if (framework.Version.Revision != 0)
+                {
+                    builder.Append($".{framework.Version.Revision}");
+                }
             }
-            if (framework.Version.Revision != 0)
+            else if (framework.Version.Revision != 0)
             {
-                builder.Append($".{framework.Version.Revision}");
+                builder.Append($".0.{framework.Version.Revision}");
             }
 
             return builder.ToString();
