@@ -108,13 +108,13 @@
                             }
                             @foreach (var tag in tags)
                             {
-                                <a href="@Url.Search("Tags:\"" + tag + "\"")" class="tag-link" title="Search for @tag">@tag</a>
+                                <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a>
                             }
                             @if (lastTag != null)
                             {
                                 <span class="text-nowrap">
-                                    <a href="@Url.Search("Tags:\"" + lastTag + "\"")" class="tag-link" title="Search for @lastTag">@lastTag</a>
-                                    <a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)" title="View more tags" class="more-tags">More tags</a>
+                                    <a href="@Url.Search("Tags:\"" + lastTag + "\"")" title="Search for @lastTag">@lastTag</a>
+                                    <a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)" title="View more tags">More tags</a>
                                 </span>
                             }
                         </span>

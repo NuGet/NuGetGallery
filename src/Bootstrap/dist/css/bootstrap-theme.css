@@ -258,8 +258,8 @@ img.reserved-indicator-icon {
   line-height: 20px;
   color: #666666;
 }
-.package-list a:not(.more-tags) {
-  color: #666666;
+.package-list a {
+  color: #337ab7;
 }
 .package-list li {
   list-style: none;
@@ -578,12 +578,6 @@ img.reserved-indicator-icon {
     margin-left: 0;
     display: block;
   }
-}
-.list-packages .package .package-list .package-tags {
-  margin-left: 10px;
-}
-.list-packages .package .package-list .package-tags .tag-link {
-  color: #337ab7;
 }
 .list-packages .package .package-title {
   font-size: 16px;
