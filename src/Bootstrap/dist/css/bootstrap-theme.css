@@ -717,7 +717,7 @@ img.reserved-indicator-icon {
   -ms-flex-pack: center;
   justify-content: center;
   display: inline-block;
-  background: #00B7C3;
+  background: #007d85;
   color: white;
 }
 .framework-badge-computed {
@@ -728,7 +728,7 @@ img.reserved-indicator-icon {
   -ms-flex-pack: center;
   justify-content: center;
   display: inline-block;
-  border: 1px solid #00B7C3;
+  border: 1px solid #007d85;
   background: rgba(0, 183, 195, 0.1);
 }
 .framework-table {
