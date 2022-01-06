@@ -732,6 +732,7 @@ img.reserved-indicator-icon {
   background: rgba(0, 183, 195, 0.1);
 }
 .framework-table {
+  margin-bottom: 30px;
   font-family: Segoe UI;
   font-size: 14px;
   line-height: 20px;
@@ -754,6 +755,42 @@ img.reserved-indicator-icon {
   width: -webkit-calc(100% - 232px);
   width: calc(100% - 232px);
   padding: 11px 0px 4px 12px;
+}
+.frameworktableinfo {
+  padding: 3px 8px 5px;
+  width: 35px;
+  height: 10px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin-right: 10px;
+}
+.frameworktableinfo-computed-icon {
+  padding: 3px 8px 5px;
+  width: 35px;
+  height: 10px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin-right: 10px;
+  border: 1px solid #007d85;
+}
+.frameworktableinfo-asset-icon {
+  padding: 3px 8px 5px;
+  width: 35px;
+  height: 10px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin-right: 10px;
+  background-color: #007d85;
+}
+.frameworktableinfo-text {
+  font-size: 14px;
+  line-height: 16px;
 }
 .user-package-list .manage-package-listing .package-icon {
   max-height: 2em;

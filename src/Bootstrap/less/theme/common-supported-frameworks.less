@@ -37,6 +37,8 @@
 }
 
 .framework-table {
+  margin-bottom: 30px;
+
   .framework;
   width: 100%;
 
@@ -61,4 +63,27 @@
     width: calc(100% - @table-product-width);
     padding: 11px 0px 4px 12px;
   }
+}
+
+.frameworktableinfo {
+  padding: 3px 8px 5px;
+  width: 35px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin-right: 10px;
+}
+.frameworktableinfo-computed-icon{
+  .frameworktableinfo;
+  border: 1px solid @badge-dark;
+}
+
+.frameworktableinfo-asset-icon{
+  .frameworktableinfo;
+  background-color: @badge-dark;
+}
+
+.frameworktableinfo-text {
+  font-size: 14px;
+  line-height: 16px;
 }
