@@ -56,7 +56,6 @@ namespace NuGet.Services.SearchService
 
             services.Configure<AzureSearchConfiguration>(Configuration.GetSection(ConfigurationSectionName));
             services.Configure<SearchServiceConfiguration>(Configuration.GetSection(ConfigurationSectionName));
-            services.Configure<FeatureFlagConfiguration>(Configuration.GetSection(FeatureFlagSectionName));
 
             services.AddApplicationInsightsTelemetry(o =>
             {
@@ -79,7 +78,7 @@ namespace NuGet.Services.SearchService
             services.AddHostedService<SecretRefresherBackgroundService>();
             services.AddHostedService<FeatureFlagBackgroundService>();
 
-            services.AddAzureSearch(new Dictionary<string, string>());
+            services.AddAzureSearch(new Dictionary<string, string>(), Configuration);
 
             // The maximum SNAT ports on Azure App Service is 128:
             // https://docs.microsoft.com/en-us/azure/app-service/troubleshoot-intermittent-outbound-connection-errors#cause

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
 using Microsoft.Azure.Search;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -31,7 +32,7 @@ namespace NuGet.Services.AzureSearch
     {
         public static ContainerBuilder AddAzureSearch(this ContainerBuilder containerBuilder)
         {
-            containerBuilder.AddFeatureFlags();
+            containerBuilder.AddV3();
 
             /// Here, we register services that depend on an interface that there are multiple implementations.
 
@@ -229,11 +230,10 @@ namespace NuGet.Services.AzureSearch
 
         public static IServiceCollection AddAzureSearch(
             this IServiceCollection services,
-            IDictionary<string, string> telemetryGlobalDimensions)
+            IDictionary<string, string> telemetryGlobalDimensions,
+            IConfigurationRoot configurationRoot)
         {
-            services.AddV3(telemetryGlobalDimensions);
-
-            services.AddFeatureFlags();
+            services.AddV3(telemetryGlobalDimensions, configurationRoot);
             services.AddTransient<IFeatureFlagService, FeatureFlagService>();
 
             services.AddTransient<ISearchServiceClientWrapper>(p => new SearchServiceClientWrapper(

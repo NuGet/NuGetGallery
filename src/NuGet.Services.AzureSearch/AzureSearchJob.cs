@@ -8,14 +8,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Rest;
 using NuGet.Jobs;
-using NuGet.Jobs.Configuration;
 
 namespace NuGet.Services.AzureSearch
 {
     public abstract class AzureSearchJob<T> : JsonConfigurationJob where T : IAzureSearchCommand
     {
-        private const string FeatureFlagConfigurationSectionName = "FeatureFlags";
-
         public override async Task Run()
         {
             ServicePointManager.DefaultConnectionLimit = 64;
@@ -47,9 +44,7 @@ namespace NuGet.Services.AzureSearch
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            services.AddAzureSearch(GlobalTelemetryDimensions);
-
-            services.Configure<FeatureFlagConfiguration>(configurationRoot.GetSection(FeatureFlagConfigurationSectionName));
+            services.AddAzureSearch(GlobalTelemetryDimensions, configurationRoot);
         }
     }
 }

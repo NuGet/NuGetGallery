@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -540,7 +541,9 @@ namespace Ng.Jobs
                 config.EnsureSingleSnapshot = true;
             });
 
-            services.AddCatalog2Registration(GlobalTelemetryDimensions);
+            services.AddCatalog2Registration(
+                GlobalTelemetryDimensions,
+                new ConfigurationRoot(new List<Microsoft.Extensions.Configuration.IConfigurationProvider>()));
 
             var containerBuilder = new ContainerBuilder();
             containerBuilder.AddCatalog2Registration();

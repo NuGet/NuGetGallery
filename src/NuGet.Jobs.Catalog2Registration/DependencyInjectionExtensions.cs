@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -22,6 +23,8 @@ namespace NuGet.Jobs.Catalog2Registration
 
         public static ContainerBuilder AddCatalog2Registration(this ContainerBuilder containerBuilder)
         {
+            containerBuilder.AddV3();
+
             RegisterCursorStorage(containerBuilder);
 
             containerBuilder
@@ -79,9 +82,10 @@ namespace NuGet.Jobs.Catalog2Registration
 
         public static IServiceCollection AddCatalog2Registration(
             this IServiceCollection services,
-            IDictionary<string, string> telemetryGlobalDimensions)
+            IDictionary<string, string> telemetryGlobalDimensions,
+            IConfigurationRoot configurationRoot)
         {
-            services.AddV3(telemetryGlobalDimensions);
+            services.AddV3(telemetryGlobalDimensions, configurationRoot);
 
             services.AddTransient<ICommitCollectorLogic, RegistrationCollectorLogic>();
             services.AddTransient<IHiveMerger, HiveMerger>();

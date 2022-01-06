@@ -38,6 +38,8 @@ namespace BasicSearchTests.FunctionalTests.Core.Models
 
         public string[] Authors { get; set; }
 
+        public string[] Owners { get; set; }
+
         public long TotalDownloads { get; set; }
 
         public List<V3SearchResultPackageType> PackageTypes { get; set; }

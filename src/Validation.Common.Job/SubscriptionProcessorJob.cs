@@ -58,11 +58,6 @@ namespace NuGet.Jobs.Validation
             await featureFlagRefresher.StopAndWaitAsync();
         }
 
-        protected override void ConfigureDefaultJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
-        {
-            base.ConfigureDefaultJobServices(services, configurationRoot);
-        }
-
         protected static void ConfigureDefaultSubscriptionProcessor(ContainerBuilder containerBuilder)
         {
             const string bindingKey = "SubscriptionProcessorJob_SubscriptionProcessorKey";

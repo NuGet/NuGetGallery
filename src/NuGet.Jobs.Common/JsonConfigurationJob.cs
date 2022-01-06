@@ -221,12 +221,9 @@ namespace NuGet.Jobs
                 .As<IFeatureFlagStorageService>();
         }
 
-        public static void ConfigureFeatureFlagServices(IServiceCollection services, IConfigurationRoot configurationRoot = null)
+        public static void ConfigureFeatureFlagServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            if (configurationRoot != null)
-            {
-                services.Configure<FeatureFlagConfiguration>(configurationRoot.GetSection(FeatureFlagConfigurationSectionName));
-            }
+            services.Configure<FeatureFlagConfiguration>(configurationRoot.GetSection(FeatureFlagConfigurationSectionName));
 
             services
                 .AddTransient(p =>
@@ -239,6 +236,7 @@ namespace NuGet.Jobs
                 });
 
             services.AddTransient<IFeatureFlagClient, FeatureFlagClient>();
+            services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddTransient<IFeatureFlagTelemetryService, FeatureFlagTelemetryService>();
 
             services.AddSingleton<IFeatureFlagCacheService, FeatureFlagCacheService>();
