@@ -94,7 +94,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
             }
         }
 
-        [Theory(Skip = "This test needs signed builds to run (due to Project/package dual reference conflict), as such will always fail when running on CI/locally. Skip it until we fix the project references issue.")]
+        [SkipTestForUnsignedBuildsTheory]
         [MemberData(nameof(TestData))]
         public async Task NoPendingMigrations(string dbName, string argumentName, MigrationContextFactory factory, IServiceProvider serviceProvider)
         {
