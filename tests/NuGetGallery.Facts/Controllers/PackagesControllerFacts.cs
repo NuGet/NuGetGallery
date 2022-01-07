@@ -32,6 +32,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Mail.Messages;
@@ -87,7 +88,8 @@ namespace NuGetGallery
             Mock<IPackageRenameService> renameService = null,
             Mock<IABTestService> abTestService = null,
             Mock<IIconUrlProvider> iconUrlProvider = null,
-            Mock<IMarkdownService> markdownService = null)
+            Mock<IMarkdownService> markdownService = null,
+            Mock<IPackageFrameworkCompatibilityFactory> compatibilityFactory = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             PackageDependents packageDependents = new PackageDependents();
@@ -261,6 +263,14 @@ namespace NuGetGallery
                     .Returns(new Dictionary<int, IReadOnlyList<PackageVulnerability>>());
             }
 
+            if(compatibilityFactory == null)
+            {
+                compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
+                compatibilityFactory
+                    .Setup(x => x.Create(It.IsAny<ICollection<PackageFramework>>()))
+                    .Returns(new PackageFrameworkCompatibility());
+            }
+
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 
             abTestService = abTestService ?? new Mock<IABTestService>();
@@ -301,7 +311,8 @@ namespace NuGetGallery
                 renameService.Object,
                 abTestService.Object,
                 iconUrlProvider.Object,
-                markdownService.Object);
+                markdownService.Object,
+                compatibilityFactory.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
