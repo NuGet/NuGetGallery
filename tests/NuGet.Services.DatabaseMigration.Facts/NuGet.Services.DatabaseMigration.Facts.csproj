@@ -45,7 +45,6 @@
   <ItemGroup>
     <Compile Include="PendingMigrationsFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SkipTestForUnsignedBuildsTheory.cs" />
     <Compile Include="ValidateMigrationsFacts.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +74,10 @@
     <ProjectReference Include="..\..\src\NuGet.Services.DatabaseMigration\NuGet.Services.DatabaseMigration.csproj">
       <Project>{f4c8c34f-72a9-4773-a315-8fa3f2d5ce4e}</Project>
       <Name>NuGet.Services.DatabaseMigration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj">
+      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
+      <Name>NuGetGallery.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

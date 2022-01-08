@@ -94,7 +94,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
             }
         }
 
-        [SkipTestForUnsignedBuildsTheory]
+        [Theory]
         [MemberData(nameof(TestData))]
         public async Task NoPendingMigrations(string dbName, string argumentName, MigrationContextFactory factory, IServiceProvider serviceProvider)
         {
