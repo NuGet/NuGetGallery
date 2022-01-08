@@ -51,6 +51,9 @@
     <PackageReference Include="Moq">
       <Version>4.8.2</Version>
     </PackageReference>
+    <PackageReference Include="NuGetGallery.Core">
+      <Version>4.4.5-dev-5589442</Version>
+    </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.4.1</Version>
     </PackageReference>
