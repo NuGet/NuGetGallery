@@ -2236,6 +2236,127 @@ namespace NuGetGallery
                     .Verify(iup => iup.GetPackageDependents(It.IsAny<string>()), Times.Once());
             }
 
+            [Fact]
+            public async Task IfDisplayAndComputeFrameworkFlagsAreFalseShouldNotCompute()
+            {
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    compatibilityFactory: compatibilityFactory);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var id = "Foo";
+                var packageFramework = new PackageFramework { TargetFramework = "net5.0" };
+                var supportedFrameworks = new HashSet<PackageFramework> { packageFramework };
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    SupportedFrameworks = supportedFrameworks,
+                    Version = "1.1.1",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!"
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsComputeTargetFrameworkEnabled())
+                    .Returns(false);
+
+                featureFlagService
+                    .Setup(x => x.IsDisplayTargetFrameworkEnabled(TestUtility.FakeUser))
+                    .Returns(false);
+
+                compatibilityFactory
+                    .Setup(x => x.Create(supportedFrameworks))
+                    .Returns(new PackageFrameworkCompatibility());
+
+                // Arrange and Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                compatibilityFactory.Verify(x => x.Create(It.IsAny<ICollection<PackageFramework>>()), Times.Never());
+                Assert.Null(model.PackageFrameworkCompatibility);
+            }
+
+            [Theory]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            [InlineData(true, true)]
+            public async Task IfAtLeastOneDisplayOrComputeFrameworkFlagsAreTrueShouldCompute(bool computeFlag, bool displayFlag)
+            {
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                var packageService = new Mock<IPackageService>();
+                var compatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    featureFlagService: featureFlagService,
+                    compatibilityFactory: compatibilityFactory);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var id = "Foo";
+                var packageFramework = new PackageFramework { TargetFramework = "net5.0" };
+                var supportedFrameworks = new HashSet<PackageFramework> { packageFramework };
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = id,
+                        Owners = new List<User>()
+                    },
+                    SupportedFrameworks = supportedFrameworks,
+                    Version = "1.1.1",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!"
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById(id, /*includePackageRegistration:*/ true))
+                    .Returns(packages);
+
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                featureFlagService
+                    .Setup(x => x.IsComputeTargetFrameworkEnabled())
+                    .Returns(computeFlag);
+
+                featureFlagService
+                    .Setup(x => x.IsDisplayTargetFrameworkEnabled(TestUtility.FakeUser))
+                    .Returns(displayFlag);
+
+                compatibilityFactory
+                    .Setup(x => x.Create(supportedFrameworks))
+                    .Returns(new PackageFrameworkCompatibility());
+
+                // Arrange and Act
+                var result = await controller.DisplayPackage(id, version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result, "DisplayPackage");
+                compatibilityFactory.Verify(x => x.Create(supportedFrameworks), Times.Once());
+                Assert.NotNull(model.PackageFrameworkCompatibility);
+            }
+
             protected override void Dispose(bool disposing)
             {
                 // Clear the cache to avoid test interaction.
