@@ -717,7 +717,7 @@ img.reserved-indicator-icon {
   -ms-flex-pack: center;
   justify-content: center;
   display: inline-block;
-  background: #007d85;
+  background: #0078d4;
   color: white;
 }
 .framework-badge-computed {
@@ -728,7 +728,7 @@ img.reserved-indicator-icon {
   -ms-flex-pack: center;
   justify-content: center;
   display: inline-block;
-  border: 1px solid #007d85;
+  border: 1px solid #0078d4;
   background: rgba(0, 183, 195, 0.1);
 }
 .framework-table {
@@ -775,7 +775,7 @@ img.reserved-indicator-icon {
   box-sizing: border-box;
   border-radius: 2px;
   margin-right: 10px;
-  border: 1px solid #007d85;
+  border: 1px solid #0078d4;
 }
 .frameworktableinfo-asset-icon {
   padding: 3px 8px 5px;
@@ -786,7 +786,7 @@ img.reserved-indicator-icon {
   box-sizing: border-box;
   border-radius: 2px;
   margin-right: 10px;
-  background-color: #007d85;
+  background-color: #0078d4;
 }
 .frameworktableinfo-text {
   font-size: 14px;
