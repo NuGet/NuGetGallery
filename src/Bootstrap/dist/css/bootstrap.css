@@ -1861,6 +1861,12 @@ input[type="checkbox"]:focus {
   outline: 4px solid -webkit-focus-ring-color;
   outline-offset: -2px;
 }
+@media (forced-colors: active) {
+  input[type="checkbox"]:focus {
+    outline: 3px solid -webkit-focus-ring-color;
+    outline-offset: 2px;
+  }
+}
 output {
   display: block;
   padding-top: 7px;
