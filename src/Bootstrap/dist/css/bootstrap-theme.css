@@ -258,9 +258,6 @@ img.reserved-indicator-icon {
   line-height: 20px;
   color: #666666;
 }
-.package-list a:not(.more-tags) {
-  color: #666666;
-}
 .package-list li {
   list-style: none;
   display: list-item;
