@@ -248,7 +248,7 @@ namespace NuGetGallery
             // Log unhandled exceptions
             GlobalConfiguration.Configuration.Services.Add(typeof(IExceptionLogger), new QuietExceptionLogger());
 
-            Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode);
+            Routes.RegisterRoutes(RouteTable.Routes, configuration.FeedOnlyMode, configuration.AdminPanelEnabled);
             AreaRegistration.RegisterAllAreas();
 
             GlobalFilters.Filters.Add(new SendErrorsToTelemetryAttribute { View = "~/Views/Errors/InternalError.cshtml" });
