@@ -35,27 +35,25 @@ namespace StatusAggregator.Factory
 
         public async Task<bool> CanBeAggregatedByAsync(ParsedIncident input, TAggregationEntity aggregationEntity)
         {
-            using (_logger.Scope("Determining if entity can be linked to aggregation {AggregationRowKey}", aggregationEntity.RowKey))
+            _logger.LogInformation("Determining if entity can be linked to aggregation {AggregationRowKey}", aggregationEntity.RowKey);
+            if (!_table.GetChildEntities<TChildEntity, TAggregationEntity>(aggregationEntity).ToList().Any())
             {
-                if (!_table.GetChildEntities<TChildEntity, TAggregationEntity>(aggregationEntity).ToList().Any())
-                {
-                    // A manually created aggregation will have no children. We cannot use an aggregation that was manually created.
-                    // It is also possible that some bug or data issue has broken this aggregation. If that is the case, we cannot use it either.
-                    _logger.LogInformation("Cannot link entity to aggregation because it is not linked to any children.");
-                    return false;
-                }
-
-                // To guarantee that the aggregation reflects the latest information and is actually active, we must update it.
-                await _aggregationUpdater.UpdateAsync(aggregationEntity, input.StartTime);
-                if (!aggregationEntity.IsActive && input.IsActive)
-                {
-                    _logger.LogInformation("Cannot link entity to aggregation because it has been deactivated and the incident has not been.");
-                    return false;
-                }
-
-                _logger.LogInformation("Entity can be linked to aggregation.");
-                return true;
+                // A manually created aggregation will have no children. We cannot use an aggregation that was manually created.
+                // It is also possible that some bug or data issue has broken this aggregation. If that is the case, we cannot use it either.
+                _logger.LogInformation("Cannot link entity to aggregation because it is not linked to any children.");
+                return false;
             }
+
+            // To guarantee that the aggregation reflects the latest information and is actually active, we must update it.
+            await _aggregationUpdater.UpdateAsync(aggregationEntity, input.StartTime);
+            if (!aggregationEntity.IsActive && input.IsActive)
+            {
+                _logger.LogInformation("Cannot link entity to aggregation because it has been deactivated and the incident has not been.");
+                return false;
+            }
+
+            _logger.LogInformation("Entity can be linked to aggregation.");
+            return true;
         }
     }
 }

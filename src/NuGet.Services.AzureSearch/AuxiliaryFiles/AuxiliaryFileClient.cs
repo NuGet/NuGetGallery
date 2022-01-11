@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGetGallery;
 
@@ -18,6 +19,7 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
     public class AuxiliaryFileClient : IAuxiliaryFileClient
     {
         private readonly ICloudBlobClient _cloudBlobClient;
+        private readonly IDownloadsV1JsonClient _downloadsV1JsonClient;
         private readonly IOptionsSnapshot<AuxiliaryDataStorageConfiguration> _options;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<AuxiliaryFileClient> _logger;
@@ -25,11 +27,13 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         public AuxiliaryFileClient(
             ICloudBlobClient cloudBlobClient,
+            IDownloadsV1JsonClient downloadsV1JsonClient,
             IOptionsSnapshot<AuxiliaryDataStorageConfiguration> options,
             IAzureSearchTelemetryService telemetryService,
             ILogger<AuxiliaryFileClient> logger)
         {
             _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
+            _downloadsV1JsonClient = downloadsV1JsonClient ?? throw new ArgumentNullException(nameof(downloadsV1JsonClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -42,6 +46,11 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
         public async Task<DownloadData> LoadDownloadDataAsync()
         {
+            if (_options.Value.DownloadsV1JsonUrl != null)
+            {
+                return await _downloadsV1JsonClient.ReadAsync(_options.Value.DownloadsV1JsonUrl);
+            }
+
             return await LoadAuxiliaryFileAsync(
                 _options.Value.AuxiliaryDataStorageDownloadsPath,
                 loadData: reader =>

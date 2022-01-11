@@ -402,6 +402,7 @@ namespace NuGet.Services.AzureSearch.FunctionalTests
             Assert.NotNull(results);
             Assert.NotEmpty(results.Data);
             Assert.Equal(Constants.TestPackageId, results.Data[0].Id);
+            Assert.Equal(Constants.TestPackageOwner, Assert.Single(results.Data[0].Owners));
         }
 
         [Fact]

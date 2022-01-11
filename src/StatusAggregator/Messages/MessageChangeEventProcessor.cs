@@ -31,28 +31,28 @@ namespace StatusAggregator.Messages
             IComponent rootComponent, 
             ExistingStartMessageContext existingStartMessageContext)
         {
-            using (_logger.Scope("Processing change of type {StatusChangeType} at {StatusChangeTimestamp} affecting {StatusChangePath} with status {StatusChangeStatus}.",
-                change.Type, change.Timestamp, change.AffectedComponentPath, change.AffectedComponentStatus))
+            _logger.LogInformation(
+                "Processing change of type {StatusChangeType} at {StatusChangeTimestamp} affecting {StatusChangePath} with status {StatusChangeStatus}.",
+                change.Type, change.Timestamp, change.AffectedComponentPath, change.AffectedComponentStatus);
+
+            _logger.LogInformation("Getting component affected by change.");
+            var component = rootComponent.GetByPath(change.AffectedComponentPath);
+            if (component == null)
             {
-                _logger.LogInformation("Getting component affected by change.");
-                var component = rootComponent.GetByPath(change.AffectedComponentPath);
-                if (component == null)
-                {
-                    _logger.LogWarning("Affected path {change.AffectedComponentPath} does not exist in component tree.", nameof(change));
-                    return Task.FromResult(existingStartMessageContext);
-                }
+                _logger.LogWarning("Affected path {change.AffectedComponentPath} does not exist in component tree.", nameof(change));
+                return Task.FromResult(existingStartMessageContext);
+            }
 
-                switch (change.Type)
-                {
-                    case MessageType.Start:
-                        return ProcessStartMessageAsync(change, eventEntity, rootComponent, component, existingStartMessageContext);
+            switch (change.Type)
+            {
+                case MessageType.Start:
+                    return ProcessStartMessageAsync(change, eventEntity, rootComponent, component, existingStartMessageContext);
 
-                    case MessageType.End:
-                        return ProcessEndMessageAsync(change, eventEntity, rootComponent, component, existingStartMessageContext);
+                case MessageType.End:
+                    return ProcessEndMessageAsync(change, eventEntity, rootComponent, component, existingStartMessageContext);
 
-                    default:
-                        throw new ArgumentException($"Unexpected message type {change.Type}", nameof(change));
-                }
+                default:
+                    throw new ArgumentException($"Unexpected message type {change.Type}", nameof(change));
             }
         }
 

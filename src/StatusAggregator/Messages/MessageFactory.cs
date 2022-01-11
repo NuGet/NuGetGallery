@@ -35,57 +35,53 @@ namespace StatusAggregator.Messages
 
         public async Task CreateMessageAsync(EventEntity eventEntity, DateTime time, MessageType type, IComponent component, ComponentStatus status)
         {
-            using (_logger.Scope("Creating new message of type {Type} for event {EventRowKey} at {Timestamp} affecting {ComponentPath} with status {ComponentStatus}.",
-                type, eventEntity.RowKey, time, component.Path, status))
+            _logger.LogInformation("Creating new message of type {Type} for event {EventRowKey} at {Timestamp} affecting {ComponentPath} with status {ComponentStatus}.",
+                type, eventEntity.RowKey, time, component.Path, status);
+            var existingMessage = await _table.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(eventEntity, time));
+            if (existingMessage != null)
             {
-                var existingMessage = await _table.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(eventEntity, time));
-                if (existingMessage != null)
-                {
-                    _logger.LogInformation("Message already exists, will not recreate.");
-                    return;
-                }
-                
-                var contents = _builder.Build(type, component, status);
-                var messageEntity = new MessageEntity(eventEntity, time, contents, type);
-                _logger.LogInformation("Creating message with time {MessageTimestamp} and contents {MessageContents}.",
-                    messageEntity.Time, messageEntity.Contents);
-                await _table.InsertAsync(messageEntity);
+                _logger.LogInformation("Message already exists, will not recreate.");
+                return;
             }
+
+            var contents = _builder.Build(type, component, status);
+            var messageEntity = new MessageEntity(eventEntity, time, contents, type);
+            _logger.LogInformation("Creating message with time {MessageTimestamp} and contents {MessageContents}.",
+                messageEntity.Time, messageEntity.Contents);
+            await _table.InsertAsync(messageEntity);
         }
 
         public async Task UpdateMessageAsync(EventEntity eventEntity, DateTime time, MessageType type, IComponent component)
         {
-            using (_logger.Scope("Updating existing message of type {Type} for event {EventRowKey} at {Timestamp} affecting {ComponentPath}.",
-                type, eventEntity.RowKey, time, component.Path))
+            _logger.LogInformation("Updating existing message of type {Type} for event {EventRowKey} at {Timestamp} affecting {ComponentPath}.",
+                type, eventEntity.RowKey, time, component.Path);
+            var existingMessage = await _table.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(eventEntity, time));
+            if (existingMessage == null)
             {
-                var existingMessage = await _table.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(eventEntity, time));
-                if (existingMessage == null)
-                {
-                    _logger.LogWarning("Cannot update message that doesn't exist.");
-                    return;
-                }
-
-                var existingMessageType = (MessageType)existingMessage.Type;
-                if (existingMessageType != type)
-                {
-                    if (existingMessageType == MessageType.Manual)
-                    {
-                        _logger.LogInformation("Message was changed manually, cannot update.");
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Cannot update message, has unexpected type {UnexpectedType}.", existingMessageType);
-                    }
-
-                    return;
-                }
-                
-                var newContents = _builder.Build(type, component);
-                _logger.LogInformation("Replacing contents of message with time {MessageTimestamp} and contents {OldMessageContents} with {NewMessageContents}.",
-                    existingMessage.Time, existingMessage.Contents, newContents);
-                existingMessage.Contents = newContents;
-                await _table.ReplaceAsync(existingMessage);
+                _logger.LogWarning("Cannot update message that doesn't exist.");
+                return;
             }
+
+            var existingMessageType = (MessageType)existingMessage.Type;
+            if (existingMessageType != type)
+            {
+                if (existingMessageType == MessageType.Manual)
+                {
+                    _logger.LogInformation("Message was changed manually, cannot update.");
+                }
+                else
+                {
+                    _logger.LogWarning("Cannot update message, has unexpected type {UnexpectedType}.", existingMessageType);
+                }
+
+                return;
+            }
+
+            var newContents = _builder.Build(type, component);
+            _logger.LogInformation("Replacing contents of message with time {MessageTimestamp} and contents {OldMessageContents} with {NewMessageContents}.",
+                existingMessage.Time, existingMessage.Contents, newContents);
+            existingMessage.Contents = newContents;
+            await _table.ReplaceAsync(existingMessage);
         }
     }
 }

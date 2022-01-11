@@ -7,24 +7,34 @@ using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
+using Newtonsoft.Json;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Services.AzureSearch.AuxiliaryFiles;
+using NuGet.Services.FeatureFlags;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGetGallery;
 using IPackageIdGroup = System.Linq.IGrouping<string, Stats.AggregateCdnDownloadsInGallery.DownloadCountData>;
 
 namespace Stats.AggregateCdnDownloadsInGallery
 {
     public class AggregateCdnDownloadsJob : JsonConfigurationJob
     {
+        private const string DownloadsV1JsonConfigurationSectionName = "DownloadsV1Json";
+        private const string AlternateStatisticsSourceFeatureFlagName = "NuGetGallery.AlternateStatisticsSource";
+
         private const int _defaultCommandTimeoutSeconds = 1800; // 30 minutes
-        private const int _defaultBatchSize = 5000;
-        private const int _defaultBatchSleepSeconds = 10;
         private const string _tempTableName = "#AggregateCdnDownloadsInGallery";
 
         private const string _createTempTable = @"
@@ -61,6 +71,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
         private AggregateCdnDownloadsConfiguration _configuration;
         private int _commandTimeoutSeconds;
+        private IDownloadsV1JsonClient _downloadsV1JsonClient;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
@@ -68,9 +79,89 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
             _configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<AggregateCdnDownloadsConfiguration>>().Value;
             _commandTimeoutSeconds = _configuration.CommandTimeoutSeconds ?? _defaultCommandTimeoutSeconds;
+            _downloadsV1JsonClient = _serviceProvider.GetRequiredService<IDownloadsV1JsonClient>();
         }
 
         public override async Task Run()
+        {
+            var featureFlagRefresher = _serviceProvider.GetRequiredService<IFeatureFlagRefresher>();
+            await featureFlagRefresher.StartIfConfiguredAsync();
+
+            IReadOnlyCollection<DownloadCountData> downloadData = null;
+            var jsonConfigurationAccessor = _serviceProvider.GetService<IOptionsSnapshot<DownloadsV1JsonConfiguration>>();
+            if (jsonConfigurationAccessor == null || jsonConfigurationAccessor.Value == null)
+            {
+                downloadData = await GetDownloadDataFromStatsDbAsync();
+            }
+            else
+            {
+                var ff = _serviceProvider.GetRequiredService<IFeatureFlagClient>();
+                string url = jsonConfigurationAccessor.Value.SqlPipelineUrl;
+                if (ff.IsEnabled(AlternateStatisticsSourceFeatureFlagName, defaultValue: false))
+                {
+                    url = jsonConfigurationAccessor.Value.SynapsePipelineUrl;
+                }
+
+                var result = new List<DownloadCountData>();
+                await _downloadsV1JsonClient.ReadAsync(url, (id, version, downloads) =>
+                {
+                    result.Add(new DownloadCountData { PackageId = id, PackageVersion = version, TotalDownloadCount = downloads });
+                });
+                downloadData = result;
+            }
+
+            if (!downloadData.Any())
+            {
+                Logger.LogInformation("No download data to process.");
+                return;
+            }
+
+            using (var connection = await OpenSqlConnectionAsync<GalleryDbConfiguration>())
+            {
+                // Fetch package registrations so we can match package ID to package registration key.
+                var packageRegistrationLookup = await GetPackageRegistrations(connection);
+
+                // Group based on package ID and store in a stack for easy incremental processing.
+                var allGroups = downloadData.GroupBy(p => p.PackageId).ToList();
+                var filteredGroups = allGroups.Where(g => IsValidGroup(packageRegistrationLookup, g)).ToList();
+                var removedCount = allGroups.Count - filteredGroups.Count;
+                Logger.LogInformation("{TotalGroupCount} package ID groups were found in the statistics database.", allGroups.Count);
+                Logger.LogInformation("{RemovedGroupCount} package ID groups were filtered out because they aren't in the gallery database.", removedCount);
+                Logger.LogInformation("{RemainingGroupCount} package ID groups will be processed.", filteredGroups.Count);
+
+                var remainingGroups = new Stack<IPackageIdGroup>(filteredGroups);
+
+                var stopwatch = Stopwatch.StartNew();
+
+                while (remainingGroups.Any())
+                {
+                    // Create a batch of one or more package registrations to update.
+                    var batch = PopGroupBatch(remainingGroups, _configuration.BatchSize);
+
+                    var rowsProcessed = await ProcessBatchAsync(batch, connection, packageRegistrationLookup);
+
+                    Logger.LogInformation(
+                        "There are {GroupCount} package registration groups remaining.",
+                        remainingGroups.Count);
+
+                    // will only sleep if DB write happened.
+                    if (remainingGroups.Any() && rowsProcessed > 0)
+                    {
+                        Logger.LogInformation("Sleeping for {BatchSleepSeconds} seconds before continuing.", _configuration.BatchSleepSeconds);
+                        await Task.Delay(TimeSpan.FromSeconds(_configuration.BatchSleepSeconds));
+                    }
+                }
+
+                stopwatch.Stop();
+                Logger.LogInformation(
+                    "It took {DurationSeconds} seconds to update all download counts.",
+                    stopwatch.Elapsed.TotalSeconds);
+            }
+
+            await featureFlagRefresher.StopAndWaitAsync();
+        }
+
+        private async Task<IReadOnlyList<DownloadCountData>> GetDownloadDataFromStatsDbAsync()
         {
             // Gather download counts data from statistics warehouse
             IReadOnlyList<DownloadCountData> downloadData;
@@ -101,55 +192,10 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 downloadData.Count,
                 stopwatch.Elapsed.TotalSeconds);
 
-            if (!downloadData.Any())
-            {
-                Logger.LogInformation("No download data to process.");
-                return;
-            }
-
-            using (var connection = await OpenSqlConnectionAsync<GalleryDbConfiguration>())
-            {
-                // Fetch package registrations so we can match package ID to package registration key.
-                var packageRegistrationLookup = await GetPackageRegistrations(connection);
-
-                // Group based on package ID and store in a stack for easy incremental processing.
-                var allGroups = downloadData.GroupBy(p => p.PackageId).ToList();
-                var filteredGroups = allGroups.Where(g => IsValidGroup(packageRegistrationLookup, g)).ToList();
-                var removedCount = allGroups.Count - filteredGroups.Count;
-                Logger.LogInformation("{TotalGroupCount} package ID groups were found in the statistics database.", allGroups.Count);
-                Logger.LogInformation("{RemovedGroupCount} package ID groups were filtered out because they aren't in the gallery database.", removedCount);
-                Logger.LogInformation("{RemainingGroupCount} package ID groups will be processed.", filteredGroups.Count);
-
-                var remainingGroups = new Stack<IPackageIdGroup>(filteredGroups);
-
-                stopwatch.Restart();
-
-                while (remainingGroups.Any())
-                {
-                    // Create a batch of one or more package registrations to update.
-                    var batch = PopGroupBatch(remainingGroups, _configuration.BatchSize);
-
-                    await ProcessBatch(batch, connection, packageRegistrationLookup);
-
-                    Logger.LogInformation(
-                        "There are {GroupCount} package registration groups remaining.",
-                        remainingGroups.Count);
-
-                    if (remainingGroups.Any())
-                    {
-                        Logger.LogInformation("Sleeping for {BatchSleepSeconds} seconds before continuing.", _configuration.BatchSleepSeconds);
-                        await Task.Delay(TimeSpan.FromSeconds(_configuration.BatchSleepSeconds));
-                    }
-                }
-
-                stopwatch.Stop();
-                Logger.LogInformation(
-                    "It took {DurationSeconds} seconds to update all download counts.",
-                    stopwatch.Elapsed.TotalSeconds);
-            }
+            return downloadData;
         }
 
-        private async Task ProcessBatch(List<IPackageIdGroup> batch, SqlConnection destinationDatabase, IDictionary<string, PackageRegistrationData> packageRegistrationLookup)
+        private async Task<int> ProcessBatchAsync(List<IPackageIdGroup> batch, SqlConnection destinationDatabase, IDictionary<string, PackageRegistrationData> packageRegistrationLookup)
         {
             // Create a temporary table
             Logger.LogDebug("Creating temporary table...");
@@ -198,13 +244,14 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
                     // This data is from Gallery db, PackageRegistration table.
                     long currentDownloadCount = long.Parse(packageRegistrationData.DownloadCount);
-                    Logger.LogInformation("PackageId:{PackageId} CurrentDownloadCount:{CurrentDownloadCount} NewDownloadCount:{NewDownloadCount}",
-                        packageId,
-                        currentDownloadCount,
-                        newDownloadCount);
 
                     if (newDownloadCount > currentDownloadCount)
                     {
+                        Logger.LogInformation("PackageId:{PackageId} CurrentDownloadCount:{CurrentDownloadCount} NewDownloadCount:{NewDownloadCount}",
+                            packageId,
+                            currentDownloadCount,
+                            newDownloadCount);
+
                         // Set download count on individual packages
                         foreach (var package in packageRegistrationGroup)
                         {
@@ -232,6 +279,12 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 "Populated temporary table in memory with {RecordCount} rows (took {DurationSeconds} seconds).",
                 aggregateCdnDownloadsInGalleryTable.Rows.Count,
                 stopwatch.Elapsed.TotalSeconds);
+
+            if (aggregateCdnDownloadsInGalleryTable.Rows.Count == 0)
+            {
+                Logger.LogInformation("No data to transfer in this batch, returning");
+                return 0;
+            }
 
             // Transfer to SQL database
             Logger.LogDebug("Populating temporary table in database...");
@@ -267,6 +320,8 @@ namespace Stats.AggregateCdnDownloadsInGallery
             Logger.LogInformation(
                 "Updated destination database Download Counts (took {DurationSeconds} seconds).",
                 stopwatch.Elapsed.TotalSeconds);
+
+            return aggregateCdnDownloadsInGalleryTable.Rows.Count;
         }
 
         public static List<IPackageIdGroup> PopGroupBatch(Stack<IPackageIdGroup> remainingGroups, int batchSize)
@@ -361,11 +416,16 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
+            ConfigureFeatureFlagAutofacServices(containerBuilder);
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             ConfigureInitializationSection<AggregateCdnDownloadsConfiguration>(services, configurationRoot);
+            services.Configure<DownloadsV1JsonConfiguration>(configurationRoot.GetSection(DownloadsV1JsonConfigurationSectionName));
+            ConfigureFeatureFlagServices(services, configurationRoot);
+            services.AddSingleton(_ => new HttpClient());
+            services.AddTransient<IDownloadsV1JsonClient, DownloadsV1JsonClient>();
         }
     }
 }

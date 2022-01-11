@@ -227,10 +227,6 @@ namespace NuGet.Services.Validation.Orchestrator
             });
             services.AddTransient<ISharedAccessSignatureService, SharedAccessSignatureService>();
 
-            /// See <see cref="SubscriptionProcessorJob{T}.ConfigureDefaultJobServices(IServiceCollection, IConfigurationRoot)"/>
-            /// for reasoning on why this is registered here.
-            services.AddSingleton<IFeatureFlagRefresher, FeatureFlagRefresher>();
-
             ConfigureFileServices(services, configurationRoot);
             ConfigureOrchestratorSymbolTypes(services);
             ValidationJobBase.ConfigureFeatureFlagServices(services, configurationRoot);
@@ -305,7 +301,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     throw new NotImplementedException($"Unknown type: {validatingType}");
             }
 
-            ValidationJobBase.ConfigureFeatureFlagAutofacServices(containerBuilder);
+            JsonConfigurationJob.ConfigureFeatureFlagAutofacServices(containerBuilder);
             ConfigureLeaseService(containerBuilder);
         }
 

@@ -41,30 +41,29 @@ namespace StatusAggregator.Messages
             string path,
             ComponentStatus status)
         {
-            using (_logger.Scope("Getting contents for message of type {MessageType} with path {ComponentPath} and status {ComponentStatus}.",
-                type, path, status))
+            _logger.LogInformation("Getting contents for message of type {MessageType} with path {ComponentPath} and status {ComponentStatus}.",
+                type, path, status);
+
+            if (!_messageTypeToMessageTemplate.TryGetValue(type, out string messageTemplate))
             {
-                if (!_messageTypeToMessageTemplate.TryGetValue(type, out string messageTemplate))
-                {
-                    throw new ArgumentException("Could not find a template for type.", nameof(type));
-                }
-
-                _logger.LogInformation("Using template {MessageTemplate}.", messageTemplate);
-
-                var nameString = GetName(path);
-                _logger.LogInformation("Using {ComponentName} for name of component.", nameString);
-
-                var actionDescription = GetActionDescriptionFromPath(path);
-                if (actionDescription == null)
-                {
-                    throw new ArgumentException("Could not find an action description for path.", nameof(path));
-                }
-
-                var statusString = status.ToString().ToLowerInvariant();
-                var contents = string.Format(messageTemplate, nameString, statusString, actionDescription);
-                _logger.LogInformation("Returned {Contents} for contents of message.", contents);
-                return contents;
+                throw new ArgumentException("Could not find a template for type.", nameof(type));
             }
+
+            _logger.LogInformation("Using template {MessageTemplate}.", messageTemplate);
+
+            var nameString = GetName(path);
+            _logger.LogInformation("Using {ComponentName} for name of component.", nameString);
+
+            var actionDescription = GetActionDescriptionFromPath(path);
+            if (actionDescription == null)
+            {
+                throw new ArgumentException("Could not find an action description for path.", nameof(path));
+            }
+
+            var statusString = status.ToString().ToLowerInvariant();
+            var contents = string.Format(messageTemplate, nameString, statusString, actionDescription);
+            _logger.LogInformation("Returned {Contents} for contents of message.", contents);
+            return contents;
         }
 
         private string GetName(string path)

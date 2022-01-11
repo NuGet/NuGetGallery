@@ -30,7 +30,7 @@ namespace NuGet.Jobs
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            services.AddCatalog2Registration(GlobalTelemetryDimensions);
+            services.AddCatalog2Registration(GlobalTelemetryDimensions, configurationRoot);
 
             services.Configure<Catalog2RegistrationConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<CommitCollectorConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));

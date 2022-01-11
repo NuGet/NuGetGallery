@@ -62,7 +62,7 @@ namespace NuGet.Jobs.Validation
                 throw new ArgumentNullException(nameof(cancellationToken));
             }
 
-            _logger.LogInformation("Attempting to download file from {FileUri}...", fileUri);
+            _logger.LogDebug("Attempting to download file from {FileUri}...", fileUri);
 
             Stream fileStream = null;
             var stopwatch = Stopwatch.StartNew();
@@ -127,7 +127,7 @@ namespace NuGet.Jobs.Validation
 
                 stopwatch.Stop();
 
-                _logger.LogInformation(
+                _logger.LogDebug(
                     "Downloaded {FileSizeInBytes} bytes in {DownloadElapsedTime} seconds for request {FileUri}",
                     fileStream.Length,
                     stopwatch.Elapsed.TotalSeconds,

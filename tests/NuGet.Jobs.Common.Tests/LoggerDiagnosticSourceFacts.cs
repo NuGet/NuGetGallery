@@ -7,13 +7,12 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NuGet.Jobs.Validation;
 using NuGet.Services.Logging;
 using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Validation.Common.Job.Tests
+namespace NuGet.Jobs.Common.Tests
 {
     public class LoggerDiagnosticSourceFacts
     {

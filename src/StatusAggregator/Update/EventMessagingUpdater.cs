@@ -29,11 +29,9 @@ namespace StatusAggregator.Update
 
         public Task UpdateAsync(EventEntity eventEntity, DateTime cursor)
         {
-            using (_logger.Scope("Updating messages for event {EventRowKey} at {Cursor}.", eventEntity.RowKey, cursor))
-            {
-                var changes = _provider.Get(eventEntity, cursor);
-                return _iterator.IterateAsync(changes, eventEntity);
-            }
+            _logger.LogInformation("Updating messages for event {EventRowKey} at {Cursor}.", eventEntity.RowKey, cursor);
+            var changes = _provider.Get(eventEntity, cursor);
+            return _iterator.IterateAsync(changes, eventEntity);
         }
     }
 }

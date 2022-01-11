@@ -42,13 +42,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonTelemetryServiceFacts.cs" />
-    <Compile Include="FeatureFlags\FeatureFlagRefresherFacts.cs" />
     <Compile Include="FileStreamUtilityFacts.cs" />
     <Compile Include="Leases\BlobStorageCollection.cs" />
     <Compile Include="Leases\BlobStorageFact.cs" />
     <Compile Include="Leases\BlobStorageFixture.cs" />
     <Compile Include="Leases\CloudBlobLeaseServiceIntegrationTests.cs" />
-    <Compile Include="LoggerDiagnosticSourceFacts.cs" />
     <Compile Include="FileDownloaderFacts.cs" />
     <Compile Include="PathUtilityFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -71,24 +71,22 @@ namespace StatusAggregator
 
         public async Task Handle(ITableWrapper table, ManualStatusChangeEntity entity)
         {
-            using (_logger.Scope("Handling manual status change at timestamp {ChangeTimestamp} with type {ChangeType}", entity.Timestamp, Enum.GetName(typeof(ManualStatusChangeType), entity.Type)))
+            _logger.LogInformation("Handling manual status change at timestamp {ChangeTimestamp} with type {ChangeType}", entity.Timestamp, Enum.GetName(typeof(ManualStatusChangeType), entity.Type));
+            try
             {
-                try
+                var type = (ManualStatusChangeType)entity.Type;
+                if (_processorForType.ContainsKey(type))
                 {
-                    var type = (ManualStatusChangeType)entity.Type;
-                    if (_processorForType.ContainsKey(type))
-                    {
-                        await _processorForType[type].GetTask(table, entity);
-                    }
-                    else
-                    {
-                        throw new ArgumentException("Invalid change type {ChangeType}! Cannot process manual status change!");
-                    }
+                    await _processorForType[type].GetTask(table, entity);
                 }
-                catch (Exception e)
+                else
                 {
-                    _logger.LogError(LogEvents.ManualChangeFailure, e, "Failed to apply manual status change!");
+                    throw new ArgumentException("Invalid change type {ChangeType}! Cannot process manual status change!");
                 }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(LogEvents.ManualChangeFailure, e, "Failed to apply manual status change!");
             }
         }
 

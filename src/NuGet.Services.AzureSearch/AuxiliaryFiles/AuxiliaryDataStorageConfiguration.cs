@@ -9,5 +9,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
         public string AuxiliaryDataStorageContainer { get; set; }
         public string AuxiliaryDataStorageDownloadsPath { get; set; }
         public string AuxiliaryDataStorageExcludedPackagesPath { get; set; }
+        public string DownloadsV1JsonUrl { get; set; }
     }
 }

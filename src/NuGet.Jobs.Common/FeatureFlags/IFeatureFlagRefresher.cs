@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace NuGet.Jobs.Validation
+namespace NuGet.Jobs
 {
     /// <summary>
     /// The interface for starting and stopping a background task which refreshes the cached feature flag state

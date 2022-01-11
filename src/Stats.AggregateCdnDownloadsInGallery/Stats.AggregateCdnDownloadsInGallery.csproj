@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\AggregateCdnDownloadsConfiguration.cs" />
+    <Compile Include="Configuration\DownloadsV1JsonConfiguration.cs" />
     <Compile Include="DownloadCountData.cs" />
     <Compile Include="AggregateCdnDownloadsJob.cs" />
     <Compile Include="LogEvents.cs" />
@@ -58,9 +59,17 @@
     <None Include="Stats.AggregateCdnDownloadsInGallery.nuspec" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
+      <Project>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</Project>
+      <Name>NuGet.Services.Metadata.Catalog</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
       <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
       <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">
+      <Project>{1a53fe3d-8041-4773-942f-d73aef5b82b2}</Project>
+      <Name>NuGet.Services.AzureSearch</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

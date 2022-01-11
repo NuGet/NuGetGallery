@@ -10,7 +10,7 @@ namespace NuGet.Jobs
 {
     public class SecretReaderFactory : ISecretReaderFactory
     {
-        public ISecretReader CreateSecretReader(IDictionary<string, string> settings)
+        public ICachingSecretReader CreateSecretReader(IDictionary<string, string> settings)
         {
             if (JobConfigurationManager.TryGetArgument(settings, JobArgumentNames.VaultName) == null)
             {
@@ -49,7 +49,7 @@ namespace NuGet.Jobs
             return new CachingSecretReader(new KeyVaultReader(keyVaultConfiguration), refreshIntervalSec);
         }
 
-        public ISecretInjector CreateSecretInjector(ISecretReader secretReader)
+        public ICachingSecretInjector CreateSecretInjector(ISecretReader secretReader)
         {
             return new SecretInjector(secretReader);
         }

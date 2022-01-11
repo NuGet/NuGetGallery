@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGet.Services.Metadata.Catalog;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,6 +26,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         private readonly Auxiliary2AzureSearchConfiguration _config;
         private readonly AzureSearchJobDevelopmentConfiguration _developmentConfig;
         private readonly Mock<IAzureSearchTelemetryService> _telemetry;
+        private readonly Mock<IDownloadsV1JsonClient> _downloadsV1JsonClient;
         private readonly UpdateDownloadsCommand _target;
 
         private readonly PopularityTransferData _newPopularityTransfers;
@@ -35,6 +37,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         {
             _featureFlags = new Mock<IFeatureFlagService>();
             _telemetry = new Mock<IAzureSearchTelemetryService>();
+            _downloadsV1JsonClient = new Mock<IDownloadsV1JsonClient>();
 
             _config = new Auxiliary2AzureSearchConfiguration
             {
@@ -76,6 +79,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
 
             var auxiliaryFileClient = new AuxiliaryFileClient(
                 _blobClient,
+                _downloadsV1JsonClient.Object,
                 auxiliaryOptions.Object,
                 _telemetry.Object,
                 output.GetLogger<AuxiliaryFileClient>());

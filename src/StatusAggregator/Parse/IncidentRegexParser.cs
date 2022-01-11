@@ -32,33 +32,30 @@ namespace StatusAggregator.Parse
         public bool TryParseIncident(Incident incident, out ParsedIncident parsedIncident)
         {
             var title = incident.Title;
+            _logger.LogInformation("Using parser {IncidentParserType} with pattern {RegExPattern} to parse incident with title {IncidentTitle}",
+                GetType(), _handler.RegexPattern, title);
+            parsedIncident = null;
 
-            using (_logger.Scope("Using parser {IncidentParserType} with pattern {RegExPattern} to parse incident with title {IncidentTitle}",
-                GetType(), _handler.RegexPattern, title))
+            Match match = null;
+            try
             {
-                parsedIncident = null;
-
-                Match match = null;
-                try
-                {
-                    match = Regex.Match(title, _handler.RegexPattern, RegexOptions.None, MaxRegexExecutionTime);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(LogEvents.RegexFailure, e, "Failed to parse incident using regex!");
-                    return false;
-                }
-
-                if (match == null)
-                {
-                    // According to its documentation, Regex.Match shouldn't return null, but this if statement is in here as a precaution.
-                    _logger.LogError("Parsed incident using regex successfully, but was unable to get match information!");
-                    return false;
-                }
-
-                _logger.LogInformation("RegEx match result: {MatchResult}", match.Success);
-                return match.Success && TryParseIncident(incident, match.Groups, out parsedIncident);
+                match = Regex.Match(title, _handler.RegexPattern, RegexOptions.None, MaxRegexExecutionTime);
             }
+            catch (Exception e)
+            {
+                _logger.LogError(LogEvents.RegexFailure, e, "Failed to parse incident using regex!");
+                return false;
+            }
+
+            if (match == null)
+            {
+                // According to its documentation, Regex.Match shouldn't return null, but this if statement is in here as a precaution.
+                _logger.LogError("Parsed incident using regex successfully, but was unable to get match information!");
+                return false;
+            }
+
+            _logger.LogDebug("RegEx match result: {MatchResult}", match.Success);
+            return match.Success && TryParseIncident(incident, match.Groups, out parsedIncident);
         }
 
         private bool TryParseIncident(Incident incident, GroupCollection groups, out ParsedIncident parsedIncident)
@@ -67,12 +64,10 @@ namespace StatusAggregator.Parse
             
             if (_handler.Filters.Any(f =>
                 {
-                    using (_logger.Scope("Filtering incident using filter {IncidentFilterType}", f.GetType()))
-                    {
-                        var shouldParse = f.ShouldParse(incident, groups);
-                        _logger.LogInformation("Filter returned {FilterResult}.", shouldParse);
-                        return !shouldParse;
-                    }
+                    _logger.LogInformation("Filtering incident using filter {IncidentFilterType}", f.GetType());
+                    var shouldParse = f.ShouldParse(incident, groups);
+                    _logger.LogInformation("Filter returned {FilterResult}.", shouldParse);
+                    return !shouldParse;
                 }))
             {
                 _logger.LogInformation("Incident failed at least one filter!");

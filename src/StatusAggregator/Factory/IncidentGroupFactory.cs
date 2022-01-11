@@ -36,18 +36,17 @@ namespace StatusAggregator.Factory
         {
             var eventEntity = await _aggregationProvider.GetAsync(input);
             var affectedPath = _pathProvider.Get(input);
-            using (_logger.Scope("Creating incident for parsed incident with path {AffectedComponentPath}.", affectedPath))
-            {
-                var incidentGroupEntity = new IncidentGroupEntity(
-                    eventEntity,
-                    affectedPath,
-                    (ComponentStatus)input.AffectedComponentStatus,
-                    input.StartTime);
+            _logger.LogInformation("Creating incident for parsed incident with path {AffectedComponentPath}.", affectedPath);
 
-                await _table.InsertOrReplaceAsync(incidentGroupEntity);
+            var incidentGroupEntity = new IncidentGroupEntity(
+                eventEntity,
+                affectedPath,
+                (ComponentStatus)input.AffectedComponentStatus,
+                input.StartTime);
 
-                return incidentGroupEntity;
-            }
+            await _table.InsertOrReplaceAsync(incidentGroupEntity);
+
+            return incidentGroupEntity;
         }
     }
 }

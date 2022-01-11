@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
 using Microsoft.Azure.Search;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,6 +21,7 @@ using NuGet.Services.AzureSearch.Catalog2AzureSearch;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.V3;
 using NuGetGallery;
@@ -30,7 +32,7 @@ namespace NuGet.Services.AzureSearch
     {
         public static ContainerBuilder AddAzureSearch(this ContainerBuilder containerBuilder)
         {
-            containerBuilder.AddFeatureFlags();
+            containerBuilder.AddV3();
 
             /// Here, we register services that depend on an interface that there are multiple implementations.
 
@@ -220,6 +222,7 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<IAuxiliaryFileClient>(c => new AuxiliaryFileClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
+                    c.Resolve<IDownloadsV1JsonClient>(),
                     c.Resolve<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<AuxiliaryFileClient>>()));
@@ -227,11 +230,10 @@ namespace NuGet.Services.AzureSearch
 
         public static IServiceCollection AddAzureSearch(
             this IServiceCollection services,
-            IDictionary<string, string> telemetryGlobalDimensions)
+            IDictionary<string, string> telemetryGlobalDimensions,
+            IConfigurationRoot configurationRoot)
         {
-            services.AddV3(telemetryGlobalDimensions);
-
-            services.AddFeatureFlags();
+            services.AddV3(telemetryGlobalDimensions, configurationRoot);
             services.AddTransient<IFeatureFlagService, FeatureFlagService>();
 
             services.AddTransient<ISearchServiceClientWrapper>(p => new SearchServiceClientWrapper(
@@ -256,6 +258,7 @@ namespace NuGet.Services.AzureSearch
                     return client;
                 });
 
+            services.AddTransient<IDownloadsV1JsonClient, DownloadsV1JsonClient>();
             services.AddSingleton<IAuxiliaryDataCache, AuxiliaryDataCache>();
             services.AddScoped(p => p.GetRequiredService<IAuxiliaryDataCache>().Get());
             services.AddSingleton<IAuxiliaryFileReloader, AuxiliaryFileReloader>();

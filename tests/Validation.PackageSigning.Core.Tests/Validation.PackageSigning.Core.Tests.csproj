@@ -68,14 +68,11 @@
     <PackageReference Include="Moq">
       <Version>4.13.1</Version>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.2</Version>
-    </PackageReference>
     <PackageReference Include="System.Threading.Tasks.Extensions">
       <Version>4.5.4</Version>
     </PackageReference>
     <PackageReference Include="Test.Utility">
-      <Version>5.8.0-preview.3.6823</Version>
+      <Version>6.1.0-preview.1.67</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.4.1</Version>

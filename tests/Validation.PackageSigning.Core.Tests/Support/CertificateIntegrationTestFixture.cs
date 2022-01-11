@@ -4,6 +4,7 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using NuGet.Common;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
@@ -22,15 +23,16 @@ namespace Validation.PackageSigning.Core.Tests.Support
     /// </summary>
     public class CertificateIntegrationTestFixture : IDisposable
     {
-        private readonly Lazy<Task<SigningTestServer>> _testServer;
-        private readonly Lazy<Task<CertificateAuthority>> _rootCertificateAuthority;
-        private readonly Lazy<Task<CertificateAuthority>> _certificateAuthority;
-        private readonly Lazy<Task<TimestampService>> _timestampService;
-        private readonly Lazy<Task<Uri>> _timestampServiceUrl;
-        private readonly Lazy<Task<X509Certificate2>> _signingCertificate;
-        private readonly Lazy<Task<string>> _signingCertificateThumbprint;
+        private readonly AsyncLazy<SigningTestServer> _testServer;
+        private readonly AsyncLazy<CertificateAuthority> _rootCertificateAuthority;
+        private readonly AsyncLazy<CertificateAuthority> _certificateAuthority;
+        private readonly AsyncLazy<TimestampService> _timestampService;
+        private readonly AsyncLazy<Uri> _timestampServiceUrl;
+        private readonly AsyncLazy<X509Certificate2> _signingCertificate;
+        private readonly AsyncLazy<string> _signingCertificateThumbprint;
         private TrustedTestCert<X509Certificate2> _trustedRoot;
         private readonly DisposableList<IDisposable> _responders;
+        private bool _testServerStarted = false;
 
         public CertificateIntegrationTestFixture()
         {
@@ -38,28 +40,33 @@ namespace Validation.PackageSigning.Core.Tests.Support
                 UserHelper.IsAdministrator(),
                 $"This test must be executing with administrator privileges since it installs a trusted root. Add {UserHelper.EnableSkipVariableName} environment variable to skip this test.");
 
-            _testServer = new Lazy<Task<SigningTestServer>>(SigningTestServer.CreateAsync);
-            _rootCertificateAuthority = new Lazy<Task<CertificateAuthority>>(CreateDefaultTrustedRootCertificateAuthorityAsync);
-            _certificateAuthority = new Lazy<Task<CertificateAuthority>>(CreateDefaultTrustedCertificateAuthorityAsync);
-            _timestampService = new Lazy<Task<TimestampService>>(CreateDefaultTrustedTimestampServiceAsync);
-            _timestampServiceUrl = new Lazy<Task<Uri>>(CreateDefaultTrustedTimestampServiceUrlAsync);
-            _signingCertificate = new Lazy<Task<X509Certificate2>>(CreateDefaultTrustedSigningCertificateAsync);
-            _signingCertificateThumbprint = new Lazy<Task<string>>(GetDefaultTrustedSigningCertificateThumbprintAsync);
+            _testServer = new AsyncLazy<SigningTestServer>(SigningTestServer.CreateAsync);
+            _rootCertificateAuthority = new AsyncLazy<CertificateAuthority>(CreateDefaultTrustedRootCertificateAuthorityAsync);
+            _certificateAuthority = new AsyncLazy<CertificateAuthority>(CreateDefaultTrustedCertificateAuthorityAsync);
+            _timestampService = new AsyncLazy<TimestampService>(CreateDefaultTrustedTimestampServiceAsync);
+            _timestampServiceUrl = new AsyncLazy<Uri>(CreateDefaultTrustedTimestampServiceUrlAsync);
+            _signingCertificate = new AsyncLazy<X509Certificate2>(CreateDefaultTrustedSigningCertificateAsync);
+            _signingCertificateThumbprint = new AsyncLazy<string>(GetDefaultTrustedSigningCertificateThumbprintAsync);
             _responders = new DisposableList<IDisposable>();
         }
 
-        public Task<SigningTestServer> GetTestServerAsync() => _testServer.Value;
-        public Task<Uri> GetTimestampServiceUrlAsync() => _timestampServiceUrl.Value;
+        public async Task<SigningTestServer> GetTestServerAsync()
+        {
+            _testServerStarted = true;
+            return await _testServer;
+        }
+
+        public async Task<Uri> GetTimestampServiceUrlAsync() => await _timestampServiceUrl;
 
         public async Task<X509Certificate2> GetSigningCertificateAsync()
         {
-            return new X509Certificate2(await _signingCertificate.Value);
+            return new X509Certificate2(await _signingCertificate);
         }
 
-        public Task<string> GetSigningCertificateThumbprintAsync() => _signingCertificateThumbprint.Value;
+        public async Task<string> GetSigningCertificateThumbprintAsync() => await _signingCertificateThumbprint;
 
-        protected Task<CertificateAuthority> GetRootCertificateAuthority() => _rootCertificateAuthority.Value;
-        protected Task<CertificateAuthority> GetCertificateAuthority() => _certificateAuthority.Value;
+        protected async Task<CertificateAuthority> GetRootCertificateAuthority() => await _rootCertificateAuthority;
+        protected async Task<CertificateAuthority> GetCertificateAuthority() => await _certificateAuthority;
         protected DisposableList<IDisposable> GetResponders() => _responders;
 
         public void Dispose()
@@ -67,9 +74,9 @@ namespace Validation.PackageSigning.Core.Tests.Support
             _trustedRoot?.Dispose();
             _responders.Dispose();
 
-            if (_testServer.IsValueCreated)
+            if (_testServerStarted)
             {
-                _testServer.Value.Result.Dispose();
+                _testServer.GetAwaiter().GetResult().Dispose();
             }
         }
 
@@ -104,7 +111,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         private async Task<TimestampService> CreateDefaultTrustedTimestampServiceAsync()
         {
             var testServer = await GetTestServerAsync();
-            var ca = await _certificateAuthority.Value;
+            var ca = await GetCertificateAuthority();
             var timestampService = TimestampService.Create(ca);
 
             _responders.Add(testServer.RegisterResponder(timestampService));
@@ -114,13 +121,13 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         private async Task<Uri> CreateDefaultTrustedTimestampServiceUrlAsync()
         {
-            var timestampService = await _timestampService.Value;
+            var timestampService = await _timestampService;
             return timestampService.Url;
         }
 
         private async Task<X509Certificate2> CreateDefaultTrustedSigningCertificateAsync()
         {
-            var ca = await _certificateAuthority.Value;
+            var ca = await GetCertificateAuthority();
             return CreateSigningCertificate(ca);
         }
 
@@ -168,7 +175,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<RevokableCertificate> CreateRevokableSigningCertificateAsync()
         {
-            var ca = await _certificateAuthority.Value;
+            var ca = await GetCertificateAuthority();
 
             void CustomizeAsSigningCertificate(X509V3CertificateGenerator generator)
             {
@@ -197,7 +204,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<UntrustedSigningCertificate> CreateUntrustedSigningCertificateAsync()
         {
-            var testServer = await _testServer.Value;
+            var testServer = await GetTestServerAsync();
             var untrustedRootCa = CertificateAuthority.Create(testServer.Url);
             var untrustedRootCertificate = untrustedRootCa.Certificate.ToX509Certificate2();
             var responders = testServer.RegisterRespondersForEntireChain(untrustedRootCa);
@@ -211,7 +218,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<X509Certificate2> CreateExpiringSigningCertificateAsync()
         {
-            var ca = await _certificateAuthority.Value;
+            var ca = await GetCertificateAuthority();
 
             void CustomizeExpiringSigningCertificate(X509V3CertificateGenerator generator)
             {
@@ -229,8 +236,8 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<CustomTimestampService> CreateCustomTimestampServiceAsync(TimestampServiceOptions options)
         {
-            var testServer = await _testServer.Value;
-            var rootCa = await _rootCertificateAuthority.Value;
+            var testServer = await GetTestServerAsync();
+            var rootCa = await GetRootCertificateAuthority();
             var timestampService = TimestampService.Create(rootCa, options);
             var responders = testServer.RegisterDefaultResponders(timestampService);
 
@@ -241,7 +248,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<UntrustedTimestampService> CreateUntrustedTimestampServiceAsync()
         {
-            var testServer = await _testServer.Value;
+            var testServer = await GetTestServerAsync();
             var untrustedRootCa = CertificateAuthority.Create(testServer.Url);
             var untrustedRootCertificate = untrustedRootCa.Certificate.ToX509Certificate2();
             var timestampService = TimestampService.Create(untrustedRootCa);
@@ -255,8 +262,8 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<RevokableTimestampService> CreateRevokableTimestampServiceAsync()
         {
-            var testServer = await _testServer.Value;
-            var rootCa = await _rootCertificateAuthority.Value;
+            var testServer = await GetTestServerAsync();
+            var rootCa = await GetRootCertificateAuthority();
             var timestampService = TimestampService.Create(rootCa);
             var responders = testServer.RegisterDefaultResponders(timestampService);
 
@@ -314,7 +321,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public async Task<TimestampServiceWithUnavailableRevocation> CreateTimestampServiceWithUnavailableRevocationAsync()
         {
-            var testServer = await _testServer.Value;
+            var testServer = await GetTestServerAsync();
             var rootCa = CertificateAuthority.Create(testServer.Url);
             var rootCertificate = rootCa.Certificate.ToX509Certificate2();
 

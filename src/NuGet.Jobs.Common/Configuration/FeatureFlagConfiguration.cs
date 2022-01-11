@@ -3,7 +3,7 @@
 
 using System;
 
-namespace NuGet.Jobs.Validation
+namespace NuGet.Jobs.Configuration
 {
     public class FeatureFlagConfiguration
     {

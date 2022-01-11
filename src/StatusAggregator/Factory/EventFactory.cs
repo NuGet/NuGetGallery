@@ -31,13 +31,11 @@ namespace StatusAggregator.Factory
         public async Task<EventEntity> CreateAsync(ParsedIncident input)
         {
             var affectedPath = _pathProvider.Get(input);
-            using (_logger.Scope("Creating event for parsed incident with path {AffectedComponentPath}.", affectedPath))
-            {
-                var entity = new EventEntity(affectedPath, input.StartTime);
-                await _table.InsertOrReplaceAsync(entity);
+            _logger.LogInformation("Creating event for parsed incident with path {AffectedComponentPath}.", affectedPath);
+            var entity = new EventEntity(affectedPath, input.StartTime);
+            await _table.InsertOrReplaceAsync(entity);
 
-                return entity;
-            }
+            return entity;
         }
     }
 }

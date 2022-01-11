@@ -14,5 +14,6 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public string AuxiliaryDataStorageDownloadsPath { get; set; }
         public string AuxiliaryDataStorageExcludedPackagesPath { get; set; }
         public string AuxiliaryDataStorageVerifiedPackagesPath { get; set; }
+        public string DownloadsV1JsonUrl { get; set; }
     }
 }

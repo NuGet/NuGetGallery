@@ -75,14 +75,17 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
         [InlineData(EndCertificateStatus.Unknown, X509ChainStatusFlags.OfflineRevocation)]
         public void CannotCreateNonRevokedResultWithRevocationDate(EndCertificateStatus status, X509ChainStatusFlags flags)
         {
-            var exception = Assert.Throws<ArgumentException>(
-                    () => CreateResult()
-                            .WithStatus(status)
-                            .WithStatusFlags(flags)
-                            .WithRevocationTime(new DateTime(2000, 1, 2))
-                            .Build());
+            var revocationTime = new DateTime(2000, 1, 2);
+            var exception = Assert.Throws<ArgumentException>(() =>
+            {
+                return CreateResult()
+                    .WithStatus(status)
+                    .WithStatusFlags(flags)
+                    .WithRevocationTime(revocationTime)
+                    .Build();
+            });
 
-            Assert.StartsWith("End certificate revoked at 1/2/2000", exception.Message);
+            Assert.StartsWith($"End certificate revoked at {revocationTime.ToShortDateString()}", exception.Message);
             Assert.Contains($"status is {status}", exception.Message);
         }
 

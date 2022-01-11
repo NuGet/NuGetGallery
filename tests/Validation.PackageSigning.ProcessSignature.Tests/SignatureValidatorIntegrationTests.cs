@@ -43,9 +43,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
     public class SignatureValidatorIntegrationTests : IDisposable
     {
         // NU3018
-        private const string AuthorPrimaryCertificateUntrustedMessage = "The author primary signature found a chain building issue: " +
-            "UntrustedRoot: " +
-            "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.";
+        private const string AuthorPrimaryCertificateUntrustedMessage = "The author primary signature's signing certificate is not trusted by the trust provider.";
         private const string AuthorPrimaryCertificateRevocationOfflineMessage = "NU3018: The author primary signature found a chain building issue: " +
             "The revocation function was unable to check revocation because the revocation server could not be reached.";
         private const string AuthorPrimaryCertificateRevocationUnknownMessage = "NU3018: The author primary signature found a chain building issue: " +
@@ -58,9 +56,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             "The revocation function was unable to check revocation for the certificate.";
 
         // NU3028
-        private const string AuthorPrimaryTimestampCertificateUntrustedMessage = "The author primary signature's timestamp found a chain building issue: " +
-            "UntrustedRoot: " +
-            "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.";
+        private const string AuthorPrimaryTimestampCertificateUntrustedMessage = "The author primary signature's timestamping certificate is not trusted by the trust provider.";
         private const string AuthorPrimaryTimestampCertificateRevocationUnknownMessage = "NU3028: The author primary signature's timestamp found a chain building issue: " +
             "RevocationStatusUnknown: " +
             "The revocation function was unable to check revocation for the certificate.";
@@ -2135,7 +2131,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, issue.IssueCode);
             var typedIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
             Assert.Equal("NU3008", typedIssue.ClientCode);
-            Assert.Equal("The package integrity check failed.", typedIssue.ClientMessage);
+            Assert.Equal("The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.", typedIssue.ClientMessage);
         }
 
         public void Dispose()

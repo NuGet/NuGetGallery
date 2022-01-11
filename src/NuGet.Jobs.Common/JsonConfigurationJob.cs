@@ -13,10 +13,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.Configuration;
+using NuGet.Services.FeatureFlags;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
+using NuGetGallery;
+using NuGetGallery.Diagnostics;
+using NuGetGallery.Features;
 
 namespace NuGet.Jobs
 {
@@ -29,6 +35,9 @@ namespace NuGet.Jobs
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string ValidationStorageConfigurationSectionName = "ValidationStorage";
+        private const string FeatureFlagConfigurationSectionName = "FeatureFlags";
+
+        private const string FeatureFlagBindingKey = nameof(FeatureFlagBindingKey);
 
         private bool testDatabaseConnections = true;
 
@@ -69,6 +78,10 @@ namespace NuGet.Jobs
             var configurationFilename = JobConfigurationManager.GetArgument(jobArgsDictionary, ConfigurationArgument);
             var configurationRoot = GetConfigurationRoot(configurationFilename, out var secretInjector, out var secretReader);
 
+            if (_serviceProvider != null && _serviceProvider is IDisposable disposableProvider)
+            {
+                disposableProvider.Dispose();
+            }
             _serviceProvider = GetServiceProvider(configurationRoot, secretInjector, secretReader);
 
             if (!_validateOnly)
@@ -77,7 +90,7 @@ namespace NuGet.Jobs
             }
         }
 
-        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ISecretInjector secretInjector, out ISecretReader secretReader)
+        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ICachingSecretInjector secretInjector, out ICachingSecretReader secretReader)
         {
             Logger.LogInformation(
                 "Using the {ConfigurationFilename} configuration file",
@@ -98,8 +111,8 @@ namespace NuGet.Jobs
 
             var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
             var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
-            secretReader = cachingSecretReaderFactory.CreateSecretReader();
-            secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
+            secretReader = cachingSecretReaderFactory.CreateSecretReader() as ICachingSecretReader;
+            secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader()) as ICachingSecretInjector;
 
             builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
@@ -108,18 +121,19 @@ namespace NuGet.Jobs
             return builder.Build();
         }
 
-        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot, ISecretInjector secretInjector, ISecretReader secretReader)
+        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot, ICachingSecretInjector secretInjector, ICachingSecretReader secretReader)
         {
             // Configure as much as possible with Microsoft.Extensions.DependencyInjection.
             var services = new ServiceCollection();
 
             if (!_validateOnly)
             {
+                services.AddSingleton<ISecretInjector>(secretInjector);
                 services.AddSingleton(secretInjector);
+                services.AddSingleton<ISecretReader>(secretReader);
                 services.AddSingleton(secretReader);
             }
 
-            services.AddSingleton(ApplicationInsightsConfiguration.TelemetryConfiguration);
             services.AddSingleton<IConfiguration>(configurationRoot);
 
             ConfigureLibraries(services);
@@ -130,6 +144,16 @@ namespace NuGet.Jobs
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);
             containerBuilder.RegisterAssemblyModules(GetType().Assembly);
+
+            // Classes below implement IDisposable, so we'll tell Autofac
+            // not to dispose of it when container is disposed of. Otherwise, on second and
+            // subsequent job runs we'll end up with them disposed.
+            containerBuilder
+                .RegisterInstance(ApplicationInsightsConfiguration.TelemetryConfiguration)
+                .ExternallyOwned();
+            containerBuilder
+                .RegisterInstance(LoggerFactory)
+                .ExternallyOwned();
 
             ConfigureDefaultAutofacServices(containerBuilder, configurationRoot);
             ConfigureAutofacServices(containerBuilder, configurationRoot);
@@ -148,6 +172,8 @@ namespace NuGet.Jobs
 
             services.AddSingleton(new TelemetryClient(ApplicationInsightsConfiguration.TelemetryConfiguration));
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
+            services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
+            services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
 
             AddScopedSqlConnectionFactory<GalleryDbConfiguration>(services);
             AddScopedSqlConnectionFactory<StatisticsDbConfiguration>(services);
@@ -170,11 +196,68 @@ namespace NuGet.Jobs
             });
         }
 
+        public static void ConfigureFeatureFlagAutofacServices(ContainerBuilder containerBuilder)
+        {
+            containerBuilder
+                .Register(c =>
+                {
+                    var options = c.Resolve<IOptionsSnapshot<FeatureFlagConfiguration>>();
+                    return new CloudBlobClientWrapper(
+                        options.Value.ConnectionString,
+                        GetFeatureFlagBlobRequestOptions());
+                })
+                .Keyed<ICloudBlobClient>(FeatureFlagBindingKey);
+
+            containerBuilder
+                .Register(c => new CloudBlobCoreFileStorageService(
+                    c.ResolveKeyed<ICloudBlobClient>(FeatureFlagBindingKey),
+                    c.Resolve<IDiagnosticsService>(),
+                    c.Resolve<ICloudBlobContainerInformationProvider>()))
+                .Keyed<ICoreFileStorageService>(FeatureFlagBindingKey);
+
+            containerBuilder
+                .Register(c => new FeatureFlagFileStorageService(
+                    c.ResolveKeyed<ICoreFileStorageService>(FeatureFlagBindingKey)))
+                .As<IFeatureFlagStorageService>();
+        }
+
+        public static void ConfigureFeatureFlagServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            services.Configure<FeatureFlagConfiguration>(configurationRoot.GetSection(FeatureFlagConfigurationSectionName));
+
+            services
+                .AddTransient(p =>
+                {
+                    var options = p.GetRequiredService<IOptionsSnapshot<FeatureFlagConfiguration>>();
+                    return new FeatureFlagOptions
+                    {
+                        RefreshInterval = options.Value.RefreshInternal,
+                    };
+                });
+
+            services.AddTransient<IFeatureFlagClient, FeatureFlagClient>();
+            services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
+            services.AddTransient<IFeatureFlagTelemetryService, FeatureFlagTelemetryService>();
+
+            services.AddSingleton<IFeatureFlagCacheService, FeatureFlagCacheService>();
+            services.AddSingleton<IFeatureFlagRefresher, FeatureFlagRefresher>();
+        }
+
+        private static BlobRequestOptions GetFeatureFlagBlobRequestOptions()
+        {
+            return new BlobRequestOptions
+            {
+                ServerTimeout = TimeSpan.FromMinutes(2),
+                MaximumExecutionTime = TimeSpan.FromMinutes(10),
+                LocationMode = LocationMode.PrimaryThenSecondary,
+                RetryPolicy = new ExponentialRetry(),
+            };
+        }
+
         private void ConfigureLibraries(IServiceCollection services)
         {
             // Use the custom NonCachingOptionsSnapshot so that KeyVault secret injection works properly.
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
-            services.AddSingleton(LoggerFactory);
             services.AddLogging();
         }
 

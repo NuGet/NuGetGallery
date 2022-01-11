@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Services.Logging;
 using NuGetGallery.Diagnostics;
 
-namespace NuGet.Jobs.Validation
+namespace NuGet.Jobs
 {
     public class LoggerDiagnosticsService : IDiagnosticsService
     {

@@ -114,7 +114,7 @@ namespace NuGet.Jobs
                 throw new ArgumentNullException(nameof(services));
             }
 
-            var secretInjector = services.GetRequiredService<ISecretInjector>();
+            var secretInjector = services.GetRequiredService<ICachingSecretInjector>();
             var connectionString = services.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
 
             return RegisterDatabase(GetDatabaseKey<T>(), connectionString, testConnection, secretInjector);
@@ -145,7 +145,7 @@ namespace NuGet.Jobs
                 throw new ArgumentException("Argument cannot be null or empty.", nameof(connectionStringArgName));
             }
 
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
+            var secretInjector = serviceContainer.GetRequiredService<ICachingSecretInjector>();
             var connectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, connectionStringArgName);
 
             return RegisterDatabase(connectionStringArgName, connectionString, testConnection, secretInjector);
@@ -160,7 +160,7 @@ namespace NuGet.Jobs
             string name,
             string connectionString,
             bool testConnection,
-            ISecretInjector secretInjector)
+            ICachingSecretInjector secretInjector)
         {
             var connectionFactory = new AzureSqlConnectionFactory(connectionString, secretInjector, Logger);
             SqlConnectionFactories[name] = connectionFactory;
