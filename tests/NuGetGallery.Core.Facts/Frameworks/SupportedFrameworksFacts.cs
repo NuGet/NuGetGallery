@@ -24,6 +24,11 @@ namespace NuGetGallery.Frameworks
             Win, Win8, Win81, Win10,
             WinRt
         };
+        // The following frameworks were included in NuGet.Client code but they were not official framework releases.
+        private readonly HashSet<NuGetFramework> UnofficialFrameworks = new HashSet<NuGetFramework>()
+        {
+            NetStandard17, NetStandardApp15
+        };
 
         [Fact]
         public void SupportedFrameworksContainsCommonFrameworksWithNoDeprecatedFrameworks()
@@ -44,6 +49,10 @@ namespace NuGetGallery.Frameworks
                 if (DeprecatedFrameworks.Contains(framework))
                 {
                     Assert.False(supportedFrameworks.Contains(framework), $"SupportedFrameworks should not contain the deprecated framework {field.Name}.");
+                }
+                else if (UnofficialFrameworks.Contains(framework))
+                {
+                    Assert.False(supportedFrameworks.Contains(framework), $"SupportedFrameworks should not contain the unofficial framework {field.Name}.");
                 }
                 else
                 {
