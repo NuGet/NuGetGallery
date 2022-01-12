@@ -657,25 +657,25 @@ img.reserved-indicator-icon {
   overflow: auto;
   max-height: 450px;
 }
-#readme-common .table {
+.readme-common .table {
   width: -webkit-max-content;
   width: -moz-max-content;
   width: max-content;
   border: 1px solid #ddd;
 }
-#readme-common .table th,
-#readme-common .table td {
+.readme-common .table th,
+.readme-common .table td {
   border: 1px solid #ddd;
 }
-#readme-common tr:nth-child(even) {
+.readme-common tr:nth-child(even) {
   background-color: #f2f2f2;
 }
-#readme-common img,
-#readme-common .img-fluid {
+.readme-common img,
+.readme-common .img-fluid {
   max-width: 100%;
 }
-#readme-common ul.contains-task-list,
-#readme-common li.task-list-item {
+.readme-common ul.contains-task-list,
+.readme-common li.task-list-item {
   list-style-type: none;
 }
 #readme-preview {
