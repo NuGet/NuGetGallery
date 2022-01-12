@@ -657,52 +657,29 @@ img.reserved-indicator-icon {
   overflow: auto;
   max-height: 450px;
 }
-#readme-container .table {
+#readme-common .table {
   width: -webkit-max-content;
   width: -moz-max-content;
   width: max-content;
   border: 1px solid #ddd;
 }
-#readme-container .table th,
-#readme-container .table td {
+#readme-common .table th,
+#readme-common .table td {
   border: 1px solid #ddd;
 }
-#readme-container tr:nth-child(even) {
+#readme-common tr:nth-child(even) {
   background-color: #f2f2f2;
 }
-#readme-less img {
+#readme-common img,
+#readme-common .img-fluid {
   max-width: 100%;
 }
-#readme-less ul.contains-task-list,
-#readme-less li.task-list-item {
-  list-style-type: none;
-}
-#readme-more img {
-  max-width: 100%;
-}
-#readme-more ul.contains-task-list,
-#readme-more li.task-list-item {
+#readme-common ul.contains-task-list,
+#readme-common li.task-list-item {
   list-style-type: none;
 }
 #readme-preview {
   padding-top: 0.25em;
-}
-#readme-preview ul.contains-task-list,
-#readme-preview li.task-list-item {
-  list-style-type: none;
-}
-#readme-preview .table {
-  width: -webkit-max-content;
-  width: -moz-max-content;
-  width: max-content;
-  border: 1px solid #ddd;
-}
-#readme-preview .table th,
-#readme-preview .table td {
-  border: 1px solid #ddd;
-}
-#readme-preview tr:nth-child(even) {
-  background-color: #f2f2f2;
 }
 #edit-markdown {
   padding-top: 3em;
