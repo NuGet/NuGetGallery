@@ -12,20 +12,25 @@ namespace NuGetGallery.Frameworks
         public static string GetBadgeVersion(this NuGetFramework framework)
         {
             var builder = new StringBuilder();
-            builder.Append($"{framework.Version.Major}.{framework.Version.Minor}");
+            builder.Append(framework.Version.Major);
+            builder.Append(".");
+            builder.Append(framework.Version.Minor);
 
             if (framework.Version.Build != 0)
             {
-                builder.Append($".{framework.Version.Build}");
+                builder.Append(".");
+                builder.Append(framework.Version.Build);
 
                 if (framework.Version.Revision != 0)
                 {
-                    builder.Append($".{framework.Version.Revision}");
+                    builder.Append(".");
+                    builder.Append(framework.Version.Revision);
                 }
             }
             else if (framework.Version.Revision != 0)
             {
-                builder.Append($".0.{framework.Version.Revision}");
+                builder.Append(".0.");
+                builder.Append(framework.Version.Revision);
             }
 
             return builder.ToString();
