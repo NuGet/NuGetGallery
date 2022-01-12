@@ -11,7 +11,7 @@
   }
 }
 
-#readme-container{
+#readme-common{
   .table {
     width: max-content;
     border: 1px solid @table-border-color;
@@ -24,47 +24,19 @@
   tr:nth-child(even) {
     background-color: @readme-table-bg-color;
   }
+
+  img, .img-fluid{
+    max-width: 100%;
+  }
+
+  ul.contains-task-list, li.task-list-item {
+    list-style-type: none;
+  }
+
 } 
-
-#readme-less {
-  img {
-    max-width: 100%;
-  }
-
-  ul.contains-task-list, li.task-list-item {
-    list-style-type: none;
-  }
-}
-
-#readme-more {
-  img {
-    max-width: 100%;
-  }
-
-  ul.contains-task-list, li.task-list-item {
-    list-style-type: none;
-  }
-}
 
 #readme-preview {
   padding-top: 0.25em;
-
-  ul.contains-task-list, li.task-list-item {
-    list-style-type: none;
-  }
-  
-  .table {
-    width: max-content;
-    border: 1px solid @table-border-color;
-    
-    th, td {
-      border: 1px solid @table-border-color;
-    }
-  }
-
-  tr:nth-child(even) {
-    background-color: @readme-table-bg-color;
-  }
 }
 
 #edit-markdown {
