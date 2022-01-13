@@ -58,12 +58,22 @@ namespace NuGetGallery.ViewModels
                 Assert.Equal(expected, Target.BlockSearchEngineIndexing);
             }
 
+            [Fact]
+            public void DoesNotBlockRecentIfFeatureFlagIsOff()
+            {
+                Target.TotalDaysSinceCreated = 0;
+                Target.IsRecentPackagesNoIndexEnabled = false;
+
+                Assert.False(Target.BlockSearchEngineIndexing);
+            }
+
             public TheBlockSearchEngineIndexingProperty()
             {
                 Target = new DisplayPackageViewModel();
                 Target.Version = "1.0.0";
                 Target.Listed = true;
                 Target.Available = true;
+                Target.IsRecentPackagesNoIndexEnabled = true;
                 Target.TotalDaysSinceCreated = 14;
             }
 

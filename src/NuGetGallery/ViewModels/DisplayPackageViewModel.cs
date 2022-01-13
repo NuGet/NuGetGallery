@@ -40,6 +40,7 @@ namespace NuGetGallery
         public bool IsPackageRenamesEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
         public bool IsPackageDependentsEnabled { get; set; }
+        public bool IsRecentPackagesNoIndexEnabled { get; set; }
         public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
         public bool HasEmbeddedIcon { get; set; }
         public bool HasEmbeddedReadmeFile { get; set; }
@@ -140,7 +141,7 @@ namespace NuGetGallery
         {
             get
             {
-                return !Listed || !Available || TotalDaysSinceCreated < 7;
+                return !Listed || !Available || (IsRecentPackagesNoIndexEnabled && TotalDaysSinceCreated < 7);
             }
         }
 

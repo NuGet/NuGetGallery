@@ -296,5 +296,10 @@ namespace NuGetGallery
         /// Whether or not to compute backend operations for target framework. This flag is overridden by <see cref="IsDisplayTargetFrameworkEnabled"/> if that flag is true.
         /// </summary>
         bool IsComputeTargetFrameworkEnabled();
+
+        /// <summary>
+        /// Whether or not recent packages has no index applied.
+        /// </summary>
+        bool IsRecentPackagesNoIndexEnabled();
     }
 }
