@@ -17,6 +17,59 @@ namespace NuGetGallery.ViewModels
     {
         private Random gen = new Random();
 
+        public class TheBlockSearchEngineIndexingProperty
+        {
+            [Fact]
+            public void DoesNotBlockListedAvailableOlderPackages()
+            {
+                Assert.False(Target.BlockSearchEngineIndexing);
+            }
+
+            [Fact]
+            public void BlocksUnlisted()
+            {
+                Target.Listed = false;
+
+                Assert.True(Target.BlockSearchEngineIndexing);
+            }
+
+            [Fact]
+            public void BlocksUnavailable()
+            {
+                Target.Available = false;
+
+                Assert.True(Target.BlockSearchEngineIndexing);
+            }
+
+            [Theory]
+            [InlineData(0, true)]
+            [InlineData(1, true)]
+            [InlineData(2, true)]
+            [InlineData(3, true)]
+            [InlineData(4, true)]
+            [InlineData(5, true)]
+            [InlineData(6, true)]
+            [InlineData(7, false)]
+            [InlineData(8, false)]
+            public void BlocksNewSingleVersion(int days, bool expected)
+            {
+                Target.TotalDaysSinceCreated = days;
+
+                Assert.Equal(expected, Target.BlockSearchEngineIndexing);
+            }
+
+            public TheBlockSearchEngineIndexingProperty()
+            {
+                Target = new DisplayPackageViewModel();
+                Target.Version = "1.0.0";
+                Target.Listed = true;
+                Target.Available = true;
+                Target.TotalDaysSinceCreated = 14;
+            }
+
+            public DisplayPackageViewModel Target { get; }
+        }
+
         private DateTime RandomDay()
         {
             DateTime start = new DateTime(1995, 1, 1);

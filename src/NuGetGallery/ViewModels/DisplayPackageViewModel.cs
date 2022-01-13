@@ -136,6 +136,14 @@ namespace NuGetGallery
             return IsFuGetLinksEnabled && !string.IsNullOrEmpty(FuGetUrl) && Available;
         }
 
+        public bool BlockSearchEngineIndexing
+        {
+            get
+            {
+                return !Listed || !Available || TotalDaysSinceCreated < 7;
+            }
+        }
+
         public enum RepositoryKind
         {
             Unknown,
