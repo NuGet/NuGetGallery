@@ -946,6 +946,7 @@ namespace NuGetGallery
             model.IsNuGetPackageExplorerLinkEnabled = _featureFlagService.IsDisplayNuGetPackageExplorerLinkEnabled();
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
+            model.IsRecentPackagesNoIndexEnabled = _featureFlagService.IsRecentPackagesNoIndexEnabled();
             model.IsDisplayTargetFrameworkEnabled = _featureFlagService.IsDisplayTargetFrameworkEnabled(currentUser);
             model.IsComputeTargetFrameworkEnabled = _featureFlagService.IsComputeTargetFrameworkEnabled();
 
