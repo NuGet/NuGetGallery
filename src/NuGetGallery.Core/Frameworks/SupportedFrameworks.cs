@@ -17,6 +17,7 @@ namespace NuGetGallery.Frameworks
     /// dotnet documentation: https://docs.microsoft.com/en-us/dotnet/standard/frameworks.
     /// nuget documentation: https://docs.microsoft.com/en-us/nuget/reference/target-frameworks.
     /// nuget client FrameworkConstants.CommonFrameworks: https://github.com/NuGet/NuGet.Client/blob/dev/src/NuGet.Core/NuGet.Frameworks/FrameworkConstants.cs.
+    /// Deprecated frameworks are not included on the list https://docs.microsoft.com/en-us/dotnet/standard/frameworks#deprecated-target-frameworks.
     /// </remarks>
     public static class SupportedFrameworks
     {
@@ -35,44 +36,31 @@ namespace NuGetGallery.Frameworks
         public static readonly NuGetFramework NetCore = new NuGetFramework(FrameworkIdentifiers.NetCore, EmptyVersion);
         public static readonly NuGetFramework NetMf = new NuGetFramework(FrameworkIdentifiers.NetMicro, EmptyVersion);
         public static readonly NuGetFramework UAP = new NuGetFramework(FrameworkIdentifiers.UAP, EmptyVersion);
-        public static readonly NuGetFramework Win = new NuGetFramework(FrameworkIdentifiers.Windows, EmptyVersion);
-        public static readonly NuGetFramework WinRt = new NuGetFramework(FrameworkIdentifiers.WinRT, EmptyVersion);
         public static readonly NuGetFramework WP = new NuGetFramework(FrameworkIdentifiers.WindowsPhone, EmptyVersion);
         public static readonly NuGetFramework XamarinIOs = new NuGetFramework(FrameworkIdentifiers.XamarinIOs, EmptyVersion);
         public static readonly NuGetFramework XamarinMac = new NuGetFramework(FrameworkIdentifiers.XamarinMac, EmptyVersion);
-        public static readonly NuGetFramework XamarinPlaystation3 = new NuGetFramework(FrameworkIdentifiers.XamarinPlayStation3, EmptyVersion);
-        public static readonly NuGetFramework XamarinPlayStation4 = new NuGetFramework(FrameworkIdentifiers.XamarinPlayStation4, EmptyVersion);
-        public static readonly NuGetFramework XamarinPlayStationVita = new NuGetFramework(FrameworkIdentifiers.XamarinPlayStationVita, EmptyVersion);
         public static readonly NuGetFramework XamarinTvOs = new NuGetFramework(FrameworkIdentifiers.XamarinTVOS, EmptyVersion);
         public static readonly NuGetFramework XamarinWatchOs = new NuGetFramework(FrameworkIdentifiers.XamarinWatchOS, EmptyVersion);
-        public static readonly NuGetFramework XamarinXbox360 = new NuGetFramework(FrameworkIdentifiers.XamarinXbox360, EmptyVersion);
-        public static readonly NuGetFramework XamarinXboxOne = new NuGetFramework(FrameworkIdentifiers.XamarinXboxOne, EmptyVersion);
-
+        
         public static readonly IReadOnlyList<NuGetFramework> AllSupportedNuGetFrameworks;
 
         static SupportedFrameworks()
         {
             AllSupportedNuGetFrameworks = new List<NuGetFramework>
             {
-                AspNet, AspNet50, AspNetCore, AspNetCore50,
-                Dnx, Dnx45, Dnx451, Dnx452, DnxCore, DnxCore50,
-                DotNet, DotNet50, DotNet51, DotNet52, DotNet53, DotNet54, DotNet55, DotNet56,
                 MonoAndroid, MonoMac, MonoTouch,
                 Native,
                 Net11, Net2, Net35, Net4, Net403, Net45, Net451, Net452, Net46, Net461, Net462, Net463, Net47, Net471, Net472, Net48,
                 Net50, Net50Windows, Net60, Net60Android, Net60Ios, Net60MacCatalyst, Net60MacOs, Net60TvOs, Net60Windows,
-                NetCore, NetCore45, NetCore451, NetCore50,
+                NetCore, NetCore45, NetCore451,
                 NetCoreApp10, NetCoreApp11, NetCoreApp20, NetCoreApp21, NetCoreApp22, NetCoreApp30, NetCoreApp31,
                 NetMf,
-                NetStandard, NetStandard10, NetStandard11, NetStandard12, NetStandard13, NetStandard14, NetStandard15, NetStandard16, NetStandard17, NetStandard20, NetStandard21,
-                NetStandardApp15,
+                NetStandard, NetStandard10, NetStandard11, NetStandard12, NetStandard13, NetStandard14, NetStandard15, NetStandard16, NetStandard20, NetStandard21,
                 SL4, SL5,
                 Tizen3, Tizen4, Tizen6,
                 UAP, UAP10,
-                Win, Win8, Win81, Win10,
-                WinRt,
                 WP, WP7, WP75, WP8, WP81, WPA81,
-                XamarinIOs, XamarinMac, XamarinPlaystation3, XamarinPlayStation4, XamarinPlayStationVita, XamarinTvOs, XamarinWatchOs, XamarinXbox360, XamarinXboxOne
+                XamarinIOs, XamarinMac, XamarinTvOs, XamarinWatchOs
             };
         }
     }

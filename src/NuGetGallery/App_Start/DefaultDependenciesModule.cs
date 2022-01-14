@@ -47,6 +47,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
@@ -468,6 +469,16 @@ namespace NuGetGallery
             builder.RegisterType<PackageVulnerabilitiesCacheService>()
                 .AsSelf()
                 .As<IPackageVulnerabilitiesCacheService>()
+                .SingleInstance();
+
+            builder.RegisterType<FrameworkCompatibilityService>()
+                .AsSelf()
+                .As<IFrameworkCompatibilityService>()
+                .SingleInstance();
+
+            builder.RegisterType<PackageFrameworkCompatibilityFactory>()
+                .AsSelf()
+                .As<IPackageFrameworkCompatibilityFactory>()
                 .SingleInstance();
 
             services.AddHttpClient();

@@ -50,9 +50,9 @@ namespace NuGetGallery
             RenderedMarkdownResult readmeResult)
         {
             _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
-            SetupCommon(viewModel, package, pushedBy: null, 
+            SetupCommon(viewModel, package, pushedBy: null,
                 packageKeyToDeprecation: packageKeyToDeprecation, packageKeyToVulnerabilities: packageKeyToVulnerabilities);
-            return SetupInternal(viewModel, package, allVersions, currentUser, 
+            return SetupInternal(viewModel, package, allVersions, currentUser,
                 packageKeyToDeprecation, packageKeyToVulnerabilities, packageRenames, readmeResult);
         }
 
@@ -76,7 +76,7 @@ namespace NuGetGallery
             var pushedByCache = new Dictionary<User, string>();
             viewModel.PackageVersions = packageHistory
                 .Select(
-                    p => 
+                    p =>
                     {
                         var vm = new DisplayPackageViewModel();
                         _listPackageItemViewModelFactory.Setup(vm, p, currentUser);
@@ -202,7 +202,7 @@ namespace NuGetGallery
             }
 
             PackageVulnerabilitySeverity? maxVulnerabilitySeverity = null;
-            if (packageKeyToVulnerabilities != null 
+            if (packageKeyToVulnerabilities != null
                 && packageKeyToVulnerabilities.TryGetValue(package.Key, out var vulnerabilities)
                 && vulnerabilities != null && vulnerabilities.Any())
             {
@@ -223,7 +223,7 @@ namespace NuGetGallery
         }
 
         private static string GetWarningIconTitle(
-            string version, 
+            string version,
             PackageDeprecation deprecation,
             PackageVulnerabilitySeverity? maxVulnerabilitySeverity)
         {

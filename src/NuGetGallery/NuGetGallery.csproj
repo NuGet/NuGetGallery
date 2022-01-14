@@ -1730,6 +1730,8 @@
     <Content Include="Views\Users\_DeleteUserAccountForm.cshtml" />
     <Content Include="Views\Organizations\_OrganizationMembersListForDeletedAccount.cshtml" />
     <Content Include="Views\Shared\_AccountCertificates.cshtml" />
+    <Content Include="Views\Packages\_SupportedFrameworksTable.cshtml" />
+    <Content Include="Views\Packages\_SupportedFrameworksBadges.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Offline-Planned.htm" />

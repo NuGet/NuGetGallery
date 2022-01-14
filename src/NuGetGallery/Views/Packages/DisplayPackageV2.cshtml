@@ -265,6 +265,11 @@
                     </h1>
                 </div>
 
+                @if (Model.IsDisplayTargetFrameworkEnabled)
+                {
+                    @Html.Partial("_SupportedFrameworksBadges", Model.PackageFrameworkCompatibility.Badges);
+                }
+
                 @if (Model.Validating)
                 {
                     @ViewHelpers.AlertWarning(
@@ -518,6 +523,24 @@
                             </a>
                         </li>
 
+                     if (!Model.Deleted && Model.IsDisplayTargetFrameworkEnabled)
+                     {
+                        activeBodyTab = activeBodyTab ?? "supportedframeworks";
+                        <li role="presentation" id="show-supportedframeworks-container">
+                            <a href="#supportedframeworks-tab"
+                                role="tab"
+                                data-toggle="tab"
+                                id="supportedframeworks-body-tab"
+                                class="body-tab"
+                                aria-controls="supportedframeworks-tab"
+                                aria-expanded="@(activeBodyTab == "supportedframeworks" ? "true" : "false")"
+                                aria-selected="@(activeBodyTab == "supportedframeworks" ? "true" : "false")">
+                                <i class="ms-Icon ms-Icon--Package" aria-hidden="true"></i>
+                                Frameworks
+                            </a>
+                        </li>
+                     }
+
                         activeBodyTab = activeBodyTab ?? "dependencies";
                         <li role="presentation">
                             <a href="#dependencies-tab"
@@ -587,10 +610,10 @@
                         @if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
                         {
                             @ViewHelpers.AlertWarning(
-                                @<text>
-                                    The readme will become available once package validation has completed successfully.
-                                </text>
-                            )
+                                    @<text>
+                                        The readme will become available once package validation has completed successfully.
+                                    </text>
+)
                         }
                         else if (Model.ReadMeHtml != null)
                         {
@@ -618,6 +641,19 @@
                             <p>@Html.PreFormattedText(Model.Description, Config)</p>
                         }
                     </div>
+
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "supportedframeworks" ? "active" : "")" id="supportedframeworks-tab">
+                        @if (Model.IsDisplayTargetFrameworkEnabled && Model.PackageFrameworkCompatibility.Table.Count > 0)
+                        {
+                            @Html.Partial("_SupportedFrameworksTable", Model.PackageFrameworkCompatibility.Table)
+                        }
+                        else
+                        {
+                            <span tabindex="0">There are no supported framework assets in this package.</span><br/>
+                            <p class="frameworktableinfo-text"><i>Learn more about <a href='https://docs.microsoft.com/dotnet/standard/frameworks' aria-label="Learn more about Target Frameworks">Target Frameworks</a> and <a href='https://docs.microsoft.com/dotnet/standard/net-standard' aria-label="Learn more about .NET Standard">.NET Standard</a>.</i></p>
+                        }
+                    </div>
+
                     <div role="tabpanel" class="tab-pane @(activeBodyTab == "dependencies" ? "active" : "")" id="dependencies-tab">
                         @if (!Model.Deleted)
                         {
