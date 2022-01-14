@@ -5,7 +5,7 @@
 @{
     ViewBag.Title = Model.Id + " " + Model.Version;
     ViewBag.Tab = "Packages";
-    ViewBag.BlockSearchEngineIndexing = !Model.Listed || !Model.Available;
+    ViewBag.BlockSearchEngineIndexing = Model.BlockSearchEngineIndexing;
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 
