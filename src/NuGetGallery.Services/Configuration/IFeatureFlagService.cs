@@ -298,7 +298,7 @@ namespace NuGetGallery
         bool IsComputeTargetFrameworkEnabled();
 
         /// <summary>
-        /// Whether or not recent packages has no index applied.
+        /// Whether or not recent packages has no index applied to block search engine indexing.
         /// </summary>
         bool IsRecentPackagesNoIndexEnabled();
     }
