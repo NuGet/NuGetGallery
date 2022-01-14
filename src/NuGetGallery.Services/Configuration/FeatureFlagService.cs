@@ -54,6 +54,7 @@ namespace NuGetGallery
         private const string ShowReportAbuseSafetyChanges = GalleryPrefix + "ShowReportAbuseSafetyChanges";
         private const string DisplayTargetFrameworkFeatureName = GalleryPrefix + "DisplayTargetFramework";
         private const string ComputeTargetFrameworkFeatureName = GalleryPrefix + "ComputeTargetFramework";
+        private const string RecentPackagesNoIndexFeatureName = GalleryPrefix + "RecentPackagesNoIndex";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -367,6 +368,11 @@ namespace NuGetGallery
         public bool IsComputeTargetFrameworkEnabled()
         {
             return _client.IsEnabled(ComputeTargetFrameworkFeatureName, defaultValue: false);
+        }
+
+        public bool IsRecentPackagesNoIndexEnabled()
+        {
+            return _client.IsEnabled(RecentPackagesNoIndexFeatureName, defaultValue: false);
         }
     }
 }
