@@ -792,6 +792,11 @@ img.reserved-indicator-icon {
   font-size: 14px;
   line-height: 16px;
 }
+p.frameworktableinfo-text {
+  font-size: 14px;
+  line-height: 16px;
+  margin-top: 10px;
+}
 .user-package-list .manage-package-listing .package-icon {
   max-height: 2em;
   min-width: 20px;
