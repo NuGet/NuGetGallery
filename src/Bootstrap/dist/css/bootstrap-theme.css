@@ -671,7 +671,7 @@ img.reserved-indicator-icon {
   background-color: #f2f2f2;
 }
 .readme-common img,
-.readme-common .img-fluid {
+.readme-common img.img-fluid {
   max-width: 100%;
 }
 .readme-common ul.contains-task-list,
