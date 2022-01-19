@@ -10,9 +10,9 @@ body:
 
        The more detail you provide, the more likely it will be for us to be able to identify what is going on and how to solve it!
 
-       ### For issues connecting to NuGet.org, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-not-accessible).
+       ### For issues connecting to NuGet.org, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/nuget-org/nuget-org-faq#nuget.org-not-accessible).
 
-       ### For issues regarding your NuGet.org account, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/faqs/nuget-faq#nugetorg-account-management).
+       ### For issues regarding your NuGet.org account, please refer to [this guide](https://docs.microsoft.com/en-us/nuget/nuget-org/nuget-org-faq#nuget.org-account-management).
   - type: dropdown
     id: impact
     attributes:
