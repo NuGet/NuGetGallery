@@ -1130,4 +1130,13 @@ The {1} Team</value>
   <data name="NuGetPackageDuplicateDependencyGroup" xml:space="preserve">
     <value>A nuget package may not contain multiple dependency groups with the same target framework.</value>
   </data>
+  <data name="AccountIsLocked" xml:space="preserve">
+    <value>Your user account is locked. Please contact support@nuget.org.</value>
+  </data>
+  <data name="SpecificAccountIsLocked" xml:space="preserve">
+    <value>Account '{0}' is locked. Please contact support@nuget.org.</value>
+  </data>
+  <data name="TransformAccount_AccountIsLocked" xml:space="preserve">
+    <value>Account '{0}' is locked and cannot be transformed to an organization. Please contact support@nuget.org.</value>
+  </data>
 </root>

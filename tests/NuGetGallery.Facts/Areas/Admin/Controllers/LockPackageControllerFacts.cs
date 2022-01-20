@@ -32,10 +32,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var viewModel = new LockPackageViewModel()
             {
-                PackageLockStates = new List<PackageLockState>()
+                LockStates = new List<LockState>()
                 {
-                    new PackageLockState() { Id = "Test1", IsLocked = true },
-                    new PackageLockState() { Id = "Test5", IsLocked = true }
+                    new LockState() { Identifier = "Test1", IsLocked = true },
+                    new LockState() { Identifier = "Test5", IsLocked = true }
                 }
             };
 
@@ -48,11 +48,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Assert.True(packageRegistrationsInDb.First(x => x.Id == "Test1").IsLocked);
             Assert.True(packageRegistrationsInDb.First(x => x.Id == "Test5").IsLocked);
 
-            var viewResult = ResultAssert.IsView<LockPackageViewModel>(result, "Index");
+            var viewResult = ResultAssert.IsView<LockPackageViewModel>(result, "LockIndex");
 
-            Assert.Equal(2, viewResult.PackageLockStates.Count(x => x.IsLocked));
-            Assert.True(viewResult.PackageLockStates.First(x => x.Id == "Test1").IsLocked);
-            Assert.True(viewResult.PackageLockStates.First(x => x.Id == "Test5").IsLocked);
+            Assert.Equal(2, viewResult.LockStates.Count(x => x.IsLocked));
+            Assert.True(viewResult.LockStates.First(x => x.Identifier == "Test1").IsLocked);
+            Assert.True(viewResult.LockStates.First(x => x.Identifier == "Test5").IsLocked);
         }
     }
 }

@@ -400,6 +400,11 @@ namespace NuGetGallery
                 throw new EntityException(ServicesStrings.EmailAddressBeingUsed, newEmailAddress);
             }
 
+            if (user.IsLocked)
+            {
+                throw new EntityException(String.Format(CultureInfo.CurrentCulture, ServicesStrings.SpecificAccountIsLocked, user.Username));
+            }
+
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.ChangeEmail, newEmailAddress));
 
             user.UpdateUnconfirmedEmailAddress(newEmailAddress, Crypto.GenerateToken);
@@ -499,6 +504,11 @@ namespace NuGetGallery
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     ServicesStrings.TransformAccount_AccountNotConfirmed, accountToTransform.Username);
             }
+            else if (accountToTransform.IsLocked)
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    ServicesStrings.TransformAccount_AccountIsLocked, accountToTransform.Username);
+            }
             else if (accountToTransform is Organization)
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
@@ -572,6 +582,11 @@ namespace NuGetGallery
                 {
                     throw new EntityException(ServicesStrings.EmailAddressBeingUsed, emailAddress);
                 }
+            }
+
+            if (adminUser.IsLocked)
+            {
+                throw new EntityException(ServicesStrings.AccountIsLocked);
             }
 
             var organization = new Organization(username)

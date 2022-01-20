@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -369,6 +370,63 @@ namespace NuGetGallery.Controllers
                             // Assert
                             Assert.False(data.success);
                             Assert.Equal(Strings.AddOwner_NameIsEmail, data.message);
+                        }
+
+                        [Fact]
+                        public async Task FailsIfCurrentUserIsLocked()
+                        {
+                            // Arrange
+                            var fakes = Get<Fakes>();
+                            var currentUser = fakes.User;
+                            currentUser.IsLocked = true;
+                            var usernameToAdd = fakes.Owner.Username;
+                            var package = fakes.Package;
+                            var controller = GetController<JsonApiController>();
+                            controller.SetCurrentUser(currentUser);
+                            AddPackageOwnerViewModel testData = new AddPackageOwnerViewModel
+                            {
+                                Id = package.Id,
+                                Username = usernameToAdd,
+                                Message = "a message"
+                            };
+
+                            // Act
+                            var result = await controller.AddPackageOwner(testData);
+                            dynamic data = result.Data;
+
+                            // Assert
+                            Assert.False(data.success);
+                            Assert.Equal(ServicesStrings.AccountIsLocked, data.message);
+                            GetMock<IPackageOwnershipManagementService>().VerifyNoOtherCalls();
+                        }
+
+                        [Fact]
+                        public async Task FailsIfAddedUserIsLocked()
+                        {
+                            // Arrange
+                            var fakes = Get<Fakes>();
+                            var userToAdd = fakes.User;
+                            userToAdd.IsLocked = true;
+                            var package = fakes.Package;
+                            var controller = GetController<JsonApiController>();
+                            controller.SetCurrentUser(fakes.Owner);
+                            AddPackageOwnerViewModel testData = new AddPackageOwnerViewModel
+                            {
+                                Id = package.Id,
+                                Username = userToAdd.Username,
+                                Message = "a message"
+                            };
+
+                            // Act
+                            var result = await controller.AddPackageOwner(testData);
+                            dynamic data = result.Data;
+
+                            // Assert
+                            Assert.False(data.success);
+                            Assert.Equal(
+                                string.Format(CultureInfo.CurrentCulture, ServicesStrings.SpecificAccountIsLocked, userToAdd.Username),
+                                data.message);
+                            GetMock<IPackageOwnershipManagementService>().VerifyNoOtherCalls();
                         }
 
                         [Theory]

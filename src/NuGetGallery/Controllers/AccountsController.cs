@@ -359,10 +359,19 @@ namespace NuGetGallery
             var accountToDelete = UserService.FindByUsername(model.AccountName) as TUser;
             if (accountToDelete == null || accountToDelete.IsDeleted)
             {
-                return View("DeleteAccountStatus", new DeleteAccountStatus()
+                return View("DeleteAccountStatus", new DeleteAccountStatus
                 {
                     AccountName = model.AccountName,
                     Description = $"Account {model.AccountName} not found.",
+                    Success = false
+                });
+            }
+            else if (accountToDelete.IsLocked)
+            {
+                return View("DeleteAccountStatus", new DeleteAccountStatus
+                {
+                    AccountName = model.AccountName,
+                    Description = $"Account {model.AccountName} is locked.",
                     Success = false
                 });
             }

@@ -2171,14 +2171,22 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            var currentUser = GetCurrentUser();
+
+            if (currentUser.IsLocked)
+            {
+                TempData["ErrorMessage"] = ServicesStrings.AccountIsLocked;
+                return Redirect(Url.ManagePackage(new TrivialPackageVersionModel(package)));
+            }
+
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
             {
                 return HttpForbidden();
             }
 
             if (package.PackageRegistration.IsLocked)
             {
-                return new HttpStatusCodeResult(403, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
+                return new HttpStatusCodeResult((int)HttpStatusCode.BadRequest, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
             string action;
@@ -2414,12 +2422,24 @@ namespace NuGetGallery
 
                 var currentUser = GetCurrentUser();
 
+                if (currentUser.IsLocked)
+                {
+                    var message = new JsonValidationMessage(ServicesStrings.AccountIsLocked);
+                    return Json(HttpStatusCode.BadRequest, new[] { message });
+                }
+
                 // Check that the owner specified in the form is valid
                 var owner = _userService.FindByUsername(formData.Owner);
 
                 if (owner == null)
                 {
                     var message = new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner));
+                    return Json(HttpStatusCode.BadRequest, new[] { message });
+                }
+
+                if (owner.IsLocked)
+                {
+                    var message = new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, ServicesStrings.SpecificAccountIsLocked, owner.Username));
                     return Json(HttpStatusCode.BadRequest, new[] { message });
                 }
 

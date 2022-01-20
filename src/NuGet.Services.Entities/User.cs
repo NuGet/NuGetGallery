@@ -120,6 +120,8 @@ namespace NuGet.Services.Entities
 
         public int FailedLoginCount { get; set; }
 
+        public bool IsLocked { get; set; }
+
         public string LastSavedEmailAddress
         {
             get

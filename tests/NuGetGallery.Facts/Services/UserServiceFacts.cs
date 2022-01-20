@@ -1172,6 +1172,26 @@ namespace NuGetGallery
         public class TheChangeEmailMethod
         {
             [Fact]
+            public async Task BlocksLockedUser()
+            {
+                var user = new User { Username = "Bob", EmailAddress = "old@example.org", IsLocked = true };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user }
+                };
+
+                service.MockConfig
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
+
+                var ex = await Assert.ThrowsAsync<EntityException>(() => service.ChangeEmailAddress(user, "new@example.org"));
+                Assert.Equal("Account 'Bob' is locked. Please contact support@nuget.org.", ex.Message);
+                Assert.Equal("old@example.org", user.EmailAddress);
+                Assert.Null(user.UnconfirmedEmailAddress);
+                service.FakeEntitiesContext.VerifyNoCommitChanges();
+            }
+
+            [Fact]
             public async Task SetsUnconfirmedEmailWhenEmailIsChanged()
             {
                 var user = new User { Username = "Bob", EmailAddress = "old@example.org" };
@@ -1457,6 +1477,22 @@ namespace NuGetGallery
             protected virtual bool Invoke(TestableUserService service, User accountToTransform, out string errorReason)
             {
                 return service.CanTransformUserToOrganization(accountToTransform, out errorReason);
+            }
+
+            [Fact]
+            public void WhenAccountIsLocked_ReturnsFalse()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var lockedUser = new User() { Username = "Bob", EmailAddress = "confirmed@example.com", IsLocked = true };
+
+                // Act
+                var result = Invoke(service, lockedUser, out var errorReason);
+
+                // Assert
+                Assert.False(result);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    ServicesStrings.TransformAccount_AccountIsLocked, lockedUser.Username));
             }
 
             [Fact]
@@ -1908,6 +1944,26 @@ namespace NuGetGallery
             private TestableUserService _service = new TestableUserService();
 
             public static IEnumerable<object[]> ConfirmEmailAddresses_Config => MemberDataHelper.AsDataSet(false, true);
+
+            [Theory]
+            [MemberData(nameof(ConfirmEmailAddresses_Config))]
+            public async Task WithLockedAdmin_ThrowsEntityException(bool confirmEmailAddresses)
+            {
+                SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
+                var admin = new User(AdminName) { Credentials = new Credential[0], IsLocked = true };
+
+                _service.MockEntitiesContext
+                    .Setup(x => x.Users)
+                    .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(admin: admin));
+                Assert.Equal(ServicesStrings.AccountIsLocked, exception.Message);
+
+                _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
+                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
+                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
+                Assert.False(_service.Auditing.WroteRecord<UserAuditRecord>());
+            }
 
             [Theory]
             [MemberData(nameof(ConfirmEmailAddresses_Config))]

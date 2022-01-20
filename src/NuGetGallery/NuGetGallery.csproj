@@ -137,6 +137,7 @@
     <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
     <Compile Include="Areas\Admin\Controllers\FeaturesController.cs" />
+    <Compile Include="Areas\Admin\Controllers\LockUserController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
@@ -187,6 +188,9 @@
     <Compile Include="Areas\Admin\ViewModels\IFeatureFlagsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\IModifyFeatureFlagsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\LockState.cs" />
+    <Compile Include="Areas\Admin\ViewModels\LockUserViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\LockViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ApiKeyRevokeViewModel.cs" />
@@ -310,6 +314,10 @@
     <Compile Include="Migrations\202104062157118_AddVersionSpecificId.cs" />
     <Compile Include="Migrations\202104062157118_AddVersionSpecificId.designer.cs">
       <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202201200534282_AddLockedUser.cs" />
+    <Compile Include="Migrations\202201200534282_AddLockedUser.designer.cs">
+      <DependentUpon>202201200534282_AddLockedUser.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1649,6 +1657,9 @@
     <EmbeddedResource Include="Migrations\202104062157118_AddVersionSpecificId.resx">
       <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202201200534282_AddLockedUser.resx">
+      <DependentUpon>202201200534282_AddLockedUser.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1662,7 +1673,7 @@
     <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
-    <Content Include="Areas\Admin\Views\LockPackage\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Shared\LockIndex.cshtml" />
     <Content Include="App_Data\Files\Content\Login-Discontinuation-Configuration.json" />
     <Content Include="Areas\Admin\Views\DeleteAccount\_DeleteUserAccountForm.cshtml" />
     <Content Include="App_Data\Files\Content\Certificates-Configuration.json" />
@@ -2062,7 +2073,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
-    <Folder Include="Areas\Admin\Views\Shared\" />
     <Folder Include="Authentication\Providers\" />
     <Folder Include="Infrastructure\Authentication\" />
     <Folder Include="Security\" />

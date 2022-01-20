@@ -26,7 +26,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var model = new LockPackageViewModel();
 
-            return View(model);
+            return View("LockIndex", model);
         }
 
         [HttpGet]
@@ -35,25 +35,30 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var lines = Helpers.ParseQueryToLines(query);
             var packageRegistrations = GetPackageRegistrationsForIds(lines);
 
-            return View(nameof(Index), new LockPackageViewModel()
+            return View("LockIndex", new LockPackageViewModel
             {
                 Query = query,
-                PackageLockStates = packageRegistrations.Select(x => new PackageLockState() { Id = x.Id, IsLocked = x.IsLocked }).ToList()
+                LockStates = packageRegistrations
+                    .Select(x => new LockState { Identifier = x.Id, IsLocked = x.IsLocked })
+                    .ToList()
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Update(LockPackageViewModel lockPackageViewModel)
+        public async Task<ActionResult> Update(LockPackageViewModel viewModel)
         {
-            int counter = 0;
+            var counter = 0;
+            viewModel = viewModel ?? new LockPackageViewModel();
 
-            if (lockPackageViewModel != null && lockPackageViewModel.PackageLockStates != null)
+            if (viewModel.LockStates != null)
             {
-                var packageIdsFromRequest = lockPackageViewModel.PackageLockStates.Select(x => x.Id).ToList();
+                var packageIdsFromRequest = viewModel.LockStates.Select(x => x.Identifier).ToList();
                 var packageRegistrationsFromDb = GetPackageRegistrationsForIds(packageIdsFromRequest);
 
-                var packageStatesFromRequestDictionary = lockPackageViewModel.PackageLockStates.ToDictionary(x => x.Id);
+                var packageStatesFromRequestDictionary = viewModel
+                    .LockStates
+                    .ToDictionary(x => x.Identifier, StringComparer.OrdinalIgnoreCase);
 
                 foreach (var packageRegistration in packageRegistrationsFromDb)
                 {
@@ -75,7 +80,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             TempData["Message"] = string.Format(CultureInfo.InvariantCulture, $"Lock state was updated for {counter} packages.");
 
-            return View(nameof(Index), lockPackageViewModel);
+            return View("LockIndex", viewModel);
         }
 
         private IList<PackageRegistration> GetPackageRegistrationsForIds(IReadOnlyList<string> ids)
