@@ -319,7 +319,7 @@ namespace Stats.CollectAzureCdnLogs
             }
         }
 
-        private string GetParsedModifiedLogEntry(int lineNumber, string rawLogEntry, string fileName)
+        public string GetParsedModifiedLogEntry(int lineNumber, string rawLogEntry, string fileName)
         {
             var parsedEntry = CdnLogEntryParser.ParseLogEntryFromLine(
                 lineNumber,
@@ -361,7 +361,7 @@ namespace Stats.CollectAzureCdnLogs
                 .Append(spaceCharacter);
             // s-ip
             stringBuilder
-                .Append((parsedEntry.EdgeServerIpAddress ?? dashCharacter))
+                .Append(Escape(parsedEntry.EdgeServerIpAddress))
                 .Append(spaceCharacter);
             // s-port
             stringBuilder
@@ -369,7 +369,7 @@ namespace Stats.CollectAzureCdnLogs
                 .Append(spaceCharacter);
             // sc-status
             stringBuilder
-                .Append((parsedEntry.CacheStatusCode ?? dashCharacter))
+                .Append(Escape(parsedEntry.CacheStatusCode))
                 .Append(spaceCharacter);
             // sc-bytes
             stringBuilder
@@ -377,11 +377,11 @@ namespace Stats.CollectAzureCdnLogs
                 .Append(spaceCharacter);
             // cs-method
             stringBuilder
-                .Append((parsedEntry.HttpMethod ?? dashCharacter))
+                .Append(Escape(parsedEntry.HttpMethod))
                 .Append(spaceCharacter);
             // cs-uri-stem
             stringBuilder
-                .Append((parsedEntry.RequestUrl ?? dashCharacter))
+                .Append(Escape(parsedEntry.RequestUrl))
                 .Append(spaceCharacter);
 
             // -
@@ -399,19 +399,19 @@ namespace Stats.CollectAzureCdnLogs
                 .Append(spaceCharacter);
             // c-referrer
             stringBuilder
-                .Append((parsedEntry.Referrer ?? dashCharacter))
+                .Append(Escape(parsedEntry.Referrer))
                 .Append(spaceCharacter);
             // c-user-agent
             stringBuilder
-                .Append((parsedEntry.UserAgent ?? dashCharacter))
+                .Append(Escape(parsedEntry.UserAgent))
                 .Append(spaceCharacter);
             // customer-id
             stringBuilder
-                .Append((parsedEntry.CustomerId ?? dashCharacter))
+                .Append(Escape(parsedEntry.CustomerId))
                 .Append(spaceCharacter);
             // x-ec_custom-1
             stringBuilder
-                .AppendLine((parsedEntry.CustomField ?? dashCharacter));
+                .AppendLine(Escape(parsedEntry.CustomField));
 
             return stringBuilder.ToString();
         }
@@ -420,6 +420,16 @@ namespace Stats.CollectAzureCdnLogs
         {
             var secondsPastEpoch = (dateTime - _unixTimestamp).TotalSeconds;
             return secondsPastEpoch.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static string Escape(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return "-";
+            }
+
+            return value;
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
