@@ -125,5 +125,6 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsComputeTargetFrameworkEnabled() => throw new NotImplementedException();
 
         public bool IsRecentPackagesNoIndexEnabled() => throw new NotImplementedException();
+        public bool IsRecaptchaEnabledForUploads() => throw new NotImplementedException();
     }
 }

@@ -285,5 +285,10 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
+
+        public bool IsRecaptchaEnabledForUploads()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
