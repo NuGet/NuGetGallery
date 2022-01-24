@@ -70,7 +70,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     {
                         if (user.IsLocked != userStateRequest.IsLocked)
                         {
-                            user.UserStatusKey = UserStatus.Locked;
+                            user.UserStatusKey = userStateRequest.IsLocked ? UserStatus.Locked : UserStatus.Unlocked;
                             counter++;
                             await _auditingService.SaveAuditRecordAsync(new UserAuditRecord(
                                 user,
