@@ -670,7 +670,6 @@ img.reserved-indicator-icon {
 .readme-common tr:nth-child(even) {
   background-color: #f2f2f2;
 }
-.readme-common img,
 .readme-common img.img-fluid {
   max-width: 100%;
 }
