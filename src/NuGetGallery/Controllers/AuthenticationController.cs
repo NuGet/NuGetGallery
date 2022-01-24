@@ -496,7 +496,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             if (user.IsLocked)
             {
-                TempData["ErrorMessage"] = ServicesStrings.AccountIsLocked;
+                TempData["ErrorMessage"] = ServicesStrings.UserAccountIsLocked;
                 return SafeRedirect(returnUrl);
             }
 

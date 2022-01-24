@@ -15,6 +15,9 @@ namespace NuGetGallery.Areas.Admin.ViewModels
             IdentifersLabel = identifersLabel;
         }
 
+        /// <summary>
+        /// The name of the controller, without the "Controller" suffix.
+        /// </summary>
         public string ControllerName { get; set; }
 
         /// <summary>

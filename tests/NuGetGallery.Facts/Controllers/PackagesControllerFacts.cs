@@ -4528,7 +4528,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.IsType<RedirectResult>(result);
-                Assert.Equal(ServicesStrings.AccountIsLocked, controller.TempData["ErrorMessage"]);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, controller.TempData["ErrorMessage"]);
             }
 
             [Theory]
@@ -8742,7 +8742,7 @@ namespace NuGetGallery
 
                     // Assert
                     Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                    Assert.Equal(ServicesStrings.AccountIsLocked, (response.Data as JsonValidationMessage[])[0].PlainTextMessage);
+                    Assert.Equal(ServicesStrings.UserAccountIsLocked, (response.Data as JsonValidationMessage[])[0].PlainTextMessage);
                 }
             }
 

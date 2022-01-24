@@ -227,7 +227,7 @@ namespace NuGetGallery
 
             if (currentUser.IsLocked)
             {
-                model = new ManagePackageOwnerModel(ServicesStrings.AccountIsLocked);
+                model = new ManagePackageOwnerModel(ServicesStrings.UserAccountIsLocked);
                 return false;
             }
 

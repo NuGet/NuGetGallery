@@ -125,15 +125,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your user account is locked. Please contact support@nuget.org..
-        /// </summary>
-        public static string AccountIsLocked {
-            get {
-                return ResourceManager.GetString("AccountIsLocked", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account. Please contact support for assistance..
         /// </summary>
         public static string AccountSelfDelete_Fail {
@@ -2703,6 +2694,15 @@ namespace NuGetGallery {
         public static string UploadPackage_UploadInProgress {
             get {
                 return ResourceManager.GetString("UploadPackage_UploadInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your user account is locked. Please contact support@nuget.org..
+        /// </summary>
+        public static string UserAccountIsLocked {
+            get {
+                return ResourceManager.GetString("UserAccountIsLocked", resourceCulture);
             }
         }
         

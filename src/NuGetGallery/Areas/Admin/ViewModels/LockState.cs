@@ -5,6 +5,9 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 {
     public class LockState
     {
+        /// <summary>
+        /// This can be an identifying string for a lockable entity, e.g. package's ID or user's username.
+        /// </summary>
         public string Identifier { get; set; }
         public bool IsLocked { get; set; }
     }

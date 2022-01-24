@@ -396,7 +396,7 @@ namespace NuGetGallery.Controllers
 
                             // Assert
                             Assert.False(data.success);
-                            Assert.Equal(ServicesStrings.AccountIsLocked, data.message);
+                            Assert.Equal(ServicesStrings.UserAccountIsLocked, data.message);
                             GetMock<IPackageOwnershipManagementService>().VerifyNoOtherCalls();
                         }
 

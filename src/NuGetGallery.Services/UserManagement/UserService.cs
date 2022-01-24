@@ -586,7 +586,7 @@ namespace NuGetGallery
 
             if (adminUser.IsLocked)
             {
-                throw new EntityException(ServicesStrings.AccountIsLocked);
+                throw new EntityException(ServicesStrings.UserAccountIsLocked);
             }
 
             var organization = new Organization(username)

@@ -808,7 +808,7 @@ namespace NuGetGallery
 
             if (user.IsLocked && enableMultiFactor == false)
             {
-                TempData["ErrorMessage"] = ServicesStrings.AccountIsLocked;
+                TempData["ErrorMessage"] = ServicesStrings.UserAccountIsLocked;
                 return RedirectToAction(AccountAction);
             }
 
@@ -905,7 +905,7 @@ namespace NuGetGallery
             if (user.IsLocked)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(ServicesStrings.AccountIsLocked);
+                return Json(ServicesStrings.UserAccountIsLocked);
             }
 
             var cred = user.Credentials.SingleOrDefault(
@@ -966,7 +966,7 @@ namespace NuGetGallery
             if (currentUser.IsLocked)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(ServicesStrings.AccountIsLocked);
+                return Json(ServicesStrings.UserAccountIsLocked);
             }
 
             // Get the owner scope

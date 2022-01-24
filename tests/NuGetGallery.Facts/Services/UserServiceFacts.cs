@@ -1957,7 +1957,7 @@ namespace NuGetGallery
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(admin: admin));
-                Assert.Equal(ServicesStrings.AccountIsLocked, exception.Message);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
                 _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());

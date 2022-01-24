@@ -1251,7 +1251,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.Equal(ServicesStrings.AccountIsLocked, controller.TempData["ErrorMessage"]);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, controller.TempData["ErrorMessage"]);
             }
 
             [Fact]

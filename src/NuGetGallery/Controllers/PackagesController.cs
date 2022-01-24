@@ -2175,7 +2175,7 @@ namespace NuGetGallery
 
             if (currentUser.IsLocked)
             {
-                TempData["ErrorMessage"] = ServicesStrings.AccountIsLocked;
+                TempData["ErrorMessage"] = ServicesStrings.UserAccountIsLocked;
                 return Redirect(Url.ManagePackage(new TrivialPackageVersionModel(package)));
             }
 
@@ -2424,7 +2424,7 @@ namespace NuGetGallery
 
                 if (currentUser.IsLocked)
                 {
-                    var message = new JsonValidationMessage(ServicesStrings.AccountIsLocked);
+                    var message = new JsonValidationMessage(ServicesStrings.UserAccountIsLocked);
                     return Json(HttpStatusCode.BadRequest, new[] { message });
                 }
 

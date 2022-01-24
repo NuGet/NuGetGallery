@@ -645,7 +645,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.Equal(ServicesStrings.AccountIsLocked, (string)result.Data);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, (string)result.Data);
             }
 
             public static IEnumerable<object[]> WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data
@@ -1596,7 +1596,7 @@ namespace NuGetGallery
                 if (fail)
                 {
                     ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                    Assert.Equal(ServicesStrings.AccountIsLocked, controller.TempData["ErrorMessage"]);
+                    Assert.Equal(ServicesStrings.UserAccountIsLocked, controller.TempData["ErrorMessage"]);
                 }
                 else
                 {
@@ -1963,7 +1963,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.Equal(ServicesStrings.AccountIsLocked, (string)result.Data);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, (string)result.Data);
 
                 Assert.Equal(1, user.Credentials.Count);
                 Assert.True(user.Credentials.Contains(cred));
