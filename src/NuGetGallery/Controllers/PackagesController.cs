@@ -325,7 +325,10 @@ namespace NuGetGallery
             var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             verifyRequest.IsSymbolsPackage = true;
             verifyRequest.HasExistingAvailableSymbols = packageForUploadingSymbols.IsLatestSymbolPackageAvailable();
-            verifyRequest.RecaptchaEnabled = false; // No need for recaptcha for symbols packages
+
+            // No need for recaptcha for symbols packages
+            verifyRequest.RecaptchaEnabled = false;
+            TempData[GalleryConstants.RecaptchaEnabled] = "false";
 
             model.InProgressUpload = verifyRequest;
 
@@ -374,6 +377,7 @@ namespace NuGetGallery
             verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
             verifyRequest.ReadmeFileContents = await GetReadmeFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
             verifyRequest.RecaptchaEnabled = _featureFlagService.IsRecaptchaEnabledForUploads();
+            TempData[GalleryConstants.RecaptchaEnabled] = verifyRequest.RecaptchaEnabled ? "true" : "false";
 
             model.InProgressUpload = verifyRequest;
             return View(model);

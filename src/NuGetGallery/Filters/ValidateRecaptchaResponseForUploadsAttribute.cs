@@ -9,13 +9,10 @@ namespace NuGetGallery.Filters
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class ValidateRecaptchaResponseForUploadsAttribute : ValidateRecaptchaResponseAttribute
     {
-        private const string RecaptchaEnabled = "recaptcha-enabled";
-
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            var controller = filterContext.Controller as AppController;
-            var recaptchaEnabled = controller.HttpContext.Request.Form[RecaptchaEnabled];
-            if (recaptchaEnabled == "true")
+            var recaptchaEnabledData = filterContext.Controller?.TempData?[GalleryConstants.RecaptchaEnabled] ?? string.Empty;
+            if (recaptchaEnabledData is string recaptchaEnabled && recaptchaEnabled == "true")
             {
                 base.OnActionExecuting(filterContext);
             }
