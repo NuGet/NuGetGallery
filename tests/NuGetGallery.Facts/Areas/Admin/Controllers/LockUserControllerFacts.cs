@@ -52,7 +52,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             Assert.Equal(2, viewResult.LockStates.Count(x => x.IsLocked));
             Assert.True(viewResult.LockStates.First(x => x.Identifier == "Username1").IsLocked);
-            Assert.True(viewResult.LockStates.First(x => x.Identifier == "Username1").IsLocked);
+            Assert.True(viewResult.LockStates.First(x => x.Identifier == "Username5").IsLocked);
         }
     }
 }
