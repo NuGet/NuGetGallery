@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.4.0-preview3-19553-01")]
-    public sealed partial class AddLockedUser : IMigrationMetadata
+    public sealed partial class AddUserStatusKeyColumn : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddLockedUser));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddUserStatusKeyColumn));
         
         string IMigrationMetadata.Id
         {
-            get { return "202201200534282_AddLockedUser"; }
+            get { return "202201242159337_AddUserStatusKeyColumn"; }
         }
         
         string IMigrationMetadata.Source

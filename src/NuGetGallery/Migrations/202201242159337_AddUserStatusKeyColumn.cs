@@ -3,16 +3,16 @@
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class AddLockedUser : DbMigration
+    public partial class AddUserStatusKeyColumn : DbMigration
     {
         public override void Up()
         {
-            AddColumn("dbo.Users", "IsLocked", c => c.Boolean(nullable: false));
+            AddColumn("dbo.Users", "UserStatusKey", c => c.Int(nullable: false));
         }
         
         public override void Down()
         {
-            DropColumn("dbo.Users", "IsLocked");
+            DropColumn("dbo.Users", "UserStatusKey");
         }
     }
 }

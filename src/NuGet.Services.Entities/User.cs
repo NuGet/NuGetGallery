@@ -120,7 +120,9 @@ namespace NuGet.Services.Entities
 
         public int FailedLoginCount { get; set; }
 
-        public bool IsLocked { get; set; }
+        public UserStatus UserStatusKey { get; set; }
+
+        public bool IsLocked => UserStatusKey == UserStatus.Locked;
 
         public string LastSavedEmailAddress
         {

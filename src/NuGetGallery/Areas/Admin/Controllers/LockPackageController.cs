@@ -9,16 +9,21 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class LockPackageController : AdminControllerBase
     {
-        private IEntityRepository<PackageRegistration> _packageRegistrationRepository;
+        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
+        private readonly IAuditingService _auditingService;
 
-        public LockPackageController(IEntityRepository<PackageRegistration> packageRegistrationRepository)
+        public LockPackageController(
+            IEntityRepository<PackageRegistration> packageRegistrationRepository,
+            IAuditingService auditingService)
         {
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         [HttpGet]
@@ -68,6 +73,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         {
                             packageRegistration.IsLocked = packageStateRequest.IsLocked;
                             counter++;
+                            await _auditingService.SaveAuditRecordAsync(new PackageRegistrationAuditRecord(
+                                packageRegistration,
+                                packageStateRequest.IsLocked ? AuditedPackageRegistrationAction.Lock : AuditedPackageRegistrationAction.Unlock,
+                                owner: null));
                         }
                     }
                 }

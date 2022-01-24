@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Auditing;
 using Xunit;
 
 namespace NuGetGallery.Areas.Admin.Controllers
@@ -21,21 +22,22 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 new User
                 {
                     Username = "Username" + i,
-                    IsLocked = false,
+                    UserStatusKey = UserStatus.Unlocked,
                     Key = i
                 }).ToList();
 
             var usersRepository = new Mock<IEntityRepository<User>>();
             usersRepository.Setup(x => x.GetAll()).Returns(usersInDb.AsQueryable());
+            var auditingService = new Mock<IAuditingService>();
 
-            var controller = new LockUserController(usersRepository.Object);
+            var controller = new LockUserController(usersRepository.Object, auditingService.Object);
 
             var viewModel = new LockUserViewModel
             {
                 LockStates = new List<LockState>
                 {
                     new LockState() { Identifier = "Username1", IsLocked = true },
-                    new LockState() { Identifier = "Username5", IsLocked = true }
+                    new LockState() { Identifier = "Username5", IsLocked = true },
                 }
             };
 
@@ -54,6 +56,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Assert.Equal(2, viewResult.LockStates.Count(x => x.IsLocked));
             Assert.True(viewResult.LockStates.First(x => x.Identifier == "Username1").IsLocked);
             Assert.True(viewResult.LockStates.First(x => x.Identifier == "Username5").IsLocked);
+            auditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Exactly(2));
+            auditingService.Verify(s => s.SaveAuditRecordAsync(It.Is<UserAuditRecord>(x => x.Action == AuditedUserAction.Lock)), Times.Exactly(2));
         }
 
         [Fact]
@@ -64,21 +68,22 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 new User
                 {
                     Username = "Username" + i,
-                    IsLocked = true,
+                    UserStatusKey = UserStatus.Locked,
                     Key = i
                 }).ToList();
 
             var usersRepository = new Mock<IEntityRepository<User>>();
             usersRepository.Setup(x => x.GetAll()).Returns(usersInDb.AsQueryable());
+            var auditingService = new Mock<IAuditingService>();
 
-            var controller = new LockUserController(usersRepository.Object);
+            var controller = new LockUserController(usersRepository.Object, auditingService.Object);
 
             var viewModel = new LockUserViewModel
             {
                 LockStates = new List<LockState>
                 {
                     new LockState() { Identifier = "Username1", IsLocked = false },
-                    new LockState() { Identifier = "Username5", IsLocked = false }
+                    new LockState() { Identifier = "Username5", IsLocked = false },
                 }
             };
 
@@ -97,6 +102,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Assert.Equal(2, viewResult.LockStates.Count(x => !x.IsLocked));
             Assert.False(viewResult.LockStates.First(x => x.Identifier == "Username1").IsLocked);
             Assert.False(viewResult.LockStates.First(x => x.Identifier == "Username5").IsLocked);
+            auditingService.Verify(s => s.SaveAuditRecordAsync(It.Is<UserAuditRecord>(x => x.Action == AuditedUserAction.Unlock)), Times.Exactly(2));
         }
     }
 }

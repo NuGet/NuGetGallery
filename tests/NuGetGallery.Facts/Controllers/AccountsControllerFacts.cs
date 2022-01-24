@@ -819,7 +819,7 @@ namespace NuGetGallery
 
                 var fakes = Get<Fakes>();
                 var testUser = CreateUser(fakes, username);
-                testUser.IsLocked = true;
+                testUser.UserStatusKey = UserStatus.Locked;
 
                 GetMock<IUserService>()
                     .Setup(stub => stub.FindByUsername(username, false))

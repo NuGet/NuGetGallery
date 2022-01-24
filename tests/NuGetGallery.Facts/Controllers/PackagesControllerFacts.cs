@@ -4503,7 +4503,7 @@ namespace NuGetGallery
             public async Task ReturnsErrorIfUserIsLocked(bool listed)
             {
                 // Arrange
-                var owner = new User { IsLocked = true };
+                var owner = new User { UserStatusKey = UserStatus.Locked };
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = "Foo" },
@@ -8717,7 +8717,7 @@ namespace NuGetGallery
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 using (var fakeFileStream = new MemoryStream())
                 {
-                    var currentUser = new User { Key = 23, Username = "Bob", EmailAddress = "bob@example.com", IsLocked = true };
+                    var currentUser = new User { Key = 23, Username = "Bob", EmailAddress = "bob@example.com", UserStatusKey = UserStatus.Locked };
                     fakeUploadFileService.Setup(x => x.GetUploadFileAsync(currentUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
                     fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.CompletedTask);
                     var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
@@ -8754,7 +8754,7 @@ namespace NuGetGallery
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 using (var fakeFileStream = new MemoryStream())
                 {
-                    var owner = new User { Key = 23, Username = "Bob", EmailAddress = "bob@example.com", IsLocked = true };
+                    var owner = new User { Key = 23, Username = "Bob", EmailAddress = "bob@example.com", UserStatusKey = UserStatus.Locked };
                     var currentUser = TestUtility.FakeUser;
                     fakeUploadFileService.Setup(x => x.GetUploadFileAsync(currentUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
                     fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.CompletedTask);

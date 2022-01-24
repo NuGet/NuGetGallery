@@ -1243,7 +1243,7 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var controller = GetController<AuthenticationController>();
-                var user = new User { Username = "Bob", EmailAddress = "bob@example.com", IsLocked = true };
+                var user = new User { Username = "Bob", EmailAddress = "bob@example.com", UserStatusKey = UserStatus.Locked };
                 controller.SetCurrentUser(user);
 
                 // Act

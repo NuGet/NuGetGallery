@@ -1174,7 +1174,7 @@ namespace NuGetGallery
             [Fact]
             public async Task BlocksLockedUser()
             {
-                var user = new User { Username = "Bob", EmailAddress = "old@example.org", IsLocked = true };
+                var user = new User { Username = "Bob", EmailAddress = "old@example.org", UserStatusKey = UserStatus.Locked };
                 var service = new TestableUserServiceWithDBFaking
                 {
                     Users = new[] { user }
@@ -1484,7 +1484,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var service = new TestableUserService();
-                var lockedUser = new User() { Username = "Bob", EmailAddress = "confirmed@example.com", IsLocked = true };
+                var lockedUser = new User { Username = "Bob", EmailAddress = "confirmed@example.com", UserStatusKey = UserStatus.Locked };
 
                 // Act
                 var result = Invoke(service, lockedUser, out var errorReason);
@@ -1950,7 +1950,7 @@ namespace NuGetGallery
             public async Task WithLockedAdmin_ThrowsEntityException(bool confirmEmailAddresses)
             {
                 SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
-                var admin = new User(AdminName) { Credentials = new Credential[0], IsLocked = true };
+                var admin = new User(AdminName) { Credentials = new Credential[0], UserStatusKey = UserStatus.Locked };
 
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)

@@ -9,16 +9,21 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class LockUserController : AdminControllerBase
     {
-        private IEntityRepository<User> _userRepository;
+        private readonly IEntityRepository<User> _userRepository;
+        private readonly IAuditingService _auditingService;
 
-        public LockUserController(IEntityRepository<User> userRepository)
+        public LockUserController(
+            IEntityRepository<User> userRepository,
+            IAuditingService auditingService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         [HttpGet]
@@ -65,8 +70,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     {
                         if (user.IsLocked != userStateRequest.IsLocked)
                         {
-                            user.IsLocked = userStateRequest.IsLocked;
+                            user.UserStatusKey = UserStatus.Locked;
                             counter++;
+                            await _auditingService.SaveAuditRecordAsync(new UserAuditRecord(
+                                user,
+                                userStateRequest.IsLocked ? AuditedUserAction.Lock : AuditedUserAction.Unlock));
                         }
                     }
                 }

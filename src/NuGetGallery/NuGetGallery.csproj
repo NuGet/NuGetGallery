@@ -315,9 +315,9 @@
     <Compile Include="Migrations\202104062157118_AddVersionSpecificId.designer.cs">
       <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202201200534282_AddLockedUser.cs" />
-    <Compile Include="Migrations\202201200534282_AddLockedUser.designer.cs">
-      <DependentUpon>202201200534282_AddLockedUser.cs</DependentUpon>
+    <Compile Include="Migrations\202201242159337_AddUserStatusKeyColumn.cs" />
+    <Compile Include="Migrations\202201242159337_AddUserStatusKeyColumn.designer.cs">
+      <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1657,8 +1657,8 @@
     <EmbeddedResource Include="Migrations\202104062157118_AddVersionSpecificId.resx">
       <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202201200534282_AddLockedUser.resx">
-      <DependentUpon>202201200534282_AddLockedUser.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202201242159337_AddUserStatusKeyColumn.resx">
+      <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

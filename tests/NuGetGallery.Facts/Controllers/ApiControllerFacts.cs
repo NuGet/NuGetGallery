@@ -594,7 +594,7 @@ namespace NuGetGallery
             public async Task CreatePackage_Returns403IfUserIsLocked()
             {
                 // Arrange
-                var user = new User { EmailAddress = "confirmed@email.com", IsLocked = true };
+                var user = new User { EmailAddress = "confirmed@email.com", UserStatusKey = UserStatus.Locked };
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Id = "theId";
                 packageRegistration.Owners.Add(user);

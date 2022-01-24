@@ -632,7 +632,7 @@ namespace NuGetGallery
             public async Task WhenUserIsLockedReturnsError()
             {
                 // Arrange 
-                var user = new User { Username = "the-username", IsLocked = true };
+                var user = new User { Username = "the-username", UserStatusKey = UserStatus.Locked };
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -1577,7 +1577,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("user1");
-                user.IsLocked = true;
+                user.UserStatusKey = UserStatus.Locked;
                 user.EnableMultiFactorAuthentication = !enable2FA;
 
                 var controller = GetController<UsersController>();
@@ -1950,7 +1950,7 @@ namespace NuGetGallery
 
                 var user = fakes.CreateUser("test",
                     new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey));
-                user.IsLocked = true;
+                user.UserStatusKey = UserStatus.Locked;
                 var cred = user.Credentials.First();
 
                 var controller = GetController<UsersController>();

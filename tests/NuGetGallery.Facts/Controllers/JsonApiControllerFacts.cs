@@ -378,7 +378,7 @@ namespace NuGetGallery.Controllers
                             // Arrange
                             var fakes = Get<Fakes>();
                             var currentUser = fakes.User;
-                            currentUser.IsLocked = true;
+                            currentUser.UserStatusKey = UserStatus.Locked;
                             var usernameToAdd = fakes.Owner.Username;
                             var package = fakes.Package;
                             var controller = GetController<JsonApiController>();
@@ -406,7 +406,7 @@ namespace NuGetGallery.Controllers
                             // Arrange
                             var fakes = Get<Fakes>();
                             var userToAdd = fakes.User;
-                            userToAdd.IsLocked = true;
+                            userToAdd.UserStatusKey = UserStatus.Locked;
                             var package = fakes.Package;
                             var controller = GetController<JsonApiController>();
                             controller.SetCurrentUser(fakes.Owner);
