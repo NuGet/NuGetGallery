@@ -249,6 +249,7 @@ namespace NuGetGallery
                     string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_OwnerNotConfirmed, username));
                 return false;
             }
+
             if (user.IsLocked)
             {
                 model = new ManagePackageOwnerModel(
