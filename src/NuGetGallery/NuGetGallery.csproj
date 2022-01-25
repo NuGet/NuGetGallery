@@ -220,6 +220,7 @@
     <Compile Include="Extensions\CakeBuildManagerExtensions.cs" />
     <Compile Include="Extensions\ImageExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
+    <Compile Include="Filters\ValidateRecaptchaResponseForUploadsAttribute.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
     <Compile Include="Helpers\ValidationHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />

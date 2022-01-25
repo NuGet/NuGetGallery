@@ -326,6 +326,7 @@ namespace NuGetGallery
             var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             verifyRequest.IsSymbolsPackage = true;
             verifyRequest.HasExistingAvailableSymbols = packageForUploadingSymbols.IsLatestSymbolPackageAvailable();
+            verifyRequest.RecaptchaEnabled = false; // No need for recaptcha for symbols packages
 
             model.InProgressUpload = verifyRequest;
 
@@ -373,6 +374,7 @@ namespace NuGetGallery
             verifyRequest.LicenseFileContents = await GetLicenseFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
             verifyRequest.LicenseExpressionSegments = GetLicenseExpressionSegmentsOrNull(packageMetadata.LicenseMetadata);
             verifyRequest.ReadmeFileContents = await GetReadmeFileContentsOrNullAsync(packageMetadata, packageArchiveReader);
+            verifyRequest.RecaptchaEnabled = _featureFlagService.IsRecaptchaEnabledForUploads();
 
             model.InProgressUpload = verifyRequest;
             return View(model);
@@ -2405,6 +2407,7 @@ namespace NuGetGallery
             return Redirect(Url.ManagePackageOwnership(id));
         }
 
+        /// Note that for Recaptcha filtering we attach ValidateRecaptchaResponseForUploadsAttribute directly here: <see cref="DefaultDependenciesModule.RegisterCustomMvcFilters" />.
         [UIAuthorize]
         [HttpPost]
         [RequiresAccountConfirmation("upload a package")]

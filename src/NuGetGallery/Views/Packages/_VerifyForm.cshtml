@@ -42,14 +42,34 @@
 
     <div id="submit-package-container">
     </div>
-    <script type="text/html" id="submit-package-template">
-        <div class="form-group btn-toolbar row" id="submit-package-form">
-            <div class="col-xs-6">
-                <input type="button" class="btn btn-primary btn-block" value="Submit" id="verify-submit-button" />
+    @if(Model != null && Model.InProgressUpload != null && Model.InProgressUpload.RecaptchaEnabled)
+    {
+        <script type="text/javascript">RecaptchaEnabled = true;</script>
+        <script type="text/html" id="submit-package-template">
+            <div class="form-group btn-toolbar row" id="submit-package-form">
+                <div class="col-xs-6">
+                    <div id="recaptcha" class="g-recaptcha" data-sitekey="@Config.Current.ReCaptchaPublicKey" data-size="invisible"
+                         data-callback="OnVerifySubmit" data-tabindex="-1"></div>
+                    <input type="button" class="btn btn-primary btn-block" value="Submit" id="verify-submit-button" />
+                </div>
+                <div class="col-xs-6">
+                    <input type="button" class="btn btn-default btn-block" value="Cancel" id="verify-cancel-button" />
+                </div>
             </div>
-            <div class="col-xs-6">
-                <input type="button" class="btn btn-default btn-block" value="Cancel" id="verify-cancel-button" />
+        </script>
+    }
+    else
+    {
+        <script type="text/javascript">RecaptchaEnabled = false;</script>
+        <script type="text/html" id="submit-package-template">
+            <div class="form-group btn-toolbar row" id="submit-package-form">
+                <div class="col-xs-6">
+                    <input type="button" class="btn btn-primary btn-block" value="Submit" id="verify-submit-button" />
+                </div>
+                <div class="col-xs-6">
+                    <input type="button" class="btn btn-default btn-block" value="Cancel" id="verify-cancel-button" />
+                </div>
             </div>
-        </div>
-    </script>
+        </script>
+    }
 </form>
