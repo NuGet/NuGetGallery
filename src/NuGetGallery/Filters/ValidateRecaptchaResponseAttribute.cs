@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 namespace NuGetGallery.Filters
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
-    public class ValidateRecaptchaResponseAttribute : ActionFilterAttribute
+    public sealed class ValidateRecaptchaResponseAttribute : ActionFilterAttribute
     {
         private const string RecaptchaResponseId = "g-recaptcha-response";
         private const string RecaptchaValidationUrl = "https://www.google.com/recaptcha/api/siteverify?secret={0}&response={1}";

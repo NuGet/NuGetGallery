@@ -301,10 +301,5 @@ namespace NuGetGallery
         /// Whether or not recent packages has no index applied to block search engine indexing.
         /// </summary>
         bool IsRecentPackagesNoIndexEnabled();
-
-        /// <summary>
-        /// Whether or not we have reCAPTCHA enabled for package uploads
-        /// </summary>
-        bool IsRecaptchaEnabledForUploads();
     }
 }

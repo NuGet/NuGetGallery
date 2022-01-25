@@ -284,10 +284,5 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
-
-        public bool IsRecaptchaEnabledForUploads()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

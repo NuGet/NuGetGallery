@@ -20,7 +20,6 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
-using Autofac.Integration.Mvc;
 using Elmah;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
@@ -48,8 +47,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
-using NuGetGallery.Filters;
 using NuGetGallery.Frameworks;
+using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
@@ -510,8 +509,6 @@ namespace NuGetGallery
 
             RegisterCookieComplianceService(configuration, loggerFactory);
 
-            RegisterCustomMvcFilters(builder, configuration);
-
             builder.RegisterType<CookieExpirationService>()
                 .As<ICookieExpirationService>()
                 .SingleInstance();
@@ -861,17 +858,6 @@ namespace NuGetGallery
                 .RegisterType<FeatureFlagService>()
                 .As<IFeatureFlagService>()
                 .SingleInstance();
-        }
-
-        private static void RegisterCustomMvcFilters(ContainerBuilder builder, ConfigurationService configuration)
-        {
-#pragma warning disable CS4014 // VerifyPackage is not awaited because this is attachment, not execution
-            builder
-                .Register(context => new ValidateRecaptchaResponseForUploadsAttribute(context.Resolve<IFeatureFlagService>()))
-                .AsActionFilterFor<PackagesController>(controller => controller.VerifyPackage(default(VerifyPackageRequest)));
-#pragma warning restore CS4014 // VerifyPackage is not awaited because this is attachment, not execution
-
-            builder.RegisterFilterProvider();
         }
 
         private static void RegisterMessagingService(ContainerBuilder builder, ConfigurationService configuration)
