@@ -31,8 +31,7 @@
     "NuGetGallery.MarkdigMdRendering": "Enabled",
     "NuGetGallery.ImageAllowlist": "Enabled",
     "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
-    "NuGetGallery.ComputeTargetFramework": "Enabled",
-    "NuGetGallery.RecaptchaForUploads": "Disabled"
+    "NuGetGallery.ComputeTargetFramework": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

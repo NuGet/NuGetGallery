@@ -118,7 +118,6 @@ namespace NuGetGallery
         public string Title { get; set; }
         public bool IsSymbolsPackage { get; set; }
         public bool HasExistingAvailableSymbols { get; set; }
-        public bool RecaptchaEnabled { get; set; }
 
         public List<JsonValidationMessage> Warnings { get; set; } = new List<JsonValidationMessage>();
 

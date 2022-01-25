@@ -1,7 +1,4 @@
-﻿var OnVerifySubmit; // used as a callback for reCAPTCHA
-var RecaptchaEnabled;
-
-var AsyncFileUploadManager = (function () {
+﻿var AsyncFileUploadManager = (function () {
     'use strict';
 
     return new function () {
@@ -291,30 +288,12 @@ var AsyncFileUploadManager = (function () {
                     $('#symbols-replace-warning-container').addClass('hidden');
                 }
 
-                if (RecaptchaEnabled)
-                {
-                    // ensure the reCAPTCHA client is loaded
-                    grecaptcha.ready(function() {
-                        grecaptcha.render("recaptcha", {});
-                    });
-                }
-
                 $('#verify-submit-button').on('click', function () {
                     $('#verify-cancel-button').attr('disabled', 'disabled');
                     $('#verify-submit-button').attr('disabled', 'disabled');
                     $('#verify-submit-button').attr('value', 'Submitting');
                     $('#verify-submit-button').addClass('.loading');
-                    if (RecaptchaEnabled)
-                    {
-                        // We'll let the reCAPTCHA client call submitVerifyAsync via OnVerifySubmit
-                        OnVerifySubmit = submitVerifyAsync.bind(this, navigateToPage, bindData.bind(this.model));
-                        grecaptcha.execute();
-                    }
-                    else
-                    {
-                        // non-reCAPTCHA flow -- call submit event handler directly
-                        submitVerifyAsync(navigateToPage, bindData.bind(this, model));
-                    }
+                    submitVerifyAsync(navigateToPage, bindData.bind(this, model));
                 });
 
                 $('#iconurl-field').on('change', function () {
