@@ -9,10 +9,13 @@ namespace NuGetGallery.Filters
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class ValidateRecaptchaResponseForUploadsAttribute : ValidateRecaptchaResponseAttribute
     {
+        private readonly IFeatureFlagService _featureFlagService;
+
+        public ValidateRecaptchaResponseForUploadsAttribute(IFeatureFlagService featureFlagService) => _featureFlagService = featureFlagService;
+
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            var recaptchaEnabledData = filterContext.Controller?.TempData?[GalleryConstants.RecaptchaEnabled] ?? string.Empty;
-            if (recaptchaEnabledData is string recaptchaEnabled && recaptchaEnabled == "true")
+            if (_featureFlagService.IsRecaptchaEnabledForUploads())
             {
                 base.OnActionExecuting(filterContext);
             }
