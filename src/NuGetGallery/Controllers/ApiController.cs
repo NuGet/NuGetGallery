@@ -1199,8 +1199,19 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_OwnerlessIdNamespaceConflict);
             }
 
-            var message = result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed ?
-                Strings.ApiKeyOwnerUnconfirmed : Strings.ApiKeyNotAuthorized;
+            string message;
+            if (result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed)
+            {
+                message = Strings.ApiKeyOwnerUnconfirmed;
+            }
+            else if (result.PermissionsCheckResult == PermissionsCheckResult.Allowed && result.IsOwnerLocked)
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyOwnerLocked);
+            }
+            else
+            {
+                message = Strings.ApiKeyNotAuthorized;
+            }
 
             return new HttpStatusCodeWithBodyResult(statusCodeOnFailure, message);
         }

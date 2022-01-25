@@ -379,6 +379,20 @@ namespace NuGetGallery
             }
         }
 
+        public class TheDeleteAccountPostAction : TheDeleteAccountPostBaseAction
+        {
+            protected override Organization CreateUser(Fakes fakes, string username)
+            {
+                var org = fakes.Organization;
+                org.Username = username;
+                return org;
+            }
+        }
+
+        public class TheDeleteAccountAction : TheDeleteAccountBaseAction
+        {
+        }
+
         public class TheConfirmAction : TheConfirmBaseAction
         {
             public static IEnumerable<object[]> AllowedCurrentUsers_Data

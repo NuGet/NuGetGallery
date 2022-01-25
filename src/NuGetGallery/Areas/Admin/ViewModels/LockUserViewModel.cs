@@ -3,9 +3,9 @@
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class LockPackageViewModel : LockViewModel
+    public class LockUserViewModel : LockViewModel
     {
-        public LockPackageViewModel() : base("LockPackage", "Packages", "IDs")
+        public LockUserViewModel() : base("LockUser", "Users", "Usernames")
         {
         }
     }

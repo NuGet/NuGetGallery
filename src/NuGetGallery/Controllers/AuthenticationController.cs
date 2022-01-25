@@ -494,6 +494,12 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl)
         {
             var user = GetCurrentUser();
+            if (user.IsLocked)
+            {
+                TempData["ErrorMessage"] = ServicesStrings.UserAccountIsLocked;
+                return SafeRedirect(returnUrl);
+            }
+
             var result = await _authService.ReadExternalLoginCredential(OwinContext);
             if (result?.Credential == null)
             {
