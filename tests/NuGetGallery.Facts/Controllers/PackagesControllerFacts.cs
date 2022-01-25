@@ -6392,6 +6392,23 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillConsiderUserLockedStatus()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(null));
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    uploadFileService: fakeUploadFileService);
+                var user = new User { UserStatusKey = UserStatus.Locked };
+                controller.SetCurrentUser(user);
+
+                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+
+                Assert.NotNull(result);
+                Assert.True(result.IsUserLocked);
+            }
+
+            [Fact]
             public async Task WillSetTheErrorMessageInTempDataWhenValidationFails()
             {
                 var expectedMessage = "Bad, bad package!";
