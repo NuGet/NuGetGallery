@@ -16,60 +16,71 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.AjaxAntiForgeryToken(Html)
             @ViewHelpers.PackagesBreadcrumb(Url, CurrentUser, true, @<text>Upload</text>)
-            <div class="text-left">
-                <p class="message">Your package file will be uploaded and on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>
-                <p class="message">
-                    To learn more about authoring great packages, view our
-                    <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about publishing packages">Best Practices</a> page.
-                </p>
-            </div>
-            <div id="upload-package-container">
-                <h2>
-                    <a href="#" role="button" data-toggle="collapse" data-target="#upload-package-form"
-                       aria-expanded="true" aria-controls="upload-package-form" id="show-upload-package-form">
-                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                        <span>Upload</span>
-                    </a>
-                </h2>
-                <div class="collapse in" id="upload-package-form" aria-expanded="true">
-                    <form aria-hidden="true" id="cancel-form">
-                        @Html.AntiForgeryToken()
-                    </form>
-                    <form aria-label="Upload a package" id="uploadForm" enctype="multipart/form-data">
-                        @Html.AntiForgeryToken()
 
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="file-select-feedback" value="@placeholder" aria-label="Upload Your Package" readonly />
-                            <label for="input-select-file" id="PackageFileLabel" class="input-group-btn">
-                                <span id="browse-for-package-button" class="btn btn-primary form-control" tabindex="0" aria-label="Browse for package" role="button">
-                                    Browse&hellip;<input type="file" name="UploadFile" accept="@acceptExtensions" aria-labelledby="PackageFileLabel" id="input-select-file" style="display:none;" />
-                                </span>
-                            </label>
-                        </div>
-                    </form>
-
-                    <div id="upload-progress-bar-container" class="progress hidden">
-                        <div id="upload-progress-bar" class="progress-bar active" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-
-                    <div id="validation-failure-container" class="hidden">
-                    </div>
-                </div>
-            </div>
-
-            @if (Model != null && Model.IsUploadInProgress)
+            @if (Model.IsUserLocked)
             {
-                <div id="warning-container">
-                    @ViewHelpers.AlertInfo(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
-                </div>
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        @ServicesStrings.UserAccountIsLocked
+                    </text>)
             }
+            else
+            {
+                <div class="text-left">
+                    <p class="message">Your package file will be uploaded and on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>
+                    <p class="message">
+                        To learn more about authoring great packages, view our
+                        <a href="https://docs.microsoft.com/nuget/create-packages/package-authoring-best-practices" alt="Best Practices" aria-label="Read here about publishing packages">Best Practices</a> page.
+                    </p>
+                </div>
+                <div id="upload-package-container">
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#upload-package-form"
+                           aria-expanded="true" aria-controls="upload-package-form" id="show-upload-package-form">
+                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                            <span>Upload</span>
+                        </a>
+                    </h2>
+                    <div class="collapse in" id="upload-package-form" aria-expanded="true">
+                        <form aria-hidden="true" id="cancel-form">
+                            @Html.AntiForgeryToken()
+                        </form>
+                        <form aria-label="Upload a package" id="uploadForm" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
 
-            <div id="symbols-replace-warning-container" class="hidden">
-                @ViewHelpers.AlertWarning(@<text>There is an existing symbols package (.snupkg) for the below package ID and version.
-                    Submitting this request will replace the previously uploaded symbols package as well as the corresponding symbol files from the symbol server.</text>)
-            </div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="file-select-feedback" value="@placeholder" aria-label="Upload Your Package" readonly />
+                                <label for="input-select-file" id="PackageFileLabel" class="input-group-btn">
+                                    <span id="browse-for-package-button" class="btn btn-primary form-control" tabindex="0" aria-label="Browse for package" role="button">
+                                        Browse&hellip;<input type="file" name="UploadFile" accept="@acceptExtensions" aria-labelledby="PackageFileLabel" id="input-select-file" style="display:none;" />
+                                    </span>
+                                </label>
+                            </div>
+                        </form>
 
-            @Html.Partial("_VerifyForm", Model)
+                        <div id="upload-progress-bar-container" class="progress hidden">
+                            <div id="upload-progress-bar" class="progress-bar active" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+
+                        <div id="validation-failure-container" class="hidden">
+                        </div>
+                    </div>
+                </div>
+
+                if (Model != null && Model.IsUploadInProgress)
+                {
+                    <div id="warning-container">
+                        @ViewHelpers.AlertInfo(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
+                    </div>
+                }
+
+                <div id="symbols-replace-warning-container" class="hidden">
+                    @ViewHelpers.AlertWarning(@<text>There is an existing symbols package (.snupkg) for the below package ID and version.
+                        Submitting this request will replace the previously uploaded symbols package as well as the corresponding symbol files from the symbol server.</text>)
+                </div>
+
+                @Html.Partial("_VerifyForm", Model)
+            }
         </div>
     </div>
 </section>

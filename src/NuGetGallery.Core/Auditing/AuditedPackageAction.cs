@@ -19,6 +19,6 @@ namespace NuGetGallery.Auditing
         SymbolsCreate,
         SymbolsDelete,
         Deprecate,
-        Undeprecate
+        Undeprecate,
     }
 }

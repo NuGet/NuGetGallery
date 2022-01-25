@@ -505,6 +505,18 @@ namespace NuGetGallery
             }
         }
 
+        public class TheDeleteAccountPostAction : TheDeleteAccountPostBaseAction
+        {
+            protected override User CreateUser(Fakes fakes, string username)
+            {
+                return fakes.CreateUser(username);
+            }
+        }
+
+        public class TheDeleteAccountAction : TheDeleteAccountBaseAction
+        {
+        }
+
         public class TheConfirmAction : TheConfirmBaseAction
         {
             public static IEnumerable<object[]> AllowedCurrentUsers_Data
@@ -613,7 +625,27 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.True(string.Compare((string)result.Data, Strings.ApiKeyDescriptionRequired) == 0);
+                Assert.Equal(Strings.ApiKeyDescriptionRequired, (string)result.Data);
+            }
+
+            [Fact]
+            public async Task WhenUserIsLockedReturnsError()
+            {
+                // Arrange 
+                var user = new User { Username = "the-username", UserStatusKey = UserStatus.Locked };
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.GenerateApiKey(
+                    description: "A pea eye key",
+                    owner: user.Username,
+                    scopes: null,
+                    expirationInDays: null);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, (string)result.Data);
             }
 
             public static IEnumerable<object[]> WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data
@@ -661,7 +693,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.True(string.Compare((string)result.Data, Strings.ApiKeyScopesNotAllowed) == 0);
+                Assert.Equal(Strings.ApiKeyScopesNotAllowed, (string)result.Data);
             }
 
             public static IEnumerable<object[]> WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess_Data
@@ -1536,6 +1568,41 @@ namespace NuGetGallery
                 Assert.Equal(enable2FA, ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.EnabledMultiFactorAuthentication));
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
             }
+
+            [Theory]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            public async Task PreventsDisableOnLockedUser(bool enable2FA, bool fail)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("user1");
+                user.UserStatusKey = UserStatus.Locked;
+                user.EnableMultiFactorAuthentication = !enable2FA;
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var userServiceMock = GetMock<IUserService>();
+                userServiceMock
+                    .Setup(x => x.ChangeMultiFactorAuthentication(user, enable2FA, null))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                // Act
+                var result = await controller.ChangeMultiFactorAuthentication(enable2FA);
+
+                // Assert
+                if (fail)
+                {
+                    ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                    Assert.Equal(ServicesStrings.UserAccountIsLocked, controller.TempData["ErrorMessage"]);
+                }
+                else
+                {
+                    userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(user, enable2FA, It.IsAny<string>()));
+                }
+            }
         }
 
         public class TheRemovePasswordAction : TestContainer
@@ -1685,7 +1752,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+                Assert.Equal(Strings.CredentialNotFound, (string)((JsonResult)result).Data);
 
                 Assert.Equal(1, user.Credentials.Count);
             }
@@ -1869,7 +1936,34 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.True(string.Compare((string)result.Data, Strings.CredentialNotFound) == 0);
+                Assert.Equal(Strings.CredentialNotFound, (string)result.Data);
+
+                Assert.Equal(1, user.Credentials.Count);
+                Assert.True(user.Credentials.Contains(cred));
+            }
+
+            [Fact]
+            public async Task GivenLockedUser_ErrorIsReturnedWithNoChangesMade()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var user = fakes.CreateUser("test",
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey));
+                user.UserStatusKey = UserStatus.Locked;
+                var cred = user.Credentials.First();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RegenerateCredential(
+                    credentialType: cred.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, (string)result.Data);
 
                 Assert.Equal(1, user.Credentials.Count);
                 Assert.True(user.Credentials.Contains(cred));
@@ -1916,7 +2010,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.True(string.Compare((string)result.Data, Strings.Unsupported) == 0);
+                Assert.Equal(Strings.Unsupported, (string)result.Data);
             }
 
             public static IEnumerable<object[]> GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser_Input
@@ -2067,7 +2161,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.True(string.CompareOrdinal((string)result.Data, Strings.Unsupported) == 0);
+                Assert.Equal(Strings.Unsupported, (string)result.Data);
             }
 
             [Fact]
@@ -2095,7 +2189,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.True(String.CompareOrdinal((string)result.Data, Strings.CredentialNotFound) == 0);
+                Assert.Equal(Strings.CredentialNotFound, (string)result.Data);
 
                 authenticationService.Verify(x => x.EditCredentialScopes(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<ICollection<Scope>>()), Times.Never);
             }

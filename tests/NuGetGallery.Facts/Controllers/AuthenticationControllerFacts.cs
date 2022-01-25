@@ -1239,11 +1239,28 @@ namespace NuGetGallery.Controllers
         public class TheLinkOrChangeExternalCredentialAction : TestContainer
         {
             [Fact]
+            public async Task ForLockedUser_ErrorIsReturned()
+            {
+                // Arrange
+                var controller = GetController<AuthenticationController>();
+                var user = new User { Username = "Bob", EmailAddress = "bob@example.com", UserStatusKey = UserStatus.Locked };
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, controller.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
             public async Task GivenExpiredExternalAuth_ItSafeRedirectsToReturnUrlWithExternalAuthExpiredMessage()
             {
                 // Arrange
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(TestUtility.FakeUser);
                 var serviceMock = GetMock<AuthenticationService>();
                 serviceMock
                     .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
@@ -1263,6 +1280,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(TestUtility.FakeUser);
                 var identity = "Bloog <bloog@blorg.com>";
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
                 var serviceMock = GetMock<AuthenticationService>();
@@ -1359,11 +1377,12 @@ namespace NuGetGallery.Controllers
 
         public class TheAuthenticateExternalAction : TestContainer
         {
-
             [Fact]
             public void ForMissingExternalProvider_ErrorIsReturned()
             {
+                // Arrange
                 var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(TestUtility.FakeUser);
 
                 // Act
                 var result = controller.AuthenticateExternal("theReturnUrl");
@@ -1376,6 +1395,7 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void ForAADLinkedAccount_ErrorIsReturnedDueToOrgPolicy()
             {
+                // Arrange
                 var fakes = Get<Fakes>();
                 var aadCred = new CredentialBuilder().CreateExternalCredential("AzureActiveDirectory", "blorg", "bloog", "TEST_TENANT");
                 var passwordCred = new Credential("password.v3", "random");
@@ -1403,6 +1423,7 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void ForNonAADLinkedAccount_WithOrgPolicyCompletesSuccessfully()
             {
+                // Arrange
                 var fakes = Get<Fakes>();
                 EnableAllAuthenticators(Get<AuthenticationService>());
                 var passwordCred = new Credential("password.v3", "random");
@@ -1457,6 +1478,7 @@ namespace NuGetGallery.Controllers
                 const string returnUrl = "/theReturnUrl";
                 EnableAllAuthenticators(Get<AuthenticationService>());
                 var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(TestUtility.FakeUser);
 
                 // Act
                 var result = controller.AuthenticateExternal(returnUrl);

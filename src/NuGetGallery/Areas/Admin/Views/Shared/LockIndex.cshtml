@@ -1,14 +1,14 @@
-﻿@model LockPackageViewModel
+﻿@model LockViewModel
 @{
-    ViewBag.Title = "Package Locking";
+    ViewBag.Title = Model.EntitiesLabel + " Locking";
 }
 
 <section role="main" class="container main-container">
-    <h2>Package Locking</h2>
+    <h2>@Model.EntitiesLabel Locking</h2>
 
     <form method="get" action="@Url.Action(actionName: "Search")">
         <p>
-            <textarea name="query" placeholder="Search for package ids..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
+            <textarea name="query" placeholder="Search for @(Model.IdentifersLabel)..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
         </p>
         <p>
             <input type="submit" value="Search" />
@@ -21,12 +21,12 @@
     }
     else if (!Model.HasQuery)
     {
-        <p>To search for multiple packages use a separate line for each Package Id.</p>
+        <p>To search for multiple @Model.EntitiesLabel.ToLower(), use a separate line for the @Model.IdentifersLabel.</p>
     }
 
-    @if (Model.PackageLockStates != null && Model.PackageLockStates.Any())
+    @if (Model.LockStates != null && Model.LockStates.Any())
     {
-        using (Html.BeginForm("Update", "LockPackage", FormMethod.Post))
+        using (Html.BeginForm("Update", Model.ControllerName, FormMethod.Post))
         {
             @Html.AntiForgeryToken()
             @Html.HiddenFor(model => model.Query)
@@ -39,17 +39,17 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Id</th>
+                                <th>@Model.IdentifersLabel</th>
                                 <th>Is Locked?</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @for (int i = 0; i < Model.PackageLockStates.Count; i++)
+                            @for (int i = 0; i < Model.LockStates.Count; i++)
                             {
                                 <tr>
-                                    <td>@Html.DisplayTextFor(model => model.PackageLockStates[i].Id)</td>
-                                    @Html.HiddenFor(model => model.PackageLockStates[i].Id)
-                                    <td>@Html.CheckBoxFor(model => model.PackageLockStates[i].IsLocked, new { @class = "islockedcheckbox" })</td>
+                                    <td>@Html.DisplayTextFor(model => model.LockStates[i].Identifier)</td>
+                                    @Html.HiddenFor(model => model.LockStates[i].Identifier)
+                                    <td>@Html.CheckBoxFor(model => model.LockStates[i].IsLocked, new { @class = "islockedcheckbox" })</td>
                                 </tr>
                             }
                         </tbody>
