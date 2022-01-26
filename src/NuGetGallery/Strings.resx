@@ -1221,4 +1221,7 @@ The {1} Team</value>
   <data name="ReadmeErrorEmpty" xml:space="preserve">
     <value>The readme file '{0}' cannot be empty.</value>
   </data>
+  <data name="ApiKeyOwnerLocked" xml:space="preserve">
+    <value>The specified API key is scoped to an owner that is locked. Please contact support@nuget.org.</value>
+  </data>
 </root>

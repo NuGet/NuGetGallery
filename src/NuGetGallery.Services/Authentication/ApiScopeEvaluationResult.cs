@@ -28,6 +28,7 @@ namespace NuGetGallery.Authentication
         public User Owner { get; }
 
         public bool IsOwnerConfirmed => Owner != null && Owner.Confirmed;
+        public bool IsOwnerLocked => Owner != null && Owner.IsLocked;
 
         public ApiScopeEvaluationResult(User owner, PermissionsCheckResult permissionsCheckResult, bool scopesAreValid)
         {
@@ -42,7 +43,10 @@ namespace NuGetGallery.Authentication
         /// </summary>
         public bool IsSuccessful()
         {
-            return ScopesAreValid && PermissionsCheckResult == PermissionsCheckResult.Allowed && IsOwnerConfirmed;
+            return ScopesAreValid
+                && PermissionsCheckResult == PermissionsCheckResult.Allowed
+                && IsOwnerConfirmed
+                && !IsOwnerLocked;
         }
     }
 }

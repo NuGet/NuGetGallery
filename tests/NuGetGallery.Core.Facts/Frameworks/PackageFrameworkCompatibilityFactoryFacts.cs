@@ -144,6 +144,55 @@ namespace NuGetGallery.Frameworks
         }
 
         [Fact]
+        public void NetBasedFrameworksShouldBeOrderedOnTheFirstRows()
+        {
+            var packageFrameworks = new HashSet<PackageFramework>()
+            {
+                new PackageFramework() { TargetFramework = "aspnet50" },
+                new PackageFramework() { TargetFramework = "native" },
+                new PackageFramework() { TargetFramework = "net45" },
+                new PackageFramework() { TargetFramework = "net6" },
+                new PackageFramework() { TargetFramework = "netcoreapp31" },
+                new PackageFramework() { TargetFramework = "netstandard10" },
+                new PackageFramework() { TargetFramework = "monoandroid" }
+            };
+
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            var productNames = result.Table.Keys.ToArray();
+
+            Assert.Equal(FrameworkProductNames.Net, productNames[0]);
+            Assert.Equal(FrameworkProductNames.NetCore, productNames[1]);
+            Assert.Equal(FrameworkProductNames.NetStandard, productNames[2]);
+            Assert.Equal(FrameworkProductNames.NetFramework, productNames[3]);
+        }
+
+        [Fact]
+        public void NoNetBasedFrameworksShouldBeOrderedAlphabetically()
+        {
+            var packageFrameworks = new HashSet<PackageFramework>()
+            {
+                new PackageFramework() { TargetFramework = "aspnet50" },
+                new PackageFramework() { TargetFramework = "native" },
+                new PackageFramework() { TargetFramework = "net45" },
+                new PackageFramework() { TargetFramework = "net6" },
+                new PackageFramework() { TargetFramework = "netcoreapp31" },
+                new PackageFramework() { TargetFramework = "netstandard10" },
+                new PackageFramework() { TargetFramework = "monoandroid" },
+                new PackageFramework() { TargetFramework = "tizen3" },
+                new PackageFramework() { TargetFramework = "uap10" },
+                new PackageFramework() { TargetFramework = "wpa81" }
+            };
+
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            var productNames = result.Table.Keys.Skip(4);
+            var orderedProductNames = productNames.OrderBy(x => x);
+
+            Assert.True(productNames.SequenceEqual(orderedProductNames));
+        }
+
+        [Fact]
         public void FrameworksInTableShouldBeOnAscendingOrder()
         {
             var packageFrameworks = new HashSet<PackageFramework>()

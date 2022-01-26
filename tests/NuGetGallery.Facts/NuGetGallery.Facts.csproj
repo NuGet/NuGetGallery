@@ -68,6 +68,7 @@
     <Compile Include="Areas\Admin\Controllers\DeleteAccountControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageControllerFacts.cs" />
+    <Compile Include="Areas\Admin\Controllers\LockUserControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\UpdateListedControllerFacts.cs" />

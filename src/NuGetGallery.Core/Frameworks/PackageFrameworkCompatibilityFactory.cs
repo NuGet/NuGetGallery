@@ -9,10 +9,16 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery.Frameworks
 {
-    public class PackageFrameworkCompatibilityFactory
+    public class PackageFrameworkCompatibilityFactory : IPackageFrameworkCompatibilityFactory
     {
         private readonly ISet<Version> WindowsStoreNetCoreVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("4.5.0.0"), Version.Parse("4.5.1.0") };
         private readonly ISet<Version> WindowsStoreWindowsVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("8.0.0.0"), Version.Parse("8.1.0.0") };
+        private readonly ISet<string> TableFirstFrameworks = new HashSet<string> {
+            FrameworkProductNames.Net,
+            FrameworkProductNames.NetCore,
+            FrameworkProductNames.NetStandard,
+            FrameworkProductNames.NetFramework
+        };
         private readonly NuGetFrameworkSorter Sorter = new NuGetFrameworkSorter();
         private readonly int NetStartingMajorVersion = 5;
 
@@ -45,11 +51,11 @@ namespace NuGetGallery.Frameworks
             };
         }
 
-        private IReadOnlyDictionary<string, ICollection<PackageFrameworkCompatibilityTableData>> CreateFrameworkCompatibilityTable(ICollection<NuGetFramework> filteredPackageFrameworks)
+        private IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> CreateFrameworkCompatibilityTable(ICollection<NuGetFramework> filteredPackageFrameworks)
         {
             var compatibleFrameworks = _compatibilityService.GetCompatibleFrameworks(filteredPackageFrameworks);
 
-            var table = new Dictionary<string, ICollection<PackageFrameworkCompatibilityTableData>>();
+            var table = new Dictionary<string, SortedSet<PackageFrameworkCompatibilityTableData>>();
 
             foreach (var compatibleFramework in compatibleFrameworks)
             {
@@ -74,7 +80,7 @@ namespace NuGetGallery.Frameworks
                 }
             }
 
-            return table;
+            return OrderDictionaryKeys(table);
         }
 
         private string ResolveFrameworkProductName(NuGetFramework framework)
@@ -119,7 +125,36 @@ namespace NuGetGallery.Frameworks
             return framework.Framework;
         }
 
-        private PackageFrameworkCompatibilityBadges CreateFrameworkCompatibilityBadges(IReadOnlyDictionary<string, ICollection<PackageFrameworkCompatibilityTableData>> table)
+        private IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> OrderDictionaryKeys(Dictionary<string, SortedSet<PackageFrameworkCompatibilityTableData>> table)
+        {
+            var orderedTable = new Dictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>>();
+
+            AddOrderedKey(table, orderedTable, FrameworkProductNames.Net);
+            AddOrderedKey(table, orderedTable, FrameworkProductNames.NetCore);
+            AddOrderedKey(table, orderedTable, FrameworkProductNames.NetStandard);
+            AddOrderedKey(table, orderedTable, FrameworkProductNames.NetFramework);
+
+            foreach (var orderedKey in table.Keys.OrderBy(k => k))
+            {
+                if (!TableFirstFrameworks.Contains(orderedKey))
+                {
+                    table.TryGetValue(orderedKey, out var compatibleFrameworks);
+                    orderedTable.Add(orderedKey, compatibleFrameworks);
+                }
+            }
+
+            return orderedTable;
+        }
+
+        private void AddOrderedKey(Dictionary<string, SortedSet<PackageFrameworkCompatibilityTableData>> table, Dictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> orderedTable, string framework)
+        {
+            if (table.TryGetValue(framework, out var compatibleFrameworks))
+            {
+                orderedTable.Add(framework, compatibleFrameworks);
+            }
+        }
+
+        private PackageFrameworkCompatibilityBadges CreateFrameworkCompatibilityBadges(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> table)
         {
             var net = GetBadgeFramework(table, FrameworkProductNames.Net);
             var netCore = GetBadgeFramework(table, FrameworkProductNames.NetCore);
@@ -135,7 +170,7 @@ namespace NuGetGallery.Frameworks
             };
         }
 
-        private NuGetFramework GetBadgeFramework(IReadOnlyDictionary<string, ICollection<PackageFrameworkCompatibilityTableData>> table, string productName)
+        private NuGetFramework GetBadgeFramework(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> table, string productName)
         {
             if (table.TryGetValue(productName, out var data))
             {

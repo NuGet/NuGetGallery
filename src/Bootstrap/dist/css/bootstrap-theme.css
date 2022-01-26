@@ -683,6 +683,117 @@ img.reserved-indicator-icon {
   padding-top: 3em;
   padding-bottom: 3em;
 }
+.framework {
+  font-family: Segoe UI;
+  font-size: 14px;
+  line-height: 20px;
+}
+.framework-badges {
+  font-family: Segoe UI;
+  font-size: 14px;
+  line-height: 20px;
+  margin-bottom: 14px;
+}
+.framework-badge {
+  padding: 1px 8px;
+  border-radius: 2px;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  display: inline-block;
+}
+.framework-badge:not(:last-child) {
+  margin-right: 8px;
+}
+.framework-badge-asset {
+  padding: 1px 8px;
+  border-radius: 2px;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  display: inline-block;
+  background: #0078d4;
+  color: white;
+}
+.framework-badge-computed {
+  padding: 1px 8px;
+  border-radius: 2px;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  display: inline-block;
+  border: 1px solid #0078d4;
+  background: rgba(0, 183, 195, 0.1);
+}
+.framework-table {
+  margin-bottom: 30px;
+  font-family: Segoe UI;
+  font-size: 14px;
+  line-height: 20px;
+  width: 100%;
+}
+.framework-table tr {
+  min-height: 43px;
+}
+.framework-table .framework-table-title {
+  padding: 11px 0px 12px 12px;
+}
+.framework-table .framework-table-product {
+  width: 232px;
+  padding: 11px 0px 12px 12px;
+}
+.framework-table .framework-table-margin {
+  margin: 0px 8px 8px 0px;
+}
+.framework-table .framework-table-frameworks {
+  width: -webkit-calc(100% - 232px);
+  width: calc(100% - 232px);
+  padding: 11px 0px 4px 12px;
+}
+.frameworktableinfo {
+  padding: 3px 8px 5px;
+  width: 35px;
+  height: 10px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin-right: 10px;
+}
+.frameworktableinfo-computed-icon {
+  padding: 3px 8px 5px;
+  width: 35px;
+  height: 10px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin-right: 10px;
+  border: 1px solid #0078d4;
+}
+.frameworktableinfo-asset-icon {
+  padding: 3px 8px 5px;
+  width: 35px;
+  height: 10px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin-right: 10px;
+  background-color: #0078d4;
+}
+.frameworktableinfo-text {
+  font-size: 14px;
+  line-height: 16px;
+}
+p.frameworktableinfo-text {
+  font-size: 14px;
+  line-height: 16px;
+  margin-top: 10px;
+}
 .user-package-list .manage-package-listing .package-icon {
   max-height: 2em;
   min-width: 20px;
@@ -1301,7 +1412,7 @@ img.reserved-indicator-icon {
   margin-bottom: 35px;
 }
 .page-package-details-v2 .package-title {
-  margin-bottom: 30px;
+  margin-bottom: 16px;
 }
 .page-package-details-v2 .package-title h1 .title {
   font-size: 32px;

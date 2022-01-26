@@ -246,6 +246,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsRecentPackagesNoIndexEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsSearchSideBySideEnabled(User user)
         {
             throw new NotImplementedException();

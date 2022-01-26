@@ -41,6 +41,8 @@
                         }
                         <dt>Multi-factor Authentication:</dt>
                         <dd>@(Model.HasEnabledMultiFactorAuthentication ? "Enabled" : "Disabled")</dd>
+                        <dt>Locked:</dt>
+                        <dd>@(Model.IsLocked ? "Yes" : "No")</dd>
                     </dl>
                 </div>
             }

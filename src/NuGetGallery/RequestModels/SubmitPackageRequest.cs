@@ -10,5 +10,7 @@ namespace NuGetGallery
         public VerifyPackageRequest InProgressUpload { get; set; }
 
         public bool IsSymbolsUploadEnabled { get; set; }
+
+        public bool IsUserLocked { get; set; }
     }
 }

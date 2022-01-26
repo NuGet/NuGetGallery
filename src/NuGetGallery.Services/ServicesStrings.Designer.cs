@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class ServicesStrings {
@@ -1968,6 +1968,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; is locked. Please contact support@nuget.org..
+        /// </summary>
+        public static string SpecificAccountIsLocked {
+            get {
+                return ResourceManager.GetString("SpecificAccountIsLocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via SSL..
         /// </summary>
         public static string SSLRequired {
@@ -2135,6 +2144,15 @@ namespace NuGetGallery {
         public static string TransformAccount_AccountIsAnOrganization {
             get {
                 return ResourceManager.GetString("TransformAccount_AccountIsAnOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; is locked and cannot be transformed to an organization. Please contact support@nuget.org..
+        /// </summary>
+        public static string TransformAccount_AccountIsLocked {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountIsLocked", resourceCulture);
             }
         }
         
@@ -2676,6 +2694,15 @@ namespace NuGetGallery {
         public static string UploadPackage_UploadInProgress {
             get {
                 return ResourceManager.GetString("UploadPackage_UploadInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your user account is locked. Please contact support@nuget.org..
+        /// </summary>
+        public static string UserAccountIsLocked {
+            get {
+                return ResourceManager.GetString("UserAccountIsLocked", resourceCulture);
             }
         }
         
