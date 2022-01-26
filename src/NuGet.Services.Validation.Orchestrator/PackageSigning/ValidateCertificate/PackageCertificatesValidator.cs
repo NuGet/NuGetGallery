@@ -305,7 +305,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
                 {
                     _logger.LogError(
                         Error.PackageCertificateValidationInvalidSignatureState,
-                        "Valid signature cannot have a timestamp whose end certificate is revoked ({ValidationId}, {PackageId} {PackageVersion})",
+                        "Valid signature cannot have a timestamp whose end certificate is revoked ({ValidationId}, {PackageId} {PackageVersion}, {SignatureStatus})",
                         request.ValidationId,
                         request.PackageId,
                         request.PackageVersion,

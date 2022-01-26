@@ -118,9 +118,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                             _logger.LogInformation(
                                 "For {PackageId} {PackageVersion}, metadata will remain the same.",
                                 identity.Id,
-                                identity.Version.ToNormalizedString(),
-                                leaf.Url,
-                                existing.Count);
+                                identity.Version.ToNormalizedString());
                             continue;
                         }
                         else
