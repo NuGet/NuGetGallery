@@ -70,6 +70,10 @@
       <Project>{f4c8c34f-72a9-4773-a315-8fa3f2d5ce4e}</Project>
       <Name>NuGet.Services.DatabaseMigration</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
+      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
+      <Name>NuGet.Services.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
       <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
       <Name>NuGetGallery.Core</Name>
