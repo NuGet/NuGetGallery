@@ -10,3 +10,5 @@ dotnet_analyzer_diagnostic.category-security.severity = warning
 dotnet_analyzer_diagnostic.category-usage.severity = none
 dotnet_analyzer_diagnostic.category-Maintainability.severity = none
 dotnet_analyzer_diagnostic.category-Style.severity = none
+[*.{cs,vb}]
+dotnet_diagnostic.CA2017.severity=warning

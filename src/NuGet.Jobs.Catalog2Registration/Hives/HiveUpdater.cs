@@ -286,7 +286,7 @@ namespace NuGet.Jobs.Catalog2Registration
             }
 
             _logger.LogInformation(
-                "Updating {Count} registration leaves.",
+                "Updating {Count} registration leaves for {PackageId} in the {Hive} hive.",
                 mergeResult.ModifiedLeaves.Count,
                 id,
                 hive);
