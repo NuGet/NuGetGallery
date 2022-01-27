@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>NuGetGallery.Services</id>
+    <version>$version$</version>
+    <title>NuGetGallery.Services</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>NuGetGallery.Services</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\**\*.*" target="bin"/>
+  </files>
+</package> 
