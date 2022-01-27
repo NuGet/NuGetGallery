@@ -654,26 +654,28 @@ img.reserved-indicator-icon {
   overflow: auto;
   max-height: 450px;
 }
-#readme-less img {
+.readme-common .table {
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+  border: 1px solid #ddd;
+}
+.readme-common .table th,
+.readme-common .table td {
+  border: 1px solid #ddd;
+}
+.readme-common tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+.readme-common img.img-fluid {
   max-width: 100%;
 }
-#readme-less ul.contains-task-list,
-#readme-less li.task-list-item {
-  list-style-type: none;
-}
-#readme-more img {
-  max-width: 100%;
-}
-#readme-more ul.contains-task-list,
-#readme-more li.task-list-item {
+.readme-common ul.contains-task-list,
+.readme-common li.task-list-item {
   list-style-type: none;
 }
 #readme-preview {
   padding-top: 0.25em;
-}
-#readme-preview ul.contains-task-list,
-#readme-preview li.task-list-item {
-  list-style-type: none;
 }
 #edit-markdown {
   padding-top: 3em;

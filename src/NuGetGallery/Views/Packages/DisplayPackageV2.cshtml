@@ -617,18 +617,20 @@
                         }
                         else if (Model.ReadMeHtml != null)
                         {
-                            <div id="readme-container">
-                                @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
-                                {
-                                    @ViewHelpers.AlertImagesRewritten();
-                                }
+                            <div class="readme-common">
+                                <div id="readme-container">
+                                    @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
+                                    {
+                                        @ViewHelpers.AlertImagesRewritten();
+                                    }
 
-                                @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
-                                {
-                                    @ViewHelpers.AlertImageSourceDisallowed();
-                                }
+                                    @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                                    {
+                                        @ViewHelpers.AlertImageSourceDisallowed();
+                                    }
 
-                                @Html.Raw(Model.ReadMeHtml)
+                                    @Html.Raw(Model.ReadMeHtml)
+                                </div>
                             </div>
                         }
                         else

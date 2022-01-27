@@ -519,29 +519,31 @@
                             </a>
                         </h2>
                     </div>
-                    <div id="readme-container" class="collapse in">
-                        @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
-                        {
-                            @ViewHelpers.AlertImagesRewritten();
-                        }
+                    <div class="readme-common">
+                        <div id="readme-container" class="collapse in">
+                            @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
+                            {
+                                @ViewHelpers.AlertImagesRewritten();
+                            }
 
-                        @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
-                        {
-                            @ViewHelpers.AlertImageSourceDisallowed();
-                        }
-                        <div id="readme-less" class="collapse in">
-                            @Html.Raw(Model.ReadMeHtml)
-                        </div>
-                        <div id="readme-more" class="collapse">
-                            @Html.Raw(Model.ReadMeHtml)
-                        </div>
+                            @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                            {
+                                @ViewHelpers.AlertImageSourceDisallowed();
+                            }
+                            <div id="readme-less" class="collapse in">
+                                @Html.Raw(Model.ReadMeHtml)
+                            </div>
+                            <div id="readme-more" class="collapse">
+                                @Html.Raw(Model.ReadMeHtml)
+                            </div>
 
-                        <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#readme-more"
-                           aria-expanded="false" aria-controls="#readme-more, #readme-less"
-                           id="show-readme-more" data-track="show-package-documentation">
-                            <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
-                            <span>Show more</span>
-                        </a>
+                            <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#readme-more"
+                            aria-expanded="false" aria-controls="#readme-more, #readme-less"
+                            id="show-readme-more" data-track="show-package-documentation">
+                                <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
+                                <span>Show more</span>
+                            </a>
+                        </div>
                     </div>
                 }
 
