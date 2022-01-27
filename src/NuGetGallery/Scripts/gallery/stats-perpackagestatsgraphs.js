@@ -283,7 +283,7 @@
     }
 
     $(window).resize(function () {
-        packageDisplayGraphs(graphData);
+        packageDisplayGraphs(window.graphData);
     });
 
     return packageDisplayGraphs;
