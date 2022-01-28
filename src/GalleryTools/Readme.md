@@ -11,6 +11,8 @@ There are several variants of the backfill tool, for different data properties. 
 There are two ways to use the backfill tools:
 
 - Collect metadata and the update metadata for all packages (two different executions of the tool, `-c` then `-u`)
+  - Note that for test runs `-c` and `-u` can be used at the same time, but we have observed in PROD that the job hangs
+    from time to time causing us to restart the job. Therefore doing `-c` and `-u` all at once is not practical.
 - Collect and update metadata for specific packages (single execution of the tool, `-i`)
 
 The commands that are backfill tools are:

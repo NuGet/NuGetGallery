@@ -197,9 +197,9 @@ namespace GalleryTools.Commands
             }
         }
 
-        private static HashSet<PackageIdentity> ReadPackageIdentityList(string completedPath)
+        private static HashSet<PackageIdentity> ReadPackageIdentityList(string path)
         {
-            var completedLines = File.Exists(completedPath) ? File.ReadAllLines(completedPath) : Array.Empty<string>();
+            var completedLines = File.Exists(path) ? File.ReadAllLines(path) : Array.Empty<string>();
             return completedLines
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Select(x => x.Split(','))
