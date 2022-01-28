@@ -78,5 +78,4 @@ namespace NuGetGallery.Services
             return null; 
         }
     }
-
 }
