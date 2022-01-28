@@ -13,6 +13,7 @@ namespace NuGetGallery.Services
     public class TrustedImageDomains : ITrustedImageDomains
     {
         public HashSet<string> TrustedImageDomainList { get; }
+        public HashSet<string> ExpandedTrustedImageDomainList { get; }
 
         public TrustedImageDomains()
             : this(trustedImageDomainList: Enumerable.Empty<string>())
@@ -29,6 +30,7 @@ namespace NuGetGallery.Services
             }
 
             TrustedImageDomainList = new HashSet<string>(trustedImageDomainList, StringComparer.OrdinalIgnoreCase);
+            ExpandedTrustedImageDomainList = expandDomainList();
         }
 
         public bool IsImageDomainTrusted(string imageDomain)
@@ -38,7 +40,43 @@ namespace NuGetGallery.Services
                 return false;
             }
 
-            return TrustedImageDomainList.Contains(imageDomain);
+            return ExpandedTrustedImageDomainList.Contains(imageDomain);
+        }
+
+        public HashSet<string> expandDomainList()
+        {
+            var expandedImageDomainList = new HashSet<string>();
+
+            foreach (var imageDomain in TrustedImageDomainList)
+            {
+                expandedImageDomainList.Add(imageDomain);
+
+                var subdomain = ParseSubDomain(imageDomain);
+
+                if (string.IsNullOrEmpty(subdomain))
+                {
+                    expandedImageDomainList.Add("www." + imageDomain);
+                } 
+                else if (subdomain == "www")
+                {
+                    expandedImageDomainList.Add(imageDomain.Substring(subdomain.Length));
+                }
+            }
+            return expandedImageDomainList;
+        }
+
+        private string ParseSubDomain(string domain)
+        {
+            if (domain.Split('.').Length > 2)
+            {
+                var lastIndex = domain.LastIndexOf(".");
+                var index = domain.LastIndexOf('.', lastIndex - 1);
+
+                return domain.Substring(0, index);
+            }
+
+            return null; 
         }
     }
+
 }

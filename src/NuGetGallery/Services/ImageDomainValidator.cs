@@ -28,11 +28,6 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(uriString));
             }
 
-            if (uriString.Contains("www.") && !uriString.Contains("www.api."))
-            {
-                uriString = uriString.Replace("www.", string.Empty);
-            }
-
             Uri returnUri = null;
             readyUriString = null;
 
