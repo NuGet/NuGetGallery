@@ -28,7 +28,9 @@
         @Html.Partial("_TransformOrLink", Model)
     </div>
 }
-else if     <script type="text/javascript">
+else if (AskUserToEnable2FA)
+{
+    <script type="text/javascript">
         window.show2FAModal = true;
     </script>
     <div id="popUp2FAModal" class="modal fade modal-container" data-backdrop="static">
@@ -72,57 +74,7 @@ else if     <script type="text/javascript">
         </div>
     </div>
 
-    @if (AskUserToEnable2FA)
-{
-    
-
-#line default
-#line hidden
-
-#line 12 "D:\Code\nuget\nugetgallery\src\NuGetGallery\Views\Pages\Home.cshtml"
-             
-    
-
-#line default
-#line hidden
-
-#line 13 "D:\Code\nuget\nugetgallery\src\NuGetGallery\Views\Pages\Home.cshtml"
-   __o = Html.Partial("_Enable2FA", Model);
-
-
-#line default
-#line hidden
-
-#line 14 "D:\Code\nuget\nugetgallery\src\NuGetGallery\Views\Pages\Home.cshtml"
-           
-}
-
-#line default
-#line hidden
-
-#line 15 "D:\Code\nuget\nugetgallery\src\NuGetGallery\Views\Pages\Home.cshtml"
-    __o = Url.PackageList();
-
-
-#line default
-#line hidden
-
-#line 16 "D:\Code\nuget\nugetgallery\src\NuGetGallery\Views\Pages\Home.cshtml"
-                   __o = Html.Partial("_SearchBar");
-
-
-#line default
-#line hidden
-
-#line 17 "D:\Code\nuget\nugetgallery\src\NuGetGallery\Views\Pages\Home.cshtml"
-                   __o = Html.Partial("_AutocompleteTemplate");
-
-
-#line default
-#line hidden
-
-#line 18 "D:\Code\nuget\nugetgallery\src\NuGetGallery\Views\Pages\Home.cshtml"
-    if (Model.ShowDotnet20Banner)
+    @if (Model.ShowDotnet20Banner)
     {
         <div class="dotnet-20-banner">
             <div class="container">
