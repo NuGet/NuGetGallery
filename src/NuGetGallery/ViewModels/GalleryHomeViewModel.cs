@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         public bool ShowEnable2FAModalFeatureEnabled { get; set; }
 
-        public bool ShowDotnet20Banner { get; set;}
+        public bool ShowDotnet20Banner { get; set; }
 
         public bool GetFeedbackOnModalDismissFeatureEnabled { get; set; }
 
