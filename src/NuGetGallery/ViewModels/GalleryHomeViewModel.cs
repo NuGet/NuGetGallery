@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         public bool ShowEnable2FAModalFeatureEnabled { get; set; }
 
-        public bool ShowDotnet20BannerEnabled { get; set;}
+        public bool ShowDotnet20Banner { get; set;}
 
         public bool GetFeedbackOnModalDismissFeatureEnabled { get; set; }
 
@@ -22,7 +22,7 @@ namespace NuGetGallery
             transformIntoOrganization: false,
             showEnable2FAModalFeatureEnabled: false,
             getFeedbackOnModalDismiss: false,
-            showDotnet20BannerEnabled: false,
+            showDotnet20Banner: false,
             identity: null)
         { }
 
@@ -31,14 +31,14 @@ namespace NuGetGallery
             bool transformIntoOrganization,
             bool showEnable2FAModalFeatureEnabled,
             bool getFeedbackOnModalDismiss,
-            bool showDotnet20BannerEnabled,
+            bool showDotnet20Banner,
             string identity = null)
         {
             ShowTransformModal = showTransformModal;
             TransformIntoOrganization = transformIntoOrganization;
             ShowEnable2FAModalFeatureEnabled = showEnable2FAModalFeatureEnabled;
             GetFeedbackOnModalDismissFeatureEnabled = getFeedbackOnModalDismiss;
-            ShowDotnet20BannerEnabled = showDotnet20BannerEnabled;
+            ShowDotnet20Banner = showDotnet20Banner;
             Identity = identity;
         }
     }
