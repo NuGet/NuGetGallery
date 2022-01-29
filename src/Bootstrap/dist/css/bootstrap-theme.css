@@ -1845,6 +1845,44 @@ p.frameworktableinfo-text {
 .page-home .jumbotron h1 {
   margin: 32px;
 }
+.page-home div.dotnet-20-banner {
+  background-image: url(../img/dotnet-20-banner.svg);
+  background-repeat: no-repeat;
+  background-position: 0 -150px;
+  -webkit-background-size: cover;
+  background-size: cover;
+  margin-top: 32px;
+}
+.page-home .dotnet-20-banner .container {
+  padding-top: 20px;
+  padding-bottom: 140px;
+  color: white;
+}
+.page-home .dotnet-20-banner .container .row {
+  margin-bottom: 40px;
+}
+.page-home .dotnet-20-banner .container .row .banner-text {
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.page-home .dotnet-20-banner .container .row .banner-text h2 {
+  font-weight: 600;
+}
+.page-home .dotnet-20-banner .container .row .banner-text h3 {
+  margin-top: 0px;
+  font-weight: 600;
+}
+.page-home .dotnet-20-banner .container .row .banner-text a {
+  padding: 5px 12px 5px 12px;
+  border: 1px solid white;
+  color: white;
+  font-weight: 600;
+}
+@media (max-width: 991px) {
+  .page-home .what-is-nuget-with-banner {
+    margin-top: -120px;
+  }
+}
 .page-home .what-is-nuget {
   font-size: 1.15em;
   padding-bottom: 75px;
