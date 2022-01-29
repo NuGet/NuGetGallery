@@ -301,5 +301,11 @@ namespace NuGetGallery
         /// Whether or not recent packages has no index applied to block search engine indexing.
         /// </summary>
         bool IsRecentPackagesNoIndexEnabled();
+
+        /// <summary>
+        /// Whether to show the banner announcing .NET's 20 year celebration.
+        /// </summary>
+        /// <returns></returns>
+        bool IsDotnet20BannerEnabled();
     }
 }

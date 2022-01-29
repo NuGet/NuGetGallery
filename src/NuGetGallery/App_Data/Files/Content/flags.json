@@ -31,7 +31,8 @@
     "NuGetGallery.MarkdigMdRendering": "Enabled",
     "NuGetGallery.ImageAllowlist": "Enabled",
     "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
-    "NuGetGallery.ComputeTargetFramework": "Enabled"
+    "NuGetGallery.ComputeTargetFramework": "Enabled",
+    "NuGetGallery.ShowDotnet20Banner": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

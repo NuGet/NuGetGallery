@@ -9,6 +9,57 @@
     }
   }
 
+  div.dotnet-20-banner {
+    background: black url(../img/dotnet-20-banner.svg);
+    background-repeat: no-repeat;
+    background-position: 0 -150px;
+    background-size: cover;
+    margin-top: 32px;
+  }
+
+  .dotnet-20-banner {
+    .container {
+      // The padding bottom is a hack to force the container's height to
+      // be at least as big as its content. This ensures the background
+      // image covers the entire container on narrow screens.
+      padding-top: 20px;
+      padding-bottom: 140px;
+      color: white;
+
+      .row {
+        margin-bottom: 40px;
+
+        .banner-text {
+          backdrop-filter: blur(2px);
+
+          h2 {
+            font-weight: 600;
+          }
+
+          h3 {
+            margin-top: 0px;
+            font-weight: 600;
+          }
+
+          a {
+            padding: 5px 12px 5px 12px;
+            border: 1px solid white;
+            color: white;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+
+  // The banner uses a hack to ensure its container is tall enough
+  // on narrow screens. This offsets that hack.
+  .what-is-nuget-with-banner {
+    @media (max-width: @screen-sm-max) {
+      margin-top: -120px;
+    }
+  }
+
   .what-is-nuget {
     font-size: 1.15em;
     padding-bottom: 75px;
