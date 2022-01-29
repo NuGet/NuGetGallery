@@ -1846,7 +1846,7 @@ p.frameworktableinfo-text {
   margin: 32px;
 }
 .page-home div.dotnet-20-banner {
-  background: black url(../img/dotnet-20-banner.svg);
+  background: url(../img/dotnet-20-banner.svg);
   background-repeat: no-repeat;
   background-position: 0 -150px;
   -webkit-background-size: cover;
