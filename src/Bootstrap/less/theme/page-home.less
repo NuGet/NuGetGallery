@@ -10,35 +10,51 @@
   }
 
   div.dotnet-20-banner {
-    background: black url(../img/dotnet-20-banner.svg);
-    background-repeat: no-repeat;
-    background-position: 0 -150px;
-    background-size: cover;
+    position: relative;
     margin-top: 32px;
   }
 
   .dotnet-20-banner {
-    .container {
-      // The padding bottom is a hack to force the container's height to
-      // be at least as big as its content. This ensures the background
-      // image covers the entire container on narrow screens.
-      padding-top: 20px;
-      padding-bottom: 140px;
-      color: white;
+    .dotnet-20-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
 
+      img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        background-color: #000;
+      }
+    }
+
+    .container {
       .row {
-        margin-bottom: 40px;
+        color: white;
+
+        @media (max-width: @screen-md-max) {
+          margin-top: 48px;
+          margin-bottom: 48px;
+        }
+
+        @media (min-width: @screen-md-max) {
+          margin-top: 144px;
+          margin-bottom: 144px;
+        }
 
         .banner-text {
           backdrop-filter: blur(2px);
 
           h2 {
+            margin-top: 0px;
             font-weight: 600;
           }
 
           h3 {
             margin-top: 0px;
-            font-weight: 600;
+            font-weight: 400;
           }
 
           a {
@@ -49,14 +65,6 @@
           }
         }
       }
-    }
-  }
-
-  // The banner uses a hack to ensure its container is tall enough
-  // on narrow screens. This offsets that hack.
-  .what-is-nuget-with-banner {
-    @media (max-width: @screen-sm-max) {
-      margin-top: -120px;
     }
   }
 
