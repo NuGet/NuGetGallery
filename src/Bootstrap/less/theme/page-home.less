@@ -31,24 +31,30 @@
     }
 
     .container {
-      position: relative;
-      top: 20px;
-      padding-top: 20px;
-      color: white;
-
       .row {
-        margin-bottom: 80px;
+        color: white;
+
+        @media (max-width: @screen-md-max) {
+          margin-top: 48px;
+          margin-bottom: 48px;
+        }
+
+        @media (min-width: @screen-md-max) {
+          margin-top: 144px;
+          margin-bottom: 144px;
+        }
 
         .banner-text {
           backdrop-filter: blur(2px);
 
           h2 {
+            margin-top: 0px;
             font-weight: 600;
           }
 
           h3 {
             margin-top: 0px;
-            font-weight: 600;
+            font-weight: 400;
           }
 
           a {

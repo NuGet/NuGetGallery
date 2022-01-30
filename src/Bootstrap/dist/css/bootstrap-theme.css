@@ -1863,25 +1863,32 @@ p.frameworktableinfo-text {
   object-fit: cover;
   background-color: #000;
 }
-.page-home .dotnet-20-banner .container {
-  position: relative;
-  top: 20px;
-  padding-top: 20px;
+.page-home .dotnet-20-banner .container .row {
   color: white;
 }
-.page-home .dotnet-20-banner .container .row {
-  margin-bottom: 80px;
+@media (max-width: 1199px) {
+  .page-home .dotnet-20-banner .container .row {
+    margin-top: 48px;
+    margin-bottom: 48px;
+  }
+}
+@media (min-width: 1199px) {
+  .page-home .dotnet-20-banner .container .row {
+    margin-top: 144px;
+    margin-bottom: 144px;
+  }
 }
 .page-home .dotnet-20-banner .container .row .banner-text {
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
 .page-home .dotnet-20-banner .container .row .banner-text h2 {
+  margin-top: 0px;
   font-weight: 600;
 }
 .page-home .dotnet-20-banner .container .row .banner-text h3 {
   margin-top: 0px;
-  font-weight: 600;
+  font-weight: 400;
 }
 .page-home .dotnet-20-banner .container .row .banner-text a {
   padding: 5px 12px 5px 12px;
