@@ -1382,10 +1382,6 @@ p.frameworktableinfo-text {
   border-color: #002440;
   border-style: solid;
   border-width: 1px 0 1px 1px;
-  -webkit-user-select: all;
-  -moz-user-select: all;
-  -ms-user-select: all;
-  user-select: all;
   vertical-align: middle;
   word-break: break-word;
 }
@@ -1734,10 +1730,6 @@ p.frameworktableinfo-text {
   border-color: #002440;
   border-style: solid;
   border-width: 1px 0 1px 1px;
-  -webkit-user-select: all;
-  -moz-user-select: all;
-  -ms-user-select: all;
-  user-select: all;
   vertical-align: middle;
   word-break: break-word;
 }
