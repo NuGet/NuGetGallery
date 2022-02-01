@@ -170,11 +170,6 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/clamp.js");
             BundleTable.Bundles.Add(displayPackageScriptBundle);
 
-            var displayPackageV2ScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package-v2.min.js")
-                .Include("~/Scripts/gallery/page-display-package-v2.js")
-                .Include("~/Scripts/gallery/clamp.js");
-            BundleTable.Bundles.Add(displayPackageV2ScriptBundle);
-
             var listPackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-list-packages.min.js")
                 .Include("~/Scripts/gallery/page-list-packages.js");
             BundleTable.Bundles.Add(listPackagesScriptBundle);

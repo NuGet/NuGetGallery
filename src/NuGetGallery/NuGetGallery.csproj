@@ -1851,7 +1851,6 @@
     <Content Include="Scripts\gallery\page-api-keys.js" />
     <Content Include="Scripts\gallery\page-delete-package.js" />
     <Content Include="Scripts\gallery\page-display-package.js" />
-    <Content Include="Scripts\gallery\page-display-package-v2.js" />
     <Content Include="Scripts\gallery\page-edit-readme.js" />
     <Content Include="Scripts\gallery\page-home.js" />
     <Content Include="Scripts\gallery\page-manage-deprecation.js" />
@@ -1880,7 +1879,6 @@
     <Content Include="Views\Authentication\Register.cshtml" />
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
-    <Content Include="Views\Packages\DisplayPackageV2.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
