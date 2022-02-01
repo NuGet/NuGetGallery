@@ -232,7 +232,7 @@
 @helper MakeLicenseLink(CompositeLicenseExpressionSegment segment) {<a href="@LicenseExpressionRedirectUrlHelper.GetLicenseExpressionRedirectUrl(segment.Value)" aria-label="License @segment.Value">@segment.Value</a>}
 @helper MakeLicenseSpan(CompositeLicenseExpressionSegment segment) {<span>@segment.Value</span>}
 
-<section role="main" class="container main-container page-package-details-v2">
+<section role="main" class="container main-container page-package-details">
     <div class="row">
         <div class="col-sm-9 package-details-main">
             <div class="package-header">
@@ -1319,5 +1319,5 @@
         var packageManagers = @Html.ToJson(packageManagers.Select(pm => pm.Id).ToList());
     </script>
 
-    @Scripts.Render("~/Scripts/gallery/page-display-package-v2.min.js")
+    @Scripts.Render("~/Scripts/gallery/page-display-package.min.js")
 }
