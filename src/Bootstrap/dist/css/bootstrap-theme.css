@@ -1896,6 +1896,12 @@ p.frameworktableinfo-text {
   color: white;
   font-weight: 600;
 }
+.page-home .dotnet-20-banner .container .row .banner-text a:focus {
+  outline-color: #fff;
+  outline-style: dashed;
+  outline-width: 2px;
+  outline-offset: 3px;
+}
 .page-home .what-is-nuget {
   font-size: 1.15em;
   padding-bottom: 75px;
