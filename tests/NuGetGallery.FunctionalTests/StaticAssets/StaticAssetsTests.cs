@@ -90,14 +90,6 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
                 }
             },
             {
-                "Scripts/gallery/page-display-package-v2.min.js",
-                new[]
-                {
-                    "Scripts/gallery/page-display-package-v2.js",
-                    "Scripts/gallery/clamp.js",
-                }
-            },
-            {
                 "Scripts/gallery/page-add-organization.min.js",
                 new[]
                 {
