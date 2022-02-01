@@ -13,7 +13,6 @@ namespace NuGetGallery.Services
     public class TrustedImageDomains : ITrustedImageDomains
     {
         public HashSet<string> TrustedImageDomainList { get; }
-        public HashSet<string> ExpandedTrustedImageDomainList { get; }
 
         public TrustedImageDomains()
             : this(trustedImageDomainList: Enumerable.Empty<string>())
@@ -29,8 +28,8 @@ namespace NuGetGallery.Services
                 throw new ArgumentNullException(nameof(trustedImageDomainList));
             }
 
-            TrustedImageDomainList = new HashSet<string>(trustedImageDomainList, StringComparer.OrdinalIgnoreCase);
-            ExpandedTrustedImageDomainList = expandDomainList();
+            var trustedImageDomainListFromFile = new HashSet<string>(trustedImageDomainList, StringComparer.OrdinalIgnoreCase);
+            TrustedImageDomainList = expandDomainList(trustedImageDomainListFromFile);
         }
 
         public bool IsImageDomainTrusted(string imageDomain)
@@ -40,14 +39,14 @@ namespace NuGetGallery.Services
                 return false;
             }
 
-            return ExpandedTrustedImageDomainList.Contains(imageDomain);
+            return TrustedImageDomainList.Contains(imageDomain);
         }
 
-        public HashSet<string> expandDomainList()
+        private HashSet<string> expandDomainList(HashSet<string> trustedImageDomainListFromFile)
         {
-            var expandedImageDomainList = new HashSet<string>();
+            var expandedImageDomainList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var imageDomain in TrustedImageDomainList)
+            foreach (var imageDomain in trustedImageDomainListFromFile)
             {
                 expandedImageDomainList.Add(imageDomain);
 
