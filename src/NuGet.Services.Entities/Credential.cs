@@ -84,6 +84,8 @@ namespace NuGet.Services.Entities
 
         public CredentialRevocationSource? RevocationSourceKey { get; set; }
 
+        public bool? WasCreatedSecurely { get; set; }
+
         public virtual User User { get; set; }
 
         public virtual ICollection<Scope> Scopes { get; set; }

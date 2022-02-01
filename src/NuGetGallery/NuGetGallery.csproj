@@ -319,6 +319,10 @@
     <Compile Include="Migrations\202201242159337_AddUserStatusKeyColumn.designer.cs">
       <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202202010109383_AddCreatedSecurelyToCredentials.cs" />
+    <Compile Include="Migrations\202202010109383_AddCreatedSecurelyToCredentials.designer.cs">
+      <DependentUpon>202202010109383_AddCreatedSecurelyToCredentials.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1659,6 +1663,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202201242159337_AddUserStatusKeyColumn.resx">
       <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202010109383_AddCreatedSecurelyToCredentials.resx">
+      <DependentUpon>202202010109383_AddCreatedSecurelyToCredentials.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
