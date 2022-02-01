@@ -238,12 +238,6 @@ namespace NuGetGallery
             {
                 featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService.SetReturnsDefault<bool>(true);
-                featureFlagService
-                    .Setup(x => x.IsDisplayPackagePageV2Enabled(It.IsAny<User>()))
-                    .Returns(false);
-                featureFlagService
-                    .Setup(x => x.IsDisplayPackagePageV2PreviewEnabled(It.IsAny<User>()))
-                    .Returns(false);
             }
 
             renameService = renameService ?? new Mock<IPackageRenameService>();

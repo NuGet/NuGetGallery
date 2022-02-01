@@ -25,11 +25,6 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayPackagePageV2Enabled(User user)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool ArePatternSetTfmHeuristicsEnabled()
         {
             throw new NotImplementedException();
@@ -261,11 +256,6 @@ namespace GitHubVulnerabilities2Db.Fakes
         }
 
         public bool IsDisplayNuGetPackageExplorerLinkEnabled()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
         {
             throw new NotImplementedException();
         }
