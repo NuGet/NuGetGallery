@@ -1053,6 +1053,7 @@ namespace NuGetGallery
             var newCredential = _credentialBuilder.CreateApiKey(expiration, out string plaintextApiKey);
             newCredential.Description = description;
             newCredential.Scopes = scopes;
+            newCredential.WasCreatedSecurely = User.WasMultiFactorAuthenticated();
 
             await AuthenticationService.AddCredential(user, newCredential);
 

@@ -906,6 +906,58 @@ namespace NuGetGallery
                 Assert.NotNull(apiKey);
                 Assert.Equal(description, apiKey.Description);
                 Assert.Equal(expectedScopes.Length, apiKey.Scopes.Count);
+                Assert.False(apiKey.WasCreatedSecurely);
+
+                foreach (var expectedScope in expectedScopes)
+                {
+                    var actualScope =
+                        apiKey.Scopes.First(x => x.AllowedAction == expectedScope.AllowedAction &&
+                                                 x.Subject == expectedScope.Subject);
+                    Assert.NotNull(actualScope);
+                }
+            }
+
+            [MemberData(nameof(CreatesNewApiKeyCredential_Input))]
+            [Theory]
+            public async Task CreatesNewApiKeyCredentialSecurely(string description, string[] scopes, string[] subjects, Scope[] expectedScopes)
+            {
+                // Arrange 
+                var user = new User("the-username");
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username, false))
+                    .Returns(user);
+
+                GetMock<AuthenticationService>()
+                   .Setup(u => u.AddCredential(
+                       It.IsAny<User>(),
+                       It.IsAny<Credential>()))
+                   .Callback<User, Credential>((u, c) =>
+                   {
+                       u.Credentials.Add(c);
+                       c.User = u;
+                   })
+                   .Completes()
+                   .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+                controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                // Act
+                await controller.GenerateApiKey(
+                    description: description,
+                    owner: user.Username,
+                    scopes: scopes,
+                    subjects: subjects,
+                    expirationInDays: null);
+
+                // Assert
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V4);
+
+                Assert.NotNull(apiKey);
+                Assert.Equal(description, apiKey.Description);
+                Assert.Equal(expectedScopes.Length, apiKey.Scopes.Count);
+                Assert.True(apiKey.WasCreatedSecurely);
 
                 foreach (var expectedScope in expectedScopes)
                 {
