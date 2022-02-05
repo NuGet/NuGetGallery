@@ -37,12 +37,12 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         [Theory]
         [Priority(2)]
         [Category("P2Tests")]
-        [InlineData("/", "__Controller::TempData", "Message=You successfully uploaded z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌ 1.0.0.", 400, false)]
-        [InlineData("/", "__Controller::TempData", "Message=<script>alert(1)</script>", 400, false)]
-        [InlineData("/", "__Controller::TempData", "<script>alert(1)</script>", 400, false)]
-        [InlineData("/packages", "nugetab", "<script>alert(1)</script>", 400, true)]
-        [InlineData("/packages", "nugetab", "z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌", 400, false)]
-        public async Task RejectedCookie(string relativePath, string name, string value, int statusCode, bool pretty)
+        [InlineData("/", "__Controller::TempData", "Message=You successfully uploaded z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌ 1.0.0.", 400)]
+        [InlineData("/", "__Controller::TempData", "Message=<script>alert(1)</script>", 400)]
+        [InlineData("/", "__Controller::TempData", "<script>alert(1)</script>", 400)]
+        [InlineData("/packages", "nugetab", "<script>alert(1)</script>", 400)]
+        [InlineData("/packages", "nugetab", "z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌", 400)]
+        public async Task RejectedCookie(string relativePath, string name, string value, int statusCode)
         {
             // Arrange
             _httpClientHandler.UseCookies = false;
@@ -55,14 +55,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
                 var response = await GetTestResponseAsync(relativePath, request);
 
                 // Assert
-                if (pretty)
-                {
-                    Validator.PrettyHtml((HttpStatusCode)statusCode)(response);
-                }
-                else
-                {
-                    Validator.SimpleHtml((HttpStatusCode)statusCode)(response);
-                }
+                Assert.Equal((HttpStatusCode)statusCode, response.StatusCode);
             }
         }
 
