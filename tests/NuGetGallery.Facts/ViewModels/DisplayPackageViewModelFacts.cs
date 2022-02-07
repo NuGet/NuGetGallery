@@ -291,6 +291,61 @@ namespace NuGetGallery.ViewModels
         }
 
         [Theory]
+        [InlineData(true, true, true)]
+        [InlineData(false, true, true)]
+        [InlineData(true, false, true)]
+        [InlineData(true, true, false)]
+        [InlineData(false, false, true)]
+        [InlineData(false, true, false)]
+        [InlineData(false, false, false)]
+        public void CannotDisplayTargetFrameworksWhenInvalid(bool isEnabled, bool isDeleted, bool isTemplate)
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            model.IsDisplayTargetFrameworkEnabled = isEnabled;
+            model.Deleted = isDeleted;
+            model.IsDotnetNewTemplatePackageType = isTemplate;
+
+            Assert.False(model.CanDisplayTargetFrameworks());
+        }
+
+        [Fact]
+        public void CanDisplayTargetFrameworksWhenValid()
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            model.IsDisplayTargetFrameworkEnabled = true;
+            model.Deleted = false;
+            model.IsDotnetNewTemplatePackageType = false;
+
+            Assert.True(model.CanDisplayTargetFrameworks());
+        }
+
+        [Theory]
         [InlineData(null, null)]
         [InlineData("not a url", null)]
         [InlineData("git://github.com/notavalidscheme", null)]
