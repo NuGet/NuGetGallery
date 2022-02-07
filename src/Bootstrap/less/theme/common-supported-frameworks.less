@@ -1,5 +1,5 @@
 @badge-dark: #0078d4;
-@badge-dark-opaque: rgba(0, 183, 195, 0.1);
+@badge-dark-opaque: rgba(0, 120, 212, 0.1);
 @table-product-width: 232px;
 
 .framework {
@@ -18,6 +18,7 @@
   border-radius: 2px;
   justify-content: center;
   display: inline-block;
+  border: 1px solid @badge-dark;
 }
 
 .framework-badge:not(:last-child) {
@@ -32,7 +33,6 @@
 
 .framework-badge-computed {
   .framework-badge;
-  border: 1px solid @badge-dark;
   background: @badge-dark-opaque
 }
 
