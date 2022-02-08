@@ -20,7 +20,7 @@ namespace NuGetGallery.Helpers
 
         public static IEnumerable<string> GetNormalizedEntryPaths(PackageArchiveReader nuGetPackage)
         {
-            return nuGetPackage.GetFiles().Select(packageFile => FileNameHelper.GetZipEntryPath(packageFile));
+            return nuGetPackage.GetFiles().Select(packageFile => FileNameHelper.GetZipEntryPath(packageFile)).ToList();
         }
     }
 }
