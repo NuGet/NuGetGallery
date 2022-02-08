@@ -141,6 +141,11 @@ namespace NuGetGallery
             return IsFuGetLinksEnabled && !string.IsNullOrEmpty(FuGetUrl) && Available;
         }
 
+        public bool CanDisplayTargetFrameworks()
+        {
+            return IsDisplayTargetFrameworkEnabled && !Deleted && !IsDotnetNewTemplatePackageType;
+        }
+
         public bool BlockSearchEngineIndexing
         {
             get

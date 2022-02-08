@@ -265,7 +265,7 @@
                     </h1>
                 </div>
 
-                @if (Model.IsDisplayTargetFrameworkEnabled)
+                @if (Model.CanDisplayTargetFrameworks())
                 {
                     @Html.Partial("_SupportedFrameworksBadges", Model.PackageFrameworkCompatibility.Badges);
                 }
@@ -523,7 +523,7 @@
                             </a>
                         </li>
 
-                     if (!Model.Deleted && Model.IsDisplayTargetFrameworkEnabled)
+                     if (Model.CanDisplayTargetFrameworks())
                      {
                         activeBodyTab = activeBodyTab ?? "supportedframeworks";
                         <li role="presentation" id="show-supportedframeworks-container">
@@ -644,8 +644,10 @@
                         }
                     </div>
 
+                    if (Model.CanDisplayTargetFrameworks())
+                    {
                     <div role="tabpanel" class="tab-pane @(activeBodyTab == "supportedframeworks" ? "active" : "")" id="supportedframeworks-tab">
-                        @if (Model.IsDisplayTargetFrameworkEnabled && Model.PackageFrameworkCompatibility.Table.Count > 0)
+                        @if (Model.PackageFrameworkCompatibility.Table.Count > 0)
                         {
                             @Html.Partial("_SupportedFrameworksTable", Model.PackageFrameworkCompatibility.Table)
                         }
@@ -655,6 +657,7 @@
                             <p class="frameworktableinfo-text"><i>Learn more about <a href='https://docs.microsoft.com/dotnet/standard/frameworks' aria-label="Learn more about Target Frameworks">Target Frameworks</a> and <a href='https://docs.microsoft.com/dotnet/standard/net-standard' aria-label="Learn more about .NET Standard">.NET Standard</a>.</i></p>
                         }
                     </div>
+                    }
 
                     <div role="tabpanel" class="tab-pane @(activeBodyTab == "dependencies" ? "active" : "")" id="dependencies-tab">
                         @if (!Model.Deleted)
