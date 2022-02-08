@@ -56,7 +56,7 @@ namespace NuGetGallery.Helpers
         public class GetNormalizedEntryPathsMethod
         {
             [Theory]
-            [InlineData("./net50\\file.txt", "net50/file.dll")]
+            [InlineData("./net50\\file.dll", "net50/file.dll")]
             [InlineData("\\netstandard10\\file.dll", "netstandard10/file.dll")]
             [InlineData("\\\\net472", "net472")]
             public void AlwaysReturnsCorrectPath(string path, string correctPath)
