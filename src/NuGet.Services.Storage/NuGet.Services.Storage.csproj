@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Storage.DataMovement" Version="0.9.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
       <Version>2.2.0</Version>
     </PackageReference>

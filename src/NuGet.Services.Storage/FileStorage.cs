@@ -41,7 +41,7 @@ namespace NuGet.Services.Storage
             return Task.FromResult(Exists(fileName));
         }
 
-        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> List(bool getMetadata, CancellationToken cancellationToken)
         {
             DirectoryInfo directoryInfo = new DirectoryInfo(Path);
             var files = directoryInfo.GetFiles("*", SearchOption.AllDirectories)
@@ -57,8 +57,17 @@ namespace NuGet.Services.Storage
             set;
         }
 
-        //  save
+        protected override Task OnCopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
 
+        //  save
         protected override async Task OnSave(Uri resourceUri, StorageContent content, bool overwrite, CancellationToken cancellationToken)
         {
             SaveCount++;
@@ -162,6 +171,11 @@ namespace NuGet.Services.Storage
             {
                 await Task.Run(() => { fileInfo.Delete(); },cancellationToken);
             }
+        }
+
+        public override Task SetMetadataAsync(Uri resourceUri, IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
         }
     }
 }

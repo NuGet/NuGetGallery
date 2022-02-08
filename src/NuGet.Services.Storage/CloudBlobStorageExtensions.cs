@@ -11,19 +11,21 @@ namespace NuGet.Services.Storage
     internal static class CloudBlobStorageExtensions
     {
         public static async Task<IEnumerable<IListBlobItem>> ListBlobsAsync(
-            this CloudBlobDirectory directory, CancellationToken cancellationToken)
+            this CloudBlobDirectory directory,
+            bool getMetadata,
+            CancellationToken cancellationToken)
         {
             var items = new List<IListBlobItem>();
             BlobContinuationToken continuationToken = null;
             do
             {
                 var segment = await directory.ListBlobsSegmentedAsync(
-                    useFlatBlobListing: true, 
-                    blobListingDetails: BlobListingDetails.None,  
-                    maxResults: null, 
+                    useFlatBlobListing: true,
+                    blobListingDetails: getMetadata ? BlobListingDetails.Metadata : BlobListingDetails.None,
+                    maxResults: null,
                     currentToken:  continuationToken,
-                    options: null, 
-                    operationContext: null, 
+                    options: null,
+                    operationContext: null,
                     cancellationToken: cancellationToken);
 
                 continuationToken = segment.ContinuationToken;

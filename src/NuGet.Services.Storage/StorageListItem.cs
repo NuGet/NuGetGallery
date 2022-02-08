@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace NuGet.Services.Storage
 {
@@ -11,10 +12,13 @@ namespace NuGet.Services.Storage
 
         public DateTime? LastModifiedUtc { get; private set; }
 
-        public StorageListItem(Uri uri, DateTime? lastModifiedUtc)
+        public IDictionary<string, string> Metadata { get; private set; }
+
+        public StorageListItem(Uri uri, DateTime? lastModifiedUtc, IDictionary<string, string> metadata = null)
         {
             Uri = uri;
             LastModifiedUtc = lastModifiedUtc;
+            Metadata = metadata;
         }
     }
 }

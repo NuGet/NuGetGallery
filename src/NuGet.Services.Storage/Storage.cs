@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -28,9 +29,40 @@ namespace NuGet.Services.Storage
             return BaseAddress.ToString();
         }
 
+        protected abstract Task OnCopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken);
         protected abstract Task OnSave(Uri resourceUri, StorageContent content, bool overwrite, CancellationToken cancellationToken);
         protected abstract Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken);
         protected abstract Task OnDelete(Uri resourceUri, CancellationToken cancellationToken);
+
+        public async Task CopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken)
+        {
+            TraceMethod(nameof(CopyAsync), sourceUri);
+
+            var stopwatch = Stopwatch.StartNew();
+
+            try
+            {
+                await OnCopyAsync(sourceUri, destinationStorage, destinationUri, destinationProperties, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                TraceException(nameof(CopyAsync), sourceUri, e);
+                throw;
+            }
+
+            TraceExecutionTime(nameof(CopyAsync), sourceUri, stopwatch.ElapsedMilliseconds);
+        }
+
 
         public async Task Save(Uri resourceUri, StorageContent content, bool overwrite, CancellationToken cancellationToken)
         {
@@ -122,7 +154,7 @@ namespace NuGet.Services.Storage
         public Uri BaseAddress { get; protected set; }
         public abstract bool Exists(string fileName);
         public abstract Task<bool> ExistsAsync(string fileName, CancellationToken cancellationToken);
-        public abstract Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<StorageListItem>> List(bool getMetadata, CancellationToken cancellationToken);
 
         public bool Verbose
         {
@@ -198,5 +230,22 @@ namespace NuGet.Services.Storage
                 _logger.LogInformation("{Method} {ResourceUri}", method, resourceUri);
             }
         }
+
+        private void TraceException(string method, Uri resourceUri, Exception exception)
+        {
+            _logger.LogError(exception, "{Method} threw exception for {Url}", method, resourceUri);
+        }
+
+        private void TraceExecutionTime(string method, Uri resourceUri, long executionTimeInMilliseconds)
+        {
+            _logger.LogInformation("Execution time: {@data}", new
+            {
+                MethodName = method,
+                StreamUri = GetUri(GetName(resourceUri)),
+                ExecutionTimeInMilliseconds = executionTimeInMilliseconds
+            });
+        }
+
+        public abstract Task SetMetadataAsync(Uri resourceUri, IDictionary<string, string> metadata);
     }
 }

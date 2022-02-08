@@ -103,7 +103,9 @@ namespace NuGet.Services.Storage.Tests
                     ContainerName,
                     _dirPath,
                     BaseAddress,
-                    new Mock<ILogger<AzureStorage>>().Object);
+                    useServerSideCopy: true,
+                    initializeContainer: true,
+                    logger: new Mock<ILogger<AzureStorage>>().Object);
 
                 _resourceUri = new Uri(BaseAddress, BlobName);
             }

@@ -33,7 +33,17 @@ namespace NuGet.Services.Storage
         
             BaseAddress = _primaryStorage.BaseAddress;
         }
-        
+
+        protected override Task OnCopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         protected override Task OnSave(Uri resourceUri, StorageContent content, bool overwrite, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
@@ -91,9 +101,14 @@ namespace NuGet.Services.Storage
             return _primaryStorage.ExistsAsync(fileName, cancellationToken);
         }
 
-        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> List(bool getMetadata, CancellationToken cancellationToken)
         {
-            return _primaryStorage.List(cancellationToken);
+            return _primaryStorage.List(getMetadata, cancellationToken);
+        }
+
+        public override Task SetMetadataAsync(Uri resourceUri, IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
         }
     }
 }
