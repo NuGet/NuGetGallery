@@ -2,13 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Moq;
 using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery.Helpers
 {
-    public class ValidationHelperFacts
+    public class PackageValidationHelperFacts
     {
         public class HasDuplicatedEntriesMethod
         {
@@ -25,10 +26,10 @@ namespace NuGetGallery.Helpers
             public void WithDuplicatedEntries_ReturnsFalse(params string[] entryNames)
             {
                 // Arrange
-                var package = GeneratePackage(entryNames: entryNames);
+                var package = PackageValidationHelperFacts.GeneratePackage(entryNames: entryNames);
 
                 // Act
-                var hasDuplicatedEntries = ValidationHelper.HasDuplicatedEntries(package.Object);
+                var hasDuplicatedEntries = PackageValidationHelper.HasDuplicatedEntries(package.Object);
 
                 // Assert
                 Assert.True(hasDuplicatedEntries);
@@ -42,20 +43,40 @@ namespace NuGetGallery.Helpers
             public void WithNoDuplicatedEntries_ReturnsTrue(params string[] entryNames)
             {
                 // Arrange
-                var package = GeneratePackage(entryNames: entryNames);
+                var package = PackageValidationHelperFacts.GeneratePackage(entryNames: entryNames);
 
                 // Act
-                var hasDuplicatedEntries = ValidationHelper.HasDuplicatedEntries(package.Object);
+                var hasDuplicatedEntries = PackageValidationHelper.HasDuplicatedEntries(package.Object);
 
                 // Assert
                 Assert.False(hasDuplicatedEntries);
             }
+        }
 
-            private Mock<TestPackageReader> GeneratePackage(IReadOnlyList<string> entryNames)
+        public class GetNormalizedEntryPathsMethod
+        {
+            [Theory]
+            [InlineData("./net50\\file.txt", "net50/file.dll")]
+            [InlineData("\\netstandard10\\file.dll", "netstandard10/file.dll")]
+            [InlineData("\\\\net472", "net472")]
+            public void AlwaysReturnsCorrectPath(string path, string correctPath)
             {
-                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(entryNames: entryNames);
-                return PackageServiceUtility.CreateNuGetPackage(packageStream);
+                // Arrange
+                var paths = new string[] { path };
+                var package = PackageValidationHelperFacts.GeneratePackage(entryNames: paths);
+
+                // Act
+                var normalizedPaths = PackageValidationHelper.GetNormalizedEntryPaths(package.Object).Skip(1);
+
+                // Assert
+                Assert.Equal(normalizedPaths.First(), correctPath);
             }
+        }
+
+        public static Mock<TestPackageReader> GeneratePackage(IReadOnlyList<string> entryNames)
+        {
+            var packageStream = PackageServiceUtility.CreateNuGetPackageStream(entryNames: entryNames);
+            return PackageServiceUtility.CreateNuGetPackage(packageStream);
         }
     }
 }

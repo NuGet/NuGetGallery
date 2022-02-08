@@ -17,6 +17,7 @@ using NuGet.RuntimeModel;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
+using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PackageType = NuGet.Packaging.Core.PackageType;
@@ -711,7 +712,7 @@ namespace NuGetGallery
         {
             if (_featureFlagService.ArePatternSetTfmHeuristicsEnabled())
             {
-                return GetSupportedFrameworks(package.NuspecReader, package.GetFiles().ToList());
+                return GetSupportedFrameworks(package.NuspecReader, PackageValidationHelper.GetNormalizedEntryPaths(package));
             }
 
             return package.GetSupportedFrameworks();
@@ -729,7 +730,7 @@ namespace NuGetGallery
         /// - If this isn't a tools package, we look for build-time, runtime, content and resource file patterns
         /// For added details on the various cases, see unit tests targeting this method.
         /// </summary>
-        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles)
+        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IEnumerable<string> packageFiles)
         {
             var supportedTFMs = Enumerable.Empty<NuGetFramework>();
             if (packageFiles != null && packageFiles.Any() && nuspecReader != null)

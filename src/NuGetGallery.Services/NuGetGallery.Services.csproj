@@ -153,6 +153,7 @@
     <Compile Include="Helpers\LatestPackageRouteVerifier.cs" />
     <Compile Include="Helpers\MailAddressConverter.cs" />
     <Compile Include="Helpers\UploadHelper.cs" />
+    <Compile Include="Helpers\PackageValidationHelper.cs" />
     <Compile Include="Mail\GalleryEmailRecipientsUtility.cs" />
     <Compile Include="Mail\Messages\PackageOwnerAddedMessage.cs" />
     <Compile Include="Mail\Messages\PackageOwnerRemovedMessage.cs" />
