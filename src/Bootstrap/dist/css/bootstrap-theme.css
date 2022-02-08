@@ -704,6 +704,7 @@ img.reserved-indicator-icon {
   -ms-flex-pack: center;
   justify-content: center;
   display: inline-block;
+  border: 1px solid #0078d4;
 }
 .framework-badge:not(:last-child) {
   margin-right: 8px;
@@ -716,6 +717,7 @@ img.reserved-indicator-icon {
   -ms-flex-pack: center;
   justify-content: center;
   display: inline-block;
+  border: 1px solid #0078d4;
   background: #0078d4;
   color: white;
 }
@@ -728,7 +730,7 @@ img.reserved-indicator-icon {
   justify-content: center;
   display: inline-block;
   border: 1px solid #0078d4;
-  background: rgba(0, 183, 195, 0.1);
+  background: rgba(0, 120, 212, 0.1);
 }
 .framework-table {
   margin-bottom: 30px;
