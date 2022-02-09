@@ -730,7 +730,7 @@ namespace NuGetGallery
         /// - If this isn't a tools package, we look for build-time, runtime, content and resource file patterns
         /// For added details on the various cases, see unit tests targeting this method.
         /// </summary>
-        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IEnumerable<string> packageFiles)
+        public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles)
         {
             var supportedTFMs = Enumerable.Empty<NuGetFramework>();
             if (packageFiles != null && packageFiles.Any() && nuspecReader != null)

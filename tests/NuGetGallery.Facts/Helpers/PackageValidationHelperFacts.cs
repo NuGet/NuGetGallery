@@ -66,10 +66,10 @@ namespace NuGetGallery.Helpers
                 var package = PackageValidationHelperFacts.GeneratePackage(entryNames: paths);
 
                 // Act
-                var normalizedPaths = PackageValidationHelper.GetNormalizedEntryPaths(package.Object).Skip(1);
+                var normalizedPaths = PackageValidationHelper.GetNormalizedEntryPaths(package.Object);
 
                 // Assert
-                Assert.Equal(normalizedPaths.First(), correctPath);
+                Assert.Equal(normalizedPaths.ElementAt(1), correctPath);
             }
         }
 

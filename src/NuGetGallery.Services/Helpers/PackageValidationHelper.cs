@@ -18,7 +18,7 @@ namespace NuGetGallery.Helpers
             return packageFiles.Count() != packageFiles.Distinct(StringComparer.OrdinalIgnoreCase).Count();
         }
 
-        public static IEnumerable<string> GetNormalizedEntryPaths(PackageArchiveReader nuGetPackage)
+        public static IList<string> GetNormalizedEntryPaths(PackageArchiveReader nuGetPackage)
         {
             return nuGetPackage.GetFiles().Select(packageFile => FileNameHelper.GetZipEntryPath(packageFile)).ToList();
         }
