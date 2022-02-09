@@ -17,6 +17,7 @@ using NuGet.RuntimeModel;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
+using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PackageType = NuGet.Packaging.Core.PackageType;
@@ -711,7 +712,7 @@ namespace NuGetGallery
         {
             if (_featureFlagService.ArePatternSetTfmHeuristicsEnabled())
             {
-                return GetSupportedFrameworks(package.NuspecReader, package.GetFiles().ToList());
+                return GetSupportedFrameworks(package.NuspecReader, PackageValidationHelper.GetNormalizedEntryPaths(package));
             }
 
             return package.GetSupportedFrameworks();

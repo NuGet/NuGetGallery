@@ -683,7 +683,7 @@ namespace NuGetGallery
 
         private PackageValidationResult CheckPackageDuplicatedEntries(PackageArchiveReader nuGetPackage)
         {
-            if (ValidationHelper.HasDuplicatedEntries(nuGetPackage))
+            if (PackageValidationHelper.HasDuplicatedEntries(nuGetPackage))
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_PackageContainsDuplicatedEntries);
             }
