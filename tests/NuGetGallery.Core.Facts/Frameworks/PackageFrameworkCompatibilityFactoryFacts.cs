@@ -80,6 +80,23 @@ namespace NuGetGallery.Frameworks
             Assert.Null(result.Badges.NetFramework);
         }
 
+        [Fact]
+        public void AnyFrameworksShouldBeIgnored()
+        {
+            var packageFrameworks = new HashSet<PackageFramework>()
+            {
+                new PackageFramework() { TargetFramework = "any" },
+            };
+
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            Assert.Empty(result.Table);
+            Assert.Null(result.Badges.Net);
+            Assert.Null(result.Badges.NetCore);
+            Assert.Null(result.Badges.NetStandard);
+            Assert.Null(result.Badges.NetFramework);
+        }
+
         [Theory]
         [InlineData(FrameworkProductNames.Net, "net5.0", "net6.0", "net6.0-android")]
         [InlineData(FrameworkProductNames.NetCore, "netcoreapp1.0", "netcoreapp3.1")]
