@@ -118,5 +118,10 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsComputeTargetFrameworkEnabled() => throw new NotImplementedException();
 
         public bool IsRecentPackagesNoIndexEnabled() => throw new NotImplementedException();
+
+        public bool IsDotnet20BannerEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
