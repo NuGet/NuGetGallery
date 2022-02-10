@@ -177,16 +177,6 @@ namespace NuGetGallery
         /// Whether the user is able to publish the package with an embedded readme file.
         /// </summary>
         bool AreEmbeddedReadmesEnabled(User user);
-
-        /// <summary>
-        /// Whether the preview of the new design of the display package page is enabled.
-        /// </summary>
-        bool IsDisplayPackagePageV2PreviewEnabled(User user);
-
-        /// <summary>
-        /// Whether the new design of the display package page is enabled.
-        /// </summary>
-        bool IsDisplayPackagePageV2Enabled(User user);
         
         /// <summary>
         /// Whether the /Packages() endpoint is enabled for the V1 OData API.

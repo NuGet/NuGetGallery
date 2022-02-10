@@ -221,7 +221,6 @@
     <Compile Include="Extensions\ImageExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
-    <Compile Include="Helpers\ValidationHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DisplayLicenseViewModelFactory.cs" />
@@ -318,6 +317,10 @@
     <Compile Include="Migrations\202201242159337_AddUserStatusKeyColumn.cs" />
     <Compile Include="Migrations\202201242159337_AddUserStatusKeyColumn.designer.cs">
       <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202202010109383_AddCreatedSecurelyToCredentials.cs" />
+    <Compile Include="Migrations\202202010109383_AddCreatedSecurelyToCredentials.designer.cs">
+      <DependentUpon>202202010109383_AddCreatedSecurelyToCredentials.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1661,6 +1664,9 @@
     <EmbeddedResource Include="Migrations\202201242159337_AddUserStatusKeyColumn.resx">
       <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202010109383_AddCreatedSecurelyToCredentials.resx">
+      <DependentUpon>202202010109383_AddCreatedSecurelyToCredentials.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1852,7 +1858,6 @@
     <Content Include="Scripts\gallery\page-api-keys.js" />
     <Content Include="Scripts\gallery\page-delete-package.js" />
     <Content Include="Scripts\gallery\page-display-package.js" />
-    <Content Include="Scripts\gallery\page-display-package-v2.js" />
     <Content Include="Scripts\gallery\page-edit-readme.js" />
     <Content Include="Scripts\gallery\page-home.js" />
     <Content Include="Scripts\gallery\page-manage-deprecation.js" />
@@ -1881,7 +1886,6 @@
     <Content Include="Views\Authentication\Register.cshtml" />
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
-    <Content Include="Views\Packages\DisplayPackageV2.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
@@ -2285,7 +2289,7 @@
       <Version>1.1.3</Version>
     </PackageReference>
     <PackageReference Include="SharpZipLib">
-      <Version>1.1.0</Version>
+      <Version>1.3.3</Version>
     </PackageReference>
     <PackageReference Include="Strathweb.CacheOutput.WebApi2.StrongName">
       <Version>0.9.0</Version>

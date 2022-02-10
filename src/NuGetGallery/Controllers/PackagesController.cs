@@ -1049,35 +1049,7 @@ namespace NuGetGallery
             }
             ViewBag.FacebookAppID = _config.FacebookAppId;
 
-            var enableRedesign = _featureFlagService.IsDisplayPackagePageV2Enabled(currentUser);
-
-            if (_featureFlagService.IsDisplayPackagePageV2PreviewEnabled(currentUser))
-            {
-                if (!string.IsNullOrEmpty(preview))
-                {
-                    enableRedesign = true;
-                }
-
-                // If the user is on the current design, show the banner to preview the redesign.
-                // If the user is on the preview design, show the banner that links to the feedback survey.
-                ViewBag.ShowRedesignPreviewBanner = !enableRedesign;
-                ViewBag.ShowRedesignSurveyBanner = enableRedesign;
-                ViewBag.ShowRedesignUrl = Url.Package(package, preview: true);
-            }
-            else
-            {
-                ViewBag.ShowRedesignPreviewBanner = false;
-                ViewBag.ShowRedesignSurveyBanner = false;
-            }
-
-            if (enableRedesign)
-            {
-                return View("DisplayPackageV2", model);
-            }
-            else
-            {
-                return View("DisplayPackage", model);
-            }
+            return View(model);
         }
 
         private PackageDependents GetPackageDependents(string id)
