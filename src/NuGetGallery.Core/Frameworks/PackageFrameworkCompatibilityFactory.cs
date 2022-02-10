@@ -38,7 +38,7 @@ namespace NuGetGallery.Frameworks
 
             var filteredPackageFrameworks = packageFrameworks
                 .Select(pf => pf.FrameworkName)
-                .Where(f => !f.IsUnsupported && !f.IsPCL)
+                .Where(f => !f.IsUnsupported && !f.IsPCL && !f.IsAny)
                 .ToHashSet();
 
             var table = CreateFrameworkCompatibilityTable(filteredPackageFrameworks);

@@ -165,7 +165,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(id));
             }
-            
+
             PackageDependents result = new PackageDependents();
 
             // We use OPTIMIZE FOR UNKNOWN by default here because there are distinct 2-3 query plans that may be
@@ -321,7 +321,7 @@ namespace NuGetGallery
                 var semvered = localPackages
                     .Select(package => new {package, semVer= NuGetVersion.Parse(package.NormalizedVersion)})
                     .ToList();
-                
+
                 return semvered
                     .Where(d => d.semVer.IsPrerelease == prerelease || !applyPrereleaseFilter)
                     .OrderByDescending(d => d.semVer)
@@ -342,13 +342,13 @@ namespace NuGetGallery
                         .FirstOrDefault();
                 }
             }
-            
+
             Package GetLatestPrerelease()
             {
                 return GetSortedFiltered(packages)
                     .FirstOrDefault();
             }
-            
+
             Package GetLatestStable()
             {
                 return GetSortedFiltered(packages, false)
@@ -663,23 +663,17 @@ namespace NuGetGallery
                 package.Authors.Add(new PackageAuthor { Name = author });
             }
 #pragma warning restore 618
-
-            var supportedFrameworks = GetSupportedFrameworks(packageArchive)
+            
+            var supportedFrameworkNames = GetSupportedFrameworks(packageArchive)
+                .Select(fn => fn.GetShortFolderName())
+                .Where(fn => fn != null)
                 .ToArray();
 
-            if (!supportedFrameworks.Any(fx => fx != null && fx.IsAny))
+            ValidateSupportedFrameworks(supportedFrameworkNames);
+
+            foreach (var supportedFramework in supportedFrameworkNames)
             {
-                var supportedFrameworkNames = supportedFrameworks
-                                .Select(fn => fn.ToShortNameOrNull())
-                                .Where(fn => fn != null)
-                                .ToArray();
-
-                ValidateSupportedFrameworks(supportedFrameworkNames);
-
-                foreach (var supportedFramework in supportedFrameworkNames)
-                {
-                    package.SupportedFrameworks.Add(new PackageFramework { TargetFramework = supportedFramework });
-                }
+                package.SupportedFrameworks.Add(new PackageFramework { TargetFramework = supportedFramework });
             }
 
             package.Dependencies = packageMetadata

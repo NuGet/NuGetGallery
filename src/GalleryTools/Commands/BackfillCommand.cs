@@ -466,7 +466,7 @@ namespace GalleryTools.Commands
             var zipDirectory = await zipDirectoryReader.ReadAsync();
             var files = zipDirectory
                 .Entries
-                .Select(x => x.GetName())
+                .Select(x => FileNameHelper.GetZipEntryPath(x.GetName()))
                 .ToList();
 
             return ReadMetadata(files, nuspecReader);
