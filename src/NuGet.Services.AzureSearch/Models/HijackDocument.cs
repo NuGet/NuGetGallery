@@ -1,8 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Indexes;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -15,10 +14,9 @@ namespace NuGet.Services.AzureSearch
         /// All fields available in the hijack index. Used for reading the index and updating a document when
         /// <see cref="HijackDocumentChanges.UpdateMetadata"/> is <c>true</c>.
         /// </summary>
-        [SerializePropertyNamesAsCamelCase]
         public class Full : BaseMetadataDocument, ILatest, IBaseMetadataDocument
         {
-            [IsFilterable]
+            [SimpleField(IsFilterable = true)]
             public bool? Listed { get; set; }
 
             public bool? IsLatestStableSemVer1 { get; set; }
@@ -31,7 +29,6 @@ namespace NuGet.Services.AzureSearch
         /// Used for updating a document when <see cref="HijackDocumentChanges.UpdateMetadata"/> is <c>false</c>
         /// and <see cref="HijackDocumentChanges.Delete"/> is <c>false</c>.
         /// </summary>
-        [SerializePropertyNamesAsCamelCase]
         public class Latest : CommittedDocument, ILatest
         {
             public bool? IsLatestStableSemVer1 { get; set; }

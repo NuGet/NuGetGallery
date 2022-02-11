@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.Search.Models;
+﻿using Azure.Search.Documents.Indexes.Models;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -10,8 +10,9 @@ namespace NuGet.Services.AzureSearch
     {
         public const string Name = "nuget_package_id_tokenizer";
 
-        public static readonly PatternTokenizer Instance = new PatternTokenizer(
-            Name,
-            @"[.\-_,;:'*#!~+()\[\]{}\s]");
+        public static readonly PatternTokenizer Instance = new PatternTokenizer(Name)
+        {
+            Pattern = @"[.\-_,;:'*#!~+()\[\]{}\s]",
+        };
     }
 }

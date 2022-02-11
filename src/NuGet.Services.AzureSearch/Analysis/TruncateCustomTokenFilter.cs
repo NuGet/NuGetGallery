@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Indexes.Models;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -13,8 +13,9 @@ namespace NuGet.Services.AzureSearch
     {
         public const string Name = "nuget_truncate_filter";
 
-        public static TruncateTokenFilter Instance = new TruncateTokenFilter(
-            Name,
-            length: 300);
+        public static TruncateTokenFilter Instance = new TruncateTokenFilter(Name)
+        {
+            Length = 300
+        };
     }
 }

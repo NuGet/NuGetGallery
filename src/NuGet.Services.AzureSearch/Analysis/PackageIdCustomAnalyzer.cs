@@ -1,8 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Indexes.Models;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -15,14 +14,14 @@ namespace NuGet.Services.AzureSearch
     {
         public const string Name = "nuget_package_id_analyzer";
 
-        public static readonly CustomAnalyzer Instance = new CustomAnalyzer(
-            Name,
-            PackageIdCustomTokenizer.Name,
-            new List<TokenFilterName>
+        public static readonly CustomAnalyzer Instance = new CustomAnalyzer(Name, PackageIdCustomTokenizer.Name)
+        {
+            TokenFilters =
             {
                 IdentifierCustomTokenFilter.Name,
                 TokenFilterName.Lowercase,
                 TruncateCustomTokenFilter.Name,
-            });
+            }
+        };
     }
 }
