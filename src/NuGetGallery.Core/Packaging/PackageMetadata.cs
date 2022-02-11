@@ -92,7 +92,7 @@ namespace NuGetGallery.Packaging
             ProjectUrl = GetValue(PackageMetadataStrings.ProjectUrl, (Uri)null);
             LicenseUrl = GetValue(PackageMetadataStrings.LicenseUrl, (Uri)null);
             Copyright = GetValue(PackageMetadataStrings.Copyright, (string)null);
-            Description = GetValue(PackageMetadataStrings.Description, (string)null);
+            Description = GetValue(PackageMetadataStrings.Description, String.Empty);
             ReleaseNotes = GetValue(PackageMetadataStrings.ReleaseNotes, (string)null);
             RequireLicenseAcceptance = GetValue(PackageMetadataStrings.RequireLicenseAcceptance, false);
             DevelopmentDependency = GetValue(PackageMetadataStrings.DevelopmentDependency, false);
