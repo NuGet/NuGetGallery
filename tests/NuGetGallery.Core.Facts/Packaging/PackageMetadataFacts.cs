@@ -206,7 +206,24 @@ namespace NuGetGallery.Packaging
         }
 
         [Fact]
-        public void CanProcessEmptyNuspecDescriptionValue()
+        public void CanProcessEmptyNuspecDescriptionValueOnReflow()
+        {
+            // Arrange
+            var packageStream = CreateTestPackageStreamWithEmptyDescription();
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act
+            var packageMetadata = PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: false);
+
+            // Assert
+            Assert.NotNull(packageMetadata.Description);
+        }
+
+        [Fact]
+        public void DoesNotFixEmptyNuspecDescriptionValueOnUpload()
         {
             // Arrange
             var packageStream = CreateTestPackageStreamWithEmptyDescription();
@@ -219,7 +236,7 @@ namespace NuGetGallery.Packaging
                 strict: true);
 
             // Assert
-            Assert.NotNull(packageMetadata.Description);
+            Assert.Null(packageMetadata.Description);
         }
 
         [Theory]

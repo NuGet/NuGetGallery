@@ -92,7 +92,7 @@ namespace NuGetGallery.Packaging
             ProjectUrl = GetValue(PackageMetadataStrings.ProjectUrl, (Uri)null);
             LicenseUrl = GetValue(PackageMetadataStrings.LicenseUrl, (Uri)null);
             Copyright = GetValue(PackageMetadataStrings.Copyright, (string)null);
-            Description = GetValue(PackageMetadataStrings.Description, String.Empty);
+            Description = GetValue(PackageMetadataStrings.Description, (string)null);
             ReleaseNotes = GetValue(PackageMetadataStrings.ReleaseNotes, (string)null);
             RequireLicenseAcceptance = GetValue(PackageMetadataStrings.RequireLicenseAcceptance, false);
             DevelopmentDependency = GetValue(PackageMetadataStrings.DevelopmentDependency, false);
@@ -273,7 +273,7 @@ namespace NuGetGallery.Packaging
                 }
             }
 
-            return new PackageMetadata(
+            var packageMetadata = new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),
                 nuspecReader.GetFrameworkAssemblyGroups(),
@@ -281,6 +281,14 @@ namespace NuGetGallery.Packaging
                 nuspecReader.GetMinClientVersion(),
                 nuspecReader.GetRepositoryMetadata(),
                 nuspecReader.GetLicenseMetadata());
+
+            // Fix null or empty description values for reflowed packages
+            if (!strict)
+            {
+                packageMetadata.Description = packageMetadata.Description ?? string.Empty;
+            }
+
+            return packageMetadata;
         }
 
         private class StrictNuspecReader : NuspecReader
