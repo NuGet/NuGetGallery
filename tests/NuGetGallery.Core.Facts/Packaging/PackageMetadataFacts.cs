@@ -205,6 +205,40 @@ namespace NuGetGallery.Packaging
             Assert.Equal("git", packageMetadata.RepositoryType);
         }
 
+        [Fact]
+        public void CanProcessEmptyNuspecDescriptionValueOnReflow()
+        {
+            // Arrange
+            var packageStream = CreateTestPackageStreamWithEmptyDescription();
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act
+            var packageMetadata = PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: false);
+
+            // Assert
+            Assert.NotNull(packageMetadata.Description);
+        }
+
+        [Fact]
+        public void DoesNotFixEmptyNuspecDescriptionValueOnUpload()
+        {
+            // Arrange
+            var packageStream = CreateTestPackageStreamWithEmptyDescription();
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act
+            var packageMetadata = PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: true);
+
+            // Assert
+            Assert.Null(packageMetadata.Description);
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -356,6 +390,22 @@ namespace NuGetGallery.Packaging
                         <licenseUrl>http://www.nuget.org/</licenseUrl>
                         <dependencies />
                         <repository type=""git"" url=""https://github.com/NuGet/NuGetGallery"" commit=""33a34174353a8bf64ab0ee0373936010e948d59d"" branch=""dev"" />
+                      </metadata>
+                    </package>");
+        }
+
+        private static Stream CreateTestPackageStreamWithEmptyDescription()
+        {
+            return CreateTestPackageStream(@"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>TestPackage</id>
+                        <version>0.0.0.1</version>
+                        <title>Package A</title>
+                        <authors>authora, authorb</authors>
+                        <owners>ownera, ownerb</owners>
+                        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                        <description></description>
                       </metadata>
                     </package>");
         }
