@@ -150,7 +150,7 @@ namespace NuGetGallery
         {
             get
             {
-                return !Listed || !Available || (IsRecentPackagesNoIndexEnabled && TotalDaysSinceCreated < 7);
+                return !Listed || !Available || (IsRecentPackagesNoIndexEnabled && TotalDaysSinceCreated < 21);
             }
         }
 
