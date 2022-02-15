@@ -42,15 +42,7 @@ namespace NuGetGallery.ViewModels
             }
 
             [Theory]
-            [InlineData(0, true)]
-            [InlineData(1, true)]
-            [InlineData(2, true)]
-            [InlineData(3, true)]
-            [InlineData(4, true)]
-            [InlineData(5, true)]
-            [InlineData(6, true)]
-            [InlineData(7, false)]
-            [InlineData(8, false)]
+            [MemberData(nameof(BlockSearchEngineIndexingData))]
             public void BlocksNewSingleVersion(int days, bool expected)
             {
                 Target.TotalDaysSinceCreated = days;
@@ -74,10 +66,22 @@ namespace NuGetGallery.ViewModels
                 Target.Listed = true;
                 Target.Available = true;
                 Target.IsRecentPackagesNoIndexEnabled = true;
-                Target.TotalDaysSinceCreated = 14;
+                Target.TotalDaysSinceCreated = NUMBER_OF_DAYS_TO_BLOCK_INDEXING + 7;
             }
 
             public DisplayPackageViewModel Target { get; }
+
+            public static IEnumerable<object[]> BlockSearchEngineIndexingData
+            {
+                get
+                {
+                    for (int i = 0; i < NUMBER_OF_DAYS_TO_BLOCK_INDEXING + 5; i++)
+                    {
+                        yield return new object[] { i, i < NUMBER_OF_DAYS_TO_BLOCK_INDEXING };
+                    }
+                }
+            }
+
         }
 
         private DateTime RandomDay()

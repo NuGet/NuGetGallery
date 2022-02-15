@@ -47,6 +47,8 @@ namespace NuGetGallery
         public bool HasEmbeddedReadmeFile { get; set; }
         public PackageDependents PackageDependents { get; set; }
 
+        public static int NUMBER_OF_DAYS_TO_BLOCK_INDEXING = 21;
+
         public bool HasNewerPrerelease
         {
             get
@@ -150,7 +152,7 @@ namespace NuGetGallery
         {
             get
             {
-                return !Listed || !Available || (IsRecentPackagesNoIndexEnabled && TotalDaysSinceCreated < 21);
+                return !Listed || !Available || (IsRecentPackagesNoIndexEnabled && TotalDaysSinceCreated < NUMBER_OF_DAYS_TO_BLOCK_INDEXING);
             }
         }
 
