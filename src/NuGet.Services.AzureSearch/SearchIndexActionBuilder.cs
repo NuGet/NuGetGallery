@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 
 namespace NuGet.Services.AzureSearch
@@ -47,7 +47,7 @@ namespace NuGet.Services.AzureSearch
             ///   two search documents to be updated, one for <see cref="SearchFilters.IncludePrerelease"/> and one for
             ///   <see cref="SearchFilters.IncludePrereleaseAndSemVer2"/>. The latest version for each of these two
             ///   documents is different.
-            var search = new List<IndexAction<KeyedDocument>>();
+            var search = new List<IndexDocumentsAction<KeyedDocument>>();
             var searchFilters = new List<SearchFilters>();
             foreach (var searchFilter in DocumentUtilities.AllSearchFilters)
             {
@@ -58,7 +58,7 @@ namespace NuGet.Services.AzureSearch
                 }
 
                 var document = buildDocument(searchFilter);
-                var indexAction = IndexAction.Merge(document);
+                var indexAction = IndexDocumentsAction.Merge(document);
                 search.Add(indexAction);
                 searchFilters.Add(searchFilter);
             }
@@ -70,7 +70,7 @@ namespace NuGet.Services.AzureSearch
                 searchFilters);
 
             // No changes are made to the hijack index.
-            var hijack = new List<IndexAction<KeyedDocument>>();
+            var hijack = new List<IndexDocumentsAction<KeyedDocument>>();
 
             // We never make any change to the version list but still want to push it back to storage. This will give
             // us an etag mismatch if the version list has changed. This is good because if the version list has

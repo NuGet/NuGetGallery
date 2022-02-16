@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -14,8 +14,8 @@ namespace NuGet.Services.AzureSearch
     public class IndexActions
     {
         public IndexActions(
-            IReadOnlyList<IndexAction<KeyedDocument>> search,
-            IReadOnlyList<IndexAction<KeyedDocument>> hijack,
+            IReadOnlyList<IndexDocumentsAction<KeyedDocument>> search,
+            IReadOnlyList<IndexDocumentsAction<KeyedDocument>> hijack,
             ResultAndAccessCondition<VersionListData> versionListDataResult)
         {
             Search = search ?? throw new ArgumentNullException(nameof(search));
@@ -23,8 +23,8 @@ namespace NuGet.Services.AzureSearch
             VersionListDataResult = versionListDataResult ?? throw new ArgumentNullException(nameof(versionListDataResult));
         }
 
-        public IReadOnlyList<IndexAction<KeyedDocument>> Search { get; }
-        public IReadOnlyList<IndexAction<KeyedDocument>> Hijack { get; }
+        public IReadOnlyList<IndexDocumentsAction<KeyedDocument>> Search { get; }
+        public IReadOnlyList<IndexDocumentsAction<KeyedDocument>> Hijack { get; }
         public ResultAndAccessCondition<VersionListData> VersionListDataResult { get; }
 
         public bool IsEmpty => Search.Count == 0 && Hijack.Count == 0;

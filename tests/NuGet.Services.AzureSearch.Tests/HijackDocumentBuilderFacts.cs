@@ -84,14 +84,14 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void LeavesNullTagsAsNull()
+            public void SetsNullTagsAsEmptyArray()
             {
                 var package = Data.PackageEntity;
                 package.Tags = null;
 
                 var document = _target.FullFromDb(Data.PackageId, Data.HijackDocumentChanges, package);
 
-                Assert.Null(document.Tags);
+                Assert.Empty(document.Tags);
             }
 
             [Fact]
