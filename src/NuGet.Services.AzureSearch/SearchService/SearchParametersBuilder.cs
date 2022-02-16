@@ -3,7 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
 using NuGet.Packaging;
 using NuGetGallery;
 
@@ -37,32 +38,38 @@ namespace NuGet.Services.AzureSearch.SearchService
         private static readonly List<string> TotalDownloadsAsc = new List<string> { IndexFields.Search.TotalDownloadCount + Asc, IndexFields.Created + Asc }; // Least downloads first, then oldest
         private static readonly List<string> TotalDownloadsDesc = new List<string> { IndexFields.Search.TotalDownloadCount + Desc, IndexFields.Created + Desc }; // Most downloads first, then newest
 
-        public SearchParameters LastCommitTimestamp()
+        public SearchOptions LastCommitTimestamp()
         {
-            return new SearchParameters
+            var options = new SearchOptions
             {
-                QueryType = QueryType.Full,
-                Select = LastCommitTimestampSelect,
-                OrderBy = LastCommitTimestampDescending,
+                QueryType = SearchQueryType.Full,
                 Skip = 0,
-                Top = 1,
+                Size = 1,
             };
+            options.Select.AddRange(LastCommitTimestampSelect);
+            options.OrderBy.AddRange(LastCommitTimestampDescending);
+            return options;
         }
 
-        public SearchParameters V2Search(V2SearchRequest request, bool isDefaultSearch)
+        public SearchOptions V2Search(V2SearchRequest request, bool isDefaultSearch)
         {
-            var searchParameters = NewSearchParameters();
+            var searchParameters = new SearchOptions
+            {
+                IncludeTotalCount = true,
+                QueryType = SearchQueryType.Full,
+            };
 
             if (request.CountOnly)
             {
                 searchParameters.Skip = 0;
-                searchParameters.Top = 0;
-                searchParameters.OrderBy = null;
+                searchParameters.Size = 0;
+                searchParameters.OrderBy.Clear();
             }
             else
             {
                 ApplyPaging(searchParameters, request);
-                searchParameters.OrderBy = GetOrderBy(request.SortBy);
+                searchParameters.OrderBy.Clear();
+                searchParameters.OrderBy.AddRange(GetOrderBy(request.SortBy));
             }
 
             if (request.IgnoreFilter)
@@ -82,9 +89,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             return searchParameters;
         }
 
-        public SearchParameters V3Search(V3SearchRequest request, bool isDefaultSearch)
+        public SearchOptions V3Search(V3SearchRequest request, bool isDefaultSearch)
         {
-            var searchParameters = NewSearchParameters();
+            var searchParameters = new SearchOptions
+            {
+                IncludeTotalCount = true,
+                QueryType = SearchQueryType.Full,
+            };
+            searchParameters.OrderBy.AddRange(ScoreDesc);
 
             ApplyPaging(searchParameters, request);
             ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType);
@@ -92,25 +104,30 @@ namespace NuGet.Services.AzureSearch.SearchService
             return searchParameters;
         }
 
-        public SearchParameters Autocomplete(AutocompleteRequest request, bool isDefaultSearch)
+        public SearchOptions Autocomplete(AutocompleteRequest request, bool isDefaultSearch)
         {
-            var searchParameters = NewSearchParameters();
+            var searchParameters = new SearchOptions
+            {
+                IncludeTotalCount = true,
+                QueryType = SearchQueryType.Full,
+            };
+            searchParameters.OrderBy.AddRange(ScoreDesc);
 
             ApplySearchIndexFilter(searchParameters, request, isDefaultSearch, request.PackageType);
 
             switch (request.Type)
             {
                 case AutocompleteRequestType.PackageIds:
-                    searchParameters.Select = PackageIdsAutocompleteSelect;
+                    searchParameters.Select.AddRange(PackageIdsAutocompleteSelect);
                     ApplyPaging(searchParameters, request);
                     break;
 
                 // Package version autocomplete should only match a single document
                 // regardless of the request's parameters.
                 case AutocompleteRequestType.PackageVersions:
-                    searchParameters.Select = PackageVersionsAutocompleteSelect;
+                    searchParameters.Select.AddRange(PackageVersionsAutocompleteSelect);
                     searchParameters.Skip = 0;
-                    searchParameters.Top = 1;
+                    searchParameters.Size = 1;
                     break;
 
                 default:
@@ -120,24 +137,14 @@ namespace NuGet.Services.AzureSearch.SearchService
             return searchParameters;
         }
 
-        private static SearchParameters NewSearchParameters()
-        {
-            return new SearchParameters
-            {
-                IncludeTotalResultCount = true,
-                QueryType = QueryType.Full,
-                OrderBy = ScoreDesc,
-            };
-        }
-
-        private static void ApplyPaging(SearchParameters searchParameters, SearchRequest request)
+        private static void ApplyPaging(SearchOptions searchParameters, SearchRequest request)
         {
             searchParameters.Skip = request.Skip < 0 ? 0 : request.Skip;
-            searchParameters.Top = request.Take < 0 || request.Take > MaximumTake ? DefaultTake : request.Take;
+            searchParameters.Size = request.Take < 0 || request.Take > MaximumTake ? DefaultTake : request.Take;
         }
 
         private void ApplySearchIndexFilter(
-            SearchParameters searchParameters,
+            SearchOptions searchParameters,
             SearchRequest request,
             bool isDefaultSearch,
             string packageType)

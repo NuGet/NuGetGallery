@@ -2,7 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents;
+using NuGet.Services.AzureSearch.Wrappers;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
@@ -11,14 +12,14 @@ namespace NuGet.Services.AzureSearch.SearchService
         V2SearchResponse V2FromHijack(
             V2SearchRequest request,
             string text,
-            SearchParameters parameters,
-            DocumentSearchResult<HijackDocument.Full> result,
+            SearchOptions parameters,
+            SingleSearchResultPage<HijackDocument.Full> result,
             TimeSpan duration);
         V2SearchResponse V2FromSearch(
             V2SearchRequest request,
             string text,
-            SearchParameters parameters,
-            DocumentSearchResult<SearchDocument.Full> result,
+            SearchOptions parameters,
+            SingleSearchResultPage<SearchDocument.Full> result,
             TimeSpan duration);
         V2SearchResponse V2FromHijackDocument(
             V2SearchRequest request,
@@ -28,8 +29,8 @@ namespace NuGet.Services.AzureSearch.SearchService
         V3SearchResponse V3FromSearch(
             V3SearchRequest request,
             string text,
-            SearchParameters parameters,
-            DocumentSearchResult<SearchDocument.Full> result,
+            SearchOptions parameters,
+            SingleSearchResultPage<SearchDocument.Full> result,
             TimeSpan duration);
         V2SearchResponse V2FromSearchDocument(
             V2SearchRequest request,
@@ -44,8 +45,8 @@ namespace NuGet.Services.AzureSearch.SearchService
         AutocompleteResponse AutocompleteFromSearch(
             AutocompleteRequest request,
             string text,
-            SearchParameters parameters,
-            DocumentSearchResult<SearchDocument.Full> result,
+            SearchOptions parameters,
+            SingleSearchResultPage<SearchDocument.Full> result,
             TimeSpan duration);
         V2SearchResponse EmptyV2(V2SearchRequest request);
         V3SearchResponse EmptyV3(V3SearchRequest request);

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch.Wrappers;
@@ -16,8 +16,8 @@ namespace NuGet.Services.AzureSearch.SearchService
 {
     public class SearchStatusService : ISearchStatusService
     {
-        private readonly ISearchIndexClientWrapper _searchIndex;
-        private readonly ISearchIndexClientWrapper _hijackIndex;
+        private readonly ISearchClientWrapper _searchIndex;
+        private readonly ISearchClientWrapper _hijackIndex;
         private readonly ISearchParametersBuilder _parametersBuilder;
         private readonly IAuxiliaryDataCache _auxiliaryDataCache;
         private readonly ISecretRefresher _secretRefresher;
@@ -26,8 +26,8 @@ namespace NuGet.Services.AzureSearch.SearchService
         private readonly ILogger<SearchStatusService> _logger;
 
         public SearchStatusService(
-            ISearchIndexClientWrapper searchIndex,
-            ISearchIndexClientWrapper hijackIndex,
+            ISearchClientWrapper searchIndex,
+            ISearchClientWrapper hijackIndex,
             ISearchParametersBuilder parametersBuilder,
             IAuxiliaryDataCache auxiliaryDataCache,
             ISecretRefresher secretRefresher,
@@ -174,21 +174,24 @@ namespace NuGet.Services.AzureSearch.SearchService
                 .FirstOrDefault();
         }
 
-        private async Task<IndexStatus> GetIndexStatusAsync(ISearchIndexClientWrapper index)
+        private async Task<IndexStatus> GetIndexStatusAsync(ISearchClientWrapper index)
         {
-            var documentCountResult = await Measure.DurationWithValueAsync(() => index.Documents.CountAsync());
+            var documentCountResult = await Measure.DurationWithValueAsync(() => index.CountAsync());
             _telemetryService.TrackDocumentCountQuery(index.IndexName, documentCountResult.Value, documentCountResult.Duration);
 
             var lastCommitTimestampParameters = _parametersBuilder.LastCommitTimestamp();
-            var lastCommitTimestampResult = await Measure.DurationWithValueAsync(() => index.Documents.SearchAsync("*", lastCommitTimestampParameters));
+            var lastCommitTimestampResult = await Measure.DurationWithValueAsync(() => index
+                .SearchAsync<BaseMetadataDocument>("*", lastCommitTimestampParameters));
             var lastCommitTimestamp = lastCommitTimestampResult
                 .Value?
-                .Results?
+                .Values?
                 .FirstOrDefault()?
-                .Document[IndexFields.LastCommitTimestamp] as DateTimeOffset?;
+                .Document
+                .LastCommitTimestamp;
             _telemetryService.TrackLastCommitTimestampQuery(index.IndexName, lastCommitTimestamp, lastCommitTimestampResult.Duration);
 
-            var warmQueryDuration = await Measure.DurationAsync(() => index.Documents.SearchAsync("*", new SearchParameters()));
+            var warmQueryDuration = await Measure.DurationAsync(() => index
+                .SearchAsync<BaseMetadataDocument>("*", new SearchOptions()));
             _telemetryService.TrackWarmQuery(index.IndexName, warmQueryDuration);
 
             return new IndexStatus
