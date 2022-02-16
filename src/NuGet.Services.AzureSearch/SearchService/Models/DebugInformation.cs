@@ -2,7 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents;
+using NuGet.Services.AzureSearch.Wrappers;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
@@ -21,7 +22,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public string IndexName { get; set; }
         public IndexOperationType IndexOperationType { get; set; }
         public string DocumentKey { get; set; }
-        public SearchParameters SearchParameters { get; set; }
+        public SearchOptions SearchParameters { get; set; }
         public string SearchText { get; set; }
         public object DocumentSearchResult { get; set; }
         public TimeSpan? QueryDuration { get; set; }
@@ -44,9 +45,9 @@ namespace NuGet.Services.AzureSearch.SearchService
         public static DebugInformation CreateFromSearchOrNull<T>(
             SearchRequest request,
             string indexName,
-            SearchParameters parameters,
+            SearchOptions parameters,
             string text,
-            DocumentSearchResult<T> result,
+            SingleSearchResultPage<T> result,
             TimeSpan duration,
             AuxiliaryFilesMetadata auxiliaryFilesMetadata) where T : class
         {
