@@ -66,7 +66,7 @@ namespace NuGetGallery.ViewModels
                 Target.Listed = true;
                 Target.Available = true;
                 Target.IsRecentPackagesNoIndexEnabled = true;
-                Target.TotalDaysSinceCreated = NUMBER_OF_DAYS_TO_BLOCK_INDEXING + 7;
+                Target.TotalDaysSinceCreated = NumberOfDaysToBlockIndexing + 7;
             }
 
             public DisplayPackageViewModel Target { get; }
@@ -75,9 +75,9 @@ namespace NuGetGallery.ViewModels
             {
                 get
                 {
-                    for (int i = 0; i < NUMBER_OF_DAYS_TO_BLOCK_INDEXING + 5; i++)
+                    for (int i = 0; i < NumberOfDaysToBlockIndexing + 5; i++)
                     {
-                        yield return new object[] { i, i < NUMBER_OF_DAYS_TO_BLOCK_INDEXING };
+                        yield return new object[] { i, i < NumberOfDaysToBlockIndexing };
                     }
                 }
             }
