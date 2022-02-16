@@ -686,12 +686,10 @@ img.reserved-indicator-icon {
   padding-bottom: 3em;
 }
 .framework {
-  font-family: Segoe UI;
   font-size: 14px;
   line-height: 20px;
 }
 .framework-badges {
-  font-family: Segoe UI;
   font-size: 14px;
   line-height: 20px;
   margin-bottom: 14px;
@@ -734,7 +732,6 @@ img.reserved-indicator-icon {
 }
 .framework-table {
   margin-bottom: 30px;
-  font-family: Segoe UI;
   font-size: 14px;
   line-height: 20px;
   width: 100%;
