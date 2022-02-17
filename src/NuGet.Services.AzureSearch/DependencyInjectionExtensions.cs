@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
 using Azure;
+using Azure.Core.Pipeline;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Microsoft.Extensions.Configuration;
@@ -241,11 +242,13 @@ namespace NuGet.Services.AzureSearch
             services.AddV3(telemetryGlobalDimensions, configurationRoot);
             services.AddTransient<IFeatureFlagService, FeatureFlagService>();
 
+            services.AddTransient<HttpPipelineTransport>(p => HttpClientTransport.Shared);
             services.AddSingleton<ISearchIndexClientWrapper, SearchIndexClientWrapper>();
             services
                 .AddTransient<SearchIndexClient>(p =>
                 {
                     var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
+                    var transport = p.GetRequiredService<HttpPipelineTransport>();
 
                     var client = new SearchIndexClient(
                         new Uri($"https://{options.Value.SearchServiceName}.search.windows.net"),
@@ -253,6 +256,7 @@ namespace NuGet.Services.AzureSearch
                         new SearchClientOptions
                         {
                             Serializer = IndexBuilder.GetJsonSerializer(),
+                            Transport = transport,
                         });
 
                     return client;
@@ -300,31 +304,6 @@ namespace NuGet.Services.AzureSearch
             services.AddTransient<ISystemTime, SystemTime>();
 
             return services;
-        }
-
-        /// <summary>
-        /// Defaults originally taken from:
-        /// https://github.com/Azure/azure-sdk-for-net/blob/96421089bc26198098f320ea50e0208e98376956/sdk/mgmtcommon/ClientRuntime/ClientRuntime/RetryDelegatingHandler.cs#L19-L22
-        /// 
-        /// Note that this policy only applied to the <see cref="RetryDelegatingHandler"/> automatically initialized by
-        /// the Azure Search SDK. This policy does not apply to <see cref="WebExceptionRetryDelegatingHandler"/>.
-        /// </summary>
-        private static RetryPolicy GetSearchRetryPolicy()
-        {
-            return new RetryPolicy(
-                new HttpStatusCodeErrorDetectionStrategy(),
-                retryCount: 3,
-                minBackoff: TimeSpan.FromSeconds(1),
-                maxBackoff: TimeSpan.FromSeconds(10),
-                deltaBackoff: TimeSpan.FromSeconds(10));
-        }
-
-        public static DelegatingHandler[] GetSearchDelegatingHandlers(ILoggerFactory loggerFactory)
-        {
-            return new[]
-            {
-                new WebExceptionRetryDelegatingHandler(loggerFactory.CreateLogger<WebExceptionRetryDelegatingHandler>()),
-            };
         }
     }
 }
