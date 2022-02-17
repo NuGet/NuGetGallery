@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
-using Microsoft.Azure.Search;
+using Azure;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Indexes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -30,6 +32,9 @@ namespace NuGet.Services.AzureSearch
 {
     public static class DependencyInjectionExtensions
     {
+        public static readonly string SearchIndexKey = "SearchIndex";
+        public static readonly string HijackIndexKey = "HijackIndex";
+
         public static ContainerBuilder AddAzureSearch(this ContainerBuilder containerBuilder)
         {
             containerBuilder.AddV3();
@@ -37,7 +42,7 @@ namespace NuGet.Services.AzureSearch
             /// Here, we register services that depend on an interface that there are multiple implementations.
 
             /// There are multiple implementations of <see cref="ISearchServiceClientWrapper"/>.
-            RegisterIndexServices(containerBuilder, "SearchIndex", "HijackIndex");
+            RegisterIndexServices(containerBuilder, SearchIndexKey, HijackIndexKey);
 
             /// There are multiple implementations of storage, in particular <see cref="ICloudBlobClient"/>.
             RegisterAzureSearchStorageServices(containerBuilder, "AzureSearchStorage");
@@ -51,27 +56,27 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register(c =>
                 {
-                    var serviceClient = c.Resolve<ISearchServiceClientWrapper>();
+                    var serviceClient = c.Resolve<ISearchIndexClientWrapper>();
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    return serviceClient.Indexes.GetClient(options.Value.SearchIndexName);
+                    return serviceClient.GetSearchClient(options.Value.SearchIndexName);
                 })
                 .SingleInstance()
-                .Keyed<ISearchIndexClientWrapper>(searchIndexKey);
+                .Keyed<ISearchClientWrapper>(searchIndexKey);
 
             containerBuilder
                 .Register(c =>
                 {
-                    var serviceClient = c.Resolve<ISearchServiceClientWrapper>();
+                    var serviceClient = c.Resolve<ISearchIndexClientWrapper>();
                     var options = c.Resolve<IOptionsSnapshot<AzureSearchConfiguration>>();
-                    return serviceClient.Indexes.GetClient(options.Value.HijackIndexName);
+                    return serviceClient.GetSearchClient(options.Value.HijackIndexName);
                 })
                 .SingleInstance()
-                .Keyed<ISearchIndexClientWrapper>(hijackIndexKey);
+                .Keyed<ISearchClientWrapper>(hijackIndexKey);
 
             containerBuilder
                 .Register<IBatchPusher>(c => new BatchPusher(
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
+                    c.ResolveKeyed<ISearchClientWrapper>(searchIndexKey),
+                    c.ResolveKeyed<ISearchClientWrapper>(hijackIndexKey),
                     c.Resolve<IVersionListDataClient>(),
                     c.Resolve<IOptionsSnapshot<AzureSearchJobConfiguration>>(),
                     c.Resolve<IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration>>(),
@@ -81,15 +86,15 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<ISearchService>(c => new AzureSearchService(
                     c.Resolve<IIndexOperationBuilder>(),
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
+                    c.ResolveKeyed<ISearchClientWrapper>(searchIndexKey),
+                    c.ResolveKeyed<ISearchClientWrapper>(hijackIndexKey),
                     c.Resolve<ISearchResponseBuilder>(),
                     c.Resolve<IAzureSearchTelemetryService>()));
 
             containerBuilder
                 .Register<ISearchStatusService>(c => new SearchStatusService(
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(searchIndexKey),
-                    c.ResolveKeyed<ISearchIndexClientWrapper>(hijackIndexKey),
+                    c.ResolveKeyed<ISearchClientWrapper>(searchIndexKey),
+                    c.ResolveKeyed<ISearchClientWrapper>(hijackIndexKey),
                     c.Resolve<ISearchParametersBuilder>(),
                     c.Resolve<IAuxiliaryDataCache>(),
                     c.Resolve<ISecretRefresher>(),
@@ -236,24 +241,19 @@ namespace NuGet.Services.AzureSearch
             services.AddV3(telemetryGlobalDimensions, configurationRoot);
             services.AddTransient<IFeatureFlagService, FeatureFlagService>();
 
-            services.AddTransient<ISearchServiceClientWrapper>(p => new SearchServiceClientWrapper(
-                p.GetRequiredService<ISearchServiceClient>(),
-                GetSearchDelegatingHandlers(p.GetRequiredService<ILoggerFactory>()),
-                GetSearchRetryPolicy(),
-                p.GetRequiredService<ILogger<DocumentsOperationsWrapper>>()));
-
+            services.AddSingleton<ISearchIndexClientWrapper, SearchIndexClientWrapper>();
             services
-                .AddTransient<ISearchServiceClient>(p =>
+                .AddTransient<SearchIndexClient>(p =>
                 {
                     var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
 
-                    var client = new SearchServiceClient(
-                        options.Value.SearchServiceName,
-                        new SearchCredentials(options.Value.SearchServiceApiKey),
-                        p.GetRequiredService<HttpClientHandler>(),
-                        GetSearchDelegatingHandlers(p.GetRequiredService<ILoggerFactory>()));
-
-                    client.SetRetryPolicy(GetSearchRetryPolicy());
+                    var client = new SearchIndexClient(
+                        new Uri($"https://{options.Value.SearchServiceName}.search.windows.net"),
+                        new AzureKeyCredential(options.Value.SearchServiceApiKey),
+                        new SearchClientOptions
+                        {
+                            Serializer = IndexBuilder.GetJsonSerializer(),
+                        });
 
                     return client;
                 });

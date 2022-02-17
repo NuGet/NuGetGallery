@@ -5,18 +5,23 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Autofac;
+using Azure.Core.Serialization;
+using Azure.Search.Documents;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.PackageManagement.Search.Web;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.AzureSearch;
 using NuGet.Services.AzureSearch.SearchService;
+using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Logging;
 using NuGet.Services.SearchService.Controllers;
 
@@ -79,15 +84,6 @@ namespace NuGet.Services.SearchService
             services.AddHostedService<FeatureFlagBackgroundService>();
 
             services.AddAzureSearch(new Dictionary<string, string>(), Configuration);
-
-            // The maximum SNAT ports on Azure App Service is 128:
-            // https://docs.microsoft.com/en-us/azure/app-service/troubleshoot-intermittent-outbound-connection-errors#cause
-            ServicePointManager.DefaultConnectionLimit = 128;
-            services
-                .AddSingleton<HttpClientHandler>(s => new HttpClientHandler
-                {
-                    MaxConnectionsPerServer = 128,
-                });
 
             services.AddHsts(o =>
             {
