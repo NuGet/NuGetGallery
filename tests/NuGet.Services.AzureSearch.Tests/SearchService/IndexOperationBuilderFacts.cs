@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -575,7 +575,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 V2SearchRequest = new V2SearchRequest { Skip = 0, Take = 20 };
                 V3SearchRequest = new V3SearchRequest { Skip = 0, Take = 20 };
                 Text = "";
-                Parameters = new SearchParameters();
+                Parameters = new SearchOptions();
                 ParsedQuery = new ParsedQuery(new Dictionary<QueryField, HashSet<string>>(), includeTestData: false);
 
                 TextBuilder
@@ -615,7 +615,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             public V2SearchRequest V2SearchRequest { get; }
             public V3SearchRequest V3SearchRequest { get; }
             public string Text { get; }
-            public SearchParameters Parameters { get; }
+            public SearchOptions Parameters { get; }
             public ParsedQuery ParsedQuery { get; }
             public IndexOperationBuilder Target { get; }
 

@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
@@ -60,11 +60,11 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 Config.AzureSearchBatchSize = 10;
 
                 IndexActions = new IndexActions(
-                    new List<IndexAction<KeyedDocument>>(
+                    new List<IndexDocumentsAction<KeyedDocument>>(
                         Enumerable
                             .Range(0, documentsPerId)
-                            .Select(x => IndexAction.Merge(new KeyedDocument()))),
-                    new List<IndexAction<KeyedDocument>>(),
+                            .Select(x => IndexDocumentsAction.Merge(new KeyedDocument()))),
+                    new List<IndexDocumentsAction<KeyedDocument>>(),
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         new Mock<IAccessCondition>().Object));      
@@ -532,8 +532,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Returns(TransferChanges);
 
                 IndexActions = new IndexActions(
-                    new List<IndexAction<KeyedDocument>> { IndexAction.Merge(new KeyedDocument()) },
-                    new List<IndexAction<KeyedDocument>>(),
+                    new List<IndexDocumentsAction<KeyedDocument>> { IndexDocumentsAction.Merge(new KeyedDocument()) },
+                    new List<IndexDocumentsAction<KeyedDocument>>(),
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         Mock.Of<IAccessCondition>()));

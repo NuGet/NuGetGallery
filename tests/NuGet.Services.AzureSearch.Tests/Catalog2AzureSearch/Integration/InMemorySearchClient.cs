@@ -5,14 +5,22 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
 using NuGet.Services.AzureSearch.Wrappers;
 
 namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 {
-    public class InMemoryDocumentsOperations : IDocumentsOperationsWrapper
+    public class InMemorySearchClient : ISearchClientWrapper
     {
-        public ConcurrentQueue<IndexBatch<KeyedDocument>> Batches { get; } = new ConcurrentQueue<IndexBatch<KeyedDocument>>();
+        public InMemorySearchClient(string indexName)
+        {
+            IndexName = indexName;
+        }
+
+        public ConcurrentQueue<IndexDocumentsBatch<KeyedDocument>> Batches { get; } = new ConcurrentQueue<IndexDocumentsBatch<KeyedDocument>>();
+
+        public string IndexName { get; set; }
 
         public void Clear()
         {
@@ -32,24 +40,19 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             throw new NotImplementedException();
         }
 
-        public Task<DocumentIndexResult> IndexAsync<T>(IndexBatch<T> batch) where T : class
+        public Task<IndexDocumentsResult> IndexAsync<T>(IndexDocumentsBatch<T> batch) where T : class
         {
             if (typeof(T) != typeof(KeyedDocument))
             {
                 throw new ArgumentException();
             }
 
-            Batches.Enqueue(batch as IndexBatch<KeyedDocument>);
+            Batches.Enqueue(batch as IndexDocumentsBatch<KeyedDocument>);
 
-            return Task.FromResult(new DocumentIndexResult(new List<IndexingResult>()));
+            return Task.FromResult(SearchModelFactory.IndexDocumentsResult(new List<IndexingResult>()));
         }
 
-        public Task<DocumentSearchResult<T>> SearchAsync<T>(string searchText, SearchParameters searchParameters) where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<DocumentSearchResult> SearchAsync(string searchText, SearchParameters searchParameters)
+        public Task<SingleSearchResultPage<T>> SearchAsync<T>(string searchText, SearchOptions searchParameters) where T : class
         {
             throw new NotImplementedException();
         }

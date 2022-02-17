@@ -7,7 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure;
+using Azure.Search.Documents.Indexes.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -193,21 +194,21 @@ namespace NuGet.Services.AzureSearch
             {
                 await _target.CreateSearchIndexAsync();
 
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.Is<Index>(y => y.Name == _config.SearchIndexName)),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.Is<SearchIndex>(y => y.Name == _config.SearchIndexName)),
                     Times.Once);
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.IsAny<Index>()),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.IsAny<SearchIndex>()),
                     Times.Once);
             }
 
             [Fact]
             public async Task CreatesScoringProfile()
             {
-                Index createdIndex = null;
-                _indexesOperations
-                    .Setup(o => o.CreateAsync(It.IsAny<Index>()))
-                    .Callback<Index>(index => createdIndex = index)
+                SearchIndex createdIndex = null;
+                _serviceClient
+                    .Setup(o => o.CreateIndexAsync(It.IsAny<SearchIndex>()))
+                    .Callback<SearchIndex>(index => createdIndex = index)
                     .Returns(() => Task.FromResult(createdIndex));
 
                 await _target.CreateSearchIndexAsync();
@@ -259,27 +260,27 @@ namespace NuGet.Services.AzureSearch
             {
                 await _target.CreateHijackIndexAsync();
 
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.Is<Index>(y => y.Name == _config.HijackIndexName)),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.Is<SearchIndex>(y => y.Name == _config.HijackIndexName)),
                     Times.Once);
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.IsAny<Index>()),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.IsAny<SearchIndex>()),
                     Times.Once);
             }
 
             [Fact]
             public async Task DoesNotCreateScoringProfile()
             {
-                Index createdIndex = null;
-                _indexesOperations
-                    .Setup(o => o.CreateAsync(It.IsAny<Index>()))
-                    .Callback<Index>(index => createdIndex = index)
+                SearchIndex createdIndex = null;
+                _serviceClient
+                    .Setup(o => o.CreateIndexAsync(It.IsAny<SearchIndex>()))
+                    .Callback<SearchIndex>(index => createdIndex = index)
                     .Returns(() => Task.FromResult(createdIndex));
 
                 await _target.CreateHijackIndexAsync();
 
                 Assert.NotNull(createdIndex);
-                Assert.Null(createdIndex.ScoringProfiles);
+                Assert.Empty(createdIndex.ScoringProfiles);
             }
         }
 
@@ -292,31 +293,31 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task CreatesIndexIfNotExists()
             {
-                _indexesOperations
-                    .Setup(x => x.ExistsAsync(_config.SearchIndexName))
-                    .ReturnsAsync(false);
+                _serviceClient
+                    .Setup(x => x.GetIndexAsync(_config.SearchIndexName))
+                    .ThrowsAsync(new RequestFailedException(404, ""));
 
                 await _target.CreateSearchIndexIfNotExistsAsync();
 
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.Is<Index>(y => y.Name == _config.SearchIndexName)),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.Is<SearchIndex>(y => y.Name == _config.SearchIndexName)),
                     Times.Once);
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.IsAny<Index>()),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.IsAny<SearchIndex>()),
                     Times.Once);
             }
 
             [Fact]
             public async Task DoesNotCreateIndexIfExists()
             {
-                _indexesOperations
-                    .Setup(x => x.ExistsAsync(_config.SearchIndexName))
-                    .ReturnsAsync(true);
+                _serviceClient
+                    .Setup(x => x.GetIndexAsync(_config.SearchIndexName))
+                    .ReturnsAsync(new SearchIndex(_config.SearchIndexName));
 
                 await _target.CreateSearchIndexIfNotExistsAsync();
 
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.IsAny<Index>()),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.IsAny<SearchIndex>()),
                     Times.Never);
             }
         }
@@ -330,31 +331,31 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task CreatesIndexIfNotExists()
             {
-                _indexesOperations
-                    .Setup(x => x.ExistsAsync(_config.HijackIndexName))
-                    .ReturnsAsync(false);
+                _serviceClient
+                    .Setup(x => x.GetIndexAsync(_config.HijackIndexName))
+                    .ThrowsAsync(new RequestFailedException(404, ""));
 
                 await _target.CreateHijackIndexIfNotExistsAsync();
 
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.Is<Index>(y => y.Name == _config.HijackIndexName)),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.Is<SearchIndex>(y => y.Name == _config.HijackIndexName)),
                     Times.Once);
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.IsAny<Index>()),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.IsAny<SearchIndex>()),
                     Times.Once);
             }
 
             [Fact]
             public async Task DoesNotCreateIndexIfExists()
             {
-                _indexesOperations
-                    .Setup(x => x.ExistsAsync(_config.HijackIndexName))
-                    .ReturnsAsync(true);
+                _serviceClient
+                    .Setup(x => x.GetIndexAsync(_config.HijackIndexName))
+                    .ReturnsAsync(new SearchIndex(_config.HijackIndexName));
 
                 await _target.CreateHijackIndexIfNotExistsAsync();
 
-                _indexesOperations.Verify(
-                    x => x.CreateAsync(It.IsAny<Index>()),
+                _serviceClient.Verify(
+                    x => x.CreateIndexAsync(It.IsAny<SearchIndex>()),
                     Times.Never);
             }
         }
@@ -368,31 +369,31 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task DoesNotDeleteIndexIfNotExists()
             {
-                _indexesOperations
-                    .Setup(x => x.ExistsAsync(_config.SearchIndexName))
-                    .ReturnsAsync(false);
+                _serviceClient
+                    .Setup(x => x.GetIndexAsync(_config.SearchIndexName))
+                    .ThrowsAsync(new RequestFailedException(404, ""));
 
                 await _target.CreateSearchIndexIfNotExistsAsync();
 
-                _indexesOperations.Verify(
-                    x => x.DeleteAsync(It.IsAny<string>()),
+                _serviceClient.Verify(
+                    x => x.DeleteIndexAsync(It.IsAny<string>()),
                     Times.Never);
             }
 
             [Fact]
             public async Task DeletesIndexIfExists()
             {
-                _indexesOperations
-                    .Setup(x => x.ExistsAsync(_config.SearchIndexName))
-                    .ReturnsAsync(true);
+                _serviceClient
+                    .Setup(x => x.GetIndexAsync(_config.SearchIndexName))
+                    .ReturnsAsync(new SearchIndex(_config.SearchIndexName));
 
                 await _target.DeleteSearchIndexIfExistsAsync();
 
-                _indexesOperations.Verify(
-                    x => x.DeleteAsync(_config.SearchIndexName),
+                _serviceClient.Verify(
+                    x => x.DeleteIndexAsync(_config.SearchIndexName),
                     Times.Once);
-                _indexesOperations.Verify(
-                    x => x.DeleteAsync(It.IsAny<string>()),
+                _serviceClient.Verify(
+                    x => x.DeleteIndexAsync(It.IsAny<string>()),
                     Times.Once);
             }
         }
@@ -406,39 +407,38 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public async Task DoesNotDeleteIndexIfNotExists()
             {
-                _indexesOperations
-                    .Setup(x => x.ExistsAsync(_config.HijackIndexName))
-                    .ReturnsAsync(false);
+                _serviceClient
+                    .Setup(x => x.GetIndexAsync(_config.HijackIndexName))
+                    .ThrowsAsync(new RequestFailedException(404, ""));
 
                 await _target.CreateHijackIndexIfNotExistsAsync();
 
-                _indexesOperations.Verify(
-                    x => x.DeleteAsync(It.IsAny<string>()),
+                _serviceClient.Verify(
+                    x => x.DeleteIndexAsync(It.IsAny<string>()),
                     Times.Never);
             }
 
             [Fact]
             public async Task DeletesIndexIfExists()
             {
-                _indexesOperations
-                    .Setup(x => x.ExistsAsync(_config.HijackIndexName))
-                    .ReturnsAsync(true);
+                _serviceClient
+                    .Setup(x => x.GetIndexAsync(_config.HijackIndexName))
+                    .ReturnsAsync(new SearchIndex(_config.HijackIndexName));
 
                 await _target.DeleteHijackIndexIfExistsAsync();
 
-                _indexesOperations.Verify(
-                    x => x.DeleteAsync(_config.HijackIndexName),
+                _serviceClient.Verify(
+                    x => x.DeleteIndexAsync(_config.HijackIndexName),
                     Times.Once);
-                _indexesOperations.Verify(
-                    x => x.DeleteAsync(It.IsAny<string>()),
+                _serviceClient.Verify(
+                    x => x.DeleteIndexAsync(It.IsAny<string>()),
                     Times.Once);
             }
         }
 
         public abstract class BaseFacts
         {
-            protected readonly Mock<ISearchServiceClientWrapper> _serviceClient;
-            protected readonly Mock<IIndexesOperationsWrapper> _indexesOperations;
+            protected readonly Mock<ISearchIndexClientWrapper> _serviceClient;
             protected readonly Mock<IOptionsSnapshot<AzureSearchJobConfiguration>> _options;
             protected readonly AzureSearchJobConfiguration _config;
             protected readonly RecordingLogger<IndexBuilder> _logger;
@@ -446,8 +446,7 @@ namespace NuGet.Services.AzureSearch
 
             public BaseFacts(ITestOutputHelper output)
             {
-                _serviceClient = new Mock<ISearchServiceClientWrapper>();
-                _indexesOperations = new Mock<IIndexesOperationsWrapper>();
+                _serviceClient = new Mock<ISearchIndexClientWrapper>();
                 _options = new Mock<IOptionsSnapshot<AzureSearchJobConfiguration>>();
                 _config = new AzureSearchJobConfiguration
                 {
@@ -470,9 +469,6 @@ namespace NuGet.Services.AzureSearch
                 _options
                     .Setup(x => x.Value)
                     .Returns(() => _config);
-                _serviceClient
-                    .Setup(x => x.Indexes)
-                    .Returns(() => _indexesOperations.Object);
 
                 _target = new IndexBuilder(
                     _serviceClient.Object,

@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents.Models;
 using Moq;
 using Xunit;
 
@@ -38,11 +38,11 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 var output = _target.LastCommitTimestamp();
 
-                Assert.Equal(QueryType.Full, output.QueryType);
-                Assert.False(output.IncludeTotalResultCount);
+                Assert.Equal(SearchQueryType.Full, output.QueryType);
+                Assert.Null(output.IncludeTotalCount);
                 Assert.Equal(new[] { "lastCommitTimestamp desc" }, output.OrderBy.ToArray());
                 Assert.Equal(0, output.Skip);
-                Assert.Equal(1, output.Top);
+                Assert.Equal(1, output.Size);
                 Assert.Null(output.Filter);
             }
         }
@@ -56,11 +56,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.V2Search(request, isDefaultSearch: true);
 
-                Assert.Equal(QueryType.Full, output.QueryType);
-                Assert.True(output.IncludeTotalResultCount);
+                Assert.Equal(SearchQueryType.Full, output.QueryType);
+                Assert.True(output.IncludeTotalCount);
                 Assert.Equal(DefaultOrderBy, output.OrderBy.ToArray());
                 Assert.Equal(0, output.Skip);
-                Assert.Equal(0, output.Top);
+                Assert.Equal(0, output.Size);
                 Assert.Equal("searchFilters eq 'Default' and (isExcludedByDefault eq false or isExcludedByDefault eq null)", output.Filter);
             }
             
@@ -104,11 +104,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.V2Search(request, It.IsAny<bool>());
 
-                Assert.Equal(QueryType.Full, output.QueryType);
-                Assert.True(output.IncludeTotalResultCount);
-                Assert.Null(output.OrderBy);
+                Assert.Equal(SearchQueryType.Full, output.QueryType);
+                Assert.True(output.IncludeTotalCount);
+                Assert.Empty(output.OrderBy);
                 Assert.Equal(0, output.Skip);
-                Assert.Equal(0, output.Top);
+                Assert.Equal(0, output.Size);
             }
 
             [Fact]
@@ -123,7 +123,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var output = _target.V2Search(request, It.IsAny<bool>());
 
                 Assert.Equal(10, output.Skip);
-                Assert.Equal(30, output.Top);
+                Assert.Equal(30, output.Size);
             }
 
             [Fact]
@@ -149,7 +149,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.V2Search(request, It.IsAny<bool>());
 
-                Assert.Equal(20, output.Top);
+                Assert.Equal(20, output.Size);
             }
 
             [Fact]
@@ -162,7 +162,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.V2Search(request, It.IsAny<bool>());
 
-                Assert.Equal(20, output.Top);
+                Assert.Equal(20, output.Size);
             }
 
             [Theory]
@@ -227,11 +227,12 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                     Assert.Contains(pieces[0], metadataProperties.Keys);
                     var property = metadataProperties[pieces[0]];
-                    var customAttributeTypes = property
+                    var attribute = property
                         .CustomAttributes
-                        .Select(x => x.AttributeType)
-                        .ToArray();
-                    Assert.Contains(typeof(IsSortableAttribute), customAttributeTypes);
+                        .FirstOrDefault(x => x.AttributeType == typeof(SimpleFieldAttribute));
+                    Assert.NotNull(attribute);
+                    var argument = attribute.NamedArguments.First(x => x.MemberName == nameof(SimpleFieldAttribute.IsSortable));
+                    Assert.Equal(true, argument.TypedValue.Value);
                 }
             }
 
@@ -261,11 +262,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.V3Search(request, isDefaultSearch: true);
 
-                Assert.Equal(QueryType.Full, output.QueryType);
-                Assert.True(output.IncludeTotalResultCount);
+                Assert.Equal(SearchQueryType.Full, output.QueryType);
+                Assert.True(output.IncludeTotalCount);
                 Assert.Equal(DefaultOrderBy, output.OrderBy.ToArray());
                 Assert.Equal(0, output.Skip);
-                Assert.Equal(0, output.Top);
+                Assert.Equal(0, output.Size);
                 Assert.Equal("searchFilters eq 'Default' and (isExcludedByDefault eq false or isExcludedByDefault eq null)", output.Filter);
             }
 
@@ -308,7 +309,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var output = _target.V3Search(request, It.IsAny<bool>());
 
                 Assert.Equal(10, output.Skip);
-                Assert.Equal(30, output.Top);
+                Assert.Equal(30, output.Size);
             }
 
             [Fact]
@@ -334,7 +335,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.V3Search(request, It.IsAny<bool>());
 
-                Assert.Equal(20, output.Top);
+                Assert.Equal(20, output.Size);
             }
 
             [Fact]
@@ -347,7 +348,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.V3Search(request, It.IsAny<bool>());
 
-                Assert.Equal(20, output.Top);
+                Assert.Equal(20, output.Size);
             }
 
             [Theory]
@@ -377,11 +378,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.Autocomplete(request, isDefaultSearch: true);
 
-                Assert.Equal(QueryType.Full, output.QueryType);
-                Assert.True(output.IncludeTotalResultCount);
+                Assert.Equal(SearchQueryType.Full, output.QueryType);
+                Assert.True(output.IncludeTotalCount);
                 Assert.Equal(DefaultOrderBy, output.OrderBy.ToArray());
                 Assert.Equal(0, output.Skip);
-                Assert.Equal(0, output.Top);
+                Assert.Equal(0, output.Size);
                 Assert.Equal("searchFilters eq 'Default' and (isExcludedByDefault eq false or isExcludedByDefault eq null)", output.Filter);
                 Assert.Single(output.Select);
                 Assert.Equal(IndexFields.PackageId, output.Select[0]);
@@ -395,11 +396,11 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.Autocomplete(request, isDefaultSearch: true);
 
-                Assert.Equal(QueryType.Full, output.QueryType);
-                Assert.True(output.IncludeTotalResultCount);
+                Assert.Equal(SearchQueryType.Full, output.QueryType);
+                Assert.True(output.IncludeTotalCount);
                 Assert.Equal(DefaultOrderBy, output.OrderBy.ToArray());
                 Assert.Equal(0, output.Skip);
-                Assert.Equal(1, output.Top);
+                Assert.Equal(1, output.Size);
                 Assert.Equal("searchFilters eq 'Default' and (isExcludedByDefault eq false or isExcludedByDefault eq null)", output.Filter);
                 Assert.Single(output.Select);
                 Assert.Equal(IndexFields.Search.Versions, output.Select[0]);
@@ -418,7 +419,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var output = _target.Autocomplete(request, It.IsAny<bool>());
 
                 Assert.Equal(10, output.Skip);
-                Assert.Equal(30, output.Top);
+                Assert.Equal(30, output.Size);
             }
 
             [Fact]
@@ -434,7 +435,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 var output = _target.Autocomplete(request, It.IsAny<bool>());
 
                 Assert.Equal(0, output.Skip);
-                Assert.Equal(1, output.Top);
+                Assert.Equal(1, output.Size);
             }
 
             [Fact]
@@ -462,7 +463,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.Autocomplete(request, It.IsAny<bool>());
 
-                Assert.Equal(20, output.Top);
+                Assert.Equal(20, output.Size);
             }
 
             [Fact]
@@ -476,7 +477,7 @@ namespace NuGet.Services.AzureSearch.SearchService
 
                 var output = _target.Autocomplete(request, It.IsAny<bool>());
 
-                Assert.Equal(20, output.Top);
+                Assert.Equal(20, output.Size);
             }
 
             [Theory]

@@ -4,7 +4,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
@@ -21,7 +21,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         private readonly InMemoryCloudBlobContainer _auxilliaryContainer;
         private readonly InMemoryCloudBlobContainer _storageContainer;
 
-        private readonly Mock<IDocumentsOperationsWrapper> _searchOperations;
+        private readonly Mock<ISearchClientWrapper> _searchClient;
         private readonly Mock<IFeatureFlagService> _featureFlags;
         private readonly Auxiliary2AzureSearchConfiguration _config;
         private readonly AzureSearchJobDevelopmentConfiguration _developmentConfig;
@@ -31,7 +31,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
 
         private readonly PopularityTransferData _newPopularityTransfers;
 
-        private IndexBatch<KeyedDocument> _indexedBatch;
+        private IndexDocumentsBatch<KeyedDocument> _indexedBatch;
 
         public PopularityTransferIntegrationTests(ITestOutputHelper output)
         {
@@ -127,24 +127,18 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
                 versionListDataClient,
                 output.GetLogger<SearchIndexActionBuilder>());
 
-            _searchOperations = new Mock<IDocumentsOperationsWrapper>();
-            _searchOperations
-                .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
-                .Callback<IndexBatch<KeyedDocument>>(batch =>
+            _searchClient = new Mock<ISearchClientWrapper>();
+            _searchClient
+                .Setup(x => x.IndexAsync(It.IsAny<IndexDocumentsBatch<KeyedDocument>>()))
+                .Callback<IndexDocumentsBatch<KeyedDocument>>(batch =>
                 {
                     _indexedBatch = batch;
                 })
-                .ReturnsAsync(new DocumentIndexResult());
-
-            var hijackIndexClient = new Mock<ISearchIndexClientWrapper>();
-            var searchIndexClient = new Mock<ISearchIndexClientWrapper>();
-            searchIndexClient
-                .Setup(x => x.Documents)
-                .Returns(_searchOperations.Object);
+                .ReturnsAsync(SearchModelFactory.IndexDocumentsResult(Enumerable.Empty<IndexingResult>()));
 
             var batchPusher = new BatchPusher(
-                searchIndexClient.Object,
-                hijackIndexClient.Object,
+                _searchClient.Object,
+                _searchClient.Object,
                 versionListDataClient,
                 options.Object,
                 developmentOptions.Object,
@@ -484,7 +478,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         private void VerifyUpdateDownloadCountAction(
             string expectedId,
             long expectedDownloads,
-            IndexAction<KeyedDocument> action)
+            IndexDocumentsAction<KeyedDocument> action)
         {
             var document = action.Document as SearchDocument.UpdateDownloadCount;
 
