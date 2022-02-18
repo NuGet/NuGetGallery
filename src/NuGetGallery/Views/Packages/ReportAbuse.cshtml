@@ -15,138 +15,150 @@
                     Model.PackageVersion,
                     "Report package"))
 
-            <h2><strong>If this package has a bug/failed to install</strong></h2>
-            @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
-                @<text>
-                    Please do not report using the form below - that is reserved for abusive packages, such as those containing malicious code or spam.
-                    <br />
-                    <br />
-                    If "@Model.PackageId" simply doesn't work, or if you need help getting the package installed, please
-                    <a href="@Url.ContactOwners(Model)" title="contact the owners">contact the owners instead.</a>
-                </text>
-            )
-
-            <h2><strong>To report a security vulnerability</strong></h2>
-            @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
-                @<text>
-                    Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official portal</a>.
-                    If this is not a Microsoft - owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
-                </text>
-            )
-
-            <h2><strong>To report abuse, use this form</strong></h2>
-            @if (!Model.ConfirmedUser)
+            @if (Model.ShouldHideReportAbuseForm)
             {
                 @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
                     @<text>
-                        If this is your package, please <a href="@Url.LogOn(returnUrl)">sign in</a> to contact support.
+                        This package has been locked and unlisted as it violates our <a href="https://www.nuget.org/policies/Terms" title="Terms of use">Terms of use</a>. Please contact support@nuget.org for further assistance.
                     </text>
                 )
             }
-            <p tabindex="0">
-                <text>
-                    Please provide a detailed abuse report with evidence to support your claim! We cannot delete packages without evidence that they exhibit malicious behavior.
-                </text>
-            </p>
-
-            @using (Html.BeginForm())
+             else
             {
-                @Html.AntiForgeryToken()
+                <h2><strong>If this package has a bug/failed to install</strong></h2>
+                @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+                    @<text>
+                        Please do not report using the form below - that is reserved for abusive packages, such as those containing malicious code or spam.
+                        <br />
+                        <br />
+                        If "@Model.PackageId" simply doesn't work, or if you need help getting the package installed, please
+                        <a href="@Url.ContactOwners(Model)" title="contact the owners">contact the owners instead.</a>
+                    </text>
+                )
 
-                <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
-                    @Html.ShowLabelFor(m => m.Reason)
-                    <p tabindex="0">Please select the reason for contacting support about this package. This package contains:</p>
-                    @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>")
-                    @Html.ShowValidationMessagesFor(m => m.Reason)
-                </div>
-
-                <div class="reason-error-has-a-bug" tabindex="0">
-                    <p>
-                        Unfortunately we cannot provide support for bugs in NuGet packages. Please <a href="@Url.ContactOwners(Model)" title="contact the owners">contact the owners</a> for assistance.
-                    </p>
-                </div>
-                <div class="reason-error-security-vulnerability" tabindex="0">
-                    <p>
+                <h2><strong>To report a security vulnerability</strong></h2>
+                @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+                    @<text>
                         Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official portal</a>.
                         If this is not a Microsoft - owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
-                    </p>
-                </div>
-                <div class="reason-error-revenge-porn" tabindex="0">
-                    <p>
-                        Please report this safety violation through the <a href="https://www.microsoft.com/en-us/concern/revengeporn" title="revenge porn portal">official portal</a>.
-                    </p>
-                </div>
-                <div id="report-abuse-form">
-                    <div class="form-group @Html.HasErrorFor(m => m.Email)">
-                        @Html.ShowLabelFor(m => m.Email)
-                        @Html.ShowTextBoxFor(m => m.Email)
-                        @Html.ShowValidationMessagesFor(m => m.Email)
+                    </text>
+                )
+
+                <h2><strong>To report abuse, use this form</strong></h2>
+                @if (!Model.ConfirmedUser)
+                {
+                    @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
+                        @<text>
+                            If this is your package, please <a href="@Url.LogOn(returnUrl)">sign in</a> to contact support.
+                        </text>
+                    )
+                }
+                <p tabindex="0">
+                    <text>
+                        Please provide a detailed abuse report with evidence to support your claim! We cannot delete packages without evidence that they exhibit malicious behavior.
+                    </text>
+                </p>
+
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
+                        @Html.ShowLabelFor(m => m.Reason)
+                        <p tabindex="0">Please select the reason for contacting support about this package. This package contains:</p>
+                        @Html.ShowEnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>")
+                        @Html.ShowValidationMessagesFor(m => m.Reason)
                     </div>
-                    <div class="form-group already-contacted-owner @Html.HasErrorFor(m => m.AlreadyContactedOwner)">
-                        @Html.ShowCheckboxFor(m => m.AlreadyContactedOwner)
-                        @Html.ShowLabelFor(m => m.AlreadyContactedOwner)
-                        @Html.ShowValidationMessagesFor(m => m.AlreadyContactedOwner)
-                    </div>
-                    <div class="form-group @Html.HasErrorFor(m => m.Message)">
-                        @Html.ShowLabelFor(m => m.Message)
-                        <p tabindex="0">
-                            Please provide a detailed description of the problem.
+
+                    <div class="reason-error-has-a-bug" tabindex="0">
                         <p>
-                        <div class="online-safety-extras" tabindex="0">
-                            <p>
-                                Please also describe where in the package the problem was found. Be sure to include:
-                                <ul>
-                                    <li>Whether the problem is in graphics, video, readme, scripts, libraries, nuspec, other metadata, other file(s)</li>
-                                    <li>The exact names of the offending file(s)</li>
-                                </ul>
-                            </p>
-                        </div>
-                        <div class="infringement-claim-requirements" tabindex="0">
-                            <p>
-                                If you are reporting copyright infringement, please describe the copyrighted material with particularity and provide us with information about your copyright (i.e. title of copyrighted work, URL where to view your copyrighted work, description of your copyrighted work, and any copyright registrations you may have, etc.). For trademark infringement, include the name of your trademark, registration number, and country where registered.
-                            </p>
-                        </div>
-                        <div class="imminent-harm" tabindex="0">
-                            <p>
-                                Note: please ensure when reporting this type of abuse that you've considered whether the following are present:
-                                <ul>
-                                    <li>A targeted person or group (including self)</li>
-                                    <li>An identified actor--i.e. person intending to commit the offense</li>
-                                    <li>Details of the threat</li>
-                                    <li>Time and/or place where the act will be carried out</li>
-                                </ul>
-                            </p>
-                        </div>
-                        @Html.ShowTextAreaFor(m => m.Message, 10, 50)
-                        @Html.ShowValidationMessagesFor(m => m.Message)
-                    </div>
-                    <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
-                        @Html.ShowCheckboxFor(m => m.CopySender)
-                        @Html.ShowLabelFor(m => m.CopySender)
-                        @Html.ShowValidationMessagesFor(m => m.CopySender)
-                    </div>
-                    <div class="form-group infringement-claim-requirements @Html.HasErrorFor(m => m.Signature)">
-                        <h2><span style="color:red">*</span> Required Statements for infringement claims</h2>
-                        <h2>Good Faith Belief:</h2>
-                        <p>
-                            By typing my name (electronic signature), I have a good faith belief that the use of the material is not authorized by the intellectual property owner, its agent, or the law (e.g., it is not fair use).
+                            Unfortunately we cannot provide support for bugs in NuGet packages. Please <a href="@Url.ContactOwners(Model)" title="contact the owners">contact the owners</a> for assistance.
                         </p>
-                        <h2>Authority to Act:</h2>
-                        <p>
-                            I represent that the information in the notification is accurate, and under penalty of perjury, that I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
-                        </p>
-                        <h2>512(f) Acknowledgement:</h2>
-                        <p>
-                            As applicable under 17 U.S.C. 512(f), I acknowledge that I may be subject to liability for damages if I knowingly materially misrepresent that material or activity is infringing.
-                        </p>
-                        @Html.ShowLabelFor(m => m.Signature)
-                        @Html.ShowTextBoxFor(m => m.Signature)
-                        @Html.ShowValidationMessagesFor(m => m.Signature)
                     </div>
-                    <div class="form-group">
-                        <input id="Submit" type="submit" class="btn btn-primary form-control" value="Report" />
+                    <div class="reason-error-security-vulnerability" tabindex="0">
+                        <p>
+                            Please report security vulnerabilities through the <a href="https://msrc.microsoft.com/create-report" title="report a security vulnerability">official portal</a>.
+                            If this is not a Microsoft - owned package, consider also <a href="@Url.ContactOwners(Model)" title="contact the owners">contacting the owners</a>.
+                        </p>
                     </div>
-                </div>
+                    <div class="reason-error-revenge-porn" tabindex="0">
+                        <p>
+                            Please report this safety violation through the <a href="https://www.microsoft.com/en-us/concern/revengeporn" title="revenge porn portal">official portal</a>.
+                        </p>
+                    </div>
+                    <div id="report-abuse-form">
+                        <div class="form-group @Html.HasErrorFor(m => m.Email)">
+                            @Html.ShowLabelFor(m => m.Email)
+                            @Html.ShowTextBoxFor(m => m.Email)
+                            @Html.ShowValidationMessagesFor(m => m.Email)
+                        </div>
+                        <div class="form-group already-contacted-owner @Html.HasErrorFor(m => m.AlreadyContactedOwner)">
+                            @Html.ShowCheckboxFor(m => m.AlreadyContactedOwner)
+                            @Html.ShowLabelFor(m => m.AlreadyContactedOwner)
+                            @Html.ShowValidationMessagesFor(m => m.AlreadyContactedOwner)
+                        </div>
+                        <div class="form-group @Html.HasErrorFor(m => m.Message)">
+                            @Html.ShowLabelFor(m => m.Message)
+                            <p tabindex="0">
+                                Please provide a detailed description of the problem.
+                            <p>
+                            <div class="online-safety-extras" tabindex="0">
+                                <p>
+                                    Please also describe where in the package the problem was found. Be sure to include:
+                                    <ul>
+                                        <li>Whether the problem is in graphics, video, readme, scripts, libraries, nuspec, other metadata, other file(s)</li>
+                                        <li>The exact names of the offending file(s)</li>
+                                    </ul>
+                                </p>
+                            </div>
+                            <div class="infringement-claim-requirements" tabindex="0">
+                                <p>
+                                    If you are reporting copyright infringement, please describe the copyrighted material with particularity and provide us with information about your copyright (i.e. title of copyrighted work, URL where to view your copyrighted work, description of your copyrighted work, and any copyright registrations you may have, etc.). For trademark infringement, include the name of your trademark, registration number, and country where registered.
+                                </p>
+                            </div>
+                            <div class="imminent-harm" tabindex="0">
+                                <p>
+                                    Note: please ensure when reporting this type of abuse that you've considered whether the following are present:
+                                    <ul>
+                                        <li>A targeted person or group (including self)</li>
+                                        <li>An identified actor--i.e. person intending to commit the offense</li>
+                                        <li>Details of the threat</li>
+                                        <li>Time and/or place where the act will be carried out</li>
+                                    </ul>
+                                </p>
+                            </div>
+                            @Html.ShowTextAreaFor(m => m.Message, 10, 50)
+                            @Html.ShowValidationMessagesFor(m => m.Message)
+                        </div>
+                        <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
+                            @Html.ShowCheckboxFor(m => m.CopySender)
+                            @Html.ShowLabelFor(m => m.CopySender)
+                            @Html.ShowValidationMessagesFor(m => m.CopySender)
+                        </div>
+                        <div class="form-group infringement-claim-requirements @Html.HasErrorFor(m => m.Signature)">
+                            <h2><span style="color:red">*</span> Required Statements for infringement claims</h2>
+                            <h2>Good Faith Belief:</h2>
+                            <p>
+                                By typing my name (electronic signature), I have a good faith belief that the use of the material is not authorized by the intellectual property owner, its agent, or the law (e.g., it is not fair use).
+                            </p>
+                            <h2>Authority to Act:</h2>
+                            <p>
+                                I represent that the information in the notification is accurate, and under penalty of perjury, that I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
+                            </p>
+                            <h2>512(f) Acknowledgement:</h2>
+                            <p>
+                                As applicable under 17 U.S.C. 512(f), I acknowledge that I may be subject to liability for damages if I knowingly materially misrepresent that material or activity is infringing.
+                            </p>
+                            @Html.ShowLabelFor(m => m.Signature)
+                            @Html.ShowTextBoxFor(m => m.Signature)
+                            @Html.ShowValidationMessagesFor(m => m.Signature)
+                        </div>
+                        <div class="form-group">
+                            <input id="Submit" type="submit" class="btn btn-primary form-control" value="Report" />
+                        </div>
+                    </div>
+                }
+
             }
         </div>
     </div>

@@ -1365,6 +1365,9 @@ namespace NuGetGallery
                 PackageId = id,
                 PackageVersion = package.Version,
                 CopySender = true,
+                IsPackageListed = package.Listed,
+                IsOwnerLocked = package.User.IsLocked,
+                IsPackageLocked = package.PackageRegistration.IsLocked,
             };
 
             if (Request.IsAuthenticated)
@@ -1418,6 +1421,9 @@ namespace NuGetGallery
                 PackageVersion = package.Version,
                 CopySender = true,
                 AllowDelete = allowDelete,
+                IsPackageListed = package.Listed,
+                IsPackageLocked = package.PackageRegistration.IsLocked,
+                IsOwnerLocked = package.User.IsLocked
             };
 
             return View(model);

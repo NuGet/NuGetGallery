@@ -240,7 +240,7 @@
                     <h1>
                         <span class="pull-left">
                             <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                                    src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                                    src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) && !Model.ShouldHideDetailsAndLinks ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                         </span>
                         <span class="title" tabindex="0">
@@ -607,40 +607,47 @@
                 @if (!Model.Deleted)
                 {
                     <div role="tabpanel" class="tab-pane @(activeBodyTab == "readme" ? "active" : "")" id="readme-tab">
-                        @if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
+                        @if (Model.ShouldHideDetailsAndLinks)
                         {
-                            @ViewHelpers.AlertWarning(
-                                    @<text>
-                                        The readme will become available once package validation has completed successfully.
-                                    </text>
-)
-                        }
-                        else if (Model.ReadMeHtml != null)
-                        {
-                            <div class="readme-common">
-                                <div id="readme-container">
-                                    @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
-                                    {
-                                        @ViewHelpers.AlertImagesRewritten();
-                                    }
+                            @ViewHelpers.AlertWarning(@<text>This package's content is hidden as it violates our <a href="https://www.nuget.org/policies/terms" title="Terms of use">Terms of use</a>.</text>);
 
-                                    @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
-                                    {
-                                        @ViewHelpers.AlertImageSourceDisallowed();
-                                    }
-
-                                    @Html.Raw(Model.ReadMeHtml)
-                                </div>
-                            </div>
-                        }
-                        else
+                        } else
                         {
-                            if (Model.CanDisplayPrivateMetadata)
+                            @if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
                             {
-                                @ViewHelpers.AlertWarning(@<text>The package description is shown below. Please update your package to <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>include a README</a>.</text>);
+                                @ViewHelpers.AlertWarning(
+                                        @<text>
+                                            The readme will become available once package validation has completed successfully.
+                                        </text>
+    )
                             }
+                            else if (Model.ReadMeHtml != null)
+                            {
+                                <div class="readme-common">
+                                    <div id="readme-container">
+                                        @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
+                                        {
+                                            @ViewHelpers.AlertImagesRewritten();
+                                        }
 
-                            <p>@Html.PreFormattedText(Model.Description, Config)</p>
+                                        @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                                        {
+                                            @ViewHelpers.AlertImageSourceDisallowed();
+                                        }
+
+                                        @Html.Raw(Model.ReadMeHtml)
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                if (Model.CanDisplayPrivateMetadata)
+                                {
+                                    @ViewHelpers.AlertWarning(@<text>The package description is shown below. Please update your package to <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>include a README</a>.</text>);
+                                }
+
+                                <p>@Html.PreFormattedText(Model.Description, Config)</p>
+                            }
                         }
                     </div>
 
@@ -985,7 +992,7 @@
                         <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
                         Last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
                     </li>
-                    @if (!Model.Deleted && Model.ProjectUrl != null)
+                    @if (!Model.Deleted && Model.ProjectUrl != null && !Model.ShouldHideDetailsAndLinks)
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
@@ -995,7 +1002,7 @@
                         </li>
                     }
 
-                    @if (!Model.Deleted && Model.RepositoryUrl != null)
+                    @if (!Model.Deleted && Model.RepositoryUrl != null && !Model.ShouldHideDetailsAndLinks)
                     {
                         <li>
                             @switch (Model.RepositoryType)
@@ -1017,7 +1024,7 @@
                         </li>
                     }
 
-                    @if (!Model.Deleted && Model.LicenseUrl != null)
+                    @if (!Model.Deleted && Model.LicenseUrl != null && !Model.ShouldHideDetailsAndLinks)
                     {
                         if (Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent || !Model.Validating)
                         {

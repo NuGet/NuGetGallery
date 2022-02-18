@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Identity.Client;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 
@@ -27,5 +28,13 @@ namespace NuGetGallery
         [StringLength(4000)]
         [Display(Name = "Details")]
         public string Message { get; set; }
+
+        public bool ShouldHideReportAbuseForm
+        {
+            get
+            {
+                return !IsPackageListed && IsPackageLocked && IsOwnerLocked;
+            }
+        }
     }
 }

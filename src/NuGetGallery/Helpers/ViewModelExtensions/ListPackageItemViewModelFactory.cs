@@ -68,7 +68,12 @@ namespace NuGetGallery
 
         private static BasicUserViewModel GetBasicUserViewModel(User user)
         {
-            return new BasicUserViewModel { Username = user.Username, EmailAddress = user.EmailAddress, IsOrganization = user is Organization };
+            return new BasicUserViewModel { 
+                Username = user.Username, 
+                EmailAddress = user.EmailAddress, 
+                IsOrganization = user is Organization,
+                IsLocked = user.IsLocked
+            };
         }
     }
 }

@@ -156,6 +156,13 @@ namespace NuGetGallery
             }
         }
 
+        public bool ShouldHideDetailsAndLinks
+        {
+            get { 
+                return !Listed && Locked && Owners.Any(x => x.IsLocked); 
+            }
+        }
+
         public enum RepositoryKind
         {
             Unknown,
