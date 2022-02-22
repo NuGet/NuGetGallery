@@ -203,7 +203,7 @@ namespace NuGet.Jobs.Catalog2Registration
                     versionToCatalogLeaf.Remove(version);
 
                     _logger.LogInformation(
-                        "Version {Version} is SemVer 2.0.0 so it will be treated as a package delete.",
+                        "Version {Version} is SemVer 2.0.0 so it will be treated as a package delete for the {Hive} hive.",
                         catalogLeaf.ParsePackageVersion().ToFullString(),
                         hive);
                 }
@@ -286,7 +286,7 @@ namespace NuGet.Jobs.Catalog2Registration
             }
 
             _logger.LogInformation(
-                "Updating {Count} registration leaves.",
+                "Updating {Count} registration leaves for {PackageId} in the {Hive} hive.",
                 mergeResult.ModifiedLeaves.Count,
                 id,
                 hive);

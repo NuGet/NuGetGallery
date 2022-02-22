@@ -142,7 +142,9 @@ namespace NuGet.Jobs
                 }
 
                 // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
+#pragma warning disable 618
                 ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
+#pragma warning restore 618
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
                 // Run the job loop

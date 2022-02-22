@@ -121,7 +121,7 @@ namespace Stats.AzureCdnLogs.Common
             catch (Exception exception)
             {
                 // If it  fails do not do anything - the lease will be released in 1 minute anyway
-                _logger.LogWarning(LogEvents.FailedBlobReleaseLease, exception, "ReleaseLockAsync: Release lease failed for {BlobUri}.", true, releaseLock.Blob.Uri);
+                _logger.LogWarning(LogEvents.FailedBlobReleaseLease, exception, "ReleaseLockAsync: Release lease failed for {BlobUri}.", releaseLock.Blob.Uri);
                 return new AsyncOperationResult(null, exception);
             }
         }

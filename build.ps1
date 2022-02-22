@@ -97,6 +97,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "src\Stats.CDNLogsSanitizer\Properties\AssemblyInfo.g.cs",
             "src\Stats.CollectAzureChinaCDNLogs\Properties\AssemblyInfo.g.cs",
             "src\Stats.LogInterpretation\Properties\AssemblyInfo.g.cs",
+            "src\Stats.PostProcessReports\Properties\AssemblyInfo.g.cs", `
             "src\Stats.Warehouse\Properties\AssemblyInfo.g.cs",
             "src\StatusAggregator\Properties\AssemblyInfo.g.cs",
             "src\Validation.Common.Job\Properties\AssemblyInfo.g.cs",
@@ -197,6 +198,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src\Stats.CollectAzureChinaCDNLogs\Stats.CollectAzureChinaCDNLogs.csproj", `
             "src\Stats.CreateAzureCdnWarehouseReports\Stats.CreateAzureCdnWarehouseReports.csproj", `
             "src\Stats.ImportAzureCdnStatistics\Stats.ImportAzureCdnStatistics.csproj", `
+            "src\Stats.PostProcessReports\Stats.PostProcessReports.nuspec", `
             "src\Stats.RollUpDownloadFacts\Stats.RollUpDownloadFacts.csproj", `
             "src\StatusAggregator\StatusAggregator.csproj", `
             "src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.csproj", `

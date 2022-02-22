@@ -163,8 +163,7 @@ namespace NuGet.Jobs.Catalog2Registration
                 _logger.LogInformation(
                     "No blob in container {Container} at path {Path} exists.",
                     GetContainerName(hive),
-                    path,
-                    blob.Properties.ContentEncoding);
+                    path);
 
                 if (allow404)
                 {
