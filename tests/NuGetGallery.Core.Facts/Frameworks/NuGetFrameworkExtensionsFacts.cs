@@ -9,8 +9,10 @@ namespace NuGetGallery.Frameworks
     public class NuGetFrameworkExtensionsFacts
     {
         [Theory]
-        [InlineData("", "0.0")]
-        [InlineData("0", "0.0")]
+        [InlineData("", "")]
+        [InlineData("0", "")]
+        [InlineData("00", "")]
+        [InlineData("0.0.0.0", "")]
         [InlineData("1", "1.0")]
         [InlineData("01", "0.1")]
         [InlineData("12", "1.2")]

@@ -11,6 +11,11 @@ namespace NuGetGallery.Frameworks
     {
         public static string GetBadgeVersion(this NuGetFramework framework)
         {
+            if (framework.Version == FrameworkConstants.EmptyVersion)
+            {
+                return string.Empty;
+            }
+
             var builder = new StringBuilder();
             builder.Append(framework.Version.Major);
             builder.Append(".");
