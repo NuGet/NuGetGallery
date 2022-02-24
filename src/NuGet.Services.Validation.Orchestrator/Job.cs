@@ -107,10 +107,15 @@ namespace NuGet.Services.Validation.Orchestrator
             var featureFlagRefresher = _serviceProvider.GetRequiredService<IFeatureFlagRefresher>();
             await featureFlagRefresher.StartIfConfiguredAsync();
 
-            var runner = GetRequiredService<OrchestrationRunner>();
-            await runner.RunOrchestrationAsync();
-
-            await featureFlagRefresher.StopAndWaitAsync();
+            try
+            {
+                var runner = GetRequiredService<OrchestrationRunner>();
+                await runner.RunOrchestrationAsync();
+            }
+            finally
+            {
+                await featureFlagRefresher.StopAndWaitAsync();
+            }
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
