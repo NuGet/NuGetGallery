@@ -274,10 +274,5 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
-
-        public bool IsDotnet20BannerEnabled()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
