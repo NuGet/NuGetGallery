@@ -40,7 +40,6 @@ namespace NuGetGallery
         private const string GravatarProxyEnSubdomainFeatureName = GalleryPrefix + "GravatarProxyEnSubdomain";
         private const string ODataCacheDurationsFeatureName = GalleryPrefix + "ODataCacheDurations";
         private const string ShowEnable2FADialog = GalleryPrefix + "ShowEnable2FADialog";
-        private const string ShowDotnet20Banner = GalleryPrefix + "ShowDotnet20Banner";
         private const string Get2FADismissFeedback = GalleryPrefix + "Get2FADismissFeedback";
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
         private const string PatternSetTfmHeuristicsFeatureName = GalleryPrefix + "PatternSetTfmHeuristics";
@@ -227,11 +226,6 @@ namespace NuGetGallery
         public bool IsShowEnable2FADialogEnabled()
         {
             return _client.IsEnabled(ShowEnable2FADialog, defaultValue: false);
-        }
-
-        public bool IsDotnet20BannerEnabled()
-        {
-            return _client.IsEnabled(ShowDotnet20Banner, defaultValue: false);
         }
 
         public bool IsGet2FADismissFeedbackEnabled()

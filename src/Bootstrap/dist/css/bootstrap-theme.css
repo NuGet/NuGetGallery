@@ -1574,59 +1574,6 @@ p.frameworktableinfo-text {
   position: relative;
   margin-top: 32px;
 }
-.page-home .dotnet-20-banner .dotnet-20-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-}
-.page-home .dotnet-20-banner .dotnet-20-image img {
-  height: 100%;
-  width: 100%;
-  -o-object-fit: cover;
-  object-fit: cover;
-  background-color: #000;
-}
-.page-home .dotnet-20-banner .container .row {
-  color: white;
-}
-@media (max-width: 1199px) {
-  .page-home .dotnet-20-banner .container .row {
-    margin-top: 48px;
-    margin-bottom: 48px;
-  }
-}
-@media (min-width: 1199px) {
-  .page-home .dotnet-20-banner .container .row {
-    margin-top: 144px;
-    margin-bottom: 144px;
-  }
-}
-.page-home .dotnet-20-banner .container .row .banner-text {
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-}
-.page-home .dotnet-20-banner .container .row .banner-text h2 {
-  margin-top: 0px;
-  font-weight: 600;
-}
-.page-home .dotnet-20-banner .container .row .banner-text h3 {
-  margin-top: 0px;
-  font-weight: 400;
-}
-.page-home .dotnet-20-banner .container .row .banner-text a {
-  padding: 5px 12px 5px 12px;
-  border: 1px solid white;
-  color: white;
-  font-weight: 600;
-}
-.page-home .dotnet-20-banner .container .row .banner-text a:focus {
-  outline-color: #fff;
-  outline-style: dashed;
-  outline-width: 2px;
-  outline-offset: 3px;
-}
 .page-home .what-is-nuget {
   font-size: 1.15em;
   padding-bottom: 75px;
