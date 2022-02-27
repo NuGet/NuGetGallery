@@ -27,35 +27,40 @@ namespace NuGet.Jobs.Validation
             var featureFlagRefresher = _serviceProvider.GetRequiredService<IFeatureFlagRefresher>();
             await featureFlagRefresher.StartIfConfiguredAsync();
 
-            var processor = _serviceProvider.GetService<ISubscriptionProcessor<T>>();
-
-            if (processor == null)
+            try
             {
-                throw new Exception($"DI container was not set up to produce instances of ISubscriptionProcessor<{typeof(T).Name}>. " +
-                    $"Call SubcriptionProcessorJob<T>.{nameof(ConfigureDefaultSubscriptionProcessor)}() or set it up your way.");
+                var processor = _serviceProvider.GetService<ISubscriptionProcessor<T>>();
+
+                if (processor == null)
+                {
+                    throw new Exception($"DI container was not set up to produce instances of ISubscriptionProcessor<{typeof(T).Name}>. " +
+                        $"Call SubcriptionProcessorJob<T>.{nameof(ConfigureDefaultSubscriptionProcessor)}() or set it up your way.");
+                }
+
+                var configuration = _serviceProvider.GetService<IOptionsSnapshot<SubscriptionProcessorConfiguration>>();
+
+                if (configuration == null || configuration.Value == null)
+                {
+                    throw new Exception($"Failed to get the SubscriptionProcessorJob configuration. Call " +
+                        $"SubcriptionProcessorJob<T>.{nameof(SetupDefaultSubscriptionProcessorConfiguration)}() or set it up your way.");
+                }
+
+                processor.Start(configuration.Value.MaxConcurrentCalls);
+
+                // Wait a certain period of time, and then shutdown this process so that it is restarted.
+                await Task.Delay(configuration.Value.ProcessDuration);
+
+                if (!await processor.ShutdownAsync(MaxShutdownTime))
+                {
+                    Logger.LogWarning(
+                        "Failed to gracefully shutdown Service Bus subscription processor. {MessagesInProgress} messages left",
+                        processor.NumberOfMessagesInProgress);
+                }
             }
-
-            var configuration = _serviceProvider.GetService<IOptionsSnapshot<SubscriptionProcessorConfiguration>>();
-
-            if (configuration == null || configuration.Value == null)
+            finally
             {
-                throw new Exception($"Failed to get the SubscriptionProcessorJob configuration. Call " +
-                    $"SubcriptionProcessorJob<T>.{nameof(SetupDefaultSubscriptionProcessorConfiguration)}() or set it up your way.");
+                await featureFlagRefresher.StopAndWaitAsync();
             }
-
-            processor.Start(configuration.Value.MaxConcurrentCalls);
-
-            // Wait a certain period of time, and then shutdown this process so that it is restarted.
-            await Task.Delay(configuration.Value.ProcessDuration);
-
-            if (!await processor.ShutdownAsync(MaxShutdownTime))
-            {
-                Logger.LogWarning(
-                    "Failed to gracefully shutdown Service Bus subscription processor. {MessagesInProgress} messages left",
-                    processor.NumberOfMessagesInProgress);
-            }
-
-            await featureFlagRefresher.StopAndWaitAsync();
         }
 
         protected static void ConfigureDefaultSubscriptionProcessor(ContainerBuilder containerBuilder)

@@ -87,78 +87,83 @@ namespace Stats.AggregateCdnDownloadsInGallery
             var featureFlagRefresher = _serviceProvider.GetRequiredService<IFeatureFlagRefresher>();
             await featureFlagRefresher.StartIfConfiguredAsync();
 
-            IReadOnlyCollection<DownloadCountData> downloadData = null;
-            var jsonConfigurationAccessor = _serviceProvider.GetService<IOptionsSnapshot<DownloadsV1JsonConfiguration>>();
-            if (jsonConfigurationAccessor == null || jsonConfigurationAccessor.Value == null)
+            try
             {
-                downloadData = await GetDownloadDataFromStatsDbAsync();
-            }
-            else
-            {
-                var ff = _serviceProvider.GetRequiredService<IFeatureFlagClient>();
-                string url = jsonConfigurationAccessor.Value.SqlPipelineUrl;
-                if (ff.IsEnabled(AlternateStatisticsSourceFeatureFlagName, defaultValue: false))
+                IReadOnlyCollection<DownloadCountData> downloadData = null;
+                var jsonConfigurationAccessor = _serviceProvider.GetService<IOptionsSnapshot<DownloadsV1JsonConfiguration>>();
+                if (jsonConfigurationAccessor == null || jsonConfigurationAccessor.Value == null)
                 {
-                    url = jsonConfigurationAccessor.Value.SynapsePipelineUrl;
+                    downloadData = await GetDownloadDataFromStatsDbAsync();
                 }
-
-                var result = new List<DownloadCountData>();
-                await _downloadsV1JsonClient.ReadAsync(url, (id, version, downloads) =>
+                else
                 {
-                    result.Add(new DownloadCountData { PackageId = id, PackageVersion = version, TotalDownloadCount = downloads });
-                });
-                downloadData = result;
-            }
-
-            if (!downloadData.Any())
-            {
-                Logger.LogInformation("No download data to process.");
-                return;
-            }
-
-            using (var connection = await OpenSqlConnectionAsync<GalleryDbConfiguration>())
-            {
-                // Fetch package registrations so we can match package ID to package registration key.
-                var packageRegistrationLookup = await GetPackageRegistrations(connection);
-
-                // Group based on package ID and store in a stack for easy incremental processing.
-                var allGroups = downloadData.GroupBy(p => p.PackageId).ToList();
-                var filteredGroups = allGroups.Where(g => IsValidGroup(packageRegistrationLookup, g)).ToList();
-                var removedCount = allGroups.Count - filteredGroups.Count;
-                Logger.LogInformation("{TotalGroupCount} package ID groups were found in the statistics database.", allGroups.Count);
-                Logger.LogInformation("{RemovedGroupCount} package ID groups were filtered out because they aren't in the gallery database.", removedCount);
-                Logger.LogInformation("{RemainingGroupCount} package ID groups will be processed.", filteredGroups.Count);
-
-                var remainingGroups = new Stack<IPackageIdGroup>(filteredGroups);
-
-                var stopwatch = Stopwatch.StartNew();
-
-                while (remainingGroups.Any())
-                {
-                    // Create a batch of one or more package registrations to update.
-                    var batch = PopGroupBatch(remainingGroups, _configuration.BatchSize);
-
-                    var rowsProcessed = await ProcessBatchAsync(batch, connection, packageRegistrationLookup);
-
-                    Logger.LogInformation(
-                        "There are {GroupCount} package registration groups remaining.",
-                        remainingGroups.Count);
-
-                    // will only sleep if DB write happened.
-                    if (remainingGroups.Any() && rowsProcessed > 0)
+                    var ff = _serviceProvider.GetRequiredService<IFeatureFlagClient>();
+                    string url = jsonConfigurationAccessor.Value.SqlPipelineUrl;
+                    if (ff.IsEnabled(AlternateStatisticsSourceFeatureFlagName, defaultValue: false))
                     {
-                        Logger.LogInformation("Sleeping for {BatchSleepSeconds} seconds before continuing.", _configuration.BatchSleepSeconds);
-                        await Task.Delay(TimeSpan.FromSeconds(_configuration.BatchSleepSeconds));
+                        url = jsonConfigurationAccessor.Value.SynapsePipelineUrl;
                     }
+
+                    var result = new List<DownloadCountData>();
+                    await _downloadsV1JsonClient.ReadAsync(url, (id, version, downloads) =>
+                    {
+                        result.Add(new DownloadCountData { PackageId = id, PackageVersion = version, TotalDownloadCount = downloads });
+                    });
+                    downloadData = result;
                 }
 
-                stopwatch.Stop();
-                Logger.LogInformation(
-                    "It took {DurationSeconds} seconds to update all download counts.",
-                    stopwatch.Elapsed.TotalSeconds);
-            }
+                if (!downloadData.Any())
+                {
+                    Logger.LogInformation("No download data to process.");
+                    return;
+                }
 
-            await featureFlagRefresher.StopAndWaitAsync();
+                using (var connection = await OpenSqlConnectionAsync<GalleryDbConfiguration>())
+                {
+                    // Fetch package registrations so we can match package ID to package registration key.
+                    var packageRegistrationLookup = await GetPackageRegistrations(connection);
+
+                    // Group based on package ID and store in a stack for easy incremental processing.
+                    var allGroups = downloadData.GroupBy(p => p.PackageId).ToList();
+                    var filteredGroups = allGroups.Where(g => IsValidGroup(packageRegistrationLookup, g)).ToList();
+                    var removedCount = allGroups.Count - filteredGroups.Count;
+                    Logger.LogInformation("{TotalGroupCount} package ID groups were found in the statistics database.", allGroups.Count);
+                    Logger.LogInformation("{RemovedGroupCount} package ID groups were filtered out because they aren't in the gallery database.", removedCount);
+                    Logger.LogInformation("{RemainingGroupCount} package ID groups will be processed.", filteredGroups.Count);
+
+                    var remainingGroups = new Stack<IPackageIdGroup>(filteredGroups);
+
+                    var stopwatch = Stopwatch.StartNew();
+
+                    while (remainingGroups.Any())
+                    {
+                        // Create a batch of one or more package registrations to update.
+                        var batch = PopGroupBatch(remainingGroups, _configuration.BatchSize);
+
+                        var rowsProcessed = await ProcessBatchAsync(batch, connection, packageRegistrationLookup);
+
+                        Logger.LogInformation(
+                            "There are {GroupCount} package registration groups remaining.",
+                            remainingGroups.Count);
+
+                        // will only sleep if DB write happened.
+                        if (remainingGroups.Any() && rowsProcessed > 0)
+                        {
+                            Logger.LogInformation("Sleeping for {BatchSleepSeconds} seconds before continuing.", _configuration.BatchSleepSeconds);
+                            await Task.Delay(TimeSpan.FromSeconds(_configuration.BatchSleepSeconds));
+                        }
+                    }
+
+                    stopwatch.Stop();
+                    Logger.LogInformation(
+                        "It took {DurationSeconds} seconds to update all download counts.",
+                        stopwatch.Elapsed.TotalSeconds);
+                }
+            }
+            finally
+            {
+                await featureFlagRefresher.StopAndWaitAsync();
+            }
         }
 
         private async Task<IReadOnlyList<DownloadCountData>> GetDownloadDataFromStatsDbAsync()
