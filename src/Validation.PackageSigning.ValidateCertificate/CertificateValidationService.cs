@@ -215,7 +215,7 @@ namespace Validation.PackageSigning.ValidateCertificate
             SignatureDecider signatureDecider,
             Action onAllSignaturesHandled)
         {
-            // A single certificate may be dependend on by many signatures. To ensure sanity, only up
+            // A single certificate may be dependend on by many signatures. To ensure correctness, only up
             // to "MaxSignatureUpdatesPerTransaction" signatures will be invalidated at a time.
             List<PackageSignature> signatures = null;
             int page = 0;
