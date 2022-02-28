@@ -158,7 +158,7 @@ to console.
 `-HeartbeatIntervalSeconds <seconds>` - optional heartbeat send interval. If specified will override the default AI
 setting.
 
-`-Validate <true | false>` - optional switch to perform some sanity checks on the configuration without actually
+`-Validate <true | false>` - optional switch to perform some additional checks on the configuration without actually
 processing any messages.
 
 ## Running the job
