@@ -2448,9 +2448,9 @@ namespace NuGetGallery.Authentication
             var validator = CredentialValidator.Validators[algorithm];
             bool canAuthenticate = validator(password, new Credential { Value = hash });
 
-            bool sanity = validator("not_the_password", new Credential { Value = hash });
+            bool confidenceCheck = validator("not_the_password", new Credential { Value = hash });
 
-            return canAuthenticate && !sanity;
+            return canAuthenticate && !confidenceCheck;
         }
     }
 }
