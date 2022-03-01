@@ -372,6 +372,48 @@ namespace NuGetGallery.Packaging
             Assert.Equal(VersionRange.All, dependency.VersionRange);
         }
 
+        [Theory]
+        [InlineData("tagS")]
+        [InlineData("taGs")]
+        [InlineData("taGS")]
+        [InlineData("tAgs")]
+        [InlineData("tAgS")]
+        [InlineData("tAGs")]
+        [InlineData("tAGS")]
+        [InlineData("Tags")]
+        [InlineData("TagS")]
+        [InlineData("TaGs")]
+        [InlineData("TaGS")]
+        [InlineData("TAgs")]
+        [InlineData("TAgS")]
+        [InlineData("TAGs")]
+        [InlineData("TAGS")]
+        public void ThrowsForUppercaseTags(string tags)
+        {
+            var packageStream = CreateTestPackageStreamWithMetadataElementName(tags, "foo bar baz");
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            var ex = Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: false));
+            Assert.Equal($"The package manifest contains invalid metadata elements: '{tags}'", ex.Message);
+        }
+
+        [Fact]
+        public void DoesntThrowForLowercaseTags()
+        {
+            var packageStream = CreateTestPackageStreamWithMetadataElementName("tags", "foo bar baz");
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            var ex = Record.Exception(() => PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: false));
+
+            Assert.Null(ex);
+        }
+
         private static Stream CreateTestPackageStream()
         {
             return CreateTestPackageStream(@"<?xml version=""1.0""?>
