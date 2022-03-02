@@ -86,11 +86,6 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public bool IsDotnet20BannerEnabled()
-        {
-            throw new NotImplementedException();
-        }
-
         public bool IsForceFlatContainerIconsEnabled()
         {
             throw new NotImplementedException();

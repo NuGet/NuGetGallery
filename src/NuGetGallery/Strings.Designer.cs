@@ -2085,6 +2085,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with all versions of this framework..
+        /// </summary>
+        public static string SupportedFrameworks_EmptyVersionTooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_EmptyVersionTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with this framework or higher..
+        /// </summary>
+        public static string SupportedFrameworks_Tooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your support request has been sent to the gallery operators..
         /// </summary>
         public static string SupportRequestSentTransientMessage {

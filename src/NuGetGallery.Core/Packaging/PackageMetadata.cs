@@ -284,7 +284,7 @@ namespace NuGetGallery.Packaging
                 }
             }
 
-            return new PackageMetadata(
+            var packageMetadata = new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),
                 nuspecReader.GetFrameworkAssemblyGroups(),
@@ -292,6 +292,14 @@ namespace NuGetGallery.Packaging
                 nuspecReader.GetMinClientVersion(),
                 nuspecReader.GetRepositoryMetadata(),
                 nuspecReader.GetLicenseMetadata());
+
+            // Fix null or empty description values for reflowed packages
+            if (!strict)
+            {
+                packageMetadata.Description = packageMetadata.Description ?? string.Empty;
+            }
+
+            return packageMetadata;
         }
 
         private class StrictNuspecReader : NuspecReader

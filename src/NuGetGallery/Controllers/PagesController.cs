@@ -122,14 +122,12 @@ namespace NuGetGallery
             var externalIdentityList = ClaimsExtensions.GetExternalCredentialIdentityList(identity);
             var showEnable2FAModal = _featureFlagService.IsShowEnable2FADialogEnabled();
             var getFeedbackOnModalDismiss = _featureFlagService.IsGet2FADismissFeedbackEnabled();
-            var showDotnet20Banner = _featureFlagService.IsDotnet20BannerEnabled();
 
             return View(new GalleryHomeViewModel(
                 showTransformModal,
                 transformIntoOrganization,
                 showEnable2FAModal,
                 getFeedbackOnModalDismiss,
-                showDotnet20Banner,
                 externalIdentityList));
         }
 
