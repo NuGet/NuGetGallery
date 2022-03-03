@@ -507,6 +507,13 @@ namespace NuGetGallery
                 return SafeRedirect(returnUrl);
             }
 
+            // All new linking or replacing accounts should have 2FA enabled.
+            if (!result.UserInfo.UsedMultiFactorAuthentication)
+            {
+                TempData["ErrorMessage"] = Strings.ExternalAccountShouldHave2FAEnabled;
+                return SafeRedirect(returnUrl);
+            }
+
             var newCredential = result.Credential;
             if (await _authService.TryReplaceCredential(user, newCredential))
             {

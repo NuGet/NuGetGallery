@@ -1230,4 +1230,7 @@ The {1} Team</value>
   <data name="SupportedFrameworks_Tooltip" xml:space="preserve">
     <value>This package is compatible with this framework or higher.</value>
   </data>
+  <data name="ExternalAccountShouldHave2FAEnabled" xml:space="preserve">
+    <value>Your account must have two-factor authentication enabled. Please enable it or reach out to your account admin.</value>
+  </data>
 </root>

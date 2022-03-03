@@ -1067,6 +1067,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your account must have two-factor authentication enabled. Please enable it or reach out to your account admin..
+        /// </summary>
+        public static string ExternalAccountShouldHave2FAEnabled {
+            get {
+                return ResourceManager.GetString("ExternalAccountShouldHave2FAEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to read the package file. Ensure it is a valid NuGet package with a valid manifest..
         /// </summary>
         public static string FailedToReadUploadFile {
