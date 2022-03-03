@@ -392,7 +392,8 @@ namespace NuGetGallery.Authentication
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
                 NotifyPackagePushed = true,
-                CreatedUtc = _dateTimeProvider.UtcNow
+                CreatedUtc = _dateTimeProvider.UtcNow,
+                EnableMultiFactorAuthentication = true
             };
 
             // Add a credential for the password

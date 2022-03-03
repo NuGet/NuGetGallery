@@ -627,70 +627,68 @@ namespace NuGetGallery
 
                 return SafeRedirect(returnUrl);
             }
-            else
+            // Gather data for view model
+            string name = null;
+            string email = null;
+            var authUI = result.Authenticator.GetUI();
+            try
             {
-                // Gather data for view model
-                string name = null;
-                string email = null;
-                var authUI = result.Authenticator.GetUI();
-                try
-                {
-                    var userInfo = result.Authenticator.GetIdentityInformation(result.ExternalIdentity);
-                    name = userInfo.Name;
-                    email = userInfo.Email;
-                }
-                catch (Exception)
-                {
-                    // Consume the exception for now, for backwards compatibility to previous MSA provider.
-                    email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
-                    name = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Name);
-                }
-
-                // Check for a user with this email address
-                User existingUser = null;
-                if (!string.IsNullOrEmpty(email))
-                {
-                    existingUser = _userService.FindByEmailAddress(email);
-                }
-
-                var foundExistingUser = existingUser != null;
-                var existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.None;
-
-                if (foundExistingUser)
-                {
-                    if (existingUser is Organization)
-                    {
-                        existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization;
-                    }
-                    else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator)
-                    {
-                        existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked;
-                    }
-                }
-
-                var external = new AssociateExternalAccountViewModel()
-                {
-                    ProviderAccountNoun = authUI.AccountNoun,
-                    AccountName = name,
-                    FoundExistingUser = foundExistingUser,
-                    ExistingUserLinkingError = existingUserLinkingError
-                };
-
-                var model = new LogOnViewModel
-                {
-                    External = external,
-                    SignIn = new SignInViewModel
-                    {
-                        UserNameOrEmail = email
-                    },
-                    Register = new RegisterViewModel
-                    {
-                        EmailAddress = email
-                    }
-                };
-
-                return LinkExternalView(model);
+                var userInfo = result.Authenticator.GetIdentityInformation(result.ExternalIdentity);
+                name = userInfo.Name;
+                email = userInfo.Email;
             }
+            catch (Exception)
+            {
+                // Consume the exception for now, for backwards compatibility to previous MSA provider.
+                email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
+                name = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Name);
+            }
+
+            // Check for a user with this email address
+            User existingUser = null;
+            if (!string.IsNullOrEmpty(email))
+            {
+                existingUser = _userService.FindByEmailAddress(email);
+            }
+
+            var foundExistingUser = existingUser != null;
+            var existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.None;
+
+            if (foundExistingUser)
+            {
+                if (existingUser is Organization)
+                {
+                    existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization;
+                }
+                else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator)
+                {
+                    existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked;
+                }
+            }
+
+            var external = new AssociateExternalAccountViewModel()
+            {
+                ProviderAccountNoun = authUI.AccountNoun,
+                AccountName = name,
+                FoundExistingUser = foundExistingUser,
+                ExistingUserLinkingError = existingUserLinkingError,
+                UsedMultiFactorAuthentication = result.UserInfo.UsedMultiFactorAuthentication
+            };
+
+            var model = new LogOnViewModel
+            {
+                External = external,
+                SignIn = new SignInViewModel
+                {
+                    UserNameOrEmail = email
+                },
+                Register = new RegisterViewModel
+                {
+                    EmailAddress = email
+                }
+            };
+
+            return LinkExternalView(model);
         }
 
         internal bool ShouldEnforceMultiFactorAuthentication(AuthenticateExternalLoginResult result)
@@ -703,13 +701,14 @@ namespace NuGetGallery
             // Enforce multi-factor authentication only if:
             // 1. The authenticator supports multi-factor authentication, otherwise no use.
             // 2. The user has enabled multi-factor authentication for their account.
-            // 3. The user authenticated with the personal microsoft account. AAD 2FA policy is controlled by the tenant admins.
+            // 3. The user authenticated with the personal microsoft account or AAD.
             // 4. The user did not use the multi-factor authentication for the session, obviously.
             return result.Authenticator.SupportsMultiFactorAuthentication()
                 && result.Authentication.User.EnableMultiFactorAuthentication
                 && !result.LoginDetails.WasMultiFactorAuthenticated
                 && result.Authentication.CredentialUsed.IsExternal()
-                && (CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type));
+                && (CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type) ||
+                CredentialTypes.IsAzureActiveDirectoryAccount(result.Authentication.CredentialUsed.Type));
         }
 
         private string FormatEmailAddressForAssistance(string email)

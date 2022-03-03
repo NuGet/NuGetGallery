@@ -7,7 +7,31 @@
 }
 
 <section role="main" class="container main-container page-sign-in">
-    @if (Model.External.FoundExistingUser)
+    @if (!Model.External.UsedMultiFactorAuthentication)
+    {
+        <div class="row">
+            <div class="col-xs-12">
+                <h1 class="text-center">Your @Model.External.ProviderAccountNoun cannot be linked at this time.</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+                <p class="text-center">
+                    All new accounts requires to use two-factor authentication (2FA).
+                    <a href='https://devblogs.microsoft.com/nuget/requiring-two-factor-authentication-on-nuget-org/' aria-label="Learn more.">Learn more.</a>
+                </p>
+                <p class="text-center">
+                    <a href='https://support.microsoft.com/en-us/account-billing/turning-two-step-verification-on-or-off-for-your-microsoft-account-b1a56fc2-caf3-a5a1-f7e3-4309e99987ca'
+                       aria-label="How to enable 2FA for your Microsoft account.">How to enable 2FA for your Microsoft account.</a>
+                </p>
+                <p class="text-center">
+                    <a href='https://support.microsoft.com/en-us/account-billing/set-up-security-info-from-a-sign-in-page-28180870-c256-4ebf-8bd7-5335571bf9a8'
+                       aria-label="How to enable 2FA for your work or school account.">How to enable 2FA for your work or school account.</a>
+                </p>
+            </div>
+        </div>
+    }
+    else if (Model.External.FoundExistingUser)
     {
         <div class="row">
             <div class="col-xs-12">
