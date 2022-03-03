@@ -3452,6 +3452,10 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
     border-radius: 0px;
   }
 }
+.navbar a:focus {
+  outline: 4px solid white;
+  outline-offset: -2px;
+}
 @media (min-width: 768px) {
   .navbar-header {
     float: left;
