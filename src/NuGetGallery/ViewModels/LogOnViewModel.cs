@@ -35,7 +35,6 @@ namespace NuGetGallery
         public bool FoundExistingUser { get; set; }
         public bool ExistingUserCanBeLinked => ExistingUserLinkingError == ExistingUserLinkingErrorType.None;
         public ExistingUserLinkingErrorType ExistingUserLinkingError { get; set; }
-        public bool UsedMultiFactorAuthentication { get; set; }
 
         public enum ExistingUserLinkingErrorType
         {
