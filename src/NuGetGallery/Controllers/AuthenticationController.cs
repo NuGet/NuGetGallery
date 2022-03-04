@@ -634,8 +634,7 @@ namespace NuGetGallery
 
                 return SafeRedirect(returnUrl);
             }
-
-            if (ShouldEnforceMultiFactorAuthentication(result))
+            else if (ShouldEnforceMultiFactorAuthentication(result))
             {
                 // Invoke the authentication again enforcing multi-factor authentication for the same provider.
                 return ChallengeAuthentication(
@@ -643,68 +642,71 @@ namespace NuGetGallery
                     result.Authenticator.Name,
                     new AuthenticationPolicy() { Email = result.LoginDetails.EmailUsed, EnforceMultiFactorAuthentication = true });
             }
-
-            // Gather data for view model
-            string name = null;
-            string email = null;
-            var authUI = result.Authenticator.GetUI();
-            try
+            else
             {
-                var userInfo = result.Authenticator.GetIdentityInformation(result.ExternalIdentity);
-                name = userInfo.Name;
-                email = userInfo.Email;
-            }
-            catch (Exception)
-            {
-                // Consume the exception for now, for backwards compatibility to previous MSA provider.
-                email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
-                name = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Name);
-            }
 
-            // Check for a user with this email address
-            User existingUser = null;
-            if (!string.IsNullOrEmpty(email))
-            {
-                existingUser = _userService.FindByEmailAddress(email);
-            }
-
-            var foundExistingUser = existingUser != null;
-            var existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.None;
-
-            if (foundExistingUser)
-            {
-                if (existingUser is Organization)
+                // Gather data for view model
+                string name = null;
+                string email = null;
+                var authUI = result.Authenticator.GetUI();
+                try
                 {
-                    existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization;
+                    var userInfo = result.Authenticator.GetIdentityInformation(result.ExternalIdentity);
+                    name = userInfo.Name;
+                    email = userInfo.Email;
                 }
-                else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator)
+                catch (Exception)
                 {
-                    existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked;
+                    // Consume the exception for now, for backwards compatibility to previous MSA provider.
+                    email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
+                    name = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Name);
                 }
+
+                // Check for a user with this email address
+                User existingUser = null;
+                if (!string.IsNullOrEmpty(email))
+                {
+                    existingUser = _userService.FindByEmailAddress(email);
+                }
+
+                var foundExistingUser = existingUser != null;
+                var existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.None;
+
+                if (foundExistingUser)
+                {
+                    if (existingUser is Organization)
+                    {
+                        existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization;
+                    }
+                    else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator)
+                    {
+                        existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked;
+                    }
+                }
+
+                var external = new AssociateExternalAccountViewModel()
+                {
+                    ProviderAccountNoun = authUI.AccountNoun,
+                    AccountName = name,
+                    FoundExistingUser = foundExistingUser,
+                    ExistingUserLinkingError = existingUserLinkingError
+                };
+
+                var model = new LogOnViewModel
+                {
+                    External = external,
+                    SignIn = new SignInViewModel
+                    {
+                        UserNameOrEmail = email
+                    },
+                    Register = new RegisterViewModel
+                    {
+                        EmailAddress = email
+                    }
+                };
+
+                return LinkExternalView(model);
             }
-
-            var external = new AssociateExternalAccountViewModel()
-            {
-                ProviderAccountNoun = authUI.AccountNoun,
-                AccountName = name,
-                FoundExistingUser = foundExistingUser,
-                ExistingUserLinkingError = existingUserLinkingError
-            };
-
-            var model = new LogOnViewModel
-            {
-                External = external,
-                SignIn = new SignInViewModel
-                {
-                    UserNameOrEmail = email
-                },
-                Register = new RegisterViewModel
-                {
-                    EmailAddress = email
-                }
-            };
-
-            return LinkExternalView(model);
         }
 
         internal bool ShouldEnforceMultiFactorAuthentication(AuthenticateExternalLoginResult result)
