@@ -33,7 +33,6 @@ namespace NuGetGallery.Authentication
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IContentObjectService _contentObjectService;
         private readonly ITelemetryService _telemetryService;
-        private readonly IFeatureFlagService _featureFlagService;
 
         /// <summary>
         /// This ctor is used for test only.
@@ -49,7 +48,7 @@ namespace NuGetGallery.Authentication
             IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics,
             IAuditingService auditing, IEnumerable<Authenticator> providers, ICredentialBuilder credentialBuilder,
             ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider, ITelemetryService telemetryService,
-            IContentObjectService contentObjectService, IFeatureFlagService featureFlagService)
+            IContentObjectService contentObjectService)
         {
             InitCredentialFormatters();
 
@@ -63,7 +62,6 @@ namespace NuGetGallery.Authentication
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public IEntitiesContext Entities { get; private set; }
@@ -367,7 +365,7 @@ namespace NuGetGallery.Authentication
             return claims.ToArray();
         }
 
-        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential, bool autoConfirm = false)
+        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential, bool? enableMultiFactorAuthentication, bool autoConfirm = false)
         {
             if (_config.FeedOnlyMode)
             {
@@ -394,9 +392,13 @@ namespace NuGetGallery.Authentication
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
                 NotifyPackagePushed = true,
-                CreatedUtc = _dateTimeProvider.UtcNow,
-                EnableMultiFactorAuthentication = _featureFlagService.IsNewAccount2FAEnforcementEnabled()
+                CreatedUtc = _dateTimeProvider.UtcNow
             };
+
+            if(enableMultiFactorAuthentication.HasValue)
+            {
+                newUser.EnableMultiFactorAuthentication = enableMultiFactorAuthentication.Value;
+            }
 
             // Add a credential for the password
             newUser.Credentials.Add(credential);

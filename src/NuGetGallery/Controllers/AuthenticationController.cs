@@ -283,6 +283,7 @@ namespace NuGetGallery
 
             AuthenticatedUser user;
             var usedMultiFactorAuthentication = false;
+            bool? enableMultiFactorAuthentication = null;
             try
             {
                 if (linkingAccount)
@@ -294,19 +295,26 @@ namespace NuGetGallery
                     }
 
                     usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
+
+                    if (_featureFlagService.IsNewAccount2FAEnforcementEnabled() && usedMultiFactorAuthentication)
+                    {
+                        enableMultiFactorAuthentication = true;
+                    }
+
                     user = await _authService.Register(
                         model.Register.Username,
                         model.Register.EmailAddress,
                         result.Credential,
-                        (result.Credential.IsExternal() && string.Equals(result.UserInfo?.Email, model.Register.EmailAddress))
-                        );
+                        enableMultiFactorAuthentication: enableMultiFactorAuthentication,
+                        autoConfirm: (result.Credential.IsExternal() && string.Equals(result.UserInfo?.Email, model.Register.EmailAddress)));
                 }
                 else
                 {
                     user = await _authService.Register(
                         model.Register.Username,
                         model.Register.EmailAddress,
-                        _credentialBuilder.CreatePasswordCredential(model.Register.Password));
+                        _credentialBuilder.CreatePasswordCredential(model.Register.Password),
+                        enableMultiFactorAuthentication: enableMultiFactorAuthentication);
                 }
             }
             catch (EntityException ex)
