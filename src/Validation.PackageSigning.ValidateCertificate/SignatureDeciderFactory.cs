@@ -100,7 +100,7 @@ namespace Validation.PackageSigning.ValidateCertificate
 
             return (PackageSignature signature) =>
             {
-                // Ensure that the signature has only one trusted timestamp. This is just a sanity check as the extract
+                // Ensure that the signature has only one trusted timestamp. This is just a spot check as the extract
                 // and validate job should enforce this.
                 if (signature.TrustedTimestamps.Count() != 1)
                 {
