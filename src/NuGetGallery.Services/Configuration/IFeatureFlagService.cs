@@ -291,5 +291,10 @@ namespace NuGetGallery
         /// Whether or not recent packages has no index applied to block search engine indexing.
         /// </summary>
         bool IsRecentPackagesNoIndexEnabled();
+
+        /// <summary>
+        /// Whether or not to enforce 2FA for new external account link or replacement.
+        /// </summary>
+        bool IsNewAccount2FAEnforcementEnabled();
     }
 }

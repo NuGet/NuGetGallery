@@ -1259,6 +1259,8 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 GetMock<AuthenticationService>(); // Force a mock to be created
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(true).Verifiable();
                 var controller = GetController<AuthenticationController>();
                 controller.SetCurrentUser(TestUtility.FakeUser);
                 var identity = "Bloog <bloog@blorg.com>";
@@ -1284,6 +1286,7 @@ namespace NuGetGallery.Controllers
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
                 Assert.Equal(Strings.ExternalAccountShouldHave2FAEnabled, controller.TempData["ErrorMessage"]);
+                featureFlagServiceMock.Verify();
             }
 
             [Fact]
@@ -1699,6 +1702,8 @@ namespace NuGetGallery.Controllers
                 var email = "test@email.com";
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var authServiceMock = GetMock<AuthenticationService>(); // Force a mock to be created
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(true).Verifiable();
                 var controller = GetController<AuthenticationController>();
                
                 authServiceMock
@@ -1722,6 +1727,7 @@ namespace NuGetGallery.Controllers
                 // Assert
                 authServiceMock
                     .VerifyAll();
+                featureFlagServiceMock.Verify();
             }
 
             [Theory]
@@ -2352,7 +2358,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void AzureActiveDirectoryAccountCredentialReturnsTrue()
+            public void NonMicrosoftAccountAuthenticationReturnsFalse()
             {
                 // Arrange
                 EnableAllAuthenticators(Get<AuthenticationService>());
@@ -2364,7 +2370,26 @@ namespace NuGetGallery.Controllers
                 var result = controller.ShouldEnforceMultiFactorAuthentication(externalResult);
 
                 // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public void AzureActiveDirectoryAccountCredentialReturnsTrue()
+            {
+                // Arrange
+                EnableAllAuthenticators(Get<AuthenticationService>());
+
+                var controller = GetController<AuthenticationController>();
+                var externalResult = GetExternalResult(new AzureActiveDirectoryV2Authenticator(), "AzureActiveDirectory");
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(true).Verifiable();
+
+                // Act
+                var result = controller.ShouldEnforceMultiFactorAuthentication(externalResult);
+
+                // Assert
                 Assert.True(result);
+                featureFlagServiceMock.Verify();
             }
 
             [Fact]

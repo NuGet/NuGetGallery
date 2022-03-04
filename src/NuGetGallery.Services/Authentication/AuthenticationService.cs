@@ -33,6 +33,7 @@ namespace NuGetGallery.Authentication
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IContentObjectService _contentObjectService;
         private readonly ITelemetryService _telemetryService;
+        private readonly IFeatureFlagService _featureFlagService;
 
         /// <summary>
         /// This ctor is used for test only.
@@ -48,7 +49,7 @@ namespace NuGetGallery.Authentication
             IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics,
             IAuditingService auditing, IEnumerable<Authenticator> providers, ICredentialBuilder credentialBuilder,
             ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider, ITelemetryService telemetryService,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService, IFeatureFlagService featureFlagService)
         {
             InitCredentialFormatters();
 
@@ -62,6 +63,7 @@ namespace NuGetGallery.Authentication
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         public IEntitiesContext Entities { get; private set; }
@@ -393,7 +395,7 @@ namespace NuGetGallery.Authentication
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
                 NotifyPackagePushed = true,
                 CreatedUtc = _dateTimeProvider.UtcNow,
-                EnableMultiFactorAuthentication = true
+                EnableMultiFactorAuthentication = _featureFlagService.IsNewAccount2FAEnforcementEnabled()
             };
 
             // Add a credential for the password

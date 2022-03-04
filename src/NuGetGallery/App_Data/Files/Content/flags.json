@@ -32,6 +32,7 @@
     "NuGetGallery.ImageAllowlist": "Enabled",
     "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
     "NuGetGallery.ComputeTargetFramework": "Enabled",
+    "NuGetGallery.NewAccount2FAEnforcement": "Disabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

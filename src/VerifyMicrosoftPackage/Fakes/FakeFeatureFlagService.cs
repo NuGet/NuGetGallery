@@ -118,5 +118,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsComputeTargetFrameworkEnabled() => throw new NotImplementedException();
 
         public bool IsRecentPackagesNoIndexEnabled() => throw new NotImplementedException();
+
+        public bool IsNewAccount2FAEnforcementEnabled() => throw new NotImplementedException();
     }
 }

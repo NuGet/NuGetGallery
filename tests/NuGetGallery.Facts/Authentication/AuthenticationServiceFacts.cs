@@ -1251,8 +1251,8 @@ namespace NuGetGallery.Authentication
             public async Task SetsEnableMultiFactorAuthentication()
             {
                 // Arrange
-                var configurationService = GetConfigurationService();
-
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(true).Verifiable();
                 var auth = Get<AuthenticationService>();
 
                 // Arrange
@@ -1266,6 +1266,7 @@ namespace NuGetGallery.Authentication
                 auth.Entities.VerifyCommitChanges();
 
                 Assert.True(authUser.User.EnableMultiFactorAuthentication);
+                featureFlagServiceMock.Verify();
             }
 
             [Fact]
