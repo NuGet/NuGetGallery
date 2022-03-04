@@ -634,6 +634,16 @@ namespace NuGetGallery
 
                 return SafeRedirect(returnUrl);
             }
+
+            if (ShouldEnforceMultiFactorAuthentication(result))
+            {
+                // Invoke the authentication again enforcing multi-factor authentication for the same provider.
+                return ChallengeAuthentication(
+                    Url.LinkExternalAccount(returnUrl),
+                    result.Authenticator.Name,
+                    new AuthenticationPolicy() { Email = result.LoginDetails.EmailUsed, EnforceMultiFactorAuthentication = true });
+            }
+
             // Gather data for view model
             string name = null;
             string email = null;
@@ -678,8 +688,7 @@ namespace NuGetGallery
                 ProviderAccountNoun = authUI.AccountNoun,
                 AccountName = name,
                 FoundExistingUser = foundExistingUser,
-                ExistingUserLinkingError = existingUserLinkingError,
-                UsedMultiFactorAuthentication = result.UserInfo.UsedMultiFactorAuthentication
+                ExistingUserLinkingError = existingUserLinkingError
             };
 
             var model = new LogOnViewModel

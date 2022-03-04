@@ -1290,7 +1290,8 @@ namespace NuGetGallery.Controllers
                     {
                         ExternalIdentity = new ClaimsIdentity(),
                         Authentication = null,
-                        Credential = cred
+                        Credential = cred,
+                        UserInfo = new IdentityInformation("", "", "", "", "", usedMultiFactorAuth: true)
                     });
 
                 serviceMock
@@ -1302,7 +1303,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                
+
                 var errorMessage = controller.TempData["RawErrorMessage"];
                 var expectedMessage = string.Format(
                     Strings.ChangeCredential_Failed,
@@ -1326,7 +1327,7 @@ namespace NuGetGallery.Controllers
                 var externalAuthenticator = GetMock<Authenticator>();
                 externalAuthenticator
                     .Setup(x => x.GetIdentityInformation(It.IsAny<ClaimsIdentity>()))
-                    .Returns(new IdentityInformation("", "", email, ""));
+                    .Returns(new IdentityInformation("", "", email, "", ""));
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test", cred, passwordCred);
                 user.EmailAddress = email;
@@ -1341,7 +1342,8 @@ namespace NuGetGallery.Controllers
                         ExternalIdentity = new ClaimsIdentity(),
                         Authentication = null,
                         Authenticator = externalAuthenticator.Object,
-                        Credential = cred
+                        Credential = cred,
+                        UserInfo = new IdentityInformation("", "", email, "", "", usedMultiFactorAuth: true)
                     })
                     .Verifiable();
 
@@ -1803,7 +1805,8 @@ namespace NuGetGallery.Controllers
                 {
                     var expectedMessage = string.Format(Strings.SiteAdminNotLoggedInWithRequiredTenant, enforcedTenantId);
                     VerifyExternalLinkExpiredResult(controller, result, expectedMessage);
-                } else
+                }
+                else
                 {
                     ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
                     GetMock<AuthenticationService>().VerifyAll();
@@ -2284,7 +2287,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void NonMicrosoftAccountAuthetnicationReturnsFalse()
+            public void AzureActiveDirectoryAccountCredentialReturnsTrue()
             {
                 // Arrange
                 EnableAllAuthenticators(Get<AuthenticationService>());
@@ -2296,7 +2299,7 @@ namespace NuGetGallery.Controllers
                 var result = controller.ShouldEnforceMultiFactorAuthentication(externalResult);
 
                 // Assert
-                Assert.False(result);
+                Assert.True(result);
             }
 
             [Fact]
