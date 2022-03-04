@@ -1325,8 +1325,7 @@ namespace NuGetGallery.Controllers
                     {
                         ExternalIdentity = new ClaimsIdentity(),
                         Authentication = null,
-                        Credential = cred,
-                        UserInfo = new IdentityInformation("", "", "", "", "", usedMultiFactorAuth: true)
+                        Credential = cred
                     });
 
                 serviceMock
@@ -1377,8 +1376,7 @@ namespace NuGetGallery.Controllers
                         ExternalIdentity = new ClaimsIdentity(),
                         Authentication = null,
                         Authenticator = externalAuthenticator.Object,
-                        Credential = cred,
-                        UserInfo = new IdentityInformation("", "", email, "", "", usedMultiFactorAuth: true)
+                        Credential = cred
                     })
                     .Verifiable();
 
@@ -1694,13 +1692,15 @@ namespace NuGetGallery.Controllers
                     .VerifyAll();
             }
 
-            [Fact]
-            public async Task GivenUserExternalAccountNotAuthenticatedNot2FA_ShouldChallengeForEnforcedMultiFactorAuthentication()
+            [Theory]
+            [InlineData("MicrosoftAccount")]
+            [InlineData("ActiveDirectory")]
+            public async Task GivenUserExternalAccountNotAuthenticatedNot2FA_ShouldChallengeForEnforcedMultiFactorAuthentication(string accountType)
             {
                 // Arrange
                 var enforcedProvider = "AzureActiveDirectoryV2";
                 var email = "test@email.com";
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateExternalCredential(accountType, "blorg", "Bloog");
                 var authServiceMock = GetMock<AuthenticationService>(); // Force a mock to be created
                 var featureFlagServiceMock = GetMock<IFeatureFlagService>();
                 featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(true).Verifiable();
