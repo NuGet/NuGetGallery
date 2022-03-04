@@ -634,7 +634,7 @@ namespace NuGetGallery
 
                 return SafeRedirect(returnUrl);
             }
-            else if (ShouldEnforceMultiFactorAuthentication(result))
+            else if (CredentialTypes.IsExternal(result.Credential) && !result.LoginDetails.WasMultiFactorAuthenticated)
             {
                 // Invoke the authentication again enforcing multi-factor authentication for the same provider.
                 return ChallengeAuthentication(
@@ -644,7 +644,6 @@ namespace NuGetGallery
             }
             else
             {
-
                 // Gather data for view model
                 string name = null;
                 string email = null;

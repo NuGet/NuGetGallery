@@ -1255,6 +1255,38 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
+            public async Task ForNon2FAAccount_ErrorIsReturned()
+            {
+                // Arrange
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(TestUtility.FakeUser);
+                var identity = "Bloog <bloog@blorg.com>";
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
+                var serviceMock = GetMock<AuthenticationService>();
+                serviceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authentication = null,
+                        Credential = cred,
+                        UserInfo = new IdentityInformation("", "", "", "", "", usedMultiFactorAuth: false)
+                    });
+
+                serviceMock
+                    .Setup(x => x.TryReplaceCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .CompletesWith(false);
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                Assert.Equal(Strings.ExternalAccountShouldHave2FAEnabled, controller.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
             public async Task GivenExpiredExternalAuth_ItSafeRedirectsToReturnUrlWithExternalAuthExpiredMessage()
             {
                 // Arrange
@@ -1327,7 +1359,7 @@ namespace NuGetGallery.Controllers
                 var externalAuthenticator = GetMock<Authenticator>();
                 externalAuthenticator
                     .Setup(x => x.GetIdentityInformation(It.IsAny<ClaimsIdentity>()))
-                    .Returns(new IdentityInformation("", "", email, "", ""));
+                    .Returns(new IdentityInformation("", "", email, ""));
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test", cred, passwordCred);
                 user.EmailAddress = email;
@@ -1622,7 +1654,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ShouldChallengeForEnforcedMultiFactorAuthentication()
+            public async Task GivenUserExternalAccountAuthenticated_ShouldChallengeForEnforcedMultiFactorAuthentication()
             {
                 // Arrange
                 var enforcedProvider = "AzureActiveDirectoryV2";
@@ -1642,6 +1674,39 @@ namespace NuGetGallery.Controllers
                     {
                         ExternalIdentity = new ClaimsIdentity(),
                         Authentication = authUser,
+                        Authenticator = new AzureActiveDirectoryV2Authenticator(),
+                        LoginDetails = new ExternalLoginSessionDetails(email, usedMultiFactorAuthentication: false)
+                    });
+
+                var returnUrl = "theReturnUrl";
+                authServiceMock
+                    .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>(), It.Is<AuthenticationPolicy>((policy) => policy.EnforceMultiFactorAuthentication == true && policy.Email == email)))
+                    .Verifiable();
+
+                // Act
+                var result = await controller.LinkExternalAccount(returnUrl);
+
+                // Assert
+                authServiceMock
+                    .VerifyAll();
+            }
+
+            [Fact]
+            public async Task GivenUserExternalAccountNotAuthenticatedNot2FA_ShouldChallengeForEnforcedMultiFactorAuthentication()
+            {
+                // Arrange
+                var enforcedProvider = "AzureActiveDirectoryV2";
+                var email = "test@email.com";
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var authServiceMock = GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+               
+                authServiceMock
+                    .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        Credential = cred,
+                        ExternalIdentity = new ClaimsIdentity(),
                         Authenticator = new AzureActiveDirectoryV2Authenticator(),
                         LoginDetails = new ExternalLoginSessionDetails(email, usedMultiFactorAuthentication: false)
                     });

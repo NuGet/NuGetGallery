@@ -1248,6 +1248,27 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
+            public async Task SetsEnableMultiFactorAuthentication()
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+
+                var auth = Get<AuthenticationService>();
+
+                // Arrange
+                var authUser = await auth.Register(
+                    "newUser",
+                    "theEmailAddress",
+                    new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "", "", ""));
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                auth.Entities.VerifyCommitChanges();
+
+                Assert.True(authUser.User.EnableMultiFactorAuthentication);
+            }
+
+            [Fact]
             public async Task WritesAnAuditRecord()
             {
                 // Arrange
