@@ -517,8 +517,10 @@ namespace NuGetGallery
             // All new linking or replacing accounts should have 2FA enabled.
             if (_featureFlagService.IsNewAccount2FAEnforcementEnabled() && !result.UserInfo.UsedMultiFactorAuthentication)
             {
-                TempData["ErrorMessage"] = Strings.ExternalAccountShouldHave2FAEnabled;
-                return SafeRedirect(returnUrl);
+                return ChallengeAuthentication(
+                    Url.LinkExternalAccount(returnUrl),
+                    result.Authenticator.Name,
+                    new AuthenticationPolicy() { Email = result.LoginDetails.EmailUsed, EnforceMultiFactorAuthentication = true });
             }
 
             var newCredential = result.Credential;
