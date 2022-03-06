@@ -1068,7 +1068,7 @@ namespace NuGetGallery.Authentication
                             c.Value,
                             CredentialBuilder.LatestPasswordType,
                             password)),
-                        null,
+                        It.IsAny<bool?>(),
                         It.IsAny<bool>()))
                     .CompletesWithNull()
                     .Verifiable();
@@ -1174,7 +1174,7 @@ namespace NuGetGallery.Authentication
                     "newUser",
                     "theEmailAddress",
                     new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"),
-                    null,
+                    enableMultiFactorAuthentication: null,
                     true);
 
                 // Assert

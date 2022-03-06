@@ -345,7 +345,7 @@ namespace NuGetGallery.Authentication
                     .Where(cred => cred.IsExternal())
                     .Select(cred => cred.Identity)
                     .ToArray();
-                
+
                 var identityList = string.Join(" or ", externalIdentities);
                 ClaimsExtensions.AddExternalCredentialIdentityClaim(claims, identityList);
             }
@@ -395,7 +395,7 @@ namespace NuGetGallery.Authentication
                 CreatedUtc = _dateTimeProvider.UtcNow
             };
 
-            if(enableMultiFactorAuthentication.HasValue)
+            if (enableMultiFactorAuthentication.HasValue)
             {
                 newUser.EnableMultiFactorAuthentication = enableMultiFactorAuthentication.Value;
             }
@@ -804,7 +804,7 @@ namespace NuGetGallery.Authentication
             Func<Credential, bool> replacingPredicate;
             if (!string.IsNullOrEmpty(replaceCredPrefix))
             {
-                 replacingPredicate = cred => cred.Type.StartsWith(replaceCredPrefix, StringComparison.OrdinalIgnoreCase);
+                replacingPredicate = cred => cred.Type.StartsWith(replaceCredPrefix, StringComparison.OrdinalIgnoreCase);
             }
             else
             {
@@ -812,7 +812,7 @@ namespace NuGetGallery.Authentication
             }
 
             var toRemove = user.Credentials
-                .Where(replacingPredicate) 
+                .Where(replacingPredicate)
                 .ToList();
 
             foreach (var cred in toRemove)
