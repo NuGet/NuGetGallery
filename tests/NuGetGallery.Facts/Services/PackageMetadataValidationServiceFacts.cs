@@ -437,7 +437,7 @@ namespace NuGetGallery
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                     Assert.Null(result.Message);
                     Assert.Single(result.Warnings);
-                    Assert.IsType<LicenseUrlDeprecationValidationMessage>(result.Warnings[0]);
+                    Assert.IsType<MissingLicenseValidationMessage>(result.Warnings[0]);
                     Assert.StartsWith("All published packages should have license information specified.", result.Warnings[0].PlainTextMessage);
                 }
             }

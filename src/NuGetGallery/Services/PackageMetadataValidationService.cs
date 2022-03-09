@@ -211,7 +211,7 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        warnings.Add(new LicenseUrlDeprecationValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
+                        warnings.Add(new MissingLicenseValidationMessage(Strings.UploadPackage_LicenseShouldBeSpecified));
                     }
                 }
 
