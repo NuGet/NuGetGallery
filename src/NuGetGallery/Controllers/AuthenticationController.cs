@@ -283,7 +283,6 @@ namespace NuGetGallery
 
             AuthenticatedUser user;
             var usedMultiFactorAuthentication = false;
-            bool enableMultiFactorAuthentication = _featureFlagService.IsNewAccount2FAEnforcementEnabled();
             try
             {
                 if (linkingAccount)
@@ -295,7 +294,7 @@ namespace NuGetGallery
                     }
 
                     usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
-
+                    var enableMultiFactorAuthentication = _featureFlagService.IsNewAccount2FAEnforcementEnabled() ? true : usedMultiFactorAuthentication;
                     user = await _authService.Register(
                         model.Register.Username,
                         model.Register.EmailAddress,

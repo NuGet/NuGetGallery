@@ -1138,6 +1138,62 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
+            [InlineData(true, true, true)]
+            [InlineData(true, false, true)]
+            [InlineData(false, true, true)]
+            [InlineData(false, false, false)]
+            public async Task SetsEnableMultiFactorAuthenticationWhenRegisteringExternalAccounts(bool isNewAccount2FAEnforcementEnabled, bool usedMultiFactorAuthentication, bool enableMultiFactorAuthentication)
+            {
+                // Arrange
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername")
+                    {
+                        UnconfirmedEmailAddress = "unconfirmed@example.com",
+                        EmailConfirmationToken = "t0k3n"
+                    },
+                    new Credential());
+
+                var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+
+                var authenticationServiceMock = GetMock<AuthenticationService>();
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                var controller = GetController<AuthenticationController>();
+                authenticationServiceMock
+                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, externalCred, It.IsAny<bool>(), enableMultiFactorAuthentication))
+                    .CompletesWith(authUser);
+                authenticationServiceMock
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, usedMultiFactorAuthentication))
+                    .Returns(Task.FromResult(0))
+                    .Verifiable();
+                authenticationServiceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Credential = externalCred,
+                        UserInfo = new IdentityInformation("", "", "", ""),
+                        LoginDetails = new ExternalLoginSessionDetails("", usedMultiFactorAuthentication)
+                    });
+                featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(isNewAccount2FAEnforcementEnabled).Verifiable();
+
+                // Act
+                var result = await controller.Register(
+                    new LogOnViewModel()
+                    {
+                        Register = new RegisterViewModel
+                        {
+                            Username = authUser.User.Username,
+                            EmailAddress = authUser.User.UnconfirmedEmailAddress,
+                        }
+                    }, "/theReturnUrl", linkingAccount: true);
+
+                // Assert
+                authenticationServiceMock.VerifyAll();
+                featureFlagServiceMock.Verify();
+                ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
+            }
+
+            [Theory]
             [InlineData("MicrosoftAccount", true)]
             [InlineData("AzureActiveDirectory", false)]
             public async Task GivenAdminLogsInWithExternalIdentity_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
