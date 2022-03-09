@@ -12,7 +12,7 @@ namespace NuGetGallery
     /// </summary>
     public class MissingLicenseValidationMessage : IValidationMessage
     {
-        private string DocumentationLink => $"<a href=\"https://aka.ms/nuget/authoring-best-practices#licensing\" aria-label= \"{Strings.UploadPackage_LearnMore_PackagingLicense}\">{Strings.UploadPackage_LearnMore}</a>.";
+        private string DocumentationLink => $"<a href=\"https://aka.ms/nuget/authoring-best-practices#licensing\" aria-label=\"{Strings.UploadPackage_LearnMore_PackagingLicense}\">{Strings.UploadPackage_LearnMore}</a>.";
 
         private readonly string _baseMessage;
 
