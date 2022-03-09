@@ -1068,13 +1068,13 @@ namespace NuGetGallery.Authentication
                             c.Value,
                             CredentialBuilder.LatestPasswordType,
                             password)),
-                        It.IsAny<bool?>(),
+                        It.IsAny<bool>(),
                         It.IsAny<bool>()))
                     .CompletesWithNull()
                     .Verifiable();
 
                 // Act
-                await mock.Object.Register(fakes.User.Username, fakes.User.EmailAddress, new CredentialBuilder().CreatePasswordCredential(password), enableMultiFactorAuthentication: null);
+                await mock.Object.Register(fakes.User.Username, fakes.User.EmailAddress, new CredentialBuilder().CreatePasswordCredential(password));
 
                 // Assert
                 mock.VerifyAll();
@@ -1092,8 +1092,7 @@ namespace NuGetGallery.Authentication
                     auth.Register(
                         fakes.User.Username,
                         "theEmailAddress",
-                        new CredentialBuilder().CreatePasswordCredential("thePassword"),
-                        enableMultiFactorAuthentication: null));
+                        new CredentialBuilder().CreatePasswordCredential("thePassword")));
 
                 // Assert
                 Assert.Equal(string.Format(Strings.UsernameNotAvailable, fakes.User.Username), ex.Message);
@@ -1111,8 +1110,7 @@ namespace NuGetGallery.Authentication
                     auth.Register(
                         "newUser",
                         fakes.User.EmailAddress,
-                        new CredentialBuilder().CreatePasswordCredential("thePassword"),
-                        enableMultiFactorAuthentication: null));
+                        new CredentialBuilder().CreatePasswordCredential("thePassword")));
 
                 // Assert
                 Assert.Equal(string.Format(Strings.EmailAddressBeingUsed, fakes.User.EmailAddress), ex.Message);
@@ -1128,8 +1126,7 @@ namespace NuGetGallery.Authentication
                 var authUser = await auth.Register(
                     "newUser",
                     "theEmailAddress",
-                    new CredentialBuilder().CreatePasswordCredential("thePassword"),
-                    enableMultiFactorAuthentication: null);
+                    new CredentialBuilder().CreatePasswordCredential("thePassword"));
 
                 // Assert
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
@@ -1149,8 +1146,7 @@ namespace NuGetGallery.Authentication
                 var authUser = await auth.Register(
                     "newUser",
                     "theEmailAddress",
-                    new CredentialBuilder().CreatePasswordCredential("thePassword"),
-                    enableMultiFactorAuthentication: null);
+                    new CredentialBuilder().CreatePasswordCredential("thePassword"));
 
                 // Assert
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
@@ -1174,7 +1170,6 @@ namespace NuGetGallery.Authentication
                     "newUser",
                     "theEmailAddress",
                     new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"),
-                    enableMultiFactorAuthentication: null,
                     true);
 
                 // Assert
@@ -1223,8 +1218,7 @@ namespace NuGetGallery.Authentication
                 var authUser = await auth.Register(
                     "newUser",
                     "theEmailAddress",
-                    new CredentialBuilder().CreatePasswordCredential("thePassword"),
-                    enableMultiFactorAuthentication: null);
+                    new CredentialBuilder().CreatePasswordCredential("thePassword"));
 
                 // Assert
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
@@ -1244,8 +1238,7 @@ namespace NuGetGallery.Authentication
                 var authUser = await auth.Register(
                     "newUser",
                     "theEmailAddress",
-                    new CredentialBuilder().CreatePasswordCredential("thePassword"),
-                    enableMultiFactorAuthentication: null);
+                    new CredentialBuilder().CreatePasswordCredential("thePassword"));
 
                 // Assert
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
@@ -1287,8 +1280,7 @@ namespace NuGetGallery.Authentication
                 var authUser = await auth.Register(
                     "newUser",
                     "theEmailAddress",
-                    new CredentialBuilder().CreatePasswordCredential("thePassword"),
-                    enableMultiFactorAuthentication: null);
+                    new CredentialBuilder().CreatePasswordCredential("thePassword"));
 
                 // Assert
                 Assert.True(auth.Auditing.WroteRecord<UserAuditRecord>(ar =>

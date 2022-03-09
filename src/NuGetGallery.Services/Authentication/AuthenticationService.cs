@@ -365,7 +365,7 @@ namespace NuGetGallery.Authentication
             return claims.ToArray();
         }
 
-        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential, bool? enableMultiFactorAuthentication, bool autoConfirm = false)
+        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential, bool autoConfirm = false, bool enableMultiFactorAuthentication = false)
         {
             if (_config.FeedOnlyMode)
             {
@@ -392,13 +392,9 @@ namespace NuGetGallery.Authentication
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
                 NotifyPackagePushed = true,
-                CreatedUtc = _dateTimeProvider.UtcNow
+                CreatedUtc = _dateTimeProvider.UtcNow,
+                EnableMultiFactorAuthentication = enableMultiFactorAuthentication
             };
-
-            if (enableMultiFactorAuthentication.HasValue)
-            {
-                newUser.EnableMultiFactorAuthentication = enableMultiFactorAuthentication.Value;
-            }
 
             // Add a credential for the password
             newUser.Credentials.Add(credential);
