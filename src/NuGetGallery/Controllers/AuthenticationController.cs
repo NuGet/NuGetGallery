@@ -511,7 +511,7 @@ namespace NuGetGallery
             if (_featureFlagService.IsNewAccount2FAEnforcementEnabled() && !result.UserInfo.UsedMultiFactorAuthentication)
             {
                 return ChallengeAuthentication(
-                    Url.LinkExternalAccount(returnUrl),
+                    Url.LinkOrChangeExternalCredential(returnUrl),
                     result.Authenticator.Name,
                     new AuthenticationPolicy() { Email = result.LoginDetails.EmailUsed, EnforceMultiFactorAuthentication = true });
             }
@@ -526,6 +526,16 @@ namespace NuGetGallery
                 var authenticatedUser = await _authService.Authenticate(newCredential);
                 var usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
                 await _authService.CreateSessionAsync(OwinContext, authenticatedUser, usedMultiFactorAuthentication);
+
+                // Update the 2FA if used during login but user does not have it set on their account.
+                if (result?.LoginDetails != null
+                    && usedMultiFactorAuthentication
+                    && !user.EnableMultiFactorAuthentication
+                    && CredentialTypes.IsExternal(result.Credential))
+                {
+                    await _userService.ChangeMultiFactorAuthentication(user, enableMultiFactor: true, referrer: "Authentication");
+                    OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
+                }
 
                 // Get email address of the new credential for updating success message
                 var newEmailAddress = GetEmailAddressFromExternalLoginResult(result, out string errorReason);
