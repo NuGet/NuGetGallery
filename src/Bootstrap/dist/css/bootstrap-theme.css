@@ -68,6 +68,10 @@ body h3 {
 .footer a {
   color: #e3ebf1;
 }
+.footer a:focus {
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
 .footer .footer-release-info {
   font-size: 0.85em;
   margin-top: 20px;
