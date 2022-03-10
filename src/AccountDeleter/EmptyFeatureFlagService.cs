@@ -141,6 +141,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsNewAccount2FAEnforcementEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsODataDatabaseReadOnlyEnabled()
         {
             throw new NotImplementedException();

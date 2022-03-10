@@ -677,7 +677,7 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1, true)]
             [InlineData(CredentialTypes.ApiKey.V2, false)]
-            [InlineData(CredentialTypes.ApiKey.V3, false)] 
+            [InlineData(CredentialTypes.ApiKey.V3, false)]
             [InlineData(CredentialTypes.ApiKey.V4, false)]
             public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord(string apiKeyType, bool shouldExpire)
             {
@@ -724,7 +724,7 @@ namespace NuGetGallery.Authentication
                 configurationService.Current.ExpirationInDaysForApiKeyV1 = 10;
 
                 var cred = _fakes.User.Credentials.Single(c => string.Equals(c.Type, CredentialTypes.ApiKey.V3, StringComparison.OrdinalIgnoreCase));
-                
+
                 // Clear the scopes list, to simulate a V3 ApiKey that was generated from a V1 ApiKey
                 cred.Scopes = new List<Scope>();
 
@@ -1049,7 +1049,7 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheRegisterMethod 
+        public class TheRegisterMethod
             : TestContainer
         {
             [Fact]
@@ -1068,6 +1068,7 @@ namespace NuGetGallery.Authentication
                             c.Value,
                             CredentialBuilder.LatestPasswordType,
                             password)),
+                        It.IsAny<bool>(),
                         It.IsAny<bool>()))
                     .CompletesWithNull()
                     .Verifiable();
@@ -1247,6 +1248,28 @@ namespace NuGetGallery.Authentication
                 Assert.True((DateTime.UtcNow - authUser.User.CreatedUtc) < TimeSpan.FromSeconds(5));
             }
 
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task SetsEnableMultiFactorAuthentication(bool enableMultifactorAuthentication)
+            {
+                // Arrange
+                var auth = Get<AuthenticationService>();
+
+                // Arrange
+                var authUser = await auth.Register(
+                    "newUser",
+                    "theEmailAddress",
+                    new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "", "", ""),
+                    enableMultiFactorAuthentication: enableMultifactorAuthentication);
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                auth.Entities.VerifyCommitChanges();
+
+                Assert.Equal(enableMultifactorAuthentication, authUser.User.EnableMultiFactorAuthentication);
+            }
+
             [Fact]
             public async Task WritesAnAuditRecord()
             {
@@ -1382,7 +1405,8 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                {
                     await authService.ReplaceCredential("testOrganization", fakes.Organization.Credentials.First());
                 });
             }
@@ -1914,7 +1938,8 @@ namespace NuGetGallery.Authentication
                 var authService = Get<AuthenticationService>();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                {
                     await authService.AddCredential(fakes.Organization, credential);
                 });
             }
@@ -2357,7 +2382,7 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheAuthenticateExternalLoginMethod: TestContainer
+        public class TheAuthenticateExternalLoginMethod : TestContainer
         {
             [Fact]
             public async Task GivenAnIdentityWithCredential_ItAuthenticates()

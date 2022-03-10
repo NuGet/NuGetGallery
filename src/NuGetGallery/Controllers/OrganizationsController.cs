@@ -48,7 +48,8 @@ namespace NuGetGallery
                   messageServiceConfiguration,
                   deleteAccountService,
                   iconUrlProvider,
-                  gravatarProxy)
+                  gravatarProxy,
+                  features)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
         }

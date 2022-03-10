@@ -274,5 +274,10 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsNewAccount2FAEnforcementEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
