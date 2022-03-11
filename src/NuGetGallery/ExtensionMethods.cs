@@ -124,7 +124,7 @@ namespace NuGetGallery
                 return html.LabelFor(expression, labelText, new
                 {
                     id = $"{propertyName}-label",
-                    @class = "control-label required"
+                    @class = "required"
                 });
             }
             else
