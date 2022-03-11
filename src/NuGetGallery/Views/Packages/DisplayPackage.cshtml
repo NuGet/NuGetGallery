@@ -734,8 +734,8 @@
                                     <table class="table borderless" aria-label="Packages that depend on @Model.Id">
                                         <thead>
                                             <tr>
-                                                <th class="used-by-adjust-table-head">Package</th>
-                                                <th class="used-by-adjust-table-head">Downloads</th>
+                                                <th class="used-by-adjust-table-head" tabindex="0">Package</th>
+                                                <th class="used-by-adjust-table-head" tabindex="0">Downloads</th>
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
@@ -788,8 +788,8 @@
                                     <table class="table borderless" aria-label="GitHub repositories that depend on @Model.Id">
                                         <thead>
                                             <tr>
-                                                <th class="used-by-adjust-table-head">Repository</th>
-                                                <th class="used-by-adjust-table-head">Stars</th>
+                                                <th class="used-by-adjust-table-head" tabindex="0">Repository</th>
+                                                <th class="used-by-adjust-table-head" tabindex="0">Stars</th>
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
@@ -831,9 +831,9 @@
                         <table aria-label="Version History of @Model.Id" class="table borderless">
                             <thead>
                                 <tr>
-                                    <th scope="col">Version</th>
-                                    <th scope="col">Downloads</th>
-                                    <th scope="col">Last updated</th>
+                                    <th scope="col" tabindex="0">Version</th>
+                                    <th scope="col" tabindex="0">Downloads</th>
+                                    <th scope="col" tabindex="0">Last updated</th>
                                     @if (Model.CanDisplayPrivateMetadata)
                                     {
                                         <th scope="col">Status</th>
