@@ -138,7 +138,7 @@ namespace NuGet.Services.Storage
 
         private StorageListItem GetStorageListItem(IListBlobItem listBlobItem)
         {
-            var cloudBlockBlob = (listBlobItem as CloudBlockBlob);
+            var cloudBlockBlob = (listBlobItem as CloudBlob);
             var lastModified = cloudBlockBlob?.Properties.LastModified?.UtcDateTime;
 
             return new StorageListItem(listBlobItem.Uri, lastModified, cloudBlockBlob?.Metadata);
