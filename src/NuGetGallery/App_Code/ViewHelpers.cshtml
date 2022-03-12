@@ -645,7 +645,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             $submit.before(
                 '<div id="recaptcha" class="g-recaptcha" '
                 + 'data-sitekey="@reCaptchaPublicKey" data-size="invisible" '
-                + 'data-callback="onSubmit" data-tabindex="-1"></div>');
+                + 'data-callback="onSubmit"></div>');
 
             var $form = $submit.parents('form')
             $submit.click(function (e) {
