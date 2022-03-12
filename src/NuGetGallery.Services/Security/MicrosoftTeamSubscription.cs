@@ -30,7 +30,11 @@ namespace NuGetGallery.Security
             "© Microsoft Corporation. 保留所有权利.",
             "© Microsoft Corporation. Tutti i diritti riservati.",
             "© корпорация Майкрософт. Все права защищены.",
-            "© Microsoft Corporation。 著作權所有，並保留一切權利。"
+            "© Корпорация Майкрософт (Microsoft Corporation). Все права защищены.",
+            "© Microsoft Corporation。 著作權所有，並保留一切權利。",
+            "© Microsoft Corporation. 著作權所有，並保留一切權利。",
+            "© Microsoft Corporation. Reservados todos los derechos.",
+            "© Microsoft Corporation. Tutti i diritti sono riservati."
         };
 
         public string SubscriptionName => Name;
