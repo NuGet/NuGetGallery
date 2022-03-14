@@ -9,8 +9,8 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     public sealed class ReservedNamespaceViewModel
     {
         public string ReservedNamespacesQuery { get; set; }
-        public IReadOnlyCollection<ReservedNamespace> ReservedNamespaces { get; set; }
+        public IReadOnlyList<ReservedNamespace> ReservedNamespaces { get; set; }
         public string PackageRegistrationsQuery { get; set; }
-        public IReadOnlyCollection<PackageRegistration> PackageRegistrations { get; set; }
+        public IReadOnlyList<PackageRegistration> PackageRegistrations { get; set; }
     }
 }
