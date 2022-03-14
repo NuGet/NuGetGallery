@@ -32,9 +32,8 @@ namespace NuGet.Services.AzureSearch
             finally
             {
                 ServiceClientTracing.RemoveTracingInterceptor(tracingInterceptor);
+                await featureFlagRefresher.StopAndWaitAsync();
             }
-
-            await featureFlagRefresher.StopAndWaitAsync();
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)

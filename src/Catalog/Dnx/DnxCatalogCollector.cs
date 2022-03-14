@@ -108,7 +108,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var catalogEntries = items.Select(item => CatalogEntry.Create(item))
                 .ToList();
 
-            // Sanity check:  a single catalog batch should not contain multiple entries for the same package identity.
+            // Spot check:  a single catalog batch should not contain multiple entries for the same package identity.
             AssertNoMultipleEntriesForSamePackageIdentity(commitTimeStamp, catalogEntries);
 
             // Process .nupkg/.nuspec adds and deletes.
