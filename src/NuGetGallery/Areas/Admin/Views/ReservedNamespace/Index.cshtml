@@ -6,75 +6,196 @@
 @ViewHelpers.AjaxAntiForgeryToken(Html)
 
 <section role="main" class="container main-container">
-    <div class="message-container" data-bind="visible: message">
-        @ViewHelpers.AlertInfo(@<text><span class="message" data-bind="text: message"></span></text>)
-    </div>
-    <h2>Reserve Namespace</h2>
-    <form data-bind="submit: prefixSearch">
-        <div class="form-horizontal">
-            <input type="text" placeholder="Search for a prefix" autocomplete="on" autofocus data-bind="value: prefixSearchQuery" />
-            <input type="submit" value="Search Prefix" title="Search Prefix" />
-        </div>
-    </form><br />
 
-    <div data-bind="visible: allPrefixResults().length > 0">
-        @using (Html.BeginForm())
-        {
-            <div id="prefixResult" data-bind="foreach: allPrefixResults">
-                <table aria-label="Reserved Namespaces Search Results">
-                    <tr>
-                        <td>
-                            <span style="font-weight: bold">Details:</span>
-                            <div style="margin-left: 20px">
-                                <div>
-                                    <span style="font-weight: bold">Namespace: </span>
-                                    <span data-bind="text: $data.prefix.Value" />
-                                </div>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace, disable: $data.isExisting" />IsSharedNamespace
-                                    </label>
-                                </div>
-                                <div>
-                                    <label>
-                                        <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix, disable: $data.isExisting" value="IsPrefix" />IsPrefix
-                                    </label>
-                                </div>
-                                <div>
-                                    <span style="font-weight: bold">Matching Pattern: </span>
-                                    <span data-bind="text: $data.pattern" />
-                                </div>
-                                <!-- ko if: $data.isExisting -->
-                                <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
-                                       data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
-                                <!-- /ko -->
-                                <!-- ko ifnot: $data.isExisting -->
-                                <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
-                                       data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
-                                <!-- /ko -->
-                            </div>
-                        </td>
-                        <td style="vertical-align: top">
-                            <!-- ko if: $data.isExisting -->
-                            <span style="font-weight: bold">Owners:</span>
-                            <div style="margin-left: 20px">
-                                <div id="prefixOwners" data-bind="foreach: $data.owners">
-                                    <div style="margin: 5px">
-                                        <a href="#" target="_blank" data-bind="text: $data, attr: { href: $root.generateUserUrl($data) }"></a>
-                                        <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
-                                    </div>
-                                </div>
-                                <div style="margin: 5px">
-                                    <input type="text" placeholder="Enter username" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
-                                    <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
-                                </div>
-                            </div>
-                            <!-- /ko -->
-                        </td>
-                    </tr>
-                </table>
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="message-container" data-bind="visible: message">
+                @ViewHelpers.AlertInfo(@<text><span class="message" data-bind="text: message"></span></text>)
             </div>
-        }
+            <h2>Reserve namespace</h2>
+            <form data-bind="submit: prefixSearch">
+                <div class="form-horizontal">
+                    <input type="text" placeholder="Specific namespace" autocomplete="on" autofocus data-bind="value: prefixSearchQuery" />
+                    <input type="submit" value="Search" title="Search" />
+                </div>
+            </form>
+            <br />
+
+            <div data-bind="visible: allPrefixResults().length > 0">
+                @using (Html.BeginForm())
+                {
+                    <div id="prefixResult" data-bind="foreach: allPrefixResults">
+                        <table aria-label="Reserved Namespaces Search Results">
+                            <tr>
+                                <td>
+                                    <span style="font-weight: bold">Details:</span>
+                                    <div style="margin-left: 20px">
+                                        <div>
+                                            <span style="font-weight: bold">Namespace: </span>
+                                            <span data-bind="text: $data.prefix.Value" />
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace, disable: $data.isExisting" />IsSharedNamespace
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix, disable: $data.isExisting" value="IsPrefix" />IsPrefix
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <span style="font-weight: bold">Matching Pattern: </span>
+                                            <span data-bind="text: $data.pattern" />
+                                        </div>
+                                        <!-- ko if: $data.isExisting -->
+                                        <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
+                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
+                                        <!-- /ko -->
+                                        <!-- ko ifnot: $data.isExisting -->
+                                        <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
+                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
+                                        <!-- /ko -->
+                                    </div>
+                                </td>
+                                <td style="vertical-align: top">
+                                    <!-- ko if: $data.isExisting -->
+                                    <span style="font-weight: bold">Owners:</span>
+                                    <div style="margin-left: 20px">
+                                        <div id="prefixOwners" data-bind="foreach: $data.owners">
+                                            <div style="margin: 5px">
+                                                <a href="#" target="_blank" data-bind="text: $data, attr: { href: $root.generateUserUrl($data) }"></a>
+                                                <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
+                                            </div>
+                                        </div>
+                                        <div style="margin: 5px">
+                                            <input type="text" placeholder="Enter username" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
+                                            <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
+                                        </div>
+                                    </div>
+                                    <!-- /ko -->
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <h2>Find namespaces by prefix</h2>
+            <form method="get" action="@Url.Action("FindNamespacesByPrefix")">
+                <div class="form-horizontal">
+                    <input type="text" placeholder="Namespace prefix" autocomplete="on" name="prefix" value="@Model.ReservedNamespacesQuery" />
+                    <input type="submit" value="Search" />
+                </div>
+            </form>
+            <br />
+            @if (Model.ReservedNamespaces != null)
+            {
+                if (Model.ReservedNamespaces.Count == 0)
+                {
+                    <p>No reserved namespaces found.</p>
+                }
+                else
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Value</th>
+                                <th>IsSharedNamespace</th>
+                                <th>IsPrefix</th>
+                                <th>Owners</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rn in Model.ReservedNamespaces)
+                            {
+                                <tr>
+                                    <td>@(rn.Value + (rn.IsPrefix ? "*" : ""))</td>
+                                    <td>@rn.IsSharedNamespace</td>
+                                    <td>@rn.IsPrefix</td>
+                                    <td>
+                                        @foreach (var owner in rn.Owners)
+                                        {
+                                            <a href="@Url.User(owner)">@owner.Username</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <h2>Find package registrations by prefix</h2>
+            <form method="get" action="@Url.Action("FindPackagesByPrefix")">
+                <div class="form-horizontal">
+                    <input type="text" placeholder="Package ID prefix" autocomplete="on" name="prefix" value="@Model.PackageRegistrationsQuery" />
+                    <input type="submit" value="Search" />
+                </div>
+            </form>
+            <br />
+            @if (Model.PackageRegistrations != null)
+            {
+                if (Model.PackageRegistrations.Count == 0)
+                {
+                    <p>No package registrations found.</p>
+                }
+                else
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Package ID</th>
+                                <th>IsVerified</th>
+                                <th>Download count</th>
+                                <th>Owners</th>
+                                <th>Reserved Namespaces</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pr in Model.PackageRegistrations)
+                            {
+                            <tr>
+                                <td><a href="@Url.Package(pr.Id)">@pr.Id</a></td>
+                                <td>
+                                    @if (pr.IsVerified)
+                                    {
+                                        <img class="img-responsive"
+                                             src="~/Content/gallery/img/reserved-indicator.svg"
+                                             alt="Reserved namespace icon"
+                                             width="24" height="24"
+                                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
+                                             title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                    }
+                                </td>
+                                <td>@pr.DownloadCount.ToNuGetNumberString()</td>
+                                <td>
+                                    @foreach (var owner in pr.Owners)
+                                    {
+                                        <a href="@Url.User(owner)">@owner.Username</a>
+                                    }
+                                </td>
+                                <td>
+                                    @foreach (var rn in pr.ReservedNamespaces)
+                                    {
+                                        @(rn.Value + (rn.IsPrefix ? "* " : " "))
+                                    }
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            }
+        </div>
     </div>
 </section>
 
