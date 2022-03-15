@@ -180,21 +180,19 @@
 {
     var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
-        <div>
-            <div class="install-script-row">
-                @{
-                    var lastIndex = packageManager.InstallPackageCommands.Length - 1;
-                    var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
-                }
-                @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
-                <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
-                <div class="copy-button">
-                    <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
-                            data-toggle="popover" data-placement="bottom" data-content="Copied."
-                            aria-label="@packageManager.CopyLabel" role="button">
-                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
-                    </button>
-                </div>
+        <div class="install-script-row">
+            @{
+                var lastIndex = packageManager.InstallPackageCommands.Length - 1;
+                var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
+            }
+            @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
+            <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
+            <div class="copy-button">
+                <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
+                        data-toggle="popover" data-placement="bottom" data-content="Copied."
+                        aria-label="@packageManager.CopyLabel" role="button">
+                    <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                </button>
             </div>
         </div>
 

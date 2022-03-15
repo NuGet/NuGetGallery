@@ -1445,22 +1445,21 @@ p.frameworktableinfo-text {
   font-weight: 600;
   text-decoration: underline;
 }
-.page-package-details .install-tabs .tab-content .tab-pane > div {
-  display: table;
-  height: 1px;
-}
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row {
-  display: table-row;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
   height: 100%;
+  width: 100%;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .install-script {
-  display: table-cell;
   background-color: #002440;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
   font-size: 1em;
   color: #fff;
-  width: 100%;
-  max-width: 1px;
+  width: -webkit-calc(100% - 40px);
+  width: calc(100% - 40px);
   line-height: 1.5;
   white-space: pre-wrap;
   border-color: #002440;
@@ -1468,9 +1467,7 @@ p.frameworktableinfo-text {
   border-width: 1px 0 1px 1px;
   vertical-align: middle;
   word-break: break-word;
-}
-.page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
-  height: 100%;
+  margin: 0px;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
   height: 100%;

@@ -370,23 +370,18 @@
 
     .tab-content {
       .tab-pane {
-        > div {
-          display: table;
-          height: 1px;
-        }
-
+        
         .install-script-row {
-          display: table-row;
+          display: flex;
           height: 100%;
+          width: 100%;
 
           .install-script {
-            display: table-cell;
             background-color: @panel-footer-bg;
             font-family: @font-family-monospace;
             font-size: 1em;
             color: #fff;
-            width: 100%;
-            max-width: 1px;
+            width: calc(100% - 40px);
             line-height: 1.5;
             white-space: pre-wrap;
             // Add a border with the same color as the background to support visual callout
@@ -396,16 +391,13 @@
             border-width: 1px 0 1px 1px;
             vertical-align: middle;
             word-break: break-word;
+            margin: 0px;
           }
 
-          .copy-button {
-            height: 100%;
-
-            button {
+          .copy-button button {
               height: 100%;
               min-height: 42px;
               line-height: 1.5;
-            }
           }
         }
 
