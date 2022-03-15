@@ -1603,7 +1603,7 @@ p.frameworktableinfo-text {
 }
 .page-home .circuit-board {
   margin-top: 20px;
-  width: 768px;
+  width: 860px;
   height: 396px;
   position: relative;
   margin: 0 auto;
@@ -1624,7 +1624,7 @@ p.frameworktableinfo-text {
   margin: 9px 0 0 0;
 }
 .page-home .circuit-board .circuit-board-pd {
-  left: 377px;
+  left: 423px;
   top: 10px;
   float: left;
   width: 230px;
@@ -1636,7 +1636,7 @@ p.frameworktableinfo-text {
   left: 0;
   top: 63px;
   float: left;
-  width: 144px;
+  width: 190px;
 }
 .page-home .circuit-board .circuit-board-pv.triangle:after {
   right: 30px;
@@ -1645,7 +1645,7 @@ p.frameworktableinfo-text {
   right: 0;
   top: 87px;
   float: right;
-  width: 144px;
+  width: 190px;
 }
 .page-home .circuit-board .circuit-board-up.triangle:after {
   left: 30px;
