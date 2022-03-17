@@ -4,11 +4,11 @@
   all projects (both legacy .csproj and SDK-based .csproj) should be put in Directory.Build.props.
   -->
   <PropertyGroup>
-    <Authors>.NET Foundation</Authors>
+    <Authors>Microsoft</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/NuGet/NuGet.Jobs</PackageProjectUrl>
-    <Copyright>© .NET Foundation. All rights reserved.</Copyright>
-    <Company>.NET Foundation</Company>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <Company>Microsoft Corporation</Company>
     
     <NeutralLanguage>en-US</NeutralLanguage>
     
