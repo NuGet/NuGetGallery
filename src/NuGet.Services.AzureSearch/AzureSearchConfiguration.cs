@@ -9,6 +9,14 @@ namespace NuGet.Services.AzureSearch
     {
         public string SearchServiceName { get; set; }
         public string SearchServiceApiKey { get; set; }
+
+        /// <summary>
+        /// This is the client ID of the user managed identity that should be used when interacting with Azure Search.
+        /// The client ID value can be obtained from Azure Portal. Note that this is different from the object (principal)
+        /// ID.
+        /// </summary>
+        public string SearchServiceManagedIdentityClientId { get; set; }
+
         public string SearchIndexName { get; set; }
         public string HijackIndexName { get; set; }
         public string StorageConnectionString { get; set; }

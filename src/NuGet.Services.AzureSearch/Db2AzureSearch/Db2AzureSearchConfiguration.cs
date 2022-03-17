@@ -15,12 +15,5 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public string AuxiliaryDataStorageExcludedPackagesPath { get; set; }
         public string AuxiliaryDataStorageVerifiedPackagesPath { get; set; }
         public string DownloadsV1JsonUrl { get; set; }
-
-        /// <summary>
-        /// Toggles the usage of <see cref="ClassicSimilarityHandler"/>. This allows the creation of a search index
-        /// with "classic" similarity. By default, indexes created with the new SDK use "BM25" similarity with yields
-        /// slightly different search relevance.
-        /// </summary>
-        public bool UseClassicSimilarity { get; set; }
     }
 }

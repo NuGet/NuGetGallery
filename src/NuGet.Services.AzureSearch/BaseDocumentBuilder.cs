@@ -165,7 +165,7 @@ namespace NuGet.Services.AzureSearch
             document.SemVerLevel = leaf.IsSemVer2() ? SemVerLevelKey.SemVer2 : SemVerLevelKey.Unknown;
             document.SortableTitle = GetSortableTitle(leaf.Title, leaf.PackageId);
             document.Summary = leaf.Summary;
-            document.Tags = leaf.Tags == null ? null : leaf.Tags.ToArray();
+            document.Tags = leaf.Tags == null ? Array.Empty<string>() : leaf.Tags.ToArray();
             document.Title = GetTitle(leaf.Title, leaf.PackageId);
             document.TokenizedPackageId = leaf.PackageId;
 

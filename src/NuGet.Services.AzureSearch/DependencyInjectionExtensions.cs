@@ -7,6 +7,7 @@ using System.Net.Http;
 using Autofac;
 using Azure;
 using Azure.Core.Pipeline;
+using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Microsoft.Extensions.Configuration;
@@ -249,17 +250,36 @@ namespace NuGet.Services.AzureSearch
                 {
                     var options = p.GetRequiredService<IOptionsSnapshot<AzureSearchConfiguration>>();
                     var transport = p.GetRequiredService<HttpPipelineTransport>();
+                    var endpoint = new Uri($"https://{options.Value.SearchServiceName}.search.windows.net");
+                    var searchOptions = new SearchClientOptions
+                    {
+                        Serializer = IndexBuilder.GetJsonSerializer(),
+                        Transport = transport,
+                    };
 
-                    var client = new SearchIndexClient(
-                        new Uri($"https://{options.Value.SearchServiceName}.search.windows.net"),
-                        new AzureKeyCredential(options.Value.SearchServiceApiKey),
-                        new SearchClientOptions
-                        {
-                            Serializer = IndexBuilder.GetJsonSerializer(),
-                            Transport = transport,
-                        });
+                    var hasManagedIdentity = !string.IsNullOrEmpty(options.Value.SearchServiceManagedIdentityClientId);
+                    var hasApiKey = !string.IsNullOrEmpty(options.Value.SearchServiceApiKey);
 
-                    return client;
+                    if (hasManagedIdentity == hasApiKey)
+                    {
+                        throw new InvalidOperationException($"Either the " +
+                            $"{nameof(AzureSearchConfiguration.SearchServiceManagedIdentityClientId)} or the " +
+                            $"{nameof(AzureSearchConfiguration.SearchServiceApiKey)} configuration value must be set, but not both.");
+                    }
+                    else if (hasManagedIdentity)
+                    {
+                        return new SearchIndexClient(
+                            endpoint,
+                            new ManagedIdentityCredential(options.Value.SearchServiceManagedIdentityClientId),
+                            searchOptions);
+                    }
+                    else
+                    {
+                        return new SearchIndexClient(
+                            endpoint,
+                            new AzureKeyCredential(options.Value.SearchServiceApiKey),
+                            searchOptions);
+                    }
                 });
 
             services.AddTransient<IDownloadsV1JsonClient, DownloadsV1JsonClient>();
