@@ -2229,6 +2229,9 @@ p.frameworktableinfo-text {
 .page-stats-per-package #stats-graph-svg p {
   margin-bottom: none;
 }
+.page-stats-per-package .statistics-report-title {
+  word-wrap: break-word;
+}
 .page-status .status-general {
   padding: 13px;
   margin-bottom: 24px;
