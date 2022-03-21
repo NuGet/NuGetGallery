@@ -2230,7 +2230,7 @@ p.frameworktableinfo-text {
   margin-bottom: none;
 }
 .page-stats-per-package .statistics-report-title {
-  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 .page-status .status-general {
   padding: 13px;
