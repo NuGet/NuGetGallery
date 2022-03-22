@@ -11,6 +11,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         public float NamespaceBoost { get; set; } = 100;
         public float SeparatorSplitBoost { get; set; } = 2;
         public float ExactMatchBoost { get; set; } = 1000;
+        public float ExactMatchWithSeparatorsBoost { get; set; } = 10;
         public string SemVer1RegistrationsBaseUrl { get; set; }
         public string SemVer2RegistrationsBaseUrl { get; set; }
         public TimeSpan AuxiliaryDataReloadFrequency { get; set; } = TimeSpan.FromHours(1);
