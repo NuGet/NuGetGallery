@@ -21,7 +21,7 @@
     @using (Html.BeginForm("Revoke", "ApiKeys", new { area = "Admin" }, FormMethod.Post))
     {
         @Html.AntiForgeryToken()
-        <table class="table break-word" style="display: none" data-bind="visible: verifiedResults().length > 0">
+        <table class="table break-word" style="display: none" data-bind="visible: verifiedResults().length > 0" aria-label="API Keys">
             <thead>
                 <tr>
                     <th class="col-sm-1">

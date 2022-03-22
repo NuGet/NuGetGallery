@@ -426,6 +426,11 @@ img.reserved-indicator-icon {
 	cursor: pointer;
 }
 
+.form-group label.required::after {
+  color: red;
+  content: " *";
+}
+
 // Workaround. See https://github.com/NuGet/NuGetGallery/issues/8264
 @media (max-width: 767.9px) {
     .hidden-xs {
