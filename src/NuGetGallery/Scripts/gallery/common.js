@@ -468,9 +468,15 @@
         popoverElement.click(function () {
             popoverElement.popover('show');
             setTimeout(function () {
-                    popoverElement.popover('destroy');
+                    popoverElement.popover('hide');
                 },
                 2000);
+        });
+        popoverElement.keyup(function (event) {
+            // This is the keycode for the 'Esc' key
+            if (event.which === 27) {
+                popoverElement.popover('hide');
+            }
         });
     };
 
