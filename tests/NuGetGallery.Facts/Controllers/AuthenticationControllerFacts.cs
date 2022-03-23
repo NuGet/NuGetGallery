@@ -723,7 +723,7 @@ namespace NuGetGallery.Controllers
             public async Task WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow()
             {
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.Register(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Credential>(), It.IsAny<bool>()))
+                    .Setup(x => x.Register(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Credential>(), It.IsAny<bool>(), It.IsAny<bool>()))
                     .Throws(new EntityException("aMessage"));
 
                 var controller = GetController<AuthenticationController>();
@@ -759,7 +759,7 @@ namespace NuGetGallery.Controllers
                 var authenticationService = GetMock<AuthenticationService>();
                 var controller = GetController<AuthenticationController>();
 
-                authenticationService.Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>(), It.IsAny<bool>()))
+                authenticationService.Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>(), It.IsAny<bool>(), It.IsAny<bool>()))
                     .CompletesWith(authUser);
 
                 authenticationService
@@ -810,7 +810,7 @@ namespace NuGetGallery.Controllers
                 configurationService.Current.ConfirmEmailAddresses = false;
 
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>(), It.IsAny<bool>()))
+                    .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>(), It.IsAny<bool>(), It.IsAny<bool>()))
                     .CompletesWith(authUser);
 
                 var controller = GetController<AuthenticationController>();
@@ -834,7 +834,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>(), false));
+                    .Verify(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>(), false, It.IsAny<bool>()));
 
                 GetMock<IMessageService>()
                     .Verify(
@@ -860,7 +860,7 @@ namespace NuGetGallery.Controllers
                 var authenticationServiceMock = GetMock<AuthenticationService>();
                 var controller = GetController<AuthenticationController>();
                 authenticationServiceMock
-                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>(), It.IsAny<bool>()))
+                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>(), It.IsAny<bool>(), It.IsAny<bool>()))
                     .CompletesWith(authUser);
                 authenticationServiceMock
                     .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
@@ -904,7 +904,7 @@ namespace NuGetGallery.Controllers
                 authenticationServiceMock.VerifyAll();
 
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>(), false));
+                    .Verify(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>(), false, It.IsAny<bool>()));
 
                 messageService.Verify();
 
@@ -928,7 +928,7 @@ namespace NuGetGallery.Controllers
                 var authenticationServiceMock = GetMock<AuthenticationService>();
                 var controller = GetController<AuthenticationController>();
                 authenticationServiceMock
-                    .Setup(x => x.Register(authUser.User.Username, "anotherunconfirmed@example.com", externalCred, It.IsAny<bool>()))
+                    .Setup(x => x.Register(authUser.User.Username, "anotherunconfirmed@example.com", externalCred, It.IsAny<bool>(), It.IsAny<bool>()))
                     .CompletesWith(authUser);
                 authenticationServiceMock
                     .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
@@ -972,7 +972,7 @@ namespace NuGetGallery.Controllers
                 authenticationServiceMock.VerifyAll();
 
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.Register(authUser.User.Username, "anotherunconfirmed@example.com", externalCred, false));
+                    .Verify(x => x.Register(authUser.User.Username, "anotherunconfirmed@example.com", externalCred, false, It.IsAny<bool>()));
 
                 messageService.Verify();
 
@@ -996,7 +996,7 @@ namespace NuGetGallery.Controllers
                 var authenticationServiceMock = GetMock<AuthenticationService>();
                 var controller = GetController<AuthenticationController>();
                 authenticationServiceMock
-                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, externalCred, It.IsAny<bool>()))
+                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, externalCred, It.IsAny<bool>(), It.IsAny<bool>()))
                     .CompletesWith(authUser)
                     .Callback(() =>
                      {
@@ -1032,7 +1032,7 @@ namespace NuGetGallery.Controllers
                 authenticationServiceMock.VerifyAll();
 
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.Register(authUser.User.Username, authUser.User.EmailAddress, externalCred, true));
+                    .Verify(x => x.Register(authUser.User.Username, authUser.User.EmailAddress, externalCred, true, It.IsAny<bool>()));
 
                 GetMock<IMessageService>()
                     .Verify(x => x.SendMessageAsync(
@@ -1072,7 +1072,7 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Verify(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>(), false), Times.Never());
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.Register("theUsername", "theEmailAddress", It.IsAny<Credential>(), It.IsAny<bool>()), Times.Never());
+                    .Verify(x => x.Register("theUsername", "theEmailAddress", It.IsAny<Credential>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never());
             }
 
             [Fact]
@@ -1092,7 +1092,7 @@ namespace NuGetGallery.Controllers
                 var authenticationServiceMock = GetMock<AuthenticationService>();
                 var controller = GetController<AuthenticationController>();
                 authenticationServiceMock
-                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, externalCred, It.IsAny<bool>()))
+                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, externalCred, It.IsAny<bool>(), It.IsAny<bool>()))
                     .CompletesWith(authUser);
                 authenticationServiceMock
                     .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
@@ -1138,6 +1138,62 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
+            [InlineData(true, true, true)]
+            [InlineData(true, false, true)]
+            [InlineData(false, true, true)]
+            [InlineData(false, false, false)]
+            public async Task SetsEnableMultiFactorAuthenticationWhenRegisteringExternalAccounts(bool isNewAccount2FAEnforcementEnabled, bool usedMultiFactorAuthentication, bool enableMultiFactorAuthentication)
+            {
+                // Arrange
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername")
+                    {
+                        UnconfirmedEmailAddress = "unconfirmed@example.com",
+                        EmailConfirmationToken = "t0k3n"
+                    },
+                    new Credential());
+
+                var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+
+                var authenticationServiceMock = GetMock<AuthenticationService>();
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                var controller = GetController<AuthenticationController>();
+                authenticationServiceMock
+                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, externalCred, It.IsAny<bool>(), enableMultiFactorAuthentication))
+                    .CompletesWith(authUser);
+                authenticationServiceMock
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, usedMultiFactorAuthentication))
+                    .Returns(Task.FromResult(0))
+                    .Verifiable();
+                authenticationServiceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Credential = externalCred,
+                        UserInfo = new IdentityInformation("", "", "", ""),
+                        LoginDetails = new ExternalLoginSessionDetails("", usedMultiFactorAuthentication)
+                    });
+                featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(isNewAccount2FAEnforcementEnabled).Verifiable();
+
+                // Act
+                var result = await controller.Register(
+                    new LogOnViewModel()
+                    {
+                        Register = new RegisterViewModel
+                        {
+                            Username = authUser.User.Username,
+                            EmailAddress = authUser.User.UnconfirmedEmailAddress,
+                        }
+                    }, "/theReturnUrl", linkingAccount: true);
+
+                // Assert
+                authenticationServiceMock.VerifyAll();
+                featureFlagServiceMock.Verify();
+                ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
+            }
+
+            [Theory]
             [InlineData("MicrosoftAccount", true)]
             [InlineData("AzureActiveDirectory", false)]
             public async Task GivenAdminLogsInWithExternalIdentity_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
@@ -1164,7 +1220,7 @@ namespace NuGetGallery.Controllers
                     externalCred);
 
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred, It.IsAny<bool>()))
+                    .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred, It.IsAny<bool>(), It.IsAny<bool>()))
                     .CompletesWith(authUser);
 
                 EnableAllAuthenticators(Get<AuthenticationService>());
@@ -1239,11 +1295,74 @@ namespace NuGetGallery.Controllers
         public class TheLinkOrChangeExternalCredentialAction : TestContainer
         {
             [Fact]
+            public async Task ForLockedUser_ErrorIsReturned()
+            {
+                // Arrange
+                var controller = GetController<AuthenticationController>();
+                var user = new User { Username = "Bob", EmailAddress = "bob@example.com", UserStatusKey = UserStatus.Locked };
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                Assert.Equal(ServicesStrings.UserAccountIsLocked, controller.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
+            public async Task GivenIsNewAccount2FAEnforcementEnabledAndNotUsedMultiFactorAuthentication_Challenge2FAAuthentication()
+            {
+                // Arrange
+                var authServiceMock = GetMock<AuthenticationService>();
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                var controller = GetController<AuthenticationController>();
+                var returnUrl = "theReturnUrl";
+                var identity = "Bloog <bloog@blorg.com>";
+                var enforcedProvider = "AzureActiveDirectoryV2";
+                var email = "test@test.com";
+
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
+                var user = Get<Fakes>().CreateUser("test", cred);
+                controller.SetCurrentUser(user);
+                var redirectUrl = controller.Url.LinkOrChangeExternalCredential(returnUrl, true);
+                var authUser = new AuthenticatedUser(
+                    user,
+                    cred);
+                featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(true).Verifiable();
+                authServiceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authentication = authUser,
+                        Authenticator = new AzureActiveDirectoryV2Authenticator(),
+                        Credential = cred,
+                        LoginDetails = new ExternalLoginSessionDetails(email, false),
+                        UserInfo = new IdentityInformation("", "", "", "", "", usedMultiFactorAuth: false)
+                    });
+                authServiceMock
+                    .Setup(x => x.Challenge(
+                        enforcedProvider,
+                        redirectUrl,
+                        It.Is<AuthenticationPolicy>((policy) => policy.EnforceMultiFactorAuthentication == true && policy.Email == email)))
+                    .Verifiable();
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential(returnUrl);
+
+                // Assert
+                authServiceMock.VerifyAll();
+                featureFlagServiceMock.Verify();
+            }
+
+            [Fact]
             public async Task GivenExpiredExternalAuth_ItSafeRedirectsToReturnUrlWithExternalAuthExpiredMessage()
             {
                 // Arrange
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(TestUtility.FakeUser);
                 var serviceMock = GetMock<AuthenticationService>();
                 serviceMock
                     .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
@@ -1263,6 +1382,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(TestUtility.FakeUser);
                 var identity = "Bloog <bloog@blorg.com>";
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
                 var serviceMock = GetMock<AuthenticationService>();
@@ -1284,7 +1404,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                
+
                 var errorMessage = controller.TempData["RawErrorMessage"];
                 var expectedMessage = string.Format(
                     Strings.ChangeCredential_Failed,
@@ -1355,15 +1475,96 @@ namespace NuGetGallery.Controllers
                 Assert.Equal(string.Format(Strings.ChangeCredential_Success, email), controller.TempData["Message"]);
                 serviceMock.VerifyAll();
             }
+
+            [Theory]
+            [InlineData(true, true, false)]
+            [InlineData(true, false, false)]
+            [InlineData(false, true, true)]
+            [InlineData(false, false, false)]
+            public async Task GivenEnableMultiFactorAuthenticationInUserIsFalseAndLoginUsedMultiFactorAuthenticated_ChangeMultiFactorAuthentication(bool enableMultifactorAuthentication, bool usedMultifactorAuthentication, bool changeEnableMultifactorAuthentication)
+            {
+                // Arrange
+                GetMock<AuthenticationService>();
+                var controller = GetController<AuthenticationController>();
+                var identity = "Bloog";
+                var email = "bloog@blorg.com";
+                var passwordCred = new Credential("password.v3", "bloopbloop");
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test", cred, passwordCred);
+                user.EmailAddress = email;
+                user.EnableMultiFactorAuthentication = enableMultifactorAuthentication;
+                var authUser = new AuthenticatedUser(
+                    user, cred);
+                controller.SetCurrentUser(user);
+
+                var externalAuthenticator = GetMock<Authenticator>();
+                var authServiceMock = GetMock<AuthenticationService>();
+                var userServiceMock = GetMock<IUserService>();
+                var authenticateResult = new AuthenticateExternalLoginResult()
+                {
+                    ExternalIdentity = new ClaimsIdentity(),
+                    Authentication = authUser,
+                    Authenticator = externalAuthenticator.Object,
+                    Credential = cred,
+                    LoginDetails = new ExternalLoginSessionDetails(email, usedMultifactorAuthentication)
+                };
+                externalAuthenticator
+                    .Setup(x => x.GetIdentityInformation(It.IsAny<ClaimsIdentity>()))
+                    .Returns(new IdentityInformation("", "", email, ""));
+                authServiceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(authenticateResult)
+                    .Verifiable();
+                authServiceMock
+                    .Setup(x => x.TryReplaceCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .CompletesWith(true)
+                    .Verifiable();
+                authServiceMock
+                    .Setup(x => x.RemoveCredential(user, passwordCred, true))
+                    .Completes()
+                    .Verifiable();
+                authServiceMock
+                    .Setup(x => x.Authenticate(It.IsAny<Credential>()))
+                    .CompletesWith(authUser)
+                    .Verifiable();
+                authServiceMock
+                    .Setup(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), authUser, usedMultifactorAuthentication))
+                    .Completes()
+                    .Verifiable();
+                userServiceMock
+                    .Setup(x => x.ChangeMultiFactorAuthentication(authenticateResult.Authentication.User, true, "Authentication"))
+                    .Completes()
+                    .Verifiable();
+
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                Assert.Equal(string.Format(Strings.ChangeCredential_Success, email), controller.TempData["Message"]);
+                authServiceMock.VerifyAll();
+
+                if (changeEnableMultifactorAuthentication)
+                {
+                    userServiceMock.Verify();
+                }
+                else
+                {
+                    userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
+                }
+            }
         }
 
         public class TheAuthenticateExternalAction : TestContainer
         {
-
             [Fact]
             public void ForMissingExternalProvider_ErrorIsReturned()
             {
+                // Arrange
                 var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(TestUtility.FakeUser);
 
                 // Act
                 var result = controller.AuthenticateExternal("theReturnUrl");
@@ -1376,6 +1577,7 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void ForAADLinkedAccount_ErrorIsReturnedDueToOrgPolicy()
             {
+                // Arrange
                 var fakes = Get<Fakes>();
                 var aadCred = new CredentialBuilder().CreateExternalCredential("AzureActiveDirectory", "blorg", "bloog", "TEST_TENANT");
                 var passwordCred = new Credential("password.v3", "random");
@@ -1403,6 +1605,7 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void ForNonAADLinkedAccount_WithOrgPolicyCompletesSuccessfully()
             {
+                // Arrange
                 var fakes = Get<Fakes>();
                 EnableAllAuthenticators(Get<AuthenticationService>());
                 var passwordCred = new Credential("password.v3", "random");
@@ -1457,6 +1660,7 @@ namespace NuGetGallery.Controllers
                 const string returnUrl = "/theReturnUrl";
                 EnableAllAuthenticators(Get<AuthenticationService>());
                 var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(TestUtility.FakeUser);
 
                 // Act
                 var result = controller.AuthenticateExternal(returnUrl);
@@ -1598,7 +1802,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ShouldChallengeForEnforcedMultiFactorAuthentication()
+            public async Task GivenUserExternalAccountAuthenticated_ShouldChallengeForEnforcedMultiFactorAuthentication()
             {
                 // Arrange
                 var enforcedProvider = "AzureActiveDirectoryV2";
@@ -1633,6 +1837,44 @@ namespace NuGetGallery.Controllers
                 // Assert
                 authServiceMock
                     .VerifyAll();
+            }
+
+            [Theory]
+            [InlineData("MicrosoftAccount")]
+            [InlineData("ActiveDirectory")]
+            public async Task GivenUserExternalAccountNotAuthenticatedNot2FA_ShouldChallengeForEnforcedMultiFactorAuthentication(string accountType)
+            {
+                // Arrange
+                var enforcedProvider = "AzureActiveDirectoryV2";
+                var email = "test@email.com";
+                var cred = new CredentialBuilder().CreateExternalCredential(accountType, "blorg", "Bloog");
+                var authServiceMock = GetMock<AuthenticationService>(); // Force a mock to be created
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(true).Verifiable();
+                var controller = GetController<AuthenticationController>();
+
+                authServiceMock
+                    .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        Credential = cred,
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authenticator = new AzureActiveDirectoryV2Authenticator(),
+                        LoginDetails = new ExternalLoginSessionDetails(email, usedMultiFactorAuthentication: false)
+                    });
+
+                var returnUrl = "theReturnUrl";
+                authServiceMock
+                    .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>(), It.Is<AuthenticationPolicy>((policy) => policy.EnforceMultiFactorAuthentication == true && policy.Email == email)))
+                    .Verifiable();
+
+                // Act
+                var result = await controller.LinkExternalAccount(returnUrl);
+
+                // Assert
+                authServiceMock
+                    .VerifyAll();
+                featureFlagServiceMock.Verify();
             }
 
             [Theory]
@@ -1781,7 +2023,8 @@ namespace NuGetGallery.Controllers
                 {
                     var expectedMessage = string.Format(Strings.SiteAdminNotLoggedInWithRequiredTenant, enforcedTenantId);
                     VerifyExternalLinkExpiredResult(controller, result, expectedMessage);
-                } else
+                }
+                else
                 {
                     ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
                     GetMock<AuthenticationService>().VerifyAll();
@@ -2262,7 +2505,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void NonMicrosoftAccountAuthetnicationReturnsFalse()
+            public void NonMicrosoftAccountAuthenticationReturnsFalse()
             {
                 // Arrange
                 EnableAllAuthenticators(Get<AuthenticationService>());
@@ -2275,6 +2518,25 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 Assert.False(result);
+            }
+
+            [Fact]
+            public void AzureActiveDirectoryAccountCredentialReturnsTrue()
+            {
+                // Arrange
+                EnableAllAuthenticators(Get<AuthenticationService>());
+
+                var controller = GetController<AuthenticationController>();
+                var externalResult = GetExternalResult(new AzureActiveDirectoryV2Authenticator(), "AzureActiveDirectory");
+                var featureFlagServiceMock = GetMock<IFeatureFlagService>();
+                featureFlagServiceMock.Setup(f => f.IsNewAccount2FAEnforcementEnabled()).Returns(true).Verifiable();
+
+                // Act
+                var result = controller.ShouldEnforceMultiFactorAuthentication(externalResult);
+
+                // Assert
+                Assert.True(result);
+                featureFlagServiceMock.Verify();
             }
 
             [Fact]

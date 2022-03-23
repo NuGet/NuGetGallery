@@ -470,7 +470,7 @@
             setTimeout(function () {
                     popoverElement.popover('destroy');
                 },
-                1000);
+                2000);
         });
     };
 

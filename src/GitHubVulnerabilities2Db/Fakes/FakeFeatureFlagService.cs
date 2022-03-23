@@ -25,11 +25,6 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayPackagePageV2Enabled(User user)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool ArePatternSetTfmHeuristicsEnabled()
         {
             throw new NotImplementedException();
@@ -265,12 +260,22 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
+        public bool IsDisplayTargetFrameworkEnabled(User user)
         {
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayTargetFrameworkEnabled()
+        public bool IsComputeTargetFrameworkEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsRecentPackagesNoIndexEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsNewAccount2FAEnforcementEnabled()
         {
             throw new NotImplementedException();
         }

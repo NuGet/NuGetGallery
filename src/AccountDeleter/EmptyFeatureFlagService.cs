@@ -51,6 +51,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsComputeTargetFrameworkEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDeletePackageApiEnabled(User user)
         {
             throw new NotImplementedException();
@@ -71,17 +76,7 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public bool IsDisplayPackagePageV2Enabled(User user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsDisplayTargetFrameworkEnabled()
+        public bool IsDisplayTargetFrameworkEnabled(User user)
         {
             throw new NotImplementedException();
         }
@@ -142,6 +137,11 @@ namespace NuGetGallery.AccountDeleter
         }
 
         public bool IsMarkdigMdRenderingEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsNewAccount2FAEnforcementEnabled()
         {
             throw new NotImplementedException();
         }
@@ -237,6 +237,11 @@ namespace NuGetGallery.AccountDeleter
         }
 
         public bool IsPreviewHijackEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsRecentPackagesNoIndexEnabled()
         {
             throw new NotImplementedException();
         }

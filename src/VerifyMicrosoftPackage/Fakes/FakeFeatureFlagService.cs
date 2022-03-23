@@ -71,8 +71,6 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool AreEmbeddedReadmesEnabled(User user) => throw new NotImplementedException();
 
-        public bool IsDisplayPackagePageV2Enabled(User user) => throw new NotImplementedException();
-
         public bool IsODataV1GetAllEnabled() => throw new NotImplementedException();
 
         public bool IsODataV1GetAllCountEnabled() => throw new NotImplementedException();
@@ -115,11 +113,12 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsDisplayNuGetPackageExplorerLinkEnabled() => throw new NotImplementedException();
 
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
-        {
-            throw new NotImplementedException();
-        }
+        public bool IsDisplayTargetFrameworkEnabled(User user) => throw new NotImplementedException();
 
-        public bool IsDisplayTargetFrameworkEnabled() => throw new NotImplementedException();
+        public bool IsComputeTargetFrameworkEnabled() => throw new NotImplementedException();
+
+        public bool IsRecentPackagesNoIndexEnabled() => throw new NotImplementedException();
+
+        public bool IsNewAccount2FAEnforcementEnabled() => throw new NotImplementedException();
     }
 }

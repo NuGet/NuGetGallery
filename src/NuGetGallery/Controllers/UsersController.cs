@@ -69,7 +69,8 @@ namespace NuGetGallery
                   messageServiceConfiguration,
                   deleteAccountService,
                   iconUrlProvider,
-                  gravatarProxy)
+                  gravatarProxy,
+                  featureFlagService)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -805,6 +806,13 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(bool enableMultiFactor)
         {
             var user = GetCurrentUser();
+
+            if (user.IsLocked && enableMultiFactor == false)
+            {
+                TempData["ErrorMessage"] = ServicesStrings.UserAccountIsLocked;
+                return RedirectToAction(AccountAction);
+            }
+
             var referrer = OwinContext.Request?.Headers?.Get("Referer") ?? "Unknown";
 
             await UserService.ChangeMultiFactorAuthentication(user, enableMultiFactor, referrer);
@@ -894,6 +902,13 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
             var user = GetCurrentUser();
+
+            if (user.IsLocked)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(ServicesStrings.UserAccountIsLocked);
+            }
+
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
                     && CredentialKeyMatches(credentialKey, c));
@@ -948,6 +963,13 @@ namespace NuGetGallery
                 return Json(Strings.ApiKeyOwnerRequired);
             }
 
+            var currentUser = GetCurrentUser();
+            if (currentUser.IsLocked)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(ServicesStrings.UserAccountIsLocked);
+            }
+
             // Get the owner scope
             User scopeOwner = UserService.FindByUsername(owner);
             if (scopeOwner == null)
@@ -979,7 +1001,7 @@ namespace NuGetGallery
 
             var emailMessage = new CredentialAddedMessage(
                     _config,
-                    GetCurrentUser(),
+                    currentUser,
                     newCredentialViewModel.GetCredentialTypeInfo());
             await MessageService.SendMessageAsync(emailMessage);
 
@@ -1032,6 +1054,7 @@ namespace NuGetGallery
             var newCredential = _credentialBuilder.CreateApiKey(expiration, out string plaintextApiKey);
             newCredential.Description = description;
             newCredential.Scopes = scopes;
+            newCredential.WasCreatedSecurely = User.WasMultiFactorAuthenticated();
 
             await AuthenticationService.AddCredential(user, newCredential);
 

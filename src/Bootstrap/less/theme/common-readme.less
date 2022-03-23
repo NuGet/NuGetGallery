@@ -11,32 +11,33 @@
   }
 }
 
-#readme-less {
-  img {
+.readme-common {
+  .table {
+    width: max-content;
+    border: 1px solid @table-border-color;
+
+    th, td {
+      border: 1px solid @table-border-color;
+    }
+  }
+
+  tr:nth-child(even) {
+    background-color: @readme-table-bg-color;
+  }
+
+  // We added boostrap extension in Markdig to render markdown file, it adds .img-fluid class to all images links <img>,
+  // images in Bootstrap are made responsive with .img-fluid, but it was first introduced to Boostrap 4, added style here since we are still in Bootstrap 3.
+  img.img-fluid {
     max-width: 100%;
   }
 
   ul.contains-task-list, li.task-list-item {
     list-style-type: none;
   }
-}
-
-#readme-more {
-  img {
-    max-width: 100%;
-  }
-
-  ul.contains-task-list, li.task-list-item {
-    list-style-type: none;
-  }
-}
+} 
 
 #readme-preview {
   padding-top: 0.25em;
-
-  ul.contains-task-list, li.task-list-item {
-    list-style-type: none;
-  }
 }
 
 #edit-markdown {

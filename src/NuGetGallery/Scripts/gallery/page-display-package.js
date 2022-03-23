@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
     'use strict';
 
     // Configure the rename information container
@@ -28,8 +28,7 @@ $(function () {
         // If the deprecation information container has content, configure it as an expander.
         window.nuget.configureExpander("deprecation-content-container", "ChevronDown", null, "ChevronUp");
         configureExpanderWithEnterKeydown(deprecationContainer);
-    }
-    else {
+    } else {
         // If the container does not have content, remove its expander attributes
         expanderAttributes.forEach(attribute => deprecationContainer.removeAttr(attribute));
 
@@ -48,45 +47,6 @@ $(function () {
         });
     }
 
-    // Configure ReadMe container
-    var readmeContainer = $("#readme-container");
-    if (readmeContainer[0])
-    {
-        window.nuget.configureExpanderHeading("readme-container");
-
-        window.nuget.configureExpander(
-            "readme-more",
-            "CalculatorAddition",
-            "Show less",
-            "CalculatorSubtract",
-            "Show more");
-
-        var showLess = $("#readme-less");
-        $clamp(showLess[0], { clamp: 30, useNativeClamp: false });
-
-        $("#show-readme-more").click(function (e) {
-            showLess.collapse("toggle");
-            e.preventDefault();
-        });
-        showLess.on('hide.bs.collapse', function (e) {
-            e.stopPropagation();
-        });
-        showLess.on('show.bs.collapse', function (e) {
-            e.stopPropagation();
-        });
-    }
-
-    // Configure expanders
-    window.nuget.configureExpanderHeading("dependency-groups");
-    window.nuget.configureExpanderHeading("used-by");
-    window.nuget.configureExpanderHeading("version-history");
-    window.nuget.configureExpander(
-        "hidden-versions",
-        "CalculatorAddition",
-        "Show less",
-        "CalculatorSubtract",
-        "Show more"); 
-
     // Configure package manager copy buttons
     function configureCopyButton(id) {
         var copyButton = $('#' + id + '-button');
@@ -96,6 +56,7 @@ $(function () {
         copyButton.click(function () {
             var text = $('#' + id + '-text').text().trim();
             window.nuget.copyTextToClipboard(text, copyButton);
+
             copyButton.popover('show');
 
             // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
@@ -121,46 +82,88 @@ $(function () {
                 PackageVersion: packageVersion
             });
         });
-    }  
+    }
 
     for (var i in packageManagers)
     {
         configureCopyButton(packageManagers[i]);
     }
 
-    // Enable the undo edit link.
-    $("#undo-pending-edits").click(function (e) {
-        e.preventDefault();
-        $(this).closest('form').submit();
-    })
-
+    // Restore previously selected package manager and body tab.
     var storage = window['localStorage'];
-    if (storage) {
-        var key = 'preferred_tab';
+    var packageManagerStorageKey = 'preferred_package_manager';
+    var bodyStorageKey = 'preferred_body_tab';
 
-        // Restore preferred tab selection from localStorage.
-        var preferredTab = storage.getItem(key);
-        if (preferredTab) {
-            $('#' + preferredTab).tab('show');
-        }
-
-        // Make sure we save the user's preferred tab to localStorage.
-        $('.package-manager-tab').on('shown.bs.tab', function (e) {
-            storage.setItem(key, e.target.id);
-        });
+    // The V3 registration API links to the display package page's README using
+    // the 'show-readme-container' URL fragment.
+    var restorePreferredBodyTab = true;
+    if (window.location.hash === '#show-readme-container') {
+        $('#readme-body-tab').focus();
+        restorePreferredBodyTab = false;
     }
 
+    if (storage) {
+        // Restore preferred package manager selection from localStorage.
+        var preferredPackageManagerId = storage.getItem(packageManagerStorageKey);
+        if (preferredPackageManagerId) {
+            $('#' + preferredPackageManagerId).tab('show');
+        }
+
+        // Restore preferred body tab selection from localStorage.
+        if (restorePreferredBodyTab) {
+            var preferredBodyTab = storage.getItem(bodyStorageKey);
+            if (preferredBodyTab) {
+                $('#' + preferredBodyTab).tab('show');
+            }
+        }
+    }
+
+    var usedByClamped = false;
+    var usedByTab = $('#usedby-tab');
+
+    function clampUsedByDescriptions() {
+        // Clamp long descriptions in the "used by" tab. Ensure this runs only once,
+        // otherwise clamp.js removes too much content.
+        if (usedByClamped) return;
+        if (!usedByTab.hasClass('active')) return;
+
+        for (var usedByDescription of $('.used-by-desc').get()) {
+            $clamp(usedByDescription, { clamp: 2, useNativeClamp: false });
+        }
+
+        usedByClamped = true;
+    }
+
+    clampUsedByDescriptions();
+
+    // Make sure we save the user's preferred body tab to localStorage.
+    $('.package-manager-tab').on('shown.bs.tab', function (e) {
+        if (storage) {
+            storage.setItem(packageManagerStorageKey, e.target.id);
+        }
+
+        window.nuget.sendMetric("ShowInstallCommand", 1, {
+            PackageManagerId: e.target.id,
+            PackageId: packageId,
+            PackageVersion: packageVersion
+        });
+    });
+
+    $('.body-tab').on('shown.bs.tab', function (e) {
+        if (storage) {
+            storage.setItem(bodyStorageKey, e.target.id);
+        }
+
+        clampUsedByDescriptions();
+
+        window.nuget.sendMetric("ShowDisplayPackageTab", 1, {
+            TabId: e.target.id,
+            PackageId: packageId,
+            PackageVersion: packageVersion
+        });
+    });
+
     if (window.nuget.isGaAvailable()) {
-        // Emit a Google Analytics event when the user expands or collapses the Dependencies section.
-        $("#dependency-groups").on('hide.bs.collapse show.bs.collapse', function (e) {
-            ga('send', 'event', 'dependencies', e.type);
-        });
-
-        // Emit a Google Analytics event when the user expands or collapses the Used By section.
-        $("#used-by").on('hide.bs.collapse show.bs.collapse', function (e) {
-            ga('send', 'event', 'used-by', e.type);
-        });
-
         // Emit a Google Analytics event when the user clicks on a repo link in the GitHub Repos area of the Used By section.
         $(".gh-link").on('click', function (elem) {
             if (!elem.delegateTarget.dataset.indexNumber) {
@@ -183,5 +186,6 @@ $(function () {
     }
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
+    $(".framework-badge-asset").each(window.nuget.setPopovers);
     $(".package-warning-icon").each(window.nuget.setPopovers);
 });

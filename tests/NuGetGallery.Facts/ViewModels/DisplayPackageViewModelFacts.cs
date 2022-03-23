@@ -17,6 +17,73 @@ namespace NuGetGallery.ViewModels
     {
         private Random gen = new Random();
 
+        public class TheBlockSearchEngineIndexingProperty
+        {
+            [Fact]
+            public void DoesNotBlockListedAvailableOlderPackages()
+            {
+                Assert.False(Target.BlockSearchEngineIndexing);
+            }
+
+            [Fact]
+            public void BlocksUnlisted()
+            {
+                Target.Listed = false;
+
+                Assert.True(Target.BlockSearchEngineIndexing);
+            }
+
+            [Fact]
+            public void BlocksUnavailable()
+            {
+                Target.Available = false;
+
+                Assert.True(Target.BlockSearchEngineIndexing);
+            }
+
+            [Theory]
+            [MemberData(nameof(BlockSearchEngineIndexingData))]
+            public void BlocksNewSingleVersion(int days, bool expected)
+            {
+                Target.TotalDaysSinceCreated = days;
+
+                Assert.Equal(expected, Target.BlockSearchEngineIndexing);
+            }
+
+            [Fact]
+            public void DoesNotBlockRecentIfFeatureFlagIsOff()
+            {
+                Target.TotalDaysSinceCreated = 0;
+                Target.IsRecentPackagesNoIndexEnabled = false;
+
+                Assert.False(Target.BlockSearchEngineIndexing);
+            }
+
+            public TheBlockSearchEngineIndexingProperty()
+            {
+                Target = new DisplayPackageViewModel();
+                Target.Version = "1.0.0";
+                Target.Listed = true;
+                Target.Available = true;
+                Target.IsRecentPackagesNoIndexEnabled = true;
+                Target.TotalDaysSinceCreated = NumberOfDaysToBlockIndexing + 7;
+            }
+
+            public DisplayPackageViewModel Target { get; }
+
+            public static IEnumerable<object[]> BlockSearchEngineIndexingData
+            {
+                get
+                {
+                    for (int i = 0; i < NumberOfDaysToBlockIndexing + 5; i++)
+                    {
+                        yield return new object[] { i, i < NumberOfDaysToBlockIndexing };
+                    }
+                }
+            }
+
+        }
+
         private DateTime RandomDay()
         {
             DateTime start = new DateTime(1995, 1, 1);
@@ -225,6 +292,61 @@ namespace NuGetGallery.ViewModels
             model.Available = isAvailable;
 
             Assert.False(model.CanDisplayFuGetLink());
+        }
+
+        [Theory]
+        [InlineData(true, true, true)]
+        [InlineData(false, true, true)]
+        [InlineData(true, false, true)]
+        [InlineData(true, true, false)]
+        [InlineData(false, false, true)]
+        [InlineData(false, true, false)]
+        [InlineData(false, false, false)]
+        public void CannotDisplayTargetFrameworksWhenInvalid(bool isEnabled, bool isDeleted, bool isTemplate)
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            model.IsDisplayTargetFrameworkEnabled = isEnabled;
+            model.Deleted = isDeleted;
+            model.IsDotnetNewTemplatePackageType = isTemplate;
+
+            Assert.False(model.CanDisplayTargetFrameworks());
+        }
+
+        [Fact]
+        public void CanDisplayTargetFrameworksWhenValid()
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            model.IsDisplayTargetFrameworkEnabled = true;
+            model.Deleted = false;
+            model.IsDotnetNewTemplatePackageType = false;
+
+            Assert.True(model.CanDisplayTargetFrameworks());
         }
 
         [Theory]

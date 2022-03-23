@@ -3,12 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
-using RazorEngine.Configuration;
-using RazorEngine.Templating;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,14 +23,15 @@ namespace NuGetGallery.Views.Packages
             _output = output;
         }
 
+        [Theory]
         [MemberData(nameof(HasACaseForAllIssueTypesTestData))]
         public void HasACaseForAllIssueTypes(ValidationIssue issue)
         {
             // Arrange & Act
-            var html = CompileView(issue);
+            var template = GetTemplate();
 
             // Assert
-            Assert.DoesNotContain(UnknownIssueMessage, html);
+            Assert.Contains("case ValidationIssueCode." + issue.IssueCode.ToString(), template);
         }
 
         [Theory]
@@ -39,10 +39,10 @@ namespace NuGetGallery.Views.Packages
         public void HasExpectedMessageForUnknownIssue(ValidationIssue issue)
         {
             // Arrange & Act
-            var html = CompileView(issue);
+            var template = GetTemplate();
 
             // Assert
-            Assert.Equal(UnknownIssueMessage, html);
+            Assert.DoesNotContain(issue.IssueCode.ToString(), template);
         }
 
         [Theory]
@@ -57,34 +57,13 @@ namespace NuGetGallery.Views.Packages
             Assert.Contains(issueCode, issueCodes);
         }
 
-        private string CompileView(ValidationIssue issue)
+        private string GetTemplate()
         {
-            // Arrange
-            var config = new TemplateServiceConfiguration
+            using (var stream = GetType().Assembly.GetManifestResourceStream("NuGetGallery.Views.Packages._ValidationIssue.cshtml"))
+            using (var streamReader = new StreamReader(stream))
             {
-                TemplateManager = new EmbeddedResourceTemplateManager(GetType()),
-                DisableTempFileLocking = true,
-            };
-
-            using (var razorEngine = RazorEngineService.Create(config))
-            {
-                _output.WriteLine($"Issue code: {issue.IssueCode}");
-                _output.WriteLine($"Serialized: {issue.Serialize()}");
-
-                // Act
-                var html = CollapseWhitespace(razorEngine.RunCompile("_ValidationIssue", model: issue))
-                    .Trim();
-
-                _output.WriteLine($"HTML:");
-                _output.WriteLine(html);
-
-                return html;
-            }   
-        }
-
-        private string CollapseWhitespace(string input)
-        {
-            return Regex.Replace(input, @"\s+", " ");
+                return streamReader.ReadToEnd();
+            }
         }
 
         public static IEnumerable<ValidationIssue> KnownValidationIssues

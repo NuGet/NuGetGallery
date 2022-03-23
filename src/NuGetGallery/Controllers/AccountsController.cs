@@ -56,6 +56,8 @@ namespace NuGetGallery
         protected IIconUrlProvider IconUrlProvider { get; }
 
         protected IGravatarProxyService GravatarProxy { get; }
+        
+        protected IFeatureFlagService FeatureFlagService { get; }
 
         private readonly DeleteAccountListPackageItemViewModelFactory _deleteAccountListPackageItemViewModelFactory;
 
@@ -71,7 +73,8 @@ namespace NuGetGallery
             IMessageServiceConfiguration messageServiceConfiguration,
             IDeleteAccountService deleteAccountService,
             IIconUrlProvider iconUrlProvider,
-            IGravatarProxyService gravatarProxy)
+            IGravatarProxyService gravatarProxy,
+            IFeatureFlagService featureFlagService)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             PackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -85,6 +88,7 @@ namespace NuGetGallery
             DeleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             IconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
             GravatarProxy = gravatarProxy ?? throw new ArgumentNullException(nameof(gravatarProxy));
+            FeatureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
 
             _deleteAccountListPackageItemViewModelFactory = new DeleteAccountListPackageItemViewModelFactory(PackageService, IconUrlProvider);
         }
@@ -359,10 +363,19 @@ namespace NuGetGallery
             var accountToDelete = UserService.FindByUsername(model.AccountName) as TUser;
             if (accountToDelete == null || accountToDelete.IsDeleted)
             {
-                return View("DeleteAccountStatus", new DeleteAccountStatus()
+                return View("DeleteAccountStatus", new DeleteAccountStatus
                 {
                     AccountName = model.AccountName,
                     Description = $"Account {model.AccountName} not found.",
+                    Success = false
+                });
+            }
+            else if (accountToDelete.IsLocked)
+            {
+                return View("DeleteAccountStatus", new DeleteAccountStatus
+                {
+                    AccountName = model.AccountName,
+                    Description = $"Account {model.AccountName} is locked.",
                     Success = false
                 });
             }
@@ -435,6 +448,7 @@ namespace NuGetGallery
 
             model.IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
+            model.IsNewAccount2FAEnforcementEnabled = FeatureFlagService.IsNewAccount2FAEnforcementEnabled();
 
             model.HasPassword = account.Credentials.Any(c => c.IsPassword());
             model.CurrentEmailAddress = account.UnconfirmedEmailAddress ?? account.EmailAddress;

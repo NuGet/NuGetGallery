@@ -1,0 +1,47 @@
+﻿@model IReadOnlyDictionary<string, IReadOnlyCollection<NuGetGallery.Frameworks.PackageFrameworkCompatibilityTableData>>
+<table class="framework framework-table" aria-label="Supported frameworks">
+    <thead>
+        <tr>
+            <th scope="col" class="framework-table-title"><b>Product</b></th>
+            <th scope="col" class="framework-table-title"><b>Versions</b></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var compatibilityFramework in Model)
+        {
+            if (compatibilityFramework.Value.Count > 0)
+            {
+                <tr>
+                    <td class="framework-table-product" tabindex="0">
+                        @compatibilityFramework.Key
+                    </td>
+
+                    <td class="framework-table-frameworks">
+                        @foreach (var frameworkVersion in compatibilityFramework.Value)
+                        {
+                            if (frameworkVersion.IsComputed)
+                            {
+                                <span class="framework-badge-computed framework-table-margin" tabindex="0">@frameworkVersion.Framework.GetShortFolderName()</span>
+                            }
+                            else
+                            {
+                                <span class="framework-badge-asset framework-table-margin" tabindex="0">@frameworkVersion.Framework.GetShortFolderName()</span>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+<div>
+    <div>
+        <i class="ms-Icon ms-Icon--SquareShape frameworktableinfo-asset-icon"></i>
+        <span class="frameworktableinfo-text">Compatible target framework(s)</span>
+    </div>
+    <div>
+        <i class="ms-Icon ms-Icon--SquareShape frameworktableinfo-computed-icon framework-badge-computed"></i>
+        <span class="frameworktableinfo-text">Additional computed target framework(s)</span>
+    </div>
+    <span class="frameworktableinfo-text"><i>Learn more about <a href='https://docs.microsoft.com/dotnet/standard/frameworks' aria-label="Learn more about Target Frameworks">Target Frameworks</a> and <a href='https://docs.microsoft.com/dotnet/standard/net-standard' aria-label="Learn more about .NET Standard">.NET Standard</a>.</i></span>
+</div>

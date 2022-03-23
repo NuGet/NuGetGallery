@@ -225,6 +225,12 @@ namespace NuGetGallery
                 return false;
             }
 
+            if (currentUser.IsLocked)
+            {
+                model = new ManagePackageOwnerModel(ServicesStrings.UserAccountIsLocked);
+                return false;
+            }
+
             if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
             {
                 model = new ManagePackageOwnerModel(Strings.AddOwner_NotPackageOwner);
@@ -241,6 +247,13 @@ namespace NuGetGallery
             {
                 model = new ManagePackageOwnerModel(
                     string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_OwnerNotConfirmed, username));
+                return false;
+            }
+
+            if (user.IsLocked)
+            {
+                model = new ManagePackageOwnerModel(
+                    string.Format(CultureInfo.CurrentCulture, ServicesStrings.SpecificAccountIsLocked, username));
                 return false;
             }
 

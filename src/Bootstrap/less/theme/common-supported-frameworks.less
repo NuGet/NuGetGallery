@@ -1,0 +1,93 @@
+@badge-dark: #0078d4;
+@badge-dark-opaque: rgba(0, 120, 212, 0.1);
+@table-product-width: 232px;
+
+.framework {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.framework-badges {
+  .framework;
+  margin-bottom: 14px;
+}
+
+.framework-badge {
+  padding: 1px 8px;
+  border-radius: 2px;
+  justify-content: center;
+  display: inline-block;
+  border: 1px solid @badge-dark;
+}
+
+.framework-badge:not(:last-child) {
+  margin-right: 8px;
+}
+
+.framework-badge-asset {
+  .framework-badge;
+  background: @badge-dark;
+  color: white;
+}
+
+.framework-badge-computed {
+  .framework-badge;
+  background: @badge-dark-opaque
+}
+
+.framework-table {
+  margin-bottom: 30px;
+
+  .framework;
+  width: 100%;
+
+  tr {
+    min-height: 43px;
+  }
+
+  .framework-table-title {
+    padding: 11px 0px 12px 12px;
+  }
+
+  .framework-table-product {
+    width: @table-product-width;
+    padding: 11px 0px 12px 12px;
+  }
+
+  .framework-table-margin {
+    margin: 0px 8px 8px 0px;
+  }
+
+  .framework-table-frameworks {
+    width: calc(100% - @table-product-width);
+    padding: 11px 0px 4px 12px;
+  }
+}
+
+.frameworktableinfo {
+  padding: 3px 8px 5px;
+  width: 35px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin-right: 10px;
+}
+.frameworktableinfo-computed-icon{
+  .frameworktableinfo;
+  border: 1px solid @badge-dark;
+}
+
+.frameworktableinfo-asset-icon{
+  .frameworktableinfo;
+  background-color: @badge-dark;
+}
+
+.frameworktableinfo-text {
+  font-size: 14px;
+  line-height: 16px;
+}
+
+p.frameworktableinfo-text {
+  .frameworktableinfo-text;
+  margin-top: 10px;
+}

@@ -123,7 +123,12 @@ namespace NuGetGallery
             var showEnable2FAModal = _featureFlagService.IsShowEnable2FADialogEnabled();
             var getFeedbackOnModalDismiss = _featureFlagService.IsGet2FADismissFeedbackEnabled();
 
-            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, showEnable2FAModal, getFeedbackOnModalDismiss, externalIdentityList));
+            return View(new GalleryHomeViewModel(
+                showTransformModal,
+                transformIntoOrganization,
+                showEnable2FAModal,
+                getFeedbackOnModalDismiss,
+                externalIdentityList));
         }
 
         [HttpGet]

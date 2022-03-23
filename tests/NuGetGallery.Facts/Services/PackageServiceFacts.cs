@@ -944,7 +944,8 @@ namespace NuGetGallery
                         new[]
                         {
                                            NuGetFramework.Parse("net40"),
-                                           NuGetFramework.Parse("net35")
+                                           NuGetFramework.Parse("net35"),
+                                           NuGetFramework.Parse("any")
                         });
                 });
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
@@ -954,28 +955,7 @@ namespace NuGetGallery
 
                 Assert.Equal("net40", package.SupportedFrameworks.First().TargetFramework);
                 Assert.Equal("net35", package.SupportedFrameworks.ElementAt(1).TargetFramework);
-            }
-
-            [Fact]
-            public async Task WillNotSaveAnySupportedFrameworksWhenThereIsAnAnyTargetFramework()
-            {
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
-                {
-                    mockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                    mockPackageService.Setup(p => p.GetSupportedFrameworks(It.IsAny<PackageArchiveReader>())).Returns(
-                        new[]
-                        {
-                            NuGetFramework.Parse("any"),
-                            NuGetFramework.Parse("net35")
-                        });
-                });
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
-                var currentUser = new User();
-
-                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
-
-                Assert.Empty(package.SupportedFrameworks);
+                Assert.Equal("any", package.SupportedFrameworks.ElementAt(2).TargetFramework);
             }
 
             [Theory]
