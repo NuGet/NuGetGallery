@@ -658,6 +658,10 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             function onSubmit(token) {
                 $form.submit();
             }
+
+            window.onload = function () {
+                $("iframe").attr({ tabindex: "-1" });
+            }
         </script>
     }
 }
