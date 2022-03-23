@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Metrics;
 using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery
@@ -50,6 +52,26 @@ namespace NuGetGallery
             try
             {
                 UnderlyingClient.TrackMetric(metricName, value, properties);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
+
+        public void TrackAggregatedMetric(string metricName, double value, string dimension0Name, string dimension0Value)
+        {
+            try
+            {
+                var metricIdentifier = new MetricIdentifier(
+                    metricNamespace: "Gallery",
+                    metricId: metricName,
+                    dimensionNames: new List<string>
+                    {
+                        dimension0Name
+                    });
+                var metric = UnderlyingClient.GetMetric(metricIdentifier);
+                metric.TrackValue(value, dimension0Value);
             }
             catch
             {
