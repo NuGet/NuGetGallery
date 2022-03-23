@@ -1135,10 +1135,7 @@ namespace NuGetGallery
 
         public void TrackApiRequest(string endpoint)
         {
-            _telemetryClient.TrackAggregatedMetric(Events.ApiRequest, 1, addDimension =>
-            {
-                addDimension(Endpoint, endpoint);
-            });
+            _telemetryClient.TrackAggregatedMetric(Events.ApiRequest, 1, Endpoint, endpoint);
         }
 
         /// <summary>

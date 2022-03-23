@@ -394,7 +394,7 @@ namespace NuGetGallery
                 {
                     service.TelemetryClient.Verify(c => c.TrackAggregatedMetric(metricName,
                         It.IsAny<double>(),
-                        It.IsAny<Action<Action<string, string>>>()),
+                        It.IsAny<string>(), It.IsAny<string>()),
                         Times.Once);
                 }
             }

@@ -59,59 +59,23 @@ namespace NuGetGallery
             }
         }
 
-        public void TrackAggregatedMetric(string metricName, double value, Action<Action<string, string>> addDimensions)
+        public void TrackAggregatedMetric(string metricName, double value, string dimension0Name, string dimension0Value)
         {
             try
             {
-                var dimensionNames = new List<string>();
-                var dimensionValues = new List<string>();
-                addDimensions((name, dvalue) =>
-                {
-                    dimensionNames.Add(name);
-                    dimensionValues.Add(dvalue);
-                });
-                var metricIdentifier = new MetricIdentifier(metricNamespace: "Gallery", metricId: metricName, dimensionNames: dimensionNames);
+                var metricIdentifier = new MetricIdentifier(
+                    metricNamespace: "Gallery",
+                    metricId: metricName,
+                    dimensionNames: new List<string>
+                    {
+                        dimension0Name
+                    });
                 var metric = UnderlyingClient.GetMetric(metricIdentifier);
-                switch (dimensionValues.Count)
-                {
-                    case 0:
-                        metric.TrackValue(value);
-                        break;
-                    case 1:
-                        metric.TrackValue(value, dimensionValues[0]);
-                        break;
-                    case 2:
-                        metric.TrackValue(value, dimensionValues[0], dimensionValues[1]);
-                        break;
-                    case 3:
-                        metric.TrackValue(value, dimensionValues[0], dimensionValues[1], dimensionValues[2]);
-                        break;
-                    case 4:
-                        metric.TrackValue(value, dimensionValues[0], dimensionValues[1], dimensionValues[2], dimensionValues[3]);
-                        break;
-                    case 5:
-                        metric.TrackValue(value, dimensionValues[0], dimensionValues[1], dimensionValues[2], dimensionValues[3], dimensionValues[4]);
-                        break;
-                    case 6:
-                        metric.TrackValue(value, dimensionValues[0], dimensionValues[1], dimensionValues[2], dimensionValues[3], dimensionValues[4], dimensionValues[5]);
-                        break;
-                    case 7:
-                        metric.TrackValue(value, dimensionValues[0], dimensionValues[1], dimensionValues[2], dimensionValues[3], dimensionValues[4], dimensionValues[5], dimensionValues[6]);
-                        break;
-                    case 8:
-                        metric.TrackValue(value, dimensionValues[0], dimensionValues[1], dimensionValues[2], dimensionValues[3], dimensionValues[4], dimensionValues[5], dimensionValues[6], dimensionValues[7]);
-                        break;
-                    case 9:
-                        metric.TrackValue(value, dimensionValues[0], dimensionValues[1], dimensionValues[2], dimensionValues[3], dimensionValues[4], dimensionValues[5], dimensionValues[6], dimensionValues[7], dimensionValues[8]);
-                        break;
-                    case 10:
-                        metric.TrackValue(value, dimensionValues[0], dimensionValues[1], dimensionValues[2], dimensionValues[3], dimensionValues[4], dimensionValues[5], dimensionValues[6], dimensionValues[7], dimensionValues[8], dimensionValues[9]);
-                        break;
-                }
+                metric.TrackValue(value, dimension0Value);
             }
             catch
             {
-
+                // logging failed, don't allow exception to escape
             }
         }
 
