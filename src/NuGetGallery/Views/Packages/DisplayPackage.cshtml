@@ -732,15 +732,15 @@
                                     <table class="table borderless" aria-label="Packages that depend on @Model.Id">
                                         <thead>
                                             <tr>
-                                                <th class="used-by-adjust-table-head" tabindex="0">Package</th>
-                                                <th class="used-by-adjust-table-head" tabindex="0">Downloads</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Package</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Downloads</th>
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
                                             @foreach (var item in Model.PackageDependents.TopPackages)
                                             {
                                                 <tr>
-                                                    <td class="used-by-desc-column">
+                                                    <td class="used-by-desc-column" tabindex="0">
                                                         <a class="text-left ngp-link" href="@Url.Package(item.Id)">
                                                             @(item.Id)
                                                         </a>
@@ -754,7 +754,7 @@
                                                         }
                                                         <p class="used-by-desc">@item.Description</p>
                                                     </td>
-                                                    <td>
+                                                    <td tabindex="0">
                                                         <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
                                                     </td>
                                                 </tr>
@@ -786,15 +786,15 @@
                                     <table class="table borderless" aria-label="GitHub repositories that depend on @Model.Id">
                                         <thead>
                                             <tr>
-                                                <th class="used-by-adjust-table-head" tabindex="0">Repository</th>
-                                                <th class="used-by-adjust-table-head" tabindex="0">Stars</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Repository</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Stars</th>
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
                                             @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
                                             {
                                                 <tr>
-                                                    <td class="used-by-desc-column">
+                                                    <td class="used-by-desc-column" tabindex="0">
                                                         <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
                                                             @(item.Value.Id)
                                                         </a>
@@ -802,7 +802,7 @@
                                                             <span>@(item.Value.Description)</span>
                                                         </div>
                                                     </td>
-                                                    <td>
+                                                    <td tabindex="0">
                                                         <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
                                                     </td>
                                                 </tr>
@@ -829,20 +829,20 @@
                         <table aria-label="Version History of @Model.Id" class="table borderless">
                             <thead>
                                 <tr>
-                                    <th scope="col" tabindex="0">Version</th>
-                                    <th scope="col" tabindex="0">Downloads</th>
-                                    <th scope="col" tabindex="0">Last updated</th>
+                                    <th scope="col" role="columnheader" tabindex="0">Version</th>
+                                    <th scope="col" role="columnheader" tabindex="0">Downloads</th>
+                                    <th scope="col" role="columnheader" tabindex="0">Last updated</th>
                                     @if (Model.CanDisplayPrivateMetadata)
                                     {
-                                        <th scope="col" tabindex="0">Status</th>
+                                        <th scope="col" role="columnheader" tabindex="0">Status</th>
                                     }
                                     @if (Model.IsCertificatesUIEnabled)
                                     {
-                                        <th scope="col" aria-hidden="true" abbr="Signature Information"></th>
+                                        <th scope="col" role="columnheader" aria-hidden="true" abbr="Signature Information"></th>
                                     }
                                     @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
                                     {
-                                        <th scope="col" aria-hidden="true" abbr="Package Warnings"></th>
+                                        <th scope="col" role="columnheader" aria-hidden="true" abbr="Package Warnings"></th>
                                     }
                                 </tr>
                             </thead>
@@ -853,7 +853,7 @@
                                         || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
                                     {
                                         <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                            <td>
+                                            <td tabindex="0">
                                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                                     @packageVersion.Version.Abbreviate(30)
                                                 </a>
