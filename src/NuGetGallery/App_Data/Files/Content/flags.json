@@ -29,7 +29,10 @@
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
     "NuGetGallery.EmbeddedIcons": "Enabled",
     "NuGetGallery.MarkdigMdRendering": "Enabled",
-    "NuGetGallery.ImageAllowlist": "Enabled"
+    "NuGetGallery.ImageAllowlist": "Enabled",
+    "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
+    "NuGetGallery.ComputeTargetFramework": "Enabled",
+    "NuGetGallery.NewAccount2FAEnforcement": "Disabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {
@@ -98,13 +101,7 @@
       "Accounts": [],
       "Domains": []
     },
-    "NuGetGallery.DisplayPackagePageV2": {
-      "All": false,
-      "SiteAdmins": false,
-      "Accounts": [],
-      "Domains": []
-    },
-    "NuGetGallery.DisplayPackagePageV2Preview": {
+    "NuGetGallery.DisplayTargetFramework": {
       "All": true,
       "SiteAdmins": false,
       "Accounts": [],

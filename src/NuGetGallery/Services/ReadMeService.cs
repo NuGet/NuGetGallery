@@ -21,7 +21,7 @@ namespace NuGetGallery
         internal const string TypeFile = "File";
         internal const string TypeWritten = "Written";
 
-        internal const int MaxMdLengthBytes = 8000;
+        internal const int MaxAllowedReadmeBytes = GalleryConstants.MaxFileLengthBytes;
         private const string UrlHostRequirement = "raw.githubusercontent.com";
 
         private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
@@ -235,10 +235,10 @@ namespace NuGetGallery
 
             if (TypeWritten.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                if (encoding.GetByteCount(readMeRequest.SourceText) > MaxMdLengthBytes)
+                if (encoding.GetByteCount(readMeRequest.SourceText) > MaxAllowedReadmeBytes)
                 {
                     throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                        Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
+                        Strings.ReadMeMaxLengthExceeded, MaxAllowedReadmeBytes));
                 }
                 return readMeRequest.SourceText;
             }
@@ -272,7 +272,7 @@ namespace NuGetGallery
 
             using (var readMeMdStream = readMeMdPostedFile.InputStream)
             {
-                return await ReadMaxAsync(readMeMdStream, MaxMdLengthBytes, encoding);
+                return await ReadMaxAsync(readMeMdStream, MaxAllowedReadmeBytes, encoding);
             }
         }
 
@@ -292,7 +292,7 @@ namespace NuGetGallery
             {
                 using (var httpStream = await client.GetStreamAsync(readMeMdUrl))
                 {
-                    return await ReadMaxAsync(httpStream, MaxMdLengthBytes, encoding);
+                    return await ReadMaxAsync(httpStream, MaxAllowedReadmeBytes, encoding);
                 }
             }
         }

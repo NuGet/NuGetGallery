@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -438,6 +438,15 @@ namespace NuGetGallery {
         public static string ApiKeyNotAuthorized {
             get {
                 return ResourceManager.GetString("ApiKeyNotAuthorized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified API key is scoped to an owner that is locked. Please contact support@nuget.org..
+        /// </summary>
+        public static string ApiKeyOwnerLocked {
+            get {
+                return ResourceManager.GetString("ApiKeyOwnerLocked", resourceCulture);
             }
         }
         
@@ -2072,6 +2081,24 @@ namespace NuGetGallery {
         public static string SuccessfullyUploadedPackage {
             get {
                 return ResourceManager.GetString("SuccessfullyUploadedPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with all versions of this framework..
+        /// </summary>
+        public static string SupportedFrameworks_EmptyVersionTooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_EmptyVersionTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with this framework or higher..
+        /// </summary>
+        public static string SupportedFrameworks_Tooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_Tooltip", resourceCulture);
             }
         }
         

@@ -369,6 +369,9 @@ var BindReadMeDataManager = (function () {
         }
 
         function displayReadMeError(errorMsg) {
+            // In order for Narrator to read the alert, this should be on an aria-label attribute.
+            $("#readme-error-content").attr("aria-label", errorMsg);
+
             $("#readme-errors").removeClass("hidden");
             $("#preview-readme-button").attr("disabled", "disabled");
 
@@ -388,6 +391,7 @@ var BindReadMeDataManager = (function () {
             if (!$("#readme-errors").hasClass("hidden")) {
                 $("#readme-errors").addClass("hidden");
                 $("#readme-error-content").text("");
+                $("#readme-error-content").removeAttr("aria-label");
             }
             $("#preview-readme-button").prop("disabled", false);
         }

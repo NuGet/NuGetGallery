@@ -49,9 +49,11 @@ namespace NuGetGallery
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
         private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
         private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
-        private const string DisplayPackagePageV2PreviewFeatureName = GalleryPrefix + "DisplayPackagePageV2Preview";
-        private const string DisplayPackagePageV2FeatureName = GalleryPrefix + "DisplayPackagePageV2";
         private const string ShowReportAbuseSafetyChanges = GalleryPrefix + "ShowReportAbuseSafetyChanges";
+        private const string DisplayTargetFrameworkFeatureName = GalleryPrefix + "DisplayTargetFramework";
+        private const string ComputeTargetFrameworkFeatureName = GalleryPrefix + "ComputeTargetFramework";
+        private const string RecentPackagesNoIndexFeatureName = GalleryPrefix + "RecentPackagesNoIndex";
+        private const string NewAccount2FAEnforcementFeatureName = GalleryPrefix + "NewAccount2FAEnforcement";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -247,16 +249,6 @@ namespace NuGetGallery
             return _client.IsEnabled(EmbeddedReadmeFlightName, user, defaultValue: false);
         }
 
-        public bool IsDisplayPackagePageV2PreviewEnabled(User user)
-        {
-            return _client.IsEnabled(DisplayPackagePageV2PreviewFeatureName, user, defaultValue: false);
-        }
-
-        public bool IsDisplayPackagePageV2Enabled(User user) 
-        {
-            return _client.IsEnabled(DisplayPackagePageV2FeatureName, user, defaultValue: false);
-        }
-        
         public bool IsODataV1GetAllEnabled()
         {
             return _client.IsEnabled(ODataV1GetAllNonHijackedFeatureName, defaultValue: true);
@@ -341,7 +333,7 @@ namespace NuGetGallery
         {
             return _client.IsEnabled(MarkdigMdRenderingFlightName, defaultValue: false);
         }
-        
+
         public bool IsDeletePackageApiEnabled(User user)
         {
             return _client.IsEnabled(DeletePackageApiFlightName, user, defaultValue: false);
@@ -355,6 +347,26 @@ namespace NuGetGallery
         public bool IsDisplayBannerEnabled()
         {
             return _client.IsEnabled(DisplayBannerFlightName, defaultValue: false);
+        }
+
+        public bool IsDisplayTargetFrameworkEnabled(User user)
+        {
+            return _client.IsEnabled(DisplayTargetFrameworkFeatureName, user, defaultValue: false);
+        }
+
+        public bool IsComputeTargetFrameworkEnabled()
+        {
+            return _client.IsEnabled(ComputeTargetFrameworkFeatureName, defaultValue: false);
+        }
+
+        public bool IsRecentPackagesNoIndexEnabled()
+        {
+            return _client.IsEnabled(RecentPackagesNoIndexFeatureName, defaultValue: false);
+        }
+
+        public bool IsNewAccount2FAEnforcementEnabled()
+        {
+            return _client.IsEnabled(NewAccount2FAEnforcementFeatureName, defaultValue: false);
         }
     }
 }

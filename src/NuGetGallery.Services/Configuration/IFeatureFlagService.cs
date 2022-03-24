@@ -177,16 +177,6 @@ namespace NuGetGallery
         /// Whether the user is able to publish the package with an embedded readme file.
         /// </summary>
         bool AreEmbeddedReadmesEnabled(User user);
-
-        /// <summary>
-        /// Whether the preview of the new design of the display package page is enabled.
-        /// </summary>
-        bool IsDisplayPackagePageV2PreviewEnabled(User user);
-
-        /// <summary>
-        /// Whether the new design of the display package page is enabled.
-        /// </summary>
-        bool IsDisplayPackagePageV2Enabled(User user);
         
         /// <summary>
         /// Whether the /Packages() endpoint is enabled for the V1 OData API.
@@ -286,5 +276,25 @@ namespace NuGetGallery
         /// Whether or not display the banner on nuget.org
         /// </summary>
         bool IsDisplayBannerEnabled();
+        
+        /// <summary>
+        /// Whether or not display target framework badges and table on nuget.org
+        /// </summary>
+        bool IsDisplayTargetFrameworkEnabled(User user);
+
+        /// <summary>
+        /// Whether or not to compute backend operations for target framework. This flag is overridden by <see cref="IsDisplayTargetFrameworkEnabled"/> if that flag is true.
+        /// </summary>
+        bool IsComputeTargetFrameworkEnabled();
+
+        /// <summary>
+        /// Whether or not recent packages has no index applied to block search engine indexing.
+        /// </summary>
+        bool IsRecentPackagesNoIndexEnabled();
+
+        /// <summary>
+        /// Whether or not to enforce 2FA for new external account link or replacement.
+        /// </summary>
+        bool IsNewAccount2FAEnforcementEnabled();
     }
 }

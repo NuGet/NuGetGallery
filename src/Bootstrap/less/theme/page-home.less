@@ -9,6 +9,11 @@
     }
   }
 
+  div.dotnet-20-banner {
+    position: relative;
+    margin-top: 32px;
+  }
+
   .what-is-nuget {
     font-size: 1.15em;
     padding-bottom: 75px;
@@ -36,7 +41,7 @@
 
   .circuit-board {
     margin-top: 20px;
-    width: 768px;
+    width: 900px;
     height: 396px;
     position: relative;
     margin: 0 auto;
@@ -47,6 +52,8 @@
     .circuit-board-label {
       position: absolute;
       height: 75px;
+      padding-left: 25px;
+      padding-right: 25px;
       background-color: #fff;
       color: @text-color;
       box-shadow: 0 0 3px black;
@@ -57,10 +64,9 @@
     }
 
     .circuit-board-pd {
-      left: 377px;
+      left: 443px;
       top: 10px;
       float: left;
-      width: 230px;
 
       &.triangle:after {
         left: 20px;
@@ -68,24 +74,22 @@
     }
 
     .circuit-board-pv {
-      left: 0;
+      right: 675px;
       top: 63px;
       float: left;
-      width: 144px;
 
       &.triangle:after {
-        right: 30px;
+        right: 45px;
       }
     }
 
     .circuit-board-up {
-      right: 0;
-      top: 87px;
+      left: 675px;
+      top: 105px;
       float: right;
-      width: 144px;
 
       &.triangle:after {
-        left: 30px;
+        left: 45px;
       }
     }
   }

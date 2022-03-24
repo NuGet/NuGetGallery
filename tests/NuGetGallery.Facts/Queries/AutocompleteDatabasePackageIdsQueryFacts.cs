@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using Xunit;
@@ -24,7 +25,7 @@ namespace NuGetGallery.Queries
         public class Execute : FactBase
         {
             [Fact]
-            public async void ValidPackageIdShouldReturnIdsWhosePackagesAreListed()
+            public async Task ValidPackageIdShouldReturnIdsWhosePackagesAreListed()
             {
                 var queryResult = await _packageIdsQuery.Execute("n", null, null);
 
@@ -38,7 +39,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void ValidPackageIdShouldReturnIdsWhosePackageStatusIsAvailable()
+            public async Task ValidPackageIdShouldReturnIdsWhosePackageStatusIsAvailable()
             {
                 var queryResult = await _packageIdsQuery.Execute("n", null, null);
 
@@ -58,7 +59,7 @@ namespace NuGetGallery.Queries
             [InlineData("2.0.0-rc.1")]
             [InlineData("1.0.0")]
             [InlineData("1.0.0-beta")]
-            public async void WithValidSemVerLevelReturnIdsWhosePackagesSemVerLevelCompliant(string semVerLevel)
+            public async Task WithValidSemVerLevelReturnIdsWhosePackagesSemVerLevelCompliant(string semVerLevel)
             {
                 var queryResult = await _packageIdsQuery.Execute("nuget", null, null, semVerLevel);
 
@@ -74,7 +75,7 @@ namespace NuGetGallery.Queries
             [Theory]
             [InlineData(null)]
             [InlineData(false)]
-            public async void ValidPackageIdWithWithPrereleaseFalseOrNullReturnsIdsWhosePackagePrereleaseIsFalse(bool? includePrerelease)
+            public async Task ValidPackageIdWithWithPrereleaseFalseOrNullReturnsIdsWhosePackagePrereleaseIsFalse(bool? includePrerelease)
             {
                 var queryResult = await _packageIdsQuery.Execute("nuget", includePrerelease, null);
 
@@ -88,7 +89,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void InexistentPartialIdShouldReturnEmptyArray()
+            public async Task InexistentPartialIdShouldReturnEmptyArray()
             {
                 var queryResult = await _packageIdsQuery.Execute("inexistent-partial-package-id", null, null);
 
@@ -96,7 +97,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void WithPrereleaseTrueReturnsIdsWThatStartsWithThatPartialId()
+            public async Task WithPrereleaseTrueReturnsIdsWThatStartsWithThatPartialId()
             {
                 var queryResult = await _packageIdsQuery.Execute("nuget", true, null);
 
@@ -110,7 +111,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void WithValidPartialIdReturnsIdsThatStartsWithThatPartialId()
+            public async Task WithValidPartialIdReturnsIdsThatStartsWithThatPartialId()
             {
                 var queryResult = await _packageIdsQuery.Execute("n", null, null);
 
@@ -124,7 +125,7 @@ namespace NuGetGallery.Queries
             }
 
             [Fact]
-            public async void WithValidPartialIdReturnsIdsThatAreOrderedById()
+            public async Task WithValidPartialIdReturnsIdsThatAreOrderedById()
             {
                 var queryResult = await _packageIdsQuery.Execute("n", null, null);
 
@@ -143,7 +144,7 @@ namespace NuGetGallery.Queries
             [Theory]
             [InlineData("")]
             [InlineData(null)]
-            public async void WithNoPartialIdReturnsIdsThatAreOrderedDescByMaxDownloadCount(string partialId)
+            public async Task WithNoPartialIdReturnsIdsThatAreOrderedDescByMaxDownloadCount(string partialId)
             {
                 var queryResult = await _packageIdsQuery.Execute(partialId, null, null);
 
@@ -161,7 +162,7 @@ namespace NuGetGallery.Queries
 
             [Theory]
             [MemberData(nameof(ConstructorData))]
-            public async void Returns30IdsAtMost(IList<Package> packages)
+            public async Task Returns30IdsAtMost(IList<Package> packages)
             {
                 _packageRepository
                     .Setup(context => context.GetAll())

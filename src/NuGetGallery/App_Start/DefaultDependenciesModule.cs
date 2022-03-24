@@ -47,6 +47,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
+using NuGetGallery.Frameworks;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
@@ -109,6 +110,8 @@ namespace NuGetGallery
             var loggerFactory = LoggingSetup.CreateLoggerFactory(
                 loggerConfiguration,
                 telemetryConfiguration: applicationInsightsConfiguration.TelemetryConfiguration);
+
+            ActionsRequiringPermissions.AdminAccessEnabled = configuration.Current.AdminPanelEnabled;
 
             builder.RegisterInstance(applicationInsightsConfiguration.TelemetryConfiguration)
                 .AsSelf()
@@ -466,6 +469,16 @@ namespace NuGetGallery
             builder.RegisterType<PackageVulnerabilitiesCacheService>()
                 .AsSelf()
                 .As<IPackageVulnerabilitiesCacheService>()
+                .SingleInstance();
+
+            builder.RegisterType<FrameworkCompatibilityService>()
+                .AsSelf()
+                .As<IFrameworkCompatibilityService>()
+                .SingleInstance();
+
+            builder.RegisterType<PackageFrameworkCompatibilityFactory>()
+                .AsSelf()
+                .As<IPackageFrameworkCompatibilityFactory>()
                 .SingleInstance();
 
             services.AddHttpClient();
@@ -944,14 +957,18 @@ namespace NuGetGallery
             ILoggerFactory loggerFactory,
             string name,
             string connectionString,
-            ISecretInjector secretInjector)
+            ICachingSecretInjector secretInjector)
         {
             var logger = loggerFactory.CreateLogger($"AzureSqlConnectionFactory-{name}");
             return new AzureSqlConnectionFactory(connectionString, secretInjector, logger);
         }
 
-        private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
+        public static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
         {
+            if (connectionFactory.TryCreate(out var connection))
+            {
+                return connection;
+            }
             return Task.Run(() => connectionFactory.CreateAsync()).Result;
         }
 
@@ -959,7 +976,7 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ISecretInjector secretInjector)
+            ICachingSecretInjector secretInjector)
         {
             var galleryDbReadOnlyReplicaConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,
@@ -980,7 +997,7 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ISecretInjector secretInjector)
+            ICachingSecretInjector secretInjector)
         {
             var validationDbConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,
@@ -1009,7 +1026,7 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ISecretInjector secretInjector)
+            ICachingSecretInjector secretInjector)
         {
             builder
                 .RegisterType<NuGet.Services.Validation.ServiceBusMessageSerializer>()

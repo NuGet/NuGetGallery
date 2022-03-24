@@ -8,6 +8,7 @@ using NuGet.Services.Entities;
 using NuGet.Services.Licenses;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
+using NuGetGallery.Frameworks;
 
 namespace NuGetGallery
 {
@@ -40,10 +41,13 @@ namespace NuGetGallery
         public bool IsPackageRenamesEnabled { get; set; }
         public bool IsGitHubUsageEnabled { get; set; }
         public bool IsPackageDependentsEnabled { get; set; }
+        public bool IsRecentPackagesNoIndexEnabled { get; set; }
         public NuGetPackageGitHubInformation GitHubDependenciesInformation { get; set; }
         public bool HasEmbeddedIcon { get; set; }
         public bool HasEmbeddedReadmeFile { get; set; }
         public PackageDependents PackageDependents { get; set; }
+
+        public const int NumberOfDaysToBlockIndexing = 21;
 
         public bool HasNewerPrerelease
         {
@@ -97,6 +101,9 @@ namespace NuGetGallery
 
         public IReadOnlyCollection<PackageRename> PackageRenames { get; set; }
         public string RenamedMessage { get; set; }
+        public bool IsDisplayTargetFrameworkEnabled { get; set; }
+        public bool IsComputeTargetFrameworkEnabled { get; set; }
+        public PackageFrameworkCompatibility PackageFrameworkCompatibility { get; set; }
 
         public void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
         {
@@ -134,6 +141,19 @@ namespace NuGetGallery
         public bool CanDisplayFuGetLink()
         {
             return IsFuGetLinksEnabled && !string.IsNullOrEmpty(FuGetUrl) && Available;
+        }
+
+        public bool CanDisplayTargetFrameworks()
+        {
+            return IsDisplayTargetFrameworkEnabled && !Deleted && !IsDotnetNewTemplatePackageType;
+        }
+
+        public bool BlockSearchEngineIndexing
+        {
+            get
+            {
+                return !Listed || !Available || (IsRecentPackagesNoIndexEnabled && TotalDaysSinceCreated < NumberOfDaysToBlockIndexing);
+            }
         }
 
         public enum RepositoryKind

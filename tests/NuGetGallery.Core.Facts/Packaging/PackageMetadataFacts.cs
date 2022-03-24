@@ -205,6 +205,40 @@ namespace NuGetGallery.Packaging
             Assert.Equal("git", packageMetadata.RepositoryType);
         }
 
+        [Fact]
+        public void CanProcessEmptyNuspecDescriptionValueOnReflow()
+        {
+            // Arrange
+            var packageStream = CreateTestPackageStreamWithEmptyDescription();
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act
+            var packageMetadata = PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: false);
+
+            // Assert
+            Assert.NotNull(packageMetadata.Description);
+        }
+
+        [Fact]
+        public void DoesNotFixEmptyNuspecDescriptionValueOnUpload()
+        {
+            // Arrange
+            var packageStream = CreateTestPackageStreamWithEmptyDescription();
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act
+            var packageMetadata = PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: true);
+
+            // Assert
+            Assert.Null(packageMetadata.Description);
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -338,6 +372,48 @@ namespace NuGetGallery.Packaging
             Assert.Equal(VersionRange.All, dependency.VersionRange);
         }
 
+        [Theory]
+        [InlineData("tagS")]
+        [InlineData("taGs")]
+        [InlineData("taGS")]
+        [InlineData("tAgs")]
+        [InlineData("tAgS")]
+        [InlineData("tAGs")]
+        [InlineData("tAGS")]
+        [InlineData("Tags")]
+        [InlineData("TagS")]
+        [InlineData("TaGs")]
+        [InlineData("TaGS")]
+        [InlineData("TAgs")]
+        [InlineData("TAgS")]
+        [InlineData("TAGs")]
+        [InlineData("TAGS")]
+        public void ThrowsForUppercaseTags(string tags)
+        {
+            var packageStream = CreateTestPackageStreamWithMetadataElementName(tags, "foo bar baz");
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            var ex = Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: false));
+            Assert.Equal($"The package manifest contains invalid metadata elements: '{tags}'", ex.Message);
+        }
+
+        [Fact]
+        public void DoesntThrowForLowercaseTags()
+        {
+            var packageStream = CreateTestPackageStreamWithMetadataElementName("tags", "foo bar baz");
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            var ex = Record.Exception(() => PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: false));
+
+            Assert.Null(ex);
+        }
+
         private static Stream CreateTestPackageStream()
         {
             return CreateTestPackageStream(@"<?xml version=""1.0""?>
@@ -356,6 +432,22 @@ namespace NuGetGallery.Packaging
                         <licenseUrl>http://www.nuget.org/</licenseUrl>
                         <dependencies />
                         <repository type=""git"" url=""https://github.com/NuGet/NuGetGallery"" commit=""33a34174353a8bf64ab0ee0373936010e948d59d"" branch=""dev"" />
+                      </metadata>
+                    </package>");
+        }
+
+        private static Stream CreateTestPackageStreamWithEmptyDescription()
+        {
+            return CreateTestPackageStream(@"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>TestPackage</id>
+                        <version>0.0.0.1</version>
+                        <title>Package A</title>
+                        <authors>authora, authorb</authors>
+                        <owners>ownera, ownerb</owners>
+                        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                        <description></description>
                       </metadata>
                     </package>");
         }

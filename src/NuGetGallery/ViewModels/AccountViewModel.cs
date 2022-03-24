@@ -26,6 +26,8 @@ namespace NuGetGallery
 
         public bool WasMultiFactorAuthenticated { get; set; }
 
+        public bool IsNewAccount2FAEnforcementEnabled { get; set; }
+
         public ChangeEmailViewModel ChangeEmail { get; set; }
 
         public ChangeNotificationsViewModel ChangeNotifications { get; set; }

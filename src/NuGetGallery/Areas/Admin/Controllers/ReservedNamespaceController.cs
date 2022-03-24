@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 using System.Threading.Tasks;
@@ -13,19 +14,23 @@ namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class ReservedNamespaceController : AdminControllerBase
     {
-        private IReservedNamespaceService _reservedNamespaceService;
+        private readonly IReservedNamespaceService _reservedNamespaceService;
+        private readonly IEntityRepository<PackageRegistration> _packageRegistrations;
 
         protected ReservedNamespaceController() { }
 
-        public ReservedNamespaceController(IReservedNamespaceService reservedNamespaceService)
+        public ReservedNamespaceController(
+            IReservedNamespaceService reservedNamespaceService,
+            IEntityRepository<PackageRegistration> packageRegistrations)
         {
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
+            _packageRegistrations = packageRegistrations ?? throw new ArgumentNullException(nameof(packageRegistrations));
         }
 
         [HttpGet]
         public ActionResult Index()
         {
-            return View();
+            return View(new ReservedNamespaceViewModel());
         }
 
         [HttpGet]
@@ -47,6 +52,37 @@ namespace NuGetGallery.Areas.Admin.Controllers
             };
 
             return Json(results, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public ActionResult FindNamespacesByPrefix(string prefix)
+        {
+            var namespaces = _reservedNamespaceService
+                .FindAllReservedNamespacesForPrefix(prefix, getExactMatches: false)
+                .OrderBy(x => x.Value)
+                .ThenBy(x => x.IsPrefix)
+                .ToList();
+            var model = new ReservedNamespaceViewModel { ReservedNamespacesQuery = prefix, ReservedNamespaces = namespaces };
+            return View(nameof(Index), model);
+        }
+
+        [HttpGet]
+        public ActionResult FindPackagesByPrefix(string prefix)
+        {
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var packageRegistrations = _packageRegistrations
+                .GetAll()
+                .Include(x => x.Owners)
+                .Include(x => x.ReservedNamespaces)
+                .Where(x => x.Id.StartsWith(prefix))
+                .OrderBy(x => x.Id)
+                .ToList();
+            var model = new ReservedNamespaceViewModel { PackageRegistrationsQuery = prefix, PackageRegistrations = packageRegistrations };
+            return View(nameof(Index), model);
         }
 
         [HttpPost]

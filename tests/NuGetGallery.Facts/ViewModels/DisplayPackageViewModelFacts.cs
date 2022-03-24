@@ -17,6 +17,73 @@ namespace NuGetGallery.ViewModels
     {
         private Random gen = new Random();
 
+        public class TheBlockSearchEngineIndexingProperty
+        {
+            [Fact]
+            public void DoesNotBlockListedAvailableOlderPackages()
+            {
+                Assert.False(Target.BlockSearchEngineIndexing);
+            }
+
+            [Fact]
+            public void BlocksUnlisted()
+            {
+                Target.Listed = false;
+
+                Assert.True(Target.BlockSearchEngineIndexing);
+            }
+
+            [Fact]
+            public void BlocksUnavailable()
+            {
+                Target.Available = false;
+
+                Assert.True(Target.BlockSearchEngineIndexing);
+            }
+
+            [Theory]
+            [MemberData(nameof(BlockSearchEngineIndexingData))]
+            public void BlocksNewSingleVersion(int days, bool expected)
+            {
+                Target.TotalDaysSinceCreated = days;
+
+                Assert.Equal(expected, Target.BlockSearchEngineIndexing);
+            }
+
+            [Fact]
+            public void DoesNotBlockRecentIfFeatureFlagIsOff()
+            {
+                Target.TotalDaysSinceCreated = 0;
+                Target.IsRecentPackagesNoIndexEnabled = false;
+
+                Assert.False(Target.BlockSearchEngineIndexing);
+            }
+
+            public TheBlockSearchEngineIndexingProperty()
+            {
+                Target = new DisplayPackageViewModel();
+                Target.Version = "1.0.0";
+                Target.Listed = true;
+                Target.Available = true;
+                Target.IsRecentPackagesNoIndexEnabled = true;
+                Target.TotalDaysSinceCreated = NumberOfDaysToBlockIndexing + 7;
+            }
+
+            public DisplayPackageViewModel Target { get; }
+
+            public static IEnumerable<object[]> BlockSearchEngineIndexingData
+            {
+                get
+                {
+                    for (int i = 0; i < NumberOfDaysToBlockIndexing + 5; i++)
+                    {
+                        yield return new object[] { i, i < NumberOfDaysToBlockIndexing };
+                    }
+                }
+            }
+
+        }
+
         private DateTime RandomDay()
         {
             DateTime start = new DateTime(1995, 1, 1);
@@ -225,6 +292,61 @@ namespace NuGetGallery.ViewModels
             model.Available = isAvailable;
 
             Assert.False(model.CanDisplayFuGetLink());
+        }
+
+        [Theory]
+        [InlineData(true, true, true)]
+        [InlineData(false, true, true)]
+        [InlineData(true, false, true)]
+        [InlineData(true, true, false)]
+        [InlineData(false, false, true)]
+        [InlineData(false, true, false)]
+        [InlineData(false, false, false)]
+        public void CannotDisplayTargetFrameworksWhenInvalid(bool isEnabled, bool isDeleted, bool isTemplate)
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            model.IsDisplayTargetFrameworkEnabled = isEnabled;
+            model.Deleted = isDeleted;
+            model.IsDotnetNewTemplatePackageType = isTemplate;
+
+            Assert.False(model.CanDisplayTargetFrameworks());
+        }
+
+        [Fact]
+        public void CanDisplayTargetFrameworksWhenValid()
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "foo",
+                    Owners = Enumerable.Empty<User>().ToList(),
+                    Packages = Enumerable.Empty<Package>().ToList()
+                }
+            };
+
+            var model = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            model.IsDisplayTargetFrameworkEnabled = true;
+            model.Deleted = false;
+            model.IsDotnetNewTemplatePackageType = false;
+
+            Assert.True(model.CanDisplayTargetFrameworks());
         }
 
         [Theory]
@@ -922,6 +1044,38 @@ namespace NuGetGallery.ViewModels
             Assert.Null(versionModel.AlternatePackageId);
             Assert.Null(versionModel.AlternatePackageVersion);
             Assert.Null(versionModel.CustomMessage);
+        }
+
+        [Fact]
+        public void VulnerabilitiesDisplayedInOrder()
+        {
+            var package = CreateTestPackage("1.0.0");
+
+            var packageKeyToVulnerabilities = new Dictionary<int, IReadOnlyList<PackageVulnerability>>
+            {
+                { package.Key, new List<PackageVulnerability>
+                    {
+                        new PackageVulnerability { Key = 1, Severity = PackageVulnerabilitySeverity.High },
+                        new PackageVulnerability { Key = 2, Severity = PackageVulnerabilitySeverity.Low },
+                        new PackageVulnerability { Key = 3, Severity = PackageVulnerabilitySeverity.Critical },
+                    }
+                }
+            };
+
+            // Act
+            var model = CreateDisplayPackageViewModel(
+                package,
+                currentUser: null,
+                packageKeyToVulnerabilities: packageKeyToVulnerabilities,
+                readmeHtml: null);
+
+            // Assert
+            var versionModel = model.PackageVersions.Single();
+            Assert.Null(versionModel.CustomMessage);
+            Assert.NotNull(model.Vulnerabilities);
+            Assert.Equal(PackageVulnerabilitySeverity.Critical, model.Vulnerabilities.ElementAt(0).Severity);
+            Assert.Equal(PackageVulnerabilitySeverity.High, model.Vulnerabilities.ElementAt(1).Severity);
+            Assert.Equal(PackageVulnerabilitySeverity.Low, model.Vulnerabilities.ElementAt(2).Severity);
         }
 
         [Theory]

@@ -204,6 +204,7 @@ namespace NuGetGallery
                 .UseAutoLinks()
                 .UseReferralLinks("noopener noreferrer nofollow")
                 .DisableHtml() //block inline html
+                .UseBootstrap()
                 .Build();
 
             using (var htmlWriter = new StringWriter())

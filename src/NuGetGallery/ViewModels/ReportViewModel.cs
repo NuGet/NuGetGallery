@@ -13,9 +13,8 @@ namespace NuGetGallery
 
         public string PackageVersion { get; set; }
 
-        [NotEqual(ReportPackageReason.HasABugOrFailedToInstall, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. Please contact owner(s) for assistance.")]
-        [Required(ErrorMessage = "You must select a reason for reporting the package.")]
         [Display(Name = "Reason")]
+        [Required(ErrorMessage = "You must select a reason for reporting the package.")]
         public ReportPackageReason? Reason { get; set; }
 
         [Display(Name = "Send me a copy")]

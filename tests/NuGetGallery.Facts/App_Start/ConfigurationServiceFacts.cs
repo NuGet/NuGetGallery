@@ -27,7 +27,7 @@ namespace NuGetGallery.App_Start
                     StubRequest.Setup(stub => stub.IsLocal).Returns(false);
 
                     var secretReaderFactory = new EmptySecretReaderFactory();
-                    SecretInjector = secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader());
+                    SecretInjector = secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader()) as ICachingSecretInjector;
                 }
 
                 public string StubConfiguredSiteRoot { get; set; }
@@ -106,7 +106,7 @@ namespace NuGetGallery.App_Start
         {
             private class TestableConfigurationService : ConfigurationService
             {
-                public TestableConfigurationService(ISecretInjector secretInjector = null)
+                public TestableConfigurationService(ICachingSecretInjector secretInjector = null)
                 {
                     SecretInjector = secretInjector ?? CreateDefaultSecretInjector();
                 }
@@ -132,10 +132,10 @@ namespace NuGetGallery.App_Start
                     return AppSettingStub;
                 }
 
-                private static ISecretInjector CreateDefaultSecretInjector()
+                private static ICachingSecretInjector CreateDefaultSecretInjector()
                 {
                     var secretReaderFactory = new EmptySecretReaderFactory();
-                    return secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader());
+                    return secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader()) as ICachingSecretInjector;
                 }
             }
 
@@ -175,7 +175,7 @@ namespace NuGetGallery.App_Start
             public async Task WhenSettingIsNotEmptySecretInjectorIsRan()
             {
                 // Arrange
-                var secretInjectorMock = new Mock<ISecretInjector>();
+                var secretInjectorMock = new Mock<ICachingSecretInjector>();
                 secretInjectorMock.Setup(x => x.InjectAsync(It.IsAny<string>()))
                                   .Returns<string>(s => Task.FromResult(s + "parsed"));
                 
@@ -201,7 +201,7 @@ namespace NuGetGallery.App_Start
             public async Task GivenNotInjectedSettingNameSecretInjectorIsNotRan(string settingName)
             {
                 // Arrange
-                var secretInjectorMock = new Mock<ISecretInjector>();
+                var secretInjectorMock = new Mock<ICachingSecretInjector>();
                 secretInjectorMock.Setup(x => x.InjectAsync(It.IsAny<string>()))
                     .Returns<string>(s => Task.FromResult(s + "parsed"));
 

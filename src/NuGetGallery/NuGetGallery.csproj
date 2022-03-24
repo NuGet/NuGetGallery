@@ -137,6 +137,7 @@
     <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
     <Compile Include="Areas\Admin\Controllers\FeaturesController.cs" />
+    <Compile Include="Areas\Admin\Controllers\LockUserController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
@@ -188,6 +189,9 @@
     <Compile Include="Areas\Admin\ViewModels\IFeatureFlagsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\IModifyFeatureFlagsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\LockState.cs" />
+    <Compile Include="Areas\Admin\ViewModels\LockUserViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\LockViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ApiKeyRevokeViewModel.cs" />
@@ -221,7 +225,8 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Extensions\CakeBuildManagerExtensions.cs" />
     <Compile Include="Extensions\ImageExtensions.cs" />
-    <Compile Include="Helpers\ValidationHelper.cs" />
+    <Compile Include="Filters\AdminActionAttribute.cs" />
+    <Compile Include="Helpers\AdminHelper.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeleteAccountListPackageItemViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DeletePackageViewModelFactory.cs" />
     <Compile Include="Helpers\ViewModelExtensions\DisplayLicenseViewModelFactory.cs" />
@@ -314,6 +319,14 @@
     <Compile Include="Migrations\202104062157118_AddVersionSpecificId.cs" />
     <Compile Include="Migrations\202104062157118_AddVersionSpecificId.designer.cs">
       <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202201242159337_AddUserStatusKeyColumn.cs" />
+    <Compile Include="Migrations\202201242159337_AddUserStatusKeyColumn.designer.cs">
+      <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202202010109383_AddCreatedSecurelyToCredentials.cs" />
+    <Compile Include="Migrations\202202010109383_AddCreatedSecurelyToCredentials.designer.cs">
+      <DependentUpon>202202010109383_AddCreatedSecurelyToCredentials.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1653,6 +1666,12 @@
     <EmbeddedResource Include="Migrations\202104062157118_AddVersionSpecificId.resx">
       <DependentUpon>202104062157118_AddVersionSpecificId.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202201242159337_AddUserStatusKeyColumn.resx">
+      <DependentUpon>202201242159337_AddUserStatusKeyColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202010109383_AddCreatedSecurelyToCredentials.resx">
+      <DependentUpon>202202010109383_AddCreatedSecurelyToCredentials.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1666,7 +1685,7 @@
     <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
-    <Content Include="Areas\Admin\Views\LockPackage\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Shared\LockIndex.cshtml" />
     <Content Include="App_Data\Files\Content\Login-Discontinuation-Configuration.json" />
     <Content Include="Areas\Admin\Views\DeleteAccount\_DeleteUserAccountForm.cshtml" />
     <Content Include="App_Data\Files\Content\Certificates-Configuration.json" />
@@ -1734,6 +1753,8 @@
     <Content Include="Views\Users\_DeleteUserAccountForm.cshtml" />
     <Content Include="Views\Organizations\_OrganizationMembersListForDeletedAccount.cshtml" />
     <Content Include="Views\Shared\_AccountCertificates.cshtml" />
+    <Content Include="Views\Packages\_SupportedFrameworksTable.cshtml" />
+    <Content Include="Views\Packages\_SupportedFrameworksBadges.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Offline-Planned.htm" />
@@ -1842,7 +1863,6 @@
     <Content Include="Scripts\gallery\page-api-keys.js" />
     <Content Include="Scripts\gallery\page-delete-package.js" />
     <Content Include="Scripts\gallery\page-display-package.js" />
-    <Content Include="Scripts\gallery\page-display-package-v2.js" />
     <Content Include="Scripts\gallery\page-edit-readme.js" />
     <Content Include="Scripts\gallery\page-home.js" />
     <Content Include="Scripts\gallery\page-manage-deprecation.js" />
@@ -1871,7 +1891,6 @@
     <Content Include="Views\Authentication\Register.cshtml" />
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
-    <Content Include="Views\Packages\DisplayPackageV2.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
@@ -2064,7 +2083,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
-    <Folder Include="Areas\Admin\Views\Shared\" />
     <Folder Include="Authentication\Providers\" />
     <Folder Include="Infrastructure\Authentication\" />
     <Folder Include="Security\" />
@@ -2252,19 +2270,19 @@
       <Version>1.4.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Configuration">
-      <Version>5.9.0</Version>
+      <Version>6.0.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>5.9.0</Version>
+      <Version>6.0.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Licenses">
-      <Version>2.90.0</Version>
+      <Version>2.97.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
-      <Version>2.90.0</Version>
+      <Version>2.97.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.90.0</Version>
+      <Version>2.97.0</Version>
     </PackageReference>
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
@@ -2276,7 +2294,7 @@
       <Version>1.1.3</Version>
     </PackageReference>
     <PackageReference Include="SharpZipLib">
-      <Version>1.1.0</Version>
+      <Version>1.3.3</Version>
     </PackageReference>
     <PackageReference Include="Strathweb.CacheOutput.WebApi2.StrongName">
       <Version>0.9.0</Version>

@@ -22,7 +22,7 @@ namespace NuGetGallery.Helpers
                 {
                     _currentRoutes = new RouteCollection();
                     Routes.RegisterApiV2Routes(_currentRoutes);
-                    Routes.RegisterUIRoutes(_currentRoutes);
+                    Routes.RegisterUIRoutes(_currentRoutes, adminPanelEnabled: true);
                 }
             }
 

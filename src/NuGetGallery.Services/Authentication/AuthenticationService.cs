@@ -345,7 +345,7 @@ namespace NuGetGallery.Authentication
                     .Where(cred => cred.IsExternal())
                     .Select(cred => cred.Identity)
                     .ToArray();
-                
+
                 var identityList = string.Join(" or ", externalIdentities);
                 ClaimsExtensions.AddExternalCredentialIdentityClaim(claims, identityList);
             }
@@ -365,7 +365,7 @@ namespace NuGetGallery.Authentication
             return claims.ToArray();
         }
 
-        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential, bool autoConfirm = false)
+        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential, bool autoConfirm = false, bool enableMultiFactorAuthentication = false)
         {
             if (_config.FeedOnlyMode)
             {
@@ -392,7 +392,8 @@ namespace NuGetGallery.Authentication
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
                 NotifyPackagePushed = true,
-                CreatedUtc = _dateTimeProvider.UtcNow
+                CreatedUtc = _dateTimeProvider.UtcNow,
+                EnableMultiFactorAuthentication = enableMultiFactorAuthentication
             };
 
             // Add a credential for the password
@@ -799,7 +800,7 @@ namespace NuGetGallery.Authentication
             Func<Credential, bool> replacingPredicate;
             if (!string.IsNullOrEmpty(replaceCredPrefix))
             {
-                 replacingPredicate = cred => cred.Type.StartsWith(replaceCredPrefix, StringComparison.OrdinalIgnoreCase);
+                replacingPredicate = cred => cred.Type.StartsWith(replaceCredPrefix, StringComparison.OrdinalIgnoreCase);
             }
             else
             {
@@ -807,7 +808,7 @@ namespace NuGetGallery.Authentication
             }
 
             var toRemove = user.Credentials
-                .Where(replacingPredicate) 
+                .Where(replacingPredicate)
                 .ToList();
 
             foreach (var cred in toRemove)

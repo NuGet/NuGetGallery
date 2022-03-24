@@ -68,6 +68,7 @@
     <Compile Include="Areas\Admin\Controllers\DeleteAccountControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageControllerFacts.cs" />
+    <Compile Include="Areas\Admin\Controllers\LockUserControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\UpdateListedControllerFacts.cs" />
@@ -82,7 +83,7 @@
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
     <Compile Include="Extensions\CakeBuildManagerExtensionsFacts.cs" />
-    <Compile Include="Helpers\ValidationHelperFacts.cs" />
+    <Compile Include="Helpers\PackageValidationHelperFacts.cs" />
     <Compile Include="Infrastructure\ODataCacheOutputAttributeFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageIdsQueryFacts.cs" />
     <Compile Include="Queries\AutocompleteDatabasePackageVersionsQueryFacts.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Helpers\StreamHelperFacts.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessageFacts.cs" />
     <Compile Include="Infrastructure\SearchServiceFactoryFacts.cs" />
+    <Compile Include="Services\ActionsRequiringPermissionsAdminFacts.cs" />
     <Compile Include="Services\ImageDomainValidatorFacts.cs" />
     <Compile Include="Services\MarkdownServiceFacts.cs" />
     <Compile Include="Services\PackageVulnerabilitiesCacheServiceFacts.cs" />
@@ -361,9 +363,6 @@
     </PackageReference>
     <PackageReference Include="Moq">
       <Version>4.8.2</Version>
-    </PackageReference>
-    <PackageReference Include="RazorEngine">
-      <Version>3.10.0</Version>
     </PackageReference>
     <PackageReference Include="xunit.abstractions">
       <Version>2.0.1</Version>

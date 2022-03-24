@@ -50,6 +50,25 @@ namespace NuGetGallery
             return CheckPermissions(currentPrincipal, account, GetReservedNamespaces(reservedNamespace));
         }
 
+        public override bool Equals(object obj)
+        {
+            if (!base.Equals(obj))
+            {
+                return false;
+            }
+            var other = obj as ActionRequiringReservedNamespacePermissions;
+            if (other == null)
+            {
+                return false;
+            }
+            return ReservedNamespacePermissionsRequirement == other.ReservedNamespacePermissionsRequirement;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode() ^ ReservedNamespacePermissionsRequirement.GetHashCode();
+        }
+
         protected override PermissionsCheckResult CheckPermissionsForEntity(User account, IReadOnlyCollection<ReservedNamespace> reservedNamespaces)
         {
             if (!reservedNamespaces.Any())
