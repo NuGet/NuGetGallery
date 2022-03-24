@@ -4,7 +4,7 @@
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
     /// <summary>
-    /// The possible ways that a user have have ownership change with respect to a package registration. These enum
+    /// The possible ways that a user can have ownership change with respect to a package registration. These enum
     /// values are ordered in such a way that ownership additions are performed prior to ownership removal.
     /// </summary>
     public enum PackageOwnershipState
