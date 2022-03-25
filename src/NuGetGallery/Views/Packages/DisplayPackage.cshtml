@@ -168,7 +168,7 @@
     <li role="presentation" class="@(active ? "active" : string.Empty)">
         <a href="#@packageManager.Id" aria-expanded="@(active ? "true" : "false")"
            id="@packageManager.Id-tab" class="package-manager-tab"
-           aria-selected="@(active ? "true" : "false")"
+           aria-selected="@(active ? "true" : "false")" tabindex="@(active ? "0" : "-1")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
            title="Switch to tab panel which contains package installation command for @packageManager.Name">
             @packageManager.Name
@@ -515,7 +515,8 @@
                                class="body-tab"
                                aria-controls="readme-tab"
                                aria-expanded="@(activeBodyTab == "readme" ? "true" : "false")"
-                               aria-selected="@(activeBodyTab == "readme" ? "true" : "false")">
+                               aria-selected="@(activeBodyTab == "readme" ? "true" : "false")"
+                               tabindex="@(activeBodyTab == "readme" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
                                 README
                             </a>
@@ -532,7 +533,8 @@
                                 class="body-tab"
                                 aria-controls="supportedframeworks-tab"
                                 aria-expanded="@(activeBodyTab == "supportedframeworks" ? "true" : "false")"
-                                aria-selected="@(activeBodyTab == "supportedframeworks" ? "true" : "false")">
+                                aria-selected="@(activeBodyTab == "supportedframeworks" ? "true" : "false")"
+                                tabindex="@(activeBodyTab == "supportedframeworks" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--Package" aria-hidden="true"></i>
                                 Frameworks
                             </a>
@@ -548,7 +550,8 @@
                                class="body-tab"
                                aria-controls="dependencies-tab"
                                aria-expanded="@(activeBodyTab == "dependencies" ? "true" : "false")"
-                               aria-selected="@(activeBodyTab == "dependencies" ? "true" : "false")">
+                               aria-selected="@(activeBodyTab == "dependencies" ? "true" : "false")"
+                               tabindex="@(activeBodyTab == "dependencies" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--Packages" aria-hidden="true"></i>
                                 Dependencies
                             </a>
@@ -566,7 +569,8 @@
                                class="body-tab"
                                aria-controls="usedby-tab"
                                aria-expanded="@(activeBodyTab == "usedby" ? "true" : "false")"
-                               aria-selected="@(activeBodyTab == "usedby" ? "true" : "false")">
+                               aria-selected="@(activeBodyTab == "usedby" ? "true" : "false")"
+                               tabindex="@(activeBodyTab == "usedby" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--BranchFork2" aria-hidden="true"></i>
                                 Used By
                             </a>
@@ -582,7 +586,8 @@
                            class="body-tab"
                            aria-controls="versions-tab"
                            aria-expanded="@(activeBodyTab == "versions" ? "true" : "false")"
-                           aria-selected="@(activeBodyTab == "versions" ? "true" : "false")">
+                           aria-selected="@(activeBodyTab == "versions" ? "true" : "false")"
+                           tabindex="@(activeBodyTab == "versions" ? "0" : "-1")">
                             <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
                             Versions
                         </a>
@@ -592,7 +597,15 @@
                     {
                         activeBodyTab = activeBodyTab ?? "releasenotes";
                         <li role="presentation">
-                            <a href="#releasenotes-tab" aria-controls="releasenotes-tab" role="tab" data-toggle="tab" id="release-body-tab" class="body-tab">
+                            <a href="#releasenotes-tab"
+                               role="tab"
+                               data-toggle="tab"
+                               id="release-body-tab"
+                               class="body-tab"
+                               aria-controls="releasenotes-tab"
+                               aria-expanded="@(activeBodyTab == "releasenotes" ? "true" : "false")"
+                               aria-selected="@(activeBodyTab == "releasenotes" ? "true" : "false")"
+                               tabindex="@(activeBodyTab == "releasenotes" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--ReadingMode" aria-hidden="true"></i>
                                 Release Notes
                             </a>

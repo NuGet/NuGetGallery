@@ -2344,12 +2344,14 @@ if (typeof jQuery === 'undefined') {
         .removeClass('active')
         .end()
         .find('[data-toggle="tab"]')
+          .attr('tabindex', "-1")
           .attr('aria-expanded', false)
           .attr('aria-selected', false)
 
       element
         .addClass('active')
         .find('[data-toggle="tab"]')
+          .attr('tabindex', "0")
           .attr('aria-expanded', true)
           .attr('aria-selected', true)
 
@@ -2381,6 +2383,25 @@ if (typeof jQuery === 'undefined') {
     $active.removeClass('in')
   }
 
+  Tab.prototype.navigateTabLeft = function () {
+    var $this = this.element
+
+    if ($this.parent('li').is($this.closest('ul').children().first())) return
+
+    var $target = $this.parent('li').prev().children('a')[0]
+
+    $target.focus()
+  }
+
+  Tab.prototype.navigateTabRight = function () {
+    var $this = this.element
+
+    if ($this.parent('li').is($this.closest('ul').children().last())) return
+
+    var $target = $this.parent('li').next().children('a')[0]
+
+    $target.focus()
+  }
 
   // TAB PLUGIN DEFINITION
   // =====================
@@ -2418,9 +2439,23 @@ if (typeof jQuery === 'undefined') {
     Plugin.call($(this), 'show')
   }
 
+  var keyUpHandler = function (e) {
+    e.preventDefault()
+
+    switch (e.keyCode) {
+      case 37: // left arrow key
+        Plugin.call($(this), 'navigateTabLeft')
+        break;
+      case 39: // right arrow key
+        Plugin.call($(this), 'navigateTabRight')
+        break;
+    }
+  }
+
   $(document)
     .on('click.bs.tab.data-api', '[data-toggle="tab"]', clickHandler)
     .on('click.bs.tab.data-api', '[data-toggle="pill"]', clickHandler)
+    .on('keyup', '[data-toggle="tab"]', keyUpHandler)
 
 }(jQuery);
 
