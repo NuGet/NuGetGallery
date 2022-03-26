@@ -473,8 +473,11 @@
                 2000);
         });
         popoverElement.keyup(function (event) {
+            // normalize keycode for browser compatibility
+            var code = event.which || event.keyCode || event.charCode;
+
             // This is the keycode for the 'Esc' key
-            if (event.which === 27) {
+            if (code === 27) {
                 popoverElement.popover('hide');
             }
         });
