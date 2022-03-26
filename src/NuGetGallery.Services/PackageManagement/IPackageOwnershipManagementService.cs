@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
@@ -54,17 +55,21 @@ namespace NuGetGallery
         /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
         /// <param name="requestingUser">The user requesting to remove an owner from the package.</param>
         /// <param name="userToBeRemoved">The user to remove as an owner from the package.</param>
-        Task RemovePackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved);
+        /// <param name="requireNamespaceOwnership">Whether or not to verify that the <paramref name="requestingUser"/> has permissions for any reserved namespaces that the package is in.</param>
+        /// <exception cref="InvalidOperationException">Thrown if <paramref name="requireNamespaceOwnership"/> is true and the <paramref name="requestingUser"/> does not have permissions for an existing namespace.</exception>
+        Task RemovePackageOwnerWithMessagesAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved, bool requireNamespaceOwnership);
 
         /// <summary>
         /// Remove the user as from the list of owners of the package. Also remove the package registration
         /// from the reserved namespaces owned by this user if the Id matches any of the reserved prefixes
         /// and the user is the only package owner that owns the namespace that matches the package registration.
+        /// This method verifies that the <paramref name="requestingUser"/> has the permissions to an existing namespaces.
         /// </summary>
         /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
         /// <param name="requestingUser">The user requesting to remove an owner from the package.</param>
         /// <param name="userToBeRemoved">The user to remove as an owner from the package.</param>
         /// <param name="commitChanges">Whether or not to commit the changes.</param>
+        /// <exception cref="InvalidOperationException">Thrown if the <paramref name="requestingUser"/> does not have permissions for an existing namespace.</exception>
         Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved, bool commitChanges);
 
         /// <summary>

@@ -418,5 +418,6 @@ namespace NuGetGallery.Configuration
         [DefaultValue(null)]
         public int? MaxIoThreads { get; set; }
         public string InternalMicrosoftTenantKey { get; set; }
+        public string AdminSenderUser { get; set; }
     }
 }

@@ -24,6 +24,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var viewModel = new HomeViewModel(
                 showDatabaseAdmin: _config.Current.AdminPanelDatabaseAccessEnabled,
+                showLuceneAdmin: _config.Current.SearchServiceUriPrimary == null && _config.Current.SearchServiceUriSecondary == null,
                 showValidation: _config.Current.AsynchronousPackageValidationEnabled);
 
             return View(viewModel);
