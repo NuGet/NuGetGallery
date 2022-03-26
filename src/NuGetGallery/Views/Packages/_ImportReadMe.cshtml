@@ -3,6 +3,7 @@
     <li role="presentation" class="@(active ? "active" : string.Empty)">
         <a href="#@id" aria-expanded="@(active ? "true" : "false")"
            aria-selected="@(active ? "true" : "false")"
+           tabindex="@(active ? "0" : "-1")"
            aria-controls="@id" role="tab" data-toggle="tab"
            data-source-type="@sourceType"
            data-bind="event: { 'show.bs.tab': OnReadmeTabChange }"
