@@ -2449,7 +2449,10 @@ if (typeof jQuery === 'undefined') {
   var keyUpHandler = function (e) {
     e.preventDefault()
 
-    switch (e.keyCode) {
+    // normalized for broswer compatibility
+    var code = e.keyCode || e.which;
+
+    switch (code) {
       case keys.left:
         Plugin.call($(this), 'navigateTabLeft')
         break;
