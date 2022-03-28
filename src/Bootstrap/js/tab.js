@@ -171,7 +171,7 @@
     Plugin.call($(this), 'show')
   }
 
-  var keyUpHandler = function (e) {
+  var keyDownHandler = function (e) {
     e.preventDefault()
 
     switch (e.keyCode) {
@@ -187,6 +187,6 @@
   $(document)
     .on('click.bs.tab.data-api', '[data-toggle="tab"]', clickHandler)
     .on('click.bs.tab.data-api', '[data-toggle="pill"]', clickHandler)
-    .on('keyup', '[data-toggle="tab"]', keyUpHandler)
+    .on('keydown', '[data-toggle="tab"]', keyDownHandler)
 
 }(jQuery);
