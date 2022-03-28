@@ -2434,19 +2434,26 @@ if (typeof jQuery === 'undefined') {
   // TAB DATA-API
   // ============
 
+  var keys = {
+    left: 37,
+    right: 39,
+    up: 38,
+    down: 40
+  }
+
   var clickHandler = function (e) {
     e.preventDefault()
     Plugin.call($(this), 'show')
   }
 
-  var keyDownHandler = function (e) {
+  var keyUpHandler = function (e) {
     e.preventDefault()
 
     switch (e.keyCode) {
-      case 37: // left arrow key
+      case keys.left:
         Plugin.call($(this), 'navigateTabLeft')
         break;
-      case 39: // right arrow key
+      case keys.right:
         Plugin.call($(this), 'navigateTabRight')
         break;
     }
@@ -2455,7 +2462,7 @@ if (typeof jQuery === 'undefined') {
   $(document)
     .on('click.bs.tab.data-api', '[data-toggle="tab"]', clickHandler)
     .on('click.bs.tab.data-api', '[data-toggle="pill"]', clickHandler)
-    .on('keydown', '[data-toggle="tab"]', keyDownHandler)
+    .on('keyup', '[data-toggle="tab"]', keyUpHandler)
 
 }(jQuery);
 
