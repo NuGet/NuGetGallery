@@ -16,6 +16,8 @@ namespace NuGetGallery
 
         void TrackMetric(string metricName, double value, IDictionary<string, string> properties = null);
 
+        void TrackAggregatedMetric(string metricName, double value, string dimension0Name, string dimension0Value);
+
         void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null);
 
         void TrackDependency(string dependencyTypeName,

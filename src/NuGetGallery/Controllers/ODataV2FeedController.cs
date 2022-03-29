@@ -61,6 +61,7 @@ namespace NuGetGallery.Controllers
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Packages?semVerLevel=");
             return await GetAsync(
                 options,
                 semVerLevel,
@@ -74,6 +75,7 @@ namespace NuGetGallery.Controllers
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri] string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Packages/$count?semVerLevel=");
             return (await GetAsync(
                 options,
                 semVerLevel,
@@ -198,6 +200,7 @@ namespace NuGetGallery.Controllers
             string version,
             [FromUri] bool hijack = true)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Packages(Id=,Version=)");
             // We are defaulting to semVerLevel = "2.0.0" by design.
             // The client is requesting a specific package version and should support what it requests.
             // If not, too bad :)
@@ -226,6 +229,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string id,
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/FindPackagesById()?id=&semVerLevel=");
             return await FindPackagesByIdAsync(
                 options,
                 id,
@@ -244,6 +248,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri] string id,
             [FromUri] string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/FindPackagesById()/$count?semVerLevel=");
             return (await FindPackagesByIdAsync(
                 options,
                 id,
@@ -413,6 +418,7 @@ namespace NuGetGallery.Controllers
         [HttpGet]
         public IHttpActionResult GetPropertyFromPackages(string propertyName, string id, string version)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Packages(Id=,Version=)/propertyName");
             switch (propertyName.ToLowerInvariant())
             {
                 case "id": return Ok(id);
@@ -436,6 +442,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includePrerelease = false,
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Search()?searchTerm=&targetFramework=&includePrerelease=");
             return await SearchAsync(
                 options,
                 searchTerm,
@@ -458,6 +465,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri] bool includePrerelease = false,
             [FromUri] string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/Search()/$count?searchTerm=&targetFramework=&includePrerelease=&semVerLevel=");
             return (await SearchAsync(
                 options,
                 searchTerm,
@@ -589,6 +597,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string versionConstraints = "",
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/GetUpdates()?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=&semVerLevel=");
             if (string.IsNullOrEmpty(packageIds) || string.IsNullOrEmpty(versions))
             {
                 return TrackedQueryResult(
@@ -684,6 +693,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]string versionConstraints = "",
             [FromUri]string semVerLevel = null)
         {
+            _telemetryService.TrackApiRequest("/api/v2/GetUpdates()/$count?packageIds=&versions=&includePrerelease=&includeAllVersions=&targetFrameworks=&versionConstraints=&semVerLevel=");
             return GetUpdates(
                 options, 
                 packageIds, 

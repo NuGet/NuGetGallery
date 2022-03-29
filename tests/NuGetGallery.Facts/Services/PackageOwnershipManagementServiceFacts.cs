@@ -488,9 +488,55 @@ namespace NuGetGallery
                         It.IsAny<bool>()));
             }
 
+            [Fact]
+            public async Task AllowsNamespaceOwnershipToBeChecked()
+            {
+                var namespaceOwner = new User { Key = 100, Username = "microsoft" };
+                var nonNamespaceOwner = new User { Key = 101, Username = "aspnet" };
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { namespaceOwner, nonNamespaceOwner } };
+                var existingNamespace1 = new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true);
+                namespaceOwner.ReservedNamespaces.Add(existingNamespace1);
+                package.ReservedNamespaces.Add(existingNamespace1);
+                existingNamespace1.Owners.Add(namespaceOwner);
+                existingNamespace1.PackageRegistrations.Add(package);
+
+                var packageService = new Mock<IPackageService>();
+                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+                var reservedNamespaceService = new Mock<IReservedNamespaceService>();
+
+                var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
+                await Assert.ThrowsAsync<InvalidOperationException>(() => RemovePackageOwnerAsync(service, package, nonNamespaceOwner, namespaceOwner));
+
+                Assert.Contains(namespaceOwner, package.Owners);
+                Assert.Contains(nonNamespaceOwner, package.Owners);
+            }
+
+            [Fact]
+            public async Task AllowsNamespaceOwnershipToBeSkipped()
+            {
+                var namespaceOwner = new User { Key = 100, Username = "microsoft" };
+                var nonNamespaceOwner = new User { Key = 101, Username = "aspnet" };
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { namespaceOwner, nonNamespaceOwner } };
+                var existingNamespace1 = new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true);
+                namespaceOwner.ReservedNamespaces.Add(existingNamespace1);
+                package.ReservedNamespaces.Add(existingNamespace1);
+                existingNamespace1.Owners.Add(namespaceOwner);
+                existingNamespace1.PackageRegistrations.Add(package);
+
+                var packageService = new Mock<IPackageService>();
+                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+                var reservedNamespaceService = new Mock<IReservedNamespaceService>();
+
+                var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
+                await service.RemovePackageOwnerWithMessagesAsync(package, nonNamespaceOwner, namespaceOwner, requireNamespaceOwnership: false);
+
+                Assert.DoesNotContain(namespaceOwner, package.Owners);
+                Assert.Contains(nonNamespaceOwner, package.Owners);
+            }
+
             protected async override Task RemovePackageOwnerAsync(PackageOwnershipManagementService service, PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved)
             {
-                await service.RemovePackageOwnerWithMessagesAsync(packageRegistration, requestingOwner, ownerToBeRemoved);
+                await service.RemovePackageOwnerWithMessagesAsync(packageRegistration, requestingOwner, ownerToBeRemoved, requireNamespaceOwnership: true);
             }
         }
 

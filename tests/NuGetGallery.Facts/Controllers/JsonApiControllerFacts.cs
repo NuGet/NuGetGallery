@@ -631,7 +631,7 @@ namespace NuGetGallery.Controllers
 
                         packageOwnershipManagementService
                             .Verify(
-                                x => x.RemovePackageOwnerWithMessagesAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()),
+                                x => x.RemovePackageOwnerWithMessagesAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>(), true),
                                 Times.Never);
                     }
 
@@ -660,7 +660,7 @@ namespace NuGetGallery.Controllers
                         // Assert
                         Assert.True(data.success);
 
-                        packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerWithMessagesAsync(package, currentUser, userToRemove));
+                        packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerWithMessagesAsync(package, currentUser, userToRemove, true));
                     }
                 }
 

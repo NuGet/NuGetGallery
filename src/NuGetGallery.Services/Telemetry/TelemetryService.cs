@@ -94,6 +94,7 @@ namespace NuGetGallery
             public const string SymbolPackagePushDisconnect = "SymbolPackagePushDisconnect";
             public const string VulnerabilitiesCacheRefreshDurationMs = "VulnerabilitiesCacheRefreshDurationMs";
             public const string InstanceUptime = "InstanceUptimeInDays";
+            public const string ApiRequest = "ApiRequest";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -232,6 +233,8 @@ namespace NuGetGallery
         public const string IsActive = "IsActive";
         public const string TestBucket = "TestBucket";
         public const string TestPercentage = "TestPercentage";
+
+        public const string Endpoint = "Endpoint";
 
         public TelemetryService(IDiagnosticsSource diagnosticsSource, ITelemetryClient telemetryClient)
         {
@@ -1128,6 +1131,11 @@ namespace NuGetGallery
         public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
         {
             TrackMetric(Events.VulnerabilitiesCacheRefreshDurationMs, duration.TotalMilliseconds, properties => { });
+        }
+
+        public void TrackApiRequest(string endpoint)
+        {
+            _telemetryClient.TrackAggregatedMetric(Events.ApiRequest, 1, Endpoint, endpoint);
         }
 
         /// <summary>
