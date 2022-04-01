@@ -682,6 +682,9 @@ img.reserved-indicator-icon {
 .readme-common li.task-list-item {
   list-style-type: none;
 }
+.readme-common blockquote {
+  font-size: 16px;
+}
 #readme-preview {
   padding-top: 0.25em;
 }
