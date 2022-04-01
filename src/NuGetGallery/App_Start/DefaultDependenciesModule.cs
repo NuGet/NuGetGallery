@@ -192,7 +192,7 @@ namespace NuGetGallery
                 .As<ISqlConnectionFactory>()
                 .SingleInstance();
 
-            builder.Register(c => new EntitiesContext(CreateDbConnection(galleryDbConnectionFactory), configuration.Current.ReadOnlyMode))
+            builder.Register(c => new EntitiesContext(CreateDbConnection(galleryDbConnectionFactory, telemetryService), configuration.Current.ReadOnlyMode))
                 .AsSelf()
                 .As<IEntitiesContext>()
                 .As<DbContext>()
@@ -278,7 +278,7 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageRename>>()
                 .InstancePerLifetimeScope();
 
-            ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, loggerFactory, configuration, secretInjector);
+            ConfigureGalleryReadOnlyReplicaEntitiesContext(builder, loggerFactory, configuration, secretInjector, telemetryService);
 
             var supportDbConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,
@@ -286,7 +286,7 @@ namespace NuGetGallery
                 configuration.Current.SqlConnectionStringSupportRequest,
                 secretInjector);
 
-            builder.Register(c => new SupportRequestDbContext(CreateDbConnection(supportDbConnectionFactory)))
+            builder.Register(c => new SupportRequestDbContext(CreateDbConnection(supportDbConnectionFactory, telemetryService)))
                 .AsSelf()
                 .As<ISupportRequestDbContext>()
                 .InstancePerLifetimeScope();
@@ -503,7 +503,7 @@ namespace NuGetGallery
                     break;
             }
 
-            RegisterAsynchronousValidation(builder, loggerFactory, configuration, secretInjector);
+            RegisterAsynchronousValidation(builder, loggerFactory, configuration, secretInjector, telemetryService);
 
             RegisterAuditingServices(builder, configuration.Current.StorageType);
 
@@ -963,20 +963,27 @@ namespace NuGetGallery
             return new AzureSqlConnectionFactory(connectionString, secretInjector, logger);
         }
 
-        public static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
+        public static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory, ITelemetryService telemetryService)
         {
-            if (connectionFactory.TryCreate(out var connection))
+            using (telemetryService.TrackSyncSqlConnectionCreationDuration())
             {
-                return connection;
+                if (connectionFactory.TryCreate(out var connection))
+                {
+                    return connection;
+                }
             }
-            return Task.Run(() => connectionFactory.CreateAsync()).Result;
+            using (telemetryService.TrackAsyncSqlConnectionCreationDuration())
+            {
+                return Task.Run(() => connectionFactory.CreateAsync()).Result;
+            }
         }
 
         private static void ConfigureGalleryReadOnlyReplicaEntitiesContext(
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ICachingSecretInjector secretInjector)
+            ICachingSecretInjector secretInjector,
+            ITelemetryService telemetryService)
         {
             var galleryDbReadOnlyReplicaConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,
@@ -984,7 +991,7 @@ namespace NuGetGallery
                 configuration.Current.SqlReadOnlyReplicaConnectionString ?? configuration.Current.SqlConnectionString,
                 secretInjector);
 
-            builder.Register(c => new ReadOnlyEntitiesContext(CreateDbConnection(galleryDbReadOnlyReplicaConnectionFactory)))
+            builder.Register(c => new ReadOnlyEntitiesContext(CreateDbConnection(galleryDbReadOnlyReplicaConnectionFactory, telemetryService)))
                 .As<IReadOnlyEntitiesContext>()
                 .InstancePerLifetimeScope();
 
@@ -997,7 +1004,8 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ICachingSecretInjector secretInjector)
+            ICachingSecretInjector secretInjector,
+            ITelemetryService telemetryService)
         {
             var validationDbConnectionFactory = CreateDbConnectionFactory(
                 loggerFactory,
@@ -1005,7 +1013,7 @@ namespace NuGetGallery
                 configuration.Current.SqlConnectionStringValidation,
                 secretInjector);
 
-            builder.Register(c => new ValidationEntitiesContext(CreateDbConnection(validationDbConnectionFactory)))
+            builder.Register(c => new ValidationEntitiesContext(CreateDbConnection(validationDbConnectionFactory, telemetryService)))
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
@@ -1026,7 +1034,8 @@ namespace NuGetGallery
             ContainerBuilder builder,
             ILoggerFactory loggerFactory,
             ConfigurationService configuration,
-            ICachingSecretInjector secretInjector)
+            ICachingSecretInjector secretInjector,
+            ITelemetryService telemetryService)
         {
             builder
                 .RegisterType<NuGet.Services.Validation.ServiceBusMessageSerializer>()
@@ -1052,7 +1061,7 @@ namespace NuGetGallery
 
             if (configuration.Current.AsynchronousPackageValidationEnabled)
             {
-                ConfigureValidationEntitiesContext(builder, loggerFactory, configuration, secretInjector);
+                ConfigureValidationEntitiesContext(builder, loggerFactory, configuration, secretInjector, telemetryService);
 
                 builder
                     .Register(c =>
