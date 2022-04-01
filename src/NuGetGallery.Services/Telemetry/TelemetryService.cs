@@ -14,6 +14,7 @@ using NuGet.Services.FeatureFlags;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {
@@ -95,6 +96,7 @@ namespace NuGetGallery
             public const string VulnerabilitiesCacheRefreshDurationMs = "VulnerabilitiesCacheRefreshDurationMs";
             public const string InstanceUptime = "InstanceUptimeInDays";
             public const string ApiRequest = "ApiRequest";
+            public const string CreateSqlConnectionDuration = "CreateSqlConnectionDuration";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -235,6 +237,10 @@ namespace NuGetGallery
         public const string TestPercentage = "TestPercentage";
 
         public const string Endpoint = "Endpoint";
+
+        public const string Kind = "Kind";
+        public const string Sync = "Sync";
+        public const string Async = "Async";
 
         public TelemetryService(IDiagnosticsSource diagnosticsSource, ITelemetryClient telemetryClient)
         {
@@ -1136,6 +1142,18 @@ namespace NuGetGallery
         public void TrackApiRequest(string endpoint)
         {
             _telemetryClient.TrackAggregatedMetric(Events.ApiRequest, 1, Endpoint, endpoint);
+        }
+
+        public IDisposable TrackSyncSqlConnectionCreationDuration()
+            => TrackSqlConnectionCreationDuration(Sync);
+
+        public IDisposable TrackAsyncSqlConnectionCreationDuration()
+            => TrackSqlConnectionCreationDuration(Async);
+
+        private IDisposable TrackSqlConnectionCreationDuration(string kind)
+        {
+            return new DurationTracker(duration => 
+                _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDuration, duration.TotalSeconds, Kind, kind));
         }
 
         /// <summary>

@@ -424,5 +424,8 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="endpoint"></param>
         void TrackApiRequest(string endpoint);
+
+        IDisposable TrackSyncSqlConnectionCreationDuration();
+        IDisposable TrackAsyncSqlConnectionCreationDuration();
     }
 }
