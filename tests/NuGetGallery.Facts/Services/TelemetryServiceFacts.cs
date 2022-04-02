@@ -360,6 +360,11 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackApiRequest("SomeEndpoint")),
                         true
                     };
+
+                    yield return new object[] { "CreateSqlConnectionDuration",
+                        (TrackAction)(s => s.TrackSyncSqlConnectionCreationDuration().Dispose()),
+                        true
+                    };
                 }
             }
 
