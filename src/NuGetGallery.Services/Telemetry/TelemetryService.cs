@@ -1153,7 +1153,7 @@ namespace NuGetGallery
         private IDisposable TrackSqlConnectionCreationDuration(string kind)
         {
             return new DurationTracker(duration => 
-                _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDuration, duration.TotalSeconds, Kind, kind));
+                _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDuration, duration.TotalMilliseconds, Kind, kind));
         }
 
         /// <summary>
