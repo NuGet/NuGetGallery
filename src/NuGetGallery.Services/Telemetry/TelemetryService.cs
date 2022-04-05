@@ -96,7 +96,7 @@ namespace NuGetGallery
             public const string VulnerabilitiesCacheRefreshDurationMs = "VulnerabilitiesCacheRefreshDurationMs";
             public const string InstanceUptime = "InstanceUptimeInDays";
             public const string ApiRequest = "ApiRequest";
-            public const string CreateSqlConnectionDuration = "CreateSqlConnectionDuration";
+            public const string CreateSqlConnectionDurationMs = "CreateSqlConnectionDurationMs";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
