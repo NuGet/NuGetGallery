@@ -2,24 +2,39 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Search;
-using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents.Indexes.Models;
 
 namespace NuGet.Services.AzureSearch.Wrappers
 {
     public class SearchIndexClientWrapper : ISearchIndexClientWrapper
     {
-        private readonly ISearchIndexClient _inner;
+        private readonly SearchIndexClient _inner;
 
-        public SearchIndexClientWrapper(
-            ISearchIndexClient inner,
-            ILogger<DocumentsOperationsWrapper> documentsOperationsLogger)
+        public SearchIndexClientWrapper(SearchIndexClient inner)
         {
             _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-            Documents = new DocumentsOperationsWrapper(_inner.Documents, documentsOperationsLogger);
         }
 
-        public string IndexName => _inner.IndexName;
-        public IDocumentsOperationsWrapper Documents { get; }
+        public ISearchClientWrapper GetSearchClient(string indexName)
+        {
+            return new SearchClientWrapper(_inner.GetSearchClient(indexName));
+        }
+
+        public async Task<SearchIndex> GetIndexAsync(string indexName)
+        {
+            return await _inner.GetIndexAsync(indexName);
+        }
+
+        public async Task DeleteIndexAsync(string indexName)
+        {
+            await _inner.DeleteIndexAsync(indexName);
+        }
+
+        public async Task CreateIndexAsync(SearchIndex index)
+        {
+            await _inner.CreateIndexAsync(index);
+        }
     }
 }

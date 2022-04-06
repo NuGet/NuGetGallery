@@ -6,11 +6,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Moq;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Catalog;
+using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 using NuGetGallery;
@@ -50,7 +50,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             [Fact]
             public async Task No404FailureIsNotApplicable()
             {
-                IndexingResults.Add(new IndexingResult(statusCode: 503));
+                IndexingResults.Add(SearchModelFactory.IndexingResult("", null, false, 503));
 
                 var result = await Target.TryFixUpAsync(ItemList, AllIndexActions, Exception);
 
@@ -60,7 +60,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             [Fact]
             public async Task Unmatched404FailureIsNotApplicable()
             {
-                IndexingResults.Add(new IndexingResult(statusCode: 404));
+                IndexingResults.Add(SearchModelFactory.IndexingResult("", null, false, 404));
 
                 var result = await Target.TryFixUpAsync(ItemList, AllIndexActions, Exception);
 
@@ -70,14 +70,14 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             [Fact]
             public async Task Hijack404FailureIsNotApplicable()
             {
-                IndexingResults.Add(new IndexingResult(key: "hijack-doc", statusCode: 404));
+                IndexingResults.Add(SearchModelFactory.IndexingResult("hijack-doc", null, false, 404));
                 AllIndexActions.Add(new IdAndValue<IndexActions>(
                     "NuGet.Versioning",
                     new IndexActions(
-                        search: new List<IndexAction<KeyedDocument>>(),
-                        hijack: new List<IndexAction<KeyedDocument>>
+                        search: new List<IndexDocumentsAction<KeyedDocument>>(),
+                        hijack: new List<IndexDocumentsAction<KeyedDocument>>
                         {
-                            IndexAction.Merge(new KeyedDocument { Key = "hijack-doc" }),
+                            IndexDocumentsAction.Merge(new KeyedDocument { Key = "hijack-doc" }),
                         },
                         versionListDataResult: new ResultAndAccessCondition<VersionListData>(
                             new VersionListData(new Dictionary<string, VersionPropertiesData>()),
@@ -91,15 +91,15 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             [Fact]
             public async Task Search404NonMergeFailureIsNotApplicable()
             {
-                IndexingResults.Add(new IndexingResult(key: "search-doc", statusCode: 404));
+                IndexingResults.Add(SearchModelFactory.IndexingResult("search-doc", null, false, 404));
                 AllIndexActions.Add(new IdAndValue<IndexActions>(
                     "NuGet.Versioning",
                     new IndexActions(
-                        search: new List<IndexAction<KeyedDocument>>
+                        search: new List<IndexDocumentsAction<KeyedDocument>>
                         {
-                            IndexAction.Delete(new KeyedDocument { Key = "search-doc" }),
+                            IndexDocumentsAction.Delete(new KeyedDocument { Key = "search-doc" }),
                         },
-                        hijack: new List<IndexAction<KeyedDocument>>(),
+                        hijack: new List<IndexDocumentsAction<KeyedDocument>>(),
                         versionListDataResult: new ResultAndAccessCondition<VersionListData>(
                             new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                             Mock.Of<IAccessCondition>()))));
@@ -127,15 +127,15 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                     new[] { Schema.DataTypes.PackageDetails },
                     new PackageIdentity("NuGet.Versioning", NuGetVersion.Parse("0.9.0-beta.1"))));
 
-                IndexingResults.Add(new IndexingResult(key: "search-doc", statusCode: 404));
+                IndexingResults.Add(SearchModelFactory.IndexingResult("search-doc", null, false, 404));
                 AllIndexActions.Add(new IdAndValue<IndexActions>(
                     "NuGet.Versioning",
                     new IndexActions(
-                        search: new List<IndexAction<KeyedDocument>>
+                        search: new List<IndexDocumentsAction<KeyedDocument>>
                         {
-                            IndexAction.Merge(new KeyedDocument { Key = "search-doc" }),
+                            IndexDocumentsAction.Merge(new KeyedDocument { Key = "search-doc" }),
                         },
-                        hijack: new List<IndexAction<KeyedDocument>>(),
+                        hijack: new List<IndexDocumentsAction<KeyedDocument>>(),
                         versionListDataResult: new ResultAndAccessCondition<VersionListData>(
                             new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                             Mock.Of<IAccessCondition>()))));
@@ -194,9 +194,6 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
                 ItemList = new List<CatalogCommitItem>();
                 AllIndexActions = new ConcurrentBag<IdAndValue<IndexActions>>();
                 IndexingResults = new List<IndexingResult>();
-                DocumentIndexResult = new DocumentIndexResult(IndexingResults);
-                InnerException = new IndexBatchException(DocumentIndexResult);
-                Exception = new InvalidOperationException("It broke.", InnerException);
 
                 Target = new DocumentFixUpEvaluator(
                     VersionListClient.Object,
@@ -210,9 +207,9 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             public List<CatalogCommitItem> ItemList { get; }
             public ConcurrentBag<IdAndValue<IndexActions>> AllIndexActions { get; }
             public List<IndexingResult> IndexingResults { get; }
-            public DocumentIndexResult DocumentIndexResult { get; }
-            public IndexBatchException InnerException { get; }
-            public InvalidOperationException Exception { get; }
+            public IndexDocumentsResult DocumentIndexResult => SearchModelFactory.IndexDocumentsResult(IndexingResults);
+            public IndexBatchException InnerException => new IndexBatchException(DocumentIndexResult.Results);
+            public InvalidOperationException Exception => new InvalidOperationException("It broke.", InnerException);
             public DocumentFixUpEvaluator Target { get; }
         }
     }

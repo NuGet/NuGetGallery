@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging.Core;
+using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 
@@ -50,7 +50,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch
             // 1. The first step is to find all of the document keys that failed with a 404 Not Found error.
             var notFoundKeys = new HashSet<string>(innerEx
                 .IndexingResults
-                .Where(x => x.StatusCode == (int)HttpStatusCode.NotFound)
+                .Where(x => x.Status == (int)HttpStatusCode.NotFound)
                 .Select(x => x.Key));
             if (!notFoundKeys.Any())
             {

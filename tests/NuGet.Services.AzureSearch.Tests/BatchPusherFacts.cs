@@ -5,12 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
-using Microsoft.Rest;
-using Microsoft.Rest.Azure;
 using Moq;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGetGallery;
@@ -238,22 +236,17 @@ namespace NuGet.Services.AzureSearch
             {
                 _config.AzureSearchBatchSize = 100;
                 _target.EnqueueIndexActions(IdA, _indexActions);
-                _hijackDocumentsWrapper
-                    .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
-                    .Returns<IndexBatch<KeyedDocument>>(b =>
+                _hijackIndexWrapper
+                    .Setup(x => x.IndexAsync(It.IsAny<IndexDocumentsBatch<KeyedDocument>>()))
+                    .Returns<IndexDocumentsBatch<KeyedDocument>>(b =>
                     {
                         _hijackBatches.Add(b);
                         if (b.Actions.Count() > 1)
                         {
-                            throw new CloudException
-                            {
-                                Response = new HttpResponseMessageWrapper(
-                                    new HttpResponseMessage(HttpStatusCode.RequestEntityTooLarge),
-                                    "Too big!"),
-                            };
+                            throw new RequestFailedException((int)HttpStatusCode.RequestEntityTooLarge, "Too big!");
                         }
 
-                        return Task.FromResult(new DocumentIndexResult(new List<IndexingResult>()));
+                        return Task.FromResult(SearchModelFactory.IndexDocumentsResult(new List<IndexingResult>()));
                     });
 
                 var result = await _target.TryFinishAsync();
@@ -295,23 +288,18 @@ namespace NuGet.Services.AzureSearch
             {
                 _config.AzureSearchBatchSize = 100;
                 _target.EnqueueIndexActions(IdA, _indexActions);
-                _hijackDocumentsWrapper
-                    .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
-                    .Returns<IndexBatch<KeyedDocument>>(b =>
+                _hijackIndexWrapper
+                    .Setup(x => x.IndexAsync(It.IsAny<IndexDocumentsBatch<KeyedDocument>>()))
+                    .Returns<IndexDocumentsBatch<KeyedDocument>>(b =>
                     {
                         _hijackBatches.Add(b);
-                        throw new CloudException
-                        {
-                            Response = new HttpResponseMessageWrapper(
-                                new HttpResponseMessage(HttpStatusCode.RequestEntityTooLarge),
-                                "Too big!"),
-                        };
+                        throw new RequestFailedException((int)HttpStatusCode.RequestEntityTooLarge, "Too big!");
                     });
 
-                var ex = await Assert.ThrowsAsync<CloudException>(
+                var ex = await Assert.ThrowsAsync<RequestFailedException>(
                     () => _target.TryFinishAsync());
 
-                Assert.Equal(HttpStatusCode.RequestEntityTooLarge, ex.Response.StatusCode);
+                Assert.Equal(HttpStatusCode.RequestEntityTooLarge, (HttpStatusCode)ex.Status);
                 Assert.Equal(3, _hijackBatches.Count);
                 Assert.Equal(
                     new[] { _hijackDocumentA, _hijackDocumentB, _hijackDocumentC, _hijackDocumentD, _hijackDocumentE },
@@ -335,17 +323,17 @@ namespace NuGet.Services.AzureSearch
             public async Task LogsUpALimitedNumberOfFailedResults()
             {
                 _target.EnqueueIndexActions(IdA, _indexActions);
-                _searchDocumentsWrapper
-                    .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
-                    .ReturnsAsync(() => new DocumentIndexResult(new List<IndexingResult>
+                _searchIndexWrapper
+                    .Setup(x => x.IndexAsync(It.IsAny<IndexDocumentsBatch<KeyedDocument>>()))
+                    .ReturnsAsync(() => SearchModelFactory.IndexDocumentsResult(new List<IndexingResult>
                     {
-                        new IndexingResult(key: "A-0", errorMessage: "A-0 message", succeeded: false, statusCode: 0),
-                        new IndexingResult(key: "A-1", errorMessage: "A-1 message", succeeded: false, statusCode: 1),
-                        new IndexingResult(key: "A-2", errorMessage: "A-2 message", succeeded: true, statusCode: 2),
-                        new IndexingResult(key: "A-3", errorMessage: "A-3 message", succeeded: false, statusCode: 3),
-                        new IndexingResult(key: "A-4", errorMessage: "A-4 message", succeeded: false, statusCode: 4),
-                        new IndexingResult(key: "A-5", errorMessage: "A-5 message", succeeded: false, statusCode: 5),
-                        new IndexingResult(key: "A-6", errorMessage: "A-6 message", succeeded: false, statusCode: 6),
+                        SearchModelFactory.IndexingResult(key: "A-0", errorMessage: "A-0 message", succeeded: false, status: 0),
+                        SearchModelFactory.IndexingResult(key: "A-1", errorMessage: "A-1 message", succeeded: false, status: 1),
+                        SearchModelFactory.IndexingResult(key: "A-2", errorMessage: "A-2 message", succeeded: true, status: 2),
+                        SearchModelFactory.IndexingResult(key: "A-3", errorMessage: "A-3 message", succeeded: false, status: 3),
+                        SearchModelFactory.IndexingResult(key: "A-4", errorMessage: "A-4 message", succeeded: false, status: 4),
+                        SearchModelFactory.IndexingResult(key: "A-5", errorMessage: "A-5 message", succeeded: false, status: 5),
+                        SearchModelFactory.IndexingResult(key: "A-6", errorMessage: "A-6 message", succeeded: false, status: 6),
                     }));
 
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -361,7 +349,9 @@ namespace NuGet.Services.AzureSearch
                 Assert.All(_logger.Messages, x => Assert.DoesNotContain("A-2", x));
                 Assert.All(_logger.Messages, x => Assert.DoesNotContain("A-6", x));
 
-                Assert.Null(ex.InnerException);
+                var innerEx = Assert.IsType<IndexBatchException>(ex.InnerException);
+                Assert.Equal(6, innerEx.IndexingResults.Count(x => !x.Succeeded));
+                Assert.Equal(1, innerEx.IndexingResults.Count(x => x.Succeeded));
             }
 
             [Fact]
@@ -620,8 +610,8 @@ namespace NuGet.Services.AzureSearch
             public void RejectsEmptyEnqueue()
             {
                 var emptyIndexActions = new IndexActions(
-                    new List<IndexAction<KeyedDocument>>(),
-                    new List<IndexAction<KeyedDocument>>(),
+                    new List<IndexDocumentsAction<KeyedDocument>>(),
+                    new List<IndexDocumentsAction<KeyedDocument>>(),
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition()));
@@ -643,10 +633,8 @@ namespace NuGet.Services.AzureSearch
             protected const string IdC = "NuGet.Packaging";
 
             protected readonly RecordingLogger<BatchPusher> _logger;
-            protected readonly Mock<ISearchIndexClientWrapper> _searchIndexClientWrapper;
-            protected readonly Mock<IDocumentsOperationsWrapper> _searchDocumentsWrapper;
-            protected readonly Mock<ISearchIndexClientWrapper> _hijackIndexClientWrapper;
-            protected readonly Mock<IDocumentsOperationsWrapper> _hijackDocumentsWrapper;
+            protected readonly Mock<ISearchClientWrapper> _searchIndexWrapper;
+            protected readonly Mock<ISearchClientWrapper> _hijackIndexWrapper;
             protected readonly Mock<IVersionListDataClient> _versionListDataClient;
             protected readonly AzureSearchJobConfiguration _config;
             protected readonly AzureSearchJobDevelopmentConfiguration _developmentConfig;
@@ -656,26 +644,24 @@ namespace NuGet.Services.AzureSearch
             protected readonly IndexActions _indexActions;
             protected readonly BatchPusher _target;
 
-            protected readonly IndexAction<KeyedDocument> _searchDocumentA;
-            protected readonly IndexAction<KeyedDocument> _searchDocumentB;
-            protected readonly IndexAction<KeyedDocument> _searchDocumentC;
-            protected readonly List<IndexAction<KeyedDocument>> _searchDocuments;
-            protected readonly IndexAction<KeyedDocument> _hijackDocumentA;
-            protected readonly IndexAction<KeyedDocument> _hijackDocumentB;
-            protected readonly IndexAction<KeyedDocument> _hijackDocumentC;
-            protected readonly IndexAction<KeyedDocument> _hijackDocumentD;
-            protected readonly IndexAction<KeyedDocument> _hijackDocumentE;
-            protected readonly List<IndexAction<KeyedDocument>> _hijackDocuments;
-            protected readonly List<IndexBatch<KeyedDocument>> _searchBatches;
-            protected readonly List<IndexBatch<KeyedDocument>> _hijackBatches;
+            protected readonly IndexDocumentsAction<KeyedDocument> _searchDocumentA;
+            protected readonly IndexDocumentsAction<KeyedDocument> _searchDocumentB;
+            protected readonly IndexDocumentsAction<KeyedDocument> _searchDocumentC;
+            protected readonly List<IndexDocumentsAction<KeyedDocument>> _searchDocuments;
+            protected readonly IndexDocumentsAction<KeyedDocument> _hijackDocumentA;
+            protected readonly IndexDocumentsAction<KeyedDocument> _hijackDocumentB;
+            protected readonly IndexDocumentsAction<KeyedDocument> _hijackDocumentC;
+            protected readonly IndexDocumentsAction<KeyedDocument> _hijackDocumentD;
+            protected readonly IndexDocumentsAction<KeyedDocument> _hijackDocumentE;
+            protected readonly List<IndexDocumentsAction<KeyedDocument>> _hijackDocuments;
+            protected readonly List<IndexDocumentsBatch<KeyedDocument>> _searchBatches;
+            protected readonly List<IndexDocumentsBatch<KeyedDocument>> _hijackBatches;
 
             public BaseFacts(ITestOutputHelper output)
             {
                 _logger = output.GetLogger<BatchPusher>();
-                _searchIndexClientWrapper = new Mock<ISearchIndexClientWrapper>();
-                _searchDocumentsWrapper = new Mock<IDocumentsOperationsWrapper>();
-                _hijackIndexClientWrapper = new Mock<ISearchIndexClientWrapper>();
-                _hijackDocumentsWrapper = new Mock<IDocumentsOperationsWrapper>();
+                _searchIndexWrapper = new Mock<ISearchClientWrapper>();
+                _hijackIndexWrapper = new Mock<ISearchClientWrapper>();
                 _versionListDataClient = new Mock<IVersionListDataClient>();
                 _config = new AzureSearchJobConfiguration();
                 _developmentConfig = new AzureSearchJobDevelopmentConfiguration();
@@ -683,47 +669,45 @@ namespace NuGet.Services.AzureSearch
                 _developmentOptions = new Mock<IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration>>();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
 
-                _searchIndexClientWrapper.Setup(x => x.IndexName).Returns("search");
-                _searchIndexClientWrapper.Setup(x => x.Documents).Returns(() => _searchDocumentsWrapper.Object);
-                _hijackIndexClientWrapper.Setup(x => x.IndexName).Returns("hijack");
-                _hijackIndexClientWrapper.Setup(x => x.Documents).Returns(() => _hijackDocumentsWrapper.Object);
+                _searchIndexWrapper.Setup(x => x.IndexName).Returns("search");
+                _hijackIndexWrapper.Setup(x => x.IndexName).Returns("hijack");
                 _versionListDataClient
                     .Setup(x => x.TryReplaceAsync(It.IsAny<string>(), It.IsAny<VersionListData>(), It.IsAny<IAccessCondition>()))
                     .ReturnsAsync(true);
                 _options.Setup(x => x.Value).Returns(() => _config);
                 _developmentOptions.Setup(x => x.Value).Returns(() => _developmentConfig);
 
-                _searchBatches = new List<IndexBatch<KeyedDocument>>();
-                _hijackBatches = new List<IndexBatch<KeyedDocument>>();
+                _searchBatches = new List<IndexDocumentsBatch<KeyedDocument>>();
+                _hijackBatches = new List<IndexDocumentsBatch<KeyedDocument>>();
 
-                _searchDocumentsWrapper
-                    .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
-                    .ReturnsAsync(() => new DocumentIndexResult(new List<IndexingResult>()))
-                    .Callback<IndexBatch<KeyedDocument>>(b => _searchBatches.Add(b));
-                _hijackDocumentsWrapper
-                    .Setup(x => x.IndexAsync(It.IsAny<IndexBatch<KeyedDocument>>()))
-                    .ReturnsAsync(() => new DocumentIndexResult(new List<IndexingResult>()))
-                    .Callback<IndexBatch<KeyedDocument>>(b => _hijackBatches.Add(b));
+                _searchIndexWrapper
+                    .Setup(x => x.IndexAsync(It.IsAny<IndexDocumentsBatch<KeyedDocument>>()))
+                    .ReturnsAsync(() => SearchModelFactory.IndexDocumentsResult(new IndexingResult[0]))
+                    .Callback<IndexDocumentsBatch<KeyedDocument>>(b => _searchBatches.Add(b));
+                _hijackIndexWrapper
+                    .Setup(x => x.IndexAsync(It.IsAny<IndexDocumentsBatch<KeyedDocument>>()))
+                    .ReturnsAsync(() => SearchModelFactory.IndexDocumentsResult(new IndexingResult[0]))
+                    .Callback<IndexDocumentsBatch<KeyedDocument>>(b => _hijackBatches.Add(b));
 
                 _config.AzureSearchBatchSize = 2;
                 _config.MaxConcurrentVersionListWriters = 1;
 
-                _searchDocumentA = IndexAction.Upload(new KeyedDocument());
-                _searchDocumentB = IndexAction.Upload(new KeyedDocument());
-                _searchDocumentC = IndexAction.Upload(new KeyedDocument());
-                _searchDocuments = new List<IndexAction<KeyedDocument>>
+                _searchDocumentA = IndexDocumentsAction.Upload(new KeyedDocument());
+                _searchDocumentB = IndexDocumentsAction.Upload(new KeyedDocument());
+                _searchDocumentC = IndexDocumentsAction.Upload(new KeyedDocument());
+                _searchDocuments = new List<IndexDocumentsAction<KeyedDocument>>
                 {
                     _searchDocumentA,
                     _searchDocumentB,
                     _searchDocumentC,
                 };
 
-                _hijackDocumentA = IndexAction.Upload(new KeyedDocument());
-                _hijackDocumentB = IndexAction.Upload(new KeyedDocument());
-                _hijackDocumentC = IndexAction.Upload(new KeyedDocument());
-                _hijackDocumentD = IndexAction.Upload(new KeyedDocument());
-                _hijackDocumentE = IndexAction.Upload(new KeyedDocument());
-                _hijackDocuments = new List<IndexAction<KeyedDocument>>
+                _hijackDocumentA = IndexDocumentsAction.Upload(new KeyedDocument());
+                _hijackDocumentB = IndexDocumentsAction.Upload(new KeyedDocument());
+                _hijackDocumentC = IndexDocumentsAction.Upload(new KeyedDocument());
+                _hijackDocumentD = IndexDocumentsAction.Upload(new KeyedDocument());
+                _hijackDocumentE = IndexDocumentsAction.Upload(new KeyedDocument());
+                _hijackDocuments = new List<IndexDocumentsAction<KeyedDocument>>
                 {
                     _hijackDocumentA,
                     _hijackDocumentB,
@@ -740,8 +724,8 @@ namespace NuGet.Services.AzureSearch
                         AccessConditionWrapper.GenerateEmptyCondition()));
 
                 _target = new BatchPusher(
-                    _searchIndexClientWrapper.Object,
-                    _hijackIndexClientWrapper.Object,
+                    _searchIndexWrapper.Object,
+                    _hijackIndexWrapper.Object,
                     _versionListDataClient.Object,
                     _options.Object,
                     _developmentOptions.Object,

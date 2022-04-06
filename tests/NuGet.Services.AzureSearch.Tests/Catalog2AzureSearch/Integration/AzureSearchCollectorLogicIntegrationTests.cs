@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Jobs;
@@ -14,7 +14,6 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol.Catalog;
 using NuGet.Protocol.Registration;
 using NuGet.Services.AzureSearch.Support;
-using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Entities;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
@@ -49,10 +48,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
         private CatalogIndexActionBuilder _builder;
         private InMemoryCloudBlobClient _cloudBlobClient;
         private VersionListDataClient _versionListDataClient;
-        private Mock<ISearchIndexClientWrapper> _searchIndex;
-        private InMemoryDocumentsOperations _searchDocuments;
-        private Mock<ISearchIndexClientWrapper> _hijackIndex;
-        private InMemoryDocumentsOperations _hijackDocuments;
+        private InMemorySearchClient _searchIndex;
+        private InMemorySearchClient _hijackIndex;
         private DocumentFixUpEvaluator _fixUpEvaluator;
         private CommitCollectorUtility _commitCollectorUtility;
         private AzureSearchCollectorLogic _collector;
@@ -126,12 +123,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 _hijack,
                 output.GetLogger<CatalogIndexActionBuilder>());
 
-            _searchIndex = new Mock<ISearchIndexClientWrapper>();
-            _searchDocuments = new InMemoryDocumentsOperations();
-            _searchIndex.Setup(x => x.Documents).Returns(() => _searchDocuments);
-            _hijackIndex = new Mock<ISearchIndexClientWrapper>();
-            _hijackDocuments = new InMemoryDocumentsOperations();
-            _hijackIndex.Setup(x => x.Documents).Returns(() => _hijackDocuments);
+            _searchIndex = new InMemorySearchClient(_config.SearchIndexName);
+            _hijackIndex = new InMemorySearchClient(_config.HijackIndexName);
 
             _fixUpEvaluator = new DocumentFixUpEvaluator(
                 _versionListDataClient,
@@ -147,8 +140,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
             _collector = new AzureSearchCollectorLogic(
                 _builder,
                 () => new BatchPusher(
-                    _searchIndex.Object,
-                    _hijackIndex.Object,
+                    _searchIndex,
+                    _hijackIndex,
                     _versionListDataClient,
                     _options.Object,
                     _developmentOptions.Object,
@@ -193,7 +186,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
                 // Assert
                 // Hijack documents
-                var hijackBatch = Assert.Single(_hijackDocuments.Batches);
+                var hijackBatch = Assert.Single(_hijackIndex.Batches);
                 var hijackAction = Assert.Single(hijackBatch.Actions);
                 Assert.Equal(IndexActionType.MergeOrUpload, hijackAction.ActionType);
                 Assert.Equal(
@@ -202,7 +195,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 Assert.IsType<HijackDocument.Full>(hijackAction.Document);
 
                 // Search documents
-                var searchBatch = Assert.Single(_searchDocuments.Batches);
+                var searchBatch = Assert.Single(_searchIndex.Batches);
                 AssertSearchBatch(
                     identity1.Id,
                     searchBatch,
@@ -253,7 +246,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
                 // Assert
                 // Hijack documents
-                var hijackBatch = Assert.Single(_hijackDocuments.Batches);
+                var hijackBatch = Assert.Single(_hijackIndex.Batches);
                 var actions = hijackBatch.Actions.OrderBy(x => x.Document.Key).ToList();
                 Assert.Equal(2, actions.Count);
                 Assert.Equal(
@@ -268,7 +261,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 Assert.IsType<HijackDocument.Full>(actions[1].Document);
 
                 // Search documents
-                var searchBatch = Assert.Single(_searchDocuments.Batches);
+                var searchBatch = Assert.Single(_searchIndex.Batches);
                 AssertSearchBatch(
                     identity2.Id,
                     searchBatch,
@@ -323,7 +316,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
                 // Assert
                 // Hijack documents
-                var hijackBatch = Assert.Single(_hijackDocuments.Batches);
+                var hijackBatch = Assert.Single(_hijackIndex.Batches);
                 var actions = hijackBatch.Actions.OrderBy(x => x.Document.Key).ToList();
                 Assert.Equal(2, actions.Count);
                 Assert.Equal(
@@ -338,7 +331,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 Assert.IsType<HijackDocument.Latest>(actions[1].Document);
 
                 // Search documents
-                var searchBatch = Assert.Single(_searchDocuments.Batches);
+                var searchBatch = Assert.Single(_searchIndex.Batches);
                 AssertSearchBatch(
                     identity1.Id,
                     searchBatch,
@@ -366,8 +359,8 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
         private void ClearBatches()
         {
-            _hijackDocuments.Clear();
-            _searchDocuments.Clear();
+            _hijackIndex.Clear();
+            _searchIndex.Clear();
         }
 
         [Fact]
@@ -406,7 +399,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
                 // Assert
                 // Hijack documents
-                var hijackBatch = Assert.Single(_hijackDocuments.Batches);
+                var hijackBatch = Assert.Single(_hijackIndex.Batches);
                 var actions = hijackBatch.Actions.OrderBy(x => x.Document.Key).ToList();
                 Assert.Equal(2, actions.Count);
                 Assert.Equal(
@@ -421,7 +414,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 Assert.IsType<HijackDocument.Full>(actions[1].Document);
 
                 // Search documents
-                var searchBatch = Assert.Single(_searchDocuments.Batches);
+                var searchBatch = Assert.Single(_searchIndex.Batches);
                 AssertSearchBatch(
                     identity1.Id,
                     searchBatch,
@@ -497,7 +490,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
                 // Assert
                 // Hijack documents
-                var hijackBatch = Assert.Single(_hijackDocuments.Batches);
+                var hijackBatch = Assert.Single(_hijackIndex.Batches);
                 var actions = hijackBatch.Actions.OrderBy(x => x.Document.Key).ToList();
                 Assert.Equal(2, actions.Count);
                 Assert.Equal(
@@ -512,7 +505,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
                 Assert.IsType<KeyedDocument>(actions[1].Document);
 
                 // Search documents
-                var searchBatch = Assert.Single(_searchDocuments.Batches);
+                var searchBatch = Assert.Single(_searchIndex.Batches);
                 AssertSearchBatch(
                     identity1.Id,
                     searchBatch,
@@ -602,7 +595,7 @@ namespace NuGet.Services.AzureSearch.Catalog2AzureSearch.Integration
 
         private static void AssertSearchBatch(
             string packageId,
-            IndexBatch<KeyedDocument> batch,
+            IndexDocumentsBatch<KeyedDocument> batch,
             IndexActionType exDefault,
             IndexActionType exIncludePrerelease,
             IndexActionType exIncludeSemVer2,

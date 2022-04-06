@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
 using Moq;
 using NuGet.Services.AzureSearch.Wrappers;
 using NuGetGallery;
@@ -28,8 +30,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.V2SearchWithSearchIndex(_v2Request),
                     Times.Once);
-                _searchOperations.Verify(
-                    x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()),
+                _searchIndex.Verify(
+                    x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchOptions>()),
                     Times.Never);
                 _responseBuilder.Verify(
                     x => x.EmptyV2(_v2Request),
@@ -47,7 +49,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.V2SearchWithSearchIndex(_v2Request),
                     Times.Once);
-                _searchOperations.Verify(
+                _searchIndex.Verify(
                     x => x.SearchAsync<SearchDocument.Full>(_text, _parameters),
                     Times.Once);
                 _responseBuilder.Verify(
@@ -94,7 +96,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.V2SearchWithSearchIndex(_v2Request),
                     Times.Once);
-                _searchOperations.Verify(
+                _searchIndex.Verify(
                     x => x.GetOrNullAsync<SearchDocument.Full>(_key),
                     Times.Once);
                 _responseBuilder.Verify(
@@ -117,8 +119,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.V2SearchWithHijackIndex(_v2Request),
                     Times.Once);
-                _searchOperations.Verify(
-                    x => x.SearchAsync<HijackDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()),
+                _searchIndex.Verify(
+                    x => x.SearchAsync<HijackDocument.Full>(It.IsAny<string>(), It.IsAny<SearchOptions>()),
                     Times.Never);
                 _responseBuilder.Verify(
                     x => x.EmptyV2(_v2Request),
@@ -136,7 +138,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.V2SearchWithHijackIndex(_v2Request),
                     Times.Once);
-                _hijackOperations.Verify(
+                _hijackIndex.Verify(
                     x => x.SearchAsync<HijackDocument.Full>(_text, _parameters),
                     Times.Once);
                 _responseBuilder.Verify(
@@ -168,7 +170,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.V2SearchWithHijackIndex(_v2Request),
                     Times.Once);
-                _hijackOperations.Verify(
+                _hijackIndex.Verify(
                     x => x.GetOrNullAsync<HijackDocument.Full>(_key),
                     Times.Once);
                 _responseBuilder.Verify(
@@ -193,8 +195,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.V3Search(_v3Request),
                     Times.Once);
-                _searchOperations.Verify(
-                    x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()),
+                _searchIndex.Verify(
+                    x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchOptions>()),
                     Times.Never);
                 _responseBuilder.Verify(
                     x => x.EmptyV3(_v3Request),
@@ -210,7 +212,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.V3Search(_v3Request),
                     Times.Once);
-                _searchOperations.Verify(
+                _searchIndex.Verify(
                     x => x.SearchAsync<SearchDocument.Full>(_text, _parameters),
                     Times.Once);
                 _responseBuilder.Verify(
@@ -232,7 +234,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.V3Search(_v3Request),
                     Times.Once);
-                _searchOperations.Verify(
+                _searchIndex.Verify(
                     x => x.GetOrNullAsync<SearchDocument.Full>(_key),
                     Times.Once);
                 _responseBuilder.Verify(
@@ -257,8 +259,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.Autocomplete(_autocompleteRequest),
                     Times.Once);
-                _searchOperations.Verify(
-                    x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()),
+                _searchIndex.Verify(
+                    x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchOptions>()),
                     Times.Never);
                 _responseBuilder.Verify(
                     x => x.EmptyAutocomplete(_autocompleteRequest),
@@ -274,7 +276,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.Autocomplete(_autocompleteRequest),
                     Times.Once);
-                _searchOperations.Verify(
+                _searchIndex.Verify(
                     x => x.SearchAsync<SearchDocument.Full>(_text, _parameters),
                     Times.Once);
                 _responseBuilder.Verify(
@@ -295,7 +297,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _operationBuilder.Verify(
                     x => x.Autocomplete(_autocompleteRequest),
                     Times.Once);
-                _searchOperations.Verify(
+                _searchIndex.Verify(
                     x => x.GetOrNullAsync<SearchDocument.Full>(It.IsAny<string>()),
                     Times.Never);
                 _telemetryService.Verify(
@@ -307,10 +309,8 @@ namespace NuGet.Services.AzureSearch.SearchService
         public abstract class BaseFacts
         {
             protected readonly Mock<IIndexOperationBuilder> _operationBuilder;
-            protected readonly Mock<ISearchIndexClientWrapper> _searchIndex;
-            protected readonly Mock<IDocumentsOperationsWrapper> _searchOperations;
-            protected readonly Mock<ISearchIndexClientWrapper> _hijackIndex;
-            protected readonly Mock<IDocumentsOperationsWrapper> _hijackOperations;
+            protected readonly Mock<ISearchClientWrapper> _searchIndex;
+            protected readonly Mock<ISearchClientWrapper> _hijackIndex;
             protected readonly Mock<ISearchResponseBuilder> _responseBuilder;
             protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
             protected readonly V2SearchRequest _v2Request;
@@ -318,11 +318,11 @@ namespace NuGet.Services.AzureSearch.SearchService
             protected readonly AutocompleteRequest _autocompleteRequest;
             protected readonly string _key;
             protected readonly string _text;
-            protected readonly SearchParameters _parameters;
+            protected readonly SearchOptions _parameters;
             protected IndexOperation _operation;
-            protected readonly DocumentSearchResult<SearchDocument.Full> _searchResult;
+            protected readonly SingleSearchResultPage<SearchDocument.Full> _searchResult;
             protected readonly SearchDocument.Full _searchDocument;
-            protected readonly DocumentSearchResult<HijackDocument.Full> _hijackResult;
+            protected readonly SingleSearchResultPage<HijackDocument.Full> _hijackResult;
             protected readonly HijackDocument.Full _hijackDocument;
             protected readonly V2SearchResponse _v2Response;
             protected readonly V3SearchResponse _v3Response;
@@ -332,10 +332,8 @@ namespace NuGet.Services.AzureSearch.SearchService
             public BaseFacts()
             {
                 _operationBuilder = new Mock<IIndexOperationBuilder>();
-                _searchIndex = new Mock<ISearchIndexClientWrapper>();
-                _searchOperations = new Mock<IDocumentsOperationsWrapper>();
-                _hijackIndex = new Mock<ISearchIndexClientWrapper>();
-                _hijackOperations = new Mock<IDocumentsOperationsWrapper>();
+                _searchIndex = new Mock<ISearchClientWrapper>();
+                _hijackIndex = new Mock<ISearchClientWrapper>();
                 _responseBuilder = new Mock<ISearchResponseBuilder>();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
 
@@ -344,11 +342,15 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _autocompleteRequest = new AutocompleteRequest();
                 _key = "key";
                 _text = "search";
-                _parameters = new SearchParameters();
+                _parameters = new SearchOptions();
                 _operation = IndexOperation.Search(_text, _parameters);
-                _searchResult = new DocumentSearchResult<SearchDocument.Full>();
+                _searchResult = new SingleSearchResultPage<SearchDocument.Full>(
+                    new List<SearchResult<SearchDocument.Full>>(),
+                    count: 0);
                 _searchDocument = new SearchDocument.Full();
-                _hijackResult = new DocumentSearchResult<HijackDocument.Full>();
+                _hijackResult = new SingleSearchResultPage<HijackDocument.Full>(
+                    new List<SearchResult<HijackDocument.Full>>(),
+                    count: 0);
                 _hijackDocument = new HijackDocument.Full();
                 _v2Response = new V2SearchResponse();
                 _v3Response = new V3SearchResponse();
@@ -368,19 +370,19 @@ namespace NuGet.Services.AzureSearch.SearchService
                     .Returns(() => _operation);
 
                 // Set up the search to take at least one millisecond. This allows us to test the measured duration.
-                _searchOperations
-                    .Setup(x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()))
+                _searchIndex
+                    .Setup(x => x.SearchAsync<SearchDocument.Full>(It.IsAny<string>(), It.IsAny<SearchOptions>()))
                     .ReturnsAsync(() => _searchResult)
                     .Callback(() => Thread.Sleep(TimeSpan.FromMilliseconds(1)));
-                _searchOperations
+                _searchIndex
                     .Setup(x => x.GetOrNullAsync<SearchDocument.Full>(It.IsAny<string>()))
                     .ReturnsAsync(() => _searchDocument)
                     .Callback(() => Thread.Sleep(TimeSpan.FromMilliseconds(1)));
-                _hijackOperations
-                    .Setup(x => x.SearchAsync<HijackDocument.Full>(It.IsAny<string>(), It.IsAny<SearchParameters>()))
+                _hijackIndex
+                    .Setup(x => x.SearchAsync<HijackDocument.Full>(It.IsAny<string>(), It.IsAny<SearchOptions>()))
                     .ReturnsAsync(() => _hijackResult)
                     .Callback(() => Thread.Sleep(TimeSpan.FromMilliseconds(1)));
-                _hijackOperations
+                _hijackIndex
                     .Setup(x => x.GetOrNullAsync<HijackDocument.Full>(It.IsAny<string>()))
                     .ReturnsAsync(() => _hijackDocument)
                     .Callback(() => Thread.Sleep(TimeSpan.FromMilliseconds(1)));
@@ -389,8 +391,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     .Setup(x => x.V2FromHijack(
                         It.IsAny<V2SearchRequest>(),
                         It.IsAny<string>(),
-                        It.IsAny<SearchParameters>(),
-                        It.IsAny<DocumentSearchResult<HijackDocument.Full>>(),
+                        It.IsAny<SearchOptions>(),
+                        It.IsAny<SingleSearchResultPage<HijackDocument.Full>>(),
                         It.IsAny<TimeSpan>()))
                     .Returns(() => _v2Response);
                 _responseBuilder
@@ -404,8 +406,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     .Setup(x => x.V2FromSearch(
                         It.IsAny<V2SearchRequest>(),
                         It.IsAny<string>(),
-                        It.IsAny<SearchParameters>(),
-                        It.IsAny<DocumentSearchResult<SearchDocument.Full>>(),
+                        It.IsAny<SearchOptions>(),
+                        It.IsAny<SingleSearchResultPage<SearchDocument.Full>>(),
                         It.IsAny<TimeSpan>()))
                     .Returns(() => _v2Response);
                 _responseBuilder
@@ -419,8 +421,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     .Setup(x => x.V3FromSearch(
                         It.IsAny<V3SearchRequest>(),
                         It.IsAny<string>(),
-                        It.IsAny<SearchParameters>(),
-                        It.IsAny<DocumentSearchResult<SearchDocument.Full>>(),
+                        It.IsAny<SearchOptions>(),
+                        It.IsAny<SingleSearchResultPage<SearchDocument.Full>>(),
                         It.IsAny<TimeSpan>()))
                     .Returns(() => _v3Response);
                 _responseBuilder
@@ -434,8 +436,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     .Setup(x => x.AutocompleteFromSearch(
                         It.IsAny<AutocompleteRequest>(),
                         It.IsAny<string>(),
-                        It.IsAny<SearchParameters>(),
-                        It.IsAny<DocumentSearchResult<SearchDocument.Full>>(),
+                        It.IsAny<SearchOptions>(),
+                        It.IsAny<SingleSearchResultPage<SearchDocument.Full>>(),
                         It.IsAny<TimeSpan>()))
                     .Returns(() => _autocompleteResponse);
                 _responseBuilder
@@ -447,9 +449,6 @@ namespace NuGet.Services.AzureSearch.SearchService
                 _responseBuilder
                     .Setup(x => x.EmptyAutocomplete(It.IsAny<AutocompleteRequest>()))
                     .Returns(() => _autocompleteResponse);
-
-                _searchIndex.Setup(x => x.Documents).Returns(() => _searchOperations.Object);
-                _hijackIndex.Setup(x => x.Documents).Returns(() => _hijackOperations.Object);
 
                 _target = new AzureSearchService(
                     _operationBuilder.Object,

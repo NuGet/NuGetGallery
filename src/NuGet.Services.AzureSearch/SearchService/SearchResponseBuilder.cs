@@ -4,9 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents;
 using Microsoft.Extensions.Options;
 using NuGet.Protocol.Registration;
+using NuGet.Services.AzureSearch.Wrappers;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
 
@@ -62,8 +63,8 @@ namespace NuGet.Services.AzureSearch.SearchService
         public V2SearchResponse V2FromHijack(
             V2SearchRequest request,
             string text,
-            SearchParameters searchParameters,
-            DocumentSearchResult<HijackDocument.Full> result,
+            SearchOptions searchParameters,
+            SingleSearchResultPage<HijackDocument.Full> result,
             TimeSpan duration)
         {
             return ToResponse(
@@ -79,8 +80,8 @@ namespace NuGet.Services.AzureSearch.SearchService
         public V2SearchResponse V2FromSearch(
             V2SearchRequest request,
             string text,
-            SearchParameters parameters,
-            DocumentSearchResult<SearchDocument.Full> result,
+            SearchOptions parameters,
+            SingleSearchResultPage<SearchDocument.Full> result,
             TimeSpan duration)
         {
             return ToResponse(
@@ -160,12 +161,12 @@ namespace NuGet.Services.AzureSearch.SearchService
         public V3SearchResponse V3FromSearch(
             V3SearchRequest request,
             string text,
-            SearchParameters parameters,
-            DocumentSearchResult<SearchDocument.Full> result,
+            SearchOptions parameters,
+            SingleSearchResultPage<SearchDocument.Full> result,
             TimeSpan duration)
         {
-            var results = result.Results;
-            result.Results = null;
+            var results = result.Values;
+            result.Values = null;
 
             var registrationsBaseUrl = GetRegistrationsBaseUrl(request.IncludeSemVer2);
 
@@ -195,12 +196,12 @@ namespace NuGet.Services.AzureSearch.SearchService
         public AutocompleteResponse AutocompleteFromSearch(
             AutocompleteRequest request,
             string text,
-            SearchParameters parameters,
-            DocumentSearchResult<SearchDocument.Full> result,
+            SearchOptions parameters,
+            SingleSearchResultPage<SearchDocument.Full> result,
             TimeSpan duration)
         {
-            var results = result.Results;
-            result.Results = null;
+            var results = result.Values;
+            result.Values = null;
 
             List<string> data;
             switch (request.Type)
@@ -298,16 +299,16 @@ namespace NuGet.Services.AzureSearch.SearchService
 
         private V2SearchResponse ToResponse<T>(
             V2SearchRequest request,
-            SearchParameters parameters,
+            SearchOptions parameters,
             string text,
             string indexName,
-            DocumentSearchResult<T> result,
+            SingleSearchResultPage<T> result,
             TimeSpan duration,
             Func<T, V2SearchPackage> toPackage)
             where T : class
         {
-            var results = result.Results;
-            result.Results = null;
+            var results = result.Values;
+            result.Values = null;
 
             if (request.CountOnly)
             {

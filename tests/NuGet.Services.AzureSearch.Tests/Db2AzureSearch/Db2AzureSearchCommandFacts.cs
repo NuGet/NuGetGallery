@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Protocol.Catalog;
@@ -85,8 +85,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _builder
                 .Setup(x => x.AddNewPackageRegistration(It.IsAny<NewPackageRegistration>()))
                 .Returns(() => new IndexActions(
-                    new IndexAction<KeyedDocument>[0],
-                    new IndexAction<KeyedDocument>[0],
+                    new IndexDocumentsAction<KeyedDocument>[0],
+                    new IndexDocumentsAction<KeyedDocument>[0],
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition())));
@@ -168,8 +168,8 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _builder
                 .Setup(x => x.AddNewPackageRegistration(It.IsAny<NewPackageRegistration>()))
                 .Returns<NewPackageRegistration>(x => new IndexActions(
-                    new List<IndexAction<KeyedDocument>> { IndexAction.Upload(new KeyedDocument { Key = x.PackageId }) },
-                    new List<IndexAction<KeyedDocument>>(),
+                    new List<IndexDocumentsAction<KeyedDocument>> { IndexDocumentsAction.Upload(new KeyedDocument { Key = x.PackageId }) },
+                    new List<IndexDocumentsAction<KeyedDocument>>(),
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition())));
@@ -216,16 +216,16 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _builder
                 .Setup(x => x.AddNewPackageRegistration(It.Is<NewPackageRegistration>(y => y.PackageId != "B")))
                 .Returns<NewPackageRegistration>(x => new IndexActions(
-                    new List<IndexAction<KeyedDocument>> { IndexAction.Upload(new KeyedDocument { Key = x.PackageId }) },
-                    new List<IndexAction<KeyedDocument>>(),
+                    new List<IndexDocumentsAction<KeyedDocument>> { IndexDocumentsAction.Upload(new KeyedDocument { Key = x.PackageId }) },
+                    new List<IndexDocumentsAction<KeyedDocument>>(),
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition())));
             _builder
                 .Setup(x => x.AddNewPackageRegistration(It.Is<NewPackageRegistration>(y => y.PackageId == "B")))
                 .Returns<NewPackageRegistration>(x => new IndexActions(
-                    new List<IndexAction<KeyedDocument>>(),
-                    new List<IndexAction<KeyedDocument>>(),
+                    new List<IndexDocumentsAction<KeyedDocument>>(),
+                    new List<IndexDocumentsAction<KeyedDocument>>(),
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         AccessConditionWrapper.GenerateEmptyCondition())));

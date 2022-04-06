@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
@@ -251,8 +251,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     new Mock<IAccessCondition>().Object);
                 Changes = new SortedDictionary<string, string[]>();
                 IndexActions = new IndexActions(
-                    new List<IndexAction<KeyedDocument>> { IndexAction.Merge(new KeyedDocument()) },
-                    new List<IndexAction<KeyedDocument>> { IndexAction.Merge(new KeyedDocument()) },
+                    new List<IndexDocumentsAction<KeyedDocument>> { IndexDocumentsAction.Merge(new KeyedDocument()) },
+                    new List<IndexDocumentsAction<KeyedDocument>> { IndexDocumentsAction.Merge(new KeyedDocument()) },
                     new ResultAndAccessCondition<VersionListData>(
                         new VersionListData(new Dictionary<string, VersionPropertiesData>()),
                         new Mock<IAccessCondition>().Object));

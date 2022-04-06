@@ -3,17 +3,14 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Newtonsoft.Json;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
     public class V2SearchResponse
     {
-        [JsonProperty("totalHits")]
         [JsonPropertyName("totalHits")]
         public long TotalHits { get; set; }
 
-        [JsonProperty("data")]
         [JsonPropertyName("data")]
         public List<V2SearchPackage> Data { get; set; }
 

@@ -1,8 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Indexes;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -16,17 +15,15 @@ namespace NuGet.Services.AzureSearch
         /// which has all fields available (as opposed to the catalog, which does not have all fields, like total
         /// download count).
         /// </summary>
-        [SerializePropertyNamesAsCamelCase]
         public class Full : UpdateLatest, IDownloadCount, IIsExcludedByDefault
         {
-            [IsFilterable]
-            [IsSortable]
+            [SimpleField(IsFilterable = true, IsSortable = true)]
             public long? TotalDownloadCount { get; set; }
 
-            [IsFilterable]
+            [SimpleField(IsFilterable = true)]
             public double? DownloadScore { get; set; }
 
-            [IsFilterable]
+            [SimpleField(IsFilterable = true)]
             public bool? IsExcludedByDefault { get; set; }
         }
 
@@ -34,17 +31,15 @@ namespace NuGet.Services.AzureSearch
         /// Used when processing <see cref="SearchIndexChangeType.AddFirst"/>,
         /// <see cref="SearchIndexChangeType.UpdateLatest"/> or <see cref="SearchIndexChangeType.DowngradeLatest"/>.
         /// </summary>
-        [SerializePropertyNamesAsCamelCase]
         public class UpdateLatest : BaseMetadataDocument, IVersions, IOwners
         {
-            [IsSearchable]
-            [Analyzer(ExactMatchCustomAnalyzer.Name)]
+            [SearchableField(AnalyzerName = ExactMatchCustomAnalyzer.Name)]
             public string[] Owners { get; set; }
 
-            [IsFilterable]
+            [SimpleField(IsFilterable = true)]
             public string SearchFilters { get; set; }
 
-            [IsFilterable]
+            [SimpleField(IsFilterable = true)]
             public string[] FilterablePackageTypes { get; set; }
 
             public string FullVersion { get; set; }
@@ -60,7 +55,6 @@ namespace NuGet.Services.AzureSearch
         /// need any analyzer or other Azure Search attributes since it is not used for index creation. The
         /// <see cref="Full"/> and its parent classes handle this.
         /// </summary>
-        [SerializePropertyNamesAsCamelCase]
         public class UpdateVersionListAndOwners : UpdateVersionList, IOwners
         {
             public string[] Owners { get; set; }
@@ -69,7 +63,6 @@ namespace NuGet.Services.AzureSearch
         /// <summary>
         /// Used when processing <see cref="SearchIndexChangeType.UpdateVersionList"/>.
         /// </summary>
-        [SerializePropertyNamesAsCamelCase]
         public class UpdateVersionList : CommittedDocument, IVersions
         {
             public string[] Versions { get; set; }
@@ -82,7 +75,6 @@ namespace NuGet.Services.AzureSearch
         /// other Azure Search attributes since it is not used for index creation. The <see cref="Full"/> and its
         /// parent classes handle this.
         /// </summary>
-        [SerializePropertyNamesAsCamelCase]
         public class UpdateOwners : UpdatedDocument, IOwners
         {
             public string[] Owners { get; set; }
@@ -93,7 +85,6 @@ namespace NuGet.Services.AzureSearch
         /// not need any analyzer or other Azure Search attributes since it is not used for index creation. The
         /// <see cref="Full"/> and its parent classes handle this.
         /// </summary>
-        [SerializePropertyNamesAsCamelCase]
         public class UpdateDownloadCount : UpdatedDocument, IDownloadCount
         {
             public long? TotalDownloadCount { get; set; }

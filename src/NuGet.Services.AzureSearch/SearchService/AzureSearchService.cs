@@ -12,15 +12,15 @@ namespace NuGet.Services.AzureSearch.SearchService
     public class AzureSearchService : ISearchService
     {
         private readonly IIndexOperationBuilder _operationBuilder;
-        private readonly ISearchIndexClientWrapper _searchIndex;
-        private readonly ISearchIndexClientWrapper _hijackIndex;
+        private readonly ISearchClientWrapper _searchIndex;
+        private readonly ISearchClientWrapper _hijackIndex;
         private readonly ISearchResponseBuilder _responseBuilder;
         private readonly IAzureSearchTelemetryService _telemetryService;
 
         public AzureSearchService(
             IIndexOperationBuilder operationBuilder,
-            ISearchIndexClientWrapper searchIndex,
-            ISearchIndexClientWrapper hijackIndex,
+            ISearchClientWrapper searchIndex,
+            ISearchClientWrapper hijackIndex,
             ISearchResponseBuilder responseBuilder,
             IAzureSearchTelemetryService telemetryService)
         {
@@ -61,7 +61,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 case IndexOperationType.Get:
                     var documentResult = await Measure.DurationWithValueAsync(
-                        () => _searchIndex.Documents.GetOrNullAsync<SearchDocument.Full>(operation.DocumentKey));
+                        () => _searchIndex.GetOrNullAsync<SearchDocument.Full>(operation.DocumentKey));
 
                     output = _responseBuilder.V3FromSearchDocument(
                         request,
@@ -73,7 +73,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     break;
 
                 case IndexOperationType.Search:
-                    var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
+                    var result = await Measure.DurationWithValueAsync(() => _searchIndex.SearchAsync<SearchDocument.Full>(
                         operation.SearchText,
                         operation.SearchParameters));
 
@@ -106,7 +106,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             switch (operation.Type)
             {
                 case IndexOperationType.Search:
-                    var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
+                    var result = await Measure.DurationWithValueAsync(() => _searchIndex.SearchAsync<SearchDocument.Full>(
                         operation.SearchText,
                         operation.SearchParameters));
 
@@ -140,7 +140,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 case IndexOperationType.Get:
                     var documentResult = await Measure.DurationWithValueAsync(
-                        () => _hijackIndex.Documents.GetOrNullAsync<HijackDocument.Full>(operation.DocumentKey));
+                        () => _hijackIndex.GetOrNullAsync<HijackDocument.Full>(operation.DocumentKey));
 
                     // If the request is excluding SemVer 2.0.0 packages and the document is SemVer 2.0.0, filter it
                     // out. The must be done after fetching the document because some SemVer 2.0.0 packages are
@@ -175,7 +175,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     break;
 
                 case IndexOperationType.Search:
-                    var result = await Measure.DurationWithValueAsync(() => _hijackIndex.Documents.SearchAsync<HijackDocument.Full>(
+                    var result = await Measure.DurationWithValueAsync(() => _hijackIndex.SearchAsync<HijackDocument.Full>(
                         operation.SearchText,
                         operation.SearchParameters));
 
@@ -209,7 +209,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             {
                 case IndexOperationType.Get:
                     var documentResult = await Measure.DurationWithValueAsync(
-                        () => _searchIndex.Documents.GetOrNullAsync<SearchDocument.Full>(operation.DocumentKey));
+                        () => _searchIndex.GetOrNullAsync<SearchDocument.Full>(operation.DocumentKey));
 
                     output = _responseBuilder.V2FromSearchDocument(
                         request,
@@ -221,7 +221,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                     break;
 
                 case IndexOperationType.Search:
-                    var result = await Measure.DurationWithValueAsync(() => _searchIndex.Documents.SearchAsync<SearchDocument.Full>(
+                    var result = await Measure.DurationWithValueAsync(() => _searchIndex.SearchAsync<SearchDocument.Full>(
                         operation.SearchText,
                         operation.SearchParameters));
 

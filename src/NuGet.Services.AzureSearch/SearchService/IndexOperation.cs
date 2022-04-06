@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
@@ -11,7 +11,7 @@ namespace NuGet.Services.AzureSearch.SearchService
             IndexOperationType type,
             string documentKey,
             string searchText,
-            SearchParameters searchParameters)
+            SearchOptions searchParameters)
         {
             Type = type;
             DocumentKey = documentKey;
@@ -40,7 +40,7 @@ namespace NuGet.Services.AzureSearch.SearchService
         /// The parameters to use for an Azure Search query.
         /// Used when <see cref="Type"/> is <see cref="IndexOperationType.Search"/>.
         /// </summary>
-        public SearchParameters SearchParameters { get; }
+        public SearchOptions SearchParameters { get; }
 
         public static IndexOperation Get(string documentKey)
         {
@@ -51,7 +51,7 @@ namespace NuGet.Services.AzureSearch.SearchService
                 searchParameters: null);
         }
 
-        public static IndexOperation Search(string text, SearchParameters parameters)
+        public static IndexOperation Search(string text, SearchOptions parameters)
         {
             return new IndexOperation(
                 IndexOperationType.Search,
