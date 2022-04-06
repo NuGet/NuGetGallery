@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Moq;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Catalog;

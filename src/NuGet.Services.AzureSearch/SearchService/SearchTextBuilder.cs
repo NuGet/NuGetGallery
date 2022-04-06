@@ -262,13 +262,20 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             // Handle the exact match case. If the search query is a single unscoped term is also a valid package
-            // ID, mega boost the document that has this package ID. Only consider the query to be a package ID has
-            // symbols (a.k.a. separators) in it.
+            // ID, mega boost the document that has this package ID. Treat queries with symbols (a.k.a. separators)
+            // differently. This is to handle a case where some exact matches (e.g. "entity" are not very good results).
             if (scopedTerms.Count == 0
                 && unscopedTerms.Count == 1
-                && IsIdWithSeparator(unscopedTerms[0]))
+                && IsId(unscopedTerms[0]))
             {
-                builder.AppendExactMatchPackageIdBoost(unscopedTerms[0], _options.Value.ExactMatchBoost);
+                if (unscopedTerms[0].IndexOfAny(PackageIdSeparators) >= 0)
+                {
+                    builder.AppendExactMatchPackageIdBoost(unscopedTerms[0], _options.Value.ExactMatchBoost);
+                }
+                else if (_options.Value.ExactMatchWithSeparatorsBoost != 0)
+                {
+                    builder.AppendExactMatchPackageIdBoost(unscopedTerms[0], _options.Value.ExactMatchWithSeparatorsBoost);
+                }
             }
 
             if (!parsed.IncludeTestData)
@@ -315,11 +322,6 @@ namespace NuGet.Services.AzureSearch.SearchService
         {
             return query.Length <= PackageIdValidator.MaxPackageIdLength
                 && PackageIdValidator.IsValidPackageId(query);
-        }
-
-        private static bool IsIdWithSeparator(string query)
-        {
-            return query.IndexOfAny(PackageIdSeparators) >= 0 && IsId(query);
         }
 
         /// <summary>

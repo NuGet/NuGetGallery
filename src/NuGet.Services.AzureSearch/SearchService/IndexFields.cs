@@ -1,17 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Newtonsoft.Json.Serialization;
+using System.Text.Json;
 
 namespace NuGet.Services.AzureSearch.SearchService
 {
     public static class IndexFields
     {
-        private static readonly NamingStrategy CamelCaseNamingStrategy = new CamelCaseNamingStrategy();
-
         private static string Name(string input)
         {
-            return CamelCaseNamingStrategy.GetPropertyName(input, hasSpecifiedName: false);
+            return JsonNamingPolicy.CamelCase.ConvertName(input);
         }
 
         public static readonly string Authors = Name(nameof(BaseMetadataDocument.Authors));

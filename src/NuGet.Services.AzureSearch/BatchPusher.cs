@@ -8,11 +8,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
+using Azure;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Rest.Azure;
 using NuGet.Packaging;
 using NuGet.Services.AzureSearch.Wrappers;
 
@@ -20,29 +19,29 @@ namespace NuGet.Services.AzureSearch
 {
     public class BatchPusher : IBatchPusher
     {
-        private readonly ISearchIndexClientWrapper _searchIndexClient;
-        private readonly ISearchIndexClientWrapper _hijackIndexClient;
+        private readonly ISearchClientWrapper _searchIndex;
+        private readonly ISearchClientWrapper _hijackIndex;
         private readonly IVersionListDataClient _versionListDataClient;
         private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
         private readonly IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration> _developmentOptions;
         private readonly IAzureSearchTelemetryService _telemetryService;
         private readonly ILogger<BatchPusher> _logger;
         internal readonly Dictionary<string, int> _idReferenceCount;
-        internal readonly Queue<IdAndValue<IndexAction<KeyedDocument>>> _searchActions;
-        internal readonly Queue<IdAndValue<IndexAction<KeyedDocument>>> _hijackActions;
+        internal readonly Queue<IdAndValue<IndexDocumentsAction<KeyedDocument>>> _searchActions;
+        internal readonly Queue<IdAndValue<IndexDocumentsAction<KeyedDocument>>> _hijackActions;
         internal readonly Dictionary<string, ResultAndAccessCondition<VersionListData>> _versionListDataResults;
 
         public BatchPusher(
-            ISearchIndexClientWrapper searchIndexClient,
-            ISearchIndexClientWrapper hijackIndexClient,
+            ISearchClientWrapper searchIndexClient,
+            ISearchClientWrapper hijackIndexClient,
             IVersionListDataClient versionListDataClient,
             IOptionsSnapshot<AzureSearchJobConfiguration> options,
             IOptionsSnapshot<AzureSearchJobDevelopmentConfiguration> developmentOptions,
             IAzureSearchTelemetryService telemetryService,
             ILogger<BatchPusher> logger)
         {
-            _searchIndexClient = searchIndexClient ?? throw new ArgumentNullException(nameof(searchIndexClient));
-            _hijackIndexClient = hijackIndexClient ?? throw new ArgumentNullException(nameof(hijackIndexClient));
+            _searchIndex = searchIndexClient ?? throw new ArgumentNullException(nameof(searchIndexClient));
+            _hijackIndex = hijackIndexClient ?? throw new ArgumentNullException(nameof(hijackIndexClient));
             _versionListDataClient = versionListDataClient ?? throw new ArgumentNullException(nameof(versionListDataClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _developmentOptions = developmentOptions ?? throw new ArgumentNullException(nameof(developmentOptions));
@@ -50,8 +49,8 @@ namespace NuGet.Services.AzureSearch
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _idReferenceCount = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-            _searchActions = new Queue<IdAndValue<IndexAction<KeyedDocument>>>();
-            _hijackActions = new Queue<IdAndValue<IndexAction<KeyedDocument>>>();
+            _searchActions = new Queue<IdAndValue<IndexDocumentsAction<KeyedDocument>>>();
+            _hijackActions = new Queue<IdAndValue<IndexDocumentsAction<KeyedDocument>>>();
             _versionListDataResults = new Dictionary<string, ResultAndAccessCondition<VersionListData>>();
 
             if (_options.Value.MaxConcurrentVersionListWriters <= 0)
@@ -107,14 +106,14 @@ namespace NuGet.Services.AzureSearch
         private async Task<BatchPusherResult> TryPushBatchesAsync(bool onlyFull)
         {
             var failedPackageIds = new List<string>();
-            failedPackageIds.AddRange(await PushBatchesAsync(_hijackIndexClient, _hijackActions, onlyFull));
-            failedPackageIds.AddRange(await PushBatchesAsync(_searchIndexClient, _searchActions, onlyFull));
+            failedPackageIds.AddRange(await PushBatchesAsync(_hijackIndex, _hijackActions, onlyFull));
+            failedPackageIds.AddRange(await PushBatchesAsync(_searchIndex, _searchActions, onlyFull));
             return new BatchPusherResult(failedPackageIds);
         }
 
         private async Task<List<string>> PushBatchesAsync(
-            ISearchIndexClientWrapper indexClient,
-            Queue<IdAndValue<IndexAction<KeyedDocument>>> actions,
+            ISearchClientWrapper indexClient,
+            Queue<IdAndValue<IndexDocumentsAction<KeyedDocument>>> actions,
             bool onlyFull)
         {
             var failedPackageIds = new List<string>();
@@ -122,7 +121,7 @@ namespace NuGet.Services.AzureSearch
                 || (!onlyFull && actions.Count > 0))
             {
                 var allFinished = new List<IdAndValue<ResultAndAccessCondition<VersionListData>>>();
-                var batch = new List<IndexAction<KeyedDocument>>();
+                var batch = new List<IndexDocumentsAction<KeyedDocument>>();
 
                 while (batch.Count < _options.Value.AzureSearchBatchSize && actions.Count > 0)
                 {
@@ -161,8 +160,8 @@ namespace NuGet.Services.AzureSearch
         }
 
         private async Task IndexAsync(
-            ISearchIndexClientWrapper indexClient,
-            IReadOnlyCollection<IndexAction<KeyedDocument>> batch)
+            ISearchClientWrapper indexClient,
+            IReadOnlyList<IndexDocumentsAction<KeyedDocument>> batch)
         {
             if (batch.Count == 0)
             {
@@ -179,31 +178,19 @@ namespace NuGet.Services.AzureSearch
                 batch.Count,
                 indexClient.IndexName);
 
-            IList<IndexingResult> indexingResults = null;
-            Exception innerException = null;
+            IReadOnlyList<IndexingResult> indexingResults = null;
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                var batchResults = await indexClient.Documents.IndexAsync(new IndexBatch<KeyedDocument>(batch));
+                var batchInput = new IndexDocumentsBatch<KeyedDocument>();
+                batchInput.Actions.AddRange(batch);
+                var batchResults = await indexClient.IndexAsync(batchInput);
                 indexingResults = batchResults.Results;
 
                 stopwatch.Stop();
                 _telemetryService.TrackIndexPushSuccess(indexClient.IndexName, batch.Count, stopwatch.Elapsed);
             }
-            catch (IndexBatchException ex)
-            {
-                stopwatch.Stop();
-                _telemetryService.TrackIndexPushFailure(indexClient.IndexName, batch.Count, stopwatch.Elapsed);
-
-                _logger.LogError(
-                    0,
-                    ex,
-                    "An exception was thrown while sending documents to index {IndexName}.",
-                    indexClient.IndexName);
-                indexingResults = ex.IndexingResults;
-                innerException = ex;
-            }
-            catch (CloudException ex) when (ex.Response.StatusCode == HttpStatusCode.RequestEntityTooLarge && batch.Count > 1)
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.RequestEntityTooLarge && batch.Count > 1)
             {
                 stopwatch.Stop();
                 _telemetryService.TrackIndexPushSplit(indexClient.IndexName, batch.Count);
@@ -239,7 +226,7 @@ namespace NuGet.Services.AzureSearch
                                 "Indexing document with key {Key} failed for index {IndexName}. {StatusCode}: {ErrorMessage}",
                                 result.Key,
                                 indexClient.IndexName,
-                                result.StatusCode,
+                                result.Status,
                                 result.ErrorMessage);
                         }
 
@@ -256,7 +243,7 @@ namespace NuGet.Services.AzureSearch
                         Math.Min(errorCount, errorsToLog));
                     throw new InvalidOperationException(
                         $"Errors were found when indexing a batch. Up to {errorsToLog} errors get logged.",
-                        innerException);
+                        new IndexBatchException(indexingResults));
                 }
             }
         }

@@ -2,30 +2,32 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
+using Azure;
+using Azure.Core.Serialization;
+using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents.Indexes.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch.ScoringProfiles;
 using NuGet.Services.AzureSearch.Wrappers;
-using Index = Microsoft.Azure.Search.Models.Index;
 
 namespace NuGet.Services.AzureSearch
 {
     public class IndexBuilder : IIndexBuilder
     {
-        private readonly ISearchServiceClientWrapper _serviceClient;
+        private readonly ISearchIndexClientWrapper _searchIndexClient;
         private readonly IOptionsSnapshot<AzureSearchJobConfiguration> _options;
         private readonly ILogger<IndexBuilder> _logger;
 
         public IndexBuilder(
-            ISearchServiceClientWrapper serviceClient,
+            ISearchIndexClientWrapper searchIndexClient,
             IOptionsSnapshot<AzureSearchJobConfiguration> options,
             ILogger<IndexBuilder> logger)
         {
-            _serviceClient = serviceClient ?? throw new ArgumentNullException(nameof(serviceClient));
+            _searchIndexClient = searchIndexClient ?? throw new ArgumentNullException(nameof(searchIndexClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -62,10 +64,10 @@ namespace NuGet.Services.AzureSearch
 
         private async Task DeleteIndexIfExistsAsync(string indexName)
         {
-            if (await _serviceClient.Indexes.ExistsAsync(indexName))
+            if (await IndexExistsAsync(indexName))
             {
                 _logger.LogWarning("Deleting index {IndexName}.", indexName);
-                await _serviceClient.Indexes.DeleteAsync(indexName);
+                await _searchIndexClient.DeleteIndexAsync(indexName);
                 _logger.LogWarning("Done deleting index {IndexName}.", indexName);
             }
             else
@@ -74,16 +76,16 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
-        private async Task CreateIndexAsync(Index index)
+        private async Task CreateIndexAsync(SearchIndex index)
         {
             _logger.LogInformation("Creating index {IndexName}.", index.Name);
-            await _serviceClient.Indexes.CreateAsync(index);
+            await _searchIndexClient.CreateIndexAsync(index);
             _logger.LogInformation("Done creating index {IndexName}.", index.Name);
         }
 
-        private async Task CreateIndexIfNotExistsAsync(Index index)
+        private async Task CreateIndexIfNotExistsAsync(SearchIndex index)
         {
-            if (!(await _serviceClient.Indexes.ExistsAsync(index.Name)))
+            if (!(await IndexExistsAsync(index.Name)))
             {
                 await CreateIndexAsync(index);
             }
@@ -93,36 +95,60 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
-        private Index InitializeSearchIndex()
+        private SearchIndex InitializeSearchIndex()
         {
             return InitializeIndex<SearchDocument.Full>(
                 _options.Value.SearchIndexName, addScoringProfile: true);
         }
 
-        private Index InitializeHijackIndex()
+        private SearchIndex InitializeHijackIndex()
         {
             return InitializeIndex<HijackDocument.Full>(
                 _options.Value.HijackIndexName, addScoringProfile: false);
         }
 
-        private Index InitializeIndex<TDocument>(string name, bool addScoringProfile)
+        private async Task<bool> IndexExistsAsync(string name)
         {
-            var index = new Index
+            try
             {
-                Name = name,
-                Fields = FieldBuilder.BuildForType<TDocument>(),
-                Analyzers = new List<Analyzer>
+                await _searchIndexClient.GetIndexAsync(name);
+                return true;
+            }
+            catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+        }
+
+        public static JsonObjectSerializer GetJsonSerializer()
+        {
+            return new JsonObjectSerializer(new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Converters = { KeyedDocumentConverter.Instance },
+            });
+        }
+
+        private SearchIndex InitializeIndex<TDocument>(string name, bool addScoringProfile)
+        {
+            var fieldBuilder = new FieldBuilder();
+            fieldBuilder.Serializer = GetJsonSerializer();
+
+            var index = new SearchIndex(name)
+            {
+                Fields = fieldBuilder.Build(typeof(TDocument)),
+                Analyzers =
                 {
                     DescriptionAnalyzer.Instance,
                     ExactMatchCustomAnalyzer.Instance,
                     PackageIdCustomAnalyzer.Instance,
                     TagsCustomAnalyzer.Instance
                 },
-                Tokenizers = new List<Tokenizer>
+                Tokenizers =
                 {
                     PackageIdCustomTokenizer.Instance,
                 },
-                TokenFilters = new List<TokenFilter>
+                TokenFilters =
                 {
                     IdentifierCustomTokenFilter.Instance,
                     TruncateCustomTokenFilter.Instance,
@@ -133,7 +159,7 @@ namespace NuGet.Services.AzureSearch
             {
                 var scoringProfile = DefaultScoringProfile.Create(_options.Value.Scoring);
 
-                index.ScoringProfiles = new List<ScoringProfile> { scoringProfile };
+                index.ScoringProfiles.Add(scoringProfile);
                 index.DefaultScoringProfile = DefaultScoringProfile.Name;
             }
 

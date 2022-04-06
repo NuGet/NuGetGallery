@@ -71,13 +71,13 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Theory]
-            [InlineData("foo", false, false, "+foo* -owners:TestUserA -owners:TestUserB")]
+            [InlineData("foo", false, false, "+foo* packageId:foo^10 -owners:TestUserA -owners:TestUserB")]
             [InlineData("", false, false, "packageId:/.*/ -owners:TestUserA -owners:TestUserB")]
-            [InlineData("foo", true, false, "+foo*")]
+            [InlineData("foo", true, false, "+foo* packageId:foo^10")]
             [InlineData("", true, false, "*")]
-            [InlineData("foo", false, true, "+foo*")]
+            [InlineData("foo", false, true, "+foo* packageId:foo^10")]
             [InlineData("", false, true, "*")]
-            [InlineData("foo", true, true, "+foo*")]
+            [InlineData("foo", true, true, "+foo* packageId:foo^10")]
             [InlineData("", true, true, "*")]
             public void CanExcludeTestData(string query, bool ignoreFilter, bool includeTestData, string expected)
             {
@@ -140,9 +140,9 @@ namespace NuGet.Services.AzureSearch.SearchService
             }
 
             [Theory]
-            [InlineData("foo", false, "+foo* -owners:TestUserA -owners:TestUserB")]
+            [InlineData("foo", false, "+foo* packageId:foo^10 -owners:TestUserA -owners:TestUserB")]
             [InlineData("", false, "packageId:/.*/ -owners:TestUserA -owners:TestUserB")]
-            [InlineData("foo", true, "+foo*")]
+            [InlineData("foo", true, "+foo* packageId:foo^10")]
             [InlineData("", true, "*")]
             public void CanExcludeTestData(string query, bool includeTestData, string expected)
             {
@@ -320,8 +320,8 @@ namespace NuGet.Services.AzureSearch.SearchService
                     // If there are no field-scoped terms, results that prefix match the last term are boosted
                     // Results that match all terms are boosted.
                     // Results that match all terms after tokenization are boosted.
-                    { "foo", "+foo*" },
-                    { "foobar", "+foobar* foobar^2" },
+                    { "foo", "+foo* packageId:foo^10" },
+                    { "foobar", "+foobar* foobar^2 packageId:foobar^10" },
                     { "foo bar", "+foo +bar*" },
                     { "foo.bar baz.qux", "+foo +bar +baz +qux*" },
                     { "id packageId VERSION Title description tag author summary owner owners",
@@ -346,17 +346,17 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { "foo_bar buzz", "+foo +bar +buzz* buzz^2" },
                     { "foo-bar buzz", "+foo +bar +buzz* buzz^2" },
                     { "foo,bar, buzz", "+foo +bar +buzz* buzz^2" },
-                    { "fooBar", "+(foobar* (+foo +Bar)) foobar^2" },
+                    { "fooBar", "+(foobar* (+foo +Bar)) foobar^2 packageId:fooBar^10" },
                     { "fooBar.", "+(foobar* (+foo +Bar)) foobar^2 packageId:fooBar.*^100" },
                     { "fooBar buzz", "+(foobar (+foo +Bar)) foobar^2 +buzz* buzz^2" },
-                    { "foo5", "+(foo5* (+foo +5)) foo5^2" },
+                    { "foo5", "+(foo5* (+foo +5)) foo5^2 packageId:foo5^10" },
                     { "foo5 buzz", "+(foo5 (+foo +5)) foo5^2 +buzz* buzz^2" },
                     { "FOO5 buzz", "+(foo5 (+FOO +5)) foo5^2 +buzz* buzz^2" },
                     { "5FOO buzz", "+(5foo (+5 +FOO)) 5foo^2 +buzz* buzz^2" },
-                    { "foo5foo", "+(foo5foo* (+foo +5)) foo5foo^2" },
-                    { "FOO5FOO", "+(foo5foo* (+FOO +5)) foo5foo^2" },
-                    { "fooFoo", "+foofoo* foofoo^2" },
-                    { "FOOFoo", "+foofoo* foofoo^2" },
+                    { "foo5foo", "+(foo5foo* (+foo +5)) foo5foo^2 packageId:foo5foo^10" },
+                    { "FOO5FOO", "+(foo5foo* (+FOO +5)) foo5foo^2 packageId:FOO5FOO^10" },
+                    { "fooFoo", "+foofoo* foofoo^2 packageId:fooFoo^10" },
+                    { "FOOFoo", "+foofoo* foofoo^2 packageId:FOOFoo^10" },
 
                     // Phrases are supported in queries
                     { @"""foo bar""", @"+foo\ bar* ""foo bar""^2" },
@@ -371,23 +371,23 @@ namespace NuGet.Services.AzureSearch.SearchService
                     { @"json Tags:""net Tags:""windows sdk""", @"+tags:(net Tags\:) +json json^2 +windows windows^2 +sdk*" },
                     { @"sdk Tags:""windows", "+tags:windows +sdk*" },
                     { @"Tags:""windows sdk", "tags:(windows sdk)" },
-                    { @"Tags:""""windows""", "+windows* windows^2" },
+                    { @"Tags:""""windows""", "+windows* windows^2 packageId:windows^10" },
 
                     // Empty quotes are ignored
                     { @"Tags:""""", @"*" },
                     { @"Tags:"" """, @"*" },
                     { @"Tags:""      """, @"*" },
-                    { @"windows Tags:""      """, @"+windows* windows^2" },
+                    { @"windows Tags:""      """, @"+windows* windows^2 packageId:windows^10" },
                     { @"windows Tags:""      "" Tags:sdk", @"+tags:sdk +windows* windows^2" },
 
                     // Duplicate search terms on the same query field are folded
-                    { "a a", "+a*" },
+                    { "a a", "+a* packageId:a^10" },
                     { "title:a title:a", "title:a" },
                     { "tag:a tags:a", "tags:a" },
                     { "tags:a,a", "tags:a" },
 
                     // Single word query terms are unquoted.
-                    { @"""a""", "+a*" },
+                    { @"""a""", "+a* packageId:a^10" },
                     { @"title:""a""", "title:a" },
 
                     // Lucene keywords are removed unless quoted with other terms

@@ -1,8 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Indexes.Models;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -20,14 +19,14 @@ namespace NuGet.Services.AzureSearch
     {
         public const string Name = "nuget_tags_analyzer";
 
-        public static readonly CustomAnalyzer Instance = new CustomAnalyzer(
-            Name,
-            TokenizerName.Keyword,
-            new List<TokenFilterName>
+        public static readonly CustomAnalyzer Instance = new CustomAnalyzer(Name, LexicalTokenizerName.Keyword)
+        {
+            TokenFilters =
             {
                 TokenFilterName.Lowercase,
                 TokenFilterName.Trim,
-                TokenFilterName.Unique
-            });
+                TokenFilterName.Unique,
+            }
+        };
     }
 }

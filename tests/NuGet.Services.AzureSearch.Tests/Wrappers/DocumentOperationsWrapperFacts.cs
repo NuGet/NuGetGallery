@@ -3,15 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Search;
-using Microsoft.Azure.Search.Models;
-using Microsoft.Rest;
-using Microsoft.Rest.Azure;
+using Azure;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
 using Moq;
 using Moq.Language;
 using NuGet.Services.AzureSearch.SearchService;
@@ -31,57 +28,51 @@ namespace NuGet.Services.AzureSearch.Wrappers
             [Fact]
             public async Task DoesNotHandleNotFoundException()
             {
-                DocumentOperations
-                    .Setup(x => x.IndexWithHttpMessagesAsync(
-                        It.IsAny<IndexBatch<object>>(),
-                        It.IsAny<SearchRequestOptions>(),
-                        It.IsAny<Dictionary<string, List<string>>>(),
+                SearchClient
+                    .Setup(x => x.IndexDocumentsAsync<object>(
+                        It.IsAny<IndexDocumentsBatch<object>>(),
+                        It.IsAny<IndexDocumentsOptions>(),
                         It.IsAny<CancellationToken>()))
-                    .ThrowsAsync(new CloudException
-                    {
-                        Response = new HttpResponseMessageWrapper(new HttpResponseMessage(HttpStatusCode.NotFound), string.Empty),
-                    });
+                    .ThrowsAsync(new RequestFailedException((int)HttpStatusCode.NotFound, string.Empty));
 
-                await Assert.ThrowsAsync<CloudException>(
-                    () => Target.IndexAsync(new IndexBatch<object>(Enumerable.Empty<IndexAction<object>>())));
+                await Assert.ThrowsAsync<RequestFailedException>(
+                    () => Target.IndexAsync(new IndexDocumentsBatch<object>()));
             }
 
             [Fact]
             public async Task DoesNotWrapIndexBatchException()
             {
-                DocumentOperations
-                    .Setup(x => x.IndexWithHttpMessagesAsync(
-                        It.IsAny<IndexBatch<object>>(),
-                        It.IsAny<SearchRequestOptions>(),
-                        It.IsAny<Dictionary<string, List<string>>>(),
+                SearchClient
+                    .Setup(x => x.IndexDocumentsAsync(
+                        It.IsAny<IndexDocumentsBatch<object>>(),
+                        It.IsAny<IndexDocumentsOptions>(),
                         It.IsAny<CancellationToken>()))
-                    .ThrowsAsync(new IndexBatchException(new DocumentIndexResult(new List<IndexingResult>())));
+                    .ThrowsAsync(new IndexBatchException(new List<IndexingResult>()));
 
                 await Assert.ThrowsAsync<IndexBatchException>(
-                    () => Target.IndexAsync(new IndexBatch<object>(Enumerable.Empty<IndexAction<object>>())));
+                    () => Target.IndexAsync(new IndexDocumentsBatch<object>()));
             }
 
             [Fact]
             public async Task DoesNotRetryOnNullReferenceException()
             {
-                DocumentOperations
-                    .Setup(x => x.IndexWithHttpMessagesAsync(
-                        It.IsAny<IndexBatch<object>>(),
-                        It.IsAny<SearchRequestOptions>(),
-                        It.IsAny<Dictionary<string, List<string>>>(),
+                SearchClient
+                    .Setup(x => x.IndexDocumentsAsync(
+                        It.IsAny<IndexDocumentsBatch<object>>(),
+                        It.IsAny<IndexDocumentsOptions>(),
                         It.IsAny<CancellationToken>()))
                     .ThrowsAsync(new NullReferenceException());
 
                 var ex = await Assert.ThrowsAsync<NullReferenceException>(
-                    () => Target.IndexAsync(new IndexBatch<object>(Enumerable.Empty<IndexAction<object>>())));
+                    () => Target.IndexAsync(new IndexDocumentsBatch<object>()));
 
-                Assert.Equal(1, DocumentOperations.Invocations.Count);
+                Assert.Equal(1, SearchClient.Invocations.Count);
             }
         }
 
-        public class GetOrNullAsyncOfT : RetryFacts<object>
+        public class GetOrNullAsync : RetryFacts<object, object>
         {
-            public GetOrNullAsyncOfT(ITestOutputHelper output) : base(output)
+            public GetOrNullAsync(ITestOutputHelper output) : base(output)
             {
             }
 
@@ -92,19 +83,17 @@ namespace NuGet.Services.AzureSearch.Wrappers
                 return await Target.GetOrNullAsync<object>(string.Empty);
             }
 
-            public override IReturns<IDocumentsOperations, Task<AzureOperationResponse<object>>> Setup()
+            public override IReturns<SearchClient, Task<Response<object>>> Setup()
             {
-                return DocumentOperations
-                    .Setup(x => x.GetWithHttpMessagesAsync<object>(
+                return SearchClient
+                    .Setup(x => x.GetDocumentAsync<object>(
                         It.IsAny<string>(),
-                        It.IsAny<IEnumerable<string>>(),
-                        It.IsAny<SearchRequestOptions>(),
-                        It.IsAny<Dictionary<string, List<string>>>(),
+                        It.IsAny<GetDocumentOptions>(),
                         It.IsAny<CancellationToken>()));
             }
         }
 
-        public class SearchAsync : RetryFacts<DocumentSearchResult>
+        public class SearchAsync : RetryFacts<SearchResults<object>, SingleSearchResultPage<object>>
         {
             public SearchAsync(ITestOutputHelper output) : base(output)
             {
@@ -112,49 +101,22 @@ namespace NuGet.Services.AzureSearch.Wrappers
 
             public override bool TreatsNotFoundAsDefault => false;
 
-            public override async Task<DocumentSearchResult> ExecuteAsync()
+            public override async Task<SingleSearchResultPage<object>> ExecuteAsync()
             {
-                return await Target.SearchAsync(string.Empty, new SearchParameters());
+                return await Target.SearchAsync<object>(string.Empty, new SearchOptions());
             }
 
-            public override IReturns<IDocumentsOperations, Task<AzureOperationResponse<DocumentSearchResult>>> Setup()
+            public override IReturns<SearchClient, Task<Response<SearchResults<object>>>> Setup()
             {
-                return DocumentOperations
-                    .Setup(x => x.SearchWithHttpMessagesAsync(
+                return SearchClient
+                    .Setup(x => x.SearchAsync<object>(
                         It.IsAny<string>(),
-                        It.IsAny<SearchParameters>(),
-                        It.IsAny<SearchRequestOptions>(),
-                        It.IsAny<Dictionary<string, List<string>>>(),
+                        It.IsAny<SearchOptions>(),
                         It.IsAny<CancellationToken>()));
             }
         }
 
-        public class SearchAsyncOfT : RetryFacts<DocumentSearchResult<object>>
-        {
-            public SearchAsyncOfT(ITestOutputHelper output) : base(output)
-            {
-            }
-
-            public override bool TreatsNotFoundAsDefault => false;
-
-            public override async Task<DocumentSearchResult<object>> ExecuteAsync()
-            {
-                return await Target.SearchAsync<object>(string.Empty, new SearchParameters());
-            }
-
-            public override IReturns<IDocumentsOperations, Task<AzureOperationResponse<DocumentSearchResult<object>>>> Setup()
-            {
-                return DocumentOperations
-                    .Setup(x => x.SearchWithHttpMessagesAsync<object>(
-                        It.IsAny<string>(),
-                        It.IsAny<SearchParameters>(),
-                        It.IsAny<SearchRequestOptions>(),
-                        It.IsAny<Dictionary<string, List<string>>>(),
-                        It.IsAny<CancellationToken>()));
-            }
-        }
-
-        public class CountAsync : RetryFacts<long>
+        public class CountAsync : RetryFacts<long, long>
         {
             public CountAsync(ITestOutputHelper output) : base(output)
             {
@@ -167,17 +129,14 @@ namespace NuGet.Services.AzureSearch.Wrappers
                 return await Target.CountAsync();
             }
 
-            public override IReturns<IDocumentsOperations, Task<AzureOperationResponse<long>>> Setup()
+            public override IReturns<SearchClient, Task<Response<long>>> Setup()
             {
-                return DocumentOperations
-                    .Setup(x => x.CountWithHttpMessagesAsync(
-                        It.IsAny<SearchRequestOptions>(),
-                        It.IsAny<Dictionary<string, List<string>>>(),
-                        It.IsAny<CancellationToken>()));
+                return SearchClient
+                    .Setup(x => x.GetDocumentCountAsync(It.IsAny<CancellationToken>()));
             }
         }
 
-        public abstract class RetryFacts<T> : Facts
+        public abstract class RetryFacts<TIn, TOut> : Facts
         {
             public RetryFacts(ITestOutputHelper output) : base(output)
             {
@@ -187,15 +146,12 @@ namespace NuGet.Services.AzureSearch.Wrappers
             public async Task HandlesNotFoundException()
             {
                 Setup()
-                    .ThrowsAsync(new CloudException
-                    {
-                        Response = new HttpResponseMessageWrapper(new HttpResponseMessage(HttpStatusCode.NotFound), string.Empty),
-                    });
+                    .ThrowsAsync(new RequestFailedException((int)HttpStatusCode.NotFound, string.Empty));
 
                 if (TreatsNotFoundAsDefault)
                 {
                     var result = await ExecuteAsync();
-                    Assert.Equal(default(T), result);
+                    Assert.Equal(default(TOut), result);
                 }
                 else
                 {
@@ -207,49 +163,28 @@ namespace NuGet.Services.AzureSearch.Wrappers
             public async Task RethrowsBadRequest()
             {
                 Setup()
-                    .ThrowsAsync(new CloudException
-                    {
-                        Response = new HttpResponseMessageWrapper(new HttpResponseMessage(HttpStatusCode.BadRequest), string.Empty),
-                    });
+                    .ThrowsAsync(new RequestFailedException((int)HttpStatusCode.BadRequest, string.Empty));
 
                 var ex = await Assert.ThrowsAsync<InvalidSearchRequestException>(() => ExecuteAsync());
                 Assert.Equal("The provided query is invalid.", ex.Message);
-                Assert.IsType<CloudException>(ex.InnerException);
-            }
-
-            [Fact]
-            public async Task RetriesOnNullReferenceException()
-            {
-                Setup()
-                    .ThrowsAsync(new NullReferenceException());
-
-                var ex = await Assert.ThrowsAsync<AzureSearchException>(() => ExecuteAsync());
-
-                Assert.Equal(3, DocumentOperations.Invocations.Count);
-                Assert.Equal(2, Logger.Messages.Count);
-                Assert.Equal("The search query failed due to Azure/azure-sdk-for-net#3224.", ex.Message);
+                Assert.IsType<RequestFailedException>(ex.InnerException);
             }
 
             public abstract bool TreatsNotFoundAsDefault { get; }
-            public abstract IReturns<IDocumentsOperations, Task<AzureOperationResponse<T>>> Setup();
-            public abstract Task<T> ExecuteAsync();
+            public abstract IReturns<SearchClient, Task<Response<TIn>>> Setup();
+            public abstract Task<TOut> ExecuteAsync();
         }
 
         public abstract class Facts
         {
             public Facts(ITestOutputHelper output)
             {
-                DocumentOperations = new Mock<IDocumentsOperations>();
-                Logger = output.GetLogger<DocumentsOperationsWrapper>();
-
-                Target = new DocumentsOperationsWrapper(
-                    DocumentOperations.Object,
-                    Logger);
+                SearchClient = new Mock<SearchClient>();
+                Target = new SearchClientWrapper(SearchClient.Object);
             }
 
-            public Mock<IDocumentsOperations> DocumentOperations { get; }
-            public RecordingLogger<DocumentsOperationsWrapper> Logger { get; }
-            public DocumentsOperationsWrapper Target { get; }
+            public Mock<SearchClient> SearchClient { get; }
+            public SearchClientWrapper Target { get; }
         }
     }
 }

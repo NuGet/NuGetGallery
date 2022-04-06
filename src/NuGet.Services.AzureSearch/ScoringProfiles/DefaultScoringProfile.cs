@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Indexes.Models;
 using NuGet.Services.AzureSearch.SearchService;
 
 namespace NuGet.Services.AzureSearch.ScoringProfiles
@@ -66,10 +66,10 @@ namespace NuGet.Services.AzureSearch.ScoringProfiles
                     g => KnownSearchIndexFields.Value[g.Key],
                     g => g.Value);
 
-            return new ScoringProfile(
-                Name,
-                textWeights: new TextWeights(fieldWeights),
-                functions: new List<ScoringFunction>()
+            return new ScoringProfile(Name)
+            {
+                TextWeights = new TextWeights(fieldWeights),
+                Functions =
                 {
                     // Greatly boost results with high download counts. We score off the log of the download count
                     // with linear interpolation so that the boost slows down at higher download counts. We cannot
@@ -80,14 +80,19 @@ namespace NuGet.Services.AzureSearch.ScoringProfiles
                         boost: config.DownloadScoreBoost,
                         parameters: new MagnitudeScoringParameters(
                             boostingRangeStart: 0,
-                            boostingRangeEnd: DocumentUtilities.GetDownloadScore(999_999_999_999),
-                            shouldBoostBeyondRangeByConstant: true),
-                        interpolation: ScoringFunctionInterpolation.Linear),
+                            boostingRangeEnd: DocumentUtilities.GetDownloadScore(999_999_999_999))
+                        {
+                            ShouldBoostBeyondRangeByConstant = true,
+                        })
+                    {
+                        Interpolation = ScoringFunctionInterpolation.Linear,
+                    },
                 },
 
                 // The scores of each Scoring Function should be summed together before multiplying the base relevance scores.
                 // See: https://stackoverflow.com/questions/41427940/how-do-scoring-profiles-generate-scores-in-azure-search
-                functionAggregation: ScoringFunctionAggregation.Sum);
+                FunctionAggregation = ScoringFunctionAggregation.Sum,
+            };
         }
     }
 }

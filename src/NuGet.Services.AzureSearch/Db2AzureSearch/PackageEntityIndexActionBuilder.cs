@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Azure.Search.Models;
+using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -110,7 +110,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                     semVer2: x.SemVerLevelKey.HasValue && x.SemVerLevelKey.Value >= SemVerLevelKey.SemVer2));
         }
 
-        private IndexAction<KeyedDocument> GetSearchIndexAction(
+        private IndexDocumentsAction<KeyedDocument> GetSearchIndexAction(
             NewPackageRegistration packageRegistration,
             IReadOnlyDictionary<NuGetVersion, Package> versionToPackage,
             VersionLists versionLists,
@@ -119,7 +119,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             if (changeType == SearchIndexChangeType.Delete)
             {
-                return IndexAction.Delete(_search.Keyed(
+                return IndexDocumentsAction.Delete(_search.Keyed(
                     packageRegistration.PackageId,
                     searchFilters));
             }
@@ -141,7 +141,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             VerifyConsistency(packageRegistration.PackageId, package);
 
-            return IndexAction.Upload<KeyedDocument>(_search.FullFromDb(
+            return IndexDocumentsAction.Upload<KeyedDocument>(_search.FullFromDb(
                 packageRegistration.PackageId,
                 searchFilters,
                 latestFlags.LatestVersionInfo.ListedFullVersions,
@@ -154,7 +154,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 packageRegistration.IsExcludedByDefault));
         }
 
-        private IndexAction<KeyedDocument> GetHijackIndexAction(
+        private IndexDocumentsAction<KeyedDocument> GetHijackIndexAction(
             string packageId,
             Package package,
             HijackDocumentChanges changes)
@@ -168,7 +168,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             VerifyConsistency(packageId, package);
 
-            return IndexAction.Upload<KeyedDocument>(_hijack.FullFromDb(
+            return IndexDocumentsAction.Upload<KeyedDocument>(_hijack.FullFromDb(
                 packageId,
                 changes,
                 package));

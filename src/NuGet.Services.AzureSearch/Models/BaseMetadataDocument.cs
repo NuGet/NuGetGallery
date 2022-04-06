@@ -2,28 +2,24 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Search;
-using Newtonsoft.Json;
+using Azure.Search.Documents.Indexes;
 
 namespace NuGet.Services.AzureSearch
 {
-    public abstract class BaseMetadataDocument : CommittedDocument, IBaseMetadataDocument
+    public class BaseMetadataDocument : CommittedDocument, IBaseMetadataDocument
     {
-        [IsFilterable]
-        [JsonProperty(NullValueHandling = NullValueHandling.Include)]
+        [SimpleField(IsFilterable = true)]
         public int? SemVerLevel { get; set; }
 
-        [IsSearchable]
-        [Analyzer(DescriptionAnalyzer.Name)]
+        [SearchableField(AnalyzerName = DescriptionAnalyzer.Name)]
         public string Authors { get; set; }
 
         public string Copyright { get; set; }
 
-        [IsSortable]
+        [SimpleField(IsSortable = true)]
         public DateTimeOffset? Created { get; set; }
 
-        [IsSearchable]
-        [Analyzer(DescriptionAnalyzer.Name)]
+        [SearchableField(AnalyzerName = DescriptionAnalyzer.Name)]
         public string Description { get; set; }
 
         public long? FileSize { get; set; }
@@ -33,14 +29,13 @@ namespace NuGet.Services.AzureSearch
         public string IconUrl { get; set; }
         public string Language { get; set; }
 
-        [IsSortable]
+        [SimpleField(IsSortable = true)]
         public DateTimeOffset? LastEdited { get; set; }
 
         public string LicenseUrl { get; set; }
         public string MinClientVersion { get; set; }
 
-        [IsSearchable]
-        [Analyzer(ExactMatchCustomAnalyzer.Name)]
+        [SearchableField(AnalyzerName = ExactMatchCustomAnalyzer.Name)]
         public string NormalizedVersion { get; set; }
 
         public string OriginalVersion { get; set; }
@@ -48,42 +43,36 @@ namespace NuGet.Services.AzureSearch
         /// <summary>
         /// The package's identifier. Supports case insensitive exact matching.
         /// </summary>
-        [IsSearchable]
-        [Analyzer(ExactMatchCustomAnalyzer.Name)]
+        [SearchableField(AnalyzerName = ExactMatchCustomAnalyzer.Name)]
         public string PackageId { get; set; }
 
-        [IsFilterable]
+        [SimpleField(IsFilterable = true)]
         public bool? Prerelease { get; set; }
 
         public string ProjectUrl { get; set; }
 
-        [IsSortable]
-        [IsFilterable]
+        [SimpleField(IsSortable = true, IsFilterable = true)]
         public DateTimeOffset? Published { get; set; }
 
         public string ReleaseNotes { get; set; }
         public bool? RequiresLicenseAcceptance { get; set; }
 
-        [IsSortable]
+        [SimpleField(IsSortable = true)]
         public string SortableTitle { get; set; }
 
-        [IsSearchable]
-        [Analyzer(DescriptionAnalyzer.Name)]
+        [SearchableField(AnalyzerName = DescriptionAnalyzer.Name)]
         public string Summary { get; set; }
 
-        [IsSearchable]
-        [Analyzer(TagsCustomAnalyzer.Name)]
+        [SearchableField(AnalyzerName = TagsCustomAnalyzer.Name)]
         public string[] Tags { get; set; }
 
-        [IsSearchable]
-        [Analyzer(DescriptionAnalyzer.Name)]
+        [SearchableField(AnalyzerName = DescriptionAnalyzer.Name)]
         public string Title { get; set; }
 
         /// <summary>
         /// The package's identifier. Supports tokenized search.
         /// </summary>
-        [IsSearchable]
-        [Analyzer(PackageIdCustomAnalyzer.Name)]
+        [SearchableField(AnalyzerName = PackageIdCustomAnalyzer.Name)]
         public string TokenizedPackageId { get; set; }
     }
 }

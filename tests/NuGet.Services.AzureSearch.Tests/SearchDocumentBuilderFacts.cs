@@ -165,8 +165,8 @@ namespace NuGet.Services.AzureSearch
         ""Microsoft"",
         ""azure-sdk""
       ],
-      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
-      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateOwners"",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00\u002B00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument\u002BUpdateOwners"",
       ""lastUpdatedFromCatalog"": false,
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
     }
@@ -197,8 +197,8 @@ namespace NuGet.Services.AzureSearch
       ""@search.action"": ""upload"",
       ""totalDownloadCount"": 1001,
       ""downloadScore"": 0.14381174563233068,
-      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
-      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateDownloadCount"",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00\u002B00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument\u002BUpdateDownloadCount"",
       ""lastUpdatedFromCatalog"": false,
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
     }
@@ -237,16 +237,16 @@ namespace NuGet.Services.AzureSearch
       ""@search.action"": ""upload"",
       ""versions"": [
         ""1.0.0"",
-        ""2.0.0+git"",
+        ""2.0.0\u002Bgit"",
         ""3.0.0-alpha.1"",
-        ""7.1.2-alpha+git""
+        ""7.1.2-alpha\u002Bgit""
       ],
       ""isLatestStable"": " + isLatestStable.ToString().ToLowerInvariant() + @",
       ""isLatest"": " + isLatest.ToString().ToLowerInvariant() + @",
-      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
+      ""lastCommitTimestamp"": ""2018-12-13T12:30:00\u002B00:00"",
       ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
-      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
-      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateVersionList"",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00\u002B00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument\u002BUpdateVersionList"",
       ""lastUpdatedFromCatalog"": true,
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
     }
@@ -290,16 +290,16 @@ namespace NuGet.Services.AzureSearch
       ],
       ""versions"": [
         ""1.0.0"",
-        ""2.0.0+git"",
+        ""2.0.0\u002Bgit"",
         ""3.0.0-alpha.1"",
-        ""7.1.2-alpha+git""
+        ""7.1.2-alpha\u002Bgit""
       ],
       ""isLatestStable"": " + isLatestStable.ToString().ToLowerInvariant() + @",
       ""isLatest"": " + isLatest.ToString().ToLowerInvariant() + @",
-      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
+      ""lastCommitTimestamp"": ""2018-12-13T12:30:00\u002B00:00"",
       ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
-      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
-      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateVersionListAndOwners"",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00\u002B00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument\u002BUpdateVersionListAndOwners"",
       ""lastUpdatedFromCatalog"": true,
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-IncludePrereleaseAndSemVer2""
     }
@@ -382,12 +382,12 @@ namespace NuGet.Services.AzureSearch
       ""filterablePackageTypes"": [
         ""dependency""
       ],
-      ""fullVersion"": ""7.1.2-alpha+git"",
+      ""fullVersion"": ""7.1.2-alpha\u002Bgit"",
       ""versions"": [
         ""1.0.0"",
-        ""2.0.0+git"",
+        ""2.0.0\u002Bgit"",
         ""3.0.0-alpha.1"",
-        ""7.1.2-alpha+git""
+        ""7.1.2-alpha\u002Bgit""
       ],
       ""packageTypes"": [
         ""Dependency""
@@ -396,24 +396,24 @@ namespace NuGet.Services.AzureSearch
       ""isLatest"": true,
       ""semVerLevel"": 2,
       ""authors"": ""Microsoft"",
-      ""copyright"": ""© Microsoft Corporation. All rights reserved."",
-      ""created"": ""2017-01-01T00:00:00+00:00"",
+      ""copyright"": ""\u00A9 Microsoft Corporation. All rights reserved."",
+      ""created"": ""2017-01-01T00:00:00\u002B00:00"",
       ""description"": ""Description."",
       ""fileSize"": 3039254,
       ""flattenedDependencies"": ""Microsoft.Data.OData:5.6.4:net40-client|Newtonsoft.Json:6.0.8:net40-client"",
-      ""hash"": ""oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33+Z/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ=="",
+      ""hash"": ""oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33\u002BZ/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ=="",
       ""hashAlgorithm"": ""SHA512"",
       ""iconUrl"": ""http://go.microsoft.com/fwlink/?LinkID=288890"",
       ""language"": ""en-US"",
-      ""lastEdited"": ""2017-01-02T00:00:00+00:00"",
+      ""lastEdited"": ""2017-01-02T00:00:00\u002B00:00"",
       ""licenseUrl"": ""http://go.microsoft.com/fwlink/?LinkId=331471"",
       ""minClientVersion"": ""2.12"",
       ""normalizedVersion"": ""7.1.2-alpha"",
-      ""originalVersion"": ""7.1.2.0-alpha+git"",
+      ""originalVersion"": ""7.1.2.0-alpha\u002Bgit"",
       ""packageId"": ""WindowsAzure.Storage"",
       ""prerelease"": true,
       ""projectUrl"": ""https://github.com/Azure/azure-storage-net"",
-      ""published"": ""2017-01-03T00:00:00+00:00"",
+      ""published"": ""2017-01-03T00:00:00\u002B00:00"",
       ""releaseNotes"": ""Release notes."",
       ""requiresLicenseAcceptance"": true,
       ""sortableTitle"": ""windows azure storage"",
@@ -431,10 +431,10 @@ namespace NuGet.Services.AzureSearch
       ],
       ""title"": ""Windows Azure Storage"",
       ""tokenizedPackageId"": ""WindowsAzure.Storage"",
-      ""lastCommitTimestamp"": ""2018-12-13T12:30:00+00:00"",
+      ""lastCommitTimestamp"": ""2018-12-13T12:30:00\u002B00:00"",
       ""lastCommitId"": ""6b9b24dd-7aec-48ae-afc1-2a117e3d50d1"",
-      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
-      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+UpdateLatest"",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00\u002B00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument\u002BUpdateLatest"",
       ""lastUpdatedFromCatalog"": true,
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-" + expected + @"""
     }
@@ -709,12 +709,12 @@ namespace NuGet.Services.AzureSearch
       ""filterablePackageTypes"": [
         ""dependency""
       ],
-      ""fullVersion"": ""7.1.2-alpha+git"",
+      ""fullVersion"": ""7.1.2-alpha\u002Bgit"",
       ""versions"": [
         ""1.0.0"",
-        ""2.0.0+git"",
+        ""2.0.0\u002Bgit"",
         ""3.0.0-alpha.1"",
-        ""7.1.2-alpha+git""
+        ""7.1.2-alpha\u002Bgit""
       ],
       ""packageTypes"": [
         ""Dependency""
@@ -723,24 +723,24 @@ namespace NuGet.Services.AzureSearch
       ""isLatest"": true,
       ""semVerLevel"": 2,
       ""authors"": ""Microsoft"",
-      ""copyright"": ""© Microsoft Corporation. All rights reserved."",
-      ""created"": ""2017-01-01T00:00:00+00:00"",
+      ""copyright"": ""\u00A9 Microsoft Corporation. All rights reserved."",
+      ""created"": ""2017-01-01T00:00:00\u002B00:00"",
       ""description"": ""Description."",
       ""fileSize"": 3039254,
       ""flattenedDependencies"": ""Microsoft.Data.OData:5.6.4:net40-client|Newtonsoft.Json:6.0.8:net40-client"",
-      ""hash"": ""oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33+Z/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ=="",
+      ""hash"": ""oMs9XKzRTsbnIpITcqZ5XAv1h2z6oyJ33\u002BZ/PJx36iVikge/8wm5AORqAv7soKND3v5/0QWW9PQ0ktQuQu9aQQ=="",
       ""hashAlgorithm"": ""SHA512"",
       ""iconUrl"": ""http://go.microsoft.com/fwlink/?LinkID=288890"",
       ""language"": ""en-US"",
-      ""lastEdited"": ""2017-01-02T00:00:00+00:00"",
+      ""lastEdited"": ""2017-01-02T00:00:00\u002B00:00"",
       ""licenseUrl"": ""http://go.microsoft.com/fwlink/?LinkId=331471"",
       ""minClientVersion"": ""2.12"",
       ""normalizedVersion"": ""7.1.2-alpha"",
-      ""originalVersion"": ""7.1.2.0-alpha+git"",
+      ""originalVersion"": ""7.1.2.0-alpha\u002Bgit"",
       ""packageId"": ""WindowsAzure.Storage"",
       ""prerelease"": true,
       ""projectUrl"": ""https://github.com/Azure/azure-storage-net"",
-      ""published"": ""2017-01-03T00:00:00+00:00"",
+      ""published"": ""2017-01-03T00:00:00\u002B00:00"",
       ""releaseNotes"": ""Release notes."",
       ""requiresLicenseAcceptance"": true,
       ""sortableTitle"": ""windows azure storage"",
@@ -760,8 +760,8 @@ namespace NuGet.Services.AzureSearch
       ""tokenizedPackageId"": ""WindowsAzure.Storage"",
       ""lastCommitTimestamp"": null,
       ""lastCommitId"": null,
-      ""lastUpdatedDocument"": ""2018-12-14T09:30:00+00:00"",
-      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument+Full"",
+      ""lastUpdatedDocument"": ""2018-12-14T09:30:00\u002B00:00"",
+      ""lastDocumentType"": ""NuGet.Services.AzureSearch.SearchDocument\u002BFull"",
       ""lastUpdatedFromCatalog"": false,
       ""key"": ""windowsazure_storage-d2luZG93c2F6dXJlLnN0b3JhZ2U1-" + expected + @"""
     }

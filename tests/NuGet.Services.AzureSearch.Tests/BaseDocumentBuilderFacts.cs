@@ -81,6 +81,22 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
+            public void AddsEmptyArrayForNullTags()
+            {
+                var leaf = new PackageDetailsCatalogLeaf
+                {
+                    PackageId = Data.PackageId,
+                    PackageVersion = Data.NormalizedVersion,
+                    Tags = null,
+                };
+                var full = new HijackDocument.Full();
+
+                Target.PopulateMetadata(full, Data.NormalizedVersion, leaf);
+
+                Assert.Empty(full.Tags);
+            }
+
+            [Fact]
             public void AddsEmptyStringForDependencyVersionAllRange()
             {
                 var leaf = new PackageDetailsCatalogLeaf
