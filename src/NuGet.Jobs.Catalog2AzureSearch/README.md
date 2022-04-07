@@ -93,7 +93,7 @@ At a high-level, here's how Catalog2AzureSearch works:
 1. Load its catalog cursor from Azure Blob Storage
 1. Fetch catalog leaves that are newer than the catalog cursor value
 1. For each package ID in the catalog leaves:
-    1. Fetch the [version list resource](../../Search-version-list-resource.md) for the package ID
+    1. Fetch the [version list resource](../../docs/Search-version-list-resource.md) for the package ID
     1. Apply the package's catalog leaves to the version list resource to understand which search documents need to be updated. In some cases, use the [Package Metadata resource](https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource) to fetch additional package metadata and catalog leaves
     1. Generate Azure Search  actions to update the indexes
 1. Push all generated Azure Search index actions
