@@ -14,7 +14,6 @@ using NuGet.Services.FeatureFlags;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Services.Telemetry;
 
 namespace NuGetGallery
 {
@@ -1153,7 +1152,7 @@ namespace NuGetGallery
         private IDisposable TrackSqlConnectionCreationDuration(string kind)
         {
             return new DurationTracker(duration => 
-                _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDuration, duration.TotalMilliseconds, Kind, kind));
+                _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDurationMs, duration.TotalMilliseconds, Kind, kind));
         }
 
         /// <summary>

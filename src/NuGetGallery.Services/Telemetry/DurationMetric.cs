@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 
-namespace NuGetGallery.Services.Telemetry
+namespace NuGetGallery
 {
     public class DurationTracker : IDisposable
     {
