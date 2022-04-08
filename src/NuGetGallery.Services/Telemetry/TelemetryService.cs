@@ -19,7 +19,7 @@ namespace NuGetGallery
 {
     public class TelemetryService : ITelemetryService, IFeatureFlagTelemetryService
     {
-        public class Events
+        public static class Events
         {
             public const string ODataQueryFilter = "ODataQueryFilter";
             public const string ODataCustomQuery = "ODataCustomQuery";

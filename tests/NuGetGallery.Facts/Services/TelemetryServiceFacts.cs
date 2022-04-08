@@ -361,7 +361,7 @@ namespace NuGetGallery
                         true
                     };
 
-                    yield return new object[] { "CreateSqlConnectionDuration",
+                    yield return new object[] { "CreateSqlConnectionDurationMs",
                         (TrackAction)(s => s.TrackSyncSqlConnectionCreationDuration().Dispose()),
                         true
                     };
