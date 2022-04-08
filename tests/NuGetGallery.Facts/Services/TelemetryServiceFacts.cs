@@ -360,16 +360,31 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackApiRequest("SomeEndpoint")),
                         true
                     };
+
+                    yield return new object[] { "CreateSqlConnectionDurationMs",
+                        (TrackAction)(s => s.TrackSyncSqlConnectionCreationDuration().Dispose()),
+                        true
+                    };
+
+                    yield return new object[] { "CreateSqlConnectionDurationMs",
+                        (TrackAction)(s => s.TrackAsyncSqlConnectionCreationDuration().Dispose()),
+                        true
+                    };
                 }
             }
 
             [Fact]
             public void TrackEventNamesIncludesAllEvents()
             {
-                var expectedCount = typeof(TelemetryService.Events).GetFields().Length;
-                var actualCount = TrackMetricNames_Data.Count();
+                var eventNames = typeof(TelemetryService.Events)
+                    .GetFields()
+                    .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
+                    .Select(f => (string)f.GetValue(null))
+                    .ToList();
 
-                Assert.Equal(expectedCount, actualCount);
+                var testedNames = new HashSet<string>(TrackMetricNames_Data.Select(element => (string)element[0]));
+
+                Assert.All(eventNames, name => testedNames.Contains(name));
             }
 
             [Theory]

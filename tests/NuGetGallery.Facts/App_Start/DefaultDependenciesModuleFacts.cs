@@ -204,7 +204,7 @@ namespace NuGetGallery.App_Start
                     .Setup(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny))
                     .Returns(true);
 
-                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object);
+                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object, Mock.Of<ITelemetryService>());
                 connectionFactoryMock
                     .Verify(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny), Times.Once);
                 connectionFactoryMock
@@ -222,7 +222,7 @@ namespace NuGetGallery.App_Start
                     .Setup(cf => cf.CreateAsync())
                     .ReturnsAsync((SqlConnection)null);
 
-                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object);
+                DefaultDependenciesModule.CreateDbConnection(connectionFactoryMock.Object, Mock.Of<ITelemetryService>());
                 connectionFactoryMock
                     .Verify(cf => cf.TryCreate(out It.Ref<SqlConnection>.IsAny), Times.Once);
                 connectionFactoryMock
