@@ -10,7 +10,6 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGet.Services.AzureSearch.Db2AzureSearch;
-using NuGet.Services.Metadata.Catalog;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,66 +18,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public class AuxiliaryFileClientFacts
     {
-        public class LoadDownloadDataAsync : BaseFacts
-        {
-            public LoadDownloadDataAsync(ITestOutputHelper output) : base(output)
-            {
-            }
-
-            [Fact]
-            public async Task ReadsFromUrlWhenConfigured()
-            {
-                _configStorage.DownloadsV1JsonUrl = "https://localhost/downloads.v1.json";
-                var downloadData = new DownloadData();
-                _downloadsV1JsonClient
-                    .Setup(x => x.ReadAsync(_configStorage.DownloadsV1JsonUrl))
-                    .ReturnsAsync(() => downloadData);
-
-                var actual = await _target.LoadDownloadDataAsync();
-
-                Assert.Same(downloadData, actual);
-                Assert.Empty(_blobClient.Invocations);
-                Assert.Empty(_container.Invocations);
-                Assert.Empty(_blob.Invocations);
-            }
-
-            [Fact]
-            public async Task ReadsContent()
-            {
-                var json = @"
-[
-    [
-        ""NuGet.Frameworks"",
-        [ ""1.0.0"", 406],
-        [ ""2.0.0-ALPHA"", 137]
-    ],
-    [
-        ""NuGet.Versioning"",
-        [""3.0.0"", 138]
-    ]
-]
-";
-                _blob
-                    .Setup(x => x.OpenReadAsync(It.IsAny<AccessCondition>()))
-                    .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes(json)));
-
-                var actual = await _target.LoadDownloadDataAsync();
-
-                Assert.NotNull(actual);
-                Assert.Equal(406, actual["NuGet.Frameworks"]["1.0.0"]);
-                Assert.Equal(137, actual["NuGet.Frameworks"]["2.0.0-alpha"]);
-                Assert.Equal(138, actual["nuget.versioning"]["3.0.0"]);
-                Assert.Equal(0, actual["nuget.versioning"].GetDownloadCount("4.0.0"));
-                Assert.Equal(0, actual.GetDownloadCount("something.else"));
-                _blobClient.Verify(x => x.GetContainerReference("my-container"), Times.Once);
-                _blobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Once);
-                _container.Verify(x => x.GetBlobReference("my-downloads.json"), Times.Once);
-                _container.Verify(x => x.GetBlobReference(It.IsAny<string>()), Times.Once);
-                _blob.Verify(x => x.OpenReadAsync(It.Is<AccessCondition>(a => a.IfMatchETag == null && a.IfNoneMatchETag == null)), Times.Once);
-                _blob.Verify(x => x.OpenReadAsync(It.IsAny<AccessCondition>()), Times.Once);
-            }
-        }
-
         public class LoadExcludedPackagesAsync : BaseFacts
         {
             public LoadExcludedPackagesAsync(ITestOutputHelper output) : base(output)
@@ -138,7 +77,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
             protected readonly Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>> _options;
             protected readonly Mock<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>> _optionsStorage;
             protected readonly Mock<IAzureSearchTelemetryService> _telemetryService;
-            protected readonly Mock<IDownloadsV1JsonClient> _downloadsV1JsonClient;
             protected readonly RecordingLogger<AuxiliaryFileClient> _logger;
             protected readonly Mock<ICloudBlobContainer> _container;
             protected readonly Mock<ISimpleCloudBlob> _blob;
@@ -153,7 +91,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
                 _options = new Mock<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
                 _optionsStorage = new Mock<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>();
                 _telemetryService = new Mock<IAzureSearchTelemetryService>();
-                _downloadsV1JsonClient = new Mock<IDownloadsV1JsonClient>();
                 _logger = output.GetLogger<AuxiliaryFileClient>();
                 _container = new Mock<ICloudBlobContainer>();
                 _blob = new Mock<ISimpleCloudBlob>();
@@ -161,12 +98,10 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 _config.AuxiliaryDataStorageContainer = "my-container";
                 _config.AuxiliaryDataStorageDownloadsPath = "my-downloads.json";
-                _config.AuxiliaryDataStorageVerifiedPackagesPath = "my-verified-packages.json";
                 _config.AuxiliaryDataStorageExcludedPackagesPath = "my-excluded-packages.json";
                 _options.Setup(x => x.Value).Returns(() => _config);
 
                 _configStorage.AuxiliaryDataStorageContainer = "my-container";
-                _configStorage.AuxiliaryDataStorageDownloadsPath = "my-downloads.json";
                 _configStorage.AuxiliaryDataStorageExcludedPackagesPath = "my-excluded-packages.json";
                 _optionsStorage.Setup(x => x.Value).Returns(() => _configStorage);
 
@@ -188,7 +123,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 
                 _target = new AuxiliaryFileClient(
                     _blobClient.Object,
-                    _downloadsV1JsonClient.Object,
                     _optionsStorage.Object,
                     _telemetryService.Object,
                     _logger);

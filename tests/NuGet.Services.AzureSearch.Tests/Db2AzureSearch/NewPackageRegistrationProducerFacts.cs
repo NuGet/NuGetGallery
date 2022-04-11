@@ -14,6 +14,7 @@ using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.Entities;
+using NuGet.Services.Metadata.Catalog;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
@@ -37,6 +38,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             private readonly CancellationToken _token;
             private readonly NewPackageRegistrationProducer _target;
             private readonly Mock<IAuxiliaryFileClient> _auxiliaryFileClient;
+            private readonly Mock<IDownloadsV1JsonClient> _downloadsV1JsonClient;
             private readonly Mock<IDatabaseAuxiliaryDataFetcher> _databaseFetcher;
             private readonly Mock<IDownloadTransferrer> _downloadTransferrer;
             private readonly Mock<IFeatureFlagService> _featureFlags;
@@ -68,9 +70,10 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _auxiliaryFileClient
                     .Setup(x => x.LoadExcludedPackagesAsync())
                     .ReturnsAsync(() => _excludedPackages);
+                _downloadsV1JsonClient = new Mock<IDownloadsV1JsonClient>();
                 _downloads = new DownloadData();
-                _auxiliaryFileClient
-                    .Setup(x => x.LoadDownloadDataAsync())
+                _downloadsV1JsonClient
+                    .Setup(x => x.ReadAsync(It.IsAny<string>()))
                     .ReturnsAsync(() => _downloads);
 
                 _popularityTransfers = new PopularityTransferData();
@@ -111,6 +114,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 _target = new NewPackageRegistrationProducer(
                     _entitiesContextFactory.Object,
                     _auxiliaryFileClient.Object,
+                    _downloadsV1JsonClient.Object,
                     _databaseFetcher.Object,
                     _downloadTransferrer.Object,
                     _featureFlags.Object,

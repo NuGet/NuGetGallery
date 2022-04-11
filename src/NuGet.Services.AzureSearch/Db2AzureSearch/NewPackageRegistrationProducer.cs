@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.Entities;
+using NuGet.Services.Metadata.Catalog;
 using NuGetGallery;
 
 namespace NuGet.Services.AzureSearch.Db2AzureSearch
@@ -21,6 +22,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
     {
         private readonly IEntitiesContextFactory _contextFactory;
         private readonly IAuxiliaryFileClient _auxiliaryFileClient;
+        private readonly IDownloadsV1JsonClient _downloadsV1JsonClient;
         private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
         private readonly IDownloadTransferrer _downloadTransferrer;
         private readonly IFeatureFlagService _featureFlags;
@@ -31,6 +33,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public NewPackageRegistrationProducer(
             IEntitiesContextFactory contextFactory,
             IAuxiliaryFileClient auxiliaryFileClient,
+            IDownloadsV1JsonClient downloadsV1JsonClient,
             IDatabaseAuxiliaryDataFetcher databaseFetcher,
             IDownloadTransferrer downloadTransferrer,
             IFeatureFlagService featureFlags,
@@ -40,6 +43,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         {
             _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
             _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentNullException(nameof(auxiliaryFileClient));
+            _downloadsV1JsonClient = downloadsV1JsonClient ?? throw new ArgumentNullException(nameof(downloadsV1JsonClient));
             _databaseFetcher = databaseFetcher ?? throw new ArgumentNullException(nameof(databaseFetcher));
             _downloadTransferrer = downloadTransferrer ?? throw new ArgumentNullException(nameof(downloadTransferrer));
             _featureFlags = featureFlags ?? throw new ArgumentNullException(nameof(featureFlags));
@@ -65,7 +69,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             // Fetch the download data from the auxiliary file, since this is what is used for displaying download
             // counts in the search service. We don't use the gallery DB values as they are different from the
             // auxiliary file.
-            var downloads = await _auxiliaryFileClient.LoadDownloadDataAsync();
+            var downloads = await _downloadsV1JsonClient.ReadAsync(_options.Value.DownloadsV1JsonUrl);
             var popularityTransfers = await GetPopularityTransfersAsync();
 
             // Apply changes from popularity transfers.

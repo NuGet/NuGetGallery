@@ -15,7 +15,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest;
-using Microsoft.Rest.TransientFaultHandling;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Protocol;
 using NuGet.Protocol.Catalog;
@@ -229,7 +228,6 @@ namespace NuGet.Services.AzureSearch
             containerBuilder
                 .Register<IAuxiliaryFileClient>(c => new AuxiliaryFileClient(
                     c.ResolveKeyed<ICloudBlobClient>(key),
-                    c.Resolve<IDownloadsV1JsonClient>(),
                     c.Resolve<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>(),
                     c.Resolve<IAzureSearchTelemetryService>(),
                     c.Resolve<ILogger<AuxiliaryFileClient>>()));

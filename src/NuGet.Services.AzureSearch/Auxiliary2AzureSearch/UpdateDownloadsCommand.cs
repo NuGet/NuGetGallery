@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using NuGet.Packaging;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Versioning;
 using NuGetGallery;
@@ -27,7 +28,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         /// </summary>
         private static readonly int MaxDocumentsPerId = Enum.GetValues(typeof(SearchFilters)).Length;
 
-        private readonly IAuxiliaryFileClient _auxiliaryFileClient;
+        private readonly IDownloadsV1JsonClient _downloadsV1JsonClient;
         private readonly IDatabaseAuxiliaryDataFetcher _databaseFetcher;
         private readonly IDownloadDataClient _downloadDataClient;
         private readonly IDownloadSetComparer _downloadSetComparer;
@@ -44,7 +45,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         private readonly StringCache _stringCache;
 
         public UpdateDownloadsCommand(
-            IAuxiliaryFileClient auxiliaryFileClient,
+            IDownloadsV1JsonClient downloadsV1JsonClient,
             IDatabaseAuxiliaryDataFetcher databaseFetcher,
             IDownloadDataClient downloadDataClient,
             IDownloadSetComparer downloadSetComparer,
@@ -59,7 +60,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
             IAzureSearchTelemetryService telemetryService,
             ILogger<Auxiliary2AzureSearchCommand> logger)
         {
-            _auxiliaryFileClient = auxiliaryFileClient ?? throw new ArgumentException(nameof(auxiliaryFileClient));
+            _downloadsV1JsonClient = downloadsV1JsonClient ?? throw new ArgumentException(nameof(downloadsV1JsonClient));
             _databaseFetcher = databaseFetcher ?? throw new ArgumentNullException(nameof(databaseFetcher));
             _downloadDataClient = downloadDataClient ?? throw new ArgumentNullException(nameof(downloadDataClient));
             _downloadSetComparer = downloadSetComparer ?? throw new ArgumentNullException(nameof(downloadSetComparer));
@@ -115,8 +116,8 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 _stringCache);
 
             // The "new" data in this case is from the statistics pipeline.
-            _logger.LogInformation("Fetching new download count data from blob storage.");
-            var newData = await _auxiliaryFileClient.LoadDownloadDataAsync();
+            _logger.LogInformation("Fetching new download count data by URL.");
+            var newData = await _downloadsV1JsonClient.ReadAsync(_options.Value.DownloadsV1JsonUrl);
 
             _logger.LogInformation("Removing invalid IDs and versions from the old downloads data.");
             CleanDownloadData(oldResult.Data);

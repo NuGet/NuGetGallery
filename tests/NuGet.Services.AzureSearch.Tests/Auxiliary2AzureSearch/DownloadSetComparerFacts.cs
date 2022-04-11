@@ -4,7 +4,6 @@
 using System;
 using Microsoft.Extensions.Options;
 using Moq;
-using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using Xunit;
 using Xunit.Abstractions;
 

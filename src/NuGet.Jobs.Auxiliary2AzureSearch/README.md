@@ -4,6 +4,9 @@
 
 This job updates the [search auxiliary files](../../docs/Search-auxiliary-files.md) used by the [search service](../NuGet.Services.SearchService). This also updates the downloads and owners data in the [Azure Search "search" index](../../docs/Azure-Search-indexes.md).
 
+Note that the "excluded packages" list is currently not updated by this job. For more information, see the
+[`ExcludedPackages.v1.json` documentation](../../docs/Search-auxiliary-files.md#excluded-packages).
+
 ## Running the job
 
 You can run this job using:
@@ -70,11 +73,7 @@ Once you've created your Azure resources, you can create your `settings.json` fi
     "StorageConnectionString": "PLACEHOLDER",
     "StorageContainer": "v3-azuresearch-000",
     "StoragePath": "",
-    "AuxiliaryDataStorageConnectionString": "PLACEHOLDER",
-    "AuxiliaryDataStorageContainer": "ng-search-data",
-    "AuxiliaryDataStorageDownloadsPath": "downloads.v1.json",
-    "AuxiliaryDataStorageExcludedPackagesPath": "ExcludedPackages.v1.json",
-    "AuxiliaryDataStorageVerifiedPackagesPath": "verifiedPackages.json",
+    "DownloadsV1JsonUrl": "PLACEHOLDER",
     "MinPushPeriod": "00:00:10",
     "MaxDownloadCountDecreases": 30000,
     "EnablePopularityTransfers": true,
@@ -91,14 +90,14 @@ At a high-level, here's how Auxiliary2AzureSearch works:
 
 1. Update verified packages
     1. Get the "old" list of verified package IDs from search auxiliary storage
-    2. Get the "new" list of verified package IDs from Gallery DB
-    3. Replace the verified package auxiliary file if needed
+    1. Get the "new" list of verified package IDs from Gallery DB
+    1. Replace the verified package auxiliary file if needed
 1. Update downloads
     1. Get the "old" downloads data from search auxiliary storage
-    1. Get the "new" downloads data from statistics auxiliary storage
+    1. Get the "new" downloads data from statistics auxiliary storage via URL
     1. Determine which packages have download changes
     1. Get the "old" popularity transfers data from search auxiliary storage
-    1. Get the "new" popularity transfers data from statistics auxiliary storage
+    1. Get the "new" popularity transfers data from Gallery DB
     1. Determine which packages have popularity transfer changes
     1. Update Azure Search documents in the "search" index to reflect the latest downloads and popularity transfers
     1. Save the "new" downloads data to the search auxiliary storage

@@ -3,6 +3,9 @@
 
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
@@ -18,15 +21,15 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
     public class PopularityTransferIntegrationTests
     {
         private readonly InMemoryCloudBlobClient _blobClient;
-        private readonly InMemoryCloudBlobContainer _auxilliaryContainer;
         private readonly InMemoryCloudBlobContainer _storageContainer;
+        private string _downloadsV1Json = "[]";
 
         private readonly Mock<ISearchClientWrapper> _searchClient;
         private readonly Mock<IFeatureFlagService> _featureFlags;
         private readonly Auxiliary2AzureSearchConfiguration _config;
         private readonly AzureSearchJobDevelopmentConfiguration _developmentConfig;
         private readonly Mock<IAzureSearchTelemetryService> _telemetry;
-        private readonly Mock<IDownloadsV1JsonClient> _downloadsV1JsonClient;
+        private readonly DownloadsV1JsonClient _downloadsV1JsonClient;
         private readonly UpdateDownloadsCommand _target;
 
         private readonly PopularityTransferData _newPopularityTransfers;
@@ -37,11 +40,25 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         {
             _featureFlags = new Mock<IFeatureFlagService>();
             _telemetry = new Mock<IAzureSearchTelemetryService>();
-            _downloadsV1JsonClient = new Mock<IDownloadsV1JsonClient>();
+            var downloadsV1JsonHttpClientHandler = new Mock<TestHttpMessageHandler>()
+            {
+                CallBase = true,
+            };
+            downloadsV1JsonHttpClientHandler
+                .Setup(x => x.OnSendAsync(
+                    It.IsAny<HttpRequestMessage>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(_downloadsV1Json),
+                });
+            _downloadsV1JsonClient = new DownloadsV1JsonClient(
+                new HttpClient(downloadsV1JsonHttpClientHandler.Object),
+                output.GetLogger<DownloadsV1JsonClient>());
 
             _config = new Auxiliary2AzureSearchConfiguration
             {
-                AuxiliaryDataStorageContainer = "auxiliary-container",
+                DownloadsV1JsonUrl = "https://example/downloads.v1.json",
                 EnablePopularityTransfers = true,
                 StorageContainer = "storage-container",
                 Scoring = new AzureSearchScoringConfiguration()
@@ -58,31 +75,10 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
                 .Setup(x => x.Value)
                 .Returns(_developmentConfig);
 
-            var auxiliaryConfig = new AuxiliaryDataStorageConfiguration
-            {
-                AuxiliaryDataStorageContainer = "auxiliary-container",
-                AuxiliaryDataStorageDownloadsPath = "downloads.json",
-                AuxiliaryDataStorageExcludedPackagesPath = "excludedPackages.json",
-            };
-
-            var auxiliaryOptions = new Mock<IOptionsSnapshot<AuxiliaryDataStorageConfiguration>>();
-            auxiliaryOptions
-                .Setup(x => x.Value)
-                .Returns(auxiliaryConfig);
-
-            _auxilliaryContainer = new InMemoryCloudBlobContainer();
             _storageContainer = new InMemoryCloudBlobContainer();
 
             _blobClient = new InMemoryCloudBlobClient();
-            _blobClient.Containers["auxiliary-container"] = _auxilliaryContainer;
             _blobClient.Containers["storage-container"] = _storageContainer;
-
-            var auxiliaryFileClient = new AuxiliaryFileClient(
-                _blobClient,
-                _downloadsV1JsonClient.Object,
-                auxiliaryOptions.Object,
-                _telemetry.Object,
-                output.GetLogger<AuxiliaryFileClient>());
 
             _newPopularityTransfers = new PopularityTransferData();
             var databaseFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
@@ -152,7 +148,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
             _featureFlags.Setup(x => x.IsPopularityTransferEnabled()).Returns(true);
 
             _target = new UpdateDownloadsCommand(
-                auxiliaryFileClient,
+                _downloadsV1JsonClient,
                 databaseFetcher.Object,
                 downloadDataClient,
                 downloadComparer,
@@ -171,8 +167,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         [Fact]
         public async Task FirstPopularityTransferChangesDownloads()
         {
-            SetExcludedPackagesJson("{}");
-
             AddVersionList("A", "1.0.0");
             AddVersionList("B", "1.0.0");
 
@@ -213,8 +207,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         [Fact]
         public async Task NewPopularityTransferChangesDownloads()
         {
-            SetExcludedPackagesJson("{}");
-
             AddVersionList("A", "1.0.0");
             AddVersionList("B", "1.0.0");
             AddVersionList("C", "1.0.0");
@@ -262,8 +254,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         [Fact]
         public async Task UpdatedPopularityTransferChangesDownloads()
         {
-            SetExcludedPackagesJson("{}");
-
             AddVersionList("A", "1.0.0");
             AddVersionList("B", "1.0.0");
             AddVersionList("C", "1.0.0");
@@ -311,8 +301,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         [Fact]
         public async Task ReverseTransferChangesDownloads()
         {
-            SetExcludedPackagesJson("{}");
-
             AddVersionList("A", "1.0.0");
             AddVersionList("B", "1.0.0");
 
@@ -353,8 +341,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         [Fact]
         public async Task DisablingPopularityTransferConfigRemovesTransfers()
         {
-            SetExcludedPackagesJson("{}");
-
             AddVersionList("A", "1.0.0");
             AddVersionList("B", "1.0.0");
             AddVersionList("C", "1.0.0");
@@ -399,8 +385,6 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
         [Fact]
         public async Task DisablingPopularityTransferFeatureRemovesTransfers()
         {
-            SetExcludedPackagesJson("{}");
-
             AddVersionList("A", "1.0.0");
             AddVersionList("B", "1.0.0");
             AddVersionList("C", "1.0.0");
@@ -451,12 +435,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch.Integration
 
         private void SetNewDownloadsJson(string json)
         {
-            _auxilliaryContainer.Blobs["downloads.json"] = new InMemoryCloudBlob(json);
-        }
-
-        private void SetExcludedPackagesJson(string json)
-        {
-            _auxilliaryContainer.Blobs["excludedPackages.json"] = new InMemoryCloudBlob(json);
+            _downloadsV1Json = json;
         }
 
         private void SetOldPopularityTransfersJson(string json)
