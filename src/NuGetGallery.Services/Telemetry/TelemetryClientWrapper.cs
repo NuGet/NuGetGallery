@@ -63,14 +63,7 @@ namespace NuGetGallery
         {
             try
             {
-                var metricIdentifier = new MetricIdentifier(
-                    metricNamespace: "Gallery",
-                    metricId: metricName,
-                    dimensionNames: new List<string>
-                    {
-                        dimension0Name
-                    });
-                var metric = UnderlyingClient.GetMetric(metricIdentifier);
+                var metric = UnderlyingClient.GetMetric(metricName, dimension0Name);
                 metric.TrackValue(value, dimension0Value);
             }
             catch

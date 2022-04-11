@@ -2661,15 +2661,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Learn more about including a license within the package.
-        /// </summary>
-        public static string UploadPackage_LearMore_PackagingLicense {
-            get {
-                return ResourceManager.GetString("UploadPackage_LearMore_PackagingLicense", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Learn more.
         /// </summary>
         public static string UploadPackage_LearnMore {
@@ -2702,6 +2693,15 @@ namespace NuGetGallery {
         public static string UploadPackage_LearnMore_LicenseUrlDreprecation {
             get {
                 return ResourceManager.GetString("UploadPackage_LearnMore_LicenseUrlDreprecation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about including a license within the package.
+        /// </summary>
+        public static string UploadPackage_LearnMore_PackagingLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_PackagingLicense", resourceCulture);
             }
         }
         

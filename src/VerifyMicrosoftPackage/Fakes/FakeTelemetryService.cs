@@ -392,5 +392,15 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public IDisposable TrackSyncSqlConnectionCreationDuration()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDisposable TrackAsyncSqlConnectionCreationDuration()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
