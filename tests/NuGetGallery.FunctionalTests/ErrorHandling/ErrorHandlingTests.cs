@@ -40,8 +40,6 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         [InlineData("/", "__Controller::TempData", "Message=You successfully uploaded z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌ 1.0.0.", 400)]
         [InlineData("/", "__Controller::TempData", "Message=<script>alert(1)</script>", 400)]
         [InlineData("/", "__Controller::TempData", "<script>alert(1)</script>", 400)]
-        [InlineData("/packages", "nugetab", "<script>alert(1)</script>", 400)]
-        [InlineData("/packages", "nugetab", "z̡̜͍̈̍̐̃̊͋́a̜̣͍̬̞̝͉̽ͧ͗l̸̖͕̤̠̹̘͖̃̌ͤg͓̝͓̰̀ͪo͈͌", 400)]
         public async Task RejectedCookie(string relativePath, string name, string value, int statusCode)
         {
             // Arrange
