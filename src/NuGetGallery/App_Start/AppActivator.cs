@@ -134,7 +134,7 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/jquery.validate.unobtrusive-3.2.6.js")
                 .Include("~/Scripts/gallery/knockout-3.5.1.js")
                 .Include("~/Scripts/gallery/bootstrap.js")
-                .Include("~/Scripts/gallery/moment-2.18.1.js")
+                .Include("~/Scripts/gallery/moment-2.29.2.js")
                 .Include("~/Scripts/gallery/common.js")
                 .Include("~/Scripts/gallery/autocomplete.js");
             BundleTable.Bundles.Add(scriptBundle);

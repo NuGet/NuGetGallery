@@ -1857,7 +1857,7 @@
     <Content Include="Scripts\gallery\jquery.validate.unobtrusive-3.2.6.js" />
     <Content Include="Scripts\gallery\knockout-projections.js" />
     <Content Include="Scripts\gallery\md5.js" />
-    <Content Include="Scripts\gallery\moment-2.18.1.js" />
+    <Content Include="Scripts\gallery\moment-2.29.2.js" />
     <Content Include="Scripts\gallery\page-about.js" />
     <Content Include="Scripts\gallery\page-account.js" />
     <Content Include="Scripts\gallery\page-add-organization.js" />
@@ -2265,7 +2265,7 @@
       <Version>2.8.3</Version>
     </PackageReference>
     <PackageReference Include="Moment.js">
-      <Version>2.24.0</Version>
+      <Version>2.29.2</Version>
     </PackageReference>
     <PackageReference Include="MvcTreeView">
       <Version>1.4.0</Version>
