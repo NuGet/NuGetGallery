@@ -68,6 +68,10 @@ body h3 {
 .footer a {
   color: #e3ebf1;
 }
+.footer a:focus {
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
 .footer .footer-release-info {
   font-size: 0.85em;
   margin-top: 20px;
@@ -333,6 +337,10 @@ img.reserved-indicator-icon {
 }
 .sortable {
   cursor: pointer;
+}
+.form-group label.required::after {
+  color: red;
+  content: " *";
 }
 @media (max-width: 767.9px) {
   .hidden-xs {
@@ -674,6 +682,9 @@ img.reserved-indicator-icon {
 .readme-common li.task-list-item {
   list-style-type: none;
 }
+.readme-common blockquote {
+  font-size: 16px;
+}
 #readme-preview {
   padding-top: 0.25em;
 }
@@ -686,12 +697,10 @@ img.reserved-indicator-icon {
   padding-bottom: 3em;
 }
 .framework {
-  font-family: Segoe UI;
   font-size: 14px;
   line-height: 20px;
 }
 .framework-badges {
-  font-family: Segoe UI;
   font-size: 14px;
   line-height: 20px;
   margin-bottom: 14px;
@@ -734,7 +743,6 @@ img.reserved-indicator-icon {
 }
 .framework-table {
   margin-bottom: 30px;
-  font-family: Segoe UI;
   font-size: 14px;
   line-height: 20px;
   width: 100%;
@@ -895,7 +903,15 @@ p.frameworktableinfo-text {
 }
 .page-admin-index h2 {
   margin-bottom: 8px;
-  margin-top: 32px;
+  margin-top: 8px;
+  font-size: 30px;
+}
+.page-admin-index h2 .ms-Icon {
+  font-size: 2.4rem;
+  top: 2px;
+}
+.page-admin-index p {
+  margin-bottom: 16px;
 }
 .page-api-keys .example-commands {
   background-color: #002440;
@@ -1440,22 +1456,21 @@ p.frameworktableinfo-text {
   font-weight: 600;
   text-decoration: underline;
 }
-.page-package-details .install-tabs .tab-content .tab-pane > div {
-  display: table;
-  height: 1px;
-}
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row {
-  display: table-row;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
   height: 100%;
+  width: 100%;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .install-script {
-  display: table-cell;
   background-color: #002440;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
   font-size: 1em;
   color: #fff;
-  width: 100%;
-  max-width: 1px;
+  width: -webkit-calc(100% - 40px);
+  width: calc(100% - 40px);
   line-height: 1.5;
   white-space: pre-wrap;
   border-color: #002440;
@@ -1463,9 +1478,7 @@ p.frameworktableinfo-text {
   border-width: 1px 0 1px 1px;
   vertical-align: middle;
   word-break: break-word;
-}
-.page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button {
-  height: 100%;
+  margin: 0px;
 }
 .page-package-details .install-tabs .tab-content .tab-pane .install-script-row .copy-button button {
   height: 100%;
@@ -1574,59 +1587,6 @@ p.frameworktableinfo-text {
   position: relative;
   margin-top: 32px;
 }
-.page-home .dotnet-20-banner .dotnet-20-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-}
-.page-home .dotnet-20-banner .dotnet-20-image img {
-  height: 100%;
-  width: 100%;
-  -o-object-fit: cover;
-  object-fit: cover;
-  background-color: #000;
-}
-.page-home .dotnet-20-banner .container .row {
-  color: white;
-}
-@media (max-width: 1199px) {
-  .page-home .dotnet-20-banner .container .row {
-    margin-top: 48px;
-    margin-bottom: 48px;
-  }
-}
-@media (min-width: 1199px) {
-  .page-home .dotnet-20-banner .container .row {
-    margin-top: 144px;
-    margin-bottom: 144px;
-  }
-}
-.page-home .dotnet-20-banner .container .row .banner-text {
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-}
-.page-home .dotnet-20-banner .container .row .banner-text h2 {
-  margin-top: 0px;
-  font-weight: 600;
-}
-.page-home .dotnet-20-banner .container .row .banner-text h3 {
-  margin-top: 0px;
-  font-weight: 400;
-}
-.page-home .dotnet-20-banner .container .row .banner-text a {
-  padding: 5px 12px 5px 12px;
-  border: 1px solid white;
-  color: white;
-  font-weight: 600;
-}
-.page-home .dotnet-20-banner .container .row .banner-text a:focus {
-  outline-color: #fff;
-  outline-style: dashed;
-  outline-width: 2px;
-  outline-offset: 3px;
-}
 .page-home .what-is-nuget {
   font-size: 1.15em;
   padding-bottom: 75px;
@@ -1651,7 +1611,7 @@ p.frameworktableinfo-text {
 }
 .page-home .circuit-board {
   margin-top: 20px;
-  width: 768px;
+  width: 900px;
   height: 396px;
   position: relative;
   margin: 0 auto;
@@ -1662,6 +1622,8 @@ p.frameworktableinfo-text {
 .page-home .circuit-board .circuit-board-label {
   position: absolute;
   height: 75px;
+  padding-left: 25px;
+  padding-right: 25px;
   background-color: #fff;
   color: #000;
   -webkit-box-shadow: 0 0 3px black;
@@ -1672,31 +1634,28 @@ p.frameworktableinfo-text {
   margin: 9px 0 0 0;
 }
 .page-home .circuit-board .circuit-board-pd {
-  left: 377px;
+  left: 443px;
   top: 10px;
   float: left;
-  width: 230px;
 }
 .page-home .circuit-board .circuit-board-pd.triangle:after {
   left: 20px;
 }
 .page-home .circuit-board .circuit-board-pv {
-  left: 0;
+  right: 675px;
   top: 63px;
   float: left;
-  width: 144px;
 }
 .page-home .circuit-board .circuit-board-pv.triangle:after {
-  right: 30px;
+  right: 45px;
 }
 .page-home .circuit-board .circuit-board-up {
-  right: 0;
-  top: 87px;
+  left: 675px;
+  top: 105px;
   float: right;
-  width: 144px;
 }
 .page-home .circuit-board .circuit-board-up.triangle:after {
-  left: 30px;
+  left: 45px;
 }
 .page-list-packages h1 {
   margin-bottom: 33px;
@@ -2280,6 +2239,9 @@ p.frameworktableinfo-text {
 }
 .page-stats-per-package #stats-graph-svg p {
   margin-bottom: none;
+}
+.page-stats-per-package .statistics-report-title {
+  overflow-wrap: break-word;
 }
 .page-status .status-general {
   padding: 13px;

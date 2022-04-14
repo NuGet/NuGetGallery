@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
+using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.TestUtils;
@@ -17,8 +19,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [Fact]
         public void CtorThrowsIfReservedNamespaceServiceNull()
         {
+            // Arrange.
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+
             // Act & Assert.
-            Assert.Throws<ArgumentNullException>(() => new ReservedNamespaceController(null));
+            Assert.Throws<ArgumentNullException>(() => new ReservedNamespaceController(null, packageRegistrations.Object));
         }
 
         [Theory]
@@ -31,7 +36,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
-            var controller = new ReservedNamespaceController(reservedNamespaceService);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
 
             // Act.
             JsonResult jsonResult = controller.SearchPrefix(query);
@@ -46,13 +52,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [Fact]
-        public async void AddNamespaceDoesNotReturnSuccessForInvalidNamespaces()
+        public async Task AddNamespaceDoesNotReturnSuccessForInvalidNamespaces()
         {
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var newNamespace = namespaces.First();
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
-            var controller = new ReservedNamespaceController(reservedNamespaceService);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
 
             // Act & Assert.
             JsonResult result = await controller.AddNamespace(newNamespace);
@@ -65,13 +72,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [InlineData("abc", false, false)]
         [InlineData("microsoft.aspnet.mvc.", false, true)]
         [InlineData("microsoft.aspnet.extention.", true, true)]
-        public async void AddNamespaceSuccessfullyAddsNewNamespaces(string value, bool isSharedNamespace, bool isPrefix)
+        public async Task AddNamespaceSuccessfullyAddsNewNamespaces(string value, bool isSharedNamespace, bool isPrefix)
         {
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var newNamespace = new ReservedNamespace(value, isSharedNamespace, isPrefix);
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
-            var controller = new ReservedNamespaceController(reservedNamespaceService);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
 
             // Act & Assert.
             JsonResult result = await controller.AddNamespace(newNamespace);
@@ -84,14 +92,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("abc")]
-        public async void RemoveNamespaceDoesNotReturnSuccessForInvalidNamespaces(string value)
+        public async Task RemoveNamespaceDoesNotReturnSuccessForInvalidNamespaces(string value)
         {
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var invalidNamespace = new ReservedNamespace();
             invalidNamespace.Value = value;
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
-            var controller = new ReservedNamespaceController(reservedNamespaceService);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
 
             // Act & Assert.
             JsonResult result = await controller.RemoveNamespace(invalidNamespace);
@@ -103,13 +112,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [InlineData("microsoft.")]
         [InlineData("jquery")]
         [InlineData("jQuery.Extentions.")]
-        public async void RemoveNamespaceSuccesfullyDeletesNamespace(string value)
+        public async Task RemoveNamespaceSuccesfullyDeletesNamespace(string value)
         {
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
-            var controller = new ReservedNamespaceController(reservedNamespaceService);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
 
             // Act & Assert.
             JsonResult result = await controller.RemoveNamespace(existingNamespace);
@@ -126,7 +136,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [InlineData("microsoft.", "")]
         [InlineData("microsoft.", "   ")]
         [InlineData("microsoft.", "nonexistentuser")]
-        public async void AddOwnerDoesNotReturnSuccessForInvalidData(string value, string username)
+        public async Task AddOwnerDoesNotReturnSuccessForInvalidData(string value, string username)
         {
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
@@ -134,7 +144,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault() ?? new ReservedNamespace();
             existingNamespace.Value = value;
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
-            var controller = new ReservedNamespaceController(reservedNamespaceService);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
 
             // Act & Assert.
             JsonResult result = await controller.AddOwner(existingNamespace, username);
@@ -146,14 +157,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [InlineData("microsoft.", "test1")]
         [InlineData("jquery", "test1")]
         [InlineData("jQuery.Extentions.", "test1")]
-        public async void AddOwnerSuccessfullyAddsOwnerToReservedNamespace(string value, string username)
+        public async Task AddOwnerSuccessfullyAddsOwnerToReservedNamespace(string value, string username)
         {
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
             var allUsers = ReservedNamespaceServiceTestData.GetTestUsers();
             var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
-            var controller = new ReservedNamespaceController(reservedNamespaceService);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
 
             // Act & Assert.
             JsonResult result = await controller.AddOwner(existingNamespace, username);
@@ -171,7 +183,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [InlineData("microsoft.", "   ")]
         [InlineData("microsoft.", "nonexistentuser")]
         [InlineData("microsoft.", "test1")]
-        public async void RemoveOwnerDoesNotReturnSuccessForInvalidData(string value, string username)
+        public async Task RemoveOwnerDoesNotReturnSuccessForInvalidData(string value, string username)
         {
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
@@ -179,7 +191,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault() ?? new ReservedNamespace();
             existingNamespace.Value = value;
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
-            var controller = new ReservedNamespaceController(reservedNamespaceService);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
 
             // Act & Assert.
             JsonResult result = await controller.RemoveOwner(existingNamespace, username);
@@ -191,7 +204,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [InlineData("microsoft.")]
         [InlineData("jquery")]
         [InlineData("jQuery.Extentions.")]
-        public async void RemoveOwnerSuccessfullyRemovesOwnerToReservedNamespace(string value)
+        public async Task RemoveOwnerSuccessfullyRemovesOwnerToReservedNamespace(string value)
         {
             // Arrange.
             var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
@@ -200,12 +213,56 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var existingNamespace = namespaces.Where(rn => rn.Value.Equals(value, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             existingNamespace.Owners.Add(testUser);
             var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
-            var controller = new ReservedNamespaceController(reservedNamespaceService);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
 
             // Act & Assert.
             JsonResult result = await controller.RemoveOwner(existingNamespace, testUser.Username);
             dynamic data = result.Data;
             Assert.True(data.success);
+        }
+
+        [Fact]
+        public void FindsReservedNamespacesStartingWithValue()
+        {
+            // Arrange.
+            var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+            var allUsers = ReservedNamespaceServiceTestData.GetTestUsers();
+            var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
+
+            // Act
+            var result = controller.FindNamespacesByPrefix("m");
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<ReservedNamespaceViewModel>(viewResult.Model);
+            Assert.Equal(2, model.ReservedNamespaces.Count);
+            Assert.Equal("Microsoft.", model.ReservedNamespaces[0].Value);
+            Assert.Equal("Microsoft.Aspnet.", model.ReservedNamespaces[1].Value);
+        }
+
+        [Fact]
+        public void FindsPackageRegistrationsStartingWithValue()
+        {
+            // Arrange.
+            var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+            var allUsers = ReservedNamespaceServiceTestData.GetTestUsers();
+            var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces, users: allUsers);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            packageRegistrations
+                .Setup(x => x.GetAll())
+                .Returns(() => new[] { new PackageRegistration { Id = "foo" }, new PackageRegistration { Id = "bar" } }.AsQueryable());
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
+
+            // Act
+            var result = controller.FindPackagesByPrefix("f");
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<ReservedNamespaceViewModel>(viewResult.Model);
+            Assert.Equal("foo", Assert.Single(model.PackageRegistrations).Id);
         }
     }
 }

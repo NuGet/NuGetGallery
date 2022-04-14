@@ -378,12 +378,27 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
+        public void TrackApiRequest(string endpoint)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode)
         {
             throw new NotImplementedException();
         }
 
         public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDisposable TrackSyncSqlConnectionCreationDuration()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDisposable TrackAsyncSqlConnectionCreationDuration()
         {
             throw new NotImplementedException();
         }

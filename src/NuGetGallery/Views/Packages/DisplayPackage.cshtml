@@ -168,7 +168,7 @@
     <li role="presentation" class="@(active ? "active" : string.Empty)">
         <a href="#@packageManager.Id" aria-expanded="@(active ? "true" : "false")"
            id="@packageManager.Id-tab" class="package-manager-tab"
-           aria-selected="@(active ? "true" : "false")"
+           aria-selected="@(active ? "true" : "false")" tabindex="@(active ? "0" : "-1")"
            aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
            title="Switch to tab panel which contains package installation command for @packageManager.Name">
             @packageManager.Name
@@ -180,21 +180,19 @@
 {
     var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
-        <div>
-            <div class="install-script-row">
-                @{
-                    var lastIndex = packageManager.InstallPackageCommands.Length - 1;
-                    var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
-                }
-                @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
-                <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
-                <div class="copy-button">
-                    <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
-                            data-toggle="popover" data-placement="bottom" data-content="Copied."
-                            aria-label="@packageManager.CopyLabel" role="button">
-                        <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
-                    </button>
-                </div>
+        <div class="install-script-row">
+            @{
+                var lastIndex = packageManager.InstallPackageCommands.Length - 1;
+                var cs = packageManager.InstallPackageCommands.Select((c, i) => i < lastIndex ? c + Environment.NewLine : c);
+            }
+            @* Writing out the install command must be on a single line to avoid undesired whitespace in the <pre> tag. *@
+            <pre class="install-script" id="@packageManager.Id-text">@foreach (var c in cs) {<span class="install-command-row">@c</span>}</pre>
+            <div class="copy-button">
+                <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
+                        data-toggle="popover" data-placement="bottom" data-content="Copied."
+                        aria-label="@packageManager.CopyLabel" role="button">
+                    <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
+                </button>
             </div>
         </div>
 
@@ -517,7 +515,8 @@
                                class="body-tab"
                                aria-controls="readme-tab"
                                aria-expanded="@(activeBodyTab == "readme" ? "true" : "false")"
-                               aria-selected="@(activeBodyTab == "readme" ? "true" : "false")">
+                               aria-selected="@(activeBodyTab == "readme" ? "true" : "false")"
+                               tabindex="@(activeBodyTab == "readme" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--Dictionary" aria-hidden="true"></i>
                                 README
                             </a>
@@ -534,7 +533,8 @@
                                 class="body-tab"
                                 aria-controls="supportedframeworks-tab"
                                 aria-expanded="@(activeBodyTab == "supportedframeworks" ? "true" : "false")"
-                                aria-selected="@(activeBodyTab == "supportedframeworks" ? "true" : "false")">
+                                aria-selected="@(activeBodyTab == "supportedframeworks" ? "true" : "false")"
+                                tabindex="@(activeBodyTab == "supportedframeworks" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--Package" aria-hidden="true"></i>
                                 Frameworks
                             </a>
@@ -550,7 +550,8 @@
                                class="body-tab"
                                aria-controls="dependencies-tab"
                                aria-expanded="@(activeBodyTab == "dependencies" ? "true" : "false")"
-                               aria-selected="@(activeBodyTab == "dependencies" ? "true" : "false")">
+                               aria-selected="@(activeBodyTab == "dependencies" ? "true" : "false")"
+                               tabindex="@(activeBodyTab == "dependencies" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--Packages" aria-hidden="true"></i>
                                 Dependencies
                             </a>
@@ -568,7 +569,8 @@
                                class="body-tab"
                                aria-controls="usedby-tab"
                                aria-expanded="@(activeBodyTab == "usedby" ? "true" : "false")"
-                               aria-selected="@(activeBodyTab == "usedby" ? "true" : "false")">
+                               aria-selected="@(activeBodyTab == "usedby" ? "true" : "false")"
+                               tabindex="@(activeBodyTab == "usedby" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--BranchFork2" aria-hidden="true"></i>
                                 Used By
                             </a>
@@ -584,7 +586,8 @@
                            class="body-tab"
                            aria-controls="versions-tab"
                            aria-expanded="@(activeBodyTab == "versions" ? "true" : "false")"
-                           aria-selected="@(activeBodyTab == "versions" ? "true" : "false")">
+                           aria-selected="@(activeBodyTab == "versions" ? "true" : "false")"
+                           tabindex="@(activeBodyTab == "versions" ? "0" : "-1")">
                             <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
                             Versions
                         </a>
@@ -594,7 +597,15 @@
                     {
                         activeBodyTab = activeBodyTab ?? "releasenotes";
                         <li role="presentation">
-                            <a href="#releasenotes-tab" aria-controls="releasenotes-tab" role="tab" data-toggle="tab" id="release-body-tab" class="body-tab">
+                            <a href="#releasenotes-tab"
+                               role="tab"
+                               data-toggle="tab"
+                               id="release-body-tab"
+                               class="body-tab"
+                               aria-controls="releasenotes-tab"
+                               aria-expanded="@(activeBodyTab == "releasenotes" ? "true" : "false")"
+                               aria-selected="@(activeBodyTab == "releasenotes" ? "true" : "false")"
+                               tabindex="@(activeBodyTab == "releasenotes" ? "0" : "-1")">
                                 <i class="ms-Icon ms-Icon--ReadingMode" aria-hidden="true"></i>
                                 Release Notes
                             </a>
@@ -606,20 +617,17 @@
             <div class="tab-content body-tab-content">
                 @if (!Model.Deleted)
                 {
-                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "readme" ? "active" : "")" id="readme-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "readme" ? "active" : "")" id="readme-tab" aria-label="Readme tab content">
                         @if (Model.ShouldHideDetailsAndLinks)
                         {
-                            @ViewHelpers.AlertWarning(@<text>This package's content is hidden as it violates our <a href="https://www.nuget.org/policies/terms" title="Terms of use">Terms of use</a>.</text>);
-
-                        } else
+                            @ViewHelpers.AlertWarning(@<text>This package's content is hidden as it violates our <a href="https://www.nuget.org/policies/terms" title="Terms of use">Terms of use</a>.</text>)
+                        }
+                        else
                         {
-                            @if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
+
+                            if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
                             {
-                                @ViewHelpers.AlertWarning(
-                                        @<text>
-                                            The readme will become available once package validation has completed successfully.
-                                        </text>
-    )
+                                @ViewHelpers.AlertWarning(@<text>The readme will become available once package validation has completed successfully.</text>)
                             }
                             else if (Model.ReadMeHtml != null)
                             {
@@ -653,7 +661,7 @@
 
                     if (Model.CanDisplayTargetFrameworks())
                     {
-                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "supportedframeworks" ? "active" : "")" id="supportedframeworks-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "supportedframeworks" ? "active" : "")" id="supportedframeworks-tab" aria-label="Supported frameworks tab content">
                         @if (Model.PackageFrameworkCompatibility.Table.Count > 0)
                         {
                             @Html.Partial("_SupportedFrameworksTable", Model.PackageFrameworkCompatibility.Table)
@@ -666,7 +674,7 @@
                     </div>
                     }
 
-                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "dependencies" ? "active" : "")" id="dependencies-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "dependencies" ? "active" : "")" id="dependencies-tab" aria-label="Dependencies tab content">
                         @if (!Model.Deleted)
                         {
                             if (Model.Dependencies.DependencySets == null)
@@ -724,7 +732,7 @@
                         }
                     </div>
                 }
-                <div role="tabpanel" class="tab-pane @(activeBodyTab == "usedby" ? "active" : "")" id="usedby-tab">
+                <div role="tabpanel" class="tab-pane @(activeBodyTab == "usedby" ? "active" : "")" id="usedby-tab" aria-label="Used by tab content">
                     @if (!Model.IsDotnetToolPackageType && (Model.IsGitHubUsageEnabled || Model.IsPackageDependentsEnabled))
                     {
                         <div class="used-by" id="used-by">
@@ -738,18 +746,18 @@
                                     <p>
                                         Showing the top @(Model.PackageDependents.TopPackages.Count) NuGet packages that depend on @(Model.Id):
                                     </p>
-                                    <table class="table borderless">
+                                    <table class="table borderless" aria-label="Packages that depend on @Model.Id">
                                         <thead>
                                             <tr>
-                                                <th class="used-by-adjust-table-head">Package</th>
-                                                <th class="used-by-adjust-table-head">Downloads</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Package</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Downloads</th>
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
                                             @foreach (var item in Model.PackageDependents.TopPackages)
                                             {
                                                 <tr>
-                                                    <td class="used-by-desc-column">
+                                                    <td class="used-by-desc-column" tabindex="0">
                                                         <a class="text-left ngp-link" href="@Url.Package(item.Id)">
                                                             @(item.Id)
                                                         </a>
@@ -758,11 +766,12 @@
                                                             <img class="reserved-indicator"
                                                                  src="~/Content/gallery/img/reserved-indicator.svg"
                                                                  @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-14x14.png"))
+                                                                 alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"
                                                                  title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                                                         }
                                                         <p class="used-by-desc">@item.Description</p>
                                                     </td>
-                                                    <td>
+                                                    <td tabindex="0">
                                                         <i class="ms-Icon ms-Icon--Download used-by-download-icon" aria-hidden="true"></i> <label class="used-by-count">@(item.DownloadCount.ToKiloFormat())</label>
                                                     </td>
                                                 </tr>
@@ -791,18 +800,18 @@
                                     <p>
                                         Showing the top @(Model.GitHubDependenciesInformation.Repos.Count) popular GitHub repositories that depend on @(Model.Id):
                                     </p>
-                                    <table class="table borderless">
+                                    <table class="table borderless" aria-label="GitHub repositories that depend on @Model.Id">
                                         <thead>
                                             <tr>
-                                                <th class="used-by-adjust-table-head">Repository</th>
-                                                <th class="used-by-adjust-table-head">Stars</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Repository</th>
+                                                <th class="used-by-adjust-table-head" scope="col" role="columnheader" tabindex="0">Stars</th>
                                             </tr>
                                         </thead>
                                         <tbody class="no-border">
                                             @foreach (var item in Model.GitHubDependenciesInformation.Repos.Select((elem, i) => new { Value = elem, Idx = i }))
                                             {
                                                 <tr>
-                                                    <td class="used-by-desc-column">
+                                                    <td class="used-by-desc-column" tabindex="0">
                                                         <a data-index-number="@item.Idx" class="text-left gh-link" href="@item.Value.Url" target="_blank">
                                                             @(item.Value.Id)
                                                         </a>
@@ -810,7 +819,7 @@
                                                             <span>@(item.Value.Description)</span>
                                                         </div>
                                                     </td>
-                                                    <td>
+                                                    <td tabindex="0">
                                                         <i class="ms-Icon ms-Icon--FavoriteStarFill gh-star" aria-hidden="true"></i> <label class="used-by-count">@(item.Value.Stars.ToKiloFormat())</label>
                                                     </td>
                                                 </tr>
@@ -832,25 +841,25 @@
                         </div>
                     }
                 </div>
-                <div role="tabpanel" class="tab-pane @(activeBodyTab == "versions" ? "active" : "")" id="versions-tab">
+                <div role="tabpanel" class="tab-pane @(activeBodyTab == "versions" ? "active" : "")" id="versions-tab" aria-label="Versions tab content">
                     <div class="version-history" id="version-history">
                         <table aria-label="Version History of @Model.Id" class="table borderless">
                             <thead>
                                 <tr>
-                                    <th scope="col">Version</th>
-                                    <th scope="col">Downloads</th>
-                                    <th scope="col">Last updated</th>
+                                    <th scope="col" role="columnheader" tabindex="0">Version</th>
+                                    <th scope="col" role="columnheader" tabindex="0">Downloads</th>
+                                    <th scope="col" role="columnheader" tabindex="0">Last updated</th>
                                     @if (Model.CanDisplayPrivateMetadata)
                                     {
-                                        <th scope="col">Status</th>
+                                        <th scope="col" role="columnheader" tabindex="0">Status</th>
                                     }
                                     @if (Model.IsCertificatesUIEnabled)
                                     {
-                                        <th scope="col" aria-hidden="true" abbr="Signature Information"></th>
+                                        <th scope="col" role="columnheader" aria-hidden="true" abbr="Signature Information"></th>
                                     }
                                     @if (Model.IsPackageDeprecationEnabled || Model.IsPackageVulnerabilitiesEnabled)
                                     {
-                                        <th scope="col" aria-hidden="true" abbr="Package Warnings"></th>
+                                        <th scope="col" role="columnheader" aria-hidden="true" abbr="Package Warnings"></th>
                                     }
                                 </tr>
                             </thead>
@@ -861,7 +870,7 @@
                                         || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
                                     {
                                         <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
-                                            <td>
+                                            <td tabindex="0">
                                                 <a href="@Url.Package(packageVersion)" title="@packageVersion.Version">
                                                     @packageVersion.Version.Abbreviate(30)
                                                 </a>
@@ -949,7 +958,7 @@
                 </div>
                 @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
                 {
-                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "releasenotes" ? "active" : "")" id="releasenotes-tab">
+                    <div role="tabpanel" class="tab-pane @(activeBodyTab == "releasenotes" ? "active" : "")" id="releasenotes-tab" aria-label="Release notes tab content">
                         <p>@Html.PreFormattedText(Model.ReleaseNotes, Config)</p>
                     </div>
                 }

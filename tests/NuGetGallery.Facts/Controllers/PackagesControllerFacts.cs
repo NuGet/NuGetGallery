@@ -5401,6 +5401,34 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageId, model.PackageId);
                 Assert.Equal(PackageVersion, model.PackageVersion);
+                Assert.False(model.ShouldHideReportAbuseForm);
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public void HidesFormForSpamPackages(User currentUser, User owner)
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = PackageId, Owners = { owner }, IsLocked = true },
+                    Version = PackageVersion,
+                    Listed = false,
+                    User = new User()
+                    {
+                        UserStatusKey = UserStatus.Locked
+                    }
+                };
+
+                var result = GetReportAbuseResultInternal(currentUser, owner, package);
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
+                var model = viewResult.Model as ReportAbuseViewModel;
+
+                Assert.Equal(PackageId, model.PackageId);
+                Assert.Equal(PackageVersion, model.PackageVersion);
+                Assert.True(model.ShouldHideReportAbuseForm);
             }
 
             [Theory]
@@ -5421,6 +5449,12 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = PackageId, Owners = { owner } },
                     Version = PackageVersion
                 };
+
+                return GetReportAbuseResultInternal(currentUser, owner, package);
+            }
+
+            private ActionResult GetReportAbuseResultInternal(User currentUser, User owner, Package package)
+            {
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, PackageVersion)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();

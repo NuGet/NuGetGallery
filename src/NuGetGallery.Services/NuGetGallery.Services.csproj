@@ -242,6 +242,7 @@
     <Compile Include="SupportRequest\Models\ISupportRequestDbContext.cs" />
     <Compile Include="SupportRequest\Models\SupportRequestDbContext.cs" />
     <Compile Include="SupportRequest\SupportRequestService.cs" />
+    <Compile Include="Telemetry\DurationMetric.cs" />
     <Compile Include="Telemetry\ITelemetryClient.cs" />
     <Compile Include="Telemetry\ITelemetryService.cs" />
     <Compile Include="Telemetry\Obfuscator.cs" />

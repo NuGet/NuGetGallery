@@ -293,9 +293,8 @@ namespace NuGetGallery
         bool IsRecentPackagesNoIndexEnabled();
 
         /// <summary>
-        /// Whether to show the banner announcing .NET's 20 year celebration.
+        /// Whether or not to enforce 2FA for new external account link or replacement.
         /// </summary>
-        /// <returns></returns>
-        bool IsDotnet20BannerEnabled();
+        bool IsNewAccount2FAEnforcementEnabled();
     }
 }

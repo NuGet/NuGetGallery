@@ -144,6 +144,7 @@
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SiteAdminsController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
+    <Compile Include="Areas\Admin\Controllers\PackageOwnershipController.cs" />
     <Compile Include="Areas\Admin\Controllers\UpdateListedController.cs" />
     <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
@@ -194,6 +195,11 @@
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFeatureViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ModifyFeatureFlagsFlightViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ApiKeyRevokeViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageOwnershipChangesInput.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageOwnershipState.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageOwnershipChangesModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageRegistrationOwnershipChangeModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\PackageRegistrationUserChangeModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SiteAdminsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\NuGetPackageValidationViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
@@ -325,6 +331,7 @@
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
+    <Compile Include="Services\MissingLicenseValidationMessage.cs" />
     <Compile Include="Services\UploadPackageIdNamespaceConflict.cs" />
     <Compile Include="Services\ImageDomainValidator.cs" />
     <Compile Include="Services\IMarkdownService.cs" />
@@ -1351,7 +1358,6 @@
     <Content Include="Content\gallery\img\circuit-board.svg" />
     <Content Include="Content\gallery\img\default-package-icon-256x256.png" />
     <Content Include="Content\gallery\img\default-package-icon.svg" />
-    <Content Include="Content\gallery\img\dotnet-20-banner.svg" />
     <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
     <Content Include="Content\gallery\img\dotnet-foundation.svg" />
     <Content Include="Content\gallery\img\facebook-24x24.png" />
@@ -2333,6 +2339,15 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\Admin\Views\UpdateListed\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Admin\Views\PackageOwnership\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Admin\Views\PackageOwnership\ValidateInput.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Areas\Admin\Views\PackageOwnership\_HiddenForm.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

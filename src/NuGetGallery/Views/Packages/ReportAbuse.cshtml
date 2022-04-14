@@ -45,7 +45,7 @@
                 )
 
                 <h2><strong>To report abuse, use this form</strong></h2>
-                @if (!Model.ConfirmedUser)
+                if (!Model.ConfirmedUser)
                 {
                     @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
                         @<text>
@@ -59,7 +59,7 @@
                     </text>
                 </p>
 
-                @using (Html.BeginForm())
+                using (Html.BeginForm())
                 {
                     @Html.AntiForgeryToken()
 

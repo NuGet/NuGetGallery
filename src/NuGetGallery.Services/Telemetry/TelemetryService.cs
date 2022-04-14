@@ -19,7 +19,7 @@ namespace NuGetGallery
 {
     public class TelemetryService : ITelemetryService, IFeatureFlagTelemetryService
     {
-        public class Events
+        public static class Events
         {
             public const string ODataQueryFilter = "ODataQueryFilter";
             public const string ODataCustomQuery = "ODataCustomQuery";
@@ -94,6 +94,8 @@ namespace NuGetGallery
             public const string SymbolPackagePushDisconnect = "SymbolPackagePushDisconnect";
             public const string VulnerabilitiesCacheRefreshDurationMs = "VulnerabilitiesCacheRefreshDurationMs";
             public const string InstanceUptime = "InstanceUptimeInDays";
+            public const string ApiRequest = "ApiRequest";
+            public const string CreateSqlConnectionDurationMs = "CreateSqlConnectionDurationMs";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -232,6 +234,12 @@ namespace NuGetGallery
         public const string IsActive = "IsActive";
         public const string TestBucket = "TestBucket";
         public const string TestPercentage = "TestPercentage";
+
+        public const string Endpoint = "Endpoint";
+
+        public const string Kind = "Kind";
+        public const string Sync = "Sync";
+        public const string Async = "Async";
 
         public TelemetryService(IDiagnosticsSource diagnosticsSource, ITelemetryClient telemetryClient)
         {
@@ -1128,6 +1136,23 @@ namespace NuGetGallery
         public void TrackVulnerabilitiesCacheRefreshDuration(TimeSpan duration)
         {
             TrackMetric(Events.VulnerabilitiesCacheRefreshDurationMs, duration.TotalMilliseconds, properties => { });
+        }
+
+        public void TrackApiRequest(string endpoint)
+        {
+            _telemetryClient.TrackAggregatedMetric(Events.ApiRequest, 1, Endpoint, endpoint);
+        }
+
+        public IDisposable TrackSyncSqlConnectionCreationDuration()
+            => TrackSqlConnectionCreationDuration(Sync);
+
+        public IDisposable TrackAsyncSqlConnectionCreationDuration()
+            => TrackSqlConnectionCreationDuration(Async);
+
+        private IDisposable TrackSqlConnectionCreationDuration(string kind)
+        {
+            return new DurationTracker(duration => 
+                _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDurationMs, duration.TotalMilliseconds, Kind, kind));
         }
 
         /// <summary>

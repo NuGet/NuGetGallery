@@ -275,7 +275,7 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsDotnet20BannerEnabled()
+        public bool IsNewAccount2FAEnforcementEnabled()
         {
             throw new NotImplementedException();
         }

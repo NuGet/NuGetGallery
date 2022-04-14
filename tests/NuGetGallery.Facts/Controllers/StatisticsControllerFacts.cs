@@ -348,7 +348,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void StatisticsHomePage_Per_Package_ValidateModel()
+        public async Task StatisticsHomePage_Per_Package_ValidateModel()
         {
             string PackageId = "A";
 
@@ -531,7 +531,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async void Statistics_By_Client_Operation_ValidateModel()
+        public async Task Statistics_By_Client_Operation_ValidateModel()
         {
             string PackageId = "A";
             string PackageVersion = "2.0";

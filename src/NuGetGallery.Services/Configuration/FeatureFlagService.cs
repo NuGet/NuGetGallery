@@ -40,7 +40,6 @@ namespace NuGetGallery
         private const string GravatarProxyEnSubdomainFeatureName = GalleryPrefix + "GravatarProxyEnSubdomain";
         private const string ODataCacheDurationsFeatureName = GalleryPrefix + "ODataCacheDurations";
         private const string ShowEnable2FADialog = GalleryPrefix + "ShowEnable2FADialog";
-        private const string ShowDotnet20Banner = GalleryPrefix + "ShowDotnet20Banner";
         private const string Get2FADismissFeedback = GalleryPrefix + "Get2FADismissFeedback";
         private const string PackageRenamesFeatureName = GalleryPrefix + "PackageRenames";
         private const string PatternSetTfmHeuristicsFeatureName = GalleryPrefix + "PatternSetTfmHeuristics";
@@ -54,6 +53,7 @@ namespace NuGetGallery
         private const string DisplayTargetFrameworkFeatureName = GalleryPrefix + "DisplayTargetFramework";
         private const string ComputeTargetFrameworkFeatureName = GalleryPrefix + "ComputeTargetFramework";
         private const string RecentPackagesNoIndexFeatureName = GalleryPrefix + "RecentPackagesNoIndex";
+        private const string NewAccount2FAEnforcementFeatureName = GalleryPrefix + "NewAccount2FAEnforcement";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -229,11 +229,6 @@ namespace NuGetGallery
             return _client.IsEnabled(ShowEnable2FADialog, defaultValue: false);
         }
 
-        public bool IsDotnet20BannerEnabled()
-        {
-            return _client.IsEnabled(ShowDotnet20Banner, defaultValue: false);
-        }
-
         public bool IsGet2FADismissFeedbackEnabled()
         {
             return _client.IsEnabled(Get2FADismissFeedback, defaultValue: false);
@@ -367,6 +362,11 @@ namespace NuGetGallery
         public bool IsRecentPackagesNoIndexEnabled()
         {
             return _client.IsEnabled(RecentPackagesNoIndexFeatureName, defaultValue: false);
+        }
+
+        public bool IsNewAccount2FAEnforcementEnabled()
+        {
+            return _client.IsEnabled(NewAccount2FAEnforcementFeatureName, defaultValue: false);
         }
     }
 }

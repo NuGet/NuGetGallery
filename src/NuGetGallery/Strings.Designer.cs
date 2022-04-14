@@ -2085,6 +2085,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with all versions of this framework..
+        /// </summary>
+        public static string SupportedFrameworks_EmptyVersionTooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_EmptyVersionTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package is compatible with this framework or higher..
+        /// </summary>
+        public static string SupportedFrameworks_Tooltip {
+            get {
+                return ResourceManager.GetString("SupportedFrameworks_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your support request has been sent to the gallery operators..
         /// </summary>
         public static string SupportRequestSentTransientMessage {
@@ -2643,15 +2661,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Learn more about including a license within the package.
-        /// </summary>
-        public static string UploadPackage_LearMore_PackagingLicense {
-            get {
-                return ResourceManager.GetString("UploadPackage_LearMore_PackagingLicense", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Learn more.
         /// </summary>
         public static string UploadPackage_LearnMore {
@@ -2684,6 +2693,15 @@ namespace NuGetGallery {
         public static string UploadPackage_LearnMore_LicenseUrlDreprecation {
             get {
                 return ResourceManager.GetString("UploadPackage_LearnMore_LicenseUrlDreprecation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about including a license within the package.
+        /// </summary>
+        public static string UploadPackage_LearnMore_PackagingLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_LearnMore_PackagingLicense", resourceCulture);
             }
         }
         

@@ -1366,7 +1366,7 @@ namespace NuGetGallery
                 PackageVersion = package.Version,
                 CopySender = true,
                 IsPackageListed = package.Listed,
-                IsOwnerLocked = package.User.IsLocked,
+                IsOwnerLocked = package.User?.IsLocked ?? false,
                 IsPackageLocked = package.PackageRegistration.IsLocked,
             };
 
@@ -1423,7 +1423,7 @@ namespace NuGetGallery
                 AllowDelete = allowDelete,
                 IsPackageListed = package.Listed,
                 IsPackageLocked = package.PackageRegistration.IsLocked,
-                IsOwnerLocked = package.User.IsLocked
+                IsOwnerLocked = package.User?.IsLocked ?? false
             };
 
             return View(model);

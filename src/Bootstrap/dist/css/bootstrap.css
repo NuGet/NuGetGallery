@@ -2383,7 +2383,6 @@ fieldset[disabled] a.btn {
 .btn-default:focus,
 .btn-default.focus {
   color: #333;
-  background-color: #e6e6e6;
   border-color: #3f3f3f;
 }
 .btn-default:hover {
@@ -2436,7 +2435,6 @@ fieldset[disabled] .btn-default.focus {
 .btn-primary:focus,
 .btn-primary.focus {
   color: #fff;
-  background-color: #286090;
   border-color: #122b40;
 }
 .btn-primary:hover {
@@ -2489,7 +2487,6 @@ fieldset[disabled] .btn-primary.focus {
 .btn-success:focus,
 .btn-success.focus {
   color: #fff;
-  background-color: #449d44;
   border-color: #255625;
 }
 .btn-success:hover {
@@ -2542,7 +2539,6 @@ fieldset[disabled] .btn-success.focus {
 .btn-info:focus,
 .btn-info.focus {
   color: #fff;
-  background-color: #31b0d5;
   border-color: #1b6d85;
 }
 .btn-info:hover {
@@ -2595,7 +2591,6 @@ fieldset[disabled] .btn-info.focus {
 .btn-warning:focus,
 .btn-warning.focus {
   color: #fff;
-  background-color: #a56000;
   border-color: #3f2500;
 }
 .btn-warning:hover {
@@ -2648,7 +2643,6 @@ fieldset[disabled] .btn-warning.focus {
 .btn-danger:focus,
 .btn-danger.focus {
   color: #fff;
-  background-color: #ac0017;
   border-color: #460009;
 }
 .btn-danger:hover {
@@ -3451,6 +3445,10 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   .navbar {
     border-radius: 0px;
   }
+}
+.navbar a:focus {
+  outline: 4px solid white;
+  outline-offset: -2px;
 }
 @media (min-width: 768px) {
   .navbar-header {

@@ -40,6 +40,8 @@ namespace NuGetGallery.Packaging
             "serviceable",
         };
 
+        private const string TagsElement = "tags";
+
         private readonly Dictionary<string, string> _metadata;
         private readonly IReadOnlyCollection<PackageDependencyGroup> _dependencyGroups;
         private readonly IReadOnlyCollection<FrameworkSpecificGroup> _frameworkReferenceGroups;
@@ -237,9 +239,18 @@ namespace NuGetGallery.Packaging
                 }
             }
 
-            // Reject invalid metadata element names. Today this only rejects element names that collide with
-            // properties generated downstream.
-            var metadataKeys = new HashSet<string>(metadataLookup.Select(g => g.Key));
+            // Reject invalid metadata element names.
+            var metadataElements = metadataLookup.Select(g => g.Key).ToList();
+            var unexpectedTagsCasings = metadataElements.Where(element => element.Equals(TagsElement, StringComparison.OrdinalIgnoreCase) && element != TagsElement).ToList();
+            if (unexpectedTagsCasings.Any())
+            {
+                throw new PackagingException(string.Format(
+                    CoreStrings.Manifest_InvalidMetadataElements,
+                    string.Join("', '", unexpectedTagsCasings.OrderBy(x => x))));
+            }
+
+            // This only rejects element names that collide with properties generated downstream.
+            var metadataKeys = new HashSet<string>(metadataElements);
             metadataKeys.IntersectWith(RestrictedMetadataElements);
             if (metadataKeys.Any())
             {

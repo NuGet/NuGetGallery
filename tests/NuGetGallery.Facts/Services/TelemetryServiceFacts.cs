@@ -355,21 +355,41 @@ namespace NuGetGallery
                     yield return new object[] { "InstanceUptimeInDays",
                         (TrackAction)(s => s.TrackInstanceUptime(TimeSpan.FromSeconds(1)))
                     };
+
+                    yield return new object[] { "ApiRequest",
+                        (TrackAction)(s => s.TrackApiRequest("SomeEndpoint")),
+                        true
+                    };
+
+                    yield return new object[] { "CreateSqlConnectionDurationMs",
+                        (TrackAction)(s => s.TrackSyncSqlConnectionCreationDuration().Dispose()),
+                        true
+                    };
+
+                    yield return new object[] { "CreateSqlConnectionDurationMs",
+                        (TrackAction)(s => s.TrackAsyncSqlConnectionCreationDuration().Dispose()),
+                        true
+                    };
                 }
             }
 
             [Fact]
             public void TrackEventNamesIncludesAllEvents()
             {
-                var expectedCount = typeof(TelemetryService.Events).GetFields().Length;
-                var actualCount = TrackMetricNames_Data.Count();
+                var eventNames = typeof(TelemetryService.Events)
+                    .GetFields()
+                    .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
+                    .Select(f => (string)f.GetValue(null))
+                    .ToList();
 
-                Assert.Equal(expectedCount, actualCount);
+                var testedNames = new HashSet<string>(TrackMetricNames_Data.Select(element => (string)element[0]));
+
+                Assert.All(eventNames, name => testedNames.Contains(name));
             }
 
             [Theory]
             [MemberData(nameof(TrackMetricNames_Data))]
-            public void TrackMetricNames(string metricName, TrackAction track)
+            public void TrackMetricNames(string metricName, TrackAction track, bool isAggregatedMetric = false)
             {
                 // Arrange
                 var service = CreateService();
@@ -378,10 +398,20 @@ namespace NuGetGallery
                 track(service);
 
                 // Assert
-                service.TelemetryClient.Verify(c => c.TrackMetric(metricName,
-                    It.IsAny<double>(),
-                    It.IsAny<IDictionary<string, string>>()),
-                    Times.Once);
+                if (!isAggregatedMetric)
+                {
+                    service.TelemetryClient.Verify(c => c.TrackMetric(metricName,
+                        It.IsAny<double>(),
+                        It.IsAny<IDictionary<string, string>>()),
+                        Times.Once);
+                }
+                else
+                {
+                    service.TelemetryClient.Verify(c => c.TrackAggregatedMetric(metricName,
+                        It.IsAny<double>(),
+                        It.IsAny<string>(), It.IsAny<string>()),
+                        Times.Once);
+                }
             }
 
             [Fact]

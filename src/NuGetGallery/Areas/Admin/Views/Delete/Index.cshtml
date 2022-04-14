@@ -18,7 +18,7 @@
 
     @using (Html.BeginForm("Delete", "Packages", new { area = "" }, FormMethod.Post, new { id = "delete-form" }))
     {
-        <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0">
+        <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0" aria-label="Search results">
             <thead>
                 <tr>
                     <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>

@@ -1190,7 +1190,7 @@ The {1} Team</value>
   <data name="ReadmeNotEditableWithEmbeddedReadme" xml:space="preserve">
     <value>The readme is not editable with the package has the embedded readme</value>
   </data>
-  <data name="UploadPackage_LearMore_PackagingLicense" xml:space="preserve">
+  <data name="UploadPackage_LearnMore_PackagingLicense" xml:space="preserve">
     <value>Learn more about including a license within the package</value>
   </data>
   <data name="UploadPackage_LearnMore_IconUrlDeprecation" xml:space="preserve">
@@ -1223,5 +1223,11 @@ The {1} Team</value>
   </data>
   <data name="ApiKeyOwnerLocked" xml:space="preserve">
     <value>The specified API key is scoped to an owner that is locked. Please contact support@nuget.org.</value>
+  </data>
+  <data name="SupportedFrameworks_EmptyVersionTooltip" xml:space="preserve">
+    <value>This package is compatible with all versions of this framework.</value>
+  </data>
+  <data name="SupportedFrameworks_Tooltip" xml:space="preserve">
+    <value>This package is compatible with this framework or higher.</value>
   </data>
 </root>

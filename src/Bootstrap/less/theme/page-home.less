@@ -14,67 +14,6 @@
     margin-top: 32px;
   }
 
-  .dotnet-20-banner {
-    .dotnet-20-image {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 100%;
-
-      img {
-        height: 100%;
-        width: 100%;
-        object-fit: cover;
-        background-color: #000;
-      }
-    }
-
-    .container {
-      .row {
-        color: white;
-
-        @media (max-width: @screen-md-max) {
-          margin-top: 48px;
-          margin-bottom: 48px;
-        }
-
-        @media (min-width: @screen-md-max) {
-          margin-top: 144px;
-          margin-bottom: 144px;
-        }
-
-        .banner-text {
-          backdrop-filter: blur(2px);
-
-          h2 {
-            margin-top: 0px;
-            font-weight: 600;
-          }
-
-          h3 {
-            margin-top: 0px;
-            font-weight: 400;
-          }
-
-          a {
-            padding: 5px 12px 5px 12px;
-            border: 1px solid white;
-            color: white;
-            font-weight: 600;
-          }
-
-          a:focus {
-            outline-color: #fff;
-            outline-style: dashed;
-            outline-width: 2px;
-            outline-offset: 3px;
-          }
-        }
-      }
-    }
-  }
-
   .what-is-nuget {
     font-size: 1.15em;
     padding-bottom: 75px;
@@ -102,7 +41,7 @@
 
   .circuit-board {
     margin-top: 20px;
-    width: 768px;
+    width: 900px;
     height: 396px;
     position: relative;
     margin: 0 auto;
@@ -113,6 +52,8 @@
     .circuit-board-label {
       position: absolute;
       height: 75px;
+      padding-left: 25px;
+      padding-right: 25px;
       background-color: #fff;
       color: @text-color;
       box-shadow: 0 0 3px black;
@@ -123,10 +64,9 @@
     }
 
     .circuit-board-pd {
-      left: 377px;
+      left: 443px;
       top: 10px;
       float: left;
-      width: 230px;
 
       &.triangle:after {
         left: 20px;
@@ -134,24 +74,22 @@
     }
 
     .circuit-board-pv {
-      left: 0;
+      right: 675px;
       top: 63px;
       float: left;
-      width: 144px;
 
       &.triangle:after {
-        right: 30px;
+        right: 45px;
       }
     }
 
     .circuit-board-up {
-      right: 0;
-      top: 87px;
+      left: 675px;
+      top: 105px;
       float: right;
-      width: 144px;
 
       &.triangle:after {
-        left: 30px;
+        left: 45px;
       }
     }
   }
