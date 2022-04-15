@@ -5406,7 +5406,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(NotOwner_Data))]
-            public void HidesFormForSpamPackages(User currentUser, User owner)
+            public void HidesFormForCertainPackages(User currentUser, User owner)
             {
                 var package = new Package
                 {
