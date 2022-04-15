@@ -351,8 +351,8 @@ namespace NuGetGallery.ViewModels
         }
 
         [Theory]
-        [MemberData(nameof(SpamPackageMetadata))]
-        public void ShouldHideDetailsAndLinksForSpamPackages(bool listed, bool locked, bool lockedUser, bool shouldHide)
+        [MemberData(nameof(HidePackageDetailsData))]
+        public void ShouldHideDetailsAndLinksForCertainPackages(bool listed, bool locked, bool lockedUser, bool shouldHide)
         {
             var ownersList = new List<User>() 
             { 
@@ -378,7 +378,7 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(shouldHide, model.ShouldHideDetailsAndLinks);
         }
 
-        public static IEnumerable<object[]> SpamPackageMetadata
+        public static IEnumerable<object[]> HidePackageDetailsData
         {
             get
             {
