@@ -620,11 +620,17 @@
                     <div role="tabpanel" class="tab-pane @(activeBodyTab == "readme" ? "active" : "")" id="readme-tab" aria-label="Readme tab content">
                         @if (Model.ShouldHideDetailsAndLinks)
                         {
-                            @ViewHelpers.AlertWarning(@<text>This package's content is hidden as it violates our <a href="https://www.nuget.org/policies/terms" title="Terms of use">Terms of use</a>.</text>)
+                            @ViewHelpers.AlertWarning(
+                                @<text>
+                                    This package's content is hidden as it violates our <a href="https://www.nuget.org/policies/terms" title="Terms of use">Terms of use</a>.
+                                </text>)
                         }
                         else if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
                         {
-                            @ViewHelpers.AlertWarning(@<text>The readme will become available once package validation has completed successfully.</text>)
+                            @ViewHelpers.AlertWarning(
+                                @<text>
+                                    The readme will become available once package validation has completed successfully.
+                                </text>)
                         }
                         else if (Model.ReadMeHtml != null)
                         {
