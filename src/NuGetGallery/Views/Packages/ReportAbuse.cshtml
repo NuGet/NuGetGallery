@@ -15,7 +15,7 @@
                     Model.PackageVersion,
                     "Report package"))
 
-            @if (Model.ShouldHideReportAbuseForm)
+            @if (!Model.ShowReportAbuseForm)
             {
                 @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
                     @<text>
@@ -23,7 +23,7 @@
                     </text>
                 )
             }
-             else
+            else
             {
                 <h2><strong>If this package has a bug/failed to install</strong></h2>
                 @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:

@@ -5401,7 +5401,7 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageId, model.PackageId);
                 Assert.Equal(PackageVersion, model.PackageVersion);
-                Assert.False(model.ShouldHideReportAbuseForm);
+                Assert.True(model.ShowReportAbuseForm);
             }
 
             [Theory]
@@ -5428,7 +5428,7 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageId, model.PackageId);
                 Assert.Equal(PackageVersion, model.PackageVersion);
-                Assert.True(model.ShouldHideReportAbuseForm);
+                Assert.False(model.ShowReportAbuseForm);
             }
 
             [Theory]

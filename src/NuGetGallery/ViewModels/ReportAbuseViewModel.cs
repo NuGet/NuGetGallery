@@ -28,11 +28,11 @@ namespace NuGetGallery
         [Display(Name = "Details")]
         public string Message { get; set; }
 
-        public bool ShouldHideReportAbuseForm
+        public bool ShowReportAbuseForm
         {
             get
             {
-                return !IsPackageListed && IsPackageLocked && IsOwnerLocked;
+                return IsPackageListed && !IsPackageLocked && !IsOwnerLocked;
             }
         }
     }
