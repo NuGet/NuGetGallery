@@ -622,40 +622,36 @@
                         {
                             @ViewHelpers.AlertWarning(@<text>This package's content is hidden as it violates our <a href="https://www.nuget.org/policies/terms" title="Terms of use">Terms of use</a>.</text>)
                         }
+                        else if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
+                        {
+                            @ViewHelpers.AlertWarning(@<text>The readme will become available once package validation has completed successfully.</text>)
+                        }
+                        else if (Model.ReadMeHtml != null)
+                        {
+                            <div class="readme-common">
+                                <div id="readme-container">
+                                    @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
+                                    {
+                                        @ViewHelpers.AlertImagesRewritten();
+                                    }
+
+                                    @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
+                                    {
+                                        @ViewHelpers.AlertImageSourceDisallowed();
+                                    }
+
+                                    @Html.Raw(Model.ReadMeHtml)
+                                </div>
+                            </div>
+                        }
                         else
                         {
-
-                            if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
+                            if (Model.CanDisplayPrivateMetadata)
                             {
-                                @ViewHelpers.AlertWarning(@<text>The readme will become available once package validation has completed successfully.</text>)
+                                @ViewHelpers.AlertWarning(@<text>The package description is shown below. Please update your package to <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>include a README</a>.</text>);
                             }
-                            else if (Model.ReadMeHtml != null)
-                            {
-                                <div class="readme-common">
-                                    <div id="readme-container">
-                                        @if (Model.ReadMeImagesRewritten && Model.CanDisplayPrivateMetadata)
-                                        {
-                                            @ViewHelpers.AlertImagesRewritten();
-                                        }
 
-                                        @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
-                                        {
-                                            @ViewHelpers.AlertImageSourceDisallowed();
-                                        }
-
-                                        @Html.Raw(Model.ReadMeHtml)
-                                    </div>
-                                </div>
-                            }
-                            else
-                            {
-                                if (Model.CanDisplayPrivateMetadata)
-                                {
-                                    @ViewHelpers.AlertWarning(@<text>The package description is shown below. Please update your package to <a href='https://docs.microsoft.com/nuget/nuget-org/package-readme-on-nuget-org'>include a README</a>.</text>);
-                                }
-
-                                <p>@Html.PreFormattedText(Model.Description, Config)</p>
-                            }
+                            <p>@Html.PreFormattedText(Model.Description, Config)</p>
                         }
                     </div>
 
