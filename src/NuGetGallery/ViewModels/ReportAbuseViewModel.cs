@@ -32,7 +32,7 @@ namespace NuGetGallery
         {
             get
             {
-                return IsPackageListed && !IsPackageLocked && !IsOwnerLocked;
+                return IsPackageListed || !IsPackageLocked || !IsOwnerLocked;
             }
         }
     }

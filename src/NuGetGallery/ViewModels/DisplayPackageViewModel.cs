@@ -159,7 +159,7 @@ namespace NuGetGallery
         public bool ShowDetailsAndLinks
         {
             get { 
-                return Listed && !Locked && !Owners.Any(x => x.IsLocked); 
+                return Listed || !Locked || !Owners.Any(x => x.IsLocked); 
             }
         }
 

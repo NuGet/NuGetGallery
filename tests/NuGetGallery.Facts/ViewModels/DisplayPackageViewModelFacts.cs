@@ -351,7 +351,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Theory]
-        [MemberData(nameof(HidePackageDetailsData))]
+        [MemberData(nameof(ShowPackageDetailsData))]
         public void HidesDetailsAndLinksForCertainPackages(bool listed, bool locked, bool lockedUser, bool shouldHide)
         {
             var ownersList = new List<User>() 
@@ -378,7 +378,7 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(shouldHide, model.ShowDetailsAndLinks);
         }
 
-        public static IEnumerable<object[]> HidePackageDetailsData
+        public static IEnumerable<object[]> ShowPackageDetailsData
         {
             get
             {
@@ -387,7 +387,7 @@ namespace NuGetGallery.ViewModels
                     foreach (var locked in operations)
                         foreach (var userLocked in operations)
                         {
-                            yield return new object[] { listed, locked, userLocked, listed && !locked && !userLocked };
+                            yield return new object[] { listed, locked, userLocked, listed || !locked || !userLocked };
                         }
             }
         }
