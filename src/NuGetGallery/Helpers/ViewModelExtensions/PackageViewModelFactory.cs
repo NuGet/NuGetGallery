@@ -47,6 +47,7 @@ namespace NuGetGallery
             viewModel.DevelopmentDependency = package.DevelopmentDependency;
             viewModel.LastUpdated = package.Published;
             viewModel.Listed = package.Listed;
+            viewModel.Locked = package.PackageRegistration.IsLocked;
             viewModel.DownloadCount = package.DownloadCount;
             viewModel.Prerelease = package.IsPrerelease;
             viewModel.FailedValidation = package.PackageStatusKey == PackageStatus.FailedValidation;
