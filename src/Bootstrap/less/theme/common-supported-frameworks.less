@@ -91,3 +91,15 @@ p.frameworktableinfo-text {
   .frameworktableinfo-text;
   margin-top: 10px;
 }
+
+@media (-ms-high-contrast: active), (forced-colors: active) {
+  .framework-badge-asset {
+    font-weight: bold;
+    border: 2px solid @badge-dark;
+    padding: 0px 8px;
+  }
+
+  .frameworktableinfo-asset-icon {
+    border: 2px solid @badge-dark;
+  }
+}

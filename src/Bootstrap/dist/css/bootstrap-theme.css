@@ -806,6 +806,16 @@ p.frameworktableinfo-text {
   line-height: 16px;
   margin-top: 10px;
 }
+@media (-ms-high-contrast: active), (forced-colors: active) {
+  .framework-badge-asset {
+    font-weight: bold;
+    border: 2px solid #0078d4;
+    padding: 0px 8px;
+  }
+  .frameworktableinfo-asset-icon {
+    border: 2px solid #0078d4;
+  }
+}
 .user-package-list .manage-package-listing .package-icon {
   max-height: 2em;
   min-width: 20px;
