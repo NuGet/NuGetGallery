@@ -47,7 +47,7 @@ namespace NuGetGallery
         public bool HasEmbeddedReadmeFile { get; set; }
         public PackageDependents PackageDependents { get; set; }
 
-        public const int NumberOfDaysToBlockIndexing = 21;
+        public const int NumberOfDaysToBlockIndexing = 90;
 
         public bool HasNewerPrerelease
         {
