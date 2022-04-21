@@ -305,7 +305,7 @@
             if (e) {
                 e.stopPropagation();
                 e.preventDefault();
-            }            
+            }
             return false;
         }
 
@@ -377,12 +377,10 @@
     nuget.addAjaxAntiForgeryToken = function (data) {
         var $tokenKey = "__RequestVerificationToken";
         var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
-        if (data instanceof FormData)
-        {
+        if (data instanceof FormData) {
             data.append($tokenKey, $field.val());
         }
-        else
-        {
+        else {
             data["__RequestVerificationToken"] = $field.val();
         }
         return data;
@@ -464,14 +462,14 @@
 
     nuget.setPopovers = function () {
         var popoverElement = $(this);
-        popoverElement.popover({ trigger: 'hover focus' });
-        popoverElement.click(function () {
-            popoverElement.popover('show');
-            setTimeout(function () {
-                    popoverElement.popover('hide');
-                },
-                2000);
-        });
+        var popoverElementDom = popoverElement.get(0);
+        var originalLabel = popoverElementDom.ariaLabel;
+        var popoverHideTimeMS = 2000;
+        var popoverFadeTimeMS = 200;
+
+        popoverElement.popover({ trigger: 'hover' });
+        popoverElement.click(popoverShowAndHide);
+        popoverElement.focus(popoverShowAndHide);
         popoverElement.keyup(function (event) {
             // normalize keycode for browser compatibility
             var code = event.which || event.keyCode || event.charCode;
@@ -481,6 +479,26 @@
                 popoverElement.popover('hide');
             }
         });
+
+        function popoverShowAndHide() {
+            popoverElement.popover('show');
+
+            // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
+            // We can force Narrator to announce the popover's content by "flashing"
+            // the copy button's ARIA label.
+            popoverElementDom.ariaLabel = "";
+
+            setTimeout(function () {
+                popoverElement.popover('hide');
+
+                // We need to restore the copy button's original ARIA label.
+                // Wait 0.15 seconds for the popover to fade away first.
+                // Otherwise, the screen reader will re-announce the popover's content.
+                setTimeout(function () {
+                    popoverElementDom.ariaLabel = originalLabel;
+                }, popoverFadeTimeMS);
+            }, popoverHideTimeMS);
+        }
     };
 
     window.nuget = nuget;
