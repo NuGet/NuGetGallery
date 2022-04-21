@@ -484,14 +484,13 @@
             popoverElement.popover('show');
 
             // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
-            // We can force Narrator to announce the popover's content by "flashing"
-            // the copy button's ARIA label.
+            // We can force Narrator to announce the popover's content by "flashing" the element's ARIA label.
             popoverElementDom.ariaLabel = "";
 
             setTimeout(function () {
                 popoverElement.popover('hide');
 
-                // We need to restore the copy button's original ARIA label.
+                // We need to restore the element's original ARIA label.
                 // Wait 0.15 seconds for the popover to fade away first.
                 // Otherwise, the screen reader will re-announce the popover's content.
                 setTimeout(function () {
