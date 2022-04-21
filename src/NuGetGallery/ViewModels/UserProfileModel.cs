@@ -49,11 +49,10 @@ namespace NuGetGallery
                 if (UserIsOrganization)
                 {
                     var organization = (Organization)User;
-                    var enabled = organization
+                    return organization
                         .Members
                         .Select(x => x.Member)
                         .All(x => x.EnableMultiFactorAuthentication);
-                    return enabled;
                 }
                 else
                 {
