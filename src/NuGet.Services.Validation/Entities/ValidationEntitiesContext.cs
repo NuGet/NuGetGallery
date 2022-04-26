@@ -671,7 +671,7 @@ namespace NuGet.Services.Validation
 
             modelBuilder.Entity<ScanOperationState>()
                 .Property(s => s.ResultUrl)
-                .HasMaxLength(512);
+                .HasMaxLength(2048);
 
             modelBuilder.Entity<ScanOperationState>()
                 .Property(s => s.OperationId)
