@@ -6,39 +6,39 @@
     @if (Model.Net != null)
     {
         <!-- .NET cannot be an empty version since the lowest version for this framework is "net5.0", if the package contains just "net" framework it will fall into .NET Framework badge instead.' -->
-        <span class="framework-badge-asset" tabindex="0" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET @Model.Net.GetBadgeVersion()</span>
+        <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET @Model.Net.GetBadgeVersion()</span>
     }
     @if (Model.NetCore != null)
     {
         if (Model.NetCore.GetBadgeVersion().IsEmpty())
         {
-            <span class="framework-badge-asset" tabindex="0" aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">.NET Core</span>
+            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">.NET Core</span>
         }
         else
         {
-            <span class="framework-badge-asset" tabindex="0" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET Core @Model.NetCore.GetBadgeVersion()</span>
+            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET Core @Model.NetCore.GetBadgeVersion()</span>
         }
     }
     @if (Model.NetStandard != null)
     {
         if (Model.NetStandard.GetBadgeVersion().IsEmpty())
         {
-            <span class="framework-badge-asset" tabindex="0" aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">.NET Standard</span>
+            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">.NET Standard</span>
         }
         else
         {
-            <span class="framework-badge-asset" tabindex="0" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET Standard @Model.NetStandard.GetBadgeVersion()</span>
+            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET Standard @Model.NetStandard.GetBadgeVersion()</span>
         }
     }
     @if (Model.NetFramework != null)
     {
         if (Model.NetFramework.GetBadgeVersion().IsEmpty())
         {
-            <span class="framework-badge-asset" tabindex="0" aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">.NET Framework</span>
+            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">.NET Framework</span>
         }
         else
         {
-            <span class="framework-badge-asset" tabindex="0" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET Framework @Model.NetFramework.GetBadgeVersion()</span>
+            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">.NET Framework @Model.NetFramework.GetBadgeVersion()</span>
         }
     }
 </div>

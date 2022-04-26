@@ -241,10 +241,10 @@
                                     src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) && Model.ShowDetailsAndLinks ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                         </span>
-                        <span class="title" tabindex="0">
+                        <span class="title">
                             @Html.BreakWord(Model.Id)
                         </span>
-                        <span class="version-title" tabindex="0">
+                        <span class="version-title">
                             @Model.Version
                         </span>
                         @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
