@@ -238,13 +238,13 @@
                     <h1>
                         <span class="pull-left">
                             <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                                    src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                                    src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) && Model.ShowDetailsAndLinks ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                         </span>
-                        <span class="title" tabindex="0">
+                        <span class="title">
                             @Html.BreakWord(Model.Id)
                         </span>
-                        <span class="version-title" tabindex="0">
+                        <span class="version-title">
                             @Model.Version
                         </span>
                         @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
@@ -618,13 +618,19 @@
                 @if (!Model.Deleted)
                 {
                     <div role="tabpanel" class="tab-pane @(activeBodyTab == "readme" ? "active" : "")" id="readme-tab" aria-label="Readme tab content">
-                        @if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
+                        @if (!Model.ShowDetailsAndLinks)
                         {
                             @ViewHelpers.AlertWarning(
-                                    @<text>
-                                        The readme will become available once package validation has completed successfully.
-                                    </text>
-)
+                                @<text>
+                                    This package's content is hidden as it violates our <a href="https://www.nuget.org/policies/terms" title="Terms of use">Terms of use</a>.
+                                </text>)
+                        }
+                        else if ((Model.Validating || Model.FailedValidation) && Model.HasEmbeddedReadmeFile)
+                        {
+                            @ViewHelpers.AlertWarning(
+                                @<text>
+                                    The readme will become available once package validation has completed successfully.
+                                </text>)
                         }
                         else if (Model.ReadMeHtml != null)
                         {
@@ -997,7 +1003,7 @@
                         <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
                         Last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
                     </li>
-                    @if (!Model.Deleted && Model.ProjectUrl != null)
+                    @if (!Model.Deleted && Model.ProjectUrl != null && Model.ShowDetailsAndLinks)
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
@@ -1007,7 +1013,7 @@
                         </li>
                     }
 
-                    @if (!Model.Deleted && Model.RepositoryUrl != null)
+                    @if (!Model.Deleted && Model.RepositoryUrl != null && Model.ShowDetailsAndLinks)
                     {
                         <li>
                             @switch (Model.RepositoryType)
@@ -1029,7 +1035,7 @@
                         </li>
                     }
 
-                    @if (!Model.Deleted && Model.LicenseUrl != null)
+                    @if (!Model.Deleted && Model.LicenseUrl != null && Model.ShowDetailsAndLinks)
                     {
                         if (Model.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent || !Model.Validating)
                         {

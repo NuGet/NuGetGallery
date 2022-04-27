@@ -19,6 +19,7 @@ namespace NuGetGallery
         public bool VersionRequestedWasNotFound { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
+        public bool Locked { get; set; }
         public bool FailedValidation { get; set; }
         public bool Available { get; set; }
         public bool Validating { get; set; }

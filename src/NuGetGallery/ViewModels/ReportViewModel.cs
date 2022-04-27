@@ -26,5 +26,9 @@ namespace NuGetGallery
 
         public string Id => PackageId;
         public string Version => PackageVersion;
+
+        public bool IsOwnerLocked { get; set; }
+        public bool IsPackageLocked { get; set; }
+        public bool IsPackageListed { get; set; }
     }
 }

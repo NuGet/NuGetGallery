@@ -8,5 +8,6 @@ namespace NuGetGallery
         public string EmailAddress { get; set; }
         public string Username { get; set; }
         public bool IsOrganization { get; set; }
+        public bool IsLocked { get; set; }
     }
 }

@@ -27,5 +27,13 @@ namespace NuGetGallery
         [StringLength(4000)]
         [Display(Name = "Details")]
         public string Message { get; set; }
+
+        public bool ShowReportAbuseForm
+        {
+            get
+            {
+                return IsPackageListed || !IsPackageLocked || !IsOwnerLocked;
+            }
+        }
     }
 }

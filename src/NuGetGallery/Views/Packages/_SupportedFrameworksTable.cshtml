@@ -12,7 +12,7 @@
             if (compatibilityFramework.Value.Count > 0)
             {
                 <tr>
-                    <td class="framework-table-product" tabindex="0">
+                    <td class="framework-table-product">
                         @compatibilityFramework.Key
                     </td>
 
@@ -21,11 +21,11 @@
                         {
                             if (frameworkVersion.IsComputed)
                             {
-                                <span class="framework-badge-computed framework-table-margin" tabindex="0">@frameworkVersion.Framework.GetShortFolderName()</span>
+                                <span class="framework-badge-computed framework-table-margin">@frameworkVersion.Framework.GetShortFolderName()</span>
                             }
                             else
                             {
-                                <span class="framework-badge-asset framework-table-margin" tabindex="0">@frameworkVersion.Framework.GetShortFolderName()</span>
+                                <span class="framework-badge-asset framework-table-margin">@frameworkVersion.Framework.GetShortFolderName()</span>
                             }
                         }
                     </td>
