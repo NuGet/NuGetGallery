@@ -304,7 +304,9 @@ auxiliary files up to data after Db2AzureSearch has already initialized the data
 with static data that isn't staying up to data all the time.
 
 The `PLACEHOLDER` values need to match whatever you used when running Db2AzureSearch, except for `SearchServiceApiKey`
-which can be a read-only (query) key instead of the admin key used by Db2AzureSearch.
+which can be a read-only (query) key instead of the admin key used by Db2AzureSearch. Make sure the Azure Search resource
+you're connecting to has API keys enabled (either in parallel with managed identities "RBAC" access or with managed
+identities authentication disabled).
 
 The `ApplicationInsights_InstrumentationKey` setting is optional and can be removed.
 
