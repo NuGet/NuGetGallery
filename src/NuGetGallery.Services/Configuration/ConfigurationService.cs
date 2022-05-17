@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Configuration;
-using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGetGallery.Configuration.SecretReader;
@@ -168,21 +167,8 @@ namespace NuGetGallery.Configuration
 
         public string ReadRawSetting(string settingName)
         {
-            string value;
-
-            value = GetCloudServiceSetting(settingName);
-
-            if (value == "null")
-            {
-                value = null;
-            }
-            else if (string.IsNullOrEmpty(value))
-            {
-                var cstr = GetConnectionString(settingName);
-                value = cstr != null ? cstr.ConnectionString : GetAppSetting(settingName);
-            }
-
-            return value;
+            var cstr = GetConnectionString(settingName);
+            return cstr != null ? cstr.ConnectionString : GetAppSetting(settingName); ;
         }
 
         protected virtual HttpRequestBase GetCurrentRequest()
@@ -208,39 +194,6 @@ namespace NuGetGallery.Configuration
         private async Task<IPackageDeleteConfiguration> ResolvePackageDelete()
         {
             return await ResolveConfigObject(new PackageDeleteConfiguration(), PackageDeletePrefix);
-        }
-
-        protected virtual string GetCloudServiceSetting(string settingName)
-        {
-            // Short-circuit if we've already determined we're not in the cloud
-            if (_notInCloudService)
-            {
-                return null;
-            }
-
-            string value = null;
-            try
-            {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    value = RoleEnvironment.GetConfigurationSettingValue(settingName);
-                }
-                else
-                {
-                    _notInCloudService = true;
-                }
-            }
-            catch (TypeInitializationException)
-            {
-                // Not in the role environment...
-                _notInCloudService = true; // Skip future checks to save perf
-            }
-            catch (Exception)
-            {
-                // Value not present
-                return null;
-            }
-            return value;
         }
 
         protected virtual string GetAppSetting(string settingName)
