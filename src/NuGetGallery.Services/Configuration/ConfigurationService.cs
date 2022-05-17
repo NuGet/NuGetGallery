@@ -168,7 +168,7 @@ namespace NuGetGallery.Configuration
         public string ReadRawSetting(string settingName)
         {
             var cstr = GetConnectionString(settingName);
-            return cstr != null ? cstr.ConnectionString : GetAppSetting(settingName); ;
+            return cstr?.ConnectionString ?? GetAppSetting(settingName);
         }
 
         protected virtual HttpRequestBase GetCurrentRequest()
