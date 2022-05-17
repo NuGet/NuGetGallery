@@ -1,293 +1,39 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Import Project="..\..\sign.thirdparty.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\SdkProjects.props" />
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C7D5E850-33FA-4EC5-8D7F-B1C8DD5D48F9}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGetGallery.Services</RootNamespace>
-    <AssemblyName>NuGetGallery.Services</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <Authors>.NET Foundation</Authors>
+    <TargetFramework>net472</TargetFramework>
+    <Description>Services library for NuGet Gallery Frontend and Backend</Description>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
+  <ItemGroup Condition="!$(DefineConstants.Contains('SIGNED_BUILD'))">
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+    <_Parameter1>NuGetGallery.Facts</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup Condition="$(DefineConstants.Contains('SIGNED_BUILD'))">
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+    <_Parameter1>NuGetGallery.Facts, PublicKey=0024000004800000940000000602000000240000525341310004000001000100b5fc90e7027f67871e773a8fde8938c81dd402ba65b9201d60593e96c492651e889cc13f1415ebb53fac1131ae0bd333c5ee6021672d9718ea31a8aebd0da0072f25d87dba6fc90ffd598ed4da35e44c398c454307e8e33b8426143daec9f596836f97c8f74750e5975c64e2189f45def46b2a2b1247adc3652bf5c308055da9</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <ItemGroup>
-    <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=2.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="System" />
     <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="AccountManagement\AccountDeleteMessage.cs" />
-    <Compile Include="AccountManagement\AccountDeleteMessageSerializer.cs" />
-    <Compile Include="AccountManagement\AccountDeletionOrphanPackagePolicy.cs" />
-    <Compile Include="AccountManagement\AsynchronousDeleteAccountService.cs" />
-    <Compile Include="AccountManagement\DeleteAccountService.cs" />
-    <Compile Include="AccountManagement\DeleteAccountStatus.cs" />
-    <Compile Include="AccountManagement\IDeleteAccountService.cs" />
-    <Compile Include="AccountManagement\CurrentUserDeletedException.cs" />
-    <Compile Include="Authentication\ApiKeyV3.cs" />
-    <Compile Include="Authentication\ApiKeyV4.cs" />
-    <Compile Include="Authentication\ApiScopeEvaluationResult.cs" />
-    <Compile Include="Authentication\ApiScopeEvaluator.cs" />
-    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadExtensions.cs" />
-    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadModule.cs" />
-    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadProgress.cs" />
-    <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadRequestParser.cs" />
-    <Compile Include="Authentication\AuthenticatedUser.cs" />
-    <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
-    <Compile Include="Authentication\AuthenticationService.cs" />
-    <Compile Include="Authentication\AuthenticationTypes.cs" />
-    <Compile Include="Authentication\ChallengeResult.cs" />
-    <Compile Include="Authentication\CredentialKind.cs" />
-    <Compile Include="Authentication\CredentialViewModel.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationExtensions.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationOptions.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
-    <Compile Include="Authentication\Providers\Authenticator.cs" />
-    <Compile Include="Authentication\Providers\AuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
-    <Compile Include="Authentication\Providers\AuthenticatorUI.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\LocalUser\LocalUserAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticator.cs" />
-    <Compile Include="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\ScopeViewModel.cs" />
-    <Compile Include="Authentication\CredentialBuilder.cs" />
-    <Compile Include="Authentication\CredentialValidator.cs" />
-    <Compile Include="Authentication\FeedOnlyModeException.cs" />
-    <Compile Include="Authentication\IApiScopeEvaluator.cs" />
-    <Compile Include="Authentication\IAuthenticationService.cs" />
-    <Compile Include="Authentication\ICredentialBuilder.cs" />
-    <Compile Include="Authentication\ICredentialValidator.cs" />
-    <Compile Include="Authentication\IdentityInformation.cs" />
-    <Compile Include="Authentication\LegacyHasher.cs" />
-    <Compile Include="Authentication\NuGetPackagePattern.cs" />
-    <Compile Include="Authentication\NuGetScopes.cs" />
-    <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
-    <Compile Include="Authentication\PasswordResetResult.cs" />
-    <Compile Include="Authentication\V3Hasher.cs" />
-    <Compile Include="Configuration\ABTestConfiguration.cs" />
-    <Compile Include="Configuration\AppConfiguration.cs" />
-    <Compile Include="Configuration\CacheConfiguration.cs" />
-    <Compile Include="Configuration\CertificatesConfiguration.cs" />
-    <Compile Include="Configuration\ConfigurationService.cs" />
-    <Compile Include="Configuration\FeatureConfiguration.cs" />
-    <Compile Include="Configuration\FeatureFlagService.cs" />
-    <Compile Include="Configuration\IABTestConfiguration.cs" />
-    <Compile Include="Configuration\IAppConfiguration.cs" />
-    <Compile Include="Configuration\IBlobStorageConfiguration.cs" />
-    <Compile Include="Configuration\ICacheConfiguration.cs" />
-    <Compile Include="Configuration\ICertificatesConfiguration.cs" />
-    <Compile Include="Configuration\IFeatureFlagService.cs" />
-    <Compile Include="Configuration\IGalleryConfigurationService.cs" />
-    <Compile Include="Configuration\ILoginDiscontinuationConfiguration.cs" />
-    <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
-    <Compile Include="Configuration\IODataCacheConfiguration.cs" />
-    <Compile Include="Configuration\IQueryHintConfiguration.cs" />
-    <Compile Include="Configuration\IServiceBusConfiguration.cs" />
-    <Compile Include="Configuration\ISymbolsConfiguration.cs" />
-    <Compile Include="Configuration\ITrustedImageDomains.cs" />
-    <Compile Include="Configuration\ITyposquattingConfiguration.cs" />
-    <Compile Include="Configuration\LoginDiscontinuationConfiguration.cs" />
-    <Compile Include="Configuration\ODataCacheConfiguration.cs" />
-    <Compile Include="Configuration\PackageDeleteConfiguration.cs" />
-    <Compile Include="Configuration\QueryHintConfiguration.cs" />
-    <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
-    <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
-    <Compile Include="Configuration\ServiceBusConfiguration.cs" />
-    <Compile Include="Configuration\SimpleBlobStorageConfiguration.cs" />
-    <Compile Include="Configuration\SymbolsConfiguration.cs" />
-    <Compile Include="Configuration\TrustedImageDomains.cs" />
-    <Compile Include="Configuration\TyposquattingConfiguration.cs" />
-    <Compile Include="Diagnostics\DiagnosticsService.cs" />
-    <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
-    <Compile Include="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
-    <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
-    <Compile Include="Extensions\Base32Encoder.cs" />
-    <Compile Include="Extensions\ClaimsExtensions.cs" />
-    <Compile Include="Extensions\CredentialExtensions.cs" />
-    <Compile Include="Extensions\DateTimeExtensions.cs" />
-    <Compile Include="Extensions\HttpContextBaseExtensions.cs" />
-    <Compile Include="Extensions\IEnumerableExtensions.cs" />
-    <Compile Include="Extensions\IOwinContextExtensions.cs" />
-    <Compile Include="Extensions\ObjectExtensions.cs" />
-    <Compile Include="Extensions\PackageExtensions.cs" />
-    <Compile Include="Extensions\PrincipalExtensions.cs" />
-    <Compile Include="Extensions\ScopeExtensions.cs" />
-    <Compile Include="Extensions\UriExtensions.cs" />
-    <Compile Include="Extensions\UserExtensions.cs" />
-    <Compile Include="Helpers\LatestPackageRouteVerifier.cs" />
-    <Compile Include="Helpers\MailAddressConverter.cs" />
-    <Compile Include="Helpers\UploadHelper.cs" />
-    <Compile Include="Helpers\PackageValidationHelper.cs" />
-    <Compile Include="Mail\GalleryEmailRecipientsUtility.cs" />
-    <Compile Include="Mail\Messages\PackageOwnerAddedMessage.cs" />
-    <Compile Include="Mail\Messages\PackageOwnerRemovedMessage.cs" />
-    <Compile Include="Mail\Messages\PackageOwnershipRequestCanceledMessage.cs" />
-    <Compile Include="Mail\Messages\PackageOwnershipRequestDeclinedMessage.cs" />
-    <Compile Include="Mail\Messages\PackageOwnershipRequestInitiatedMessage.cs" />
-    <Compile Include="Mail\Messages\PackageOwnershipRequestMessage.cs" />
-    <Compile Include="Models\LuceneIndexLocation.cs" />
-    <Compile Include="Models\PackageDependent.cs" />
-    <Compile Include="Models\PackageDependents.cs" />
-    <Compile Include="Models\ReportPackageReason.cs" />
-    <Compile Include="Models\StorageType.cs" />
-    <Compile Include="PackageManagement\ActionOnNewPackageContext.cs" />
-    <Compile Include="PackageManagement\IPackageFilter.cs" />
-    <Compile Include="PackageManagement\IPackageOwnerRequestService.cs" />
-    <Compile Include="PackageManagement\IIndexingService.cs" />
-    <Compile Include="PackageManagement\IPackageOwnershipManagementService.cs" />
-    <Compile Include="PackageManagement\IPackageService.cs" />
-    <Compile Include="PackageManagement\IPackageUpdateService.cs" />
-    <Compile Include="PackageManagement\IPackageVulnerabilitiesManagementService.cs" />
-    <Compile Include="PackageManagement\IReservedNamespaceService.cs" />
-    <Compile Include="PackageManagement\PackageDeleteDecision.cs" />
-    <Compile Include="PackageManagement\PackageFilter.cs" />
-    <Compile Include="PackageManagement\PackageFilterContext.cs" />
-    <Compile Include="PackageManagement\PackageHelper.cs" />
-    <Compile Include="PackageManagement\PackageOwnerRequestService.cs" />
-    <Compile Include="PackageManagement\PackageOwnershipManagementService.cs" />
-    <Compile Include="PackageManagement\PackageService.cs" />
-    <Compile Include="PackageManagement\PackageVulnerabilitiesManagementService.cs" />
-    <Compile Include="PackageManagement\ReservedNamespaceService.cs" />
-    <Compile Include="Permissions\ActionRequiringAccountPermissions.cs" />
-    <Compile Include="Permissions\ActionRequiringEntityPermissions.cs" />
-    <Compile Include="Permissions\ActionRequiringPackagePermissions.cs" />
-    <Compile Include="Permissions\ActionRequiringReservedNamespacePermissions.cs" />
-    <Compile Include="Permissions\ActionsRequiringPermissions.cs" />
-    <Compile Include="Permissions\IActionRequiringEntityPermissions.cs" />
-    <Compile Include="Permissions\PermissionsCheckResult.cs" />
-    <Compile Include="Permissions\PermissionsHelpers.cs" />
-    <Compile Include="Permissions\PermissionsRequirement.cs" />
-    <Compile Include="PackageManagement\PackageUpdateService.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="Providers\DateTimeProvider.cs" />
-    <Compile Include="Providers\IDateTimeProvider.cs" />
-    <Compile Include="Providers\IUrlHelper.cs" />
-    <Compile Include="Providers\RuntimeServiceProvider.cs" />
-    <Compile Include="Security\AllowLocalHttpRedirectPolicy.cs" />
-    <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
-    <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
-    <Compile Include="Security\DefaultSubscription.cs" />
-    <Compile Include="Security\ISecurityPolicyService.cs" />
-    <Compile Include="Security\ISourceDestinationRedirectPolicy.cs" />
-    <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
-    <Compile Include="Security\MicrosoftTeamSubscription.cs" />
-    <Compile Include="Security\NoLessSecureDestinationRedirectPolicy.cs" />
-    <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
-    <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
-    <Compile Include="Security\RequiredSignerPolicy.cs" />
-    <Compile Include="Security\RequireMinProtocolVersionForPushPolicy.cs" />
-    <Compile Include="Security\RequireOrganizationTenantPolicy.cs" />
-    <Compile Include="Security\RequirePackageMetadataCompliancePolicy.cs" />
-    <Compile Include="Security\RequirePackageMetadataComplianceUtility.cs" />
-    <Compile Include="Security\RequirePackageMetadataState.cs" />
-    <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
-    <Compile Include="Security\SecurityPolicyAction.cs" />
-    <Compile Include="Security\SecurityPolicyHandler.cs" />
-    <Compile Include="Security\SecurityPolicyResult.cs" />
-    <Compile Include="Security\SecurityPolicyService.cs" />
-    <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
-    <Compile Include="Security\UserSecurityPolicyHandler.cs" />
-    <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
-    <Compile Include="Storage\CloudBlobFileStorageService.cs" />
-    <Compile Include="Storage\ContentObjectService.cs" />
-    <Compile Include="Storage\ContentService.cs" />
-    <Compile Include="Storage\HttpContextCacheService.cs" />
-    <Compile Include="Storage\ICacheService.cs" />
-    <Compile Include="Storage\IContentObjectService.cs" />
-    <Compile Include="Storage\IContentService.cs" />
-    <Compile Include="Storage\IFileStorageService.cs" />
-    <Compile Include="SupportRequest\Admin.cs" />
-    <Compile Include="SupportRequest\History.cs" />
-    <Compile Include="SupportRequest\Issue.cs" />
-    <Compile Include="SupportRequest\IssueStatus.cs" />
-    <Compile Include="SupportRequest\ISupportRequestService.cs" />
-    <Compile Include="SupportRequest\Models\IssueStatusKeys.cs" />
-    <Compile Include="SupportRequest\Models\ISupportRequestDbContext.cs" />
-    <Compile Include="SupportRequest\Models\SupportRequestDbContext.cs" />
-    <Compile Include="SupportRequest\SupportRequestService.cs" />
-    <Compile Include="Telemetry\DurationMetric.cs" />
-    <Compile Include="Telemetry\ITelemetryClient.cs" />
-    <Compile Include="Telemetry\ITelemetryService.cs" />
-    <Compile Include="Telemetry\Obfuscator.cs" />
-    <Compile Include="Telemetry\QuietLog.cs" />
-    <Compile Include="Telemetry\TelemetryClientWrapper.cs" />
-    <Compile Include="Telemetry\TelemetryService.cs" />
-    <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
-    <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
-    <Compile Include="UserManagement\IUserService.cs" />
-    <Compile Include="UserManagement\UserService.cs" />
-    <Compile Include="ServicesConstants.cs" />
-    <Compile Include="ServicesStrings.Designer.cs">
-      <DependentUpon>ServicesStrings.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj">
-      <Project>{6262f4fc-29be-4226-b676-db391c89d396}</Project>
-      <Name>NuGet.Services.Entities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
-      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
-      <Name>NuGetGallery.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="EntityFramework">
       <Version>6.4.0-preview3-19553-01</Version>
     </PackageReference>
-    <PackageReference Include="MicroBuild.Core">
-      <Version>0.3.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights">
       <Version>2.12.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.AspNet.Mvc">
-      <Version>5.2.3</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.ApplicationInsights">
-      <Version>2.2.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.Mvc">
       <Version>5.2.3</Version>
@@ -331,26 +77,21 @@
     <PackageReference Include="System.Runtime">
       <Version>4.3.1</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Build.Tasks.Pack">
-      <Version>4.8.0</Version>
-      <IncludeAssets>runtime;build</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
+  
   <ItemGroup>
-    <EmbeddedResource Include="ServicesStrings.resx">
+    <Compile Update="ServicesStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ServicesStrings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="ServicesStrings.resx" StronglyTypedNamespace="NuGetGallery" StronglyTypedLanguage="C#">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>ServicesStrings.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-      <CustomToolNamespace>NuGetGallery</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <SignPath>..\..\build</SignPath>
-    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
-    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
-    <SignType Condition="'$(SignType)' == ''">none</SignType>
-  </PropertyGroup>
-  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
-  <Import Project="$(SignPath)\sign.microbuild.targets" Condition="Exists('$(SignPath)\sign.microbuild.targets')" />
+
 </Project>
