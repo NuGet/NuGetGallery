@@ -24,7 +24,6 @@ namespace NuGetGallery.Configuration
         protected const string ServiceBusPrefix = "AzureServiceBus.";
         protected const string PackageDeletePrefix = "PackageDelete.";
 
-        private bool _notInCloudService;
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
         private readonly Lazy<IAppConfiguration> _lazyAppConfiguration;
