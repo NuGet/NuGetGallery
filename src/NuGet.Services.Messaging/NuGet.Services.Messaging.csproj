@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;net6</TargetFrameworks>
     <Description>Logic shared between the front-end and back-end concerning asynchronous messaging</Description>
   </PropertyGroup>
 

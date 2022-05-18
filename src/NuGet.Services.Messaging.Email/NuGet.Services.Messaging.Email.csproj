@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;net6</TargetFrameworks>
     <Description>Components shared between the front-end and back-end concerning email messaging</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Markdig.Signed">
-      <Version>0.26.0</Version>
+      <Version>0.30.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
