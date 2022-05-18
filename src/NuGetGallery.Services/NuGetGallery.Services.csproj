@@ -3,7 +3,7 @@
   <Import Project="..\..\SdkProjects.props" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
     <Description>Services library for NuGet Gallery Frontend and Backend</Description>
   </PropertyGroup>
 
@@ -19,7 +19,208 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="AccountManagement\AccountDeleteMessage.cs" />
+    <Compile Remove="AccountManagement\AccountDeleteMessageSerializer.cs" />
+    <Compile Remove="AccountManagement\AccountDeletionOrphanPackagePolicy.cs" />
+    <Compile Remove="AccountManagement\AsynchronousDeleteAccountService.cs" />
+    <Compile Remove="AccountManagement\DeleteAccountService.cs" />
+    <Compile Remove="AccountManagement\DeleteAccountStatus.cs" />
+    <Compile Remove="AccountManagement\IDeleteAccountService.cs" />
+    <Compile Remove="AccountManagement\CurrentUserDeletedException.cs" />
+    <Compile Remove="Authentication\ApiKeyV3.cs" />
+    <Compile Remove="Authentication\ApiKeyV4.cs" />
+    <Compile Remove="Authentication\ApiScopeEvaluationResult.cs" />
+    <Compile Remove="Authentication\ApiScopeEvaluator.cs" />
+    <Compile Remove="Authentication\AsyncFileUpload\AsyncFileUploadExtensions.cs" />
+    <Compile Remove="Authentication\AsyncFileUpload\AsyncFileUploadModule.cs" />
+    <Compile Remove="Authentication\AsyncFileUpload\AsyncFileUploadProgress.cs" />
+    <Compile Remove="Authentication\AsyncFileUpload\AsyncFileUploadRequestParser.cs" />
+    <Compile Remove="Authentication\AuthenticatedUser.cs" />
+    <Compile Remove="Authentication\AuthenticateExternalLoginResult.cs" />
+    <Compile Remove="Authentication\AuthenticationService.cs" />
+    <Compile Remove="Authentication\AuthenticationTypes.cs" />
+    <Compile Remove="Authentication\ChallengeResult.cs" />
+    <Compile Remove="Authentication\CredentialKind.cs" />
+    <Compile Remove="Authentication\CredentialViewModel.cs" />
+    <Compile Remove="Authentication\Providers\ApiKey\ApiKeyAuthenticationExtensions.cs" />
+    <Compile Remove="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
+    <Compile Remove="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
+    <Compile Remove="Authentication\Providers\ApiKey\ApiKeyAuthenticationOptions.cs" />
+    <Compile Remove="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
+    <Compile Remove="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
+    <Compile Remove="Authentication\Providers\AuthenticationPolicy.cs" />
+    <Compile Remove="Authentication\Providers\Authenticator.cs" />
+    <Compile Remove="Authentication\Providers\AuthenticatorConfiguration.cs" />
+    <Compile Remove="Authentication\Providers\AuthenticatorT.cs" />
+    <Compile Remove="Authentication\Providers\AuthenticatorUI.cs" />
+    <Compile Remove="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
+    <Compile Remove="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
+    <Compile Remove="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
+    <Compile Remove="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Remove="Authentication\Providers\LocalUser\LocalUserAuthenticator.cs" />
+    <Compile Remove="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticator.cs" />
+    <Compile Remove="Authentication\Providers\MicrosoftAccount\MicrosoftAccountAuthenticatorConfiguration.cs" />
+    <Compile Remove="Authentication\ScopeViewModel.cs" />
+    <Compile Remove="Authentication\CredentialBuilder.cs" />
+    <Compile Remove="Authentication\CredentialValidator.cs" />
+    <Compile Remove="Authentication\FeedOnlyModeException.cs" />
+    <Compile Remove="Authentication\IApiScopeEvaluator.cs" />
+    <Compile Remove="Authentication\IAuthenticationService.cs" />
+    <Compile Remove="Authentication\ICredentialBuilder.cs" />
+    <Compile Remove="Authentication\ICredentialValidator.cs" />
+    <Compile Remove="Authentication\IdentityInformation.cs" />
+    <Compile Remove="Authentication\LegacyHasher.cs" />
+    <Compile Remove="Authentication\NuGetPackagePattern.cs" />
+    <Compile Remove="Authentication\NuGetScopes.cs" />
+    <Compile Remove="Authentication\PasswordAuthenticationResult.cs" />
+    <Compile Remove="Authentication\PasswordResetResult.cs" />
+    <Compile Remove="Authentication\V3Hasher.cs" />
+    <Compile Remove="Configuration\ABTestConfiguration.cs" />
+    <Compile Remove="Configuration\AppConfiguration.cs" />
+    <Compile Remove="Configuration\CacheConfiguration.cs" />
+    <Compile Remove="Configuration\CertificatesConfiguration.cs" />
+    <Compile Remove="Configuration\ConfigurationService.cs" />
+    <Compile Remove="Configuration\FeatureConfiguration.cs" />
+    <Compile Remove="Configuration\FeatureFlagService.cs" />
+    <Compile Remove="Configuration\IABTestConfiguration.cs" />
+    <Compile Remove="Configuration\IAppConfiguration.cs" />
+    <Compile Remove="Configuration\IBlobStorageConfiguration.cs" />
+    <Compile Remove="Configuration\ICacheConfiguration.cs" />
+    <Compile Remove="Configuration\ICertificatesConfiguration.cs" />
+    <Compile Remove="Configuration\IFeatureFlagService.cs" />
+    <Compile Remove="Configuration\IGalleryConfigurationService.cs" />
+    <Compile Remove="Configuration\ILoginDiscontinuationConfiguration.cs" />
+    <Compile Remove="Configuration\IPackageDeleteConfiguration.cs" />
+    <Compile Remove="Configuration\IODataCacheConfiguration.cs" />
+    <Compile Remove="Configuration\IQueryHintConfiguration.cs" />
+    <Compile Remove="Configuration\IServiceBusConfiguration.cs" />
+    <Compile Remove="Configuration\ISymbolsConfiguration.cs" />
+    <Compile Remove="Configuration\ITrustedImageDomains.cs" />
+    <Compile Remove="Configuration\ITyposquattingConfiguration.cs" />
+    <Compile Remove="Configuration\LoginDiscontinuationConfiguration.cs" />
+    <Compile Remove="Configuration\ODataCacheConfiguration.cs" />
+    <Compile Remove="Configuration\PackageDeleteConfiguration.cs" />
+    <Compile Remove="Configuration\QueryHintConfiguration.cs" />
+    <Compile Remove="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
+    <Compile Remove="Configuration\SecretReader\SecretReaderFactory.cs" />
+    <Compile Remove="Configuration\ServiceBusConfiguration.cs" />
+    <Compile Remove="Configuration\SimpleBlobStorageConfiguration.cs" />
+    <Compile Remove="Configuration\SymbolsConfiguration.cs" />
+    <Compile Remove="Configuration\TrustedImageDomains.cs" />
+    <Compile Remove="Configuration\TyposquattingConfiguration.cs" />
+    <Compile Remove="Diagnostics\DiagnosticsService.cs" />
+    <Compile Remove="Diagnostics\ElmahHandleErrorAttribute.cs" />
+    <Compile Remove="Diagnostics\SendErrorsToTelemetryAttribute.cs" />
+    <Compile Remove="Diagnostics\TraceDiagnosticsSource.cs" />
+    <Compile Remove="Extensions\Base32Encoder.cs" />
+    <Compile Remove="Extensions\ClaimsExtensions.cs" />
+    <Compile Remove="Extensions\CredentialExtensions.cs" />
+    <Compile Remove="Extensions\DateTimeExtensions.cs" />
+    <Compile Remove="Extensions\HttpContextBaseExtensions.cs" />
+    <Compile Remove="Extensions\IEnumerableExtensions.cs" />
+    <Compile Remove="Extensions\IOwinContextExtensions.cs" />
+    <Compile Remove="Extensions\ObjectExtensions.cs" />
+    <Compile Remove="Extensions\PackageExtensions.cs" />
+    <Compile Remove="Extensions\PrincipalExtensions.cs" />
+    <Compile Remove="Extensions\ScopeExtensions.cs" />
+    <Compile Remove="Extensions\UriExtensions.cs" />
+    <Compile Remove="Extensions\UserExtensions.cs" />
+    <Compile Remove="Helpers\LatestPackageRouteVerifier.cs" />
+    <Compile Remove="Helpers\MailAddressConverter.cs" />
+    <Compile Remove="Helpers\UploadHelper.cs" />
+    <Compile Remove="Helpers\PackageValidationHelper.cs" />
+    <Compile Remove="Mail\GalleryEmailRecipientsUtility.cs" />
+    <Compile Remove="Mail\Messages\PackageOwnerAddedMessage.cs" />
+    <Compile Remove="Mail\Messages\PackageOwnerRemovedMessage.cs" />
+    <Compile Remove="Mail\Messages\PackageOwnershipRequestCanceledMessage.cs" />
+    <Compile Remove="Mail\Messages\PackageOwnershipRequestDeclinedMessage.cs" />
+    <Compile Remove="Mail\Messages\PackageOwnershipRequestInitiatedMessage.cs" />
+    <Compile Remove="Mail\Messages\PackageOwnershipRequestMessage.cs" />
+    <Compile Remove="Models\PackageDependent.cs" />
+    <Compile Remove="Models\PackageDependents.cs" />
+    <Compile Remove="Models\ReportPackageReason.cs" />
+    <Compile Remove="Models\StorageType.cs" />
+    <Compile Remove="PackageManagement\ActionOnNewPackageContext.cs" />
+    <Compile Remove="PackageManagement\IPackageFilter.cs" />
+    <Compile Remove="PackageManagement\IPackageOwnerRequestService.cs" />
+    <Compile Remove="PackageManagement\IIndexingService.cs" />
+    <Compile Remove="PackageManagement\IPackageOwnershipManagementService.cs" />
+    <Compile Remove="PackageManagement\IPackageService.cs" />
+    <Compile Remove="PackageManagement\IPackageUpdateService.cs" />
+    <Compile Remove="PackageManagement\IPackageVulnerabilitiesManagementService.cs" />
+    <Compile Remove="PackageManagement\IReservedNamespaceService.cs" />
+    <Compile Remove="PackageManagement\PackageDeleteDecision.cs" />
+    <Compile Remove="PackageManagement\PackageFilter.cs" />
+    <Compile Remove="PackageManagement\PackageFilterContext.cs" />
+    <Compile Remove="PackageManagement\PackageHelper.cs" />
+    <Compile Remove="PackageManagement\PackageOwnerRequestService.cs" />
+    <Compile Remove="PackageManagement\PackageOwnershipManagementService.cs" />
+    <Compile Remove="PackageManagement\PackageService.cs" />
+    <Compile Remove="PackageManagement\PackageVulnerabilitiesManagementService.cs" />
+    <Compile Remove="PackageManagement\ReservedNamespaceService.cs" />
+    <Compile Remove="Permissions\ActionRequiringAccountPermissions.cs" />
+    <Compile Remove="Permissions\ActionRequiringEntityPermissions.cs" />
+    <Compile Remove="Permissions\ActionRequiringPackagePermissions.cs" />
+    <Compile Remove="Permissions\ActionRequiringReservedNamespacePermissions.cs" />
+    <Compile Remove="Permissions\ActionsRequiringPermissions.cs" />
+    <Compile Remove="Permissions\IActionRequiringEntityPermissions.cs" />
+    <Compile Remove="Permissions\PermissionsCheckResult.cs" />
+    <Compile Remove="Permissions\PermissionsHelpers.cs" />
+    <Compile Remove="Permissions\PermissionsRequirement.cs" />
+    <Compile Remove="PackageManagement\PackageUpdateService.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Properties\AssemblyInfo.*.cs" />
+    <Compile Remove="Providers\DateTimeProvider.cs" />
+    <Compile Remove="Providers\IDateTimeProvider.cs" />
+    <Compile Remove="Providers\IUrlHelper.cs" />
+    <Compile Remove="Providers\RuntimeServiceProvider.cs" />
+    <Compile Remove="Security\AllowLocalHttpRedirectPolicy.cs" />
+    <Compile Remove="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
+    <Compile Remove="Security\ControlRequiredSignerPolicy.cs" />
+    <Compile Remove="Security\DefaultSubscription.cs" />
+    <Compile Remove="Security\ISecurityPolicyService.cs" />
+    <Compile Remove="Security\ISourceDestinationRedirectPolicy.cs" />
+    <Compile Remove="Security\IUserSecurityPolicySubscription.cs" />
+    <Compile Remove="Security\MicrosoftTeamSubscription.cs" />
+    <Compile Remove="Security\NoLessSecureDestinationRedirectPolicy.cs" />
+    <Compile Remove="Security\PackageSecurityPolicyEvaluationContext.cs" />
+    <Compile Remove="Security\PackageSecurityPolicyHandler.cs" />
+    <Compile Remove="Security\RequiredSignerPolicy.cs" />
+    <Compile Remove="Security\RequireMinProtocolVersionForPushPolicy.cs" />
+    <Compile Remove="Security\RequireOrganizationTenantPolicy.cs" />
+    <Compile Remove="Security\RequirePackageMetadataCompliancePolicy.cs" />
+    <Compile Remove="Security\RequirePackageMetadataComplianceUtility.cs" />
+    <Compile Remove="Security\RequirePackageMetadataState.cs" />
+    <Compile Remove="Security\RequirePackageVerifyScopePolicy.cs" />
+    <Compile Remove="Security\SecurityPolicyAction.cs" />
+    <Compile Remove="Security\SecurityPolicyHandler.cs" />
+    <Compile Remove="Security\SecurityPolicyResult.cs" />
+    <Compile Remove="Security\SecurityPolicyService.cs" />
+    <Compile Remove="Security\UserSecurityPolicyEvaluationContext.cs" />
+    <Compile Remove="Security\UserSecurityPolicyHandler.cs" />
+    <Compile Remove="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Remove="Storage\CloudBlobFileStorageService.cs" />
+    <Compile Remove="Storage\ContentObjectService.cs" />
+    <Compile Remove="Storage\ContentService.cs" />
+    <Compile Remove="Storage\HttpContextCacheService.cs" />
+    <Compile Remove="Storage\ICacheService.cs" />
+    <Compile Remove="Storage\IContentObjectService.cs" />
+    <Compile Remove="Storage\IContentService.cs" />
+    <Compile Remove="Storage\IFileStorageService.cs" />
+    <Compile Remove="SupportRequest\ISupportRequestService.cs" />
+    <Compile Remove="SupportRequest\SupportRequestService.cs" />
+    <Compile Remove="Telemetry\ITelemetryService.cs" />
+    <Compile Remove="Telemetry\Obfuscator.cs" />
+    <Compile Remove="Telemetry\QuietLog.cs" />
+    <Compile Remove="Telemetry\TelemetryService.cs" />
+    <Compile Remove="Telemetry\UserPackageDeleteEvent.cs" />
+    <Compile Remove="Telemetry\UserPackageDeleteOutcome.cs" />
+    <Compile Remove="UserManagement\IUserService.cs" />
+    <Compile Remove="UserManagement\UserService.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
@@ -29,11 +230,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="EntityFramework">
-      <Version>6.4.0-preview3-19553-01</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights">
       <Version>2.12.0</Version>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="EntityFramework">
+      <Version>6.4.0-preview3-19553-01</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.Mvc">
       <Version>5.2.3</Version>
