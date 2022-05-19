@@ -12,6 +12,7 @@ using Moq;
 using NuGet.Services.AzureSearch.AuxiliaryFiles;
 using NuGet.Services.AzureSearch.Support;
 using NuGet.Services.AzureSearch.Wrappers;
+using NuGet.Services.Metadata.Catalog;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,6 +41,9 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     Times.Never);
                 BatchPusher.Verify(x => x.TryFinishAsync(), Times.Never);
                 BatchPusher.Verify(x => x.TryPushFullBatchesAsync(), Times.Never);
+                DownloadsV1JsonClient.Verify(
+                    x => x.ReadAsync(Config.DownloadsV1JsonUrl),
+                    Times.Once);
                 DownloadDataClient.Verify(
                     x => x.ReplaceLatestIndexedAsync(It.IsAny<DownloadData>(), It.IsAny<IAccessCondition>()),
                     Times.Never);
@@ -466,7 +470,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
         {
             public Facts(ITestOutputHelper output)
             {
-                AuxiliaryFileClient = new Mock<IAuxiliaryFileClient>();
+                DownloadsV1JsonClient = new Mock<IDownloadsV1JsonClient>();
                 DatabaseFetcher = new Mock<IDatabaseAuxiliaryDataFetcher>();
                 DownloadDataClient = new Mock<IDownloadDataClient>();
                 DownloadSetComparer = new Mock<IDownloadSetComparer>();
@@ -483,6 +487,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
 
                 Config = new Auxiliary2AzureSearchConfiguration
                 {
+                    DownloadsV1JsonUrl = "https://example/downloads.v1.json",
                     AzureSearchBatchSize = 10,
                     MaxConcurrentBatches = 1,
                     MaxConcurrentVersionListWriters = 1,
@@ -497,7 +502,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     .Setup(x => x.ReadLatestIndexedAsync(It.IsAny<IAccessCondition>(), It.IsAny<StringCache>()))
                     .ReturnsAsync(() => OldDownloadResult);
                 NewDownloadData = new DownloadData();
-                AuxiliaryFileClient.Setup(x => x.LoadDownloadDataAsync()).ReturnsAsync(() => NewDownloadData);
+                DownloadsV1JsonClient.Setup(x => x.ReadAsync(It.IsAny<string>())).ReturnsAsync(() => NewDownloadData);
 
                 Changes = new SortedDictionary<string, long>();
                 DownloadSetComparer
@@ -574,7 +579,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                 FeatureFlags.Setup(x => x.IsPopularityTransferEnabled()).Returns(true);
 
                 Target = new UpdateDownloadsCommand(
-                    AuxiliaryFileClient.Object,
+                    DownloadsV1JsonClient.Object,
                     DatabaseFetcher.Object,
                     DownloadDataClient.Object,
                     DownloadSetComparer.Object,
@@ -590,7 +595,7 @@ namespace NuGet.Services.AzureSearch.Auxiliary2AzureSearch
                     Logger);
             }
 
-            public Mock<IAuxiliaryFileClient> AuxiliaryFileClient { get; }
+            public Mock<IDownloadsV1JsonClient> DownloadsV1JsonClient { get; }
             public Mock<IDatabaseAuxiliaryDataFetcher> DatabaseFetcher { get; }
             public Mock<IDownloadDataClient> DownloadDataClient { get; }
             public Mock<IDownloadSetComparer> DownloadSetComparer { get; }

@@ -52,7 +52,7 @@ Once you've created your Azure resources, you can create your `settings.json` fi
 
 * The `GalleryDb:ConnectionString` setting is the connection string to your Gallery DB.
 * The `SearchServiceName` setting is the name of your Azure Search resource. For example, use the name `foo-bar` for the Azure Search service with URL `https://foo-bar.search.windows.net`.
-* The `SearchServiceApiKey` setting is an admin key that has write permissions to the Azure Search resource.
+* The `SearchServiceApiKey` setting is an admin key that has write permissions to the Azure Search resource. Make sure the Azure Search resource you're connecting to has API keys enabled (either in parallel with managed identities "RBAC" access or with managed identities authentication disabled).
 * The `StorageConnectionString` setting is the connection string to your Azure Blob Storage account.
 
 ```json
@@ -93,7 +93,7 @@ At a high-level, here's how Catalog2AzureSearch works:
 1. Load its catalog cursor from Azure Blob Storage
 1. Fetch catalog leaves that are newer than the catalog cursor value
 1. For each package ID in the catalog leaves:
-    1. Fetch the [version list resource](../../Search-version-list-resource.md) for the package ID
+    1. Fetch the [version list resource](../../docs/Search-version-list-resource.md) for the package ID
     1. Apply the package's catalog leaves to the version list resource to understand which search documents need to be updated. In some cases, use the [Package Metadata resource](https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource) to fetch additional package metadata and catalog leaves
     1. Generate Azure Search  actions to update the indexes
 1. Push all generated Azure Search index actions

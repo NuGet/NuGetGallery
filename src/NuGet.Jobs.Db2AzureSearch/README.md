@@ -53,7 +53,6 @@ As an alternative to using nuget.org's DEV resources, you can also run this tool
 In your Azure Blob Storage account, you will need to create a container named `ng-search-data` and upload the following files:
 1. `downloads.v1.json` with content `[]`
 1. `ExcludedPackages.v1.json` with content `[]`
-1. `verifiedPackages.json` with content `[]`
 
 If you are on the nuget.org team, you can copy these files from the [PROD auxiliary files container](https://nuget.visualstudio.com/DefaultCollection/NuGetMicrosoft/_git/NuGetDeployment?path=%2Fsrc%2FJobs%2FNuGet.Jobs.Cloud%2FJobs%2FDb2AzureSearch%2FPROD%2Fnorthcentralus%2Fappsettings.json&version=GBmaster&line=18&lineEnd=24&lineStartColumn=1&lineEndColumn=1&lineStyle=plain).
 
@@ -63,8 +62,9 @@ Once you've created your Azure resources, you can create your `settings.json` fi
 
 * The `GalleryDb:ConnectionString` setting is the connection string to your Gallery DB.
 * The `SearchServiceName` setting is the name of your Azure Search resource. For example, use the name `foo-bar` for the Azure Search service with URL `https://foo-bar.search.windows.net`.
-* The `SearchServiceApiKey` setting is an admin key that has write permissions to the Azure Search resource.
+* The `SearchServiceApiKey` setting is an admin key that has write permissions to the Azure Search resource. Make sure the Azure Search resource you're connecting to has API keys enabled (either in parallel with managed identities "RBAC" access or with managed identities authentication disabled).
 * The `StorageConnectionString` and `AuxiliaryDataStorageConnectionString` settings are both the connection string to your Azure Blob Storage account.
+* The `DownloadsV1JsonUrl` setting is the URL to `downloads.v1.json` file above. Make sure it works without authentication.
 
 ```json
 {
@@ -86,9 +86,8 @@ Once you've created your Azure resources, you can create your `settings.json` fi
     "GalleryBaseUrl": "https://www.nuget.org/",
     "AuxiliaryDataStorageConnectionString": "PLACEHOLDER",
     "AuxiliaryDataStorageContainer": "ng-search-data",
-    "AuxiliaryDataStorageDownloadsPath": "downloads.v1.json",
     "AuxiliaryDataStorageExcludedPackagesPath": "ExcludedPackages.v1.json",
-    "AuxiliaryDataStorageVerifiedPackagesPath": "verifiedPackages.json",
+    "DownloadsV1JsonUrl": "PLACEHOLDER",
     "FlatContainerBaseUrl": "https://api.nuget.org/",
     "FlatContainerContainerName": "v3-flatcontainer",
     "AllIconsInFlatContainer": false,

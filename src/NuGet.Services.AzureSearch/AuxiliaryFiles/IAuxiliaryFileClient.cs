@@ -8,7 +8,6 @@ namespace NuGet.Services.AzureSearch.AuxiliaryFiles
 {
     public interface IAuxiliaryFileClient
     {
-        Task<DownloadData> LoadDownloadDataAsync();
         Task<HashSet<string>> LoadExcludedPackagesAsync();
     }
 }

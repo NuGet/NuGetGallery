@@ -40,8 +40,8 @@ namespace Stats.CollectAzureChinaCDNLogs
 
         public override OutputLogLine TransformRawLogLine(string line)
         {
-            if (string.IsNullOrWhiteSpace(line) || 
-                string.IsNullOrEmpty(line) || 
+            if (string.IsNullOrWhiteSpace(line) ||
+                string.IsNullOrEmpty(line) ||
                 line.Trim().StartsWith("c-ip", ignoreCase: true, culture: CultureInfo.InvariantCulture))
             {
                 // Ignore empty lines or the header
@@ -63,7 +63,11 @@ namespace Stats.CollectAzureChinaCDNLogs
             const string notAvailableInt = "0";
 
             string timestamp = segments[(int)ChinaLogHeaderFields.timestamp];
-            DateTime dt = DateTime.Parse(timestamp, CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
+            if (!DateTime.TryParse(timestamp, CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal, out var dt))
+            {
+                _logger.LogError("Skipping a line with malformed timestamp: {MalformedDate}", timestamp);
+                return null;
+            }
             string timeStamp2 = ToUnixTimeStamp(dt);
 
             // Global status code format: cache status + "/" + HTTP status code

@@ -81,11 +81,12 @@ namespace Stats.AzureCdnLogs.Common.Collect
                         using (var inputStream = await _source.OpenReadAsync(file, sourceContentType, blobOperationToken))
                         {
                             var blobToDeadLetter = ! await VerifyStreamInternalAsync(file, sourceContentType, blobOperationToken);
+                            var filename = file.Segments.LastOrDefault();
                             // If verification passed continue with the rest of the action 
                             // If not just move the blob to deadletter
                             if (!blobToDeadLetter)
                             {
-                                var writeOperationResult = await _destination.TryWriteAsync(inputStream, ProcessLogStream, fileNameTransform(file.Segments.Last()), destinationContentType, blobOperationToken);
+                                var writeOperationResult = await _destination.TryWriteAsync(inputStream, (i, o) => ProcessLogStream(i, o, filename), fileNameTransform(file.Segments.Last()), destinationContentType, blobOperationToken);
                                 blobToDeadLetter = writeOperationResult.OperationException != null;
                             }
                             await _source.TryCleanAsync(lockResult, onError: blobToDeadLetter, token: blobOperationToken);
@@ -134,7 +135,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
         /// <returns>True if the validation passed.</returns>
         public abstract Task<bool> VerifyStreamAsync(Stream stream);
       
-        protected void ProcessLogStream(Stream sourceStream, Stream targetStream)
+        protected void ProcessLogStream(Stream sourceStream, Stream targetStream, string filename)
         {
             var rawLineNumber = 0;
             var targetLineNumber = 0;
@@ -157,7 +158,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
                         if (transformedLine != null)
                         {
                             targetLineNumber++;
-                            var targetLine = GetParsedModifiedLogEntry(targetLineNumber, transformedLine.ToString());
+                            var targetLine = GetParsedModifiedLogEntry(targetLineNumber, transformedLine.ToString(), filename);
                             if (!string.IsNullOrEmpty(targetLine))
                             {
                                 targetStreamWriter.Write(targetLine);
@@ -179,12 +180,17 @@ namespace Stats.AzureCdnLogs.Common.Collect
             }
         }
 
-        private string GetParsedModifiedLogEntry(int lineNumber, string rawLogEntry)
+        private string GetParsedModifiedLogEntry(int lineNumber, string rawLogEntry, string filename)
         {
             var parsedEntry = CdnLogEntryParser.ParseLogEntryFromLine(
                 lineNumber: lineNumber,
                 line: rawLogEntry,
-                onErrorAction: null);
+                onErrorAction: (e, line) => _logger.LogError(
+                    LogEvents.FailedToParseLogFileEntry,
+                    e,
+                    LogMessages.ParseLogEntryLineFailed,
+                    filename,
+                    line));
 
             if (parsedEntry == null)
             {

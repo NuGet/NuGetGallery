@@ -18,6 +18,11 @@ The search auxiliary files are:
   - [`verified-packages/verified-packages.v1.json`](#verified-packages-data) - package IDs that are verified
   - [`popularity-transfers/popularity-transfers.v1.json`](#popularity-transfer-data) - popularity transfers between package IDs
 
+There is an additional auxiliary file that is *not* copied to the region-specific storage container. It is only used
+during the index rebuild process by [Db2AzureSearch](../src/NuGet.Jobs.Db2AzureSearch).
+
+  - [`ExcludedPackages.v1.json`](#excluded-packages) - package IDs excluded from the default search results
+
 ## Download count data
 
 The `downloads/downloads.v2.json` file has the total download count for all package versions. The total download count
@@ -167,3 +172,36 @@ in a case insensitive manner.
 The order of the package ID keys and values is case insensitive ascending lexicographical order.
 
 The class for reading and writing this file to Blob Storage is [`PopularityTransferDataClient`](../src/NuGet.Services.AzureSearch/AuxiliaryFiles/PopularityTransferDataClient.cs).
+
+## Excluded packages
+
+The `ExcludedPackages.v1.json` file is not present in the region-specific storage accounts and is only used during the
+index rebuild process. It contains a list of package IDs that should be excluded from the default search. Default search
+is the search query that has no search text at all (empty search text). It is displayed on NuGet.org when you click the
+"Packages" link in the navigation tab and in the Visual Studio Package Manager UI, on the Browse tab.
+
+This file is used to prevent the default search results from being filled with somewhat uninteresting, high download
+packages that ship as part of the .NET BCL. These packages are rarely installed manually so it's not useful to show them
+in the default search results.
+
+Note that this is *not* the same as unlisting the package. An unlisted package does not appear in any searches against
+the [Search index](Azure-Search-indexes.md#search-index). Package IDs mentioned in the excluded packages list do appear
+in any search that has some search text (e.g. searching for that specific excluded package ID).
+
+The data file looks like this:
+
+```json
+[
+  "Microsoft.Extensions.Primitives",
+  "Microsoft.NETCore.Platforms",
+  "Microsoft.Extensions.DependencyInjection.Abstractions",
+  "System.Runtime.CompilerServices.Unsafe"
+]
+```
+
+Note that the "excluded packages" list that is used by 
+[Db2AzureSearch](../src/NuGet.Jobs.Db2AzureSearch) is currently not updated by
+[Auxiliary2AzureSearch](../src/NuGet.Jobs.Auxiliary2AzureSearch).
+This is an acceptable limitation because this list is manually updated by the NuGet.org team and doesn't change
+frequently. The index rebuild process must be performed whenever the list changes. This limitation is tracked by
+[NuGet/NuGetGallery#7384](https://github.com/NuGet/NuGetGallery/issues/7384).
