@@ -55,10 +55,7 @@ namespace NuGetGallery.Frameworks
             var result = _factory.Create(packageFrameworks.ToList());
 
             Assert.Empty(result.Table);
-            Assert.Null(result.Badges.Net);
-            Assert.Null(result.Badges.NetCore);
-            Assert.Null(result.Badges.NetStandard);
-            Assert.Null(result.Badges.NetFramework);
+            Assert.Empty(result.Badges);
         }
 
         [Fact]
@@ -74,10 +71,7 @@ namespace NuGetGallery.Frameworks
             var result = _factory.Create(packageFrameworks.ToList());
 
             Assert.Empty(result.Table);
-            Assert.Null(result.Badges.Net);
-            Assert.Null(result.Badges.NetCore);
-            Assert.Null(result.Badges.NetStandard);
-            Assert.Null(result.Badges.NetFramework);
+            Assert.Empty(result.Badges);
         }
 
         [Fact]
@@ -91,10 +85,7 @@ namespace NuGetGallery.Frameworks
             var result = _factory.Create(packageFrameworks.ToList());
 
             Assert.Empty(result.Table);
-            Assert.Null(result.Badges.Net);
-            Assert.Null(result.Badges.NetCore);
-            Assert.Null(result.Badges.NetStandard);
-            Assert.Null(result.Badges.NetFramework);
+            Assert.Empty(result.Badges);
         }
 
         [Theory]
@@ -255,10 +246,7 @@ namespace NuGetGallery.Frameworks
         {
             var result = _factory.Create(new List<PackageFramework>());
 
-            Assert.Null(result.Badges.Net);
-            Assert.Null(result.Badges.NetCore);
-            Assert.Null(result.Badges.NetStandard);
-            Assert.Null(result.Badges.NetFramework);
+            Assert.Empty(result.Badges);
         }
 
         [Theory]
@@ -283,14 +271,7 @@ namespace NuGetGallery.Frameworks
 
             var result = _factory.Create(packageFrameworks.ToList());
 
-            NuGetFramework badgeFramework = null;
-            switch (productFramework)
-            {
-                case FrameworkProductNames.Net: badgeFramework = result.Badges.Net; break;
-                case FrameworkProductNames.NetCore: badgeFramework = result.Badges.NetCore; break;
-                case FrameworkProductNames.NetStandard: badgeFramework = result.Badges.NetStandard; break;
-                case FrameworkProductNames.NetFramework: badgeFramework = result.Badges.NetFramework; break;
-            }
+            var badgeFramework = result.Badges.First().Framework;
 
             Assert.NotNull(badgeFramework);
             Assert.Equal(lowestPackageFramework.FrameworkName, badgeFramework);
@@ -309,17 +290,32 @@ namespace NuGetGallery.Frameworks
 
             var result = _factory.Create(packageFrameworks.ToList());
 
-            var badges = new List<NuGetFramework>() {
-                result.Badges.Net,
-                result.Badges.NetCore,
-                result.Badges.NetStandard,
-                result.Badges.NetFramework
-            };
+            Assert.Equal(packageAssetFramework.FrameworkName, result.Badges.First().Framework);
+            Assert.Equal(expected: 1, result.Badges.Count());
+        }
 
-            var badgeFramework = badges.Single(f => f != null);
-            Assert.Equal(packageAssetFramework.FrameworkName, badgeFramework);
-            Assert.Equal(expected: 3, badges.Where(f => f == null).Count());
+        [Theory]
+        [InlineData(FrameworkProductNames.Net, "net5", false)]
+        [InlineData(FrameworkProductNames.Net, "net6", true)]
+        [InlineData(FrameworkProductNames.NetCore, "netcoreapp10", false)]
+        [InlineData(FrameworkProductNames.NetCore, "netcoreapp31", true)]
+        [InlineData(FrameworkProductNames.NetStandard, "netstandard10", false)]
+        [InlineData(FrameworkProductNames.NetStandard, "netstandard21", true)]
+        [InlineData(FrameworkProductNames.NetFramework, "net11", false)]
+        [InlineData(FrameworkProductNames.NetFramework, "net48", true)]
+        public void BadgeShouldAddHigherVersionIfHigher(string productFramework, string framework, bool isHighestVersion)
+        {
+            var packageFramework = new PackageFramework() { TargetFramework = framework };
+            var packageFrameworks = new HashSet<PackageFramework>();
+            packageFrameworks.Add(packageFramework);
 
+            var result = _factory.Create(packageFrameworks.ToList());
+
+            var badgeFramework = result.Badges.First();
+
+            Assert.NotNull(badgeFramework);
+            Assert.Equal(packageFramework.FrameworkName, badgeFramework.Framework);
+            Assert.Equal(isHighestVersion, badgeFramework.IsHighestVersion);
         }
     }
 }

@@ -13,7 +13,10 @@ namespace NuGetGallery.Frameworks
     {
         private readonly ISet<Version> WindowsStoreNetCoreVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("4.5.0.0"), Version.Parse("4.5.1.0") };
         private readonly ISet<Version> WindowsStoreWindowsVersions = new HashSet<Version> { FrameworkConstants.EmptyVersion, Version.Parse("8.0.0.0"), Version.Parse("8.1.0.0") };
-        private readonly ISet<string> TableFirstFrameworks = new HashSet<string> {
+        /// <summary>
+        /// These frameworks are used to show badges and the first .NET products displayed on the Frameworks table.
+        /// </summary>
+        private readonly IReadOnlyList<string> MainNetFrameworks = new List<string> {
             FrameworkProductNames.Net,
             FrameworkProductNames.NetCore,
             FrameworkProductNames.NetStandard,
@@ -136,7 +139,7 @@ namespace NuGetGallery.Frameworks
 
             foreach (var orderedKey in table.Keys.OrderBy(k => k))
             {
-                if (!TableFirstFrameworks.Contains(orderedKey))
+                if (!MainNetFrameworks.Contains(orderedKey))
                 {
                     table.TryGetValue(orderedKey, out var compatibleFrameworks);
                     orderedTable.Add(orderedKey, compatibleFrameworks);
@@ -154,30 +157,43 @@ namespace NuGetGallery.Frameworks
             }
         }
 
-        private PackageFrameworkCompatibilityBadges CreateFrameworkCompatibilityBadges(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> table)
+        private IReadOnlyList<PackageFrameworkCompatibilityBadge> CreateFrameworkCompatibilityBadges(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> table)
         {
-            var net = GetBadgeFramework(table, FrameworkProductNames.Net);
-            var netCore = GetBadgeFramework(table, FrameworkProductNames.NetCore);
-            var netStandard = GetBadgeFramework(table, FrameworkProductNames.NetStandard);
-            var netFramework = GetBadgeFramework(table, FrameworkProductNames.NetFramework);
+            var badges = new List<PackageFrameworkCompatibilityBadge>();
 
-            return new PackageFrameworkCompatibilityBadges
+            foreach (var frameworkName in MainNetFrameworks)
             {
-                Net = net,
-                NetCore = netCore,
-                NetStandard = netStandard,
-                NetFramework = netFramework
-            };
+                var badge = GetBadgeFramework(table, frameworkName);
+                if (badge != null)
+                {
+                    badges.Add(badge);
+                }
+            }
+
+            return badges;
         }
 
-        private NuGetFramework GetBadgeFramework(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> table, string productName)
+        private PackageFrameworkCompatibilityBadge GetBadgeFramework(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityTableData>> table, string productName)
         {
             if (table.TryGetValue(productName, out var data))
             {
-                return data
+                var highestFramework = data.LastOrDefault()?.Framework;
+
+                var frameworks = data
                     .Where(d => !d.IsComputed)
-                    .Select(d => d.Framework)
-                    .FirstOrDefault();
+                    .Select(d => d.Framework);
+
+                var lowestFramework = frameworks.FirstOrDefault();
+
+                if (lowestFramework != null)
+                {
+                    return new PackageFrameworkCompatibilityBadge
+                    {
+                        FrameworkProduct = productName,
+                        Framework = lowestFramework,
+                        IsHighestVersion = lowestFramework.Version >= highestFramework.Version
+                    };
+                }
             }
 
             return null;

@@ -9,9 +9,9 @@ namespace NuGetGallery.Frameworks
     public class PackageFrameworkCompatibility
     {
         /// <summary>
-        /// Contains a <see cref="NuGetFramework"/> for each of the .NET product (.NET, .NET Core, .NET Standard, and .NET Framework).
+        /// Contains a list of <see cref="PackageFrameworkCompatibilityBadge"/> for each of the .NET product (.NET, .NET Core, .NET Standard, and .NET Framework).
         /// </summary>
-        public PackageFrameworkCompatibilityBadges Badges { get; set; }
+        public IReadOnlyList<PackageFrameworkCompatibilityBadge> Badges { get; set; }
 
         /// <summary>
         /// Contains a dictionary filled with all the package asset frameworks and all the computed compatible frameworks retrieved from <see cref="FrameworkCompatibilityService"/>.<br></br>
