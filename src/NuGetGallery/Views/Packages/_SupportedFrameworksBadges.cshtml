@@ -8,11 +8,11 @@
     {
         if (badge.Framework.GetBadgeVersion().IsEmpty())
         {
-            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">@badge.FrameworkProduct</span>
+            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_EmptyVersionTooltip" data-content="@String.SupportedFrameworks_EmptyVersionTooltip">@(badge.FrameworkProductName + (badge.HasHigherVersions ? "+" : ""))</span>
         }
         else
         {
-            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">@(badge.FrameworkProduct + " " + badge.Framework.GetBadgeVersion() + (badge.IsHighestVersion ? "" : " +"))</span>
+            <span class="framework-badge-asset" aria-label="@String.SupportedFrameworks_Tooltip" data-content="@String.SupportedFrameworks_Tooltip">@(badge.FrameworkProductName + " " + badge.Framework.GetBadgeVersion() + (badge.HasHigherVersions ? "+" : ""))</span>
         }
     }
 </div>

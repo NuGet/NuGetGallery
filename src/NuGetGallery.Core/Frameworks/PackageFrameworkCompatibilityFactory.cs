@@ -177,8 +177,6 @@ namespace NuGetGallery.Frameworks
         {
             if (table.TryGetValue(productName, out var data))
             {
-                var highestFramework = data.LastOrDefault()?.Framework;
-
                 var frameworks = data
                     .Where(d => !d.IsComputed)
                     .Select(d => d.Framework);
@@ -189,9 +187,9 @@ namespace NuGetGallery.Frameworks
                 {
                     return new PackageFrameworkCompatibilityBadge
                     {
-                        FrameworkProduct = productName,
+                        FrameworkProductName = productName,
                         Framework = lowestFramework,
-                        IsHighestVersion = lowestFramework.Version >= highestFramework.Version
+                        HasHigherVersions = frameworks.Count() > 1
                     };
                 }
             }

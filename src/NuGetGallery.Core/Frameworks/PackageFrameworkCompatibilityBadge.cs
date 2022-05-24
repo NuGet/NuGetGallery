@@ -7,8 +7,19 @@ namespace NuGetGallery.Frameworks
 {
     public class PackageFrameworkCompatibilityBadge
     {
-        public string FrameworkProduct { get; set; }
+        /// <summary>
+        /// .NET based framework product name of the <see cref="Framework"/> from the list of <see cref="FrameworkProductNames"/>.
+        /// </summary>
+        public string FrameworkProductName { get; set; }
+
+        /// <summary>
+        /// .NET based package asset framework that is going to be displayed as badge.
+        /// </summary>
         public NuGetFramework Framework { get; set; }
-        public bool IsHighestVersion { get; set; }
+
+        /// <summary>
+        /// True if the package contains more asset frameworks with the same <see cref="FrameworkProductName"/> that are higher versions than <see cref="Framework"/>.
+        /// </summary>
+        public bool HasHigherVersions { get; set; }
     }
 }
