@@ -96,16 +96,16 @@
     var restorePreferredBodyTab = true;
 
     var windowHash = window.location.hash;
-
-    if (windowHash ) {
-
+    if (windowHash) {
         // The V3 registration API links to the display package page's README using
         // the 'show-readme-container' URL fragment.
         if (windowHash === '#show-readme-container') {
-            windowHash = '#readme-tab';
+            windowHash = '#readme-body-tab';
         }
+
         $(windowHash).focus();
-        // don't restore body tab from storage then
+        $(windowHash).tab('show');
+        // don't restore body tab given the window hash
         restorePreferredBodyTab = false;
     }
 
