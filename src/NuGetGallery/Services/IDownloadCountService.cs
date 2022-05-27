@@ -5,7 +5,7 @@ namespace NuGetGallery
 {
     public interface IDownloadCountService
     {
-        bool TryGetDownloadCountForPackageRegistration(string id, out int downloadCount);
-        bool TryGetDownloadCountForPackage(string id, string version, out int downloadCount);
+        bool TryGetDownloadCountForPackageRegistration(string id, out long downloadCount);
+        bool TryGetDownloadCountForPackage(string id, string version, out long downloadCount);
     }
 }

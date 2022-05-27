@@ -33,8 +33,8 @@ namespace NuGetGallery
         private readonly object _refreshLock = new object();
         private bool _isRefreshing;
 
-        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, int>> _downloadCounts
-            = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, long>> _downloadCounts
+            = new ConcurrentDictionary<string, ConcurrentDictionary<string, long>>(StringComparer.OrdinalIgnoreCase);
 
         public CloudDownloadCountService(
             ITelemetryService telemetryService,
@@ -44,7 +44,7 @@ namespace NuGetGallery
             _cloudBlobClientFactory = cloudBlobClientFactory ?? throw new ArgumentNullException(nameof(cloudBlobClientFactory));
         }
 
-        public bool TryGetDownloadCountForPackageRegistration(string id, out int downloadCount)
+        public bool TryGetDownloadCountForPackageRegistration(string id, out long downloadCount)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -63,7 +63,7 @@ namespace NuGetGallery
             return false;
         }
         
-        public bool TryGetDownloadCountForPackage(string id, string version, out int downloadCount)
+        public bool TryGetDownloadCountForPackage(string id, string version, out long downloadCount)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -139,7 +139,7 @@ namespace NuGetGallery
         /// <summary>
         /// This method is added for unit testing purposes.
         /// </summary>
-        protected virtual int CalculateSum(ConcurrentDictionary<string, int> versions)
+        protected virtual long CalculateSum(ConcurrentDictionary<string, long> versions)
         {
             return versions.Sum(kvp => kvp.Value);
         }
@@ -191,14 +191,14 @@ namespace NuGetGallery
 
                                         var versions = _downloadCounts.GetOrAdd(
                                             id,
-                                            _ => new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase));
+                                            _ => new ConcurrentDictionary<string, long>(StringComparer.OrdinalIgnoreCase));
 
                                         foreach (JToken token in record)
                                         {
                                             if (token != null && token.Count() == 2)
                                             {
                                                 var version = token[0].ToString();
-                                                var downloadCount = token[1].ToObject<int>();
+                                                var downloadCount = token[1].ToObject<long>();
 
                                                 if (versions.ContainsKey(version) && downloadCount < versions[version])
                                                 {

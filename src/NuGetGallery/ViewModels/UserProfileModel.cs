@@ -22,7 +22,7 @@ namespace NuGetGallery
             PackagePage = pageIndex;
             PackagePageSize = pageSize;
 
-            TotalPackageDownloadCount = AllPackages.Sum(p => ((long)p.TotalDownloadCount));
+            TotalPackageDownloadCount = AllPackages.Sum(p => (p.TotalDownloadCount));
 
             PackagePageTotalCount = (TotalPackages + PackagePageSize - 1) / PackagePageSize;
 

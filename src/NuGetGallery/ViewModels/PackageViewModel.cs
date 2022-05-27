@@ -17,14 +17,14 @@ namespace NuGetGallery
         public bool Prerelease { get; set; }
         public string VersionRequested { get; set; }
         public bool VersionRequestedWasNotFound { get; set; }
-        public int DownloadCount { get; set; }
+        public long DownloadCount { get; set; }
         public bool Listed { get; set; }
         public bool Locked { get; set; }
         public bool FailedValidation { get; set; }
         public bool Available { get; set; }
         public bool Validating { get; set; }
         public bool Deleted { get; set; }
-        public int TotalDownloadCount { get; set; }
+        public long TotalDownloadCount { get; set; }
         public string Id { get; set; }
         public string Version { get; set; }
         public string FullVersion { get; set; }

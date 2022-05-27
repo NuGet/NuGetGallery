@@ -8,7 +8,7 @@ namespace NuGetGallery
     public class PackageDependent
     {
         public string Id { get; set; }
-        public int DownloadCount { get; set; }
+        public long DownloadCount { get; set; }
         public string Description { get; set; }
         public bool IsVerified { get; set; }
     }

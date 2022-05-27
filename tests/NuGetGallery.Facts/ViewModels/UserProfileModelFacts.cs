@@ -138,7 +138,7 @@ namespace NuGetGallery.ViewModels
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        DownloadCount = int.MaxValue
+                        DownloadCount = long.MaxValue
                     },
                     Version = version
                 }, currentUser: null);
