@@ -82,6 +82,11 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="number">The number to format</param>
         /// <returns>String representation of the formatted number</returns>
+        public static string ToKiloFormat(this int number)
+        {
+            return ToKiloFormat((long)number);
+        }
+
         public static string ToKiloFormat(this long number)
         {
             // To avoid overflow (with Math.Abs()). 1 difference won't make a difference in the simplified format :)
