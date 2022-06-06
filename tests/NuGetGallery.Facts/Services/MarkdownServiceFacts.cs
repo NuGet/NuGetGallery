@@ -234,6 +234,21 @@ Some text
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.False(readMeResult.ImagesRewritten);
             }
+
+            [Theory]
+            [InlineData("Hello ~~world~~", "<p>Hello <del>world</del></p>")]
+            [InlineData("H~2~O is a liquid. 2^10^ is 1024", "<p>H<sub>2</sub>O is a liquid. 2<sup>10</sup> is 1024</p>")]
+            [InlineData("Daggers^†^ and double-daggers^‡^ can be used to denote notes.", "<p>Daggers<sup>†</sup> and double-daggers<sup>‡</sup> can be used to denote notes.</p>")]
+            [InlineData("++Inserted text++", "<p><ins>Inserted text</ins></p>")]
+            [InlineData("==Marked text==", "<p><mark>Marked text</mark></p>")]
+            [InlineData("This is text MyBrand~&reg;~ and MyCopyright^&copy;^", "<p>This is text MyBrand<sub>®</sub> and MyCopyright<sup>©</sup></p>")]
+            public void TestToHtmlWithStrikethrough(string originalMd, string expectedHtml)
+            {
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.False(readMeResult.ImagesRewritten);
+            }
         }
     }
 }
