@@ -204,7 +204,7 @@ namespace NuGetGallery
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
                 .UseReferralLinks("noopener noreferrer nofollow")
-                .UseEmphasisExtras()
+                .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
                 .DisableHtml() //block inline html
                 .UseBootstrap()
                 .Build();
