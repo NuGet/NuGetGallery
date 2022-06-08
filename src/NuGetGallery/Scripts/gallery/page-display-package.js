@@ -161,7 +161,7 @@
             storage.setItem(bodyStorageKey, e.target.id);
         }
 
-        window.history.replaceState("", "", window.location.pathname.replace(/\/$/, "") + "#" + e.target.id);
+        window.history.replaceState("", "", "#" + e.target.id);
 
         clampUsedByDescriptions();
 
