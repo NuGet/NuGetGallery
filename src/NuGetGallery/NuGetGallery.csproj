@@ -260,8 +260,6 @@
     <Compile Include="Infrastructure\Mail\Messages\TwoFactorFeedbackMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
     <Compile Include="Infrastructure\HijackSearchServiceFactory.cs" />
-    <Compile Include="Infrastructure\ODataCachedEndpoint.cs" />
-    <Compile Include="Infrastructure\ODataCacheOutputAttribute.cs" />
     <Compile Include="Infrastructure\UserDeletedErrorFilter.cs" />
     <Compile Include="Infrastructure\SearchServiceFactory.cs" />
     <Compile Include="Migrations\201903020136235_CvesCanBeEmpty.cs" />

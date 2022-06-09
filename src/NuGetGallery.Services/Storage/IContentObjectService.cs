@@ -14,7 +14,6 @@ namespace NuGetGallery
         ITyposquattingConfiguration TyposquattingConfiguration { get; }
         IGitHubUsageConfiguration GitHubUsageConfiguration { get; }
         IABTestConfiguration ABTestConfiguration { get; }
-        IODataCacheConfiguration ODataCacheConfiguration { get; }
         ICacheConfiguration CacheConfiguration { get; }
         IQueryHintConfiguration QueryHintConfiguration { get; }
         ITrustedImageDomains TrustedImageDomains { get; }

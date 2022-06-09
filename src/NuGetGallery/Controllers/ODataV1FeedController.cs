@@ -53,7 +53,6 @@ namespace NuGetGallery.Controllers
         // /api/v1/Packages
         [HttpGet]
         [HttpPost]
-        [CacheOutput(NoCache = true)]
         public IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options)
         {
             _telemetryService.TrackApiRequest("/api/v1/Packages");
@@ -62,7 +61,6 @@ namespace NuGetGallery.Controllers
 
         // /api/v1/Packages/$count
         [HttpGet]
-        [CacheOutput(NoCache = true)]
         public IHttpActionResult GetCount(ODataQueryOptions<V1FeedPackage> options)
         {
             _telemetryService.TrackApiRequest("/api/v1/Packages/$count");
@@ -102,11 +100,6 @@ namespace NuGetGallery.Controllers
 
         // /api/v1/Packages(Id=,Version=)
         [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.GetSpecificPackage,
-            serverTimeSpan: ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds,
-            Private = true,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(ODataQueryOptions<V1FeedPackage> options, string id, string version)
         {
             _telemetryService.TrackApiRequest("/api/v1/Packages(Id=,Version=)");
@@ -122,11 +115,6 @@ namespace NuGetGallery.Controllers
         // /api/v1/FindPackagesById()?id=
         [HttpGet]
         [HttpPost]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.FindPackagesById,
-            serverTimeSpan: ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds,
-            Private = true,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(ODataQueryOptions<V1FeedPackage> options, [FromODataUri]string id)
         {
             _telemetryService.TrackApiRequest("/api/v1/FindPackagesById()?id=");
@@ -138,10 +126,6 @@ namespace NuGetGallery.Controllers
 
         // /api/v1/FindPackagesById()/$count?id=
         [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.FindPackagesByIdCount,
-            serverTimeSpan: ODataCacheConfiguration.DefaultFindPackagesByIdCountCacheTimeInSeconds,
-            NoCache = true)]
         public async Task<IHttpActionResult> FindPackagesByIdCount(ODataQueryOptions<V1FeedPackage> options, [FromODataUri] string id)
         {
             _telemetryService.TrackApiRequest("/api/v1/FindPackagesById()/$count?id=");
@@ -273,10 +257,6 @@ namespace NuGetGallery.Controllers
         // /api/v1/Search()?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
         [HttpPost]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.Search,
-            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Search(
             ODataQueryOptions<V1FeedPackage> options,
             [FromODataUri]string searchTerm = "",
@@ -292,10 +272,6 @@ namespace NuGetGallery.Controllers
 
         // /api/v1/Search()/$count?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.Search,
-            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> SearchCount(
             ODataQueryOptions<V1FeedPackage> options,
             [FromODataUri]string searchTerm = "",
@@ -398,7 +374,6 @@ namespace NuGetGallery.Controllers
         }
 
         [HttpGet]
-        [CacheOutput(NoCache = true)]
         public virtual HttpResponseMessage SimulateError([FromUri] string type = "Exception")
         {
             if (!Enum.TryParse<SimulatedErrorType>(type, out var parsedType))

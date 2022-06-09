@@ -56,7 +56,6 @@ namespace NuGetGallery.Controllers
         // /api/v2/Packages?semVerLevel=
         [HttpGet]
         [HttpPost]
-        [CacheOutput(NoCache = true)]
         public async Task<IHttpActionResult> Get(
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri]string semVerLevel = null)
@@ -70,7 +69,6 @@ namespace NuGetGallery.Controllers
 
         // /api/v2/Packages/$count?semVerLevel=
         [HttpGet]
-        [CacheOutput(NoCache = true)]
         public async Task<IHttpActionResult> GetCount(
             ODataQueryOptions<V2FeedPackage> options,
             [FromUri] string semVerLevel = null)
@@ -189,11 +187,6 @@ namespace NuGetGallery.Controllers
 
         // /api/v2/Packages(Id=,Version=)
         [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.GetSpecificPackage,
-            serverTimeSpan: ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds,
-            Private = true,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Get(
             ODataQueryOptions<V2FeedPackage> options, 
             string id, 
@@ -219,11 +212,6 @@ namespace NuGetGallery.Controllers
         // /api/v2/FindPackagesById()?id=&semVerLevel=
         [HttpGet]
         [HttpPost]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.FindPackagesById,
-            serverTimeSpan: ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds,
-            Private = true,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultGetByIdAndVersionCacheTimeInSeconds)]
         public async Task<IHttpActionResult> FindPackagesById(
             ODataQueryOptions<V2FeedPackage> options, 
             [FromODataUri]string id,
@@ -239,10 +227,6 @@ namespace NuGetGallery.Controllers
 
         // /api/v2/FindPackagesById()/$count?semVerLevel=
         [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.FindPackagesByIdCount,
-            serverTimeSpan: ODataCacheConfiguration.DefaultFindPackagesByIdCountCacheTimeInSeconds,
-            NoCache = true)]
         public async Task<IHttpActionResult> FindPackagesByIdCount(
             ODataQueryOptions<V2FeedPackage> options,
             [FromODataUri] string id,
@@ -431,10 +415,6 @@ namespace NuGetGallery.Controllers
         // /api/v2/Search()?searchTerm=&targetFramework=&includePrerelease=
         [HttpGet]
         [HttpPost]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.Search,
-            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> Search(
             ODataQueryOptions<V2FeedPackage> options,
             [FromODataUri]string searchTerm = "",
@@ -454,10 +434,6 @@ namespace NuGetGallery.Controllers
 
         // /api/v2/Search()/$count?searchTerm=&targetFramework=&includePrerelease=&semVerLevel=
         [HttpGet]
-        [ODataCacheOutput(
-            ODataCachedEndpoint.Search,
-            serverTimeSpan: ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds,
-            ClientTimeSpan = ODataCacheConfiguration.DefaultSearchCacheTimeInSeconds)]
         public async Task<IHttpActionResult> SearchCount(
             ODataQueryOptions<V2FeedPackage> options,
             [FromODataUri] string searchTerm = "",
