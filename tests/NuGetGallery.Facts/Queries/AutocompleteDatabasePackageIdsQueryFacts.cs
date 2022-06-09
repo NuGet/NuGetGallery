@@ -148,7 +148,7 @@ namespace NuGetGallery.Queries
             {
                 var queryResult = await _packageIdsQuery.Execute(partialId, null, null);
 
-                var maxValue = Int64.MaxValue;
+                var maxValue = long.MaxValue;
                 var allIdsAreOrderedById = queryResult.All(id =>
                 {
                     _packageDictionary.TryGetValue(id, out var package);

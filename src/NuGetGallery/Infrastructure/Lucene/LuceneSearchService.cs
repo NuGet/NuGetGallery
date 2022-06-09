@@ -102,8 +102,8 @@ namespace NuGetGallery
 
         private static Package PackageFromDoc(Document doc)
         {
-            long downloadCount = Int64.Parse(doc.Get("DownloadCount"), CultureInfo.InvariantCulture);
-            long versionDownloadCount = Int64.Parse(doc.Get("VersionDownloadCount"), CultureInfo.InvariantCulture);
+            long downloadCount = long.Parse(doc.Get("DownloadCount"), CultureInfo.InvariantCulture);
+            long versionDownloadCount = long.Parse(doc.Get("VersionDownloadCount"), CultureInfo.InvariantCulture);
             int key = Int32.Parse(doc.Get("Key"), CultureInfo.InvariantCulture);
             int packageRegistrationKey = Int32.Parse(doc.Get("PackageRegistrationKey"), CultureInfo.InvariantCulture);
             int packageSize = Int32.Parse(doc.Get("PackageFileSize"), CultureInfo.InvariantCulture);
