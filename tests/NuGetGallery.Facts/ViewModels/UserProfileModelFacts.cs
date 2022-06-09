@@ -141,7 +141,7 @@ namespace NuGetGallery.ViewModels
                         DownloadCount = int.MaxValue
                     },
                     Version = version
-                }, currentUser: null);;
+                }, currentUser: null);
             }
         }
     }
