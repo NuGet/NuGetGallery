@@ -37,7 +37,7 @@
         <div class="col-sm-11">
             <div class="package-header">
                 <a class="package-title"
-                   href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)"
+                   href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null).TrimEnd('/')"
                    @if (itemIndex.HasValue)
                    {
                        @:data-track="@eventName" data-track-value="@itemIndex"
