@@ -138,10 +138,10 @@ namespace NuGetGallery.ViewModels
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        DownloadCount = long.MaxValue
+                        DownloadCount = int.MaxValue
                     },
                     Version = version
-                }, currentUser: null);
+                }, currentUser: null);;
             }
         }
     }
