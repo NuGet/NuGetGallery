@@ -93,12 +93,19 @@
     var storage = window['localStorage'];
     var packageManagerStorageKey = 'preferred_package_manager';
     var bodyStorageKey = 'preferred_body_tab';
-
-    // The V3 registration API links to the display package page's README using
-    // the 'show-readme-container' URL fragment.
     var restorePreferredBodyTab = true;
-    if (window.location.hash === '#show-readme-container') {
-        $('#readme-body-tab').focus();
+
+    var windowHash = window.location.hash;
+    if (windowHash) {
+        // The V3 registration API links to the display package page's README using
+        // the 'show-readme-container' URL fragment.
+        if (windowHash === '#show-readme-container') {
+            windowHash = '#readme-body-tab';
+        }
+
+        $(windowHash).focus();
+        $(windowHash).tab('show');
+        // don't restore body tab given the window hash
         restorePreferredBodyTab = false;
     }
 
@@ -153,6 +160,8 @@
         if (storage) {
             storage.setItem(bodyStorageKey, e.target.id);
         }
+
+        window.history.replaceState("", "", "#" + e.target.id);
 
         clampUsedByDescriptions();
 

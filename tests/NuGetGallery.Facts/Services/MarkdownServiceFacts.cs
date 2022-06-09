@@ -234,6 +234,16 @@ Some text
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.False(readMeResult.ImagesRewritten);
             }
+
+            [Theory]
+            [InlineData("Hello ~~world~~", "<p>Hello <del>world</del></p>")]
+            public void TestToHtmlWithStrikethrough(string originalMd, string expectedHtml)
+            {
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+                Assert.False(readMeResult.ImagesRewritten);
+            }
         }
     }
 }
