@@ -59,7 +59,6 @@ namespace NuGetGallery
             public static readonly string TyposquattingConfiguration = "Typosquatting-Configuration";
             public static readonly string NuGetPackagesGitHubDependencies = "GitHubUsage.v1";
             public static readonly string ABTestConfiguration = "AB-Test-Configuration";
-            public static readonly string ODataCacheConfiguration = "OData-Cache-Configuration";
             public static readonly string CacheConfiguration = "Cache-Configuration";
             public static readonly string QueryHintConfiguration = "Query-Hint-Configuration";
             public static readonly string TrustedImageDomains = "Trusted-Image-Domains";

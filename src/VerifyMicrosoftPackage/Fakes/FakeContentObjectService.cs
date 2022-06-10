@@ -22,8 +22,6 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public IABTestConfiguration ABTestConfiguration => throw new NotImplementedException();
 
-        public IODataCacheConfiguration ODataCacheConfiguration => throw new NotImplementedException();
-
         public ICacheConfiguration CacheConfiguration => throw new NotImplementedException();
 
         public IQueryHintConfiguration QueryHintConfiguration => throw new NotImplementedException();
