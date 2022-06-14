@@ -54,7 +54,7 @@ namespace NuGetGallery
         private const string ComputeTargetFrameworkFeatureName = GalleryPrefix + "ComputeTargetFramework";
         private const string RecentPackagesNoIndexFeatureName = GalleryPrefix + "RecentPackagesNoIndex";
         private const string NewAccount2FAEnforcementFeatureName = GalleryPrefix + "NewAccount2FAEnforcement";
-        private const string EmailLoginFeatureName = GalleryPrefix + "EmailLogin";
+        private const string NuGetAccountPasswordLoginUnsupportedFeatureName = GalleryPrefix + "NuGetAccountPasswordLoginUnsupported";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -370,9 +370,9 @@ namespace NuGetGallery
             return _client.IsEnabled(NewAccount2FAEnforcementFeatureName, defaultValue: false);
         }
 
-        public bool IsEmailLoginEnabled()
+        public bool IsNuGetAccountPasswordLoginUnsupportedEnabled()
         {
-            return _client.IsEnabled(EmailLoginFeatureName, defaultValue: true);
+            return _client.IsEnabled(NuGetAccountPasswordLoginUnsupportedFeatureName, defaultValue: false);
         }
     }
 }

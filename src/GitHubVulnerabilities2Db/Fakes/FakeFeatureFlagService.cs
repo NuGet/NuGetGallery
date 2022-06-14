@@ -280,7 +280,7 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsEmailLoginEnabled()
+        public bool IsNuGetAccountPasswordLoginUnsupportedEnabled()
         {
             throw new NotImplementedException();
         }

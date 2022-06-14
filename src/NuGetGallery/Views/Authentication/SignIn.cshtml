@@ -51,7 +51,7 @@
             </span>
         </div>
 
-        if (Model.IsEmailLoginEnabled)
+        if (!Model.IsNuGetAccountPasswordLoginUnsupported)
         {
             <div class="row nuget-signin">
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">

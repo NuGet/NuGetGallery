@@ -1310,6 +1310,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to NuGet.org password login is no longer supported..
+        /// </summary>
+        public static string NuGetAccountPasswordLoginUnsupported {
+            get {
+                return ResourceManager.GetString("NuGetAccountPasswordLoginUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property is required..
         /// </summary>
         public static string NuGetPackagePropertyMissing {

@@ -161,6 +161,15 @@ namespace NuGetGallery
             }
 
             var authenticatedUser = authenticationResult.AuthenticatedUser;
+
+            if (authenticatedUser.CredentialUsed.IsPassword() &&
+                !_featureFlagService.IsNuGetAccountPasswordLoginUnsupportedEnabled() &&
+                !_contentObjectService.LoginDiscontinuationConfiguration.IsUserEmailOnExceptionsForEmailAddress(authenticatedUser.User))
+            {
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.NuGetAccountPasswordLoginUnsupported);
+                return SignInFailure(model, linkingAccount, message);
+            }
+
             bool usedMultiFactorAuthentication = false;
             if (linkingAccount)
             {
@@ -924,7 +933,7 @@ namespace NuGetGallery
             existingModel.Providers = GetProviders();
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
-            existingModel.IsEmailLoginEnabled = _featureFlagService.IsEmailLoginEnabled();
+            existingModel.IsNuGetAccountPasswordLoginUnsupported = _featureFlagService.IsNuGetAccountPasswordLoginUnsupportedEnabled();
 
             return View(viewName, existingModel);
         }

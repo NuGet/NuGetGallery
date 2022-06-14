@@ -1230,4 +1230,7 @@ The {1} Team</value>
   <data name="SupportedFrameworks_Tooltip" xml:space="preserve">
     <value>This package is compatible with this framework or higher.</value>
   </data>
+  <data name="NuGetAccountPasswordLoginUnsupported" xml:space="preserve">
+    <value>NuGet.org password login is no longer supported.</value>
+  </data>
 </root>
