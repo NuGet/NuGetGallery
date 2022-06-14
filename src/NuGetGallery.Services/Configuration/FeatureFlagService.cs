@@ -372,7 +372,7 @@ namespace NuGetGallery
 
         public bool IsEmailLoginEnabled()
         {
-            return _client.IsEnabled(EmailLoginFeatureName, defaultValue: false);
+            return _client.IsEnabled(EmailLoginFeatureName, defaultValue: true);
         }
     }
 }

@@ -51,13 +51,16 @@
             </span>
         </div>
 
-        <div class="row nuget-signin">
-            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
-                <p class="text-center">
-                    <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
-                </p>
+        if (Model.IsEmailLoginEnabled)
+        {
+            <div class="row nuget-signin">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+                    <p class="text-center">
+                        <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
+                    </p>
+                </div>
             </div>
-        </div>
+        }
     }
     else
     {
