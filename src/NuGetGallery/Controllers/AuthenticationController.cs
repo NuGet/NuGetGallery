@@ -924,6 +924,7 @@ namespace NuGetGallery
             existingModel.Providers = GetProviders();
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
+            existingModel.IsEmailLoginEnabled = _featureFlagService.IsEmailLoginEnabled();
 
             return View(viewName, existingModel);
         }

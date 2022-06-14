@@ -33,7 +33,7 @@
     "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
     "NuGetGallery.ComputeTargetFramework": "Enabled",
     "NuGetGallery.NewAccount2FAEnforcement": "Disabled",
-    "NuGetGallery.EmailLogging": "Disabled"
+    "NuGetGallery.EmailLogin": "Disabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

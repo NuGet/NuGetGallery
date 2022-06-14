@@ -121,6 +121,6 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsNewAccount2FAEnforcementEnabled() => throw new NotImplementedException();
 
-        public bool IsEmailLoggingEnabled() => throw new NotImplementedException();
+        public bool IsEmailLoginEnabled() => throw new NotImplementedException();
     }
 }

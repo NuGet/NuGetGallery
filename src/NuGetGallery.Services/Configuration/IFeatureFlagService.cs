@@ -300,6 +300,6 @@ namespace NuGetGallery
         /// <summary>
         /// Whether or not email login is accepted. Accounts in the exception list will always be accepted.
         /// </summary>
-        bool IsEmailLoggingEnabled();
+        bool IsEmailLoginEnabled();
     }
 }
