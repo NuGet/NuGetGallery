@@ -86,6 +86,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsEmailLoggingEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsForceFlatContainerIconsEnabled()
         {
             throw new NotImplementedException();

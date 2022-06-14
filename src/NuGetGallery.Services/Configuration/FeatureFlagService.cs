@@ -54,6 +54,7 @@ namespace NuGetGallery
         private const string ComputeTargetFrameworkFeatureName = GalleryPrefix + "ComputeTargetFramework";
         private const string RecentPackagesNoIndexFeatureName = GalleryPrefix + "RecentPackagesNoIndex";
         private const string NewAccount2FAEnforcementFeatureName = GalleryPrefix + "NewAccount2FAEnforcement";
+        private const string EmailLoggingFeatureName = GalleryPrefix + "EmailLogging";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -367,6 +368,11 @@ namespace NuGetGallery
         public bool IsNewAccount2FAEnforcementEnabled()
         {
             return _client.IsEnabled(NewAccount2FAEnforcementFeatureName, defaultValue: false);
+        }
+
+        public bool IsEmailLoggingEnabled()
+        {
+            return _client.IsEnabled(EmailLoggingFeatureName, defaultValue: false);
         }
     }
 }

@@ -296,5 +296,10 @@ namespace NuGetGallery
         /// Whether or not to enforce 2FA for new external account link or replacement.
         /// </summary>
         bool IsNewAccount2FAEnforcementEnabled();
+
+        /// <summary>
+        /// Whether or not email login is accepted. Accounts in the exception list will always be accepted.
+        /// </summary>
+        bool IsEmailLoggingEnabled();
     }
 }

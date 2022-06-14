@@ -279,5 +279,10 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool IsEmailLoggingEnabled()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
