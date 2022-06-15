@@ -9,7 +9,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     {
         public string PackageId { get; set; }
         public string PackageVersionNormalized { get; set; }
-        public int DownloadCount { get; set; }
+        public long DownloadCount { get; set; }
         public string Created { get; set; }
         public bool Listed { get; set; }
         public string PackageStatus { get; set; }

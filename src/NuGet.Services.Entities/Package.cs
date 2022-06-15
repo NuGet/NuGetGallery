@@ -58,7 +58,7 @@ namespace NuGet.Services.Entities
         /// </remarks>
         public string ReleaseNotes { get; set; }
 
-        public int DownloadCount { get; set; }
+        public long DownloadCount { get; set; }
 
         /// <remarks>
         ///     Is not a property that we support. Maintained for legacy reasons.

@@ -147,7 +147,7 @@ namespace NuGetGallery
             internal readonly Mock<ITelemetryService> _telemetryService;
             internal readonly Mock<ICloudBlobClient> _cloudBlobClientMock;
             internal string _content;
-            internal Func<IDictionary<string, int>, int> _calculateSum;
+            internal Func<IDictionary<string, long>, long> _calculateSum;
             internal TestableCloudDownloadCountService _target;
 
             public BaseFacts()
@@ -178,7 +178,7 @@ namespace NuGetGallery
                 _baseFacts = baseFacts;
             }
 
-            protected override int CalculateSum(ConcurrentDictionary<string, int> versions)
+            protected override long CalculateSum(ConcurrentDictionary<string, long> versions)
             {
                 if (_baseFacts._calculateSum == null)
                 {

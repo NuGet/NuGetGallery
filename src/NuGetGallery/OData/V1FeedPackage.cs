@@ -22,7 +22,7 @@ namespace NuGetGallery.OData
         public DateTime Created { get; set; }
         public string Dependencies { get; set; }
         public string Description { get; set; }
-        public int DownloadCount { get; set; }
+        public long DownloadCount { get; set; }
         public string ExternalPackageUrl { get; set; } // deprecated: always null/empty
         public string GalleryDetailsUrl { get; set; }
         public string IconUrl { get; set; }
@@ -41,7 +41,7 @@ namespace NuGetGallery.OData
         public string Summary { get; set; }
         public string Tags { get; set; }
         public string Title { get; set; }
-        public int VersionDownloadCount { get; set; }
+        public long VersionDownloadCount { get; set; }
 
         // Deprecated properties        
         public int RatingsCount

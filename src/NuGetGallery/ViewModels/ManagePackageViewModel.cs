@@ -24,14 +24,14 @@ namespace NuGetGallery
         /// </remarks>
         public class VersionListedState
         {
-            public VersionListedState(bool listed, int downloadCount)
+            public VersionListedState(bool listed, long downloadCount)
             {
                 Listed = listed;
                 DownloadCount = downloadCount;
             }
 
             public bool Listed { get; }
-            public int DownloadCount { get; }
+            public long DownloadCount { get; }
         }
 
         /// <remarks>
