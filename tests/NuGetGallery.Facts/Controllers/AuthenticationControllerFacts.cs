@@ -358,6 +358,55 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().VerifyAll();
             }
 
+            [Fact]
+            public async Task NuGetAccountUnsupportedWithPasswordUsedAndNotInExceptionListReturnsSignInFailure()
+            {
+                // Arrange
+                var returnUrl = "theReturnUrl";
+                var emailAddress = "test@email.com";
+                var password = "thePassword";
+                var credential = new Credential()
+                {
+                    Type = CredentialTypes.Password.V3
+                };
+                var user = new User("theUsername") { EmailAddress = emailAddress };
+                var authUser = new AuthenticatedUser(user, credential);
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate(emailAddress, password))
+                    .CompletesWith(authResult);
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginUnsupportedEnabled())
+                    .Returns(true)
+                    .Verifiable();
+                var loginDiscontinuationConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
+                loginDiscontinuationConfigMock
+                    .Setup(x => x.IsUserEmailOnExceptionsForEmailAddress(user))
+                    .Returns(false)
+                    .Verifiable();
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(loginDiscontinuationConfigMock.Object);
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = await controller.SignIn(
+                    new LogOnViewModel(
+                        new SignInViewModel(
+                            emailAddress,
+                            password)),
+                    returnUrl, linkingAccount: false);
+
+                // Assert
+                ResultAssert.IsView(result, viewName: SignInViewNuGetName);
+                Assert.Equal(Strings.NuGetAccountPasswordLoginUnsupported, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
+                GetMock<AuthenticationService>().VerifyAll();
+                GetMock<IFeatureFlagService>().VerifyAll();
+                GetMock<IContentObjectService>().VerifyAll();
+                loginDiscontinuationConfigMock.VerifyAll();
+            }
+
             public async Task WhenAttemptingToLinkExternalToExistingAccountWithNoExternalAccounts_AllowsLinkingAndRemovesPassword()
             {
                 // Arrange

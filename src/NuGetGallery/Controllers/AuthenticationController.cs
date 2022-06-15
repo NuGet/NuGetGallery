@@ -163,8 +163,8 @@ namespace NuGetGallery
             var authenticatedUser = authenticationResult.AuthenticatedUser;
             await _contentObjectService.Refresh();
 
-            if (authenticatedUser.CredentialUsed.IsPassword() &&
-                _featureFlagService.IsNuGetAccountPasswordLoginUnsupportedEnabled() &&
+            if (_featureFlagService.IsNuGetAccountPasswordLoginUnsupportedEnabled() &&
+                authenticatedUser.CredentialUsed.IsPassword() &&
                 !_contentObjectService.LoginDiscontinuationConfiguration.IsUserEmailOnExceptionsForEmailAddress(authenticatedUser.User))
             {
                 var message = string.Format(CultureInfo.CurrentCulture, Strings.NuGetAccountPasswordLoginUnsupported);
