@@ -14,7 +14,7 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public DateTime Created { get; private set; }
         public string Description { get; private set; }
         public string ReleaseNotes { get; private set; }
-        public int DownloadCount { get; private set; }
+        public long DownloadCount { get; private set; }
         public string ExternalPackageUrl { get; private set; }
         public string HashAlgorithm { get; private set; }
         public string Hash { get; private set; }
