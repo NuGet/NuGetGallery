@@ -193,7 +193,7 @@ namespace NuGetGallery.Infrastructure.Search
                     Owners = reg.Value<JArray>("Owners")
                        .Select(v => new User { Username = v.Value<string>() })
                        .ToArray(),
-                    DownloadCount = reg.Value<int>("DownloadCount"),
+                    DownloadCount = reg.Value<long>("DownloadCount"),
                     IsVerified = reg.Value<bool>("Verified"),
                     Key = reg.Value<int>("Key")
                 };
@@ -209,7 +209,7 @@ namespace NuGetGallery.Infrastructure.Search
                 Created = doc.Value<DateTime>("Created"),
                 Description = doc.Value<string>("Description"),
                 Dependencies = dependencies,
-                DownloadCount = doc.Value<int>("DownloadCount"),
+                DownloadCount = doc.Value<long>("DownloadCount"),
                 FlattenedAuthors = doc.Value<string>("Authors"),
                 FlattenedDependencies = doc.Value<string>("FlattenedDependencies"),
                 Hash = doc.Value<string>("Hash"),

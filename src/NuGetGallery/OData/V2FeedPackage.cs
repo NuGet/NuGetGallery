@@ -23,7 +23,7 @@ namespace NuGetGallery.OData
         public DateTime Created { get; set; }
         public string Dependencies { get; set; }
         public string Description { get; set; }
-        public int DownloadCount { get; set; }
+        public long DownloadCount { get; set; }
         public string GalleryDetailsUrl { get; set; }
         public string IconUrl { get; set; }
         public bool IsLatestVersion { get; set; }
@@ -42,7 +42,7 @@ namespace NuGetGallery.OData
         public string Summary { get; set; }
         public string Tags { get; set; }
         public string Title { get; set; }
-        public int VersionDownloadCount { get; set; }
+        public long VersionDownloadCount { get; set; }
         public string MinClientVersion { get; set; }
         public DateTime? LastEdited { get; set; }
 

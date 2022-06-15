@@ -25,7 +25,7 @@ namespace NuGetGallery
         public bool ReadMeImagesRewritten { get; set; }
         public bool ReadmeImageSourceDisallowed { get; set; }
         public DateTime? LastEdited { get; set; }
-        public int DownloadsPerDay { get; set; }
+        public long DownloadsPerDay { get; set; }
         public int TotalDaysSinceCreated { get; set; }
         public long PackageFileSize { get; set; }
         public SymbolPackage LatestSymbolsPackage { get; set; }
