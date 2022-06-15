@@ -25,7 +25,6 @@ namespace NuGetGallery
             TyposquattingConfiguration = new TyposquattingConfiguration();
             GitHubUsageConfiguration = new GitHubUsageConfiguration(Array.Empty<RepositoryInformation>());
             ABTestConfiguration = new ABTestConfiguration();
-            ODataCacheConfiguration = new ODataCacheConfiguration();
             CacheConfiguration = new CacheConfiguration();
             QueryHintConfiguration = new QueryHintConfiguration();
             TrustedImageDomains = new TrustedImageDomains();
@@ -37,7 +36,6 @@ namespace NuGetGallery
         public ITyposquattingConfiguration TyposquattingConfiguration { get; private set; }
         public IGitHubUsageConfiguration GitHubUsageConfiguration { get; private set; }
         public IABTestConfiguration ABTestConfiguration { get; private set; }
-        public IODataCacheConfiguration ODataCacheConfiguration { get; private set; }
         public ICacheConfiguration CacheConfiguration { get; private set; }
         public IQueryHintConfiguration QueryHintConfiguration { get; private set; }
         public ITrustedImageDomains TrustedImageDomains { get; private set; }
@@ -68,10 +66,6 @@ namespace NuGetGallery
             ABTestConfiguration =
                await Refresh<ABTestConfiguration>(ServicesConstants.ContentNames.ABTestConfiguration) ??
                new ABTestConfiguration();
-
-            ODataCacheConfiguration =
-               await Refresh<ODataCacheConfiguration>(ServicesConstants.ContentNames.ODataCacheConfiguration) ??
-               new ODataCacheConfiguration();
 
             CacheConfiguration =
                 await Refresh<CacheConfiguration>(ServicesConstants.ContentNames.CacheConfiguration) ??

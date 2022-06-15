@@ -645,10 +645,6 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [OutputCache(
-            Duration = GalleryConstants.GravatarCacheDurationSeconds,
-            Location = OutputCacheLocation.Downstream,
-            VaryByParam = "imageSize")]
         public async Task<ActionResult> GetAvatar(
             string accountName,
             int? imageSize = GalleryConstants.GravatarImageSize)
