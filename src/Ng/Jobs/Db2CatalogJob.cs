@@ -34,6 +34,7 @@ namespace Ng.Jobs
         protected int Top;
         protected Uri Destination;
         protected bool SkipCreatedPackagesProcessing;
+        protected int MaxPageSize;
 
         public Db2CatalogJob(
             ILoggerFactory loggerFactory,
@@ -78,6 +79,7 @@ namespace Ng.Jobs
                    + $"-{Arguments.StorageSasValuePreferredPackageSourceStorage} <azure-sas> "
                    + $"-{Arguments.StorageContainerPreferredPackageSourceStorage} <azure-container>] "
                    + $"[-{Arguments.SkipCreatedPackagesProcessing} true|false] "
+                   + $"[-{Arguments.MaxPageSize} <max-page-size>] "
                    + $"[-{Arguments.Verbose} true|false] "
                    + $"[-{Arguments.Interval} <seconds>] "
                    + $"[-{Arguments.StartDate} <DateTime>]";
@@ -88,6 +90,7 @@ namespace Ng.Jobs
             Verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             StartDate = arguments.GetOrDefault(Arguments.StartDate, Constants.DateTimeMinValueUtc);
             Top = arguments.GetOrDefault(Arguments.CursorSize, 20);
+            MaxPageSize = arguments.GetOrDefault(Arguments.MaxPageSize, Constants.MaxPageSize);
             SkipCreatedPackagesProcessing = arguments.GetOrDefault(Arguments.SkipCreatedPackagesProcessing, false);
 
             StorageFactory preferredPackageSourceStorageFactory = null;
@@ -146,7 +149,8 @@ namespace Ng.Jobs
                 GalleryDbConnection,
                 PackageContentUriBuilder,
                 TelemetryService,
-                timeoutInSeconds);
+                timeoutInSeconds,
+                MaxPageSize);
         }
 
         protected override async Task RunInternalAsync(CancellationToken cancellationToken)
@@ -232,6 +236,7 @@ namespace Ng.Jobs
                                     MaxDegreeOfParallelism,
                                     createdPackages: true,
                                     updateCreatedFromEdited: false,
+                                    MaxPageSize,
                                     cancellationToken: cancellationToken,
                                     telemetryService: TelemetryService,
                                     logger: Logger);
@@ -257,6 +262,7 @@ namespace Ng.Jobs
                                 MaxDegreeOfParallelism,
                                 createdPackages: false,
                                 updateCreatedFromEdited: SkipCreatedPackagesProcessing,
+                                MaxPageSize,
                                 cancellationToken: cancellationToken,
                                 telemetryService: TelemetryService,
                                 logger: Logger);
@@ -362,7 +368,7 @@ namespace Ng.Jobs
             var writer = new AppendOnlyCatalogWriter(
                 storage,
                 TelemetryService,
-                Constants.MaxPageSize);
+                MaxPageSize);
 
             if (packages == null || packages.Count == 0)
             {

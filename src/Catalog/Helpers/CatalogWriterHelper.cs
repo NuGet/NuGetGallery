@@ -45,6 +45,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             int maxDegreeOfParallelism,
             bool? createdPackages,
             bool updateCreatedFromEdited,
+            int maxPageSize,
             CancellationToken cancellationToken,
             ITelemetryService telemetryService,
             ILogger logger)
@@ -83,7 +84,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var writer = new AppendOnlyCatalogWriter(storage, telemetryService, Constants.MaxPageSize);
+            var writer = new AppendOnlyCatalogWriter(storage, telemetryService, maxPageSize);
 
             var lastDate = DetermineLastDate(lastCreated, lastEdited, createdPackages);
 

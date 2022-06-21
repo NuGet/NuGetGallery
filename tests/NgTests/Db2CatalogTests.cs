@@ -704,6 +704,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: top,
                 verbose: true,
+                Constants.MaxPageSize,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
@@ -824,6 +825,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: top,
                 verbose: true,
+                Constants.MaxPageSize,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
@@ -941,6 +943,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: top,
                 verbose: true,
+                Constants.MaxPageSize,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
@@ -1054,6 +1057,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: top,
                 verbose: true,
+                Constants.MaxPageSize,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
@@ -1097,7 +1101,7 @@ namespace NgTests
                     packageFullVersion: "1.0.0-alpha.1")
             };
 
-            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate);
+            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate, Constants.MaxPageSize);
         }
 
         private SortedList<DateTime, IList<FeedPackageDetails>> GetEditedPackages()
@@ -1114,12 +1118,12 @@ namespace NgTests
                     packageFullVersion: "1.0.1")
             };
 
-            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate);
+            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate, Constants.MaxPageSize);
         }
 
         private SortedList<DateTime, IList<FeedPackageDetails>> GetEmptyPackages()
         {
-            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(new List<FeedPackageDetails>(), p => p.CreatedDate);
+            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(new List<FeedPackageDetails>(), p => p.CreatedDate, Constants.MaxPageSize);
         }
 
         private SortedList<DateTime, IList<FeedPackageDetails>> GetCreatedPackagesSecondRequest()
@@ -1136,13 +1140,14 @@ namespace NgTests
                     packageFullVersion: "1.0.0")
             };
 
-            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate);
+            return GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate, Constants.MaxPageSize);
         }
 
         private void InitializeTest(
             bool skipCreatedPackagesProcessing,
             int top,
-            Mock<IGalleryDatabaseQueryService> galleryDatabaseMock)
+            Mock<IGalleryDatabaseQueryService> galleryDatabaseMock,
+            int maxPageSize = Constants.MaxPageSize)
         {
             _skipCreatedPackagesProcessing = skipCreatedPackagesProcessing;
 
@@ -1155,6 +1160,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: top,
                 verbose: true,
+                maxPageSize,
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);

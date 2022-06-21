@@ -70,6 +70,7 @@ namespace Ng
         public const string SqlCommandTimeoutInSeconds = "sqlCommandTimeoutInSeconds";
 
         public const string SkipCreatedPackagesProcessing = "skipCreatedPackagesProcessing";
+        public const string MaxPageSize = "maxPageSize";
         #endregion
 
         #region Monitoring

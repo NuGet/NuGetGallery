@@ -20,7 +20,6 @@ using NuGet.Services.Sql;
 using NuGet.Services.Storage;
 using CatalogStorage = NuGet.Services.Metadata.Catalog.Persistence.Storage;
 using CatalogStorageFactory = NuGet.Services.Metadata.Catalog.Persistence.StorageFactory;
-using Constants = NuGet.Services.Metadata.Catalog.Constants;
 
 namespace Ng.Jobs
 {
@@ -31,15 +30,12 @@ namespace Ng.Jobs
         /// </summary>
         private readonly static TimeSpan ReprocessRange = TimeSpan.FromHours(1);
 
-        /// <remarks>
-        /// Any values greater than <see cref="Constants.MaxPageSize"/> will be ignored by <see cref="DatabasePackageStatusOutdatedCheckSource"/>.
-        /// </remarks>
-        private const int Top = Constants.MaxPageSize;
         private const string GalleryCursorFileName = "gallerycursor.json";
         private const string DeletedCursorFileName = "deletedcursor.json";
 
         private const int DefaultMaxQueueSize = 100;
         private int _maxRequeueQueueSize;
+        private int _maxPageSize;
 
         private IGalleryDatabaseQueryService _galleryDatabaseQueryService;
         private IStorageQueue<PackageValidatorContext> _packageValidatorContextQueue;
@@ -64,6 +60,7 @@ namespace Ng.Jobs
         {
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             _maxRequeueQueueSize = arguments.GetOrDefault(Arguments.MaxRequeueQueueSize, DefaultMaxQueueSize);
+            _maxPageSize = arguments.GetOrDefault(Arguments.MaxPageSize, NuGet.Services.Metadata.Catalog.Constants.MaxPageSize);
 
             CommandHelpers.AssertAzureStorage(arguments);
 
@@ -93,7 +90,8 @@ namespace Ng.Jobs
                 galleryDbConnection,
                 packageContentUriBuilder,
                 TelemetryService,
-                timeoutInSeconds);
+                timeoutInSeconds,
+                _maxPageSize);
 
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory(
                 "Auditing",
@@ -154,7 +152,7 @@ namespace Ng.Jobs
             foreach (var source in sources)
             {
                 packagesToCheck.AddRange(await source.GetPackagesToCheckAsync(
-                    _monitoringCursor.Value - ReprocessRange, Top, cancellationToken));
+                    _monitoringCursor.Value - ReprocessRange, _maxPageSize, cancellationToken));
             }
 
             var packagesToCheckBag = new ConcurrentBag<PackageStatusOutdatedCheck>(packagesToCheck);

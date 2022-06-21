@@ -30,6 +30,7 @@ namespace NgTests
             TimeSpan timeout,
             int top,
             bool verbose,
+            int maxPageSize,
             Mock<IGalleryDatabaseQueryService> galleryDatabaseMock,
             PackageContentUriBuilder packageContentUriBuilder,
             ITestOutputHelper testOutputHelper)
@@ -44,6 +45,7 @@ namespace NgTests
             Timeout = timeout;
             Top = top;
             Verbose = verbose;
+            MaxPageSize = maxPageSize;
             Destination = new Uri("https://nuget.test");
 
             PackageContentUriBuilder = packageContentUriBuilder ?? throw new ArgumentNullException(nameof(galleryDatabaseMock));

@@ -140,8 +140,8 @@ namespace CatalogTests.Helpers
                 };
 
                 // Act
-                var orderedByCreatedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate);
-                var orderedByLastEditedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate);
+                var orderedByCreatedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.CreatedDate, CatalogConstants.MaxPageSize);
+                var orderedByLastEditedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate, CatalogConstants.MaxPageSize);
 
                 // Assert
                 Assert.Equal(firstCreatedPackage.CreatedDate, orderedByCreatedDate.First().Key);
@@ -190,7 +190,7 @@ namespace CatalogTests.Helpers
                 }
 
                 // Act
-                var orderedByLastEditedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate);
+                var orderedByLastEditedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate, CatalogConstants.MaxPageSize);
 
                 // Assert
                 Assert.Equal(top - 1, orderedByLastEditedDate.Count);
@@ -248,7 +248,7 @@ namespace CatalogTests.Helpers
                 }
 
                 // Act
-                var orderedByLastEditedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate);
+                var orderedByLastEditedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate, CatalogConstants.MaxPageSize);
 
                 // Assert
                 Assert.Equal(top - 10 + 1, orderedByLastEditedDate.Count);
@@ -291,7 +291,7 @@ namespace CatalogTests.Helpers
                 }
 
                 // Act
-                var orderedByLastEditedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate);
+                var orderedByLastEditedDate = GalleryDatabaseQueryService.OrderPackagesByKeyDate(packages, p => p.LastEditedDate, CatalogConstants.MaxPageSize);
 
                 // Assert
                 Assert.Single(orderedByLastEditedDate);
