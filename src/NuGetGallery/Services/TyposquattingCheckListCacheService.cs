@@ -47,7 +47,7 @@ namespace NuGetGallery
 
                         Cache = packageService.GetAllPackageRegistrations()
                             .OrderByDescending(pr => pr.IsVerified)
-                            //.ThenByDescending(pr => pr.DownloadCount)
+                            .ThenByDescending(pr => pr.DownloadCount)
                             .Select(pr => pr.Id)
                             .Take(TyposquattingCheckListConfiguredLength)
                             .ToList();
