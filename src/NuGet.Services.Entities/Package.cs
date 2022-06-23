@@ -58,7 +58,6 @@ namespace NuGet.Services.Entities
         /// </remarks>
         public string ReleaseNotes { get; set; }
 
-        [NotMapped]
         public long DownloadCount { get; set; }
 
         /// <remarks>
