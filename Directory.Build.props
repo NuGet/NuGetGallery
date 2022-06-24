@@ -4,7 +4,7 @@
   <PropertyGroup>
     <ServerCommonPackageVersion>2.100.0</ServerCommonPackageVersion>
     <NuGetClientPackageVersion>6.0.0</NuGetClientPackageVersion>
-    <NuGetGalleryPackageVersion>4.4.5-dev-6081824</NuGetGalleryPackageVersion>
+    <NuGetGalleryPackageVersion>4.4.5-main-6321808</NuGetGalleryPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

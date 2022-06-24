@@ -36,6 +36,7 @@ namespace CatalogTests.Helpers
                         maxDegreeOfParallelism: 1,
                         createdPackages: null,
                         updateCreatedFromEdited: false,
+                        Constants.MaxPageSize,
                         cancellationToken: CancellationToken.None,
                         telemetryService: Mock.Of<ITelemetryService>(),
                         logger: Mock.Of<ILogger>()));
@@ -59,6 +60,7 @@ namespace CatalogTests.Helpers
                         maxDegreeOfParallelism: 1,
                         createdPackages: null,
                         updateCreatedFromEdited: false,
+                        Constants.MaxPageSize,
                         cancellationToken: CancellationToken.None,
                         telemetryService: Mock.Of<ITelemetryService>(),
                         logger: Mock.Of<ILogger>()));
@@ -82,6 +84,7 @@ namespace CatalogTests.Helpers
                         maxDegreeOfParallelism: 1,
                         createdPackages: null,
                         updateCreatedFromEdited: false,
+                        Constants.MaxPageSize,
                         cancellationToken: CancellationToken.None,
                         telemetryService: Mock.Of<ITelemetryService>(),
                         logger: Mock.Of<ILogger>()));
@@ -105,6 +108,7 @@ namespace CatalogTests.Helpers
                         maxDegreeOfParallelism,
                         createdPackages: false,
                         updateCreatedFromEdited: false,
+                        Constants.MaxPageSize,
                         cancellationToken: CancellationToken.None,
                         telemetryService: Mock.Of<ITelemetryService>(),
                         logger: Mock.Of<ILogger>()));
@@ -127,6 +131,7 @@ namespace CatalogTests.Helpers
                         maxDegreeOfParallelism: 1,
                         createdPackages: null,
                         updateCreatedFromEdited: false,
+                        Constants.MaxPageSize,
                         cancellationToken: CancellationToken.None,
                         telemetryService: null,
                         logger: Mock.Of<ILogger>()));
@@ -148,6 +153,7 @@ namespace CatalogTests.Helpers
                         maxDegreeOfParallelism: 1,
                         createdPackages: null,
                         updateCreatedFromEdited: false,
+                        Constants.MaxPageSize,
                         cancellationToken: CancellationToken.None,
                         telemetryService: Mock.Of<ITelemetryService>(),
                         logger: null));
@@ -169,6 +175,7 @@ namespace CatalogTests.Helpers
                         maxDegreeOfParallelism: 1,
                         createdPackages: null,
                         updateCreatedFromEdited: false,
+                        Constants.MaxPageSize,
                         cancellationToken: new CancellationToken(canceled: true),
                         telemetryService: Mock.Of<ITelemetryService>(),
                         logger: Mock.Of<ILogger>()));
@@ -435,18 +442,19 @@ namespace CatalogTests.Helpers
                 const int maxDegreeOfParallelism = 1;
 
                 return CatalogWriterHelper.WritePackageDetailsToCatalogAsync(
-                  PackageCatalogItemCreator.Object,
-                  Packages,
-                  Storage.Object,
-                  LastCreated,
-                  LastEdited,
-                  LastDeleted,
-                  maxDegreeOfParallelism,
-                  CreatedPackages,
-                  UpdateCreatedFromEdited,
-                  CancellationToken.None,
-                  TelemetryService.Object,
-                  Logger.Object);
+                    PackageCatalogItemCreator.Object,
+                    Packages,
+                    Storage.Object,
+                    LastCreated,
+                    LastEdited,
+                    LastDeleted,
+                    maxDegreeOfParallelism,
+                    CreatedPackages,
+                    UpdateCreatedFromEdited,
+                    Constants.MaxPageSize,
+                    CancellationToken.None,
+                    TelemetryService.Object,
+                    Logger.Object);
             }
         }
 

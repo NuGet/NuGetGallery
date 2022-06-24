@@ -8,7 +8,7 @@ namespace NuGet.Services.Revalidate
         public int Key { get; set; }
 
         public string Id { get; set; }
-        public int Downloads { get; set; }
+        public long Downloads { get; set; }
         public int Versions { get; set; }
     }
 }

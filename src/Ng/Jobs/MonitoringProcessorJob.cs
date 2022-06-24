@@ -56,6 +56,7 @@ namespace Ng.Jobs
             var source = arguments.GetOrThrow<string>(Arguments.Source);
             var requireRepositorySignature = arguments.GetOrDefault(Arguments.RequireRepositorySignature, false);
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
+            var maxPageSize = arguments.GetOrDefault(Arguments.MaxPageSize, NuGet.Services.Metadata.Catalog.Constants.MaxPageSize);
 
             var timeoutInSeconds = arguments.GetOrDefault(Arguments.SqlCommandTimeoutInSeconds, 300);
             var sqlTimeout = TimeSpan.FromSeconds(timeoutInSeconds);
@@ -71,7 +72,8 @@ namespace Ng.Jobs
                 galleryDbConnection,
                 packageContentUriBuilder,
                 TelemetryService,
-                timeoutInSeconds);
+                timeoutInSeconds,
+                maxPageSize);
 
             CommandHelpers.AssertAzureStorage(arguments);
 
