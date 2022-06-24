@@ -45,7 +45,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
             (
                 [PackageRegistrationKey]    INT             NOT NULL,
                 [PackageVersion]            NVARCHAR(255)   NOT NULL,
-                [DownloadCount]             INT             NOT NULL,
+                [DownloadCount]             BIGINT          NOT NULL,
             )";
 
         private const string _updateFromTempTable = @"
