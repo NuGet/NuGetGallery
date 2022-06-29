@@ -382,7 +382,7 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
                 var loginDiscontinuationConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
                 loginDiscontinuationConfigMock
-                    .Setup(x => x.IsUserOnExceptionsForEmailAddress(user))
+                    .Setup(x => x.IsUserOnExceptionsList(user))
                     .Returns(false)
                     .Verifiable();
                 GetMock<IContentObjectService>()

@@ -164,7 +164,7 @@ namespace NuGetGallery
 
             if (!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() &&
                 authenticatedUser.CredentialUsed.IsPassword() &&
-                !_contentObjectService.LoginDiscontinuationConfiguration.IsUserOnExceptionsForEmailAddress(authenticatedUser.User))
+                !_contentObjectService.LoginDiscontinuationConfiguration.IsUserOnExceptionsList(authenticatedUser.User))
             {
                 var message = string.Format(CultureInfo.CurrentCulture, Strings.NuGetAccountPasswordLoginUnsupported);
                 return SignInFailure(model, linkingAccount, message);
