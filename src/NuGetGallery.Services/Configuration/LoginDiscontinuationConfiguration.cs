@@ -105,7 +105,7 @@ namespace NuGetGallery
             return IsPasswordDiscontinuedForAll;
         }
 
-        public bool IsUserEmailOnExceptionsForEmailAddress(User user)
+        public bool IsUserOnExceptionsForEmailAddress(User user)
         {
             if (user == null)
             {

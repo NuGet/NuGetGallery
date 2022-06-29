@@ -86,7 +86,7 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public bool IsNuGetAccountPasswordLoginUnsupportedEnabled()
+        public bool IsNuGetAccountPasswordLoginEnabled()
         {
             throw new NotImplementedException();
         }

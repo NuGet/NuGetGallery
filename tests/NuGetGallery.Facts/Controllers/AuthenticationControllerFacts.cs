@@ -377,12 +377,12 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Authenticate(emailAddress, password))
                     .CompletesWith(authResult);
                 GetMock<IFeatureFlagService>()
-                    .Setup(f => f.IsNuGetAccountPasswordLoginUnsupportedEnabled())
-                    .Returns(true)
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false)
                     .Verifiable();
                 var loginDiscontinuationConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
                 loginDiscontinuationConfigMock
-                    .Setup(x => x.IsUserEmailOnExceptionsForEmailAddress(user))
+                    .Setup(x => x.IsUserOnExceptionsForEmailAddress(user))
                     .Returns(false)
                     .Verifiable();
                 GetMock<IContentObjectService>()

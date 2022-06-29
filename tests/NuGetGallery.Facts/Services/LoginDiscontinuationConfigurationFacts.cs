@@ -379,7 +379,7 @@ namespace NuGetGallery.Services
                     isWrongCase: false,
                     isPasswordDiscontinuedForAll: false);
 
-                var result = config.IsUserEmailOnExceptionsForEmailAddress(null);
+                var result = config.IsUserOnExceptionsForEmailAddress(null);
 
                 Assert.False(result);
             }
@@ -400,7 +400,7 @@ namespace NuGetGallery.Services
 
                 var user = new User("test") { EmailAddress = _email };
 
-                var result = config.IsUserEmailOnExceptionsForEmailAddress(user);
+                var result = config.IsUserOnExceptionsForEmailAddress(user);
 
                 Assert.Equal(isOnExceptionList, result);
             }

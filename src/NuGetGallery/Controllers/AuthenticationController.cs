@@ -161,11 +161,10 @@ namespace NuGetGallery
             }
 
             var authenticatedUser = authenticationResult.AuthenticatedUser;
-            await _contentObjectService.Refresh();
 
-            if (_featureFlagService.IsNuGetAccountPasswordLoginUnsupportedEnabled() &&
+            if (!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() &&
                 authenticatedUser.CredentialUsed.IsPassword() &&
-                !_contentObjectService.LoginDiscontinuationConfiguration.IsUserEmailOnExceptionsForEmailAddress(authenticatedUser.User))
+                !_contentObjectService.LoginDiscontinuationConfiguration.IsUserOnExceptionsForEmailAddress(authenticatedUser.User))
             {
                 var message = string.Format(CultureInfo.CurrentCulture, Strings.NuGetAccountPasswordLoginUnsupported);
                 return SignInFailure(model, linkingAccount, message);
@@ -934,7 +933,7 @@ namespace NuGetGallery
             existingModel.Providers = GetProviders();
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
-            existingModel.IsNuGetAccountPasswordLoginUnsupported = _featureFlagService.IsNuGetAccountPasswordLoginUnsupportedEnabled();
+            existingModel.IsNuGetAccountPasswordLogin = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
 
             return View(viewName, existingModel);
         }
