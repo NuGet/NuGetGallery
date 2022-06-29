@@ -363,7 +363,7 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var returnUrl = "theReturnUrl";
-                var emailAddress = "test@email.com";
+                var emailAddress = "test@example.com";
                 var password = "thePassword";
                 var credential = new Credential()
                 {
@@ -405,6 +405,60 @@ namespace NuGetGallery.Controllers
                 GetMock<IFeatureFlagService>().VerifyAll();
                 GetMock<IContentObjectService>().VerifyAll();
                 loginDiscontinuationConfigMock.VerifyAll();
+            }
+
+            [Theory]
+            [InlineData(true, CredentialTypes.Password.V3, false)]
+            [InlineData(false, CredentialTypes.External.MicrosoftAccount, false)]
+            [InlineData(false, CredentialTypes.Password.V3, true)]
+            public async Task CanLogWhenConditionsForNuGetAccountPasswordLoginSupportedAreMet(bool flagEnabled, string credentialType, bool userOnExceptionList)
+            {
+                // Arrange
+                var returnUrl = "theReturnUrl";
+                var emailAddress = "test@example.com";
+                var password = "thePassword";
+                var credential = new Credential()
+                {
+                    Type = credentialType
+                };
+                var user = new User("theUsername") { EmailAddress = emailAddress };
+                var authUser = new AuthenticatedUser(user, credential);
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate(emailAddress, password))
+                    .CompletesWith(authResult);
+                
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(flagEnabled)
+                    .Verifiable();
+                var loginDiscontinuationConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
+                loginDiscontinuationConfigMock
+                    .Setup(x => x.IsUserOnExceptionsList(user))
+                    .Returns(userOnExceptionList)
+                    .Verifiable();
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(loginDiscontinuationConfigMock.Object);
+                var controller = GetController<AuthenticationController>();
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser, false))
+                    .Returns(Task.FromResult(0))
+                    .Verifiable();
+
+                // Act
+                var result = await controller.SignIn(
+                    new LogOnViewModel(
+                        new SignInViewModel(
+                            emailAddress,
+                            password)),
+                    returnUrl, linkingAccount: false);
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, returnUrl);
+                GetMock<AuthenticationService>().VerifyAll();
+                GetMock<IFeatureFlagService>().VerifyAll();
             }
 
             public async Task WhenAttemptingToLinkExternalToExistingAccountWithNoExternalAccounts_AllowsLinkingAndRemovesPassword()
