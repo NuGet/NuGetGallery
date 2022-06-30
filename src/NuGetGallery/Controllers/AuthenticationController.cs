@@ -933,7 +933,7 @@ namespace NuGetGallery
             existingModel.Providers = GetProviders();
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
-            existingModel.IsNuGetAccountPasswordLogin = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
+            existingModel.IsNuGetAccountPasswordLoginEnabled = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
 
             return View(viewName, existingModel);
         }
