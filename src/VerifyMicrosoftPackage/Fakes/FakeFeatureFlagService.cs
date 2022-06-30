@@ -105,6 +105,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsMarkdigMdRenderingEnabled() => throw new NotImplementedException();
 
+        public bool IsMarkdigMdSyntaxHighlightEnabled() => throw new NotImplementedException();
+
         public bool IsDeletePackageApiEnabled(User user) => throw new NotImplementedException();
 
         public bool IsImageAllowlistEnabled() => throw new NotImplementedException();

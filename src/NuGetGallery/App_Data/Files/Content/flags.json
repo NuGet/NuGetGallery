@@ -106,6 +106,12 @@
       "SiteAdmins": false,
       "Accounts": [],
       "Domains": []
+    },
+    "MarkdigMdSyntaxHighlight": {
+      "All": true,
+      "SiteAdmins": false,
+      "Accounts": [],
+      "Domains": []
     }
   }
 }

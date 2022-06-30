@@ -262,7 +262,11 @@ namespace NuGetGallery
         /// Whether rendering Markdown content to HTML using Markdig is enabled
         /// </summary>
         bool IsMarkdigMdRenderingEnabled();
-        
+
+        /// <summary>
+        /// Whether rendering Markdown fenced code with syntax highlighting
+        /// </summary>
+        bool IsMarkdigMdSyntaxHighlightEnabled();
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);

@@ -125,6 +125,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsMarkdigMdSyntaxHighlightEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsODataDatabaseReadOnlyEnabled()
         {
             throw new NotImplementedException();

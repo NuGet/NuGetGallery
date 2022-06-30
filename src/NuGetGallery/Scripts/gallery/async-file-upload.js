@@ -153,6 +153,12 @@
             });
         }
 
+        function syntaxHighlight() {
+            document.querySelectorAll('pre code').forEach((el) => {
+                hljs.highlightElement(el);
+            });
+        }
+
         function cancelUploadAsync(callback, error) {
             clearErrors();
 
@@ -309,6 +315,10 @@
 
             if (model === null || !model.IsSymbolsPackage) {
                 BindReadMeDataManager.bindReadMeData(model);
+            }
+
+            if (model != null && model.IsMarkdigMdSyntaxHighlightEnabled) {
+                syntaxHighlight();
             }
 
             document.getElementById("validation-failure-container").scrollIntoView();
