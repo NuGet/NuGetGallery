@@ -255,6 +255,13 @@ namespace NuGetGallery
 
         public class TheForgotPasswordAction : TestContainer
         {
+            public TheForgotPasswordAction()
+            {
+                GetMock<IFeatureFlagService>()
+                    .Setup(s => s.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(true);
+            }
+
             [Fact]
             public async Task SendsEmailWithPasswordResetUrl()
             {
@@ -392,6 +399,9 @@ namespace NuGetGallery
             [Fact]
             public void WhenNuGetAccountPasswordLoginEnabledShowsWarningOnGet()
             {
+                GetMock<IFeatureFlagService>()
+                    .Setup(s => s.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
                 var controller = GetController<UsersController>();
 
                 var result = controller.ForgotPassword() as ViewResult;
@@ -404,6 +414,9 @@ namespace NuGetGallery
             [Fact]
             public async Task WhenNuGetAccountPasswordLoginEnabledShowsErrorOnPost()
             {
+                GetMock<IFeatureFlagService>()
+                    .Setup(s => s.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
                 var controller = GetController<UsersController>();
 
                 var model = new ForgotPasswordViewModel { Email = "user" };
