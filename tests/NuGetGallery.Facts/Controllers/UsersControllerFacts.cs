@@ -389,6 +389,32 @@ namespace NuGetGallery
                 }
             }
 
+            [Fact]
+            public void WhenNuGetAccountPasswordLoginEnabledShowsWarningOnGet()
+            {
+                var controller = GetController<UsersController>();
+
+                var result = controller.ForgotPassword() as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.IsNotType<RedirectResult>(result);
+                Assert.Equal(Strings.ForgotPassword_Disabled, controller.TempData["WarningMessage"]);
+            }
+
+            [Fact]
+            public async Task WhenNuGetAccountPasswordLoginEnabledShowsErrorOnPost()
+            {
+                var controller = GetController<UsersController>();
+
+                var model = new ForgotPasswordViewModel { Email = "user" };
+
+                var result = await controller.ForgotPassword(model) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.IsNotType<RedirectResult>(result);
+                Assert.Equal(Strings.ForgotPassword_Disabled, controller.TempData["ErrorMessage"]);
+            }
+
             public static IEnumerable<object[]> ResultTypes
             {
                 get

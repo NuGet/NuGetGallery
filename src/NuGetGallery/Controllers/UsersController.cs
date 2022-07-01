@@ -260,7 +260,7 @@ namespace NuGetGallery
             {
                 return TransformToOrganizationFailed(errorReason);
             }
-            
+
             if (accountToTransform.OrganizationMigrationRequest != null
                 && accountToTransform.OrganizationMigrationRequest.ConfirmationToken == token
                 && !accountToTransform.OrganizationMigrationRequest.AdminUser.MatchesUser(adminUser))
@@ -531,7 +531,7 @@ namespace NuGetGallery
 
             var listedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
                 p => p.Listed && p.PackageStatusKey == PackageStatus.Available);
-            
+
             var unlistedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
                 p => !p.Listed || p.PackageStatusKey != PackageStatus.Available);
 
@@ -620,6 +620,11 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
 
+            if (!_featureFlagService.IsNuGetAccountPasswordLoginEnabled())
+            {
+                TempData["WarningMessage"] = Strings.ForgotPassword_Disabled;
+            }
+
             return View();
         }
 
@@ -628,6 +633,12 @@ namespace NuGetGallery
         [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
+            if(!_featureFlagService.IsNuGetAccountPasswordLoginEnabled())
+            {
+                TempData["ErrorMessage"] = Strings.ForgotPassword_Disabled;
+                return View();
+            }
+
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;

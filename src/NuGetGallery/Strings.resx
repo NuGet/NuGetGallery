@@ -1233,4 +1233,7 @@ The {1} Team</value>
   <data name="NuGetAccountPasswordLoginUnsupported" xml:space="preserve">
     <value>NuGet.org password login is no longer supported.</value>
   </data>
+  <data name="ForgotPassword_Disabled" xml:space="preserve">
+    <value>Forgot password has been disabled. Please reach out to your Microsoft account support to sign into NuGet gallery.</value>
+  </data>
 </root>
