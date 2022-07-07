@@ -1,14 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net6</TargetFrameworks>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
     <Description>Components shared between the front-end and back-end concerning email messaging</Description>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove=".\CoreMarkdownMessageService.cs" />
+  </ItemGroup>  
+  
   <ItemGroup>
     <PackageReference Include="Markdig.Signed">
       <Version>0.30.2</Version>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
     </PackageReference>
