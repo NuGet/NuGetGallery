@@ -1085,7 +1085,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Forgot password has been disabled. Please reach out to your Microsoft account support to sign into NuGet gallery..
+        ///   Looks up a localized string similar to Forgot password flow has been disabled. Please reach out to your Microsoft account support to sign into NuGet gallery..
         /// </summary>
         public static string ForgotPassword_Disabled {
             get {
