@@ -27,7 +27,6 @@
     <Compile Remove="Extensions\*.cs" />
     <Compile Remove="Helpers\*.cs" />
     <Compile Remove="Mail\**\*.cs" />
-    <Compile Remove="Models\*.cs" />
     <Compile Remove="PackageManagement\*.cs" />
     <Compile Remove="Permissions\*.cs" />
     <Compile Remove="Properties\*.cs" />
