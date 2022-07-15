@@ -58,17 +58,18 @@
       <!--
       Add fully qualified paths for the output and intermediate assemblies.
       -->
-      <_OutputToSign Include="$(ProjectDir)%(IntermediateAssembly.Identity)" KeepDuplicates="false" />
-      <_OutputToSign Include="$(TargetPath)" KeepDuplicates="false" />
+      <_ManagedOutputToSign Include="$(ProjectDir)%(IntermediateAssembly.Identity)" KeepDuplicates="false" />
+      <_ManagedOutputToSign Include="$(TargetPath)" KeepDuplicates="false" />
       <!--
       If we are batch signing, find all copies of the target file name in the repository. This handles the cases when
       there is a project reference pointing to the current project and there is a copy of this output assembly in the
       bin directory of another project. That assembly also needs to be signed.
       -->
-      <_OutputToSign Include="$(RepositoryRootDirectory)**\$(TargetFileName)" Condition="'$(BatchSign)' == 'true'" />
+      <_ManagedOutputToSign Include="$(RepositoryRootDirectory)**\$(TargetFileName)" Condition="'$(BatchSign)' == 'true' AND '$(TargetFileName)' != ''" />
+      <_ManagedOutputToSign Remove="$(RunCommand)" Condition="'$(RunCommand)' != ''" />
       <UnfilteredFilesToSign
-        Include="$([System.IO.Path]::GetFullPath('%(_OutputToSign.Identity)'))"
-        Condition="Exists('%(_OutputToSign.Identity)')"
+        Include="$([System.IO.Path]::GetFullPath('%(_ManagedOutputToSign.Identity)'))"
+        Condition="Exists('%(_ManagedOutputToSign.Identity)')"
         KeepDuplicates="false">
         <Authenticode>Microsoft400</Authenticode>
         <StrongName>MsSharedLib72</StrongName>
@@ -83,6 +84,19 @@
       <UnfilteredFilesToSign
         Include="$([System.IO.Path]::GetFullPath('$(ProjectDir)%(PowerShellScriptsToSign.Identity)'))"
         Condition="Exists('$(ProjectDir)%(PowerShellScriptsToSign.Identity)')"
+        KeepDuplicates="false">
+        <Authenticode>Microsoft400</Authenticode>
+      </UnfilteredFilesToSign>
+
+      <!--
+      .NET Core entry points (like web projects) can have an native .exe produced along with the managed .dll. Sign that
+      by default as well.
+      -->
+      <_UnmanagedOutputToSign Include="$(RunCommand)" KeepDuplicates="false" Condition="'$(BatchSign)' == 'true' AND '$(RunCommand)' != ''" />
+      <_UnmanagedOutputToSign Include="$(RepositoryRootDirectory)**\apphost.exe" Condition="'$(BatchSign)' == 'true'" />
+      <UnfilteredFilesToSign
+        Include="$([System.IO.Path]::GetFullPath('%(_UnmanagedOutputToSign.Identity)'))"
+        Condition="Exists('%(_UnmanagedOutputToSign.Identity)')"
         KeepDuplicates="false">
         <Authenticode>Microsoft400</Authenticode>
       </UnfilteredFilesToSign>
