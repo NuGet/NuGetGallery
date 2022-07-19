@@ -4,6 +4,11 @@
     ViewBag.Tab = "Packages";
 }
 
+@if (Model.IsLocked)
+{
+    <meta name="robots" content="noindex">
+}
+
 @helper CreateDeleteAccountLink(string url)
 {
     <a href="@url" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl"></i></a>
