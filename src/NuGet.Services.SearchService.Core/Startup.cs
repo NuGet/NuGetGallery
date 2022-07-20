@@ -56,7 +56,7 @@ namespace NuGet.Services.SearchService
                     o.JsonSerializerOptions.PropertyNamingPolicy = null;
                     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                     o.JsonSerializerOptions.Converters.Add(new TimeSpanConverter());
-                    o.JsonSerializerOptions.IgnoreNullValues = true;
+                    o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                 });
 
             services.Configure<AzureSearchConfiguration>(Configuration.GetSection(ConfigurationSectionName));
