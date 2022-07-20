@@ -3,9 +3,8 @@
     ViewBag.Title = "Report Package " + Model.PackageId + " " + Model.PackageVersion;
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
     string returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
+    ViewBag.BlockSearchEngineIndexing = true;
 }
-
-<meta name="robots" content="noindex">
 
 <section role="main" class="container main-container page-report-abuse">
     <div class="row report-form">

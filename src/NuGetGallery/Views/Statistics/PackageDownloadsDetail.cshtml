@@ -2,9 +2,8 @@
 @{
     ViewBag.Title = "Package Downloads for " + Model.PackageId + "/" + Model.PackageVersion;
     ViewBag.Tab = "Statistics";
+    ViewBag.BlockSearchEngineIndexing = true;
 }
-
-<meta name="robots" content="noindex">
 
 <section role="main" class="container main-container page-stats-per-package">
     <div class="row">

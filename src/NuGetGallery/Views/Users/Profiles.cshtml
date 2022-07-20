@@ -6,7 +6,7 @@
 
 @if (Model.IsLocked)
 {
-    <meta name="robots" content="noindex">
+    ViewBag.BlockSearchEngineIndexing = true;
 }
 
 @helper CreateDeleteAccountLink(string url)
