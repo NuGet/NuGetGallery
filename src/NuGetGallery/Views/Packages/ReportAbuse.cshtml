@@ -5,6 +5,8 @@
     string returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
 }
 
+<meta name="robots" content="noindex">
+
 <section role="main" class="container main-container page-report-abuse">
     <div class="row report-form">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
@@ -22,7 +24,7 @@
                         This package has been locked and unlisted as it violates our <a href="https://www.nuget.org/policies/Terms" title="Terms of use">Terms of use</a>. Please contact support@nuget.org for further assistance.
                     </text>
                 )
-                <meta name="robots" content="noindex">
+                
             }
             else
             {
