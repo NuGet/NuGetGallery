@@ -315,6 +315,9 @@ var BindReadMeDataManager = (function () {
                 success: function (response, resultCodeString, fullResponse) {
                     clearReadMeError();
                     displayReadMePreview(response);
+                    if (response.IsMarkdigMdSyntaxHighlightEnabled) {
+                        syntaxHighlight();
+                    }
                 },
                 error: function (jqXHR, exception) {
                     var message = "";
@@ -327,6 +330,12 @@ var BindReadMeDataManager = (function () {
                     }
                     displayReadMeError(message);
                 }
+            });
+        }
+
+        function syntaxHighlight() {
+            document.querySelectorAll('pre code').forEach((el) => {
+                hljs.highlightElement(el);
             });
         }
 

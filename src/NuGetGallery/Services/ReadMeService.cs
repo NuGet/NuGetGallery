@@ -93,7 +93,8 @@ namespace NuGetGallery
             {
                 Content = readMeMd,
                 ImagesRewritten = false,
-                ImageSourceDisallowed = false
+                ImageSourceDisallowed = false, 
+                IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
             return string.IsNullOrEmpty(readMeMd) ?
@@ -116,7 +117,8 @@ namespace NuGetGallery
             {
                 Content = readmeMd,
                 ImagesRewritten = false,
-                ImageSourceDisallowed = false
+                ImageSourceDisallowed = false,
+                IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
             return string.IsNullOrEmpty(readmeMd) ?
