@@ -29,6 +29,7 @@
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
     "NuGetGallery.EmbeddedIcons": "Enabled",
     "NuGetGallery.MarkdigMdRendering": "Enabled",
+    "NuGetGallery.MarkdigMdSyntaxHighlight": "Enabled",
     "NuGetGallery.ImageAllowlist": "Enabled",
     "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
     "NuGetGallery.ComputeTargetFramework": "Enabled",
@@ -102,12 +103,6 @@
       "Domains": []
     },
     "NuGetGallery.DisplayTargetFramework": {
-      "All": true,
-      "SiteAdmins": false,
-      "Accounts": [],
-      "Domains": []
-    },
-    "NuGetGallery.MarkdigMdSyntaxHighlight": {
       "All": true,
       "SiteAdmins": false,
       "Accounts": [],
