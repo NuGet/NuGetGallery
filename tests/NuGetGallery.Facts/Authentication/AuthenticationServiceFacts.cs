@@ -49,7 +49,7 @@ namespace NuGetGallery.Authentication
 
                 var configMock = new Mock<ILoginDiscontinuationConfiguration>();
                 configMock
-                    .Setup(x => x.IsUserOnExceptionsList(_fakes.User))
+                    .Setup(x => x.IsEmailOnExceptionsList(_fakes.User.EmailAddress))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -72,7 +72,7 @@ namespace NuGetGallery.Authentication
 
                 var configMock = new Mock<ILoginDiscontinuationConfiguration>();
                 configMock
-                    .Setup(x => x.IsUserOnExceptionsList(null))
+                    .Setup(x => x.IsEmailOnExceptionsList(null))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -95,7 +95,7 @@ namespace NuGetGallery.Authentication
                     .Returns(false);
                 var configMock = new Mock<ILoginDiscontinuationConfiguration>();
                 configMock
-                    .Setup(x => x.IsUserOnExceptionsList(It.IsAny<User>()))
+                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<string>()))
                     .Returns(false);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)
@@ -124,7 +124,7 @@ namespace NuGetGallery.Authentication
                 var user = _fakes.User;
                 var configMock = new Mock<ILoginDiscontinuationConfiguration>();
                 configMock
-                    .Setup(x => x.IsUserOnExceptionsList(It.IsAny<User>()))
+                    .Setup(x => x.IsEmailOnExceptionsList(It.IsAny<string>()))
                     .Returns(isOnExceptionList);
                 GetMock<IContentObjectService>()
                     .Setup(x => x.LoginDiscontinuationConfiguration)

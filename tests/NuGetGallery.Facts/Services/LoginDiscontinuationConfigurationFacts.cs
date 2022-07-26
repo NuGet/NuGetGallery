@@ -363,7 +363,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class TheIsUserEmailOnExceptionsForEmailAddressMethod
+        public class TheIsEmailOnExceptionsForEmailAddressMethod
         {
             [Theory]
             [InlineData(true)]
@@ -379,7 +379,7 @@ namespace NuGetGallery.Services
                     isWrongCase: false,
                     isPasswordDiscontinuedForAll: false);
 
-                var result = config.IsUserOnExceptionsList(null);
+                var result = config.IsEmailOnExceptionsList(null);
 
                 Assert.False(result);
             }
@@ -398,9 +398,7 @@ namespace NuGetGallery.Services
                     isWrongCase: false,
                     isPasswordDiscontinuedForAll: false);
 
-                var user = new User("test") { EmailAddress = _email };
-
-                var result = config.IsUserOnExceptionsList(user);
+                var result = config.IsEmailOnExceptionsList(_email);
 
                 Assert.Equal(isOnExceptionList, result);
             }

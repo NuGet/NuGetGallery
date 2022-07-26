@@ -1236,4 +1236,7 @@ The {1} Team</value>
   <data name="ForgotPassword_Disabled" xml:space="preserve">
     <value>Forgot password flow has been disabled. Please reach out to your Microsoft account support to sign into NuGet gallery.</value>
   </data>
+  <data name="ForgotPassword_Disabled_Error" xml:space="preserve">
+    <value>Forgot password is disabled.</value>
+  </data>
 </root>

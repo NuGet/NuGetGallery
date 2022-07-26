@@ -1094,6 +1094,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Forgot password is disabled..
+        /// </summary>
+        public static string ForgotPassword_Disabled_Error {
+            get {
+                return ResourceManager.GetString("ForgotPassword_Disabled_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The API key &apos;{0}&apos; is invalid..
         /// </summary>
         public static string InvalidApiKey {

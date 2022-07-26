@@ -13,6 +13,6 @@ namespace NuGetGallery
         bool IsUserOnWhitelist(User user);
         bool ShouldUserTransformIntoOrganization(User user);
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
-        bool IsUserOnExceptionsList(User user);
+        bool IsEmailOnExceptionsList(string emailAddress);
     }
 }

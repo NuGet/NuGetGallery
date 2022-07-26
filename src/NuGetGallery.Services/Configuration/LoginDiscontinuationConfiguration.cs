@@ -105,15 +105,14 @@ namespace NuGetGallery
             return IsPasswordDiscontinuedForAll;
         }
 
-        public bool IsUserOnExceptionsList(User user)
+        public bool IsEmailOnExceptionsList(string emailAddress)
         {
-            if (user == null)
+            if (string.IsNullOrEmpty(emailAddress))
             {
                 return false;
             }
 
-            var email = user.ToMailAddress();
-            return ExceptionsForEmailAddresses.Contains(email.Address);
+            return ExceptionsForEmailAddresses.Contains(emailAddress);
         }
     }
 
