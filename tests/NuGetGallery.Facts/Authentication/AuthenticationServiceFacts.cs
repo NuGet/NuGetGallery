@@ -34,6 +34,111 @@ namespace NuGetGallery.Authentication
                 _fakes = Get<Fakes>();
                 _dateTimeProviderMock = GetMock<IDateTimeProvider>();
                 _authenticationService = Get<AuthenticationService>();
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(true);
+            }
+
+            [Fact]
+            public async Task GivenValidUser_WhenPasswordLoginDisabledAndUserNotOnExceptionList_ItReturnsFailure()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
+
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsUserOnExceptionsList(_fakes.User))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+
+                // Act
+                var result = await _authenticationService.Authenticate(_fakes.User.EmailAddress, "bogus password!!");
+
+                // Assert
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.PasswordLoginUnsupported, result.Result);
+            }
+
+            [Fact]
+            public async Task GivenInvalidUser_WhenPasswordLoginDisabledAndUserNotOnExceptionList_ItReturnsFailure()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
+
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsUserOnExceptionsList(null))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+                var fakeUserEmail = "fake@example.com";
+
+                // Act
+                var result = await _authenticationService.Authenticate(fakeUserEmail, "password");
+
+                // Assert
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.PasswordLoginUnsupported, result.Result);
+            }
+
+            [Fact]
+            public async Task WritesAuditRecordWhenGivenPasswordLoginIsDisabledAnd()
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsUserOnExceptionsList(It.IsAny<User>()))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+                var fakeUserEmail = "fakeuser@example.com";
+
+                // Act
+                await _authenticationService.Authenticate(fakeUserEmail, "password");
+
+                // Assert
+                Assert.True(_authenticationService.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
+                    ar.Action == AuditedAuthenticatedOperationAction.PasswordLoginUnsupported &&
+                    ar.UsernameOrEmail == fakeUserEmail));
+            }
+
+            [Theory]
+            [InlineData(true, true)]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            public async Task GivenPasswordLoginDisableFailedConditionsWithMatchingPasswordCredential_ItReturnsAuthenticatedUser(bool flagEnabled, bool isOnExceptionList)
+            {
+                // Arrange
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(flagEnabled);
+                var user = _fakes.User;
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsUserOnExceptionsList(It.IsAny<User>()))
+                    .Returns(isOnExceptionList);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+
+                // Act
+                var result = await _authenticationService.Authenticate(user.EmailAddress, Fakes.Password);
+
+                // Assert
+                var expectedCred = user.Credentials.SingleOrDefault(
+                    c => string.Equals(c.Type, CredentialBuilder.LatestPasswordType, StringComparison.OrdinalIgnoreCase));
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.Success, result.Result);
+                Assert.Same(user, result.AuthenticatedUser.User);
+                Assert.Same(expectedCred, result.AuthenticatedUser.CredentialUsed);
             }
 
             [Fact]

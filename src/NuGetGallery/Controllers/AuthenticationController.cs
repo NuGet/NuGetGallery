@@ -142,7 +142,11 @@ namespace NuGetGallery
             {
                 string modelErrorMessage = string.Empty;
 
-                if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
+                if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.PasswordLoginUnsupported)
+                {
+                    modelErrorMessage = Strings.NuGetAccountPasswordLoginUnsupported;
+                }
+                else if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
                 {
                     modelErrorMessage = Strings.UsernameAndPasswordNotFound;
                 }
@@ -161,15 +165,6 @@ namespace NuGetGallery
             }
 
             var authenticatedUser = authenticationResult.AuthenticatedUser;
-
-            if (!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() &&
-                authenticatedUser.CredentialUsed.IsPassword() &&
-                !_contentObjectService.LoginDiscontinuationConfiguration.IsUserOnExceptionsList(authenticatedUser.User))
-            {
-                var message = string.Format(CultureInfo.CurrentCulture, Strings.NuGetAccountPasswordLoginUnsupported);
-                return SignInFailure(model, linkingAccount, message);
-            }
-
             bool usedMultiFactorAuthentication = false;
             if (linkingAccount)
             {
