@@ -40,7 +40,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task GivenValidUser_WhenPasswordLoginDisabledAndUserNotOnExceptionList_ItReturnsFailure()
+            public async Task GivenValidUser_WhenPasswordLoginDisabledAndUserEmailNotOnExceptionList_ItReturnsFailure()
             {
                 // Arrange
                 GetMock<IFeatureFlagService>()
@@ -63,7 +63,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task GivenInvalidUser_WhenPasswordLoginDisabledAndUserNotOnExceptionList_ItReturnsFailure()
+            public async Task GivenInvalidUser_WhenPasswordLoginDisabledAndUserEmailNotOnExceptionList_ItReturnsFailure()
             {
                 // Arrange
                 GetMock<IFeatureFlagService>()
@@ -87,7 +87,7 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
-            public async Task WritesAuditRecordWhenGivenPasswordLoginIsDisabledAnd()
+            public async Task WritesAuditRecordWhenGivenPasswordLoginIsDisabledAndUserEmailNotOnExceptionList()
             {
                 // Arrange
                 GetMock<IFeatureFlagService>()

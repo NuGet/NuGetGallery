@@ -359,7 +359,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task WillInvalidateModelStateAndShowTheViewWithErrorsWhenPasswordLoginIsDisabledAndUserNotOnExceptionList()
+            public async Task WillInvalidateModelStateAndShowTheViewWithErrorsWhenPasswordLoginIsDisabledAndUserEmailNotOnExceptionList()
             {
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Authenticate(It.IsAny<string>(), It.IsAny<string>()))

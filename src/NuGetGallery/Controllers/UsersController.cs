@@ -619,6 +619,7 @@ namespace NuGetGallery
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[GalleryConstants.ReturnUrlViewDataKey] = null;
+
             var model = new ForgotPasswordViewModel();
             model.IsPasswordLoginEnabled = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
 
