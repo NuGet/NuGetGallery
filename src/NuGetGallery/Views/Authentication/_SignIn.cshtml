@@ -38,12 +38,9 @@
         @Html.ShowValidationMessagesFor(m => m.SignIn.Password)
     </div>
 
-    if (Model.IsNuGetAccountPasswordLoginEnabled)
-    {
-        <p>
-            @Html.ActionLink("Forgot your Password?", "ForgotPassword", "Users")
-        </p>
-    }
+    <p>
+        @Html.ActionLink("Forgot your Password?", "ForgotPassword", "Users")
+    </p>
 
     if (Model.External != null && !Model.External.FoundExistingUser)
     {
