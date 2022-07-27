@@ -90,6 +90,7 @@
     @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
     @Scripts.Render("~/Scripts/gallery/page-edit-readme.min.js")
     @Scripts.Render("~/Scripts/gallery/async-file-upload.min.js")
+    @Scripts.Render("~/Scripts/gallery/syntaxhighligh.js") 
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
         window.nuget.configureExpanderHeading("upload-package-form");
@@ -110,8 +111,6 @@
 
     @if (Model != null && Model.IsMarkdigMdSyntaxHighlightEnabled)
     {
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/github.min.css" integrity="sha512-0aPQyyeZrWj9sCA46UlmWgKOP0mUipLQ6OZXu8l4IcAmD2u31EPEy9VcIMvl7SoAaKe8bLXZhYoMaE/in+gcgA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        @* highlight.js build includes support for:: bash, c, cpp, csharp, css, diff, go, ini, java, json, javascript, kotlin, less, lua, makefile, xml, markdown, perl, php, objectivec, plaintext, python, r, ruby,rust, scss, shell, sql, swift, vbnet, yaml*@
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js" integrity="sha512-yUUc0qWm2rhM7X0EFe82LNnv2moqArj5nro/w1bi05A09hRVeIZbN6jlMoyu0+4I/Bu4Ck/85JQIU82T82M28w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        @ViewHelpers.IncludeSyntaxHighlightScript()
     }
 }

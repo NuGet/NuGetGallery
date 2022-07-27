@@ -153,12 +153,6 @@
             });
         }
 
-        function syntaxHighlight() {
-            document.querySelectorAll('pre code').forEach((el) => {
-                hljs.highlightElement(el);
-            });
-        }
-
         function cancelUploadAsync(callback, error) {
             clearErrors();
 

@@ -333,12 +333,6 @@ var BindReadMeDataManager = (function () {
             });
         }
 
-        function syntaxHighlight() {
-            document.querySelectorAll('pre code').forEach((el) => {
-                hljs.highlightElement(el);
-            });
-        }
-
         function displayReadMePreview(response) {
             $("#readme-preview-contents").html(response.Content);
             $("#readme-preview").removeClass("hidden");
