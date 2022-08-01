@@ -142,7 +142,11 @@ namespace NuGetGallery
             {
                 string modelErrorMessage = string.Empty;
 
-                if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
+                if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.PasswordLoginUnsupported)
+                {
+                    modelErrorMessage = Strings.NuGetAccountPasswordLoginUnsupported;
+                }
+                else if (authenticationResult.Result == PasswordAuthenticationResult.AuthenticationResult.BadCredentials)
                 {
                     modelErrorMessage = Strings.UsernameAndPasswordNotFound;
                 }
@@ -924,6 +928,7 @@ namespace NuGetGallery
             existingModel.Providers = GetProviders();
             existingModel.SignIn = existingModel.SignIn ?? new SignInViewModel();
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
+            existingModel.IsNuGetAccountPasswordLoginEnabled = _featureFlagService.IsNuGetAccountPasswordLoginEnabled();
 
             return View(viewName, existingModel);
         }

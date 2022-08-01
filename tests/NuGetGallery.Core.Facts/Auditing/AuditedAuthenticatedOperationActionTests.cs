@@ -16,7 +16,8 @@ namespace NuGetGallery.Auditing
                 "FailedLoginNoSuchUser",
                 "FailedLoginUserIsOrganization",
                 "PackagePushAttemptByNonOwner",
-                "SymbolsPackagePushAttemptByNonOwner"
+                "SymbolsPackagePushAttemptByNonOwner",
+                "PasswordLoginUnsupported"
             };
 
             Verify(typeof(AuditedAuthenticatedOperationAction), expectedNames);

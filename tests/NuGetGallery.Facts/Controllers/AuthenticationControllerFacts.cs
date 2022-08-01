@@ -358,6 +358,23 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().VerifyAll();
             }
 
+            [Fact]
+            public async Task WillInvalidateModelStateAndShowTheViewWithErrorsWhenPasswordLoginIsDisabledAndUserEmailNotOnExceptionList()
+            {
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
+                    .CompletesWith(new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.PasswordLoginUnsupported));
+                var controller = GetController<AuthenticationController>();
+
+                var result = await controller.SignIn(
+                    new LogOnViewModel() { SignIn = new SignInViewModel() },
+                    "theReturnUrl", linkingAccount: false);
+
+                ResultAssert.IsView(result, viewName: SignInViewNuGetName);
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal(Strings.NuGetAccountPasswordLoginUnsupported, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
+            }
+
             public async Task WhenAttemptingToLinkExternalToExistingAccountWithNoExternalAccounts_AllowsLinkingAndRemovesPassword()
             {
                 // Arrange

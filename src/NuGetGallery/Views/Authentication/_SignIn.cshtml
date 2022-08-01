@@ -37,9 +37,11 @@
         @Html.ShowPasswordFor(m => m.SignIn.Password)
         @Html.ShowValidationMessagesFor(m => m.SignIn.Password)
     </div>
+
     <p>
         @Html.ActionLink("Forgot your Password?", "ForgotPassword", "Users")
     </p>
+
     if (Model.External != null && !Model.External.FoundExistingUser)
     {
         <div class="form-group row">

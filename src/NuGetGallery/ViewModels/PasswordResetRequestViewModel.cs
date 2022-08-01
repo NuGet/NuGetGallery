@@ -10,5 +10,7 @@ namespace NuGetGallery
         [StringLength(255)]
         [Display(Name = "Email")]
         public string Email { get; set; }
+
+        public bool IsPasswordLoginEnabled { get; set; }
     }
 }
