@@ -268,7 +268,9 @@
                 <!-- ko if: $data.ReadmeFileContents.ImageSourceDisallowed -->
                 @ViewHelpers.AlertWarning(@<text>Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.</text>)
                 <!-- /ko -->
-                <div class="readme-container" data-bind="html: $data.ReadmeFileContents.Content"></div>
+                <div class="readme-common">
+                    <div class="readme-container" data-bind="html: $data.ReadmeFileContents.Content"></div>
+                </div>
             </div>
             <!-- /ko -->
             <!-- /ko -->
