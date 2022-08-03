@@ -177,7 +177,7 @@ namespace NuGetGallery
         /// Whether the user is able to publish the package with an embedded readme file.
         /// </summary>
         bool AreEmbeddedReadmesEnabled(User user);
-        
+
         /// <summary>
         /// Whether the /Packages() endpoint is enabled for the V1 OData API.
         /// </summary>
@@ -267,6 +267,8 @@ namespace NuGetGallery
         /// Whether rendering Markdown fenced code with syntax highlighting
         /// </summary>
         bool IsMarkdigMdSyntaxHighlightEnabled();
+
+        /// <summary>
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);
@@ -280,7 +282,7 @@ namespace NuGetGallery
         /// Whether or not display the banner on nuget.org
         /// </summary>
         bool IsDisplayBannerEnabled();
-        
+
         /// <summary>
         /// Whether or not display target framework badges and table on nuget.org
         /// </summary>
@@ -300,5 +302,10 @@ namespace NuGetGallery
         /// Whether or not to enforce 2FA for new external account link or replacement.
         /// </summary>
         bool IsNewAccount2FAEnforcementEnabled();
+
+        /// <summary>
+        /// Whether or not NuGet.org password login is supported. NuGet.org accounts in the <see cref="LoginDiscontinuationConfiguration.ExceptionsForEmailAddresses"/> will always be supported.
+        /// </summary>
+        bool IsNuGetAccountPasswordLoginEnabled();
     }
 }

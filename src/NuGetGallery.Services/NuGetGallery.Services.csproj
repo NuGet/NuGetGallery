@@ -3,7 +3,7 @@
   <Import Project="..\..\SdkProjects.props" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
     <Description>Services library for NuGet Gallery Frontend and Backend</Description>
   </PropertyGroup>
 
@@ -19,7 +19,32 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="AccountManagement\*.cs" />
+    <Compile Remove="Authentication\**\*.cs" />
+    <Compile Remove="Configuration\**\*.cs" />
+    <Compile Remove="Diagnostics\*.cs" />
+    <Compile Remove="Extensions\*.cs" />
+    <Compile Remove="Helpers\*.cs" />
+    <Compile Remove="Mail\**\*.cs" />
+    <Compile Remove="PackageManagement\*.cs" />
+    <Compile Remove="Permissions\*.cs" />
+    <Compile Remove="Properties\*.cs" />
+    <Compile Remove="Providers\*.cs" />
+    <Compile Remove="Security\*.cs" />
+    <Compile Remove="Storage\*.cs" />
+    <Compile Remove="SupportRequest\ISupportRequestService.cs" />
+    <Compile Remove="SupportRequest\SupportRequestService.cs" />
+    <Compile Remove="Telemetry\ITelemetryService.cs" />
+    <Compile Remove="Telemetry\Obfuscator.cs" />
+    <Compile Remove="Telemetry\QuietLog.cs" />
+    <Compile Remove="Telemetry\TelemetryService.cs" />
+    <Compile Remove="Telemetry\UserPackageDeleteEvent.cs" />
+    <Compile Remove="Telemetry\UserPackageDeleteOutcome.cs" />
+    <Compile Remove="UserManagement\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
@@ -29,12 +54,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="EntityFramework">
-      <Version>6.4.0-preview3-19553-01</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights">
       <Version>2.12.0</Version>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="Microsoft.AspNet.Mvc">
       <Version>5.2.3</Version>
     </PackageReference>
@@ -66,10 +91,10 @@
       <Version>6.0.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.97.0</Version>
+      <Version>2.104.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.97.0</Version>
+      <Version>2.104.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.StrongName.WebBackgrounder">
       <Version>0.2.0</Version>

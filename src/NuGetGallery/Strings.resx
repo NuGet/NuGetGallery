@@ -1230,4 +1230,13 @@ The {1} Team</value>
   <data name="SupportedFrameworks_Tooltip" xml:space="preserve">
     <value>This package is compatible with this framework or higher.</value>
   </data>
+  <data name="NuGetAccountPasswordLoginUnsupported" xml:space="preserve">
+    <value>NuGet.org password login is no longer supported.</value>
+  </data>
+  <data name="ForgotPassword_Disabled" xml:space="preserve">
+    <value>Forgot password flow has been disabled. Please reach out to your Microsoft account support to sign into NuGet gallery.</value>
+  </data>
+  <data name="ForgotPassword_Disabled_Error" xml:space="preserve">
+    <value>Forgot password is disabled.</value>
+  </data>
 </root>
