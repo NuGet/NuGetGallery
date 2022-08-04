@@ -203,7 +203,7 @@ namespace NuGetGallery
                 .UseTaskLists()
                 .UseEmojiAndSmiley()
                 .UseAutoLinks()
-                .UseReferralLinks("noopener noreferrer nofollow")
+                .UseAutoIdentifiers()
                 .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
                 .DisableHtml() //block inline html
                 .UseBootstrap()
