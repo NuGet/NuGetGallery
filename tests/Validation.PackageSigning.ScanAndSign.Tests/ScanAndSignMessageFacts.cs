@@ -18,7 +18,8 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
                 Guid.NewGuid(),
                 new Uri("https://example.com/aaa.nupkg"),
                 v3ServiceIndexUrl: null,
-                owners: new List<string> { "owner1" }));
+                owners: new List<string> { "owner1" },
+                context: new Dictionary<string, string>()));
 
             Assert.Null(ex);
         }
@@ -31,7 +32,8 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
                 Guid.NewGuid(),
                 new Uri("https://example.com/aaa.nupkg"),
                 v3ServiceIndexUrl: "https://example.com/index.json",
-                owners: null));
+                owners: null,
+                context: new Dictionary<string, string>()));
 
             Assert.Null(ex);
         }
@@ -42,7 +44,8 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             var ex = Assert.Throws<ArgumentException>(() => new ScanAndSignMessage(
                 OperationRequestType.Sign,
                 Guid.NewGuid(),
-                new Uri("https://example.com/aaa.nupkg")));
+                new Uri("https://example.com/aaa.nupkg"),
+                new Dictionary<string, string>()));
 
             Assert.Contains(nameof(OperationRequestType.Sign), ex.Message);
         }

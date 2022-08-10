@@ -19,6 +19,10 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
     [ValidatorName(ValidatorName.ScanAndSign)]
     public class ScanAndSignProcessor : INuGetProcessor
     {
+        private const string ContextPackageName = "ProductName";
+        private const string ContextPackageVersion = "ProductVersion";
+        private const string ContextPackageOwners = "ProductOwners";
+
         private readonly IValidationEntitiesContext _validationContext;
         private readonly IValidatorStateService _validatorStateService;
         private readonly ICorePackageService _packageService;
@@ -142,7 +146,12 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
                     _configuration.V3ServiceIndexUrl,
                     owners);
 
-                await _scanAndSignEnqueuer.EnqueueScanAndSignAsync(request.ValidationId, request.NupkgUrl, _configuration.V3ServiceIndexUrl, owners);
+                await _scanAndSignEnqueuer.EnqueueScanAndSignAsync(
+                    request.ValidationId,
+                    request.NupkgUrl,
+                    _configuration.V3ServiceIndexUrl,
+                    owners,
+                    CreateContext(request, owners));
             }
             else
             {
@@ -151,7 +160,10 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
                     return NuGetValidationResponse.Succeeded;
                 }
 
-                await _scanAndSignEnqueuer.EnqueueScanAsync(request.ValidationId, request.NupkgUrl);
+                await _scanAndSignEnqueuer.EnqueueScanAsync(
+                    request.ValidationId,
+                    request.NupkgUrl,
+                    CreateContext(request, owners));
             }
 
             var result = await _validatorStateService.TryAddValidatorStatusAsync(request, processorStatus, ValidationStatus.Incomplete);
@@ -232,9 +244,17 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             return registration
                 .Owners
                 .Select(o => o.Username)
-                .ToList()
                 .OrderBy(u => u, StringComparer.InvariantCultureIgnoreCase)
                 .ToList();
+        }
+
+        private IReadOnlyDictionary<string, string> CreateContext(INuGetValidationRequest request, IReadOnlyCollection<string> owners)
+        {
+            return new Dictionary<string, string>{
+                { ContextPackageName, request.PackageId },
+                { ContextPackageVersion, request.PackageVersion },
+                { ContextPackageOwners, string.Join(",", owners) },
+            };
         }
     }
 }

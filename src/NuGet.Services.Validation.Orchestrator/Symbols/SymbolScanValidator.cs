@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -102,7 +103,7 @@ namespace NuGet.Services.Validation.Symbols
                 return NuGetValidationResponse.Succeeded;
             }
 
-            await _scanAndSignEnqueuer.EnqueueScanAsync(request.ValidationId, request.NupkgUrl);
+            await _scanAndSignEnqueuer.EnqueueScanAsync(request.ValidationId, request.NupkgUrl, context: new Dictionary<string, string>());
 
             var status = await _validatorStateService.TryAddValidatorStatusAsync(request, validatorStatus, ValidationStatus.Incomplete);
 

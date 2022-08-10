@@ -11,7 +11,8 @@ namespace NuGet.Jobs.Validation.ScanAndSign
         public ScanAndSignMessage(
             OperationRequestType operationRequestType,
             Guid packageValidationId,
-            Uri blobUri)
+            Uri blobUri,
+            IReadOnlyDictionary<string, string> context)
         {
             if (operationRequestType == OperationRequestType.Sign)
             {
@@ -21,6 +22,7 @@ namespace NuGet.Jobs.Validation.ScanAndSign
             OperationRequestType = operationRequestType;
             PackageValidationId = packageValidationId;
             BlobUri = blobUri ?? throw new ArgumentNullException(nameof(blobUri));
+            Context = context;
         }
 
         public ScanAndSignMessage(
@@ -28,7 +30,8 @@ namespace NuGet.Jobs.Validation.ScanAndSign
             Guid packageValidationId,
             Uri blobUri,
             string v3ServiceIndexUrl,
-            IReadOnlyList<string> owners)
+            IReadOnlyList<string> owners,
+            IReadOnlyDictionary<string, string> context)
         {
             OperationRequestType = operationRequestType;
             PackageValidationId = packageValidationId;
@@ -38,6 +41,7 @@ namespace NuGet.Jobs.Validation.ScanAndSign
                 V3ServiceIndexUrl = v3ServiceIndexUrl ?? throw new ArgumentNullException(nameof(v3ServiceIndexUrl));
                 Owners = owners ?? throw new ArgumentNullException(nameof(owners));
             }
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public OperationRequestType OperationRequestType { get; }
@@ -45,5 +49,6 @@ namespace NuGet.Jobs.Validation.ScanAndSign
         public Uri BlobUri { get; }
         public string V3ServiceIndexUrl { get; }
         public IReadOnlyList<string> Owners { get; }
+        public IReadOnlyDictionary<string, string> Context { get; }
     }
 }
