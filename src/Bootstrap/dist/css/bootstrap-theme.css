@@ -1174,6 +1174,7 @@ p.frameworktableinfo-text {
   margin-top: 40px;
   font-weight: 400;
   margin-right: 18px;
+  display: inline;
 }
 .page-package-details .package-title h1 .version-title {
   font-size: 16px;
@@ -1181,6 +1182,7 @@ p.frameworktableinfo-text {
   color: #666666;
   margin-right: 14px;
   vertical-align: middle;
+  display: inline;
 }
 .page-package-details .package-title h1 .package-icon {
   height: 32px;
@@ -1188,7 +1190,7 @@ p.frameworktableinfo-text {
   margin-top: 8px;
   margin-right: 12px;
 }
-.page-package-details .package-title h1 .prefix-reserve-title {
+.page-package-details .package-title .prefix-reserve-title {
   background-color: #F3F2F1;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -1201,12 +1203,12 @@ p.frameworktableinfo-text {
   border-radius: 100px;
   vertical-align: middle;
 }
-.page-package-details .package-title h1 .prefix-reserve-title .reserved-indicator {
+.page-package-details .package-title .prefix-reserve-title .reserved-indicator {
   width: 18px;
   margin-right: 5px;
   margin-left: 2px;
 }
-.page-package-details .package-title h1 .prefix-reserve-title .prefix-reserve-label {
+.page-package-details .package-title .prefix-reserve-title .prefix-reserve-label {
   font-size: 14px;
   font-weight: 400;
   color: #2F6FA7;

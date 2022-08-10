@@ -247,20 +247,20 @@
                         <span class="version-title">
                             @Model.Version
                         </span>
-                        @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
-                        {
-                            <span class="prefix-reserve-title" aria-hidden="true">
-                                <img class="reserved-indicator" aria-hidden="true"
-                                        src="~/Content/gallery/img/reserved-indicator.svg"
-                                        @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
-                                        data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0"
-                                        alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
-                                <a href="https://docs.microsoft.com/en-us/nuget/nuget-org/id-prefix-reservation" class="prefix-reserve-label" ari-hidden="true">
-                                    Prefix Reserved
-                                </a>
-                            </span>
-                        }
                     </h1>
+                    @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
+                    {
+                        <span class="prefix-reserve-title" aria-hidden="true">
+                            <img class="reserved-indicator" aria-hidden="true"
+                                    src="~/Content/gallery/img/reserved-indicator.svg"
+                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
+                                    data-content="@Strings.ReservedNamespace_ReservedIndicatorTooltip" tabindex="0"
+                                    alt="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
+                            <a href="https://docs.microsoft.com/en-us/nuget/nuget-org/id-prefix-reservation" class="prefix-reserve-label" ari-hidden="true">
+                                Prefix Reserved
+                            </a>
+                        </span>
+                    }
                 </div>
 
                 @if (Model.CanDisplayTargetFrameworks())
