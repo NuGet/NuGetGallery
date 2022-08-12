@@ -14,7 +14,11 @@ namespace NuGet.Jobs.Validation.ScanAndSign
         /// </summary>
         /// <param name="validationId">Validation ID for which scan is requested.</param>
         /// <param name="nupkgUrl">Url of the package to scan.</param>
-        Task EnqueueScanAsync(Guid validationId, string nupkgUrl);
+        /// <param name="context">Request context to pass to the actual scan/sign job.</param>
+        Task EnqueueScanAsync(
+            Guid validationId,
+            string nupkgUrl,
+            IReadOnlyDictionary<string, string> context);
 
         /// <summary>
         /// Enqueues Scan operation. The message delivery is going to be delayed by <paramref name="messageDeliveryDelayOverride"/>.
@@ -22,7 +26,12 @@ namespace NuGet.Jobs.Validation.ScanAndSign
         /// <param name="validationId">Validation ID for which scan is requested.</param>
         /// <param name="nupkgUrl">Url of the package to scan.</param>
         /// <param name="messageDeliveryDelayOverride">The message delivery delay.</param>
-        Task EnqueueScanAsync(Guid validationId, string nupkgUrl, TimeSpan messageDeliveryDelayOverride);
+        /// <param name="context">Request context to pass to the actual scan/sign job.</param>
+        Task EnqueueScanAsync(
+            Guid validationId,
+            string nupkgUrl,
+            IReadOnlyDictionary<string, string> context,
+            TimeSpan messageDeliveryDelayOverride);
 
         /// <summary>
         /// Enqueues Scan And Sign operation. The message delivery is going to be delayed by <see cref="ScanAndSignEnqueuerConfiguration.MessageDelay"/> setting.
@@ -31,7 +40,13 @@ namespace NuGet.Jobs.Validation.ScanAndSign
         /// <param name="nupkgUrl">Url of the package to scan and sign.</param>
         /// <param name="v3ServiceIndexUrl">The service index URL that should be put on the package's repository signature.</param>
         /// <param name="owners">The list of owners that should be put on the package's repository signature.</param>
-        Task EnqueueScanAndSignAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, IReadOnlyList<string> owners);
+        /// <param name="context">Request context to pass to the actual scan/sign job.</param>
+        Task EnqueueScanAndSignAsync(
+            Guid validationId,
+            string nupkgUrl,
+            string v3ServiceIndexUrl,
+            IReadOnlyList<string> owners,
+            IReadOnlyDictionary<string, string> context);
 
         /// <summary>
         /// Enqueues Scan And Sign operation. The message delivery is going to be delayed by <paramref name="messageDeliveryDelayOverride"/>.
@@ -40,7 +55,14 @@ namespace NuGet.Jobs.Validation.ScanAndSign
         /// <param name="nupkgUrl">Url of the package to scan and sign.</param>
         /// <param name="v3ServiceIndexUrl">The service index URL that should be put on the package's repository signature.</param>
         /// <param name="owners">The list of owners that should be put on the package's repository signature.</param>
+        /// <param name="context">Request context to pass to the actual scan/sign job.</param>
         /// <param name="messageDeliveryDelayOverride">The message delivery delay.</param>
-        Task EnqueueScanAndSignAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, IReadOnlyList<string> owners, TimeSpan messageDeliveryDelayOverride);
+        Task EnqueueScanAndSignAsync(
+            Guid validationId,
+            string nupkgUrl,
+            string v3ServiceIndexUrl,
+            IReadOnlyList<string> owners,
+            IReadOnlyDictionary<string, string> context,
+            TimeSpan messageDeliveryDelayOverride);
     }
 }

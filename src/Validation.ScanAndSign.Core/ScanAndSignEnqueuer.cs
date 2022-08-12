@@ -38,19 +38,41 @@ namespace NuGet.Jobs.Validation.ScanAndSign
             _configuration = configurationAccessor.Value;
         }
 
-        public Task EnqueueScanAsync(Guid validationId, string nupkgUrl)
-            => EnqueueScanImplAsync(validationId, nupkgUrl, messageDeliveryDelayOverride: null);
+        public Task EnqueueScanAsync(
+            Guid validationId,
+            string nupkgUrl,
+            IReadOnlyDictionary<string, string> context)
+            => EnqueueScanImplAsync(validationId, nupkgUrl, context, messageDeliveryDelayOverride: null);
 
-        public Task EnqueueScanAsync(Guid validationId, string nupkgUrl, TimeSpan messageDeliveryDelayOverride)
-            => EnqueueScanImplAsync(validationId, nupkgUrl, messageDeliveryDelayOverride);
+        public Task EnqueueScanAsync(
+            Guid validationId,
+            string nupkgUrl,
+            IReadOnlyDictionary<string, string> context,
+            TimeSpan messageDeliveryDelayOverride)
+            => EnqueueScanImplAsync(validationId, nupkgUrl, context, messageDeliveryDelayOverride);
 
-        public Task EnqueueScanAndSignAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, IReadOnlyList<string> owners)
-            => EnqueueScanAndSignImplAsync(validationId, nupkgUrl, v3ServiceIndexUrl, owners, messageDeliveryDelayOverride: null);
+        public Task EnqueueScanAndSignAsync(
+            Guid validationId,
+            string nupkgUrl,
+            string v3ServiceIndexUrl,
+            IReadOnlyList<string> owners,
+            IReadOnlyDictionary<string, string> context)
+            => EnqueueScanAndSignImplAsync(validationId, nupkgUrl, v3ServiceIndexUrl, owners, context, messageDeliveryDelayOverride: null);
 
-        public Task EnqueueScanAndSignAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, IReadOnlyList<string> owners, TimeSpan messageDeliveryDelayOverride)
-            => EnqueueScanAndSignImplAsync(validationId, nupkgUrl, v3ServiceIndexUrl, owners, messageDeliveryDelayOverride);
+        public Task EnqueueScanAndSignAsync(
+            Guid validationId,
+            string nupkgUrl,
+            string v3ServiceIndexUrl,
+            IReadOnlyList<string> owners,
+            IReadOnlyDictionary<string, string> context,
+            TimeSpan messageDeliveryDelayOverride)
+            => EnqueueScanAndSignImplAsync(validationId, nupkgUrl, v3ServiceIndexUrl, owners, context, messageDeliveryDelayOverride);
 
-        private Task EnqueueScanImplAsync(Guid validationId, string nupkgUrl, TimeSpan? messageDeliveryDelayOverride = null)
+        private Task EnqueueScanImplAsync(
+            Guid validationId,
+            string nupkgUrl,
+            IReadOnlyDictionary<string, string> context,
+            TimeSpan? messageDeliveryDelayOverride = null)
         {
             if (nupkgUrl == null)
             {
@@ -60,6 +82,11 @@ namespace NuGet.Jobs.Validation.ScanAndSign
             if (messageDeliveryDelayOverride.HasValue && messageDeliveryDelayOverride < TimeSpan.Zero)
             {
                 throw new ArgumentOutOfRangeException(nameof(messageDeliveryDelayOverride), $"{nameof(messageDeliveryDelayOverride)} cannot be negative");
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
             }
 
             _logger.LogInformation(
@@ -72,18 +99,33 @@ namespace NuGet.Jobs.Validation.ScanAndSign
                 new ScanAndSignMessage(
                     OperationRequestType.Scan,
                     validationId,
-                    new Uri(nupkgUrl)),
+                    new Uri(nupkgUrl),
+                    context),
                 messageDeliveryDelayOverride);
         }
 
-        private Task EnqueueScanAndSignImplAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, IReadOnlyList<string> owners, TimeSpan? messageDeliveryDelayOverride = null)
+        private Task EnqueueScanAndSignImplAsync(
+            Guid validationId,
+            string nupkgUrl,
+            string v3ServiceIndexUrl,
+            IReadOnlyList<string> owners,
+            IReadOnlyDictionary<string, string> context,
+            TimeSpan? messageDeliveryDelayOverride = null)
         {
             if (nupkgUrl == null)
             {
                 throw new ArgumentNullException(nameof(nupkgUrl));
             }
 
-            if (owners == null) throw new ArgumentNullException(nameof(owners));
+            if (owners == null)
+            {
+                throw new ArgumentNullException(nameof(owners));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
             if (string.IsNullOrEmpty(v3ServiceIndexUrl))
             {
@@ -109,7 +151,8 @@ namespace NuGet.Jobs.Validation.ScanAndSign
                     validationId,
                     new Uri(nupkgUrl),
                     v3ServiceIndexUrl,
-                    owners),
+                    owners,
+                    context),
                 messageDeliveryDelayOverride);
         }
 
