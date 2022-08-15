@@ -86,6 +86,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsNuGetAccountPasswordLoginEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsForceFlatContainerIconsEnabled()
         {
             throw new NotImplementedException();
@@ -137,6 +142,11 @@ namespace NuGetGallery.AccountDeleter
         }
 
         public bool IsMarkdigMdRenderingEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsMarkdigMdSyntaxHighlightEnabled()
         {
             throw new NotImplementedException();
         }

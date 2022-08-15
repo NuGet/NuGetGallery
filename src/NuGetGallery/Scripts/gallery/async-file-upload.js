@@ -311,6 +311,10 @@
                 BindReadMeDataManager.bindReadMeData(model);
             }
 
+            if (model != null && model.IsMarkdigMdSyntaxHighlightEnabled) {
+                syntaxHighlight();
+            }
+
             document.getElementById("validation-failure-container").scrollIntoView();
         }
 

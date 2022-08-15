@@ -125,6 +125,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsMarkdigMdSyntaxHighlightEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsODataDatabaseReadOnlyEnabled()
         {
             throw new NotImplementedException();
@@ -276,6 +281,11 @@ namespace GitHubVulnerabilities2Db.Fakes
         }
 
         public bool IsNewAccount2FAEnforcementEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsNuGetAccountPasswordLoginEnabled()
         {
             throw new NotImplementedException();
         }

@@ -362,5 +362,46 @@ namespace NuGetGallery.Services
                 }
             }
         }
+
+        public class TheIsEmailOnExceptionsForEmailAddressMethod
+        {
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void NullUserReturnsFalse(bool isOnExceptionList)
+            {
+                var config = CreateConfiguration(
+                    isOnWhiteList: false,
+                    isOnDomainList: false,
+                    isOnExceptionList: isOnExceptionList,
+                    isOnTransformList: false,
+                    isOnTenantPairList: false,
+                    isWrongCase: false,
+                    isPasswordDiscontinuedForAll: false);
+
+                var result = config.IsEmailOnExceptionsList(null);
+
+                Assert.False(result);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ValidUserReturnsIfEmailIsOnExceptionList(bool isOnExceptionList)
+            {
+                var config = CreateConfiguration(
+                    isOnWhiteList: false,
+                    isOnDomainList: false,
+                    isOnExceptionList: isOnExceptionList,
+                    isOnTransformList: false,
+                    isOnTenantPairList: false,
+                    isWrongCase: false,
+                    isPasswordDiscontinuedForAll: false);
+
+                var result = config.IsEmailOnExceptionsList(_email);
+
+                Assert.Equal(isOnExceptionList, result);
+            }
+        }
     }
 }

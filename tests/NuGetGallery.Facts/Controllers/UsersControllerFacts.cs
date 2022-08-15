@@ -255,6 +255,13 @@ namespace NuGetGallery
 
         public class TheForgotPasswordAction : TestContainer
         {
+            public TheForgotPasswordAction()
+            {
+                GetMock<IFeatureFlagService>()
+                    .Setup(s => s.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(true);
+            }
+
             [Fact]
             public async Task SendsEmailWithPasswordResetUrl()
             {
@@ -387,6 +394,51 @@ namespace NuGetGallery
                     // Assert
                     Assert.True(false, $"No exception should be thrown for result type {resultType}: {e}");
                 }
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ModelIsPasswordLoginEnabledHasSameValueAsNuGetAccountPasswordLoginEnabled(bool flagEnabled)
+            {
+                GetMock<IFeatureFlagService>()
+                    .Setup(s => s.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(flagEnabled);
+                var controller = GetController<UsersController>();
+
+                var result = controller.ForgotPassword() as ViewResult;
+                var model = result.Model as ForgotPasswordViewModel;
+                
+                Assert.NotNull(result);
+                Assert.IsNotType<RedirectResult>(result);
+                Assert.Equal(flagEnabled, model.IsPasswordLoginEnabled);
+            }
+
+            [Fact]
+            public async Task WhenNuGetAccountPasswordLoginEnabledShowsErrorOnPost()
+            {
+                var fakeEmail = "test@example.com";
+                GetMock<IFeatureFlagService>()
+                    .Setup(s => s.IsNuGetAccountPasswordLoginEnabled())
+                    .Returns(false);
+
+                var configMock = new Mock<ILoginDiscontinuationConfiguration>();
+                configMock
+                    .Setup(x => x.IsEmailOnExceptionsList(fakeEmail))
+                    .Returns(false);
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(configMock.Object);
+
+                var controller = GetController<UsersController>();
+
+                var model = new ForgotPasswordViewModel { Email = fakeEmail };
+
+                var result = await controller.ForgotPassword(model) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.IsNotType<RedirectResult>(result);
+                Assert.Contains(Strings.ForgotPassword_Disabled_Error, result.ViewData.ModelState[string.Empty].Errors.Select(e => e.ErrorMessage));
             }
 
             public static IEnumerable<object[]> ResultTypes

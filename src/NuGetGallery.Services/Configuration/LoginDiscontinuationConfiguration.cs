@@ -104,6 +104,16 @@ namespace NuGetGallery
         {
             return IsPasswordDiscontinuedForAll;
         }
+
+        public bool IsEmailOnExceptionsList(string emailAddress)
+        {
+            if (string.IsNullOrEmpty(emailAddress))
+            {
+                return false;
+            }
+
+            return ExceptionsForEmailAddresses.Contains(emailAddress);
+        }
     }
 
     public class OrganizationTenantPair : IEquatable<OrganizationTenantPair>
