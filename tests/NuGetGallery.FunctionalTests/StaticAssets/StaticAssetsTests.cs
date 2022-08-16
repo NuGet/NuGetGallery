@@ -106,6 +106,13 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
                     "Scripts/gallery/page-support-requests.js",
                 }
             },
+            {
+                "Scripts/gallery/syntaxhighlight.min.js",
+                new[]
+                {
+                    "Scripts/gallery/syntaxhighlight.js",
+                }
+            },
         };
 
         private static readonly HashSet<string> BundleInputPaths = new HashSet<string>(Bundles.SelectMany(x => x.Value));
