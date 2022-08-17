@@ -134,7 +134,8 @@ namespace GitHubVulnerabilities2Db
         {
             containerBuilder
                 .RegisterInstance(_client)
-                .As<HttpClient>();
+                .As<HttpClient>()
+                .ExternallyOwned(); // We don't want autofac disposing this--see https://github.com/NuGet/NuGetGallery/issues/9194
 
             containerBuilder
                 .RegisterType<QueryService>()
