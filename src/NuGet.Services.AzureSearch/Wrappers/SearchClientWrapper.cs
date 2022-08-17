@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Azure;
@@ -49,7 +50,7 @@ namespace NuGet.Services.AzureSearch.Wrappers
                         while (await enumerator.MoveNextAsync())
                         {
                             // Only read the first page. We use paging parameters through the application to avoid paging.
-                            return new SingleSearchResultPage<T>(enumerator.Current.Values, results.TotalCount);
+                            return new SingleSearchResultPage<T>(enumerator.Current.Values, results.TotalCount, results.Facets);
                         }
                     }
                     finally
@@ -57,7 +58,7 @@ namespace NuGet.Services.AzureSearch.Wrappers
                         await enumerator.DisposeAsync();
                     }
 
-                    return new SingleSearchResultPage<T>(Array.Empty<SearchResult<T>>(), results.TotalCount);
+                    return new SingleSearchResultPage<T>(Array.Empty<SearchResult<T>>(), results.TotalCount, new Dictionary<string, IList<FacetResult>>());
                 },
                 allow404: false);
         }

@@ -73,7 +73,9 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
         {
             return new CollectAzureChinaCdnLogsConfiguration
             {
+                // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Test secret")]
                 AzureAccountConnectionStringSource = "DefaultEndpointsProtocol=https;AccountName=name;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.chinacloudapi.cn",
+                // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Test secret")]
                 AzureAccountConnectionStringDestination = "DefaultEndpointsProtocol=https;AccountName=name;AccountKey=cdummy4aadummyAAWhdummyAdummyA6A+dummydoAdummyJqdummymnm+H+2dummyA/dummygdummyqdummyKK==;EndpointSuffix=core.windows.net",
                 AzureContainerNameDestination = "DestContainer",
                 AzureContainerNameSource = "SourceContainer",
