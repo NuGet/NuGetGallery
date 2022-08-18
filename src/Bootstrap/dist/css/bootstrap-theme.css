@@ -675,6 +675,9 @@ img.reserved-indicator-icon {
 .readme-common tr:nth-child(even) {
   background-color: #f2f2f2;
 }
+.readme-common tr:nth-child(even) a {
+  color: #2d6da4;
+}
 .readme-common img.img-fluid {
   max-width: 100%;
 }
@@ -684,6 +687,9 @@ img.reserved-indicator-icon {
 }
 .readme-common blockquote {
   font-size: 16px;
+}
+.readme-common pre code.hljs {
+  background-color: #f6f8fa;
 }
 #readme-preview {
   padding-top: 0.25em;

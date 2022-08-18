@@ -146,6 +146,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsMarkdigMdSyntaxHighlightEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsNewAccount2FAEnforcementEnabled()
         {
             throw new NotImplementedException();

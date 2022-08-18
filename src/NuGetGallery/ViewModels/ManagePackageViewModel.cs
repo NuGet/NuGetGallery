@@ -12,6 +12,7 @@ namespace NuGetGallery
         public bool IsCurrentUserAnAdmin { get; set; }
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
         public bool IsLocked { get; set; }
+        public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; } 
         public EditPackageVersionReadMeRequest ReadMe { get; set; }
         public IReadOnlyDictionary<string, VersionListedState> VersionListedStateDictionary { get; set; }
         public IReadOnlyDictionary<string, VersionReadMeState> VersionReadMeStateDictionary { get; set; }

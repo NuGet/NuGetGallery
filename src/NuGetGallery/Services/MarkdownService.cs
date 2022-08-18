@@ -81,7 +81,8 @@ namespace NuGetGallery
             {
                 ImagesRewritten = false,
                 Content = "",
-                ImageSourceDisallowed = false
+                ImageSourceDisallowed = false,
+                IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
@@ -173,6 +174,8 @@ namespace NuGetGallery
                 }
             }
 
+            output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
+
             // CommonMark.Net does not support link attributes, so manually inject nofollow.
             using (var htmlWriter = new StringWriter())
             {
@@ -189,7 +192,8 @@ namespace NuGetGallery
             {
                 ImagesRewritten = false,
                 Content = "",
-                ImageSourceDisallowed = false
+                ImageSourceDisallowed = false,
+                IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
@@ -280,6 +284,8 @@ namespace NuGetGallery
 
                 renderer.Render(document);
                 output.Content = htmlWriter.ToString().Trim();
+
+                output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
                 return output;
             }
         }
