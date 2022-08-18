@@ -54,15 +54,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("# Heading", "<h1>Heading</h1>", true, 0)]
+            [InlineData("# Heading", "<h1 id=\"heading\">Heading</h1>", true, 0)]
             [InlineData("# Heading", "<h1>Heading</h1>", false, 0)]
-            [InlineData("# Heading", "<h2>Heading</h2>", true, 1)]
+            [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>", true, 1)]
             [InlineData("# Heading", "<h2>Heading</h2>", false, 1)]
-            [InlineData("# Heading", "<h6>Heading</h6>", true, 6)]
+            [InlineData("# Heading", "<h6 id=\"heading\">Heading</h6>", true, 6)]
             [InlineData("# Heading", "<h6>Heading</h6>", false, 6)]
-            [InlineData("# Heading", "<h6>Heading</h6>", true, 7)]
+            [InlineData("# Heading", "<h6 id=\"heading\">Heading</h6>", true, 7)]
             [InlineData("# Heading", "<h6>Heading</h6>", false, 7)]
-            [InlineData("# Heading", "<h6>Heading</h6>", true, 5)]
+            [InlineData("# Heading", "<h6 id=\"heading\">Heading</h6>", true, 5)]
             [InlineData("# Heading", "<h6>Heading</h6>", false, 5)]
             public void EncodesHtmlInMarkdownWithAdaptiveHeader(string originalMd, string expectedHtml, bool isMarkdigMdRenderingEnabled, int incrementHeadersBy)
             {
@@ -71,11 +71,11 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("# Heading", "<h2>Heading</h2>", false, true)]
+            [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>", false, true)]
             [InlineData("# Heading", "<h2>Heading</h2>", false, false)]
             [InlineData("<!-- foo --> <!-- foo \n bar --> baz", "<p>baz</p>", false, true)]
             [InlineData("<!-- foo --> <!-- foo \n bar --> baz", "<p>baz</p>", false, false)]
-            [InlineData("\ufeff# Heading with BOM", "<h2>Heading with BOM</h2>", false, true)]
+            [InlineData("\ufeff# Heading with BOM", "<h2 id=\"heading-with-bom\">Heading with BOM</h2>", false, true)]
             [InlineData("\ufeff# Heading with BOM", "<h2>Heading with BOM</h2>", false, false)]
             [InlineData("- List", "<ul>\n<li>List</li>\n</ul>", false, true)]
             [InlineData("- List", "<ul>\r\n<li>List</li>\r\n</ul>", false, false)]
@@ -103,8 +103,8 @@ namespace NuGetGallery
             [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\" /></p>", false, false)]
             [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" class=\"img-fluid\" alt=\"image\" /></p>", true, true)]
             [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\" /></p>", true, false)]
-            [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3>License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);\n</code></pre>", false, true)]
-            [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3>License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);\n</code></pre>", false, true)]
+            [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3 id=\"license\">License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);\n</code></pre>", false, true)]
+            [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3 id=\"license\">License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);\n</code></pre>", false, true)]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
             {
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
@@ -223,12 +223,11 @@ Some text
                 Assert.False(readMeResult.ImagesRewritten);
             }
 
-            [Fact]
-            public void TestToHtmlWithAutoLinks()
+            [Theory]
+            [InlineData("This is a http://www.google.com URL and https://www.google.com", "<p>This is a <a href=\"http://www.google.com/\" rel=\"noopener noreferrer nofollow\">http://www.google.com</a> URL and <a href=\"https://www.google.com/\" rel=\"noopener noreferrer nofollow\">https://www.google.com</a></p>")]
+            [InlineData("# This is a heading\n[Link](#this-is-a-heading)", "<h2 id=\"this-is-a-heading\">This is a heading</h2>\n<p><a href=\"#this-is-a-heading\" rel=\"noopener noreferrer nofollow\">Link</a></p>")]
+            public void TestToHtmlWithAutoLinks(string originalMd, string expectedHtml)
             {
-                var originalMd = "This is a http://www.google.com URL and https://www.google.com";
-
-                var expectedHtml = "<p>This is a <a href=\"http://www.google.com/\" rel=\"noopener noreferrer nofollow\">http://www.google.com</a> URL and <a href=\"https://www.google.com/\" rel=\"noopener noreferrer nofollow\">https://www.google.com</a></p>";
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
@@ -243,6 +242,22 @@ Some text
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.False(readMeResult.ImagesRewritten);
+            }
+
+            [Theory]
+            [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>")]
+            [InlineData("# This is a heading", "<h2 id=\"this-is-a-heading\">This is a heading</h2>")]
+            [InlineData("# This - is a &@! heading _ with . and ! -", "<h2 id=\"this-is-a-heading_with.and\">This - is a &amp;@! heading _ with . and ! -</h2>")]
+            [InlineData("# This is a *heading*", "<h2 id=\"this-is-a-heading\">This is a <em>heading</em></h2>")]
+            [InlineData("# This is a [heading](https://www.google.com)", "<h2 id=\"this-is-a-heading\">This is a <a href=\"https://www.google.com/\" rel=\"noopener noreferrer nofollow\">heading</a></h2>")]
+            [InlineData("# Heading\n# Heading", "<h2 id=\"heading\">Heading</h2>\n<h2 id=\"heading-1\">Heading</h2>")]
+            [InlineData("# 1.0 This is a heading", "<h2 id=\"this-is-a-heading\">1.0 This is a heading</h2>")]
+            [InlineData("# 1.0 & ^ % *\n# 1.0 & ^ % *", "<h2 id=\"section\">1.0 &amp; ^ % *</h2>\n<h2 id=\"section-1\">1.0 &amp; ^ % *</h2>")]
+            public void TestToHtmlWithAutoIdentifiers(string originalMd, string expectedHtml)
+            {
+                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
             }
         }
     }
