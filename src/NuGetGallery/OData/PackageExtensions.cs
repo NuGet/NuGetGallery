@@ -88,7 +88,7 @@ namespace NuGetGallery.OData
                     Created = p.Created,
                     Dependencies = p.FlattenedDependencies,
                     Description = p.Description,
-                    DownloadCount = p.PackageRegistration.DownloadCount > Int32.MaxValue ? (long)Int32.MaxValue : p.PackageRegistration.DownloadCount,
+                    DownloadCount = p.PackageRegistration.DownloadCount > 10000 ? (long)Int32.MaxValue : p.PackageRegistration.DownloadCount,
                     GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.NormalizedVersion,
                     IconUrl = p.IconUrl,
                     // We do not expose the internal IsLatestSemVer2 and IsLatestStableSemVer2 properties; 
