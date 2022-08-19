@@ -132,6 +132,29 @@ namespace NuGetGallery.OData.Interceptors
                 Assert.Null(actual.LicenseNames);
                 Assert.Null(actual.LicenseReportUrl);
             }
+
+            [Fact]
+            public void RestrictsExceedingDownloadCountsToInt32MaxValue()
+            {
+                // Arrange
+                var package = CreateFakeBasePackage();
+                package.PackageRegistration.DownloadCount = long.MaxValue;
+                var packages = new List<Package>
+                {
+                    package
+                }.AsQueryable();
+
+                // Act
+                var projected = PackageExtensions.ProjectV2FeedPackage(
+                    packages,
+                    siteRoot: "http://nuget.org",
+                    includeLicenseReport: false,
+                    semVerLevelKey: SemVerLevelKey.Unknown).ToList();
+
+                // Assert
+                var actual = projected.Single();
+                Assert.Equal(Int32.MaxValue, actual.DownloadCount);
+            }
         }
 
         /// <summary>
