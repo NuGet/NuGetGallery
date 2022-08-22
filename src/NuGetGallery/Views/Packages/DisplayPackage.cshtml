@@ -86,7 +86,9 @@
             {
                 Id = "package-manager",
                 CommandPrefix = "PM> ",
-                InstallPackageCommands = new [] { string.Format("Install-Package {0} -Version {1}", Model.Id, Model.Version) },
+                InstallPackageCommands = new [] { string.Format("NuGet\Install-Package {0} -Version {1}", Model.Id, Model.Version) },
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = "This command is intended to be used within the Package Manager Console in Visual Studio, as it uses the NuGet module's version of Install-Package. To use the Install-Package command included in the PackageManagement module, use the code supplied within the PowerShell tab."
             },
 
             new PackageManagerViewModel(".NET CLI")
