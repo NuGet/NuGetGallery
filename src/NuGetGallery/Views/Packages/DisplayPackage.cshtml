@@ -136,15 +136,6 @@
                 Id = Model.IsCakeExtension() ? "cake-extension" : "cake",
                 InstallPackageCommands = new [] { Model.GetCakeInstallPackageCommand() },
             },
-
-            new PackageManagerViewModel("PowerShell")
-            {
-                Id = "powershell",
-                CommandPrefix = "PS> ",
-                InstallPackageCommands = new [] { string.Format("PackageManagement\Install-Package {0} -RequiredVersion {1}", Model.Id, Model.Version) }
-                AlertLevel = AlertLevel.Info,
-                AlertMessage = "This command calls the version of Install-Package that is found within the PackageManagement module and is intended to be used within the default PowerShell console. Do not use this command within the Package Manager Console in Visual Studio."
-            },
         };
     }
 }
