@@ -18,6 +18,8 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
         public string[] owners { get; }
 
+        public string[] parents { get; set; }
+
         public ReservedNamespaceResultModel() { }
 
         public ReservedNamespaceResultModel(ReservedNamespace reservedNamespace, bool isExisting)
@@ -31,6 +33,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
             registrations = reservedNamespace.PackageRegistrations?.Select(pr => pr.Id).ToArray();
             owners = reservedNamespace.Owners?.Select(u => u.Username).ToArray();
             this.isExisting = isExisting;
+            parents = Array.Empty<string>();
         }
     }
 }

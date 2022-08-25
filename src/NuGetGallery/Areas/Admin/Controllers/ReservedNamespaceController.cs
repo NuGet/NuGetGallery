@@ -43,8 +43,25 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var notFoundPrefixQueries = prefixQueries.Except(foundPrefixes.Select(p => p.Value), StringComparer.OrdinalIgnoreCase);
             var notFoundPrefixes = notFoundPrefixQueries.Select(q => new ReservedNamespace(value: q, isSharedNamespace: false, isPrefix: true));
 
-            var resultModel = foundPrefixes.Select(fp => new ReservedNamespaceResultModel(fp, isExisting: true));
-            resultModel = resultModel.Concat(notFoundPrefixes.Select(nfp => new ReservedNamespaceResultModel(nfp, isExisting: false)).ToList());
+            var resultModel = foundPrefixes.Select(fp => new ReservedNamespaceResultModel(fp, isExisting: true)).ToList();
+
+            // Find if there are any shorter, parent reservations that should be inspected by the site admin.
+            // If you are reserving a new namespace that exists under and existing ("parent") namespace, the interests
+            // of the parent namespace should be considered by the site admin.
+            foreach (var model in resultModel)
+            {
+                var existingPrefixes = _reservedNamespaceService.GetReservedNamespacesForId(model.prefix.Value);
+                model.parents = existingPrefixes
+                    .Where(x => model.prefix.Value.StartsWith(x.Value, StringComparison.OrdinalIgnoreCase)
+                             && model.prefix.Value.Length > x.Value.Length)
+                    .Select(x => x.Value + (x.IsPrefix ? "*" : string.Empty))
+                    .OrderBy(x => x.Length)
+                    .ToArray();
+            }
+
+            resultModel = resultModel
+                .Concat(notFoundPrefixes.Select(nfp => new ReservedNamespaceResultModel(nfp, isExisting: false)).ToList())
+                .ToList();
 
             var results = new ReservedNamespaceSearchResult
             {
