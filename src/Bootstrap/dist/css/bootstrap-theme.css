@@ -1180,7 +1180,6 @@ p.frameworktableinfo-text {
   margin-top: 40px;
   font-weight: 400;
   margin-right: 18px;
-  display: inline;
 }
 .page-package-details .package-title h1 .version-title {
   font-size: 16px;
@@ -1188,7 +1187,6 @@ p.frameworktableinfo-text {
   color: #666666;
   margin-right: 14px;
   vertical-align: middle;
-  display: inline;
 }
 .page-package-details .package-title h1 .package-icon {
   height: 32px;
