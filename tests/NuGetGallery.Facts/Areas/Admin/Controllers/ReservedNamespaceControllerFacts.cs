@@ -51,6 +51,34 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Assert.Equal(notFoundCount, notFound.Count());
         }
 
+
+        [Theory]
+        [InlineData("Zzz.", "")]
+        [InlineData("Microsoft.", "")]
+        [InlineData("Microsoft.Zzz.", "Microsoft.*")]
+        [InlineData("microsoft.zzz.", "Microsoft.*")]
+        [InlineData("Microsoft.AspNet.", "Microsoft.*")]
+        [InlineData("Microsoft.AspNet.Zzz", "Microsoft.*, Microsoft.Aspnet.*")]
+        [InlineData("jquery.", "")]
+        [InlineData("jquery.Extentions.Zzz", "jquery.Extentions.*")]
+        public void IncludesParentNamespaces(string query, string parents)
+        {
+            // Arrange.
+            var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+            var reservedNamespaceService = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
+            var packageRegistrations = new Mock<IEntityRepository<PackageRegistration>>();
+            var controller = new ReservedNamespaceController(reservedNamespaceService, packageRegistrations.Object);
+
+            // Act.
+            JsonResult jsonResult = controller.SearchPrefix(query);
+
+            // Assert
+            dynamic data = jsonResult.Data;
+            var resultModelList = data.Prefixes as IEnumerable<ReservedNamespaceResultModel>;
+            var match = Assert.Single(resultModelList);
+            Assert.Equal(parents, string.Join(", ", match.parents));
+        }
+
         [Fact]
         public async Task AddNamespaceDoesNotReturnSuccessForInvalidNamespaces()
         {
