@@ -88,7 +88,10 @@ namespace NuGetGallery.OData
                     Created = p.Created,
                     Dependencies = p.FlattenedDependencies,
                     Description = p.Description,
-                    DownloadCount = p.PackageRegistration.DownloadCount,
+                    // Some of the older clients and packages (eg: NuGet.Core) suffer from integer overflow when the download count
+                    // exceeds the MaxValue due to usage of Int32 for "DownloadCount" field. As such, for the V2 Feed restrict the download
+                    // count to Int32.MaxValue in order to allow older clients to successfully fetch these values.
+                    DownloadCount = p.PackageRegistration.DownloadCount > Int32.MaxValue ? (long)Int32.MaxValue : p.PackageRegistration.DownloadCount,
                     GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.NormalizedVersion,
                     IconUrl = p.IconUrl,
                     // We do not expose the internal IsLatestSemVer2 and IsLatestStableSemVer2 properties; 
