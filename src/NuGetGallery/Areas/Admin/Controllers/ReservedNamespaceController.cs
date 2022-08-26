@@ -39,12 +39,28 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var prefixQueries = GetPrefixesFromQuery(query);
 
             var foundPrefixes = _reservedNamespaceService.FindReservedNamespacesForPrefixList(prefixQueries);
+            var valueToNamespace = foundPrefixes.ToDictionary(x => x.Value, StringComparer.OrdinalIgnoreCase);
 
-            var notFoundPrefixQueries = prefixQueries.Except(foundPrefixes.Select(p => p.Value), StringComparer.OrdinalIgnoreCase);
-            var notFoundPrefixes = notFoundPrefixQueries.Select(q => new ReservedNamespace(value: q, isSharedNamespace: false, isPrefix: true));
+            var resultModel = new List<ReservedNamespaceResultModel>();
+            foreach (var value in prefixQueries)
+            {
+                bool isExisting = valueToNamespace.TryGetValue(value, out var ns);
+                if (!isExisting)
+                {
+                    ns = new ReservedNamespace(value: value, isSharedNamespace: false, isPrefix: true);
+                }
 
-            var resultModel = foundPrefixes.Select(fp => new ReservedNamespaceResultModel(fp, isExisting: true));
-            resultModel = resultModel.Concat(notFoundPrefixes.Select(nfp => new ReservedNamespaceResultModel(nfp, isExisting: false)).ToList());
+                var existingPrefixes = _reservedNamespaceService.GetReservedNamespacesForId(value);
+
+                var parents = existingPrefixes
+                    .Where(x => value.StartsWith(x.Value, StringComparison.OrdinalIgnoreCase)
+                             && value.Length > x.Value.Length)
+                    .Select(x => x.Value + (x.IsPrefix ? "*" : string.Empty))
+                    .OrderBy(x => x.Length)
+                    .ToArray();
+
+                resultModel.Add(new ReservedNamespaceResultModel(ns, isExisting, parents));
+            }
 
             var results = new ReservedNamespaceSearchResult
             {
